@@ -10,23 +10,29 @@ body
 }
 .section
 {
+    position: relative;
     height: 100vh;
     background-color: aquamarine;
+    border-bottom: 1px solid blue;
 }
 
 
 /* Navigation Bar  */
 .navigationbar
 {
+    width: 100%;
+    position: fixed;
+    top: -5px;
     height: 7vh;
-    background-color: #0a111b00;
+    background-color: #0a111b3a;
     border-bottom: none;
-    box-shadow: 0 4px 25px rgb(14 36 49 / 15%);
+    box-shadow: 0 4px 25px rgba(14, 36, 49, 0.11);
+    z-index: 1;
 }
 .navigationbar .brand
 {
     position: relative;
-    top: 5px;
+    top: 7px;
     left: 50px;
     width: 260px;
     height: 45px;
@@ -36,10 +42,13 @@ body
 }
 .navigationbar .brand img
 {
-    border-radius: 25px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
     width: 45px;
     height: 45px;
 }
+/* Sections */
 /* Footer */
 .footer
 {

@@ -4,7 +4,7 @@
 
 
 
-> Fixing Soon Till 1/8/22
+> Fixing Soon
 
 **Bhingradiya-Meet/Bhingradiya-Meet** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
 

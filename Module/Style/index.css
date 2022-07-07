@@ -1,3 +1,4 @@
+/* Normal Mod */
 *
 {
     margin: 0px;
@@ -17,16 +18,38 @@ body
     height: 100vh;
     background-color: aquamarine;
 }
+
+
+/* Navigation Bar  */
 .navigationbar
 {
     height: 7vh;
-    background-color: #0e192b88;
+    background-color: #0a111b00;
     border-bottom: none;
     box-shadow: 0 4px 25px rgb(14 36 49 / 15%);
 }
+.navigationbar .brand
+{
+    position: relative;
+    top: 5px;
+    left: 50px;
+    width: 260px;
+    height: 45px;
+    font-size: 25px;
+    gap: 5px;
+    font-weight: 600;
+}
+.navigationbar .brand img
+{
+    border-radius: 25px;
+    width: 45px;
+    height: 45px;
+}
+/* Footer */
 .footer
 {
     height: 50vh;
     background-color: #0e2431;
     border-bottom: none;
 }
+/* Media Querys */

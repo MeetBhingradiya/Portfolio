@@ -16,7 +16,7 @@
     position: fixed;
     top: 0;
     right: 0;
-    width: 10px;
+    width: 5px;
     background: linear-gradient(to top, #008aff, #00ffe7);
     animation: bar 5s linear infinite;
 }
@@ -58,7 +58,7 @@
     position: fixed;
     top: 0;
     right: 0;
-    width: 10px;
+    width: 5px;
     height: 100%;
     background: rgba(255, 255, 255, 0.1);
 }

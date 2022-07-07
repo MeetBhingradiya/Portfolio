@@ -1,0 +1,32 @@
+*
+{
+    margin: 0px;
+}
+
+:root
+{
+
+}
+body
+{
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.section
+{
+    height: 100vh;
+    background-color: aquamarine;
+}
+.navigationbar
+{
+    height: 7vh;
+    background-color: #0e192b88;
+    border-bottom: none;
+    box-shadow: 0 4px 25px rgb(14 36 49 / 15%);
+}
+.footer
+{
+    height: 50vh;
+    background-color: #0e2431;
+    border-bottom: none;
+}

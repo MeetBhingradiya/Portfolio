@@ -13,6 +13,8 @@ function ScrollEffect()
                 // if(ScrolledDown =)
             }
     }
+
+/*===== Links Activator =====*/
 function Activator(i)
     {
         for(Link of Links)

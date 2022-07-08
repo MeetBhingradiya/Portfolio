@@ -28,9 +28,30 @@ for (let j = 0;j<Links.length;j++)
         })
     }
 
-const sr = ScrollReveal({
-    origin: 'top',
-    distance: '80px',
+const Right = ScrollReveal({
+    origin: 'right',
+    distance: '100px',
     duration: 2000,
     reset: true
 });
+const Left = ScrollReveal({
+    origin: 'left',
+    distance: '100px',
+    duration: 2000,
+    reset: true
+});
+const Top = ScrollReveal({
+    origin: 'top',
+    distance: '100px',
+    duration: 2000,
+    reset: true
+});
+// const Bottom = ScrollReveal({
+//     origin: 'bottom',
+//     distance: '100px',
+//     duration: 2000,
+//     reset: true
+// });
+
+Top.reveal('.Links',{delay: 200}); 
+Top.reveal('.brand',{delay: 200}); 

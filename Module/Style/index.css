@@ -12,7 +12,6 @@ body
 {
     position: relative;
     height: 100vh;
-    background-color: aquamarine;
     border-bottom: 1px solid blue;
 }
 
@@ -23,7 +22,7 @@ body
     width: 100%;
     position: fixed;
     top: -5px;
-    height: 7vh;
+    height: 8vh;
     background-color: #0a111b3a;
     border-bottom: none;
     box-shadow: 0 4px 25px rgba(14, 36, 49, 0.11);
@@ -32,7 +31,7 @@ body
 .navigationbar .brand
 {
     position: relative;
-    top: 7px;
+    top: calc(100% - 53px);
     left: 50px;
     width: 260px;
     height: 45px;
@@ -47,6 +46,35 @@ body
     border-radius: 15px;
     width: 45px;
     height: 45px;
+}
+.navigationbar .Links
+{
+    position: absolute;
+    right: calc(100% - 1490px);
+    top: calc(100% - 47px);
+    list-style: none;
+    display: flex;
+    gap: 30px;
+    font-size: 20px;
+}
+.navigationbar .Links a
+{
+    text-decoration: none;
+    color: white;
+}
+.navigationbar .Links li
+{
+    position: relative;
+}
+.navigationbar .Links li:hover
+{
+    position: relative;
+    color: azure;
+}
+.navigationbar .Links li .active
+{
+    position: relative;
+    color: rgb(0, 97, 97);
 }
 /* Sections */
 /* Footer */

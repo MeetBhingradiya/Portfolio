@@ -12,13 +12,12 @@ body
 {
     position: relative;
     height: 100vh;
-    border-bottom: 1px solid blue;
+    border-bottom: 2px solid rgba(0, 0, 255, 0.068);
 }
 .section a
 {
     opacity: 0;
 }
-
 
 /* Navigation Bar  */
 .navigationbar
@@ -35,7 +34,7 @@ body
 .navigationbar .brand
 {
     position: relative;
-    top: calc(100% - 53px);
+    top: calc(100% - 55px);
     left: 50px;
     width: 260px;
     height: 45px;
@@ -55,7 +54,7 @@ body
 {
     position: fixed;
     left: calc(100% - 450px);
-    top: 10px;
+    top: 15px;
     list-style: none;
     display: flex;
     gap: 30px;
@@ -73,12 +72,12 @@ body
 .navigationbar .Links li:hover
 {
     position: relative;
-    color: azure;
+    color: blue;
 }
 .navigationbar .Links li .active
 {
     position: relative;
-    color: rgb(0, 97, 97);
+    color: red;
 }
 /* Sections */
 /* Footer */

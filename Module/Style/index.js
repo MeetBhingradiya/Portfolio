@@ -53,5 +53,5 @@ const Top = ScrollReveal({
 //     reset: true
 // });
 
-Top.reveal('.Links',{delay: 200}); 
-Top.reveal('.brand',{delay: 200}); 
+// Top.reveal('.Links',{delay: 200}); 
+// Top.reveal('.brand',{delay: 200}); 

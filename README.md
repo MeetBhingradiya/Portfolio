@@ -1,8 +1,9 @@
 <!-- Header -->
 <h1 align="center">✨ Hello, I'm Meet ✨</h1>
-<h3 align="center"> Coming soon !</h3>
+<h3 align="center"></h3>
 
 >✨ About me ✨
+>+ My Dream : Become A Full Steck WebDevloper
 >+ Age : 17 [2022]
 
 

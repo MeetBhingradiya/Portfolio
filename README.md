@@ -5,6 +5,8 @@
 >✨ About me ✨
 >+ My Dream : Become A Full Steck WebDevloper
 >+ Age : 17 [2022]
+>+ Pronouns : his/him
+>+ My Portfoliyo : [Link](https://teamsm.myftp.org/) Does't Work Use this [Link](https://meetbhingradiya.github.io/MeetBhingradiya/)
 
 
 >🔭 Lerned : Tools and Languages
@@ -16,13 +18,12 @@
 > 👯 Coming Up ! : Tools and Languages
 <p align="left"><img src="https://img.icons8.com/color/48/000000/wordpress.png"/> <img src="https://img.icons8.com/color/48/000000/c-sharp-logo.png"/> <img src="https://img.icons8.com/color/48/000000/django.png"/> <img src="https://img.icons8.com/color/48/000000/graphql.png"/><img src="https://img.icons8.com/color/48/000000/java-coffee-cup-logo--v1.png"/> <img src="https://img.icons8.com/color/48/000000/mongodb.png"/> <img src="https://img.icons8.com/color/48/000000/python--v1.png"/> <img src="https://img.icons8.com/color/48/000000/vue-js.png"/> <img src="https://img.icons8.com/color/48/000000/flutter.png"/> <img src="https://img.icons8.com/color/48/000000/angularjs.png"/> <img src="https://img.icons8.com/color/48/000000/android-studio--v2.png"/> <img src="https://img.icons8.com/color/48/000000/notepad-plus-plus.png"/> <img src="https://img.icons8.com/color/48/000000/sass.png"/> <img src="https://img.icons8.com/color/48/000000/flask.png"/> <img src="https://img.icons8.com/color/48/000000/unity.png"/></p>
 
-> Fixing Soon --------------------------<br>
 
 > Sosial Media
 <p align="left"><img src="https://img.icons8.com/color/48/000000/skype--v1.png"/> <img src="https://img.icons8.com/color/48/000000/discord-logo.png"/> <img src="https://img.icons8.com/color/48/000000/gmail-new.png"/></p>
 
 
-
+<!-- 
 ✨ ✨
 
 
@@ -33,6 +34,6 @@
 - 💬 Ask me about ... 
 - 📫 How to reach me: ... Not For Now
 - ⚡ Fun fact: ...age : 17 [2022]
-- 😄 Pronouns: ... his/him
+- 😄 Pronouns: ... his/him -->
 
 <p style="display:flex;gap:10px"> <img align="left"style="width:300px" src="https://github-readme-stats.vercel.app/api?username=MeetBhingradiya&show_icons=true&theme=radical"><img style="width:300px" align="right" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&layout=compact"></p>

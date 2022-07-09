@@ -61,3 +61,12 @@
 
 | <a href="https://github.com/anuraghazra/github-readme-stats"><img align="center" src="https://github-readme-stats.vercel.app/api?username=MeetBhingradiya&show_icons=true&include_all_commits=true&theme=buefy&hide_border=true" alt="Anurag's github stats" /></a> | <a href="https://github.com/anuraghazra/github-readme-stats"><img align="center" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&layout=compact&theme=buefy&hide_border=true" /></a> |
 | ------------- | ------------- |
+
+>✨ My Favorite Games ✨
+
+> <img src="https://img.icons8.com/color/48/000000/minecraft-logo--v1.png"/>
+><img src="https://img.icons8.com/color/48/000000/hay-day.png"/>
+
+>✨ Contact Me ✨
+>
+> ```Not Available For Now```

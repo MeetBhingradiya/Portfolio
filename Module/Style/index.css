@@ -3,27 +3,27 @@
 {
     margin: 0px;
 }
+:root
+{
+    --title-color: rgb(255, 255, 255);
+    --accent-color: #ffa32b;
+    --background-color: #fff;
+    --navigationbar-color: #0a111b3a;
+    --footer-color: linear-gradient(180deg, #000000 0%, #121113 100%);
+}
 body
 {
     overflow-x: hidden;
     overflow-y: auto;
     background : white;
-}
-.div
-{
-    position: relative;
     height: auto;
-    left: 20px;
-    width:calc(100% - 40px);
-    background-color: rgb(34, 34, 34,1);
 }
-
 .section
 {
     position: relative;
     left: 0px;
+    height: 100%;
     right: 20px;
-    height: 100vh;
     border-bottom: 2px solid rgba(0, 0, 255, 0.068);
 }
 .section a
@@ -35,9 +35,7 @@ body
 .navigationbar
 {
     margin-bottom: 5px;
-    right: 20px;
-    left: 20px;
-    width:calc(100% - 40px);
+    width: 100%;
     position: fixed;
     height: 8vh;
     background-color: #0a111b3a;
@@ -48,13 +46,14 @@ body
 .navigationbar .brand
 {
     position: relative;
-    top: calc(100% - 55px);
-    left: 50px;
+    top: calc(100% - 90%);
+    left: 40px;
     width: 260px;
     height: 45px;
     font-size: 25px;
     gap: 5px;
     font-weight: 600;
+    color: var(--title-color);
 }
 .navigationbar .brand img
 {
@@ -67,8 +66,8 @@ body
 .navigationbar .Links
 {
     position: relative;
-    left: calc(100% - 450px);
-    top: calc(100% - 100px);
+    left: calc(100% - 24%);
+    top: calc(100% - 151%);
     list-style: none;
     display: flex;
     gap: 30px;
@@ -86,23 +85,62 @@ body
 .navigationbar .Links li:hover a
 {
     transition: 0.5s;
-    color: #ffa32b;
+    color: var(--accent-color);
 }
 .navigationbar .Links li .active
 {
     position: relative;
-    color: #ffa32b;
+    color: var(--accent-color);
 }
 /* Sections */
+.first
+{
+    position: relative;
+    width: 1440px;
+    height: 717px;
+    left: 0px;
+    top: 0px;
+}
+.first .personimg .person
+{
+    position: absolute;
+    width: 540px;
+    height: 540px;
+    right: calc(100% - 102%);
+    top: calc(100% - 81%);
+}
+.first .personimg .svg2
+{
+    position: relative;
+    width: 496px;
+    height: 496px;
+    right: calc(100% - 152%);
+    top: calc(100% - 81%);
+    mix-blend-mode: normal;
+    border-radius: 50%;
+    opacity: 0.16;
+    border: 2px solid #828282;
+    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+    background-color: blue;
+}
+.first .personimg .svg1
+{
+    position: relative;
+    width: 245px;
+    height: 179.46px;
+    right: 515px;
+    top: 477px;
+    background-color: red;
+}
 /* Footer */
 .footer
 {
     position: relative;
     left: -20px;
     width: calc(100% + 40px);
-    height: 50vh;
-    background-image: linear-gradient(180deg, #000000 0%, #121113 100%);
+    height: 60vh;
+    background-image: var(--footer-color);
     border-bottom: none;
-} 
-/* Media Querys 
+}
+/* Media Querys
 Media Query 

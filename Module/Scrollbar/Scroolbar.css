@@ -14,7 +14,7 @@
 #progressbar 
 {
     position: fixed;
-    top: 0;
+    top: 8vh;
     right: 0;
     width: 2px;
     background: linear-gradient(to top, #008aff, #00ffe7);
@@ -56,7 +56,7 @@
 #scrollpath 
 {
     position: fixed;
-    top: 0;
+    top: 8vh;
     right: 0;
     width: 2px;
     height: 100%;

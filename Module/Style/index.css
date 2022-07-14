@@ -21,10 +21,10 @@ body
 .section
 {
     position: relative;
-    left: 0px;
-    height: 100%;
-    right: 20px;
-    border-bottom: 2px solid rgba(0, 0, 255, 0.068);
+    width: 100%;
+    height: 92vh;
+    background-color: white;
+    border-bottom: #121113;
 }
 .section a
 {
@@ -96,41 +96,40 @@ body
 .first
 {
     position: relative;
-    width: 1440px;
-    height: 717px;
-    left: 0px;
-    top: 0px;
+    /* left: 0px; */
+    top: 8vh;
+    height: 100vh;
 }
-.first .personimg .person
+.first .image
 {
     position: absolute;
-    width: 540px;
-    height: 540px;
-    right: calc(100% - 102%);
-    top: calc(100% - 81%);
+    height: 100vh;
+    width: 50%;
+    left: 50%;
+    background-color: rgb(247, 0, 255);
 }
-.first .personimg .svg2
+.first .image .images
 {
-    position: relative;
-    width: 496px;
-    height: 496px;
-    right: calc(100% - 152%);
-    top: calc(100% - 81%);
-    mix-blend-mode: normal;
-    border-radius: 50%;
-    opacity: 0.16;
-    border: 2px solid #828282;
-    filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+    position: absolute;
+    width: 593px;
+    height: 575px;
+    left: 100px;
+    top: 92px;
+    background-color: aqua;
+}
+.first .header
+{
+    height: 100vh;
+    width: 50%;
+}
+.first .header .text
+{
+    position: absolute;
+    width: 475px;
+    height: 386px;
+    left: 165px;
+    top: 117px;
     background-color: blue;
-}
-.first .personimg .svg1
-{
-    position: relative;
-    width: 245px;
-    height: 179.46px;
-    right: 515px;
-    top: 477px;
-    background-color: red;
 }
 /* Footer */
 .footer

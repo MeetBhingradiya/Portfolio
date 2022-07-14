@@ -15,38 +15,77 @@ for (let j = 0;j<Links.length;j++)
     }
 
 
+/*===== Scroll Animation =====*/
 
-const Top = ScrollReveal({
-    origin: 'top',
-    distance: '100px',
-    duration: 2000
-});
-
-
-
-const Bottom = ScrollReveal({
-    origin: 'bottom',
-    distance: '100px',
-    duration: 2000,
-    reset: true
-});
-
-
-
-
+// Non Resetable Right
 const NonResetRight = ScrollReveal({
     origin: 'right',
     distance: '100px',
     duration: 2000,
     reset:false
 });
-NonResetRight.reveal('.Links',{delay: 200}); 
-// NonResetRight.reveal('.personimg',{delay: 200});
+NonResetRight.reveal('.Links',{delay: 150});
 
+
+// Non Resetable Left
 const NonResetLeft = ScrollReveal({
     origin: 'left',
     distance: '100px',
     duration: 2000,
     reset:false
 });
-NonResetLeft.reveal('.brand',{delay: 200}); 
+NonResetLeft.reveal('.brand',{delay: 150}); 
+
+
+// Non Resetable Top
+const NonResetTop = ScrollReveal({
+    origin: 'top',
+    distance: '100px',
+    duration: 2000,
+    reset:false
+});
+
+
+// Non Resetable Bottom
+const NonResetBottom = ScrollReveal({
+    origin: 'bottom',
+    distance: '100px',
+    duration: 2000,
+    reset:false
+});
+
+
+// Resetable Right
+const Right = ScrollReveal({
+    origin: 'right',
+    distance: '100px',
+    duration: 2000,
+    reset:true
+});
+
+
+// Resetable Left
+const Left = ScrollReveal({
+    origin: 'left',
+    distance: '100px',
+    duration: 2000,
+    reset:true
+});
+
+
+// Resetable Top
+const Top = ScrollReveal({
+    origin: 'top',
+    distance: '100px',
+    duration: 2000,
+    reset:true
+});
+
+
+// Resetable Bottom
+const Bottom = ScrollReveal({
+    origin: 'bottom',
+    distance: '100px',
+    duration: 2000,
+    reset:true
+});

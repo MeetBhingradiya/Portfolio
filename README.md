@@ -26,11 +26,12 @@
 <img src="https://img.icons8.com/color/48/000000/visual-studio--v2.png"/>
 <img src="https://img.icons8.com/color/48/000000/tailwindcss.png"/>
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/php/php-original.svg" alt="php" width="40" height="40"/> <img src="https://img.icons8.com/color/48/000000/filezilla.png"/>
+<img src="https://img.icons8.com/color/48/000000/nodejs.png"/>
 </p>
 
 >🌱 Learning : Languages
 <p align="left">
-<img src="https://img.icons8.com/color/48/000000/nodejs.png"/>
+<img src="https://img.icons8.com/color/48/000000/mongodb.png"/>
 <img src="https://img.icons8.com/color/48/000000/react-native.png"/>
 </p>
 
@@ -40,7 +41,7 @@
 <img src="https://img.icons8.com/color/48/000000/django.png"/>
 <img src="https://img.icons8.com/color/48/000000/graphql.png"/>
 <img src="https://img.icons8.com/color/48/000000/java-coffee-cup-logo--v1.png"/>
-<img src="https://img.icons8.com/color/48/000000/mongodb.png"/>
+
 <img src="https://img.icons8.com/color/48/000000/python--v1.png"/>
 <img src="https://img.icons8.com/color/48/000000/vue-js.png"/>
 <img src="https://img.icons8.com/color/48/000000/flutter.png"/>

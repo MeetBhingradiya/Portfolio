@@ -29,7 +29,6 @@
 <img src="https://img.icons8.com/fluency/48/000000/microsoft-onenote-2019.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/google-drive--v2.png"/>
 <img src="https://img.icons8.com/color/48/000000/codepen.png"/>
-<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/bootstrap/bootstrap-plain-wordmark.svg" alt="bootstrap" width="40" height="40"/>
 <img src="https://img.icons8.com/color/48/000000/typescript.png"/>
 </p>
 
@@ -44,6 +43,7 @@
 <p align="left">
 <img src="https://img.icons8.com/color/48/000000/c-programming.png"/>
 <img src="https://img.icons8.com/color/48/000000/wordpress.png"/>
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/bootstrap/bootstrap-plain-wordmark.svg" alt="bootstrap" width="40" height="40"/>
 <img src="https://img.icons8.com/color/48/000000/c-sharp-logo.png"/>
 <img src="https://img.icons8.com/color/48/000000/django.png"/>
 <img src="https://img.icons8.com/color/48/000000/graphql.png"/>

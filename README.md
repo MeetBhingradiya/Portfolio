@@ -76,7 +76,7 @@
 <img src="https://img.icons8.com/fluency/48/000000/patreon.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/reddit.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/stackexchange.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/reddit.png"/>
+
 </p>
 
 >### Github Stats

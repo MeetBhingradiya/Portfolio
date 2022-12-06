@@ -48,7 +48,7 @@
 > ### 🌱 Learning : Frameworks
 
 <p align="left">
-<img src="https://img.icons8.com/color/48/000000/sass.png"/>
+<img src="https://img.icons8.com/color/48/000000/sass.png"/><img src="https://img.icons8.com/color/48/000000/python--v1.png"/>
 </p>
 
 > ### ⚡ Coming Up ! : Tools,Languages AND Frameworks
@@ -61,7 +61,6 @@
 <img src="https://img.icons8.com/color/48/000000/angularjs.png"/>
 <img src="https://img.icons8.com/color/48/000000/graphql.png"/>
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/bootstrap/bootstrap-plain-wordmark.svg" alt="bootstrap" width="40" height="40"/>
-<img src="https://img.icons8.com/color/48/000000/python--v1.png"/>
 <img src="https://img.icons8.com/color/48/000000/django.png"/>
 <img src="https://img.icons8.com/color/48/000000/flask.png"/>
 <img src="https://img.icons8.com/color/48/000000/android-studio--v2.png"/>
@@ -88,18 +87,16 @@
 
 + Soon
 
-<img src="https://img.icons8.com/color/48/000000/discord-logo.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/patreon.png"/>
+<img src="https://img.icons8.com/color/48/000000/discord-logo.png"/><img src="https://img.icons8.com/fluency/48/000000/patreon.png"/>
 </p>
-
-### Github States
-
-| <img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=MeetBhingradiya&theme=buefy" /> | <img align="center" src="https://github-readme-stats.vercel.app/api?username=MeetBhingradiya&show_icons=true&include_all_commits=true&theme=tokyonight&hide_border=true" /> |
-| --- | --- |
-
- <img align="left" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&layout=compact&theme=tokyonight&hide_border=true" />
-<Br><Br><Br><Br><Br><Br><Br>
 
  ### ✨ Contact Me ✨
 
  `Not Available For Now`
+
+### Github States
+<!-- <img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=MeetBhingradiya&theme=buefy" /> -->
+|  <img align="left" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&layout=compact&theme=tokyonight&hide_border=true" /> | <img align="center" src="https://github-readme-stats.vercel.app/api?username=MeetBhingradiya&show_icons=true&include_all_commits=true&hide_border=true" /> |
+| --- | --- |
+
+ <p align="center"><img src="https://profile-counter.glitch.me/MeetBhingradiya/count.svg" align="center" /></p>

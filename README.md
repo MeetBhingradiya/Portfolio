@@ -22,33 +22,38 @@
 <img src="https://img.icons8.com/fluency/48/000000/microsoft-excel-2019.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/microsoft-powerpoint-2019.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/microsoft-onenote-2019.png"/>
-<img src="https://img.icons8.com/color/48/000000/codepen.png"/>
+<img src="./Module/Image/vercel-icon-dark.png" width="44" height="44"/>
 <img src="https://img.icons8.com/color/48/000000/filezilla.png"/>
+<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/42/null/external-postman-is-the-only-complete-api-development-environment-logo-shadow-tal-revivo.png"/>
+<img src="https://img.icons8.com/color/48/000000/codepen.png"/>
 </p>
 
- ### Languages OR Frameworks
+ ### Languages OR Frameworks [With TimeLine]
 <p align="left">
 <img src="https://img.icons8.com/color/48/000000/html-5--v1.png"/>
 <img src="https://img.icons8.com/color/48/000000/css3.png"/>
-<img src="https://img.icons8.com/color/48/000000/tailwindcss.png"/>
-<img src="https://img.icons8.com/color/48/000000/javascript--v1.png"/>
-<img src="https://img.icons8.com/color/48/000000/typescript.png"/>
-<img src="https://img.icons8.com/color/48/000000/nodejs.png"/>
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/php/php-original.svg" alt="php" width="40" height="40"/>
 <img src="https://img.icons8.com/color/48/000000/mysql-logo.png"/>
 <img src="https://img.icons8.com/color/48/000000/maria-db.png"/>
-<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/php/php-original.svg" alt="php" width="40" height="40"/>
-<img src="https://img.icons8.com/color/48/000000/mongodb.png"/>
-<img src="https://img.icons8.com/nolan/48/react-native.png"/>
-<img src="https://img.icons8.com/color/48/000000/c-programming.png"/>
-<img src="https://img.icons8.com/sf-regular-filled/48/000000/github.png"/>
-<img src="https://img.icons8.com/color/48/000000/firebase.png"/>
 <img src="https://img.icons8.com/color/48/000000/java-coffee-cup-logo--v1.png"/>
+<img src="https://img.icons8.com/color/48/000000/javascript--v1.png"/>
+<img src="https://img.icons8.com/sf-regular-filled/48/000000/github.png"/>
+<img src="https://img.icons8.com/color/48/000000/nodejs.png"/>
+<img src="https://img.icons8.com/nolan/48/react-native.png"/>
+<img src="https://img.icons8.com/color/48/000000/firebase.png"/>
+<img src="https://img.icons8.com/color/48/000000/mongodb.png"/>
+<img src="https://img.icons8.com/color/48/000000/typescript.png"/>
+<img src="https://img.icons8.com/color/48/000000/sass.png"/>
+
 </p>
 
-> ### 🌱 Learning : Frameworks
+> ### 🌱 Learning : Frameworks [With TimeLine]
 
 <p align="left">
-<img src="https://img.icons8.com/color/48/000000/sass.png"/><img src="https://img.icons8.com/color/48/000000/python--v1.png"/>
+<img src="https://img.icons8.com/color/48/null/amazon-web-services.png"/>
+<img src="https://img.icons8.com/color/48/000000/c-programming.png"/>
+<img src="https://img.icons8.com/color/48/000000/android-studio--v2.png"/>
+<img src="https://img.icons8.com/color/48/null/dart.png"/>
 </p>
 
 > ### ⚡ Coming Up ! : Tools,Languages AND Frameworks
@@ -56,20 +61,28 @@
  ### Tools
 
 <p align="left">
-<img src="https://img.icons8.com/fluency/48/000000/docker.png"/>
 <img src="https://img.icons8.com/color/48/000000/flutter.png"/>
+<img src="https://img.icons8.com/color/48/000000/python--v1.png"/>
+<img src="https://img.icons8.com/fluency/48/000000/docker.png"/>
 <img src="https://img.icons8.com/color/48/000000/angularjs.png"/>
+<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/44/null/external-auth0-the-solution-you-need-for-web-mobile-iot-and-internal-applications-logo-shadow-tal-revivo.png"/>
+<img src="https://img.icons8.com/fluency/52/null/filmora.png"/>
+<img src="https://img.icons8.com/color/48/null/adobe-photoshop--v1.png"/>
+<img src="https://img.icons8.com/fluency/48/null/google-cloud.png"/>
+<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/40/null/external-digital-ocean-a-cloud-infrastructure-with-data-centers-worldwide-logo-shadow-tal-revivo.png"/>
+<img src="https://img.icons8.com/color/48/null/figma--v1.png"/>
+
 <img src="https://img.icons8.com/color/48/000000/graphql.png"/>
+<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" alt="cplusplus" width="45" height="45"/>
+<img src="https://img.icons8.com/color/48/000000/tailwindcss.png"/>
+<img src="https://img.icons8.com/color/48/000000/c-sharp-logo.png"/>
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/bootstrap/bootstrap-plain-wordmark.svg" alt="bootstrap" width="40" height="40"/>
 <img src="https://img.icons8.com/color/48/000000/django.png"/>
 <img src="https://img.icons8.com/color/48/000000/flask.png"/>
-<img src="https://img.icons8.com/color/48/000000/android-studio--v2.png"/>
 <img src="https://img.icons8.com/color/48/000000/vue-js.png"/>
 <img src="https://img.icons8.com/color/48/000000/notepad-plus-plus.png"/>
 <img src="https://img.icons8.com/color/48/000000/unity.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/swift.png"/>
-<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" alt="cplusplus" width="45" height="45"/>
-<img src="https://img.icons8.com/color/48/000000/c-sharp-logo.png"/>
 <img src="https://img.icons8.com/color/48/000000/wordpress.png"/>
 </p>
 
@@ -81,7 +94,7 @@
     <a href="https://www.youtube.com/@meetbhingradiya" target="blank">
         <img src="https://img.icons8.com/fluency/48/000000/youtube-play.png"/>
     </a>
-    <a href="https://www.linkedin.com/in/meet-bhingradiya-5b1b1b1b9/" target="blank">
+    <a href="https://www.linkedin.com/in/meet-bhingradiya-b10011241/" target="blank">
         <img src="https://img.icons8.com/fluency/48/000000/linkedin-2.png"/>
     </a>
 
@@ -92,7 +105,7 @@
 
  ### ✨ Contact Me ✨
 
- `Not Available For Now`
+ Email : ```contact@teamsm.live```
 
 ### Github States
 <!-- <img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=MeetBhingradiya&theme=buefy" /> -->

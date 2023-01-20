@@ -22,7 +22,7 @@
 <img src="https://img.icons8.com/fluency/48/000000/microsoft-excel-2019.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/microsoft-powerpoint-2019.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/microsoft-onenote-2019.png"/>
-<img src="./Module/Image/vercel-icon-dark.png" width="44" height="44"/>
+<img src="./Module/Image/vercel-icon-dark.png" width="40" height="40"/>
 <img src="https://img.icons8.com/color/48/000000/filezilla.png"/>
 <img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/42/null/external-postman-is-the-only-complete-api-development-environment-logo-shadow-tal-revivo.png"/>
 <img src="https://img.icons8.com/color/48/000000/codepen.png"/>

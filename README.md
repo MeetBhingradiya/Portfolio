@@ -4,10 +4,10 @@
 
  ### ✨ About me ✨
 
- - My Dream : Become A Full Steck WebDevloper
+ - My Dream : Become A Full Stack-Devloper
  - Age : 18 [2022]
  - Pronouns : his/him
- - Currontly Working on : [TEAMSM](https://teamsm.live)
+ - Currontly Working on : [TEAMSM (A Private Repository)](https://teamsm.live)
  - My Portfoliyo : [Link](https://meetbhingradiya.github.io/MeetBhingradiya/) Does't Work Use this [Link](https://meetbhingradiya.github.io/MeetBhingradiya/)
 > ### 🔭 Lerned : Tools and Languages
 
@@ -50,27 +50,28 @@
 > ### 🌱 Learning : Frameworks [With TimeLine]
 
 <p align="left">
-<img src="https://img.icons8.com/color/48/null/amazon-web-services.png"/>
-<img src="https://img.icons8.com/color/48/000000/c-programming.png"/>
-<img src="https://img.icons8.com/color/48/000000/android-studio--v2.png"/>
-<img src="https://img.icons8.com/color/48/null/dart.png"/>
-</p>
+Next.js
 
 > ### ⚡ Coming Up ! : Tools,Languages AND Frameworks
 
  ### Tools
 
 <p align="left">
-<img src="https://img.icons8.com/color/48/000000/flutter.png"/>
+</p>
+<img src="https://img.icons8.com/color/48/000000/c-programming.png"/>
+<img src="https://img.icons8.com/color/48/null/dart.png"/>
 <img src="https://img.icons8.com/color/48/000000/python--v1.png"/>
+<img src="https://img.icons8.com/color/48/null/amazon-web-services.png"/>
+<img src="https://img.icons8.com/color/48/000000/flutter.png"/>
+<img src="https://img.icons8.com/color/48/000000/android-studio--v2.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/docker.png"/>
 <img src="https://img.icons8.com/color/48/000000/angularjs.png"/>
 <img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/44/null/external-auth0-the-solution-you-need-for-web-mobile-iot-and-internal-applications-logo-shadow-tal-revivo.png"/>
 <img src="https://img.icons8.com/fluency/52/null/filmora.png"/>
 <img src="https://img.icons8.com/color/48/null/adobe-photoshop--v1.png"/>
 <img src="https://img.icons8.com/fluency/48/null/google-cloud.png"/>
-<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/40/null/external-digital-ocean-a-cloud-infrastructure-with-data-centers-worldwide-logo-shadow-tal-revivo.png"/>
-<img src="https://img.icons8.com/color/48/null/figma--v1.png"/>
+<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/37/null/external-digital-ocean-a-cloud-infrastructure-with-data-centers-worldwide-logo-shadow-tal-revivo.png"/>
+<img src="https://img.icons8.com/color/44/null/figma--v1.png"/>
 
 <img src="https://img.icons8.com/color/48/000000/graphql.png"/>
 <img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" alt="cplusplus" width="45" height="45"/>
@@ -84,6 +85,7 @@
 <img src="https://img.icons8.com/color/48/000000/unity.png"/>
 <img src="https://img.icons8.com/fluency/48/000000/swift.png"/>
 <img src="https://img.icons8.com/color/48/000000/wordpress.png"/>
+
 </p>
 
  > ### Sosial Media

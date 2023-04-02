@@ -105,8 +105,10 @@ Next.js / Remix / Gatsby
         <img src="https://img.icons8.com/fluency/48/000000/linkedin-2.png"/>
     </a>
 </p>
+
 + Soon
-<p>
+
+<p align="left">
 <img src="https://img.icons8.com/color/48/000000/discord-logo.png"/><img src="https://img.icons8.com/fluency/48/000000/patreon.png"/>
 </p>
 

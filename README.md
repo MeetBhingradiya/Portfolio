@@ -118,9 +118,8 @@ Email : `contact@teamsm.live`
 
 ### Github States
 
-
-| <img align="left" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&layout=compact&theme=tokyonight&hide_border=true" /> | <img align="center" src="https://github-readme-stats.vercel.app/api?username=MeetBhingradiya&show_icons=true&include_all_commits=true&hide_border=true" /> |
-| <img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=MeetBhingradiya&theme=buefy&hide_border=true" /> | <img align="center" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&hide_border=true" /> |
-| ------- | ------- |
+| <img align="left" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&layout=compact&theme=tokyonight&hide_border=true" />      | <img align="center" src="https://github-readme-stats.vercel.app/api?username=MeetBhingradiya&show_icons=true&include_all_commits=true&hide_border=true" />       |
+| ----------- | ----------- |
+| <img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=MeetBhingradiya&theme=buefy&hide_border=true" />   | <img align="center" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&hide_border=true" />        |
 
  <p align="center"><img src="https://profile-counter.glitch.me/MeetBhingradiya/count.svg" align="center" /></p>

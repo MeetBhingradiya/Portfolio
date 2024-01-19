@@ -1,125 +1,223 @@
-<!-- Header -->
-<h1 align="center">✨ Hello, I'm Meet ✨</h1>
-<h3 align="center"></h3>
+<img src="./assets/pixel-night-banner.gif" align="middle" alt="Banner" width="100%"/>
 
-### ✨ About me ✨
+<img src="./assets/borderseparator.gif" width="100%"/>
 
-- My Dream : Become A Full Stack-Devloper
-- Age : 18 [2022]
-- Pronouns : his/him
-- Currontly Working on : [TEAMSM (A Private Repository)](https://teamsm.live)
-- My Portfoliyo : [Link](https://meetbhingradiya.github.io/MeetBhingradiya/) Does't Work Use this [Link](https://meetbhingradiya.github.io/MeetBhingradiya/)
-  > ### 🔭 Lerned : Tools and Languages
+<div align="center">
+  <img src="./assets/animated-flame-01.gif" width="1.75%" align="left"/>
+  <img src="https://readme-typing-svg.demolab.com?font=Fira+Code&size=32&duration=2800&pause=2000&color=A9FEF7&center=true&vCenter=true&width=940&lines=Hey%2C+I'm+Meet+and+Welcome+to+my+Profile!" alt="Hey, I'm Meet and Welcome to my Profile! animated typed out" width="90%" align="middle"/>
+  <img src="./assets/animated-flame-01.gif" width="1.75%" align="right"/>
+</div>
 
-### Tools
+<img src="./assets/borderseparator.gif" width="100%"/>
 
-<p align="left">
+<div align="center">
+  <p><b>Profile Views</b></p>
+  <img src="https://profile-counter.glitch.me/MeetBhingradiya/count.svg" />
+</div>
 
-<img src="https://img.icons8.com/color/48/000000/visual-studio-code-2019.png"/>
-<img src="https://img.icons8.com/color/48/000000/git.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/stackoverflow.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/google-drive--v2.png"/>
-<img src="https://img.icons8.com/color/48/000000/visual-studio--v2.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/microsoft-word-2019.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/microsoft-excel-2019.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/microsoft-powerpoint-2019.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/microsoft-onenote-2019.png"/>
-<img src="./Module/Image/vercel-icon-dark.png" width="40" height="40"/>
-<img src="https://img.icons8.com/color/48/000000/filezilla.png"/>
-<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/42/null/external-postman-is-the-only-complete-api-development-environment-logo-shadow-tal-revivo.png"/>
-<img src="https://img.icons8.com/color/48/000000/codepen.png"/>
+<h2></h2>
 
-</p>
+<img align="right" src="./assets/vaporwave-aesthetic.gif" height="560px" alt="pixel city image">
 
-### Languages OR Frameworks [With TimeLine]
+<h2 align="center"> Self-taught<img src="./assets/animated-flame-01.gif" width="14px"/> and passionate<img src="./assets/animated-flame-01.gif" width="14px"/> about coding! </h2><br>
 
-<p align="left">
+- 👨‍💻 I'm Meet (Meet Bhingradiya)👋, a college student, I'm currently pursuing a Diploma IT Degree in the India. <br><br><br>
 
-<img src="https://img.icons8.com/color/48/000000/html-5--v1.png"/>
-<img src="https://img.icons8.com/color/48/000000/css3.png"/>
-<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/php/php-original.svg" alt="php" width="40" height="40"/>
-<img src="https://img.icons8.com/color/48/000000/mysql-logo.png"/>
-<img src="https://img.icons8.com/color/48/000000/maria-db.png"/>
-<img src="https://img.icons8.com/color/48/000000/java-coffee-cup-logo--v1.png"/>
-<img src="https://img.icons8.com/color/48/000000/javascript--v1.png"/>
-<img src="https://img.icons8.com/sf-regular-filled/48/000000/github.png"/>
-<img src="https://img.icons8.com/color/48/000000/nodejs.png"/>
-<img src="https://img.icons8.com/nolan/48/react-native.png"/>
-<img src="https://img.icons8.com/color/48/000000/firebase.png"/>
-<img src="https://img.icons8.com/color/48/000000/mongodb.png"/>
-<img src="https://img.icons8.com/color/48/000000/typescript.png"/>
-<img src="https://img.icons8.com/color/48/000000/sass.png"/>
+- 🌳 I’m currently learning WebScraping using Python! <br><br><br>
 
-</p>
+- 🐾 I’m looking to network and make friends here! <br><br><br>
 
-> ### 🌱 Learning : Frameworks [With TimeLine]
+- 🌊 2024 Goals: Learn Python and Selinium and Contribute to Open Source Projects. <br><br><br>
 
-<p align="left">
-Next.js / Remix / Gatsby
-</p>
+- ☕ Interest: Science, Space, GeoPolitics, and Coding. <br><br><br>
 
-> ### ⚡ Coming Up ! : Tools,Languages AND Frameworks
+- <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px"/> Hobbies: Sleeping & Coding. <br><br>
 
-### Tools
+<h2></h2>
 
-<p align="left">
+<img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
+<img src="./assets/animated-flame-01.gif" width="16px" align="right"/>
 
-<img src="https://img.icons8.com/color/48/000000/c-programming.png"/>
-<img src="https://img.icons8.com/color/48/null/dart.png"/>
-<img src="https://img.icons8.com/color/48/000000/python--v1.png"/>
-<img src="https://img.icons8.com/color/48/null/amazon-web-services.png"/>
-<img src="https://img.icons8.com/color/48/000000/flutter.png"/>
-<img src="https://img.icons8.com/color/48/000000/android-studio--v2.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/docker.png"/>
-<img src="https://img.icons8.com/color/48/000000/angularjs.png"/>
-<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/44/null/external-auth0-the-solution-you-need-for-web-mobile-iot-and-internal-applications-logo-shadow-tal-revivo.png"/>
-<img src="https://img.icons8.com/fluency/52/null/filmora.png"/>
-<img src="https://img.icons8.com/color/48/null/adobe-photoshop--v1.png"/>
-<img src="https://img.icons8.com/fluency/48/null/google-cloud.png"/>
-<img src="https://img.icons8.com/external-tal-revivo-shadow-tal-revivo/37/null/external-digital-ocean-a-cloud-infrastructure-with-data-centers-worldwide-logo-shadow-tal-revivo.png"/>
-<img src="https://img.icons8.com/color/44/null/figma--v1.png"/>
-<img src="https://img.icons8.com/color/48/000000/graphql.png"/>
-<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/cplusplus/cplusplus-original.svg" alt="cplusplus" width="45" height="45"/>
-<img src="https://img.icons8.com/color/48/000000/tailwindcss.png"/>
-<img src="https://img.icons8.com/color/48/000000/c-sharp-logo.png"/>
-<img src="https://raw.githubusercontent.com/devicons/devicon/master/icons/bootstrap/bootstrap-plain-wordmark.svg" alt="bootstrap" width="40" height="40"/>
-<img src="https://img.icons8.com/color/48/000000/django.png"/>
-<img src="https://img.icons8.com/color/48/000000/flask.png"/>
-<img src="https://img.icons8.com/color/48/000000/vue-js.png"/>
-<img src="https://img.icons8.com/color/48/000000/notepad-plus-plus.png"/>
-<img src="https://img.icons8.com/color/48/000000/unity.png"/>
-<img src="https://img.icons8.com/fluency/48/000000/swift.png"/>
-<img src="https://img.icons8.com/color/48/000000/wordpress.png"/>
+<div align="center">
+  <!-- <h2> <strong> 📚 Education </strong> <img src="./assets/borderseparator.gif"/> </h2>
+  <br> -->
 
-</p>
+  <!-- <a href="https://www.codewars.com/users/godkingjay" target="_blank">
+    <img src="https://img.shields.io/badge/Codewars-B1361E?style=for-the-badge&logo=Codewars&logoColor=white"/>
+  </a> -->
 
-> ### Sosial Media
+  <!-- <a href="https://www.coursera.org/user/35d06074c7104e91a2ec94c25ea37db4" target="_blank">
+    <img src="https://img.shields.io/badge/Coursera-0056D2?style=for-the-badge&logo=Coursera&logoColor=white"/>
+  </a> -->
 
-- Added
+  <!-- <a href="https://www.hackerrank.com/godking_jay" target="_blank">
+    <img src="https://img.shields.io/badge/-Hackerrank-2EC866?style=for-the-badge&logo=HackerRank&logoColor=white"/>
+  </a> -->
 
-<p align="left">
-    <a href="https://www.youtube.com/@meetbhingradiya" target="blank">
-        <img src="https://img.icons8.com/fluency/48/000000/youtube-play.png"/>
-    </a>
-    <a href="https://www.linkedin.com/in/meet-bhingradiya-b10011241/" target="blank">
-        <img src="https://img.icons8.com/fluency/48/000000/linkedin-2.png"/>
-    </a>
-</p>
+  <!-- <a href="https://leetcode.com/godkingjay/" target="_blank">
+    <img src="https://img.shields.io/badge/-LeetCode-FFA116?style=for-the-badge&logo=LeetCode&logoColor=white"/>
+  </a> -->
 
-+ Soon
+  <!-- <a href="https://www.sololearn.com/profile/9696303/" target="_blank">
+    <img src="https://img.shields.io/badge/Sololearn-f20057?style=for-the-badge&logoColor=white"/>
+  </a> -->
 
-<p align="left">
-<img src="https://img.icons8.com/color/48/000000/discord-logo.png"/><img src="https://img.icons8.com/fluency/48/000000/patreon.png"/>
-</p>
+  <!-- <a href="https://www.udemy.com/user/jarrian-vince-gloriana-gojar/" target="_blank">
+    <img src="https://img.shields.io/badge/Udemy-EC5252?style=for-the-badge&logo=Udemy&logoColor=white"/>
+  </a> -->
 
-### ✨ Contact Me ✨
+<!-- </div></br> -->
 
-Email : `contact@teamsm.live`
+<!-- <h2></h2> -->
 
-### Github States
+<div align="center">
+  <img src="./assets/pixel-neon.gif" alt="pixel guy using computer" width="100%" /><br>
+</div>
 
-| <img align="left" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&layout=compact&hide_border=true" />      | <img align="center" src="https://github-readme-stats.vercel.app/api?username=MeetBhingradiya&show_icons=true&include_all_commits=true&hide_border=true" />       |
-| ----------- | ----------- |
-| <img align="center" src="https://github-readme-streak-stats.herokuapp.com/?user=MeetBhingradiya&theme=buefy&hide_border=true" />   | <img align="center" src="https://github-readme-stats.vercel.app/api/top-langs/?username=MeetBhingradiya&hide_border=true" />        |
+<div align="center">
+  <img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
+  <img src="./assets/animated-flame-01.gif" width="16px" align="right"/>
+  
+  <h2> <strong> ⚙️ Technologies and Skills </strong><img src="./assets/borderseparator.gif"/></h2>
+  <br>
+  
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=meetbhingradiya&theme=radical&langs_count=10&card_width=540&layout=compact" alt="Most used languages">
+  <br>
 
- <p align="center"><img src="https://profile-counter.glitch.me/MeetBhingradiya/count.svg" align="center" /></p>
+  <a href="https://wakatime.com/@meetbhingradiya" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/wakatime?username=meetbhingradiya&theme=radical&layout=compact" alt="Wakatime Coding Time" width="540px">
+  </a>
+  <br>
+  <h2></h2>
+  <h3> <strong> Languages, Frameworks, and Tools </strong></h3>
+  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=git,github,gitlab,githubactions,nodejs,vite,html,css,sass,tailwind,js,ts,react,redux,java,c,cpp,py,firebase,mongodb,mysql,postman,netlify,vercel,figma,materialui,docker,aws,bootstrap,gcp,md,php,replit,rollupjs,stackoverflow,supabase,vite" alt="skills logos" />    
+  <br> 
+  <h2></h2>
+  <h3> <strong> Actively Learning </strong></h3>
+  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=androidstudio,electron,nextjs,selenium,py" alt="skills actively learning logos">
+  <br>
+
+  <h2></h2>
+  <h3> <strong> Planning to Learn </strong></h3>
+  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=remix,azure,cloudflare,dart,discord,django,dotnet,dynamodb,flask,flutter,gatsby,heroku,jenkins,jest,kotlin,jquery,linux,laravel,latex,maven,nestjs,nginx,nuxtjs,perl,ps,powershell,prisma,pug,pytorch,rust,svelte,sequelize,swift,tensorflow,unity,unreal,vitest,vue,vscode,webpack,wordpress,workers,xd, bots" alt="skills planning to learn logos">
+</div>
+
+<h2></h2>
+
+<img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
+<img src="./assets/animated-flame-01.gif" width="16px" align="right"/>
+
+<h2 align="center">💻 Workspace<img src="./assets/borderseparator.gif"/></h2>
+
+|                                                               👩‍💻 Device                                                               |                                                                                                                                                                                                                                                                                                                ⚙️ Specification                                                                                                                                                                                                                                                                                                                |                                                                                                                                         📃 Purpose                                                                                                                                         |
+| :----------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src="https://img.shields.io/badge/Asus%20Tuf%20Gaming%20A15-83B81A?style=for-the-badge&logo=asus&logoColor=white" alt="Asus Tuf Gaming A15"/> | <img src="https://img.shields.io/badge/Windows%2011%20Pro-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows 11 Pro"/> <img src="https://img.shields.io/badge/AMD%20Ryzen%205%204600H-ED1C24?style=for-the-badge&logo=amd&logoColor=white" alt="Windows 11 Pro"/> <img src="https://img.shields.io/badge/NVIDIA-GTX1650-76B900?style=for-the-badge&logo=nvidia&logoColor=white" alt="Nvidia GTX1650"/> <img src="https://img.shields.io/badge/512GB%20SSD-0078D6?style=for-the-badge" alt="512GB SSD"/> <img src="https://img.shields.io/badge/16GB%20DDR4-0078D6?style=for-the-badge&logoColor=white" alt="16GB RAM"> | <img src="https://img.shields.io/badge/🧑‍💻%20Work-007DB8?style=for-the-badge" alt="Work"> <img src="https://img.shields.io/badge/🧑‍💻%20Programming-202020?style=for-the-badge" alt="Programming"> <img src="https://img.shields.io/badge/🧑‍🎓%20School-00897B?style=for-the-badge" alt="School"> |
+
+<h2></h2>
+
+<div align="center">
+  <img src="./assets/pixel-night.gif" alt="pixel city night" width="100%" /><br>
+</div>
+
+<img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
+<img src="./assets/animated-flame-01.gif" width="16px" align="right"/>
+
+<div align="center">
+  <h2> 🏆 My Github Stats <img src="./assets/borderseparator.gif"/></h2><br>
+  <img src="https://github-profile-trophy.vercel.app/?username=meetbhingradiya&theme=radical&no-frame=true&no-bg=true&row=1&column=7" width="100%" alt="Trophy" align="middle" /> <br><h2></h2><br>
+  <img src="https://streak-stats.demolab.com?user=meetbhingradiya&theme=radical" width="49%" alt="streaks graph" />
+  <img src="https://github-readme-stats.vercel.app/api?username=meetbhingradiya&theme=radical&show_icons=true&count_private=true" width="49%" alt="stats graph" />
+</div> <br>
+
+<div align="center">
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=meetbhingradiya&custom_title=Meet Bhingradiya's%20GitHub%20Activity%20Graph&bg_color=141321&color=A9FEF7&line=626069&point=F8D847&area_color=FE428E&title_color=FE428E&area=true" alt="GodkingJay's Github Activity Graph" width="100%">
+</div>
+
+</br>
+
+<h2></h2>
+
+<img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
+<img src="./assets/animated-flame-01.gif" width="16px" align="right"/>
+
+<div align="center">
+  <h2 align="center">👨‍💻 Projects <img src="./assets/borderseparator.gif"/></h2><br>
+  No Projects Added Yet! (Public Projects Only)
+  <!-- <a href="https://github.com/godkingjay/selenium-twitter-scraper" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=selenium-twitter-scraper" width="49%" alt="Selenium Twitter Scraper"/>
+  </a>
+  <a href="https://github.com/godkingjay/sorsu" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=sorsu" width="49%" alt="SorSUcial"/>
+  </a>
+  <a href="https://github.com/godkingjay/library-management-system-next-react" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=library-management-system-next-react" width="49%" alt="LibMS"/>
+  </a>
+  <a href="https://github.com/godkingjay/Reddit-Clone" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=reddit-clone" width="49%" alt="Reddit Clone"/>
+  </a>
+  <a href="https://github.com/godkingjay/Authentic-Pinoy-Recipes-App" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=authentic-pinoy-recipes-app" width="49%" alt="Authentic Pinoy Recipes"/>
+  </a>
+  <a href="https://github.com/godkingjay/TypeScript-and-React_Quiz-App" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=TypeScript-and-React_Quiz-App" width="49%" alt="Quizard"/>
+  </a>
+  <a href="https://github.com/godkingjay/ionic-react-shadcn-starter" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=ionic-react-shadcn-starter" width="49%" alt="Ionic React Shadcn UI Starter"/>
+  </a>
+  <a href="https://github.com/godkingjay/turborepo-shadcn-starter" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=turborepo-shadcn-starter" width="49%" alt="Turborepo Shadcn UI Starter"/>
+  </a>
+  <a href="https://github.com/godkingjay/turbo-nextui-starter" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=turbo-nextui-starter" width="49%" alt="Turborepo NextUI Starter"/>
+  </a>
+  <a href="https://github.com/godkingjay/turborepo-next-django-starter" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=turborepo-next-django-starter" width="49%" alt="Turborepo Next Django Starter"/>
+  </a>
+  <a href="https://github.com/godkingjay/django-jwt-starter" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=django-jwt-starter" width="49%" alt="Django JWT Starter"/>
+  </a>
+  <a href="https://github.com/godkingjay/springer-nature-latex-template" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=springer-nature-latex-template" width="49%" alt="Springer Nature Latex Template"/>
+  </a>
+  <a href="https://github.com/godkingjay/BSCS-GVC-01-Infographics" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=BSCS-GVC-01-Infographics" width="49%" alt="Infographic Website: Artificial Intelligence - Behind Industries and Sectors"/>
+  </a> -->
+</div>
+
+</br>
+
+<h2></h2>
+
+<img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
+<img src="./assets/animated-flame-01.gif" width="16px" align="right"/>
+
+<div align="center">
+  <h2 align="center">✉️ Contact <img src="./assets/borderseparator.gif"/></h2>
+  <!-- <a href="https://www.facebook.com/meetbhingradiya" target="_blank">
+    <img src="./assets/logos/neon-facebook.png" width="48px" alt="Facebook"/>
+  </a> -->
+  &nbsp
+  <!-- <a href="https://twitter.com/meetbhingradiya" target="_blank">
+    <img src="./assets/logos/neon-twitter.png" width="48px" alt="Twitter"/>
+  </a> -->
+  &nbsp
+  <!-- <a href="https://www.instagram.com/_meet_bhingradiya_/" target="_blank">
+    <img src="./assets/logos/neon-instagram.png" width="48px" alt="Instagram"/>
+  </a> -->
+  &nbsp
+  <a href="https://www.linkedin.com/in/meetbhingradiya/" target="_blank">
+    <img src="./assets/logos/neon-linkedin.png" width="48px" alt="LinkedIn"/>
+  </a>
+  &nbsp
+  <!-- <a href="https://discord.com/users/385102038087892992" target="_blank">
+    <img src="./assets/logos/neon-discord.png" width="48px" alt="Discord"/>
+  </a> -->
+</div>
+
+<img src="./assets/animated-wave.svg" />
+
+<div align="center">
+  <img src="./assets/pixel-night.gif" alt="pixel city night" width="100%" /><br>
+  <h6 align="center">  </h6>
+  <img src="./assets/borderseparator.gif"/>
+  <h6 align="center"> 2021 - 2024 © Meet Bhingradiya | Readme from <a href="https://github.com/godkingjay">Jarrian Gojar</a> </h6>

@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    reactStrictMode: true,
-    webpack5: true,
-    images: {
-        domains: ['localhost'],
-    },
+    reactStrictMode: false,
     async headers() {
         return [
             {
@@ -34,6 +30,22 @@ const nextConfig = {
             },
         ];
     },
+
+    webpack: (
+        config,
+        { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
+    ) => {
+        config.experiments = {
+            topLevelAwait: true,
+            layers: true,
+        };
+        return config
+    },
+    experimental: {
+        esmExternals: "loose",
+        serverComponentsExternalPackages: ["mongoose"],
+    },
+
 };
 
 export default nextConfig;

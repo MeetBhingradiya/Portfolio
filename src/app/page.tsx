@@ -9,18 +9,18 @@ export default function Home() {
                 <Image
                     src="/meet.jpg"
                     alt="Meet Bhingradiya"
-                    width={200}
-                    height={200}
-                    property="false"
+                    width={150}
+                    height={150}
+                    priority={true}
                 />
                 </div>
                 <p className="soon">
                     Coming Soon!
                 </p>
-                <p>
-                    Blogs, Projects and more...
-                </p>
             </a>
+            <p>
+                Blogs, DevTools and more!
+            </p>
             <div className="footer">
                 Copyright © 2021 - {new Date().getFullYear()} Meet Bhingradiya
             </div>

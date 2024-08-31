@@ -35,7 +35,6 @@ body {
     backdrop-filter: blur(10px);
     background: rgba(var(--background-end-rgb), 0.5);
     border-radius: 1rem;
-    box-shadow: 0 0 1rem rgba(var(--foreground-rgb), 0.5);
     padding: 2rem;
     margin: 1rem;
     width: auto;
@@ -44,6 +43,12 @@ body {
     flex-direction: column;
     gap: 1rem;
     user-select: none;
+    transition: 1s;
+
+    &:hover {
+        transform: scale(1.05);
+        box-shadow: 0 0 1rem rgba(var(--foreground-rgb), 0.5);
+    }
 
     h1 {
         text-align: center;

@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function Home() {
     return (
         <>
-            <div className="Container">
+            <a className="Container" href="https://github.com/meetbhingradiya">
                 <h1>Meet Bhingradiya</h1>
                 <Image
                     src="/meet.jpg"
@@ -18,11 +18,9 @@ export default function Home() {
                 <p>
                     Blogs, Projects and more...
                 </p>
-            </div>
+            </a>
             <div className="footer">
-                <a href="https://github.com/meetbhingradiya">
-                    2021 - 2024 © Meet Bhingradiya
-                </a>
+                2021 - 2024 © Meet Bhingradiya
             </div>
         </>
     );

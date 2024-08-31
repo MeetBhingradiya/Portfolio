@@ -5,16 +5,15 @@ const defaultPriority = 0.5;
 const defaultFrequency = 'weekly';
 
 const fetchDynamicPages = async () => {
-    // Example dynamic pages with specific priorities
     return [
-        { route: 'blog/some-article', priority: 0.5, frequency: 'weekly' },
-        { route: 'projects/some-project', priority: 0.3 }
+        // { route: 'blog/some-article', priority: 0.5, frequency: 'weekly' },
+        // { route: 'projects/some-project', priority: 0.3 }
     ];
 };
 
 const SitemapTemplate = 
 `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">
 @Pages
 </urlset>
 `

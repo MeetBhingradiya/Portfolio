@@ -23,7 +23,7 @@
 
 - 👨‍💻 I'm Meet (Meet Bhingradiya)👋, a college student, I'm currently pursuing a Diploma IT Degree in the India. <br><br><br>
 
-- 🌳 I’m currently learning NextJS Eco System with POSTgres SQL<br><br><br>
+- 🌳 I’m currently learning NextJS Eco System<br><br><br>
 
 - 🐾 I’m looking to network and make friends here! <br><br><br>
 
@@ -90,16 +90,16 @@
   <br>
   <h2></h2>
   <h3> <strong> Languages, Frameworks, and Tools </strong></h3>
-  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=git,github,gitlab,githubactions,nodejs,vite,html,css,sass,tailwind,js,ts,react,redux,java,c,cpp,py,firebase,mongodb,mysql,postman,netlify,vercel,figma,materialui,docker,aws,bootstrap,gcp,md,php,replit,rollupjs,stackoverflow,supabase,vite" alt="skills logos" />    
+  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=git,github,gitlab,githubactions,nodejs,vite,html,css,sass,tailwind,js,ts,react,redux,java,c,cpp,py,firebase,mongodb,mysql,postman,netlify,vercel,figma,materialui,docker,aws,bootstrap,gcp,md,php,replit,rollupjs,stackoverflow,supabase,vite,discord,cloudflare" alt="skills logos" />    
   <br> 
   <h2></h2>
   <h3> <strong> Actively Learning </strong></h3>
-  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=androidstudio,electron,nextjs,selenium,py" alt="skills actively learning logos">
+  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=nextjs,dotnet" alt="skills actively learning logos">
   <br>
 
   <h2></h2>
   <h3> <strong> Planning to Learn </strong></h3>
-  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=remix,azure,cloudflare,dart,discord,django,dotnet,dynamodb,flask,flutter,gatsby,heroku,jenkins,jest,kotlin,jquery,linux,laravel,latex,maven,nestjs,nginx,nuxtjs,perl,ps,powershell,prisma,pug,pytorch,rust,svelte,sequelize,swift,tensorflow,unity,unreal,vitest,vue,vscode,webpack,wordpress,workers,xd, bots" alt="skills planning to learn logos">
+  <img src="https://skillicons.dev/icons?theme=dark&perline=10&i=remix,azure,dart,django,dynamodb,flask,flutter,gatsby,heroku,jenkins,jest,kotlin,jquery,linux,laravel,latex,maven,nestjs,nginx,nuxtjs,perl,ps,powershell,prisma,pug,pytorch,rust,svelte,sequelize,swift,tensorflow,unity,unreal,vitest,vue,vscode,webpack,wordpress,workers,xd, bots" alt="skills planning to learn logos">
 </div>
 
 <h2></h2>

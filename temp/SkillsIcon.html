@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Icons Generator</title>
+</head>
+<body>
+    <h1>Skill Icons Generator</h1>
+
+    <label for="skill">Select a Skill:</label>
+    <select id="skill">
+        <option value="remix">Remix</option>
+        <option value="azure">Azure</option>
+        <option value="cloudflare">Cloudflare</option>
+        <option value="dart">Dart</option>
+        <option value="django">Django</option>
+        <option value="dotnet">.NET</option>
+        <option value="dynamodb">DynamoDB</option>
+        <option value="flask">Flask</option>
+        <option value="flutter">Flutter</option>
+        <option value="gatsby">Gatsby</option>
+        <option value="heroku">Heroku</option>
+        <option value="jenkins">Jenkins</option>
+        <option value="jest">Jest</option>
+        <option value="kotlin">Kotlin</option>
+        <option value="jquery">jQuery</option>
+        <option value="linux">Linux</option>
+        <option value="laravel">Laravel</option>
+        <option value="latex">LaTeX</option>
+        <option value="maven">Maven</option>
+        <option value="nestjs">NestJS</option>
+        <option value="nginx">Nginx</option>
+        <option value="nuxtjs">NuxtJS</option>
+        <option value="perl">Perl</option>
+        <option value="ps">Photoshop</option>
+        <option value="powershell">PowerShell</option>
+        <option value="prisma">Prisma</option>
+        <option value="pug">Pug</option>
+        <option value="pytorch">PyTorch</option>
+        <option value="rust">Rust</option>
+        <option value="svelte">Svelte</option>
+        <option value="sequelize">Sequelize</option>
+        <option value="swift">Swift</option>
+        <option value="tensorflow">TensorFlow</option>
+        <option value="unity">Unity</option>
+        <option value="unreal">Unreal Engine</option>
+        <option value="vitest">Vitest</option>
+        <option value="vue">Vue.js</option>
+        <option value="vscode">VS Code</option>
+        <option value="webpack">Webpack</option>
+        <option value="wordpress">WordPress</option>
+        <option value="workers">Cloudflare Workers</option>
+        <option value="xd">Adobe XD</option>
+        <option value="bots">Bots</option>
+    </select>
+
+    <button onclick="addSkill()">Add Skill</button>
+
+    <h2>Generated Image Tag</h2>
+    <textarea id="imgTag" rows="4" cols="100" readonly></textarea>
+
+    <h2>Preview</h2>
+    <div id="preview"></div>
+
+    <script>
+        let skills = [];
+        const imgTag = document.getElementById('imgTag');
+        const preview = document.getElementById('preview');
+
+        function addSkill() {
+            const skill = document.getElementById('skill').value;
+            if (!skills.includes(skill)) {
+                skills.push(skill);
+            }
+            updateImgTag();
+        }
+
+        function removeSkill(skill) {
+            skills = skills.filter(s => s !== skill);
+            updateImgTag();
+        }
+
+        function updateImgTag() {
+            const theme = "dark";
+            const perline = 10;
+            const skillsString = skills.join(",");
+            const url = `https://skillicons.dev/icons?theme=${theme}&perline=${perline}&i=${skillsString}`;
+            imgTag.value = `<img src="${url}" alt="skills logos">`;
+            preview.innerHTML = `<img src="${url}" alt="skills preview">`;
+        }
+    </script>
+</body>
+</html>

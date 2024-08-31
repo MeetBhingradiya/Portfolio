@@ -1,28 +1,42 @@
 import { NextResponse } from 'next/server';
+import { StaticPages } from './StaticPages';
+
+const defaultPriority = 0.5;
+const defaultFrequency = 'weekly';
+
+const fetchDynamicPages = async () => {
+    // Example dynamic pages with specific priorities
+    return [
+        { route: 'blog/some-article', priority: 0.5, frequency: 'weekly' },
+        { route: 'projects/some-project', priority: 0.3 }
+    ];
+};
+
+const SitemapTemplate = 
+`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+@Pages
+</urlset>
+`
 
 export async function GET() {
     const baseUrl = 'https://meetbhingradiya.vercel.app';
+    const dynamicPages = await fetchDynamicPages();
 
-    // List your static and dynamic routes here
-    const staticPages = ['', 'about', 'blog', 'projects'].map((route) => {
-        return `${baseUrl}/${route}`;
-    });
+    const allPages = [...StaticPages, ...dynamicPages];
 
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-    <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-    ${staticPages
-            .map((url) => {
-                return `
-            <url>
-                <loc>${url}</loc>
-                <lastmod>${new Date().toISOString()}</lastmod>
-                <changefreq>daily</changefreq>
-                <priority>0.7</priority>
-            </url>
+    const generatedSitemap = SitemapTemplate.replace('@Pages', allPages.map((page) => {
+        return `
+    <url>
+        <loc>${baseUrl}/${page.route? page.route : ""}</loc>
+        <lastmod>${new Date().toISOString()}</lastmod>
+        <changefreq>${page.frequency ? page.frequency : defaultFrequency}</changefreq>
+        <priority>${page.priority ? page.priority : defaultPriority}</priority>
+    </url>
         `;
-            })
-            .join('')}
-    </urlset>`;
+    }).join(''));
 
-    return NextResponse.json(sitemap, { headers: { 'Content-Type': 'text/xml' } });
+    return new NextResponse(generatedSitemap, {
+        headers: { 'Content-Type': 'text/xml' }
+    });
 }

@@ -50,6 +50,12 @@ body {
         box-shadow: 0 0 1rem rgba(var(--foreground-rgb), 0.5);
     }
 
+    .CENTER {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
     h1 {
         text-align: center;
         font-size: 1.2rem;

@@ -5,6 +5,7 @@ export default function Home() {
         <>
             <a className="Container" href="https://github.com/meetbhingradiya">
                 <h1>Meet Bhingradiya</h1>
+                <div className="CENTER">
                 <Image
                     src="/meet.jpg"
                     alt="Meet Bhingradiya"
@@ -12,6 +13,7 @@ export default function Home() {
                     height={200}
                     property="false"
                 />
+                </div>
                 <p className="soon">
                     Coming Soon!
                 </p>
@@ -20,7 +22,7 @@ export default function Home() {
                 </p>
             </a>
             <div className="footer">
-                2021 - 2024 © Meet Bhingradiya
+                Copyright © 2021 - {new Date().getFullYear()} Meet Bhingradiya
             </div>
         </>
     );

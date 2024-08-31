@@ -86,6 +86,12 @@ img {
     text-align: center;
     font-size: 0.8rem;
     user-select: none;
+
+    /* ? Gredient Silver & Black Border */
+    background: linear-gradient(to right,
+            rgba(var(--background-end-rgb), 0.5),
+            rgba(var(--background-start-rgb), 0.5));
+    border-top: 1px solid rgba(var(--foreground-rgb), 0.5);
 }
 
 @layer utilities {

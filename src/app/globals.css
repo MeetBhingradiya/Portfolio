@@ -25,6 +25,62 @@ body {
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.Container {
+    /* ? Glass Effect */
+    backdrop-filter: blur(10px);
+    background: rgba(var(--background-end-rgb), 0.5);
+    border-radius: 1rem;
+    box-shadow: 0 0 1rem rgba(var(--foreground-rgb), 0.5);
+    padding: 2rem;
+    margin: 1rem;
+    width: auto;
+    max-width: 30rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    user-select: none;
+
+    h1 {
+        text-align: center;
+        font-size: 1.2rem;
+        user-select: none;
+    }
+
+    p.soon {
+        text-align: center;
+        font-size: 0.8rem;
+        user-select: none;
+    }
+
+    p {
+        text-align: justify;
+        user-select: none;
+    }
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 50%;
+    box-shadow: 0 0 0.2rem rgba(var(--foreground-rgb), 0.5);
+    border: 1px solid rgba(var(--foreground-rgb), 0.5);
+    user-select: none;
+}
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem;
+    text-align: center;
+    font-size: 0.8rem;
+    user-select: none;
 }
 
 @layer utilities {

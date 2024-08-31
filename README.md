@@ -1,6 +1,6 @@
-<img src="./assets/pixel-night-banner.gif" align="middle" alt="Banner" width="100%"/>
+<!-- <img src="./assets/pixel-night-banner.gif" align="middle" alt="Banner" width="100%"/> -->
 
-<img src="./assets/borderseparator.gif" width="100%"/>
+<!-- <img src="./assets/borderseparator.gif" width="100%"/> -->
 
 <div align="center">
   <img src="./assets/animated-flame-01.gif" width="1.75%" align="left"/>
@@ -17,17 +17,17 @@
 
 <h2></h2>
 
-<img align="right" src="./assets/vaporwave-aesthetic.gif" height="560px" alt="pixel city image">
+<!-- <img align="right" src="./assets/vaporwave-aesthetic.gif" height="560px" alt="pixel city image"> -->
 
-<h2 align="center"> Self-taught<img src="./assets/animated-flame-01.gif" width="14px"/> and passionate<img src="./assets/animated-flame-01.gif" width="14px"/> about coding! </h2><br>
+<h2 align="center"> Self-taught and passionate about coding! </h2><br>
 
 - 👨‍💻 I'm Meet (Meet Bhingradiya)👋, a college student, I'm currently pursuing a Diploma IT Degree in the India. <br><br><br>
 
-- 🌳 I’m currently learning WebScraping using Python! <br><br><br>
+- 🌳 I’m currently learning NextJS Eco System with POSTgres SQL<br><br><br>
 
 - 🐾 I’m looking to network and make friends here! <br><br><br>
 
-- 🌊 2024 Goals: Learn Python and Selinium and Contribute to Open Source Projects. <br><br><br>
+- 🌊 2024 Goals: Contribute to Open Source Projects. <br><br><br>
 
 - ☕ Interest: Science, Space, GeoPolitics, and Coding. <br><br><br>
 
@@ -84,8 +84,8 @@
   <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=meetbhingradiya&theme=radical&langs_count=10&card_width=540&layout=compact" alt="Most used languages">
   <br>
 
-  <a href="https://wakatime.com/@meetbhingradiya" target="_blank">
-    <img src="https://github-readme-stats.vercel.app/api/wakatime?username=meetbhingradiya&theme=radical&layout=compact" alt="Wakatime Coding Time" width="540px">
+  <!-- <a href="https://wakatime.com/@meetbhingradiya" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/wakatime?username=meetbhingradiya&theme=radical&layout=compact" alt="Wakatime Coding Time" width="540px"> -->
   </a>
   <br>
   <h2></h2>
@@ -109,14 +109,14 @@
 
 <h2 align="center">💻 Workspace<img src="./assets/borderseparator.gif"/></h2>
 
-|                                                               👩‍💻 Device                                                               |                                                                                                                                                                                                                                                                                                                ⚙️ Specification                                                                                                                                                                                                                                                                                                                |                                                                                                                                         📃 Purpose                                                                                                                                         |
-| :----------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|                                                                     👩‍💻 Device                                                                      |                                                                                                                                                                                                                                                                                                             ⚙️ Specification                                                                                                                                                                                                                                                                                                              |                                                                                                                                          📃 Purpose                                                                                                                                          |
+| :------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://img.shields.io/badge/Asus%20Tuf%20Gaming%20A15-83B81A?style=for-the-badge&logo=asus&logoColor=white" alt="Asus Tuf Gaming A15"/> | <img src="https://img.shields.io/badge/Windows%2011%20Pro-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows 11 Pro"/> <img src="https://img.shields.io/badge/AMD%20Ryzen%205%204600H-ED1C24?style=for-the-badge&logo=amd&logoColor=white" alt="Windows 11 Pro"/> <img src="https://img.shields.io/badge/NVIDIA-GTX1650-76B900?style=for-the-badge&logo=nvidia&logoColor=white" alt="Nvidia GTX1650"/> <img src="https://img.shields.io/badge/512GB%20SSD-0078D6?style=for-the-badge" alt="512GB SSD"/> <img src="https://img.shields.io/badge/16GB%20DDR4-0078D6?style=for-the-badge&logoColor=white" alt="16GB RAM"> | <img src="https://img.shields.io/badge/🧑‍💻%20Work-007DB8?style=for-the-badge" alt="Work"> <img src="https://img.shields.io/badge/🧑‍💻%20Programming-202020?style=for-the-badge" alt="Programming"> <img src="https://img.shields.io/badge/🧑‍🎓%20School-00897B?style=for-the-badge" alt="School"> |
 
 <h2></h2>
 
 <div align="center">
-  <img src="./assets/pixel-night.gif" alt="pixel city night" width="100%" /><br>
+  <!-- <img src="./assets/pixel-night.gif" alt="pixel city night" width="100%" /><br> -->
 </div>
 
 <img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
@@ -130,7 +130,7 @@
 </div> <br>
 
 <div align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=meetbhingradiya&custom_title=Meet Bhingradiya's%20GitHub%20Activity%20Graph&bg_color=141321&color=A9FEF7&line=626069&point=F8D847&area_color=FE428E&title_color=FE428E&area=true" alt="Meet Bhingradiya's Github Activity Graph" width="100%">
+  <img src="https://github-readme-activity-graph.vercel.app/graph?username=meetbhingradiya&custom_title=meetbhingradiya's%20GitHub%20Activity%20Graph&bg_color=141321&color=A9FEF7&line=626069&point=F8D847&area_color=FE428E&title_color=FE428E&area=true" alt="Meet Bhingradiya's Github Activity Graph" width="100%">
 </div>
 
 </br>

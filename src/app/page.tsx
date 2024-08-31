@@ -16,7 +16,7 @@ export default function Home() {
                     Coming Soon!
                 </p>
                 <p>
-                    Blogs, Projects, DevTools and more...
+                    Blogs, Projects and more...
                 </p>
             </div>
             <div className="footer">

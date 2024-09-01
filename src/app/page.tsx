@@ -1,8 +1,15 @@
 import Image from "next/image";
 
 export default function Home() {
+    
+
     return (
         <>
+            <div className="Notification">
+                <p>
+                    This website is under construction. Please visit again later.
+                </p>
+            </div>
             <a className="Container" href="https://github.com/meetbhingradiya">
                 <h1>Meet Bhingradiya</h1>
                 <div className="CENTER">

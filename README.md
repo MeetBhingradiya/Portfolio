@@ -31,7 +31,7 @@
 
 - ☕ Interest: Science, Space, GeoPolitics, and Coding. <br><br><br>
 
-- <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px"/> Hobbies: Sleeping & Coding. <br><br>
+- <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px"/> Hobbies: Coding. <br><br>
 
 <!-- <h2></h2>
 

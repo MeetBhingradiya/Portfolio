@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.sass";
+import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -9,8 +9,8 @@ export const metadata: Metadata = {
     description: "A Portfolio Website of Meet Bhingradiya",
     icons: "favicon.ico",
     keywords: [
-        "Meet Bhingradiya", 
-        "Meet", 
+        "Meet Bhingradiya",
+        "Meet",
         "Bhingradiya",
         "Portfolio",
         "Meet Bhingradiya Portfolio",
@@ -23,6 +23,10 @@ export const metadata: Metadata = {
         "Gujarat",
         "India",
     ],
+    authors: {
+        name: "Meet Bhingradiya",
+        url: "https://github.com/MeetBhingradiya",
+    },
 };
 
 export default function RootLayout({
@@ -34,14 +38,19 @@ export default function RootLayout({
         <html lang="en">
             <head>
                 <meta charSet="utf-8" />
-                <meta name="viewport" content="width=device-width, initial-scale=1" />
-                <meta name="theme-color" content="#000" />
 
+                {/* Device View Port */}
+                <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+                {/* Mobile Browser Accent Colour */}
+                <meta name="theme-color" content="#000" />
 
                 {/* Google Search Console Verification */}
                 <meta name="google-site-verification" content="-eIAp0-BRCYjfoSuMDWpQTpgjQHadfvBbnf4le5IWBk" />
             </head>
-            <body className={inter.className}>{children}</body>
+            <body className={inter.className}>
+                {children}
+            </body>
         </html>
     );
 }

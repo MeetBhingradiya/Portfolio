@@ -4,11 +4,11 @@ export default function Home() {
     
 
     return (
-        <>
+        <div className="CommingSoon">
             <div className="Notification">
-                <p>
-                    This website is under construction. Please visit again later.
-                </p>
+                {/* <a href="/Home"> */}
+                    This website is under construction. Please visit later.
+                {/* </a> */}
             </div>
             <a className="Container" href="https://github.com/meetbhingradiya">
                 <h1>Meet Bhingradiya</h1>
@@ -25,12 +25,12 @@ export default function Home() {
                     Coming Soon!
                 </p>
             </a>
-            <p>
+            <p style={{ alignItems: "center", justifyContent: "center", fontSize: "12px", userSelect: "none" }}>
                 Blogs, DevTools and more!
             </p>
             <div className="footer">
                 Copyright © 2021 - {new Date().getFullYear()} Meet Bhingradiya
             </div>
-        </>
+        </div>
     );
 }

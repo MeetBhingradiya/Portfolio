@@ -2,126 +2,126 @@
 @tailwind components
 @tailwind utilities
 
+// @Theme&Variables
 :root
-    --foreground-rgb: 0, 0, 0
-    --background-start-rgb: 214, 219, 220
-    --background-end-rgb: 255, 255, 255
+    // ? New Variables
+    --font-color: 255, 255, 255
+    --background-start: 0, 0, 0
+    --background-end: 0, 15, 24
 
-@media (prefers-color-scheme: dark)
-    :root
-        --foreground-rgb: 255, 255, 255
-        --background-start-rgb: 0, 0, 0
-        --background-end-rgb: 0, 0, 0
-
+// @GlobalStyles
 body
-    color: rgb(var(--foreground-rgb))
-    background: linear-gradient(to bottom,transparent,rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb))
-
+    transition: background-color 0.3s ease, color 0.3s ease
+    color: rgb(var(--font-color))
+    background: linear-gradient(to bottom, transparent 92.5%, rgb(var(--background-end))), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
     width: 100vw
     height: 100vh
     overflow: hidden
+    gap: 1rem
+
+// @CustomUtilities
+
+// @TemporaryStyles
+.CommingSoon
+    width: 100vw
+    height: 100vh
+    overflow: hidden
+    overflow-y: auto
     display: flex
     justify-content: center
     align-items: center
     flex-direction: column
-    gap: 1rem
 
-.Notification
-    position: fixed
-    top: -150px
-    left: 0
-    right: 0
-    padding: 1rem
-    text-align: center
-    font-size: 0.8rem
-    user-select: none
+    .Notification
+        position: fixed
+        top: -150px
+        left: 0
+        right: 0
+        padding: 1rem
+        text-align: center
+        font-size: 12px
+        user-select: none
+        border-image: linear-gradient(to right,rgba(var(--font-color), 0.01),rgba(var(--font-color), 0.4),rgba(var(--background-end), 0.5)) 1
+        border-bottom: 1px solid rgba(var(--font-color), 0.5)
 
-    /* ? Gredient Silver & Black Border */
-    border-image: linear-gradient(to right,rgba(var(--foreground-rgb), 0.01),rgba(var(--foreground-rgb), 0.4),rgba(var(--background-end-rgb), 0.5)) 1
-    border-bottom: 1px solid rgba(var(--foreground-rgb), 0.5)
+        // ? Animation to slide down from top
+        animation: slide-down 0.5s forwards
 
-    // ? Animation to slide down from top
-    animation: slide-down 0.5s forwards
+        @keyframes slide-down
+            0%
+                top: -150px
+            100%
+                top: 0
 
-    @keyframes slide-down
-        0%
-            top: -150px
-        100%
-            top: 0
-
-.Container
-    /* ? Glass Effect */
-    backdrop-filter: blur(10px)
-    padding: 2rem
-    margin: 1rem
-    width: auto
-    max-width: 30rem
-    display: flex
-    flex-direction: column
-    gap: 1rem
-    user-select: none
-    transition: 1s
-    border-radius: 1rem
-
-    &:hover
-        transition: 1s
-        transform: scale(1.05)
-        /* border: 0.1rem solid rgba(var(--foreground-rgb), 0.5) */
-        background: radial-gradient(circle, rgba(67,67,67,1) 0%, rgba(0,0,0,1) 53%)
-        box-shadow: 0 0 0.2rem rgba(var(--foreground-rgb), 0.5)
-
-    &:active
-        transition: 0.5s
-        transform: scale(0.95)
-        box-shadow: 0 0 0.2rem rgba(var(--foreground-rgb), 0.5)
-
-    .CENTER
+    .Container
+        /* ? Glass Effect */
+        backdrop-filter: blur(10px)
+        padding: 2rem
+        margin: 1rem
+        width: auto
+        max-width: 30rem
         display: flex
-        justify-content: center
-        align-items: center
-        border: 5px solid #434343
-        border-radius: 50%
-        overflow: hidden
-        box-shadow: inset 0 0 0.5rem rgba(var(--foreground-rgb), 0.5),inset 0 0 0.5rem rgba(var(--foreground-rgb), 0.5),inset 0 0 0.5rem rgba(var(--foreground-rgb), 0.5),inset 0 0 0.5rem rgba(var(--foreground-rgb), 0.5)
+        flex-direction: column
+        gap: 1rem
+        user-select: none
+        transition: 0.5s
+        border-radius: 1rem
 
-        img
-            max-width: 100%
-            height: auto
+        &:hover
+            transition: 0.5s
+            transform: scale(1.05)
+            border: 0.1rem solid rgba(var(--font-color), 0.5)
+            background: radial-gradient(circle, rgba(67,67,67,1) 0%, rgba(0,0,0,1) 53%)
+            box-shadow: 0 0 0.2rem rgba(var(--font-color), 0.5)
+
+        &:active
+            transition: 0.5s
+            transform: scale(0.95)
+            box-shadow: 0 0 0.2rem rgba(var(--font-color), 0.5)
+
+        .CENTER
+            display: flex
+            justify-content: center
+            align-items: center
+            border: 5px solid #434343
             border-radius: 50%
-            box-shadow: 0 0 0.2rem rgba(var(--foreground-rgb), 0.5)
-            background-image: radial-gradient(circle at 100% 100%, transparent 8px, #434343 8px, #434343 12px, transparent 12px), linear-gradient(to right, #434343, #000000), radial-gradient(circle at 0% 100%, transparent 8px, #000000 8px, #000000 12px, transparent 12px), linear-gradient(to bottom, #000000, #434343), radial-gradient(circle at 0% 0%, transparent 8px, #434343 8px, #434343 12px, transparent 12px), linear-gradient(to left, #434343, #000000), radial-gradient(circle at 100% 0%, transparent 8px, #000000 8px, #000000 12px, transparent 12px), linear-gradient(to top, #000000, #434343)
-            background-size: 12px 12px, calc(100% - 24px) 4px, 12px 12px, 4px calc(100% - 24px)
-            background-position: top left, top center, top right, center right, bottom right, bottom center, bottom left, center left
-            background-repeat: no-repeat
+            overflow: hidden
+            box-shadow: inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5)
+
+            img
+                max-width: 100%
+                height: auto
+                border-radius: 50%
+                box-shadow: 0 0 0.2rem rgba(var(--font-color), 0.5)
+                background-image: radial-gradient(circle at 100% 100%, transparent 8px, #434343 8px, #434343 12px, transparent 12px), linear-gradient(to right, #434343, #000000), radial-gradient(circle at 0% 100%, transparent 8px, #000000 8px, #000000 12px, transparent 12px), linear-gradient(to bottom, #000000, #434343), radial-gradient(circle at 0% 0%, transparent 8px, #434343 8px, #434343 12px, transparent 12px), linear-gradient(to left, #434343, #000000), radial-gradient(circle at 100% 0%, transparent 8px, #000000 8px, #000000 12px, transparent 12px), linear-gradient(to top, #000000, #434343)
+                background-size: 12px 12px, calc(100% - 24px) 4px, 12px 12px, 4px calc(100% - 24px)
+                background-position: top left, top center, top right, center right, bottom right, bottom center, bottom left, center left
+                background-repeat: no-repeat
+                user-select: none
+
+        h1
+            text-align: center
+            font-size: 18px
             user-select: none
 
-    h1
+        p.soon
+            text-align: center
+            font-size: 12px
+            user-select: none
+
+    .footer
+        position: fixed
+        bottom: 0
+        left: 0
+        right: 0
+        padding: 1rem
         text-align: center
-        font-size: 1.2rem
+        font-size: 12px
         user-select: none
 
-    p.soon
-        text-align: center
-        font-size: 0.8rem
-        user-select: none
-
-    p
-        text-align: center
-        user-select: none
-
-.footer
-    position: fixed
-    bottom: 0
-    left: 0
-    right: 0
-    padding: 1rem
-    text-align: center
-    font-size: 0.8rem
-    user-select: none
-
-    /* ? Gredient Silver & Black Border */
-    border-image: linear-gradient(to right,rgba(var(--foreground-rgb), 0.01),rgba(var(--foreground-rgb), 0.4),rgba(var(--background-end-rgb), 0.5)) 1
-    border-top: 1px solid rgba(var(--foreground-rgb), 0.5)
+        /* ? Gredient Silver & Black Border */
+        border-image: linear-gradient(to right,rgba(var(--font-color), 0.01),rgba(var(--font-color), 0.4),rgba(var(--background-end), 0.5)) 1
+        border-top: 1px solid rgba(var(--font-color), 0.5)
 
 @layer utilities
     .text-balance

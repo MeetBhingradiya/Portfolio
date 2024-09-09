@@ -6,9 +6,9 @@ export default function Home() {
     return (
         <div className="CommingSoon">
             <div className="Notification">
-                <a href="/Home">
-                    This website is under construction. Click here to visit new Page.
-                </a>
+                {/* <a href="/Home"> */}
+                    This website is under construction. Please visit later.
+                {/* </a> */}
             </div>
             <a className="Container" href="https://github.com/meetbhingradiya">
                 <h1>Meet Bhingradiya</h1>
@@ -25,7 +25,7 @@ export default function Home() {
                     Coming Soon!
                 </p>
             </a>
-            <p style={{ alignItems: "center", justifyContent: "center" }}>
+            <p style={{ alignItems: "center", justifyContent: "center", fontSize: "12px", userSelect: "none" }}>
                 Blogs, DevTools and more!
             </p>
             <div className="footer">

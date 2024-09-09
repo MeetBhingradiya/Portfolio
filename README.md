@@ -142,10 +142,11 @@
 
 <div align="center">
   <h2 align="center">👨‍💻 Projects <img src="./assets/borderseparator.gif"/></h2><br>
-  No Projects Added Yet! (Public Projects Only)
-  <!-- <a href="https://github.com/godkingjay/selenium-twitter-scraper" target="_blank">
-    <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=selenium-twitter-scraper" width="49%" alt="Selenium Twitter Scraper"/>
+  <!-- No Projects Added Yet! (Public Projects Only) -->
+  <a href="https://github.com/MeetBhingradiya/EmbroideryFileConverter" target="_blank">
+    <img src="https://github-readme-stats.vercel.app/api/pin/?username=MeetBhingradiya&theme=radical&repo=EmbroideryFileConverter" width="49%" alt="Embroidery Files Converter"/>
   </a>
+  <!-- 
   <a href="https://github.com/godkingjay/sorsu" target="_blank">
     <img src="https://github-readme-stats.vercel.app/api/pin/?username=godkingjay&theme=radical&repo=sorsu" width="49%" alt="SorSUcial"/>
   </a>

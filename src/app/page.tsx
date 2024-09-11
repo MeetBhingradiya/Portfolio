@@ -6,9 +6,9 @@ export default function Home() {
     return (
         <div className="CommingSoon">
             <div className="Notification">
-                {/* <a href="/Home"> */}
-                    This website is under construction. Please visit later.
-                {/* </a> */}
+                <a href="/Home">
+                    This website is under construction. Click heare to Visit Home Page.
+                </a>
             </div>
             <a className="Container" href="https://github.com/meetbhingradiya">
                 <h1>Meet Bhingradiya</h1>

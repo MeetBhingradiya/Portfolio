@@ -1,7 +1,7 @@
 # Superbase Schema for Portfolio Website & Single Person Resume Generator
 
 ## Certifications
-The Certifications table stores certifications, including a unique ID, user ID, certification name, certification authority, certification URL, and timestamps for creation and updates. Designed for user profile management and display on landing pages.
+The Certifications table stores certifications, including a unique ID, user ID, certification name, certification authority, certification URL, and timestamps for creation and updates. It is designed for user profile management and display on landing pages.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -12,7 +12,7 @@ The Certifications table stores certifications, including a unique ID, user ID, 
 | `isShown` | `boolean` | `false` |
 
 ## Emails (as Account)
-The EmailBlacklist table stores blacklisted email addresses, including a unique ID, email address, and reason for blacklisting. Designed for email verification and user management.
+The EmailBlacklist table stores blacklisted email addresses, including a unique ID, email address, and reason for blacklisting. It is designed for email verification and user management.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -22,7 +22,7 @@ The EmailBlacklist table stores blacklisted email addresses, including a unique 
 | `isBlacklisted` | `boolean` | `true` |
 
 ## Skills
-The Skills table stores skills, including a unique ID, skill name, skill category, skill level, and user ID. Designed for user profile management and display on landing pages.
+The Skills table stores skills, including a unique ID, skill name, skill category, skill level, and user ID. It is designed for user profile management and display on landing pages.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -34,7 +34,7 @@ The Skills table stores skills, including a unique ID, skill name, skill categor
 | `isShown` | `boolean` | `false` |
 
 ## Experiences
-The Experiences table stores work experiences, including a unique ID, user ID, company name, job title, job description, start date, end date, and timestamps for creation and updates. Designed for user profile management and display on landing pages.
+The Experiences table stores work experiences, including a unique ID, user ID, company name, job title, job description, start date, end date, and timestamps for creation and updates. It is designed for user profile management and display on landing pages.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -50,7 +50,7 @@ The Experiences table stores work experiences, including a unique ID, user ID, c
 | `isShown` | `boolean` | `false` |
 
 ## Projects
-The Projects table stores projects, including a unique ID, project name, project description, project category, project URL, project image, project tags, and timestamps for creation and updates. Designed for user profile management and display on landing pages.
+The Projects table stores projects, including a unique ID, project name, project description, project category, project URL, project image, project tags, and timestamps for creation and updates. It is designed for user profile management and display on landing pages.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -64,8 +64,8 @@ The Projects table stores projects, including a unique ID, project name, project
 | `Tags` | `Json` | NULL |
 | `isShown` | `boolean` | `false` |
 
-## Sosial Link
-The SocialLinks table stores social media links, including a unique ID, user ID, social media platform, and URL. Designed for user profile management and display on landing pages.
+## Social Link
+The SocialLinks table stores social media links, including a unique ID, user ID, social media platform, and URL. It is designed for user profile management and display on landing pages.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -77,7 +77,7 @@ The SocialLinks table stores social media links, including a unique ID, user ID,
 | `isShown` | `boolean` | `false` |
 
 ## Tickets
-The Tickets table stores support tickets, including a unique ID, user ID, ticket status, ticket type, ticket priority, ticket subject, ticket content, timestamps for creation and updates, and assigned staff. Designed for support ticket management.
+The Tickets table stores support tickets, including a unique ID, user ID, ticket status, ticket type, ticket priority, ticket subject, ticket content, timestamps for creation and updates, and assigned staff. It is designed for support ticket management.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -90,7 +90,7 @@ The Tickets table stores support tickets, including a unique ID, user ID, ticket
 | `Create` | `timestamptz` | `(now() AT TIME ZONE 'utc'::text)` |
 
 ## Messages
-The Messages table stores messages between users, including a unique ID, sender ID, recipient ID, message content, timestamps for creation and updates, and read status. Designed for chat applications.
+The Messages table stores messages between users, including a unique ID, sender ID, recipient ID, message content, timestamps for creation and updates, and read status. It is designed for chat applications.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
@@ -106,7 +106,7 @@ The Messages table stores messages between users, including a unique ID, sender 
 | `Email` | `varchar` | REFERENCES Emails(Email) |
 
 ## Blogs
-The Blogs table stores blog posts, including a unique ID, title, author, markdown content, tags, a banner image, short description for previews, timestamps for creation and updates, publication status, and view count. Designed for blog management and display on landing pages.
+The Blogs table stores blog posts, including a unique ID, title, author, markdown content, tags, a banner image, short description for previews, timestamps for creation and updates, publication status, and view count. It is designed for blog management and display on landing pages.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |

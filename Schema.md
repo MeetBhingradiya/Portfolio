@@ -11,13 +11,14 @@ The Certifications table stores certifications, including a unique ID, user ID, 
 | `URL` | `varchar` | `''::character varying` |
 | `isShown` | `boolean` | `false` |
 
-## Emails (as Account)
+## EmailBlacklist
 The EmailBlacklist table stores blacklisted email addresses, including a unique ID, email address, and reason for blacklisting. It is designed for email verification and user management.
 
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
 | `EmailID` | `uuid` | `gen_random_uuid()` | Primary |
-| `Email` | `varchar` | `''::character varying` |
+| `Username` | `varchar` | `''::character varying` |
+| `Email` | `varchar` | `''::character varying` | Unique |
 | `Reason` | `varchar` | `''::character varying` |
 | `isBlacklisted` | `boolean` | `true` |
 
@@ -45,8 +46,8 @@ The Experiences table stores work experiences, including a unique ID, user ID, c
 | `StartDate` | `date` | `now()` |
 | `EndDate` | `date` | `now()` |
 | `isCurrent` | `boolean` | `false` |
-| `Skills` | `Json` | REFERENCES Skills(SkillID) |
-| `Projects` | `Json` | REFERENCES Projects(ProjectID) |
+| `Skills` | `uuid[]` | NULL | REFERENCES Skills(SkillID) |
+| `Projects` | `uuid[]` | NULL | REFERENCES Projects(ProjectID) |
 | `isShown` | `boolean` | `false` |
 
 ## Projects
@@ -83,7 +84,7 @@ The Tickets table stores support tickets, including a unique ID, user ID, ticket
 | --- | --- | --- | --- |
 | `TicketID` | `uuid` | `gen_random_uuid()` | Primary |
 | `isOpen` | `boolean` | `true` |
-| `Email` | `varchar` | REFERENCES Emails(Email) |
+| `Email` | `varchar` | `''::character varying` | REFERENCES EmailBlacklist(Email) |
 | `Title` | `varchar` | `''::character varying` |
 | `Description` | `varchar` | `''::character varying` |
 | `Update` | `timestamptz` | `(now() AT TIME ZONE 'utc'::text)` |
@@ -103,7 +104,7 @@ The Messages table stores messages between users, including a unique ID, sender 
 | `SentAt` | `timestamptz` | `(now() AT TIME ZONE 'utc'::text)` |
 | `UpdatedAt` | `timestamptz` | `(now() AT TIME ZONE 'utc'::text)` |
 | `ReadAt` | `timestamptz` | NULL |
-| `Email` | `varchar` | REFERENCES Emails(Email) |
+| `Email` | `varchar` | NULL | REFERENCES EmailBlacklist(Email) |
 
 ## Blogs
 The Blogs table stores blog posts, including a unique ID, title, author, markdown content, tags, a banner image, short description for previews, timestamps for creation and updates, publication status, and view count. It is designed for blog management and display on landing pages.
@@ -111,7 +112,7 @@ The Blogs table stores blog posts, including a unique ID, title, author, markdow
 | Column | Type | Default | Constraints |
 | --- | --- | --- | --- |
 | `BlogID` | `uuid` | `gen_random_uuid()` | Primary |
-| `Author` | `varchar` | EMAIL REFERENCES Emails(Email) |
+| `Author` | `varchar` | `''::character varying` | REFERENCES EmailBlacklist(Username) |
 | `BannerImage` | `varchar` | NULL |
 | `Title` | `varchar` | `''::character varying` |
 | `Tags` | `Json` | NULL |

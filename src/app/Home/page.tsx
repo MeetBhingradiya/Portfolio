@@ -20,7 +20,10 @@ function Home() {
             </div>
             {/* @ Hero Section */}
 
-            {/* @  */}
+            {/* @ Footer */}
+            <div className={Styles.Footer}>
+                <p>Meet Bhingradiya © 2021 - {new Date().getFullYear()} All Rights Reserved</p>
+            </div>
         </div>
     )
 }

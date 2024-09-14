@@ -1,13 +1,23 @@
 .Home
+    width: 100vw
+    height: 100vh
+    display: flex
+    flex-direction: column
     .Navigation
+        position: sticky
+        background: red
+        display: flex
+        align-items: center
+        flex-direction: row
+        top: 0
+        width: 100vw
+        height: 64px
+    .Footer
         position: fixed
-        top: -150px
-        left: 0
-        right: 0
+        background: blue
+        display: flex
+        align-items: center
+        flex-direction: row
+        bottom: 0
+        width: 100vw
         padding: 1rem
-        text-align: center
-        font-size: 0.8rem
-        user-select: none
-        border-image: linear-gradient(to right,rgba(var(--foreground-rgb), 0.01),rgba(var(--foreground-rgb), 0.4),rgba(var(--background-end-rgb), 0.5)) 1
-        border-bottom: 1px solid rgba(var(--foreground-rgb), 0.5)
-        color: white

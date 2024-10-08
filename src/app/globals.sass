@@ -21,7 +21,7 @@ body
 // @TemporaryStyles
 .CommingSoon
     color: rgb(var(--font-color))
-    background: linear-gradient(to bottom, transparent 92.5%, rgb(var(--background-end))), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
+    background: linear-gradient(117deg, #1B242D -2.82%, #361B2B 103.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
     width: 100vw
     height: 100vh
     display: flex
@@ -34,22 +34,22 @@ body
         display: flex
         flex-direction: row
         top: -0.5rem
-        padding: .7rem
+        padding: 0.8rem
         text-align: center
         font-size: 14px
         user-select: none
-        border-radius: 1rem
         transition: 0.5s
         transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
         animation-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
         color: #fdfd9a
-        border: 1px solid rgba(38, 38, 38, 0.5)
-
-        // ? Glow Effect
-        background: radial-gradient(circle, rgba(38,38,38,1) 0%, rgba(25,25,25,1) 53%)
 
         // ? Animation to slide down from top
         animation: slide-down 0.5s forwards
+
+        border-radius: 20px
+        border: 1px solid #000
+        background: rgba(255, 162, 0, 0.115)
+        box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25)
 
         @keyframes slide-down
             0%
@@ -123,6 +123,7 @@ body
             text-align: center
             font-size: 18px
             user-select: none
+            font-weight: 500
 
         p.soon
             text-align: center

@@ -22,6 +22,10 @@ export const metadata: Metadata = {
         "Surat",
         "Gujarat",
         "India",
+        "meetbhingradiya.com",
+        "meetbhingradiya.dev",
+        "meetbhingradiya.in",
+        "meetbhingradiya.co.in",
     ],
     authors: {
         name: "Meet Bhingradiya",

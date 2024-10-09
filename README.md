@@ -219,4 +219,4 @@
 
 <div align="center">
   <img src="./assets/borderseparator.gif"/>
-  <h6 align="center"> 2021 - 2024 © Meet Bhingradiya | Readme from <a href="https://github.com/godkingjay">Jarrian Gojar</a> </h6>
+  <h6 align="center"> All rights reserved. Meet Bhingradiya © 2021 - 2024 | Readme from <a href="https://github.com/godkingjay">Jarrian Gojar</a> </h6>

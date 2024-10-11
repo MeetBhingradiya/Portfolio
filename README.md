@@ -196,7 +196,7 @@
     <img src="./assets/logos/neon-facebook.png" width="48px" alt="Facebook"/>
   </a> -->
   &nbsp
-  <a href="https://x.com/meetbhingradiya" target="_blank">
+  <a href="https://x.com/_meet_b_" target="_blank">
     <img src="./assets/logos/neon-twitter.png" width="48px" alt="Twitter"/>
   </a>
   &nbsp

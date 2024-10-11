@@ -37,20 +37,19 @@
     alt="pixel city image"
 /> -->
 
-<h2 align="center">
-    Meet Bhingradiya a Self-taught and passionate about coding! 
-</h2>
-・👨‍💻 I'm Meet (Meet Bhingradiya)👋, a college student, I'm currently pursuing a Diploma IT Degree in the India.
-<br><br>
-・ 🌳 I’m currently learning NextJS.
-<br><br>
-・ 🐾 I’m looking to network and make friends here!
-<br><br>
-・ 🌊 2024 Goals: Contribute to Open Source Projects.
-<br><br>
-・ ☕ Interest : Science, Space, GeoPolitics, and Coding.
-<br><br>
-・  <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px" /> Hobbies: Coding,Programing.
+<h2 align="center"> Meet Bhingradiya a Self-taught and passionate about coding! </h2><br>
+
+- 👨‍💻 I'm Meet (Meet Bhingradiya)👋, a college student, I'm currently pursuing a Diploma IT Degree in the India. <br><br><br>
+
+- 🌳 I’m currently learning NextJS.<br><br><br>
+
+- 🐾 I’m looking to network and make friends here! <br><br><br>
+
+- 🌊 2024 Goals: Contribute to Open Source Projects. <br><br><br>
+
+- ☕ Interest: Science, Space, GeoPolitics, and Coding. <br><br><br>
+
+- <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px"/> Hobbies: Coding, Programing. <br><br>
 <h2></h2>
 
 

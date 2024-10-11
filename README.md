@@ -213,25 +213,24 @@
 <img src="./assets/animated-flame-01.gif" width="16px" align="right" />
 
 <div align="center">
-    <h2 align="center">
-        ✉️ Contact
-        <img src="./assets/borderseparator.gif" />
-    </h2>
-    <!-- <a href="https://www.facebook.com/meetbhingradiya" target="_blank">
-<img src="./assets/logos/neon-facebook.png" width="48px" alt="Facebook"/>
-
-</a>
-<a href="https://x.com/_meet_b_" target="_blank">
-<img src="./assets/logos/neon-twitter.png" width="48px" alt="Twitter" />
-</a>
-<a href="https://www.instagram.com/_meet_bhingradiya_/" target="_blank">
-<img src="./assets/logos/neon-instagram.png" width="48px" alt="Instagram" />
-</a>
-<a href="https://www.linkedin.com/in/meetbhingradiya/" target="_blank">
-<img src="./assets/logos/neon-linkedin.png" width="48px" alt="LinkedIn" />
-</a>
-
-<!-- <a href="https://discord.com/users/385102038087892992" target="_blank">
+  <h2 align="center">✉️ Contact <img src="./assets/borderseparator.gif"/></h2>
+  <!-- <a href="https://www.facebook.com/meetbhingradiya" target="_blank">
+    <img src="./assets/logos/neon-facebook.png" width="48px" alt="Facebook"/>
+  </a> -->
+  &nbsp
+  <a href="https://x.com/_meet_b_" target="_blank">
+    <img src="./assets/logos/neon-twitter.png" width="48px" alt="Twitter"/>
+  </a>
+  &nbsp
+  <a href="https://www.instagram.com/_meet_bhingradiya_/" target="_blank">
+    <img src="./assets/logos/neon-instagram.png" width="48px" alt="Instagram"/>
+  </a>
+  &nbsp
+  <a href="https://www.linkedin.com/in/meetbhingradiya/" target="_blank">
+    <img src="./assets/logos/neon-linkedin.png" width="48px" alt="LinkedIn"/>
+  </a>
+  &nbsp
+  <!-- <a href="https://discord.com/users/385102038087892992" target="_blank">
     <img src="./assets/logos/neon-discord.png" width="48px" alt="Discord"/>
   </a> -->
 </div>

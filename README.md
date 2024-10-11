@@ -40,10 +40,8 @@
 <h2 align="center">
     Meet Bhingradiya a Self-taught and passionate about coding! 
 </h2>
-
 - 👨‍💻 I'm Meet (Meet Bhingradiya)👋, a college student, I'm currently pursuing a Diploma IT Degree in the India.
 <br>
-
 - 🌳 I’m currently learning NextJS.
 <br>
 - 🐾 I’m looking to network and make friends here!
@@ -52,10 +50,7 @@
 <br>
 - ☕ Interest : Science, Space, GeoPolitics, and Coding.
 <br>
--   <img 
-        src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px" 
-    /> 
-        Hobbies: Coding,Programing.
+-  <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px" />Hobbies: Coding,Programing.
 <h2></h2>
 
 

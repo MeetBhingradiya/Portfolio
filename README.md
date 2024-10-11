@@ -19,11 +19,11 @@
 
 <!-- <img align="right" src="./assets/vaporwave-aesthetic.gif" height="560px" alt="pixel city image"> -->
 
-<h2 align="center"> Self-taught and passionate about coding! </h2><br>
+<h2 align="center"> Meet Bhingradiya a Self-taught and passionate about coding! </h2><br>
 
 - 👨‍💻 I'm Meet (Meet Bhingradiya)👋, a college student, I'm currently pursuing a Diploma IT Degree in the India. <br><br><br>
 
-- 🌳 I’m currently learning NextJS Eco System<br><br><br>
+- 🌳 I’m currently learning NextJS.<br><br><br>
 
 - 🐾 I’m looking to network and make friends here! <br><br><br>
 
@@ -31,11 +31,9 @@
 
 - ☕ Interest: Science, Space, GeoPolitics, and Coding. <br><br><br>
 
-- <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px"/> Hobbies: Coding. <br><br>
+- <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" height="16px"/> Hobbies: Coding, Programing. <br><br>
 
-<!-- <h2></h2>
-
-<img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
+<!-- <img src="./assets/animated-flame-01.gif" width="16px" align="left"/>
 <img src="./assets/animated-flame-01.gif" width="16px" align="right"/> -->
 
 <div align="center">
@@ -198,13 +196,13 @@
     <img src="./assets/logos/neon-facebook.png" width="48px" alt="Facebook"/>
   </a> -->
   &nbsp
-  <!-- <a href="https://twitter.com/meetbhingradiya" target="_blank">
+  <a href="https://x.com/meetbhingradiya" target="_blank">
     <img src="./assets/logos/neon-twitter.png" width="48px" alt="Twitter"/>
-  </a> -->
+  </a>
   &nbsp
-  <!-- <a href="https://www.instagram.com/_meet_bhingradiya_/" target="_blank">
+  <a href="https://www.instagram.com/_meet_bhingradiya_/" target="_blank">
     <img src="./assets/logos/neon-instagram.png" width="48px" alt="Instagram"/>
-  </a> -->
+  </a>
   &nbsp
   <a href="https://www.linkedin.com/in/meetbhingradiya/" target="_blank">
     <img src="./assets/logos/neon-linkedin.png" width="48px" alt="LinkedIn"/>
@@ -220,3 +218,6 @@
 <div align="center">
   <img src="./assets/borderseparator.gif"/>
   <h6 align="center"> All rights reserved. Meet Bhingradiya © 2021 - 2024 | Readme from <a href="https://github.com/godkingjay">Jarrian Gojar</a> </h6>
+
+> [!CAUTION]
+> Beware of the other Meet Bhingradiya impostors. This is the only official Meet Bhingradiya account. All Social Media links are provided above.

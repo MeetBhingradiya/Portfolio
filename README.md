@@ -122,8 +122,8 @@
 
 <h2 align="center">💻 Workspace<img src="./assets/borderseparator.gif" /></h2>
 
-| 👩‍💻 Device | ⚙️ Specification | 📃 Purpose |
-| :-------- | :--------------- | :--------- |
+| 👩‍💻 Device                                                                                                                                          | ⚙️ Specification                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | 📃 Purpose                                                                                                                                                                                                                                                                                   |
+| :------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | <img src="https://img.shields.io/badge/Asus%20Tuf%20Gaming%20A15-83B81A?style=for-the-badge&logo=asus&logoColor=white" alt="Asus Tuf Gaming A15"/> | <img src="https://img.shields.io/badge/Windows%2011%20Pro-0078D6?style=for-the-badge&logo=windows&logoColor=white" alt="Windows 11 Pro"/> <img src="https://img.shields.io/badge/AMD%20Ryzen%205%204600H-ED1C24?style=for-the-badge&logo=amd&logoColor=white" alt="Windows 11 Pro"/> <img src="https://img.shields.io/badge/NVIDIA-GTX1650-76B900?style=for-the-badge&logo=nvidia&logoColor=white" alt="Nvidia GTX1650"/> <img src="https://img.shields.io/badge/512GB%20SSD-0078D6?style=for-the-badge" alt="512GB SSD"/> <img src="https://img.shields.io/badge/16GB%20DDR4-0078D6?style=for-the-badge&logoColor=white" alt="16GB RAM"> | <img src="https://img.shields.io/badge/🧑‍💻%20Work-007DB8?style=for-the-badge" alt="Work"> <img src="https://img.shields.io/badge/🧑‍💻%20Programming-202020?style=for-the-badge" alt="Programming"> <img src="https://img.shields.io/badge/🧑‍🎓%20School-00897B?style=for-the-badge" alt="School"> |
 
 <h2></h2>
@@ -220,20 +220,16 @@
     <!-- <a href="https://www.facebook.com/meetbhingradiya" target="_blank">
 <img src="./assets/logos/neon-facebook.png" width="48px" alt="Facebook"/>
 
-</a> -->
-&nbsp
+</a>
 <a href="https://x.com/_meet_b_" target="_blank">
 <img src="./assets/logos/neon-twitter.png" width="48px" alt="Twitter" />
 </a>
-&nbsp
 <a href="https://www.instagram.com/_meet_bhingradiya_/" target="_blank">
 <img src="./assets/logos/neon-instagram.png" width="48px" alt="Instagram" />
 </a>
-&nbsp
 <a href="https://www.linkedin.com/in/meetbhingradiya/" target="_blank">
 <img src="./assets/logos/neon-linkedin.png" width="48px" alt="LinkedIn" />
 </a>
-&nbsp
 
 <!-- <a href="https://discord.com/users/385102038087892992" target="_blank">
     <img src="./assets/logos/neon-discord.png" width="48px" alt="Discord"/>
@@ -244,8 +240,8 @@
 
 <div align="center">
     <img src="./assets/borderseparator.gif" />
-    <h6 align="center"> All rights reserved. Meet Bhingradiya © 2021 - 2024 | Readme from <a
-            href="https://github.com/godkingjay">Jarrian Gojar</a> </h6>
+    <h6 align="center"> 
+    All rights reserved. Meet Bhingradiya © 2021 - 2024 | Readme from <a href="https://github.com/godkingjay">Jarrian Gojar</a> </h6>
 </div>
 
 </div>

@@ -18,6 +18,9 @@ body
 
 // @CustomUtilities
 
+
+// @ Components
+
 // @TemporaryStyles
 .CommingSoon
     color: rgb(var(--font-color))
@@ -118,17 +121,23 @@ body
                 background-position: top left, top center, top right, center right, bottom right, bottom center, bottom left, center left
                 background-repeat: no-repeat
                 user-select: none
-
+        .Social
+            position: relative
+            display: flex
+            justify-content: center
+            gap: 1rem
+            align-items: center
+            flex-wrap: wrap
         h1
             text-align: center
             font-size: 18px
             user-select: none
             font-weight: 500
 
-        p.soon
-            text-align: center
-            font-size: 12px
-            user-select: none
+    p.soon
+        text-align: center
+        font-size: 12px
+        user-select: none
 
     .footer
         position: fixed

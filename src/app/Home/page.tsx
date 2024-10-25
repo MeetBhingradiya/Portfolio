@@ -1,11 +1,11 @@
 "use client";
-import Styles from "./page.module.sass";
+import "@Styles/Home.sass";
 import Footer from "@Components/Footer/component";
 import Header from "@Components/Header/component";
 
 export default function Home() {
     return (
-        <div className={Styles.Home}>
+        <div className={"Home"}>
             <Header/>
             <Footer/>
         </div>

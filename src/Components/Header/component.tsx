@@ -1,7 +1,7 @@
 "use Client"
 
 import React from 'react';
-import Styles from "@App/Components/Header/component.module.sass";
+import "@Styles/Header.sass";
 import { motion } from 'framer-motion';
 
 interface QuickLinks_Type {
@@ -18,33 +18,33 @@ interface QuickLinks_Type {
 
 function Header() {
     return (
-        <motion.div className={Styles.Header}>
-            <div className={Styles.Brand}>
-                <div className={Styles.Icon}>
+        <motion.div className={"Header"}>
+            <div className={"Brand"}>
+                <div className={"Icon"}>
                     
                 </div>
-                <div className={Styles.Text}>
+                <div className={"Text"}>
 
                 </div>
             </div>
 
-            <div className={Styles.QuickLinks}>
+            <div className={"QuickLinks"}>
                 {/* Links Types */}
 
                 {/* Type 1 */}
-                <div className={Styles.SimpleLinks}></div>
+                <div className={"SimpleLinks"}></div>
 
                 {/* Type 2 */}
-                <div className={Styles.MenuLink}></div>
+                <div className={"MenuLink"}></div>
 
                 {/* Type 3 */}
-                <div className={Styles.Button}></div>
+                <div className={"Button"}></div>
 
                 {/* Type 4 */}
-                <div className={Styles.Theme}></div>
+                <div className={"Theme"}></div>
 
                 {/* Type 4 */}
-                <div className={Styles.MobileToggle}></div>
+                <div className={"MobileToggle"}></div>
             </div>
         </motion.div>
     )

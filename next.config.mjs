@@ -45,6 +45,20 @@ const nextConfig = {
     webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
         let Config = {
             ...config,
+            module: {
+                ...config.module,
+                rules: [
+                    {
+                        test: /\.s[ac]ss$/i,
+                        use: [
+                            "style-loader",
+                            "css-loader",
+                            "sass-loader",
+                        ],
+                    },
+                    ...config.module.rules,
+                ],
+            },
             resolve: {
                 ...config.resolve,
                 alias: {
@@ -73,11 +87,7 @@ const nextConfig = {
         };
 
         return Config;
-    },
-    experimental: {
-        esmExternals: "loose",
-        serverComponentsExternalPackages: ["mongoose"]
-    },
+    }
 };
 
 export default nextConfig;

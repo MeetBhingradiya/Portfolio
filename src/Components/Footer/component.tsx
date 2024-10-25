@@ -1,7 +1,7 @@
 "use Client"
 
 import React from 'react';
-import Styles from "@App/Components/Footer/component.module.sass";
+import "@Styles/Footer.sass";
 import { motion } from 'framer-motion';
 
 function Footer() {
@@ -10,7 +10,7 @@ function Footer() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5, duration: 0.7 }}
-            className={Styles.Footer}
+            className={"Footer"}
         >
             All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
         </motion.div>

@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import "./globals.sass";
+import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
+import { NextUIProvider } from "@nextui-org/system";
 
 const inter = Inter({ subsets: ["latin"] });
-
 export const metadata: Metadata = {
     title: "Meet Bhingradiya",
     description: "A Portfolio Website of Meet Bhingradiya",
@@ -30,9 +30,10 @@ export const metadata: Metadata = {
     authors: {
         name: "Meet Bhingradiya",
         url: "https://github.com/MeetBhingradiya",
-    },
+    }
 };
 
+// @ File
 export default function RootLayout({
     children,
 }: Readonly<{

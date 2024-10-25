@@ -1,62 +1,9 @@
-.portfolioPage
-    text-align: center
-    padding: 20px
-
-    .hero
-        display: flex
-        flex-direction: column
-        align-items: center
-        padding: 50px 0
-
-        .cta-button
-            background-color: rgb(var(--primary-color), 1) // Use global variable
-            color: white
-            padding: 10px 20px
-            border-radius: 5px
-            text-decoration: none
-            margin-top: 20px
-            @apply transition-colors  // Using Tailwind utility
-
-            &:hover
-                background-color: rgb(var(--primary-hover-color), 1) // Use global variable
-
-    .about, .skills, .contact
-        padding: 50px 20px
-        max-width: 800px
-        margin: 0 auto
-
-        h2
-            margin-bottom: 20px
-            @apply text-balance  // Use global utility
-
-        p
-            line-height: 1.6
-
-        .skills-grid
-            display: grid
-            grid-template-columns: repeat(4, 1fr)
-            gap: 15px
-
-            .skill-card
-                background-color: rgb(var(--secondary-bg-color), 1) // Use global variable
-                padding: 15px
-                border-radius: 8px
-                transition: transform 0.3s
-
-                &:hover
-                    transform: scale(1.05)
-
-    .contact-content
-        padding: 20px
-        background-color: rgb(var(--light-bg-color), 1) // Use global variable
-        border-radius: 8px
-
-        .email-button
-            background-color: rgb(var(--button-bg-color), 1) // Use global variable
-            color: white
-            padding: 10px 20px
-            border-radius: 5px
-            text-decoration: none
-
-            &:hover
-                background-color: rgb(var(--button-hover-bg-color), 1) // Use global variable
+.Home
+    color: rgb(var(--font-color))
+    background: linear-gradient(117deg, #1B242D -2.82%, #361B2B 103.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
+    width: 100vw
+    height: 100vh
+    display: flex
+    justify-content: center
+    align-items: center
+    flex-direction: column

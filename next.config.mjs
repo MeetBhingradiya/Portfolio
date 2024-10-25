@@ -49,10 +49,44 @@ const nextConfig = {
         };
         return config
     },
+
+
+    webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+        let Config = {
+            ...config,
+            resolve: {
+                ...config.resolve,
+                alias: {
+                    '@Root': path.resolve(__dirname, './'),
+                    '@': path.resolve(__dirname, './src'),
+                    '@App': path.resolve(__dirname, './src/app'),
+                    '@Pages': path.resolve(__dirname, './src/Pages'),
+                    "@Components": path.resolve(__dirname, "./src/Components"),
+                    "@Styles": path.resolve(__dirname, "./src/Styles"),
+                    "@Utils": path.resolve(__dirname, "./src/Utils"),
+                    ...config.resolve.alias,
+                },
+                extensions: [
+                    '.sass',
+                    '.mdx',
+                    '.ts',
+                    '.tsx',
+                    '.json',
+                    ...config.resolve.extensions
+                ],
+            },
+            experiments: {
+                topLevelAwait: true,
+                layers: true
+            },
+        };
+
+        return Config;
+    },
     experimental: {
         esmExternals: "loose",
         serverComponentsExternalPackages: ["mongoose"]
-    }
+    },
 };
 
 export default nextConfig;

@@ -1,3 +1,7 @@
+const path = require('path');
+
+const __dirname = path.resolve();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     reactStrictMode: false,
@@ -38,19 +42,6 @@ const nextConfig = {
             }
         ];
     },
-
-    webpack: (
-        config,
-        { buildId, dev, isServer, defaultLoaders, nextRuntime, webpack }
-    ) => {
-        config.experiments = {
-            topLevelAwait: true,
-            layers: true
-        };
-        return config
-    },
-
-
     webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
         let Config = {
             ...config,

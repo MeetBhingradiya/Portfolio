@@ -1,9 +1,9 @@
 import path from 'path';
+import { NextConfig } from 'next';
 
 const __dirname = path.resolve();
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+const nextConfig: NextConfig = {
     reactStrictMode: false,
     images: {
         remotePatterns: [
@@ -42,23 +42,13 @@ const nextConfig = {
             }
         ];
     },
-    webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+    sassOptions: {
+        silenceDeprecations: ["legacy-js-api"],
+        implementation: 'sass'
+    },
+    webpack: (config: any, { buildId, dev, isServer, defaultLoaders, webpack }: any) => {
         let Config = {
             ...config,
-            module: {
-                ...config.module,
-                rules: [
-                    {
-                        test: /\.s[ac]ss$/i,
-                        use: [
-                            "style-loader",
-                            "css-loader",
-                            "sass-loader",
-                        ],
-                    },
-                    ...config.module.rules,
-                ],
-            },
             resolve: {
                 ...config.resolve,
                 alias: {
@@ -73,6 +63,8 @@ const nextConfig = {
                 },
                 extensions: [
                     '.sass',
+                    '.css',
+                    '.scss',
                     '.mdx',
                     '.ts',
                     '.tsx',
@@ -85,7 +77,6 @@ const nextConfig = {
                 layers: true
             },
         };
-
         return Config;
     }
 };

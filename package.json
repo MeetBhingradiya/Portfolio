@@ -16,7 +16,6 @@
         "@mui/material": "^6.1.5",
         "@nextui-org/system": "^2.2.6",
         "@nextui-org/theme": "^2.2.11",
-        "css-loader": "^7.1.2",
         "framer-motion": "^11.11.9",
         "mongoose": "^8.7.2",
         "mongoose-paginate-v2": "^1.8.5",
@@ -25,8 +24,6 @@
         "react-dom": "^18.3.1",
         "react-feather": "^2.0.10",
         "sass": "^1.80.4",
-        "sass-loader": "^16.0.2",
-        "style-loader": "^4.0.0",
         "uuid": "^10.0.0"
     },
     "devDependencies": {

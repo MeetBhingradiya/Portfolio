@@ -41,3 +41,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# workspace or ide
+.vscode
+
+# package manager
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+bun.lockb

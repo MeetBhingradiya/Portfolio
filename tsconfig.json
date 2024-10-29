@@ -22,10 +22,29 @@
             }
         ],
         "paths": {
-            "@App/*": [
+            "@Root/*": [
+                "./"
+            ],
+            "@/*": [
                 "./src/*"
+            ],
+            "@App/*": [
+                "./src/app/*"
+            ],
+            "@Pages/*": [
+                "./src/pages/*"
+            ],
+            "@Components/*": [
+                "./src/Components/*"
+            ],
+            "@Styles/*": [
+                "./src/Styles/*"
+            ],
+            "@Utils/*": [
+                "./src/Utils/*"
             ]
-        }
+        },
+        "target": "ES2017"
     },
     "include": [
         "next-env.d.ts",

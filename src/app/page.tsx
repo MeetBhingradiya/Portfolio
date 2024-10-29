@@ -4,7 +4,12 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 
 // @ Icons Import
-import { LinkedIn, GitHub, Instagram, YouTube } from '@mui/icons-material';
+import { 
+    LinkedIn, 
+    GitHub, 
+    Instagram, 
+    YouTube 
+} from '@mui/icons-material';
 
 // @ File
 export default function Home() {

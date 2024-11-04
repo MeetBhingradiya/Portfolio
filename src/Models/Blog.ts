@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import { Schema, Document, model } from 'mongoose';
 import mongoosePaginate from 'mongoose-paginate-v2';
 
 const BlogSchema: Schema = new Schema({
@@ -69,7 +69,7 @@ export interface IBlog extends Document {
     Description?: string;
     isPublished?: boolean;
     PublishDate?: Date;
-    Tags?: string[]; // Can also use JSON-type field in Mongoose
+    Tags?: string[];
     Title?: string;
     UpdateDate?: Date;
     Visiblity?: string;
@@ -78,4 +78,4 @@ export interface IBlog extends Document {
 BlogSchema.index({ BlogID: 1 });
 BlogSchema.plugin(mongoosePaginate);
 
-export default mongoose.model<IBlog>('Blog', BlogSchema);
+export default model<IBlog>('Blog', BlogSchema);

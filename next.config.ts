@@ -1,6 +1,40 @@
 import path from 'path';
 import { NextConfig } from 'next';
 
+interface CSPGenerator_Options {
+    defaultSrc?: string;
+    scriptSrc?: string;
+    styleSrc?: string;
+    imgSrc?: string;
+    fontSrc?: string;
+    connectSrc?: string;
+    frameAncestors?: string;
+    frameSrc?: string;
+    baseUri?: string;
+    formAction?: string;
+}
+
+function CSPGenerate(options: CSPGenerator_Options): string {
+    let csp = `
+    default-src ${options.defaultSrc ?? 'self'}; 
+    script-src ${options.scriptSrc ?? 'self'} 'unsafe-inline' 'unsafe-eval'; 
+    style-src ${options.styleSrc ?? 'self'} 'unsafe-inline'; 
+    img-src ${options.imgSrc ?? 'self'} data:; 
+    font-src ${options.fontSrc ?? 'self'} data:; 
+    connect-src ${options.connectSrc ?? 'self'}; 
+    frame-ancestors ${options.frameAncestors ?? 'none'}; 
+    frame-src ${options.frameSrc ?? 'self'}; 
+    base-uri ${options.baseUri ?? 'self'}; 
+    form-action ${options.formAction ?? 'self'};`
+
+    // ? Remove New Lines
+    csp = csp.replace(/\n/g, '');
+    // ? Remove Multiple Spaces
+    csp = csp.replace(/\s+/g, ' ');
+
+    return csp;
+}
+
 const __dirname = path.resolve();
 
 const nextConfig: NextConfig = {
@@ -34,10 +68,10 @@ const nextConfig: NextConfig = {
                         key: 'Referrer-Policy',
                         value: 'same-origin',
                     },
-                    {
-                        key: 'Content-Security-Policy',
-                        value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; form-action 'self';`
-                    },
+                    // {
+                    //     key: 'Content-Security-Policy',
+                    //     value: `default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; frame-src 'self'; base-uri 'self'; form-action 'self';`
+                    // }
                 ]
             }
         ];
@@ -62,13 +96,18 @@ const nextConfig: NextConfig = {
                     ...config.resolve.alias,
                 },
                 extensions: [
-                    '.sass',
                     '.css',
-                    '.scss',
                     '.mdx',
                     '.ts',
                     '.tsx',
                     '.json',
+                    '.svg',
+                    '.webp',
+                    '.png',
+                    '.jpg',
+                    '.ico',
+                    '.js',
+                    '.jsx',
                     ...config.resolve.extensions
                 ],
             },

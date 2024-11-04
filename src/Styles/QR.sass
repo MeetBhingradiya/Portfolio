@@ -1,0 +1,89 @@
+.QR
+    width: 100vw
+    height: 100vh
+    display: flex
+    flex-direction: column
+    padding: 1rem
+    h1
+        position: relative
+        padding: 1rem
+        text-align: center
+        font-weight: 700
+        font-size: 2rem
+        user-select: none
+        -webkit-user-drag: none
+    .Body
+        position: relative
+        padding: 1rem
+        display: flex
+        justify-content: space-around
+        // align-items: center
+
+        .Preview
+            position: sticky
+            display: flex
+            justify-content: center
+            height: max-content
+            width: 100%
+            margin-top: 1rem
+            top: 5rem
+
+        .Controls
+            padding: 1rem
+            width: 100%
+            height: max-content
+            display: flex
+            flex-direction: column
+            justify-content: center
+            align-items: center
+            gap: 1rem
+            .Accordin
+                overflow-y: auto
+            
+            .item
+                display: flex
+                padding: 0.5rem
+                margin-bottom: 0.5rem
+                gap: 0.5rem
+                width: 100%
+
+            .item-noEffect
+                padding: 0.5rem
+
+            .item-License
+                display: flex
+                justify-content: center
+                align-items: center
+                gap: 1.5rem
+                width: 100%
+            .item-Download
+                display: flex
+                justify-content: center
+                align-items: center
+                gap: 1.5rem
+
+            .item-CenterToggleButtons
+                display: flex
+                justify-content: center
+                align-items: center
+
+            .item-description
+                padding: 0.5rem
+                align-items: center
+                width: 100%
+                font-size: 0.8rem
+                color: #333
+
+// @ Resposive
+@media (max-width: 768px)
+    .QR
+        .Body
+            flex-direction: column
+            justify-content: center
+            align-items: center
+
+            .Preview
+                margin: 10px
+
+            .Controls
+                margin: 10px

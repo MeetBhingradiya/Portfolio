@@ -54,7 +54,9 @@ export default function RootLayout({
                 <meta name="google-site-verification" content="-eIAp0-BRCYjfoSuMDWpQTpgjQHadfvBbnf4le5IWBk" />
             </head>
             <body className={inter.className}>
-                {children}
+                <NextUIProvider>
+                    {children}
+                </NextUIProvider>
             </body>
         </html>
     );

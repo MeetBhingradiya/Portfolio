@@ -1,7 +1,7 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react";
 import { styled } from '@mui/material/styles';
-import QRCodeStyling, { Options, FileExtension, CornerSquareType, CornerDotType } from "qr-code-styling";
+import QRCodeStyling, { Options, FileExtension, CornerSquareType, CornerDotType, Gradient } from "qr-code-styling";
 import QRBorder, { DecorationType, ExtensionOptions } from "qr-border-plugin";
 import { LicensingModel, generateLicenseKey } from "./generateLicenseKey";
 import { windowchek } from "@Utils/windowcheck";
@@ -21,7 +21,8 @@ import {
 import {
     ToggleButton,
     ToggleButtonGroup,
-    toggleButtonGroupClasses
+    toggleButtonGroupClasses,
+    Slider
 } from "@mui/material";
 
 import {
@@ -45,6 +46,23 @@ const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
         borderLeft: '1px solid transparent',
     },
 }));
+
+const PreDefinedGredient: Gradient = {
+    type: "linear",
+    rotation: 0,
+    colorStops: [
+        {
+            offset: 0,
+            color: "#000000"
+        },
+        {
+            offset: 1,
+            color: "#ffffff"
+        }
+    ]
+};
+
+const PredefinedColour = "#000000";
 
 
 export default function QRCustomizationTool() {
@@ -72,14 +90,17 @@ export default function QRCustomizationTool() {
         QROptions: {
             shape: "square",
             type: "svg",
-            width: 500,
-            height: 500,
-            margin: 70,
+            width: 600,
+            height: 600,
+            margin: 100,
             data: "https://meetbhingradiya.vercel.app/Tools/QR",
             image: "https://meetbhingradiya.vercel.app/favicon.ico",
+            qrOptions: {
+                errorCorrectionLevel: "M"
+            },
             dotsOptions: {
                 type: "square",
-                color: "#000000"
+                color: PredefinedColour
             },
             backgroundOptions: {
                 round: 1,
@@ -136,7 +157,7 @@ export default function QRCustomizationTool() {
                 thickness: 10,
                 dasharray: "0"
             },
-            dasharray: "0"
+            dasharray: "0",
         },
         BorderDesign: false,
         FileExt: "svg",
@@ -178,7 +199,8 @@ export default function QRCustomizationTool() {
     }, [
         State.QROptions,
         State.BorderDesign,
-        State.QRPluginOptions
+        State.QRPluginOptions,
+        State.LicenseKey
     ]);
 
     useEffect(() => {
@@ -218,11 +240,50 @@ export default function QRCustomizationTool() {
                 <div className="Controls">
                     <Accordion variant="shadow" className="Accordin" selectionMode="multiple">
                         {/* @Templates */}
-                        {/* <AccordionItem
+                        <AccordionItem
                             title="Templates"
                             subtitle="Choose from the Pre-Defined Templates"
                         >
-                        </AccordionItem> */}
+                            <StyledToggleButtonGroup
+                                className="item-CenterToggleButtons"
+                                value={State.QROptions.data}
+                                exclusive
+                                sx={{
+                                    // ? Modify All the Items Border-Radius
+                                    '& .MuiToggleButtonGroup-firstButton': {
+                                        borderRadius: "10px 0 0 10px",
+                                    },
+                                    '& .MuiToggleButtonGroup-lastButton': {
+                                        borderRadius: "0 10px 10px 0",
+                                    },
+                                }}
+                                onChange={(e, value) => {
+                                    if (value === null) {
+                                        return;
+                                    }
+                                    return handleChange("data", value);
+                                }}
+                            >
+                                <ToggleButton value="upi">
+                                    UPI
+                                </ToggleButton>
+                                <ToggleButton value="wifi">
+                                    Wifi
+                                </ToggleButton>
+                                <ToggleButton value="bluetooth">
+                                    Bluetooth
+                                </ToggleButton>
+                                <ToggleButton value="contact">
+                                    Contact
+                                </ToggleButton>
+                                <ToggleButton value="email">
+                                    Email
+                                </ToggleButton>
+                                <ToggleButton value="phone">
+                                    Phone
+                                </ToggleButton>
+                            </StyledToggleButtonGroup>
+                        </AccordionItem>
 
                         {/* @Data */}
                         <AccordionItem
@@ -315,7 +376,6 @@ export default function QRCustomizationTool() {
                                 onClear={() => handleChange("image", "")}
                             />
 
-
                             <div className="p-3">
                                 <Checkbox
                                     className="item"
@@ -356,11 +416,9 @@ export default function QRCustomizationTool() {
                                     if (value === null) {
                                         return;
                                     }
-
                                     return handleChange("dotsOptions", { ...State.QROptions.dotsOptions, type: value });
                                 }}
                             >
-
                                 <Tooltip content="Square">
                                     <ToggleButton value="square">
                                         {/* Square SVG */}
@@ -414,9 +472,7 @@ export default function QRCustomizationTool() {
                                         </svg>
                                     </ToggleButton>
                                 </Tooltip>
-
                             </StyledToggleButtonGroup>
-
 
 
                             <div className="item-Download">
@@ -434,7 +490,26 @@ export default function QRCustomizationTool() {
                                             borderRadius: "0 10px 10px 0",
                                         },
                                     }}
-                                    onChange={(e, value) => setState({ ...State, QRToggleOptions: { ...State.QRToggleOptions, dotsBackground: value as any } })}
+                                    onChange={(e, value) => {
+                                        if (value === null) {
+                                            return;
+                                        }
+                                        return setState({
+                                            ...State,
+                                            QRToggleOptions: {
+                                                ...State.QRToggleOptions,
+                                                dotsBackground: value
+                                            },
+                                            QROptions: {
+                                                ...State.QROptions,
+                                                dotsOptions: {
+                                                    ...State.QROptions.dotsOptions,
+                                                    gradient: value === "gradient" ? PreDefinedGredient : undefined,
+                                                    color: value === "color" ? PredefinedColour : undefined
+                                                }
+                                            }
+                                        });
+                                    }}
                                 >
                                     <ToggleButton value="color">Color</ToggleButton>
                                     <ToggleButton value="gradient">Gradient</ToggleButton>
@@ -448,9 +523,11 @@ export default function QRCustomizationTool() {
                                             backgroundColor: State.QROptions.dotsOptions?.color,
                                             width: "50px",
                                             height: "50px",
+                                            borderRadius: State.QROptions.dotsOptions?.type === "rounded" ? "10px" : "0px",
+                                            border: State.QROptions.dotsOptions?.type === "rounded" ? "1px solid #000000" : "none"
                                         }}>
                                         <input
-                                            className="hidden"
+                                            className="Hide"
                                             type="color"
                                             value={State.QROptions.dotsOptions?.color}
                                             onChange={(e) => handleChange("dotsOptions", { ...State.QROptions.dotsOptions, color: e.target.value })}
@@ -459,7 +536,242 @@ export default function QRCustomizationTool() {
                                     </label>
                                 )
                             }
+
+                            {/* Gredient Generation Options */}
+                            {/* 
+                                type: "radial" | "linear" // ToggleButton
+                                rotation?: number; // Input Range
+                                colorStops: { 
+                                    offset: number;
+                                    color: string;
+                                }[];
+                            */}
+
+                            {
+                                State.QRToggleOptions?.dotsBackground === "gradient" && (<>
+                                    <StyledToggleButtonGroup
+                                        className="item-CenterToggleButtons"
+                                        value={State.QROptions.dotsOptions?.gradient?.type}
+                                        exclusive
+                                        sx={{
+                                            // ? Modify All the Items Border-Radius
+                                            '& .MuiToggleButtonGroup-firstButton': {
+                                                borderRadius: "10px 0 0 10px",
+                                            },
+                                            '& .MuiToggleButtonGroup-lastButton': {
+                                                borderRadius: "0 10px 10px 0",
+                                            },
+                                        }}
+                                        onChange={(e, value) => {
+                                            if (value === null) {
+                                                return;
+                                            }
+                                            return handleChange("dotsOptions", {
+                                                ...State.QROptions.dotsOptions,
+                                                gradient: {
+                                                    ...State.QROptions.dotsOptions?.gradient,
+                                                    type: value
+                                                }
+                                            });
+                                        }}
+                                    >
+                                        <ToggleButton value="radial">Radial</ToggleButton>
+                                        <ToggleButton value="linear">Linear</ToggleButton>
+                                    </StyledToggleButtonGroup>
+
+                                    <Input
+                                        className="item"
+                                        type="range"
+                                        label={"Rotation"}
+                                        min="0"
+                                        max="360"
+                                        value={State.QROptions.dotsOptions?.gradient?.rotation ? State.QROptions.dotsOptions?.gradient?.rotation.toString() : "0"}
+                                        onChange={(e) => handleChange("dotsOptions", {
+                                            ...State.QROptions.dotsOptions,
+                                            gradient: {
+                                                ...State.QROptions.dotsOptions?.gradient,
+                                                rotation: parseInt(e.target.value)
+                                            }
+                                        })}
+                                    />
+
+                                    {/* Gredient Colour Stop & Single Ranged Selection Display with Add & Remove Other Stops (Min 2 Stops) */}
+                                    <div className="item-Gradient">
+                                        <Slider
+
+                                            track={false}
+                                            defaultValue={PreDefinedGredient.colorStops.map((stop) => stop.offset * 100)}
+                                            value={State.QROptions.dotsOptions?.gradient?.colorStops.map((stop) => stop.offset * 100)}
+                                            onChange={(_, value: any) => {
+                                                handleChange("dotsOptions", {
+                                                    ...State.QROptions.dotsOptions,
+                                                    gradient: {
+                                                        ...State.QROptions.dotsOptions?.gradient,
+                                                        colorStops: State.QROptions.dotsOptions?.gradient?.colorStops.map((stop, index: any) => ({
+                                                            ...stop,
+                                                            offset: value[index] / 100
+                                                        }))
+                                                    }
+                                                })
+                                            }}
+                                            sx={{
+                                                width: "100%",
+                                                marginBottom: "10px"
+                                            }}
+                                        />
+                                        {
+                                            State.QROptions.dotsOptions?.gradient?.colorStops.map((stop, index) => (
+                                                <div key={index} className="item-Gradient-Stop">
+                                                    <label
+                                                        className="item"
+                                                        style={{
+                                                            backgroundColor: stop.color,
+                                                            width: "50px",
+                                                            height: "50px",
+                                                        }}>
+                                                        <input
+                                                            className="Hide"
+                                                            type="color"
+                                                            value={stop.color}
+                                                            onChange={(e) => handleChange("dotsOptions", {
+                                                                ...State.QROptions.dotsOptions,
+                                                                gradient: {
+                                                                    ...State.QROptions.dotsOptions?.gradient,
+                                                                    colorStops: State.QROptions.dotsOptions?.gradient?.colorStops.map((s, i) => i === index ? { ...s, color: e.target.value } : s)
+                                                                }
+                                                            })}
+                                                        />
+                                                    </label>
+                                                    <Button
+                                                        className="item"
+                                                        variant="light"
+                                                        onClick={() => handleChange("dotsOptions", {
+                                                            ...State.QROptions.dotsOptions,
+                                                            gradient: {
+                                                                ...State.QROptions.dotsOptions?.gradient,
+                                                                colorStops: State.QROptions.dotsOptions?.gradient?.colorStops.filter((_, i) => i !== index)
+                                                            }
+                                                        })}
+                                                    >
+                                                        Remove
+                                                    </Button>
+                                                </div>
+                                            ))
+                                        }
+                                        <Button
+                                            className="item"
+                                            variant="light"
+                                            onClick={() => handleChange("dotsOptions", {
+                                                ...State.QROptions.dotsOptions,
+                                                gradient: {
+                                                    ...State.QROptions.dotsOptions?.gradient,
+                                                    colorStops: [
+                                                        ...State.QROptions.dotsOptions?.gradient?.colorStops ?? [],
+                                                        {
+                                                            offset: 0,
+                                                            color: "#000000"
+                                                        }
+                                                    ]
+                                                }
+                                            })}
+                                        >
+                                            Add Stop
+                                        </Button>
+                                    </div>
+                                </>)
+                            }
                         </AccordionItem>
+
+                        {/* Border */}
+                        <AccordionItem
+                            title="Border"
+                            subtitle="Change QR Border Style & Color"
+                        >
+                            <Input
+                                className="item"
+                                type="range"
+                                label={"Thickness"}
+                                min="0"
+                                max="100"
+                                value={State.QRPluginOptions.thickness.toString()}
+                                onChange={(e) => handleChangePlugin("thickness", parseInt(e.target.value))}
+                            />
+
+                            <div className="item-Download">
+                                <label
+                                    className="item"
+                                    style={{
+                                        backgroundColor: State.QRPluginOptions.color,
+                                        width: "50px",
+                                        height: "50px",
+                                    }}>
+                                    <input
+                                        className="Hide"
+                                        type="color"
+                                        value={State.QRPluginOptions.color}
+                                        onChange={(e) => handleChangePlugin("color", e.target.value)}
+                                    />
+                                </label>
+                            </div>
+
+                            <Input
+                                className="item"
+                                type="text"
+                                label={"Top Text"}
+                                value={State.QRPluginOptions.decorations.top.value}
+                                onChange={(e) => handleChangePlugin("decorations", {
+                                    ...State.QRPluginOptions.decorations,
+                                    top: {
+                                        ...State.QRPluginOptions.decorations.top,
+                                        value: e.target.value
+                                    }
+                                })}
+                            />
+
+                            <Input
+                                className="item"
+                                type="text"
+                                label={"Bottom Text"}
+                                value={State.QRPluginOptions.decorations.bottom.value}
+                                onChange={(e) => handleChangePlugin("decorations", {
+                                    ...State.QRPluginOptions.decorations,
+                                    bottom: {
+                                        ...State.QRPluginOptions.decorations.bottom,
+                                        value: e.target.value
+                                    }
+                                })}
+                            />
+
+                            <Input
+                                className="item"
+                                type="text"
+                                label={"Left Text"}
+                                value={State.QRPluginOptions.decorations.left.value}
+                                onChange={(e) => handleChangePlugin("decorations", {
+                                    ...State.QRPluginOptions.decorations,
+                                    left: {
+                                        ...State.QRPluginOptions.decorations.left,
+                                        value: e.target.value
+                                    }
+                                })}
+                            />
+
+                            <Input
+                                className="item"
+                                type="text"
+                                label={"Right Text"}
+                                value={State.QRPluginOptions.decorations.right.value}
+                                onChange={(e) => handleChangePlugin("decorations", {
+                                    ...State.QRPluginOptions.decorations,
+                                    right: {
+                                        ...State.QRPluginOptions.decorations.right,
+                                        value: e.target.value
+                                    }
+                                })}
+                            />
+
+                        </AccordionItem>
+
 
                         {/* @Settings */}
                         <AccordionItem
@@ -473,6 +785,41 @@ export default function QRCustomizationTool() {
                             >
                                 Apply Border Style
                             </Checkbox>
+
+                            <StyledToggleButtonGroup
+                                className="item-CenterToggleButtons"
+                                value={State.QROptions.qrOptions?.errorCorrectionLevel}
+                                exclusive
+                                sx={{
+                                    // ? Modify All the Items Border-Radius
+                                    '& .MuiToggleButtonGroup-firstButton': {
+                                        borderRadius: "10px 0 0 10px",
+                                    },
+                                    '& .MuiToggleButtonGroup-lastButton': {
+                                        borderRadius: "0 10px 10px 0",
+                                    },
+                                }}
+                                onChange={(e, value) => {
+                                    if (value === null) {
+                                        return;
+                                    }
+                                    return handleChange("qrOptions", { ...State.QROptions.qrOptions, errorCorrectionLevel: value });
+                                }}
+                            >
+                                <ToggleButton value="L">
+                                    Low
+                                </ToggleButton>
+                                <ToggleButton value="M">
+                                    Medium
+                                </ToggleButton>
+                                <ToggleButton value="Q">
+                                    Quartile
+                                </ToggleButton>
+                                <ToggleButton value="H">
+                                    High
+                                </ToggleButton>
+                            </StyledToggleButtonGroup>
+
                         </AccordionItem>
                         <AccordionItem
                             title="License"

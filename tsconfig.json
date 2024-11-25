@@ -25,6 +25,9 @@
             "@Root/*": [
                 "./"
             ],
+            "@Public/*": [
+                "./src/public/*"
+            ],
             "@/*": [
                 "./src/*"
             ],
@@ -37,8 +40,20 @@
             "@Components/*": [
                 "./src/Components/*"
             ],
+            "@Controllers/*": [
+                "./src/Controllers/*"
+            ],
+            "@Data/*": [
+                "./src/Data/*"
+            ],
+            "@Models/*": [
+                "./src/Models/*"
+            ],
             "@Styles/*": [
                 "./src/Styles/*"
+            ],
+            "@Types/*": [
+                "./src/Types/*"
             ],
             "@Utils/*": [
                 "./src/Utils/*"

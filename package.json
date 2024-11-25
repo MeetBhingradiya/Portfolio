@@ -1,6 +1,6 @@
 {
     "name": "meetbhingradiya",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "private": true,
     "scripts": {
         "dev": "next dev",
@@ -21,6 +21,7 @@
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.7",
         "framer-motion": "^11.11.9",
+        "jose": "^5.9.6",
         "mongoose": "^8.7.2",
         "mongoose-paginate-v2": "^1.8.5",
         "next": "^15.0.1",
@@ -36,6 +37,7 @@
         "@types/node": "^22.7.9",
         "@types/react": "^18.3.12",
         "@types/react-dom": "^18.3.1",
+        "@types/uuid": "^10.0.0",
         "eslint": "^9.13.0",
         "eslint-config-next": "15.0.1",
         "postcss": "^8.4.47",

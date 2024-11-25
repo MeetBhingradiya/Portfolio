@@ -40,12 +40,10 @@ const __dirname = path.resolve();
 const nextConfig: NextConfig = {
     reactStrictMode: false,
     images: {
-        remotePatterns: [
-            {
-                protocol: "https",
-                hostname: "img.icons8.com"
-            }
-        ],
+        loader: 'custom',
+        loaderFile: "./src/Utils/RemoteImageLoader.ts",
+        minimumCacheTTL: 60,
+        unoptimized: true,
     },
     async headers() {
         return [
@@ -87,11 +85,16 @@ const nextConfig: NextConfig = {
                 ...config.resolve,
                 alias: {
                     '@Root': path.resolve(__dirname, './'),
+                    '@Public': path.resolve(__dirname, './src/public'),
                     '@': path.resolve(__dirname, './src'),
                     '@App': path.resolve(__dirname, './src/app'),
                     '@Pages': path.resolve(__dirname, './src/Pages'),
                     "@Components": path.resolve(__dirname, "./src/Components"),
+                    "@Controllers": path.resolve(__dirname, "./src/Controllers"),
+                    "@Data": path.resolve(__dirname, "./src/Data"),
+                    "@Models": path.resolve(__dirname, "./src/Models"),
                     "@Styles": path.resolve(__dirname, "./src/Styles"),
+                    "@Types": path.resolve(__dirname, "./src/Types"),
                     "@Utils": path.resolve(__dirname, "./src/Utils"),
                     ...config.resolve.alias,
                 },

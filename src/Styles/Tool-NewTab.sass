@@ -1,0 +1,85 @@
+$icon-size: 64px
+$grid-gap: 10px
+$card-padding: 10px
+$card-bg-color: #1e1e1e
+$card-border-radius: 8px
+
+.Tool_NewTab
+    background: #121212
+    color: #ffffff
+    font-family: 'Roboto', sans-serif
+    padding: 20px
+    min-height: 100vh
+
+    .title
+        text-align: center
+        margin-bottom: 20px
+        font-size: 2rem
+
+    .search
+        width: 100%
+        padding: 10px
+        border: none
+        border-radius: 8px
+        background: #1e1e1e
+        color: #ffffff
+        font-size: 1rem
+        margin-bottom: 20px
+
+    .search::placeholder
+        color: #757575
+
+    .grid
+        display: grid
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
+        gap: $grid-gap
+
+    .bookmark
+        position: relative
+        display: flex
+        flex-direction: column
+        justify-content: center
+        align-items: center
+        background-color: #1e1e1e
+        text-align: center
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
+        border: 1px solid #333
+        border-radius: $card-border-radius
+        transition: transform 0.2s ease
+        cursor: grab
+
+        &:hover
+            transform: translateY(-5px)
+        &.drag-over
+            outline: 2px dashed #6200ea
+
+        .Icon
+            display: flex
+            justify-content: center
+            align-items: center
+            padding: $card-padding
+
+            img
+                width: $icon-size
+                height: $icon-size
+
+        .dropIndicator
+            position: absolute
+            top: 0.3rem
+            left: -9px
+            width: 5px 
+            height: 94%
+            border-radius: 8px
+            background-color: #bb86fc
+            z-index: 10
+
+        .bookmarkTitle
+            padding: $card-padding
+            margin-top: 8px
+            font-size: 1rem
+            color: #ffffff
+            word-break: break-word
+
+        .link
+            color: inherit
+            text-decoration: none

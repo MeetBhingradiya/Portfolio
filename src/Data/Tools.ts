@@ -1,7 +1,7 @@
 import type {
     IBookmark,
     ISuggestion
-} from "@Types/Newtab";
+} from "@Types/Tools";
 import { v4 as uuidv4 } from 'uuid';
 
 const BookmarksDB_: Array<IBookmark> = [
@@ -36,7 +36,7 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "Google - Accounts",
+        name: "Accounts",
         url: "https://accounts.google.com",
         keywords: [
             "Google",
@@ -45,7 +45,7 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "Google - Products",
+        name: "Products",
         url: "https://about.google/intl/ALL_in/products/",
         keywords: [
             "Google",
@@ -176,7 +176,7 @@ const BookmarksDB_: Array<IBookmark> = [
         icon: "https://ssl.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_@Day_2x.png"
     },
     {
-        name: "Google - Signout",
+        name: "Signout",
         url: "https://accounts.google.com/Logout",
         keywords: [
             "Logout",
@@ -189,7 +189,7 @@ const BookmarksDB_: Array<IBookmark> = [
         icon: "https://www.microsoft.com/favicon.ico"
     },
     {
-        name: "Microsoft Products",
+        name: "Products",
         url: "https://support.microsoft.com/en-us/all-products"
     },
     {
@@ -215,7 +215,7 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "Open AI - GPT",
+        name: "Chat GPT",
         url: "https://chat.openai.com",
         keywords: [
             "OpenAI",
@@ -226,7 +226,7 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "Microsoft Designer",
+        name: "Designer",
         url: "https://designer.microsoft.com/",
         keywords: [
             "Designer",
@@ -299,7 +299,7 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "Microsoft Image Creator",
+        name: "Bing Image",
         url: "https://www.bing.com/images/create",
         keywords: [
             "Image",
@@ -464,7 +464,7 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://mui.com"
     },
     {
-        name: "Whois - Domain Lookup",
+        name: "Domain Lookup",
         url: "https://www.whois.com/whois/",
         icon: "https://www.whois.com/images/favicon.ico"
     },
@@ -491,7 +491,7 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://developer.mozilla.org/en-US/"
     },
     {
-        name: "Cloudflare - Dashboard",
+        name: "Dashboard",
         url: "https://dash.cloudflare.com/",
         icon: "https://dash.cloudflare.com/favicon.ico"
     },
@@ -501,7 +501,7 @@ const BookmarksDB_: Array<IBookmark> = [
         icon: "https://www.cloudflare.com/favicon.ico"
     },
     {
-        name: "Cloudflare - Warp",
+        name: "Warp",
         url: "https://1.1.1.1/"
     },
     {
@@ -510,23 +510,23 @@ const BookmarksDB_: Array<IBookmark> = [
         icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
     },
     {
-        name: "PPSU - Student Syllabus",
+        name: "Student Syllabus",
         url: "https://ppsu.ac.in/soe/Academics.php",
         icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
     },
     {
-        name: "PPSU - Student Portal",
+        name: "Student Portal",
         url: "https://ppsu.emli.in/student-ppsavani.php",
         icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
     },
     {
-        name: "PPSU - New Student Portal",
+        name: "New Student Portal",
         url: "https://erp.ppsu.ac.in/",
         icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
     },
     {
-        name: "PPSU - ERP Portal",
-        url: "https://ppsu.emli.in/index-ppsavani.php",
+        name: "PPSU - Exam Papers",
+        url: "https://sites.google.com/ppsu.ac.in/soeexam",
         icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
     },
     {
@@ -534,7 +534,7 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://redux.js.org/"
     },
     {
-        name: "Redux - Toolkit",
+        name: "Toolkit",
         url: "https://redux-toolkit.js.org/"
     },
     {
@@ -542,7 +542,7 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://react-redux.js.org/"
     },
     {
-        name: "Redux - Saga",
+        name: "Saga",
         url: "https://redux-saga.js.org/"
     },
     {
@@ -569,7 +569,7 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://mycompiler.io/"
     },
     {
-        name: "NPM - Node Package Manager",
+        name: "NPM",
         url: "https://www.npmjs.com/"
     },
     {
@@ -581,19 +581,20 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://www.gatsbyjs.com/"
     },
     {
-        name: "GitHub - Student Developer Pack",
-        url: "https://education.github.com/pack"
+        name: "Student Developer",
+        url: "https://education.github.com/pack",
+        icon: "https://github.githubassets.com/favicons/favicon-dark.png"
     },
     {
         name: "GraphQL",
         url: "https://graphql.org/"
     },
     {
-        name: "Amazon - India",
+        name: "Amazon",
         url: "https://www.amazon.in/"
     },
     {
-        name: "AWS - Amazon Web Services",
+        name: "AWS",
         url: "https://aws.amazon.com/"
     },
     {

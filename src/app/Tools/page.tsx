@@ -1,10 +1,9 @@
 "use client";
 
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ISearchEngine, ILocale } from "@Types/Newtab";
-import type { IBookmark, IState } from "@Types/Newtab";
-import { BookmarksDB } from "@Data/Newtab";
+import { ISearchEngine, ILocale } from "@Types/Tools";
+import type { IBookmark, IState } from "@Types/Tools";
+import { BookmarksDB } from "@Data/Tools";
 import { Input } from "@nextui-org/react";
 import Link from "next/link";
 import Image from "next/image";
@@ -18,6 +17,12 @@ import {
 import { styled, alpha } from '@mui/material/styles';
 import { TransitionProps } from '@mui/material/transitions';
 import { Query } from "mongoose";
+import {
+    GridContextProvider,
+    GridDropZone,
+    GridItem,
+    swap
+} from "react-grid-dnd";
 
 // const Transition = React.forwardRef(function Transition(
 //     props: TransitionProps & {
@@ -69,9 +74,9 @@ import { Query } from "mongoose";
 //     },
 // }));
 
-const StorageKey = "Tools/Newtab";
+const StorageKey = "Tools";
 
-function Newtab() {
+function Tools() {
     const [State, setState] = React.useState<IState>({
         FilterSuggestions: [],
         FilterBookmarks: [],
@@ -87,13 +92,9 @@ function Newtab() {
             Locale: ILocale.EN,
         },
     });
-    const RefState = React.useRef<{
-        DragIndex: number | null
-    }>({
-        DragIndex: null,
-    });
 
     React.useEffect(() => {
+        // ? Local Storage Checks
         const data = localStorage.getItem(StorageKey);
         if (data !== null) {
             setState({
@@ -134,36 +135,19 @@ function Newtab() {
         State.Settings.Locale,
     ]);
 
-    const MoveBookmark = (from: number, to: number) => {
-        const newBookmarks = [...State.Bookmarks];
-        const [moved] = newBookmarks.splice(from, 1);
-        newBookmarks.splice(to, 0, moved);
+    function onGridChange(
+        sourceId: any,
+        sourceIndex: any,
+        targetIndex: any,
+        targetId: any
+    ) {
+        const nextState = swap(State.FilterBookmarks, sourceIndex, targetIndex);
         setState({
             ...State,
-            Bookmarks: newBookmarks,
-            FilterBookmarks: newBookmarks,
-            Query: State.Query,
+            FilterBookmarks: nextState,
+            Bookmarks: nextState,
         });
-        RefState.current.DragIndex = null;
-    };
-
-    const onDragStart = (e: any, index: number) => {
-        e.dataTransfer.setData("index", index.toString());
-    };
-
-    const onDragOver = (e: any, index: number) => {
-        e.preventDefault();
-        RefState.current.DragIndex = index;
-    };
-
-    const onDrop = (e: any, index: number) => {
-        const draggedIndex = parseInt(e.dataTransfer.getData("index"));
-        MoveBookmark(draggedIndex, index);
-    };
-
-    const onDragEnd = () => {
-        RefState.current.DragIndex = null;
-    };
+    }
 
     const onQueryChange = (e: any) => {
         const query = e.target.value.toLowerCase();
@@ -232,58 +216,138 @@ function Newtab() {
                 className="search"
             />
 
-            <div className="grid">
-                    {State.FilterBookmarks.map((bookmark, index) => {
-                        console.log("Rendering bookmark", bookmark.name);
-                        return (
-                            <motion.div
-                                key={bookmark.name}
-                                initial={{ opacity: 0, scale: 0.9 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.3 }}
-                                draggable
-                                onDragStart={(e) => onDragStart(e, index)}
-                                onDragOver={(e) => onDragOver(e, index)}
-                                onDrop={(e) => onDrop(e, index)}
-                                onDragEnd={onDragEnd}
-                                className={`bookmark ${RefState.current.DragIndex === index ? "drag-over" : ""}`}
+            <GridContextProvider onChange={onGridChange}>
+                <GridDropZone
+                    id="items"
+                    boxesPerRow={
+                        typeof window !== "undefined"
+                            ? Math.floor(window.innerWidth / 200)
+                            : 5
+                    }
+                    rowHeight={
+                        // ? Responsive + Check the Items of The State
+                        150
+                    }
+                    style={{
+                        // ? Responsive + Check the Items of The State
+                        height: `${Math.ceil(State.FilterBookmarks.length / 5) * 200}px`
+                    }}
+                >
+                    {State.FilterBookmarks.map((item, index) => (
+                        <GridItem key={item.id}>
+                            <div
+                                className="bookmark"
+                                onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
+                                    e.currentTarget.dataset.dragStartX = e.clientX.toString();
+                                    e.currentTarget.dataset.dragStartY = e.clientY.toString();
+
+                                    e.currentTarget.style.cursor = "grabbing";
+                                }}
+                                onMouseUp={(e: React.MouseEvent<HTMLDivElement>) => {
+                                    const dragStartX = parseInt(`${e.currentTarget.dataset.dragStartX}`, 10);
+                                    const dragStartY = parseInt(`${e.currentTarget.dataset.dragStartY}`, 10);
+                                    const dragDistance = Math.sqrt(
+                                        Math.pow(e.clientX - dragStartX, 2) + Math.pow(e.clientY - dragStartY, 2)
+                                    );
+
+                                    // Detect drag vs click: if drag distance is below a threshold, treat it as a click
+                                    if (dragDistance < 5) {
+                                        window.open(item.url, State.Settings.isNewWindow ? "_blank" : "_self");
+                                    }
+
+                                    e.currentTarget.style.cursor = "pointer";
+                                }}
+
+                                // ? Make a Perfect Animation to Start Dragging to End Dragging (Cursor)
+                                // onDragStart={(e: React.DragEvent<HTMLDivElement>) => {
+                                //     e.currentTarget.style.cursor = "grabbing";
+                                // }}
+                                // onDragEnd={(e: React.DragEvent<HTMLDivElement>) => {
+                                //     e.currentTarget.style.cursor = "pointer";
+                                // }}
                             >
-                                {RefState.current.DragIndex === index && <div className="dropIndicator"></div>}
-                                <Link href={bookmark.url} className="link">
-                                    {bookmark.icon && (
-                                        <div className="Icon">
-                                            <Image
-                                                src={bookmark.icon}
-                                                alt={bookmark.name}
-                                                width={64}
-                                                height={64}
-                                                priority
-                                            />
-                                        </div>
-                                    )}
-                                    <h2 className="bookmarkTitle">{bookmark.name}</h2>
-                                </Link>
-                            </motion.div>
-                        )
-                    })}
+                                {item.icon && (
+                                    <div className="Icon">
+                                        <Image
+                                            src={item.icon}
+                                            alt={item.name}
+                                            width={64}
+                                            height={64}
+                                            priority
+                                            style={{
+                                                borderRadius: "15px",
+                                                userSelect: "none",
+                                                MozWindowDragging: "no-drag",
+                                            }}
+                                            onDragStart={(e) => e.preventDefault()}
+                                        />
+                                    </div>
+                                )}
+                                <h2 className="bookmarkTitle">{item.name}</h2>
+                            </div>
+                        </GridItem>
+                    ))}
 
                     {/* Add */}
-                    <motion.div
-                        key="add"
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className="bookmark add"
-                    >
-                        <motion.div className="link">
-                            <div className="Icon">
-                                <Add width={64} sx={{
-                                    color: "#6e6e6e"
-                                }} />
+                    <GridItem key="add">
+                        <div className="bookmark add">
+                            <div className="link">
+                                <div className="Icon">
+                                    <Add width={64} sx={{
+                                        color: "#6e6e6e"
+                                    }} />
+                                </div>
                             </div>
-                        </motion.div>
-                    </motion.div>
-            </div>
+                        </div>
+                    </GridItem>
+                </GridDropZone>
+            </GridContextProvider>
+
+            {/* <div className="grid"> */}
+            {/* {State.FilterBookmarks.map((bookmark, index) => {
+                    return (
+                        <div
+                            key={bookmark.name}
+                            draggable
+                            onDragStart={(e) => onDragStart(e, index)}
+                            onDragOver={(e) => onDragOver(e, index)}
+                            onDrop={(e) => onDrop(e, index)}
+                            onDragEnd={onDragEnd}
+                            className={`bookmark ${RefState.current.DragIndex === index ? "drag-over" : ""}`}
+                        >
+                            {RefState.current.DragIndex === index && <div className="dropIndicator"></div>}
+                            <Link href={bookmark.url} className="link">
+                                {bookmark.icon && (
+                                    <div className="Icon">
+                                        <Image
+                                            src={bookmark.icon}
+                                            alt={bookmark.name}
+                                            width={64}
+                                            height={64}
+                                            priority
+                                        />
+                                    </div>
+                                )}
+                                <h2 className="bookmarkTitle">{bookmark.name}</h2>
+                            </Link>
+                        </div>
+                    )
+                })} */}
+
+            {/* Add */}
+            {/* <div
+                    key="add"
+                    className="bookmark add"
+                >
+                    <div className="link">
+                        <div className="Icon">
+                            <Add width={64} sx={{
+                                color: "#6e6e6e"
+                            }} />
+                        </div>
+                    </div>
+                </div> */}
+            {/* </div> */}
 
             {/* Context Menu */}
             {/* <StyledMenu
@@ -331,4 +395,4 @@ function Newtab() {
     );
 }
 
-export default Newtab;
+export default Tools;

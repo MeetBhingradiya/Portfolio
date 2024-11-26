@@ -35,6 +35,7 @@ $card-border-radius: 8px
         gap: $grid-gap
 
     .bookmark
+        margin: 5px
         position: relative
         display: flex
         flex-direction: column
@@ -46,7 +47,9 @@ $card-border-radius: 8px
         border: 1px solid #333
         border-radius: $card-border-radius
         transition: transform 0.2s ease
-        cursor: grab
+        cursor: pointer
+        word-wrap: no-warp
+        user-select: none
 
         &:hover
             transform: translateY(-5px)

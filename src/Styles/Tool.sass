@@ -4,7 +4,7 @@ $card-padding: 10px
 $card-bg-color: #1e1e1e
 $card-border-radius: 8px
 
-.Tool_NewTab
+.Tool    
     background: #121212
     color: #ffffff
     font-family: 'Roboto', sans-serif
@@ -34,6 +34,17 @@ $card-border-radius: 8px
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
         gap: $grid-gap
 
+    .item 
+        padding: 15px
+        display: flex
+        justify-content: center
+        align-items: center
+        flex-direction: column
+
+    .delete
+        &:hover
+            background: #ff000025
+
     .bookmark
         margin: 5px
         position: relative
@@ -52,7 +63,9 @@ $card-border-radius: 8px
         user-select: none
 
         &:hover
-            transform: translateY(-5px)
+            transform: translateY(-5px) scale(1.2)
+            border: 3px dashed #6200ea
+
         &.drag-over
             outline: 2px dashed #6200ea
 

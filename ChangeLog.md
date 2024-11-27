@@ -17,6 +17,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Bug in ABC module -->
 
+## [1.0.2] - Unreleased
+
+### Added
+
+### Changed
+
+### Removed
+
 ## [1.0.1] - 25/11/2024
 
 ### Added

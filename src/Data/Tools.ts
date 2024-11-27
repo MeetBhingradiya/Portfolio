@@ -281,17 +281,17 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Xbox",
         url: "https://www.xbox.com/",
-        icon: "https://img-prod-cms-rt-microsoft-com.akamaized.net/cms/api/am/imageFileData/RW4ESm?ver=c63e"
+        icon: "https://img.icons8.com/fluency/512/xbox.png"
     },
     {
         name: "Github",
         url: "https://github.com",
-        icon: "https://github.githubassets.com/favicons/favicon-dark.png"
+        icon: "https://github.githubassets.com/assets/apple-touch-icon-144x144-b882e354c005.png"
     },
     {
         name: "Azure",
         url: "https://portal.azure.com/",
-        icon: "https://portal.azure.com/Content/favicon.ico",
+        icon: "https://img.icons8.com/fluency/512/azure-1.png",
         keywords: [
             "Azure",
             "Cloud",
@@ -330,11 +330,12 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Instagram",
         url: "https://instagram.com",
-        icon: "https://www.instagram.com/favicon.ico",
+        icon: "https://img.icons8.com/fluency/512/instagram-new.png",
         keywords: [
             "Social",
             "Instagram",
-            "IG"
+            "IG",
+            "Meta"
         ]
     },
     {
@@ -507,27 +508,26 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "P P Savani University",
         url: "https://ppsu.ac.in/",
-        icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
+        icon: "/assets/ppsu.png"
     },
     {
         name: "Student Syllabus",
         url: "https://ppsu.ac.in/soe/Academics.php",
-        icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
+        icon: "/assets/ppsu.png"
     },
     {
         name: "Student Portal",
         url: "https://ppsu.emli.in/student-ppsavani.php",
-        icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
+        icon: "/assets/ppsu.png"
     },
-    {
-        name: "New Student Portal",
+    {        name: "New Student Portal",
         url: "https://erp.ppsu.ac.in/",
-        icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
+        icon: "/assets/ppsu.png"
     },
     {
         name: "PPSU - Exam Papers",
         url: "https://sites.google.com/ppsu.ac.in/soeexam",
-        icon: "https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://ppsu.ac.in/&size=128"
+        icon: "/assets/ppsu.png"
     },
     {
         name: "Redux",
@@ -548,7 +548,15 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Vite",
         url: "https://vitejs.dev/",
-        icon: "https://vitejs.dev/logo.svg"
+        icon: "https://vitejs.dev/logo.svg",
+        keywords: [
+            "Vite",
+            "JS",
+            "Framework",
+            "Vue",
+            "React",
+            "JavaScript"
+        ]
     },
     {
         name: "JS Object to JSON",
@@ -573,8 +581,17 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://www.npmjs.com/"
     },
     {
-        name: "Node JS",
-        url: "https://nodejs.org/"
+        name: "NodeJS",
+        url: "https://nodejs.org/",
+        keywords: [
+            "Node",
+            "JS",
+            "MERN",
+            "MEAN",
+            "JavaScript",
+            "Framework",
+            "V8"
+        ]
     },
     {
         name: "Gatsby",

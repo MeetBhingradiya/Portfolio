@@ -22,7 +22,7 @@ export async function middleware(req: NextRequest) {
         const csrfTokenFromCookie = req.cookies.get('csrf_token');
 
         const excludedRoutes = [
-            '/api/sitemap', 
+            '/api/sitemap',
             '/api/robots'
         ];
 

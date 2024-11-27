@@ -32,6 +32,7 @@
         "react-feather": "^2.0.10",
         "react-gesture-responder": "^2.1.0",
         "react-grid-dnd": "^2.1.2",
+        "react-toastify": "^10.0.6",
         "sass": "^1.80.4",
         "uuid": "^10.0.0"
     },

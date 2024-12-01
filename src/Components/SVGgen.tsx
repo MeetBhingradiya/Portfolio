@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 
-function SVGgen({ path }: { path: string }) {
+function SVG({ path }: { path: string }) {
     const [svgData, setSvgData] = useState<string>('');
 
     useEffect(() => {
@@ -34,4 +34,4 @@ function SVGgen({ path }: { path: string }) {
     );
 };
 
-export default SVGgen;
+export default SVG;

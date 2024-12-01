@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
-import { NextUIProvider } from "@nextui-org/system";
+import { Providers } from "@Components/Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "Meet Bhingradiya",
     description: "A Portfolio Website of Meet Bhingradiya",
-    icons: "favicon.ico",
+    icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
         "Meet",
@@ -40,7 +40,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en">
+        <html lang="en" suppressHydrationWarning>
             <head>
                 <meta charSet="utf-8" />
 
@@ -54,9 +54,9 @@ export default function RootLayout({
                 <meta name="google-site-verification" content="-eIAp0-BRCYjfoSuMDWpQTpgjQHadfvBbnf4le5IWBk" />
             </head>
             <body className={inter.className}>
-                <NextUIProvider>
+                <Providers>
                     {children}
-                </NextUIProvider>
+                </Providers>
             </body>
         </html>
     );

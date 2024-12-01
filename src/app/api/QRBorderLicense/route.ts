@@ -24,8 +24,6 @@ function generateLicenseKey(
 
 export async function GET() {
 
-    
-
     return NextResponse.json(generateLicenseKey(
         "qr-code-styling",
         LicensingModel.Perpetual,

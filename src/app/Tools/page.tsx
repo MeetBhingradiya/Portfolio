@@ -708,6 +708,23 @@ function Tools() {
                                     Links Open in New Window
                                 </Checkbox>
 
+                                {/* Reset Database */}
+                                <Button
+                                    color="danger"
+                                    variant="light"
+                                    className="mt-4"
+                                    onPress={() => {
+                                        localStorage.removeItem(StorageKey);
+                                        setState({
+                                            ...State,
+                                            FilterBookmarks: BookmarksDB,
+                                            Bookmarks: BookmarksDB,
+                                        });
+                                    }}
+                                >
+                                    Reset Database
+                                </Button>
+
                             </ModalBody>
                             <ModalFooter>
                                 <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>

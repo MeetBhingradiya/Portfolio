@@ -46,6 +46,9 @@
             "@Data/*": [
                 "./src/Data/*"
             ],
+            "@Hooks/*": [
+                "./src/Hooks/*"
+            ],
             "@Models/*": [
                 "./src/Models/*"
             ],

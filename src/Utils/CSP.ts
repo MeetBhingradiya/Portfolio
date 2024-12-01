@@ -118,7 +118,8 @@ function CSPGenerator(options: CSPGeneratorOptions = {}): string {
 
             // ? Send Notification of Invalid Domains
             const invalidDomains = value.Domains.filter((domain: string) =>
-                !validDomains.includes(domain)
+                // ? Add * as Valid Domain
+                domain !== '*' && !validDomains.includes(domain)
             );
 
             if (invalidDomains.length > 0) {
@@ -126,7 +127,7 @@ function CSPGenerator(options: CSPGeneratorOptions = {}): string {
                     `CSP: Invalid domains found for ${key}: ${invalidDomains.join(', ')}`
                 );
             }
-            
+
             parts.push(...validDomains);
         }
 
@@ -166,24 +167,11 @@ function CSPGenerator(options: CSPGeneratorOptions = {}): string {
     return csp.trim();
 }
 
-export { CSPGenerator };
-
-// @ Main Use
-const csp = CSPGenerator({
-    directive: {
-        [CSPDirectiveOptions.ScriptSrc]: {
-            Domains: ['http://example.com'],
-            Inline: false,
-        },
-        [CSPDirectiveOptions.ImgSrc]: {
-            Data: true,
-        },
-        [CSPDirectiveOptions.ConnectSrc]: {
-            Domains: ['https://api.example.com'],
-        }
-    },
-    removeWhitespace: true,
-    minify: true,
-});
-
-console.log(csp);
+export {
+    CSPGenerator
+};
+export type {
+    CSPGeneratorOptions,
+    DirectiveOptions,
+    CSPDirectiveOptions
+};

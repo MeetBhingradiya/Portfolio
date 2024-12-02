@@ -36,28 +36,28 @@ const nextConfig: NextConfig = {
                         key: 'Referrer-Policy',
                         value: 'same-origin',
                     },
-                    {
-                        key: 'Content-Security-Policy',
-                        value: CSPGenerator({
-                            directive: {
-                                // ? No Iframe Allowed
-                                'frame-ancestors': {
-                                    None: true
-                                },
-                                // ? Any Domain Image Allowed
-                                'img-src': {
-                                    Self: true,
-                                    Domains: ['*']
-                                },
-                                // ? No Script Allowed (Inline or External or Eval)
-                                'script-src': {
-                                    Self: true,
-                                },
-                            },
-                            minify: true,
-                            removeWhitespace: true
-                        })
-                    }
+                    // {
+                    //     key: 'Content-Security-Policy',
+                    //     value: CSPGenerator({
+                    //         directive: {
+                    //             // ? No Iframe Allowed
+                    //             'frame-ancestors': {
+                    //                 None: true
+                    //             },
+                    //             // ? Any Domain Image Allowed
+                    //             'img-src': {
+                    //                 Self: true,
+                    //                 Domains: ['*']
+                    //             },
+                    //             // ? No Script Allowed (Inline or External or Eval)
+                    //             'script-src': {
+                    //                 Self: true,
+                    //             },
+                    //         },
+                    //         minify: true,
+                    //         removeWhitespace: true
+                    //     })
+                    // }
                 ]
             }
         ];

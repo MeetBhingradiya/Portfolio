@@ -9,14 +9,78 @@ const StateSchema: Schema = new Schema({
             "Site@Active#State"
         ]
     },
-    Settings: {
-        isMaintenance: {
+    Maintenance: {
+        Global: {
             type: Boolean,
             default: false
         },
-        isCommingSoon: {
+        Partial: {
             type: Boolean,
             default: false
+        },
+        Endpoints: {
+            type: Array<String>,
+            default: []
+        },
+        Message: {
+            type: String,
+            default: ""
+        }
+    },
+    CommingSoon: {
+        Global: {
+            type: Boolean,
+            default: false
+        },
+        Partial: {
+            type: Boolean,
+            default: false
+        },
+        Endpoints: {
+            type: Array<String>,
+            default: []
+        },
+        Message: {
+            type: String,
+            default: ""
+        }
+    },
+    Homepage: {
+        Links: {
+            type: Array<{
+                Title: string
+                URL: string
+                Icon?: string
+                isShown: boolean
+            }>,
+            default: []
+        }
+    },
+    Authentication: {
+        CookieDuration: {
+            type: Number,
+            // ? 7 days
+            default: 604800
+        },
+        MaxUserProfiles: {
+            type: Number,
+            default: 5
+        },
+        saltRounds: {
+            type: Number,
+            default: 10
+        },
+        saltFormat: {
+            type: String,
+            default: "#SALT@TOKEN#SALT"
+        },
+        AllowSignup: {
+            type: Boolean,
+            default: true
+        },
+        AllowLogin: {
+            type: Boolean,
+            default: true
         }
     },
     Notifications: {
@@ -36,18 +100,42 @@ const StateSchema: Schema = new Schema({
 });
 
 export interface IState extends Document {
-    StateID: string;
-    Settings: {
-        isMaintenance: boolean;
-        isCommingSoon: boolean;
-    };
+    StateID: string
+    Maintenance?: {
+        Global?: boolean
+        Partial?: boolean
+        Endpoints?: Array<string>
+        Message?: string
+    }
+    CommingSoon?: {
+        Global?: boolean
+        Partial?: boolean
+        Endpoints?: Array<string>
+        Message?: string
+    }
+    Homepage: {
+        Links: Array<{
+            Title: string
+            URL: string
+            Icon?: string
+            isShown: boolean
+        }>
+    }
+    Authentication: {
+        CookieDuration: number
+        MaxUserProfiles: number
+        saltRounds: number
+        saltFormat: string
+        AllowSignup: boolean
+        AllowLogin: boolean
+    }
     Notifications: Array<{
-        icon?: string;
-        description?: string;
-        message: string;
-        type: "error" | "warning" | "info" | "success";
-        visibleAt: Date;
-        VisibleTill?: Date;
+        icon?: string
+        description?: string
+        message: string
+        type: "error" | "warning" | "info" | "success"
+        visibleAt: Date
+        VisibleTill?: Date
     }>;
 }
 

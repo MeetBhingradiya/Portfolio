@@ -1,9 +1,20 @@
-# Change Log
+# Meet Bhingradiya Portfolio - Change Log
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## Current Goals
+- 10+ New Tools
+- A Embrodery Company Management System
+- Blogging
+- Portfolio Management System
+- Wallets Management System Linked with BANK APIs
+- Desktop & Mobile App of React Native & Electron
+
+## Current Tasks
+- [ ] Bug : Fix Theme of Tools > QR
 
 <!-- ## [Unreleased]
 
@@ -17,15 +28,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Bug in ABC module -->
 
-## [1.0.2] - Unreleased
+## v1.0.2 - 09/12/2024
 
-<!-- ### Added
+### Added
+- Hooks > useStore - Added for Store Management of the Client Side Pages faster and easier to manage
+- Models > New Models > Permissions, VerificationCodes, Users, Transactions, Wallets
+- Utils > ExtensionsDetector - Added for Detecting the Extensions is Installed or Not in the Browser
+- Utils > Crypto - Added for Encrypting and Decrypting Technologie for the Project (9 Algorithms Supported, upto 40+ Algorithms)
+- Changelog > Current Goals & Current Tasks Added
 
 ### Changed
+- Bug : Fixed CSP Issue on QR Gen Tool & Tools Page
+- Chnagelog - Version format changed to `[1.0.0]` from `v1.0.0`
+- Index Page - Chnaged Gredient Offset for Better View on Mobile & Also for Desktop
+- TS Config Paths Now Automatically Resolved in Next Config
+- Models > "Blog" Renamed to "Blogs
+- Models > Blogs > Removed default propertys
+- Models > State > Authentication Settings Added & Refactored Model Structure
 
-### Removed -->
+### Removed
+- Temporary Modules
+- Tools > Settings > isNewWindow - Due to Not Working Properly
+- Scripts Removed due to Not longer needed for the Project
 
-## [1.0.1] - 25/11/2024
+## v1.0.1 - 25/11/2024
 
 ### Added
 - Bookmark Page
@@ -44,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OLD Html Files [index, Skillicon Generator, QRBorderLicenseBypass Checks]
 - JSON Web Token - Removed from the Project alternative is 'Jose' Library for NextJS
 
-## [1.0.0] - 01/08/2024
+## v1.0.0 - 01/08/2024
 
 ### Added
-- Initial release of the project
+- Initial start of the project a nextjs Template

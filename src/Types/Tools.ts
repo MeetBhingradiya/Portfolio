@@ -121,7 +121,6 @@ interface IState {
     Settings: {
         isFirstRun: boolean
         isNewTab: boolean
-        isNewWindow: boolean
         RandomizeLinks: boolean
         SearchEngine: ISearchEngine
         Locale: string

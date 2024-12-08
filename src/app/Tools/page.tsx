@@ -113,7 +113,6 @@ function Tools() {
         Settings: {
             isFirstRun: true,
             isNewTab: false,
-            isNewWindow: false,
             RandomizeLinks: false,
             SearchEngine: ISearchEngine.GOOGLE,
             Locale: ILocale.EN,
@@ -371,7 +370,6 @@ function Tools() {
             Booksmarks: State.Bookmarks,
             Settings: {
                 isNewTab: State.Settings.isNewTab,
-                isNewWindow: State.Settings.isNewWindow,
                 RandomizeLinks: State.Settings.RandomizeLinks,
                 SearchEngine: State.Settings.SearchEngine,
                 Locale: State.Settings.Locale,
@@ -380,7 +378,6 @@ function Tools() {
     }, [
         State.Bookmarks,
         State.Settings.isNewTab,
-        State.Settings.isNewWindow,
         State.Settings.RandomizeLinks,
         State.Settings.SearchEngine,
         State.Settings.Locale,
@@ -459,7 +456,7 @@ function Tools() {
                                     );
 
                                     if (dragDistance < 5) {
-                                        window.open(item.url, State.Settings.isNewWindow ? "_blank" : "_self");
+                                        window.open(item.url, State.Settings.isNewTab ? "_blank" : "_self");
                                     }
 
                                     e.currentTarget.style.cursor = "pointer";
@@ -681,31 +678,12 @@ function Tools() {
                                             ...State,
                                             Settings: {
                                                 ...State.Settings,
-                                                isNewTab: value,
-                                                isNewWindow: false,
+                                                isNewTab: value
                                             },
                                         });
                                     }}
                                 >
                                     Links Open in New Tab
-                                </Checkbox>
-
-                                {/* NewWindow */}
-                                <Checkbox
-                                    className="mt-1 ml-1"
-                                    isSelected={State.Settings.isNewWindow}
-                                    onValueChange={(value) => {
-                                        setState({
-                                            ...State,
-                                            Settings: {
-                                                ...State.Settings,
-                                                isNewWindow: value,
-                                                isNewTab: false,
-                                            },
-                                        });
-                                    }}
-                                >
-                                    Links Open in New Window
                                 </Checkbox>
 
                                 {/* Reset Database */}

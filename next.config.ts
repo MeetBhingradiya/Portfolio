@@ -1,11 +1,7 @@
 import path from 'path';
 import { NextConfig } from 'next';
-import { CSPGenerator } from './src/Utils/CSP';
-import type {
-    CSPDirectiveOptions
-} from './src/Utils/CSP';
-
-const __dirname = path.resolve();
+import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
+import tsconfig from './tsconfig.json';
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -41,17 +37,22 @@ const nextConfig: NextConfig = {
                         value: CSPGenerator({
                             directive: {
                                 // ? No Iframe Allowed
-                                'frame-ancestors': {
+                                [CSPDirectiveOptions.FrameSrc]: {
+                                    None: true
+                                },
+                                [CSPDirectiveOptions.FrameAncestors]: {
                                     None: true
                                 },
                                 // ? Any Domain Image Allowed
-                                'img-src': {
+                                [CSPDirectiveOptions.ImgSrc]: {
                                     Self: true,
                                     Domains: ['*']
                                 },
                                 // ? No Script Allowed (Inline or External or Eval)
-                                'script-src': {
+                                [CSPDirectiveOptions.ScriptSrc]: {
                                     Self: true,
+                                    Inline: true,
+                                    Eval: true,
                                 },
                             },
                             minify: true,
@@ -62,6 +63,8 @@ const nextConfig: NextConfig = {
             }
         ];
     },
+
+    // ? SASS Options
     sassOptions: {
         silenceDeprecations: ["legacy-js-api"],
         implementation: 'sass'
@@ -72,19 +75,12 @@ const nextConfig: NextConfig = {
             resolve: {
                 ...config.resolve,
                 alias: {
-                    '@Root': path.resolve(__dirname, './'),
-                    '@Public': path.resolve(__dirname, './src/public'),
-                    '@': path.resolve(__dirname, './src'),
-                    '@App': path.resolve(__dirname, './src/app'),
-                    '@Pages': path.resolve(__dirname, './src/Pages'),
-                    "@Components": path.resolve(__dirname, "./src/Components"),
-                    "@Controllers": path.resolve(__dirname, "./src/Controllers"),
-                    "@Data": path.resolve(__dirname, "./src/Data"),
-                    "@Hooks": path.resolve(__dirname, "./src/Hooks"),
-                    "@Models": path.resolve(__dirname, "./src/Models"),
-                    "@Styles": path.resolve(__dirname, "./src/Styles"),
-                    "@Types": path.resolve(__dirname, "./src/Types"),
-                    "@Utils": path.resolve(__dirname, "./src/Utils"),
+                    ...Object.fromEntries(
+                        Object.entries(tsconfig.compilerOptions.paths).map(([key, value]) => [
+                            key.replace('/*', ''),
+                            path.resolve(path.resolve(), value[0].replace('/*', ''))
+                        ])
+                    ),
                     ...config.resolve.alias,
                 },
                 extensions: [

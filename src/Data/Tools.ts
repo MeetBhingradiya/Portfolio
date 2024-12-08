@@ -433,7 +433,13 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "React",
-        url: "https://react.dev"
+        url: "https://react.dev",
+        keywords: [
+            "React",
+            "JS",
+            "Library",
+            "Docs"
+        ]
     },
     {
         name: "Remix",
@@ -535,15 +541,33 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "Toolkit",
-        url: "https://redux-toolkit.js.org/"
+        url: "https://redux-toolkit.js.org/",
+        keywords: [
+            "Redux",
+            "Toolkit",
+            "JS",
+            "Framework"
+        ]
     },
     {
         name: "React Redux",
-        url: "https://react-redux.js.org/"
+        url: "https://react-redux.js.org/",
+        keywords: [
+            "React",
+            "Redux",
+            "JS",
+            "Framework"
+        ]
     },
     {
         name: "Saga",
-        url: "https://redux-saga.js.org/"
+        url: "https://redux-saga.js.org/",
+        keywords: [
+            "Redux",
+            "Saga",
+            "JS",
+            "Framework"
+        ]
     },
     {
         name: "Vite",
@@ -570,7 +594,12 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "Black Box AI",
-        url: "https://blackbox.ai/"
+        url: "https://blackbox.ai/",
+        keywords: [
+            "Black Box",
+            "AI",
+            "Chat"
+        ]
     },
     {
         name: "My Compiler",
@@ -578,7 +607,13 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "NPM",
-        url: "https://www.npmjs.com/"
+        url: "https://www.npmjs.com/",
+        keywords: [
+            "NPM",
+            "Node",
+            "Package",
+            "Manager"
+        ]
     },
     {
         name: "NodeJS",
@@ -595,36 +630,128 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "Gatsby",
-        url: "https://www.gatsbyjs.com/"
+        url: "https://www.gatsbyjs.com/",
+        keywords: [
+            "Gatsby",
+            "React",
+            "JS",
+            "Framework",
+            "GraphQL"
+        ]
     },
     {
         name: "Student Developer",
         url: "https://education.github.com/pack",
-        icon: "https://github.githubassets.com/favicons/favicon-dark.png"
+        icon: "https://github.githubassets.com/favicons/favicon-dark.png",
+        keywords: [
+            "Student",
+            "Developer",
+            "GitHub",
+            "Pack"
+        ]
     },
     {
         name: "GraphQL",
-        url: "https://graphql.org/"
+        url: "https://graphql.org/",
+        keywords: [
+            "GraphQL",
+            "API",
+            "Query",
+            "Language"
+        ]
     },
     {
         name: "Amazon",
-        url: "https://www.amazon.in/"
+        url: "https://www.amazon.in/",
+        keywords: [
+            "Amazon",
+            "Shopping",
+            "Ecommerce"
+        ]
     },
     {
         name: "AWS",
-        url: "https://aws.amazon.com/"
+        url: "https://aws.amazon.com/",
+        keywords: [
+            "Amazon",
+            "Web",
+            "Services",
+            "Cloud"
+        ]
     },
     {
         name: "Spotify",
-        url: "https://open.spotify.com/"
+        url: "https://open.spotify.com/",
+        keywords: [
+            "Spotify",
+            "Music",
+            "Songs",
+            "Playlist"
+        ]
     },
     {
         name: "YouTube Music",
-        url: "https://music.youtube.com/"
+        url: "https://music.youtube.com/",
+        keywords: [
+            "YouTube",
+            "Music",
+            "Songs",
+            "Playlist"
+        ]
     },
     {
         name: "YouTube Studio",
-        url: "https://studio.youtube.com/"
+        url: "https://studio.youtube.com/",
+        keywords: [
+            "YouTube",
+            "Studio",
+            "Content",
+            "Creator"
+        ]
+    },
+    {
+        name: "Netflix",
+        url: "https://www.netflix.com/",
+        keywords: [
+            "Netflix",
+            "Movies",
+            "Shows",
+            "Series"
+        ]
+    },
+    {
+        name: "Prime Video",
+        url: "https://www.primevideo.com/",
+        keywords: [
+            "Amazon",
+            "Prime",
+            "Video",
+            "Movies",
+            "Shows",
+            "Series"
+        ]
+    },
+    {
+        name: "Jio Cinema",
+        url: "https://www.jiocinema.com/",
+        keywords: [
+            "Jio",
+            "Cinema",
+            "Movies",
+            "Shows",
+            "TV"
+        ]
+    },
+    {
+        name: "Hotstar",
+        url: "https://www.hotstar.com/",
+        keywords: [
+            "Hotstar",
+            "Disney",
+            "Movies",
+            "Shows",
+            "Series"
+        ]
     }
 ]
 

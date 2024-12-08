@@ -128,6 +128,11 @@ function CSPGenerator(options: CSPGeneratorOptions = {}): string {
                 );
             }
 
+            // ? if * is present, remove all other domains & add * as valid domain
+            if (value.Domains.includes('*')) {
+                validDomains.splice(0, validDomains.length, '*');
+            }
+
             parts.push(...validDomains);
         }
 
@@ -168,10 +173,10 @@ function CSPGenerator(options: CSPGeneratorOptions = {}): string {
 }
 
 export {
-    CSPGenerator
+    CSPGenerator,
+    CSPDirectiveOptions,
 };
 export type {
     CSPGeneratorOptions,
-    DirectiveOptions,
-    CSPDirectiveOptions
+    DirectiveOptions
 };

@@ -94,7 +94,10 @@ async function Encrypt(options: EncryptOptions): Promise<string> {
 }
 
 async function Decrypt(
-    token: string, Secret: string, Rounds: number, Algorithm: EncryptionAlgorithms = EncryptionAlgorithms.AES_256_CBC
+    token: string, 
+    Secret: string, 
+    Rounds: number, 
+    Algorithm: EncryptionAlgorithms = EncryptionAlgorithms.AES_256_CBC
 ): Promise<any | null> {
     const decoded = JSON.parse(Buffer.from(token, "base64").toString()) as TokenPayload;
 

@@ -5,18 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## Current Goals
-- 10+ New Tools
-- A Embrodery Company Management System
-- Blogging
-- Portfolio Management System
-- Wallets Management System Linked with BANK APIs
-- Desktop & Mobile App of React Native & Electron
-
-## Current Tasks
-- [ ] Bug : Fix Theme of Tools > QR
-
-<!-- ## [Unreleased]
+<!-- vUnreleased
 
 ### Added
 - New feature XYZ
@@ -25,10 +14,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Refactored code in XYZ module
 
-### Fixed
+### Removed
 - Bug in ABC module -->
 
-## v1.0.2 - 09/12/2024
+## v1.0.3 - 11/12/2024
+
+### Added
+- Env > Example Env File on Root
+
+### Changed
+- Utils > Crypto > Changed new Algorithm for Bug of Encryption
+- Home > Footer > Added Version Chnagelog as Link & Version Info 
+- Home > Footer > Added Social Links with Enabling & Disabling Feature when its needed
+- Home > Links > Stackoverflow Added
+- Home > Container Design
+- Page > Tools > Updated Keywords for Better SEO
+
+## v1.0.2 - 08/12/2024
 
 ### Added
 - Hooks > useStore - Added for Store Management of the Client Side Pages faster and easier to manage

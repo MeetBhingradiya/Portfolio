@@ -25,6 +25,8 @@ export const metadata: Metadata = {
         "meetbhingradiya.com",
         "meetbhingradiya.dev",
         "meetbhingradiya.in",
+        "meetbhingradiya.live",
+        "meetbhingradiya.shop",
         "meetbhingradiya.co.in",
     ],
     authors: {

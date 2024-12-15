@@ -14,12 +14,8 @@ import {
 } from '@mui/icons-material';
 import type { Metadata } from "next";
 import Link from "next/link";
+import Footer from "@Components/Footer";
 
-let ProjectInfo = {
-    version: "1.0.2",
-    releasedate: "2024-12-08",
-    visiblebranch: "Development", // Development | Release
-}
 
 const Links: Array<{
     Label: string;
@@ -110,24 +106,7 @@ export default function Home() {
             </motion.div>
 
             {/* ? Footer */}
-            <motion.div
-                className="footer"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.1, duration: 0.5, ease: "easeInOut" }}
-            >
-                All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
-                <motion.a
-                    href={`https://github.com/MeetBhingradiya/MeetBhingradiya/blob/${ProjectInfo.visiblebranch}/ChangeLog.md`}
-                    target="_blank"
-                    className="Version"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.1, duration: 0.5, ease: "easeInOut" }}
-                >
-                    v{ProjectInfo.version} | {getRelativeTime(new Date(ProjectInfo.releasedate))}
-                </motion.a>
-            </motion.div>
+            <Footer />
         </div>
     );
 }

@@ -1,0 +1,63 @@
+.GoogleTrends
+    color: rgb(var(--font-color))
+    background: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
+    width: 100vw
+    height: max-content
+    min-height: 100vh
+    padding-bottom: 10vh
+    padding-top: 5vh
+    display: flex
+    justify-content: center
+    align-items: center
+    flex-direction: column
+    gap: 1rem
+    .QueryList-List
+        display: flex
+        flex-direction: column
+        gap: 1rem
+        .QueryList-Item
+            backdrop-filter: blur(10px)
+            transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
+            padding: 0.3rem
+            width: auto
+            max-width: 30rem
+            display: flex
+            gap: 1rem
+            user-select: none
+            transition: 0.5s
+            border-radius: 1rem
+            border: 1px solid #00000000
+            &:hover
+                transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
+                transition: 0.5s
+                transform: scale(1.1)
+                border: 1px rgba(254, 254, 254, 0.129) solid
+                background: radial-gradient(circle, rgba(67,67,67,1) 0%, rgba(0,0,0,1) 53%)
+            &:active
+                transition: 0.5s
+                transform: scale(0.9)
+    .QueryList-Grid
+        display: grid
+        grid-template-columns: repeat(auto-fill, minmax(30rem, 1fr))
+        gap: 1rem
+        .QueryList-Item
+            backdrop-filter: blur(10px)
+            transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
+            padding: 0.3rem
+            width: auto
+            max-width: 30rem
+            display: flex
+            gap: 1rem
+            user-select: none
+            transition: 0.5s
+            border-radius: 1rem
+            border: 1px solid #00000000
+            &:hover
+                transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
+                transition: 0.5s
+                transform: scale(1.1)
+                border: 1px rgba(254, 254, 254, 0.129) solid
+                background: radial-gradient(circle, rgba(67,67,67,1) 0%, rgba(0,0,0,1) 53%)
+            &:active
+                transition: 0.5s
+                transform: scale(0.9)

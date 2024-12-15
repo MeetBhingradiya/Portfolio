@@ -37,6 +37,9 @@
             "@Pages/*": [
                 "./src/pages/*"
             ],
+            "@Config/*": [
+                "./src/Config/*"
+            ],
             "@Components/*": [
                 "./src/Components/*"
             ],

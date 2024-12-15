@@ -698,6 +698,11 @@ function Tools() {
                                             FilterBookmarks: BookmarksDB,
                                             Bookmarks: BookmarksDB,
                                         });
+                                        setModalData({
+                                            ...ModalData,
+                                            isSettingsOpen: false,
+                                            isOpen: false,
+                                        });
                                     }}
                                 >
                                     Reset Database

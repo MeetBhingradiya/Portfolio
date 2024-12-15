@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Meet Bhingradiya",
-        url: "https://meetbhingradiya.vercel.app",
+        url: "/",
         icon: "https://meetbhingradiya.vercel.app/favicon.ico",
         keywords: [
             "Meet",
@@ -17,12 +17,24 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "QR Code Generator",
-        url: "https://meetbhingradiya.vercel.app/Tools/QR",
+        url: "/Tools/QR",
         icon: "https://img.icons8.com/fluency/256/qr-code.png",
         keywords: [
             "QR",
             "Code",
             "Generator"
+        ]
+    },
+    {
+        name: "Google Trends",
+        url: "/Tools/Googletrends",
+        icon: "https://www.gstatic.com/trends/favicon.ico",
+        keywords: [
+            "Google",
+            "Trends",
+            "Querys",
+            "Copy",
+            "Paste"
         ]
     },
     {
@@ -748,6 +760,27 @@ const BookmarksDB_: Array<IBookmark> = [
         keywords: [
             "Hotstar",
             "Disney",
+            "Movies",
+            "Shows",
+            "Series"
+        ]
+    },
+    {
+        name: "Zee5",
+        url: "https://www.zee5.com/",
+        keywords: [
+            "Zee5",
+            "Movies",
+            "Shows",
+            "Series"
+        ]
+    },
+    {
+        name: "Sony Liv",
+        url: "https://www.sonyliv.com/",
+        keywords: [
+            "Sony",
+            "Liv",
             "Movies",
             "Shows",
             "Series"

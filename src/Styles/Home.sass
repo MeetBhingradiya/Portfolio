@@ -8,11 +8,41 @@
     align-items: center
     flex-direction: column
 
+    .ItemRow
+        display: flex
+        justify-content: center
+        align-items: center
+        gap: 1rem
+        flex-wrap: wrap
+    .Item
+        backdrop-filter: blur(10px)
+        transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
+        padding: 0.3rem
+        width: auto
+        max-width: 30rem
+        display: flex
+        gap: 1rem
+        user-select: none
+        transition: 0.5s
+        border-radius: 1rem
+        border: 1px solid #00000000
+
+        &:hover
+            transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
+            transition: 0.5s
+            transform: scale(1.1)
+            border: 1px rgba(254, 254, 254, 0.129) solid
+            background: radial-gradient(circle, rgba(67,67,67,1) 0%, rgba(0,0,0,1) 53%)
+
+        &:active
+            transition: 0.5s
+            transform: scale(0.9)
+
     .Container
         backdrop-filter: blur(10px)
         transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
         padding: 2rem
-        margin: 1rem
+        margin: 0.5rem
         width: auto
         max-width: 30rem
         display: flex
@@ -21,17 +51,18 @@
         user-select: none
         transition: 0.5s
         border-radius: 1rem
+        border: 1px solid #00000000
 
         &:hover
             transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)
             transition: 0.5s
-            transform: scale(1.05)
-            border: 1px solid rgba(254, 254, 254, 0.129)
+            transform: scale(1.1)
+            border: 1px rgba(254, 254, 254, 0.129) solid
             background: radial-gradient(circle, rgba(67,67,67,1) 0%, rgba(0,0,0,1) 53%)
 
         &:active
             transition: 0.5s
-            transform: scale(0.95)
+            transform: scale(0.9)
 
         .CENTER
             display: flex

@@ -17,10 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Bug in ABC module -->
 
-## v1.0.3 - 11/12/2024
+## v1.0.3 - 18/12/2024
 
 ### Added
 - Env > Example Env File on Root
+- Page > Tools > New Tool - Google Trends Query Generator & Instent Copy to Clipboard
+- Public > Flags > Added for Country Flags (260+ Flags)
+- Components > New Component - Footer Now Global Footer for All Pages
 
 ### Changed
 - Utils > Crypto > Changed new Algorithm for Bug of Encryption
@@ -29,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Home > Links > Stackoverflow Added
 - Home > Container Design
 - Page > Tools > Updated Keywords for Better SEO
+- Page > Tools > 2 New Bookmark & 1 New Tool Added
+- Dependencies > Updated to Latest Version on `15-12-2024`
+
+### Removed
+- LICENSE - Removed due to Not Needed for the Project replaced with `COPYRIGHT` File
 
 ## v1.0.2 - 08/12/2024
 
@@ -38,6 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Utils > ExtensionsDetector - Added for Detecting the Extensions is Installed or Not in the Browser
 - Utils > Crypto - Added for Encrypting and Decrypting Technologie for the Project (9 Algorithms Supported, upto 40+ Algorithms)
 - Changelog > Current Goals & Current Tasks Added
+TS Configs - New Module Resolution [Config]
 
 ### Changed
 - Bug : Fixed CSP Issue on QR Gen Tool & Tools Page

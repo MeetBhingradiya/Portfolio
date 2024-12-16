@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Bug in ABC module -->
 
-## v1.0.3 - 18/12/2024
+## v1.0.3 - 18/12/2024 (Expected)
 
 ### Added
 - Env > Example Env File on Root
@@ -27,7 +27,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Utils > Crypto > Changed new Algorithm for Bug of Encryption
-- Home > Footer > Added Version Chnagelog as Link & Version Info 
+- Home > Footer > Added Version Chnagelog as Link & Version Info
+- Home > Footer > Added Backdrop Blur for Elegant Look
 - Home > Footer > Added Social Links with Enabling & Disabling Feature when its needed
 - Home > Links > Stackoverflow Added
 - Home > Container Design

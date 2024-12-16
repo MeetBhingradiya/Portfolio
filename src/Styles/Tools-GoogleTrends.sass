@@ -13,8 +13,12 @@
     gap: 1rem
     .QueryList-List
         display: flex
-        flex-direction: column
+        flex-wrap: wrap
         gap: 1rem
+        width: 100%
+        justify-content: center
+        align-items: center
+        padding: 10px 10vw
         .QueryList-Item
             backdrop-filter: blur(10px)
             transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1)

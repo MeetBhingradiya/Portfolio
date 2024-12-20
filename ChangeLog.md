@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-<!-- vUnreleased
+<!-- vUnreleased - DD/MM/YYYY (Expected)
 
 ### Added
 - New feature XYZ
@@ -17,7 +17,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Bug in ABC module -->
 
-## v1.0.3 - 18/12/2024 (Expected)
+## v1.0.4 - 1/1/2025 (Expected)
+
+### Added
+- Hooks > useWindowCheck - Added due to React Hydration Issue on NextJS these hooks will help to check the window is available or not in the current environment without react hydration issue
+
+### Changed
+- Fixed Hydration Issue & Make `Date.Now()` as a Static Date for the Project
+- Dependencies > Updated to Latest Version on `20-12-2024`
+
+### Removed
+- `suppressHydrationWarning` - Removed due to Fixed the Issue of Hydration
+
+## v1.0.3 - 18/12/2024
 
 ### Added
 - Env > Example Env File on Root

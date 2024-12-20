@@ -4,7 +4,7 @@ import { styled } from '@mui/material/styles';
 import QRCodeStyling, { Options, FileExtension, CornerSquareType, CornerDotType, Gradient } from "qr-code-styling";
 import QRBorder, { DecorationType, ExtensionOptions } from "qr-border-plugin";
 import { LicensingModel, generateLicenseKey } from "./generateLicenseKey";
-import { windowchek } from "@Utils/windowcheck";
+import { useWindowCheck } from "@Hooks/useWindowCheck";
 import "@Styles/QR.sass";
 
 // @ Components Imports
@@ -92,6 +92,7 @@ enum UPIPropeties {
 
 export default function QRCustomizationTool() {
     //  @ States
+    const isClient = useWindowCheck();
     const [qrCode, setQrCode] = useState<QRCodeStyling>();
     const ref = useRef<HTMLDivElement>(null);
     const [State, setState] = useState<{
@@ -287,7 +288,7 @@ export default function QRCustomizationTool() {
             LicensingModel.Perpetual,
             "SM Network",
             1,
-            windowchek() ? new URL(window.location.href).hostname : "localhost"
+            isClient ? new URL(window.location.href).hostname : "localhost"
         ),
         QRToggleOptions: {
             dotsBackground: "color",
@@ -381,7 +382,7 @@ export default function QRCustomizationTool() {
                 LicensingModel.Perpetual,
                 "SM Network",
                 1,
-                windowchek() ? new URL(window.location.href).hostname : "localhost"
+                isClient ? new URL(window.location.href).hostname : "localhost"
             )
         });
     }

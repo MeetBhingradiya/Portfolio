@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { windowchek } from '@Utils/windowcheck';
+import { useWindowCheck } from './useWindowCheck';
 
 function useStore(storageKey: string, storageType: "session" | "local") {
     const [data, setData] = useState<any>({});
+    const isClient = useWindowCheck();
 
     function set(key: string, value: any) {
-        if (windowchek()) {
+        if (isClient) {
             if (storageType === "session") {
                 sessionStorage.setItem(key, JSON.stringify(value));
             } else {
@@ -15,7 +16,7 @@ function useStore(storageKey: string, storageType: "session" | "local") {
     }
 
     function get(key: string) {
-        if (windowchek()) {
+        if (isClient) {
             if (storageType === "session") {
                 return sessionStorage.getItem(key);
             } else {
@@ -25,7 +26,7 @@ function useStore(storageKey: string, storageType: "session" | "local") {
     }
 
     function remove(key: string) {
-        if (windowchek()) {
+        if (isClient) {
             if (storageType === "session") {
                 sessionStorage.removeItem(key);
             } else {
@@ -35,7 +36,7 @@ function useStore(storageKey: string, storageType: "session" | "local") {
     }
 
     useEffect(() => {
-        if (windowchek()) {
+        if (isClient) {
             if (storageType === "session") {
                 if (sessionStorage.getItem(storageKey) !== null) {
                     sessionStorage.setItem(storageKey, JSON.stringify(data));

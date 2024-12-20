@@ -70,10 +70,10 @@ function GoogleTredensQuerys() {
         }
     });
 
-    async function getQuerys() {
+    async function getQuerys(currentTimestamp: number = Date.now()) {
         setState({
             ...State,
-            Loading: true
+            Loading: true,
         });
 
         let Region;
@@ -82,39 +82,58 @@ function GoogleTredensQuerys() {
 
         for (Region of State.Regions) {
             for (let i = 0; i < Days; i++) {
-                let _date: any = new Date(Date.now() - i * (24 * 60 * 60 * 1000));
+                let _date: any = new Date(currentTimestamp - i * (24 * 60 * 60 * 1000));
                 _date = _date.toISOString();
                 _date = _date.substring(0, _date.indexOf('T')).replace(/-/g, '');
-                urls.push(`https://trends.google.com/trends/api/dailytrends?geo=${Region.value ?? "IN"}&ed=${_date}`);
+                urls.push(
+                    `https://trends.google.com/trends/api/dailytrends?geo=${Region.value ?? 'IN'}&ed=${_date}`
+                );
             }
         }
 
-        let results = await Promise.all(urls.map(url => fetch(url).then(r => {
-            if (!r.ok) {
-                setState({
-                    ...State,
-                    isERROR: true
-                });
+        try {
+            let results = await Promise.all(
+                urls.map((url) =>
+                    fetch(url).then((r) => {
+                        if (!r.ok) {
+                            setState({
+                                ...State,
+                                isERROR: true,
+                            });
+                            throw new Error(`Failed to fetch: ${url}`);
+                        }
+                        return r.text();
+                    })
+                )
+            );
+
+            function handleResult(result: any) {
+                const json = JSON.parse(result.substring(6));
+                return json.default.trendingSearchesDays
+                    .map((day: any) => {
+                        return day.trendingSearches.map((search: any) => search.title.query.toLowerCase());
+                    })
+                    .flat()
+                    .filter((q: any) => q);
             }
-            return r.text();
-        })));
 
-        function handleResult(result: any) {
-            const json = JSON.parse(result.substring(6));
-            return json.default.trendingSearchesDays.map((day: any) => {
-                return day.trendingSearches.map((search: any) => search.title.query.toLowerCase());
-            }).flat().filter((q: any) => q);
+            let queries = results.map(handleResult).flat();
+            queries = removeDuplicates(queries);
+
+            // Update state with parsed queries
+            setState({
+                ...State,
+                Queries: queries,
+                Loading: false,
+            });
+        } catch (error) {
+            console.error('Error fetching Google Trends queries:', error);
+            setState({
+                ...State,
+                Loading: false,
+                isERROR: true,
+            });
         }
-
-        let queries = results.map(handleResult).flat();
-        queries = removeDuplicates(queries);
-
-        // ? Parsing Queries
-        setState({
-            ...State,
-            Queries: queries,
-            Loading: false
-        });
     }
 
     React.useEffect(() => {
@@ -136,7 +155,7 @@ function GoogleTredensQuerys() {
                 ...State,
                 isERROR: false
             })
-            
+
             getQuerys()
         })()
     }, [

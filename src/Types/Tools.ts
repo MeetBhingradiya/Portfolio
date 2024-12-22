@@ -1,3 +1,5 @@
+import React from "react"
+
 interface IBookmark {
     // ? Unique identifier for the bookmark
     id?: string
@@ -10,6 +12,12 @@ interface IBookmark {
 
     // ? Site Icon
     icon?: string
+
+    // ? Site Icon as SVG
+    isSVGSrc?: boolean
+    SVGStyles?: {
+        fill?: string
+    }
 
     // ? Site Description if given by the user or fetched from meta tags of the site
     description?: string

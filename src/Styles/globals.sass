@@ -9,12 +9,42 @@
     --background-start: 0,0,0
     --background-end: 0, 15, 24
     --primary-color: 10, 10, 10
+
 // @GlobalStyles
 body
+    background: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
     transition: background-color 0.3s ease, color 0.3s ease
     overflow: hidden
     overflow-y: auto
+    width: 100vw
+    height: max-content
     gap: 1rem
+
+    &::-webkit-scrollbar
+        width: 0px // Hides scrollbar by default
+
+    /* Styles for the scrollbar when it's needed */
+    &::-webkit-scrollbar-track
+        background: rgba(255, 255, 255, 0.1) // Light background for the track
+        border-radius: 10px
+        transition: background-color 0.3s ease
+
+    &::-webkit-scrollbar-thumb
+        background: #7a4d84 // Thumb color (scrollbar handle)
+        border-radius: 10px
+        transition: background 0.3s ease
+
+    &::-webkit-scrollbar-thumb:hover
+        background: #9b61a6 // Thumb color on hover
+
+    /* Hide scrollbar when not needed (when content is not overflowing) */
+    body::-webkit-scrollbar
+        display: none
+
+body:has(::-webkit-scrollbar)
+    &::-webkit-scrollbar
+        display: block
+        width: 12px
 
 // @CustomUtilities
 .Hide
@@ -22,13 +52,14 @@ body
     position: relative
 
 // @ Components
+.SVGComponent
+    svg
+        height: 100%
+        width: 100%
 
 // @TemporaryStyles
 .CommingSoon
     color: rgb(var(--font-color))
-    background: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
-    width: 100vw
-    height: 100vh
     display: flex
     justify-content: center
     align-items: center

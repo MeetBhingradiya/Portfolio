@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useWindowCheck } from './useWindowCheck';
+import { useWindowCheck } from '@Hooks/useWindowCheck';
 
 function useStore(storageKey: string, storageType: "session" | "local") {
     const [data, setData] = useState<any>({});

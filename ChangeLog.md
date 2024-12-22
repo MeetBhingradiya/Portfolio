@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Vulnerability, Bug or Issue Disclosures
+- `SvgComponent` - Sanitize the SVG Component for the Security.
+- Page > Tools > Page Size Needs to be Optimized for any Screen
+
 <!-- vUnreleased - DD/MM/YYYY (Expected)
 
 ### Added
@@ -20,14 +24,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## v1.0.4 - 1/1/2025 (Expected)
 
 ### Added
+- Page > Tools > New Context Menu `Open in New Tab` & `Open in New Window` for the Tools
 - Hooks > useWindowCheck - Added due to React Hydration Issue on NextJS these hooks will help to check the window is available or not in the current environment without react hydration issue
+- Hooks > useTheme - Added for Theme Swtiching (Partially Implemented)
+- Data > Tools > New Keywords & 2 New Bookmarks
 
 ### Changed
 - Fixed Hydration Issue & Make `Date.Now()` as a Static Date for the Project
+- Page > Tools > `SVGComponent` Rendering Added due to Whatsapp Perfect Icon Issued On `SVG`
 - Dependencies > Updated to Latest Version on `20-12-2024`
 
 ### Removed
 - `suppressHydrationWarning` - Removed due to Fixed the Issue of Hydration
+- `DevIndicators` - NextJS DevIndicators Removed due to Blocking UI on Development Mode sometime its Annoying.
 
 ## v1.0.3 - 18/12/2024
 

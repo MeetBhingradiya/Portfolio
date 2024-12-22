@@ -1,11 +1,10 @@
 $icon-size: 64px
 $grid-gap: 10px
 $card-padding: 10px
-$card-bg-color: #1e1e1e
+$card-bg-color: #1e1e1ebd
 $card-border-radius: 8px
 
-.Tool    
-    background: #121212
+.Tool
     color: #ffffff
     font-family: 'Roboto', sans-serif
     padding: 20px
@@ -21,10 +20,14 @@ $card-border-radius: 8px
         padding: 10px
         border: none
         border-radius: 8px
-        background: #1e1e1e
+        background: $card-bg-color
+        backdrop-filter: blur(10px)
+        position: sticky
+        top: 1rem
         color: #ffffff
         font-size: 1rem
         margin-bottom: 20px
+        z-index: 1
 
     .search::placeholder
         color: #757575
@@ -46,13 +49,13 @@ $card-border-radius: 8px
             background: #ff000025
 
     .bookmark
-        margin: 5px
+        margin: 7px
         position: relative
         display: flex
         flex-direction: column
         justify-content: center
         align-items: center
-        background-color: #1e1e1e
+        background-color: $card-bg-color
         text-align: center
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
         border: 1px solid #333
@@ -63,7 +66,8 @@ $card-border-radius: 8px
         user-select: none
 
         &:hover
-            transform: translateY(-5px) scale(1.2)
+            backdrop-filter: blur(10px)
+            transform: translateY(-5px)
             border: 3px dashed #6200ea
 
         &.drag-over
@@ -78,17 +82,7 @@ $card-border-radius: 8px
             img
                 width: $icon-size
                 height: $icon-size
-
-        .dropIndicator
-            position: absolute
-            top: 0.3rem
-            left: -9px
-            width: 5px 
-            height: 94%
-            border-radius: 8px
-            background-color: #bb86fc
-            z-index: 10
-
+        
         .bookmarkTitle
             padding: $card-padding
             margin-top: 8px

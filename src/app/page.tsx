@@ -82,9 +82,6 @@ export default function Home() {
                             </motion.div>
 
                         </motion.div>
-
-                        {/* ? Footer */}
-                        <Footer />
                     </div>
                 )
             }

@@ -1,7 +1,7 @@
 $icon-size: 64px
 $grid-gap: 10px
 $card-padding: 10px
-$card-bg-color: #1e1e1ebd
+$card-bg-color: #1e1e1ea2
 $card-border-radius: 8px
 
 .Tool
@@ -14,20 +14,36 @@ $card-border-radius: 8px
         text-align: center
         margin-bottom: 20px
         font-size: 2rem
-
-    .search
+    .SearchWarp
+        position: fixed
+        bottom: 2rem
         width: 100%
+        height: max-content
         padding: 10px
-        border: none
-        border-radius: 8px
-        background: $card-bg-color
-        backdrop-filter: blur(10px)
-        position: sticky
-        top: 1rem
-        color: #ffffff
-        font-size: 1rem
-        margin-bottom: 20px
+        display: flex
+        justify-content: center
+        align-items: center
         z-index: 1
+        .search
+            width: 20%
+            padding: 10px
+            border: none
+            border-radius: 8px
+            background: #0000004d
+            backdrop-filter: blur(8px)
+            border: 1px solid #4646468f
+            color: #ffffff
+            font-size: 1rem
+            margin-bottom: 20px
+            outline: none
+            transition: width 0.3s
+            &:focus
+                width: 50%
+                transition: width 0.3s
+                outline: 2px solid #6200ea
+            &:hover
+                width: 50%
+                transition: width 0.3s
 
     .search::placeholder
         color: #757575
@@ -37,7 +53,7 @@ $card-border-radius: 8px
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
         gap: $grid-gap
 
-    .item 
+    .item
         padding: 15px
         display: flex
         justify-content: center
@@ -64,9 +80,9 @@ $card-border-radius: 8px
         cursor: pointer
         word-wrap: no-warp
         user-select: none
+        backdrop-filter: blur(4px)
 
         &:hover
-            backdrop-filter: blur(10px)
             transform: translateY(-5px)
             border: 3px dashed #6200ea
 
@@ -82,7 +98,7 @@ $card-border-radius: 8px
             img
                 width: $icon-size
                 height: $icon-size
-        
+
         .bookmarkTitle
             padding: $card-padding
             margin-top: 8px

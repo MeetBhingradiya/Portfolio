@@ -6,6 +6,7 @@ import type { IBookmark, IState } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB } from "@Data/Tools";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { v4 as uuidv4 } from 'uuid';
 import "@Styles/Tool.sass";
 import {
@@ -425,15 +426,33 @@ function Tools() {
                 hideProgressBar={false}
                 stacked
             />
-            <input
-                id="search"
-                type="text"
-                placeholder="🔍 Search"
-                value={State.Query}
-                onChange={onQueryChange}
-                className="search"
-                ref={searchInputRef}
-            />
+            <div
+                className="SearchWarp"
+            >
+                <motion.input
+                    id="search"
+                    type="text"
+                    placeholder="🔍 Search"
+                    tabIndex={1}
+                    value={State.Query}
+                    onChange={onQueryChange}
+                    className="search"
+                    ref={searchInputRef}
+                    onHoverStart={() => {
+                        if (searchInputRef.current !== null) {
+                            searchInputRef.current.focus();
+                        }
+                    }}
+                    onHoverEnd={() => {
+                        if (searchInputRef.current !== null) {
+                            searchInputRef.current.blur();
+                        }
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                />
+            </div>
 
             <GridContextProvider onChange={onGridChange}>
                 <GridDropZone
@@ -913,8 +932,6 @@ function Tools() {
                     )
                 }
             </Modal>
-
-            <Footer />
         </div>
     );
 }

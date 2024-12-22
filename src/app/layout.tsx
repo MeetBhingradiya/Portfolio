@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
+import Footer from "@Components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -59,6 +60,8 @@ export default function RootLayout({
                 <Providers>
                     {children}
                 </Providers>
+
+                <Footer />
             </body>
         </html>
     );

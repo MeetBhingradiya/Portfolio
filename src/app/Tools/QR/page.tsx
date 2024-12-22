@@ -5,7 +5,7 @@ import QRCodeStyling, { Options, FileExtension, CornerSquareType, CornerDotType,
 import QRBorder, { DecorationType, ExtensionOptions } from "qr-border-plugin";
 import { LicensingModel, generateLicenseKey } from "./generateLicenseKey";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
-import "@Styles/QR.sass";
+import "@Styles/Tools-QR.sass";
 
 // @ Components Imports
 import {
@@ -192,16 +192,16 @@ export default function QRCustomizationTool() {
                 pa: "meetbhingradiya36@okaxis",
                 pn: "Meet Bhingradiya",
                 am: "100",
-                mc: null,
-                tr: null,
-                url: null,
+                mc: "",
+                tr: "",
+                url: "",
                 cu: "INR",
-                tid: null,
-                tn: null,
-                gstBrkUp: null,
-                invoiceNo: null,
-                invoiceDate: null,
-                gstin: null
+                tid: "",
+                tn: "",
+                gstBrkUp: "",
+                invoiceNo: "",
+                invoiceDate: "",
+                gstin: ""
             },
             wifi: {
                 ssid: "Wifi",

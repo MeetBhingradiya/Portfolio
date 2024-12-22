@@ -7,7 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Vulnerability, Bug or Issue Disclosures
 - `SvgComponent` - Sanitize the SVG Component for the Security.
-- Page > Tools > Page Size Needs to be Optimized for any Screen
 
 <!-- vUnreleased - DD/MM/YYYY (Expected)
 
@@ -21,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 - Bug in ABC module -->
 
-## v1.0.4 - 1/1/2025 (Expected)
+## v1.0.4 - 22/12/2024
 
 ### Added
 - Page > Tools > New Context Menu `Open in New Tab` & `Open in New Window` for the Tools
@@ -30,6 +29,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Data > Tools > New Keywords & 2 New Bookmarks
 
 ### Changed
+- Components > Footer > Now Only Show on Last of The Page & Hide When Scrolled Up
+- Components > Footer > ReRender Issue Fixed on Every Page Change
+- Page > Tools > Page Size Optimized with Colums & Height of the Tools Page
 - Fixed Hydration Issue & Make `Date.Now()` as a Static Date for the Project
 - Page > Tools > `SVGComponent` Rendering Added due to Whatsapp Perfect Icon Issued On `SVG`
 - Dependencies > Updated to Latest Version on `20-12-2024`

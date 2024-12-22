@@ -5,6 +5,9 @@ import tsconfig from './tsconfig.json';
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
+    devIndicators: {
+        appIsrStatus: false,
+    },
     images: {
         loader: 'custom',
         loaderFile: "./src/Utils/RemoteImageLoader.ts",

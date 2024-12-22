@@ -6,6 +6,7 @@ import type { IBookmark, IState } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB } from "@Data/Tools";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { v4 as uuidv4 } from 'uuid';
 import "@Styles/Tool.sass";
 import {
@@ -14,6 +15,7 @@ import {
     Delete,
     Edit,
     Save,
+    OpenInNew,
     Settings,
 } from "@mui/icons-material";
 import {
@@ -45,6 +47,9 @@ import {
     swap
 } from "react-grid-dnd";
 import 'react-toastify/dist/ReactToastify.css';
+import SvgComponent from "@Components/SVGComponent";
+import Footer from "@Components/Footer";
+import { useWindowCheck } from "@Hooks/useWindowCheck";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -104,6 +109,8 @@ const StorageKey = "Tools";
 function Tools() {
 
     // @ States
+    const isClient = useWindowCheck();
+    const [windowWidth, setWindowWidth] = React.useState(isClient ? window.innerWidth : 0);
     const [State, setState] = React.useState<IState>({
         FilterSuggestions: [],
         FilterBookmarks: [],
@@ -360,8 +367,15 @@ function Tools() {
             });
         }
 
+        const handleResize = () => {
+            setWindowWidth(window.innerWidth);
+        };
+
+        window.addEventListener("resize", handleResize);
+
         return () => {
             window.removeEventListener("keydown", handleKeyPress);
+            window.removeEventListener("resize", handleResize);
         };
     }, []);
 
@@ -383,6 +397,12 @@ function Tools() {
         State.Settings.Locale,
     ]);
 
+    const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 7);
+    const rows = Math.ceil((State.FilterBookmarks.length + 2) / boxesPerRow);
+
+    // Add some space for the footer
+    const footerHeight = 50;
+    const gridHeight = rows * 150 + footerHeight;
     // @Component
     return (
         <div className="Tool"
@@ -406,29 +426,42 @@ function Tools() {
                 hideProgressBar={false}
                 stacked
             />
-            <input
-                id="search"
-                type="text"
-                placeholder="🔍 Search"
-                value={State.Query}
-                onChange={onQueryChange}
-                className="search"
-                ref={searchInputRef}
-            />
+            <div
+                className="SearchWarp"
+            >
+                <motion.input
+                    id="search"
+                    type="text"
+                    placeholder="🔍 Search"
+                    tabIndex={1}
+                    value={State.Query}
+                    onChange={onQueryChange}
+                    className="search"
+                    ref={searchInputRef}
+                    onHoverStart={() => {
+                        if (searchInputRef.current !== null) {
+                            searchInputRef.current.focus();
+                        }
+                    }}
+                    onHoverEnd={() => {
+                        if (searchInputRef.current !== null) {
+                            searchInputRef.current.blur();
+                        }
+                    }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                />
+            </div>
 
             <GridContextProvider onChange={onGridChange}>
                 <GridDropZone
                     id="items"
-                    boxesPerRow={
-                        typeof window !== "undefined"
-                            ? Math.floor(window.innerWidth / 200)
-                            : 5
-                    }
-                    rowHeight={
-                        150
-                    }
+                    boxesPerRow={boxesPerRow}
+                    rowHeight={150}
                     style={{
-                        height: `${Math.ceil(State.FilterBookmarks.length / 5) * 200}px`
+                        height: `${gridHeight}px`,
+                        overflow: 'visible',
                     }}
                 >
                     {State.FilterBookmarks.map((item, index) => (
@@ -468,19 +501,38 @@ function Tools() {
                             >
                                 {item.icon && (
                                     <div className="Icon">
-                                        <Image
-                                            src={item.icon}
-                                            alt={item.name}
-                                            width={64}
-                                            height={64}
-                                            priority
-                                            style={{
-                                                borderRadius: "15px",
-                                                userSelect: "none",
-                                                MozWindowDragging: "no-drag",
-                                            }}
-                                            onDragStart={(e) => e.preventDefault()}
-                                        />
+                                        {
+                                            item.isSVGSrc && (
+                                                <SvgComponent
+                                                    _class="SVGComponent"
+                                                    svgString={item.icon}
+                                                    style={{
+                                                        borderRadius: "15px",
+                                                        userSelect: "none",
+                                                        MozWindowDragging: "no-drag",
+                                                        width: "64px",
+                                                        height: "64px",
+                                                        color: item.SVGStyles?.fill ?? "black",
+                                                    }} />
+                                            )
+                                        }
+                                        {
+                                            !item.isSVGSrc && (<Image
+                                                src={item.icon}
+                                                alt={item.name}
+                                                width={64}
+                                                height={64}
+                                                priority
+                                                style={{
+                                                    borderRadius: "15px",
+                                                    userSelect: "none",
+                                                    MozWindowDragging: "no-drag",
+                                                    // width: "64px",
+                                                    // height: "64px",
+                                                }}
+                                                onDragStart={(e) => e.preventDefault()}
+                                            />)
+                                        }
                                     </div>
                                 )}
                                 <h2 className="bookmarkTitle">{item.name}</h2>
@@ -500,6 +552,7 @@ function Tools() {
                                     sx={{
                                         color: "#6e6e6e"
                                     }}
+                                    fontSize="large"
                                 />
                             </div>
                             <h2 className="bookmarkTitle">
@@ -512,12 +565,13 @@ function Tools() {
                     {/* <GridItem key="delete">
                         <div className="bookmark item delete">
                             <div className="Icon">
-                                <Deletethfhyhhtjftttffygfjfgutf
+                                <Delete
                                     width={64}
                                     height={64}
                                     sx={{
                                         color: "#ff0000",
                                     }}
+                                    fontSize="large"
                                 />
                             </div>
                             <h2 className="bookmarkTitle">
@@ -542,6 +596,7 @@ function Tools() {
                                     sx={{
                                         color: "#6e6e6e"
                                     }}
+                                    fontSize="large"
                                 />
                             </div>
                             <h2 className="bookmarkTitle">
@@ -564,6 +619,35 @@ function Tools() {
                         : undefined
                 }
             >
+                <MenuItem
+                    onClick={() => {
+                        // ? Open Link in New Tab
+                        window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.url ?? "", "_blank");
+                        setContextMenu(null);
+                    }}
+                >
+                    <ListItemIcon>
+                        <OpenInNew />
+                    </ListItemIcon>
+                    <ListItemText>
+                        Open in New Tab
+                    </ListItemText>
+                </MenuItem>
+
+                <MenuItem
+                    onClick={() => {
+                        window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.url ?? "", "_blank", `width=${window.innerWidth},height=${window.innerHeight}`);
+                        setContextMenu(null);
+                    }}
+                >
+                    <ListItemIcon>
+                        <OpenInNew />
+                    </ListItemIcon>
+                    <ListItemText>
+                        Open in New Window
+                    </ListItemText>
+                </MenuItem>
+
                 <MenuItem
                     onClick={() => {
                         setContextMenu(null);
@@ -698,6 +782,11 @@ function Tools() {
                                             FilterBookmarks: BookmarksDB,
                                             Bookmarks: BookmarksDB,
                                         });
+                                        setModalData({
+                                            ...ModalData,
+                                            isSettingsOpen: false,
+                                            isOpen: false,
+                                        });
                                     }}
                                 >
                                     Reset Database
@@ -763,7 +852,8 @@ function Tools() {
                                             Icon
                                             <Input
                                                 type="text"
-                                                value={ModalData.BookmarkData.icon}
+                                                value={ModalData.BookmarkData.icon?.toString() ?? ""}
+                                                disabled={typeof ModalData.BookmarkData.icon !== "string"}
                                                 onChange={(e) => {
                                                     setModalData({
                                                         ...ModalData,
@@ -798,7 +888,7 @@ function Tools() {
                                         <div className="w-24 h-24">
                                             {ModalData.BookmarkData.icon ? (
                                                 <img
-                                                    src={ModalData.BookmarkData.icon}
+                                                    src={ModalData.BookmarkData.icon.toString()}
                                                     alt="Icon Preview"
                                                     className="w-full h-full rounded object-cover border border-gray-300"
                                                 />

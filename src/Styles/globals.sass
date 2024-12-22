@@ -9,12 +9,40 @@
     --background-start: 0,0,0
     --background-end: 0, 15, 24
     --primary-color: 10, 10, 10
+
 // @GlobalStyles
 body
+    background: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
     transition: background-color 0.3s ease, color 0.3s ease
     overflow: hidden
     overflow-y: auto
+    width: 100vw
+    height: max-content
     gap: 1rem
+
+    &::-webkit-scrollbar
+        width: 0px
+
+    &::-webkit-scrollbar-track
+        background: rgba(255, 255, 255, 0.1)
+        border-radius: 10px
+        transition: background-color 0.3s ease
+
+    &::-webkit-scrollbar-thumb
+        background: #7a4d84
+        border-radius: 10px
+        transition: background 0.3s ease
+
+    &::-webkit-scrollbar-thumb:hover
+        background: #9b61a6
+
+    body::-webkit-scrollbar
+        display: none
+
+body:has(::-webkit-scrollbar)
+    &::-webkit-scrollbar
+        display: block
+        width: 12px
 
 // @CustomUtilities
 .Hide
@@ -22,13 +50,14 @@ body
     position: relative
 
 // @ Components
+.SVGComponent
+    svg
+        height: 100%
+        width: 100%
 
 // @TemporaryStyles
 .CommingSoon
     color: rgb(var(--font-color))
-    background: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
-    width: 100vw
-    height: 100vh
     display: flex
     justify-content: center
     align-items: center
@@ -108,16 +137,16 @@ body
             display: flex
             justify-content: center
             align-items: center
-            border: 4px solid #303030
-            border-radius: 50%
             overflow: hidden
-            box-shadow: inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5)
+            padding: 8px 0px
+            // box-shadow: inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5),inset 0 0 0.5rem rgba(var(--font-color), 0.5)
 
             img
                 max-width: 100%
+                border: 4px solid #303030
                 height: auto
                 border-radius: 50%
-                box-shadow: 0 0 0.2rem rgba(var(--font-color), 0.5)
+                // box-shadow: 0 0 0.2rem rgba(var(--font-color), 0.5)
                 background-image: radial-gradient(circle at 100% 100%, transparent 8px, #434343 8px, #434343 12px, transparent 12px), linear-gradient(to right, #434343, #000000), radial-gradient(circle at 0% 100%, transparent 8px, #000000 8px, #000000 12px, transparent 12px), linear-gradient(to bottom, #000000, #434343), radial-gradient(circle at 0% 0%, transparent 8px, #434343 8px, #434343 12px, transparent 12px), linear-gradient(to left, #434343, #000000), radial-gradient(circle at 100% 0%, transparent 8px, #000000 8px, #000000 12px, transparent 12px), linear-gradient(to top, #000000, #434343)
                 background-size: 12px 12px, calc(100% - 24px) 4px, 12px 12px, 4px calc(100% - 24px)
                 background-position: top left, top center, top right, center right, bottom right, bottom center, bottom left, center left
@@ -130,6 +159,14 @@ body
             gap: 1rem
             align-items: center
             flex-wrap: wrap
+            padding: 0.3rem
+            .stackoverflowsvg
+                display: flex
+                justify-content: center
+                align-items: center
+                width: 1.2rem
+                height: 1.2rem
+                fill: #fff
         h1
             text-align: center
             font-size: 18px
@@ -140,18 +177,6 @@ body
         text-align: center
         font-size: 12px
         user-select: none
-
-    .footer
-        position: fixed
-        bottom: 0
-        left: 0
-        right: 0
-        padding: 1rem
-        text-align: center
-        font-size: 12px
-        user-select: none
-        border-image: linear-gradient(to right,rgba(var(--font-color), 0.01),rgba(var(--font-color), 0.4),rgba(var(--background-end), 0.5)) 1
-        border-top: 1px solid rgba(var(--font-color), 0.5)
 
 @layer utilities
     .text-balance

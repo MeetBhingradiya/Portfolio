@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
+import Footer from "@Components/Footer";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -25,6 +26,8 @@ export const metadata: Metadata = {
         "meetbhingradiya.com",
         "meetbhingradiya.dev",
         "meetbhingradiya.in",
+        "meetbhingradiya.live",
+        "meetbhingradiya.shop",
         "meetbhingradiya.co.in",
     ],
     authors: {
@@ -40,7 +43,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
     return (
-        <html lang="en" suppressHydrationWarning>
+        <html lang="en">
             <head>
                 <meta charSet="utf-8" />
 
@@ -57,6 +60,8 @@ export default function RootLayout({
                 <Providers>
                     {children}
                 </Providers>
+
+                <Footer />
             </body>
         </html>
     );

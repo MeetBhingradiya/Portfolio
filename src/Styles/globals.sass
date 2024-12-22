@@ -21,23 +21,21 @@ body
     gap: 1rem
 
     &::-webkit-scrollbar
-        width: 0px // Hides scrollbar by default
+        width: 0px
 
-    /* Styles for the scrollbar when it's needed */
     &::-webkit-scrollbar-track
-        background: rgba(255, 255, 255, 0.1) // Light background for the track
+        background: rgba(255, 255, 255, 0.1)
         border-radius: 10px
         transition: background-color 0.3s ease
 
     &::-webkit-scrollbar-thumb
-        background: #7a4d84 // Thumb color (scrollbar handle)
+        background: #7a4d84
         border-radius: 10px
         transition: background 0.3s ease
 
     &::-webkit-scrollbar-thumb:hover
-        background: #9b61a6 // Thumb color on hover
+        background: #9b61a6
 
-    /* Hide scrollbar when not needed (when content is not overflowing) */
     body::-webkit-scrollbar
         display: none
 

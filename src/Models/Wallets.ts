@@ -1,8 +1,8 @@
-import { Schema, Document, model } from 'mongoose';
+import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 import { Currency } from '@Types/Currency';
 
-const Wallets_Schema: Schema = new Schema({
+const Wallets_Schema: mongoose.Schema = new mongoose.Schema({
     WalletID: {
         type: String,
         default: v4,
@@ -95,4 +95,4 @@ export interface IWallets extends Document {
     isLocked: boolean
 }
 
-export default model<IWallets>('Wallets', Wallets_Schema);
+export const Wallets: mongoose.Model<IWallets> = mongoose.models?.Users || mongoose.model<IWallets>("Users", Wallets_Schema);

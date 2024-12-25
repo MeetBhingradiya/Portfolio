@@ -29,13 +29,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 # ✨ 1.0.5 - 1/1/2024 (Expected)  
 
 ### 🌟 Added
--
+- Page > Tools > Searchbar > Clear Query Button added with Animation Visibility on Exit also.
 
-### 🔄 Changed  
-- 📄 **Changelog**: New Emojis & Listed Decorated Version
+### 🔄 Changed
+- Page > Tools > Searchbar has now Add & Settings Button as Floating Action Button like A `Dashy` Extenstion has.
+- Chnagelog > Decorated & Enhanced for better readability.
 
 ### 🗑️ Removed  
-- 
+- Disabled CSRF Protection for temporary time.
 
 ---
 
@@ -101,7 +102,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 ### 🔄 Changed  
 - 🛠️ **Bug Fix**: Resolved CSP issues in QR Gen Tool and Tools Page.  
-- 📝 **Version Format**: Updated from `v1.0.0` to `[1.0.0]`.  
+- 📝 **Version Format**: Updated from `[1.0.0]` to `v1.0.0`.  
 - 🖌️ **Index Page**: Adjusted gradient offset for better mobile and desktop views.  
 
 ### 🗑️ Removed  

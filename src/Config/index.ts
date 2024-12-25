@@ -1,6 +1,6 @@
 const Config = {
-    version: "1.0.4",
-    releasedate: "2024-12-22",
+    version: "1.0.5",
+    releasedate: "2025-1-1",
     visiblebranch: "Development",
     isHomeReleased: true
 }

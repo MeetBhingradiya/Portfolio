@@ -27,6 +27,8 @@ interface IBookmark {
 
     // ? Defualt Icon Size
     size?: "128" | "64" | "32" | "16"
+
+    isServer?: boolean
 }
 
 enum ILocale {
@@ -132,6 +134,7 @@ interface IState {
         RandomizeLinks: boolean
         SearchEngine: ISearchEngine
         Locale: string
+        CloudSync: boolean
     }
 }
 

@@ -6,7 +6,7 @@ import type { IBookmark, IState } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB } from "@Data/Tools";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { v4 as uuidv4 } from 'uuid';
 import "@Styles/Tool.sass";
 import {
@@ -17,9 +17,9 @@ import {
     Save,
     OpenInNew,
     Settings,
+    Cloud
 } from "@mui/icons-material";
 import {
-    Slide,
     Menu,
     MenuItem,
     MenuProps,
@@ -39,7 +39,6 @@ import {
     Checkbox
 } from "@nextui-org/react";
 import { styled, alpha } from '@mui/material/styles';
-import { TransitionProps } from '@mui/material/transitions';
 import {
     GridContextProvider,
     GridDropZone,
@@ -48,8 +47,8 @@ import {
 } from "react-grid-dnd";
 import 'react-toastify/dist/ReactToastify.css';
 import SvgComponent from "@Components/SVGComponent";
-import Footer from "@Components/Footer";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
+import { Axios } from "@Utils/Axios";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -95,7 +94,6 @@ const StyledMenu = styled((props: MenuProps) => (
                     theme.palette.action.selectedOpacity,
                 ),
             },
-
             // ? Last Child No Margin at Bottom
             '&:last-child': {
                 marginBottom: 0,
@@ -107,20 +105,20 @@ const StyledMenu = styled((props: MenuProps) => (
 const StorageKey = "Tools";
 
 function Tools() {
-
     // @ States
     const isClient = useWindowCheck();
     const [windowWidth, setWindowWidth] = React.useState(isClient ? window.innerWidth : 0);
     const [State, setState] = React.useState<IState>({
         FilterSuggestions: [],
         FilterBookmarks: [],
-        Bookmarks: BookmarksDB,
+        Bookmarks: [...BookmarksDB],
         Suggestions: [],
         Query: "",
         Settings: {
             isFirstRun: true,
             isNewTab: false,
             RandomizeLinks: false,
+            CloudSync: false,
             SearchEngine: ISearchEngine.GOOGLE,
             Locale: ILocale.EN,
         },
@@ -289,6 +287,40 @@ function Tools() {
         }
     }
 
+    async function getServerBookmarks() {
+        const response = await Axios("/api/bookmarks");
+
+        const ServerBookmarks = response.data.data;
+        if (!ServerBookmarks) {
+            return;
+        }
+
+        const ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
+            return {
+                id: bookmark.BookmarkID,
+                name: bookmark.name,
+                url: bookmark.url,
+                icon: bookmark.icon,
+                keywords: bookmark.keywords,
+                isSVGSrc: bookmark.isSVGSrc,
+                SVGStyles: bookmark.SVGStyles,
+                description: bookmark.description,
+                size: bookmark.size,
+                isServer: true,
+            }
+        })
+
+        let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
+            return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
+        });
+
+        setState({
+            ...State,
+            Bookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+            FilterBookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+        })
+    }
+
     async function ConfirmEdit() {
         const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.id === ModalData.BookmarkData.id);
         if (bookmarkIndex === -1) {
@@ -332,12 +364,19 @@ function Tools() {
         await CloseModel();
     }
 
+    const handleResize = () => {
+        setWindowWidth(window.innerWidth);
+    };
 
     // @Updates
     React.useEffect(() => {
         // ? Auto Focus on Page Load
         if (searchInputRef.current && State.Settings.isFirstRun) {
             searchInputRef.current.focus();
+            handleResize();
+            if (State.Settings.CloudSync) {
+                getServerBookmarks();
+            }
         }
 
         window.addEventListener("keydown", handleKeyPress);
@@ -347,8 +386,18 @@ function Tools() {
         if (data !== null) {
             setState({
                 ...State,
-                FilterBookmarks: JSON.parse(data).Booksmarks,
-                Bookmarks: JSON.parse(data).Booksmarks,
+                FilterBookmarks: JSON.parse(data).Booksmarks.map((bookmark: any) => {
+                    return {
+                        ...bookmark,
+                        isServer: false,
+                    }
+                }),
+                Bookmarks: JSON.parse(data).Booksmarks.map((bookmark: any) => {
+                    return {
+                        ...bookmark,
+                        isServer: false,
+                    }
+                }),
                 Settings: {
                     ...State.Settings,
                     ...JSON.parse(data).Settings,
@@ -358,18 +407,14 @@ function Tools() {
         } else {
             setState({
                 ...State,
-                FilterBookmarks: BookmarksDB,
-                Bookmarks: BookmarksDB,
+                FilterBookmarks: [...BookmarksDB],
+                Bookmarks: [...BookmarksDB],
                 Settings: {
                     ...State.Settings,
                     isFirstRun: false,
                 },
             });
         }
-
-        const handleResize = () => {
-            setWindowWidth(window.innerWidth);
-        };
 
         window.addEventListener("resize", handleResize);
 
@@ -387,6 +432,7 @@ function Tools() {
                 RandomizeLinks: State.Settings.RandomizeLinks,
                 SearchEngine: State.Settings.SearchEngine,
                 Locale: State.Settings.Locale,
+                CloudSync: State.Settings.CloudSync,
             },
         }));
     }, [
@@ -395,10 +441,11 @@ function Tools() {
         State.Settings.RandomizeLinks,
         State.Settings.SearchEngine,
         State.Settings.Locale,
+        State.Settings.CloudSync,
     ]);
 
-    const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 7);
-    const rows = Math.ceil((State.FilterBookmarks.length + 2) / boxesPerRow);
+    const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 1);
+    const rows = Math.ceil(State.FilterBookmarks.length / boxesPerRow);
 
     // Add some space for the footer
     const footerHeight = 50;
@@ -426,9 +473,25 @@ function Tools() {
                 hideProgressBar={false}
                 stacked
             />
+
             <div
                 className="SearchWarp"
             >
+                <motion.div
+                    className="button"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                    onClick={(e) => {
+                        setModalData({
+                            ...ModalData,
+                            isSettingsOpen: false,
+                            isOpen: true,
+                        });
+                    }}
+                >
+                    <Add />
+                </motion.div>
                 <motion.input
                     id="search"
                     type="text"
@@ -452,6 +515,43 @@ function Tools() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
                 />
+                <AnimatePresence>
+                    {
+                        State.Query !== "" && (
+                            <motion.div
+                                className="button"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ delay: 0.2, duration: 0.2, ease: "easeInOut" }}
+                                onClick={(e) => {
+                                    setState({
+                                        ...State,
+                                        FilterBookmarks: State.Bookmarks,
+                                        Query: "",
+                                    })
+                                }}
+                            >
+                                <Close />
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence>
+                <motion.div
+                    className="button"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                    onClick={(e) => {
+                        setModalData({
+                            ...ModalData,
+                            isSettingsOpen: true,
+                            isOpen: true,
+                        });
+                    }}
+                >
+                    <Settings />
+                </motion.div>
             </div>
 
             <GridContextProvider onChange={onGridChange}>
@@ -527,8 +627,6 @@ function Tools() {
                                                     borderRadius: "15px",
                                                     userSelect: "none",
                                                     MozWindowDragging: "no-drag",
-                                                    // width: "64px",
-                                                    // height: "64px",
                                                 }}
                                                 onDragStart={(e) => e.preventDefault()}
                                             />)
@@ -536,74 +634,16 @@ function Tools() {
                                     </div>
                                 )}
                                 <h2 className="bookmarkTitle">{item.name}</h2>
+                                {
+                                    item.isServer && (
+                                        <div className="ServerIcon">
+                                            <Cloud />
+                                        </div>
+                                    )
+                                }
                             </div>
                         </GridItem>
                     ))}
-
-                    {/* Add */}
-                    <GridItem key="add">
-                        <div className="bookmark item" onClick={(e) => {
-                            OpenNewBookmarkModel();
-                        }}>
-                            <div className="Icon">
-                                <Add
-                                    width={64}
-                                    height={64}
-                                    sx={{
-                                        color: "#6e6e6e"
-                                    }}
-                                    fontSize="large"
-                                />
-                            </div>
-                            <h2 className="bookmarkTitle">
-                                Add Bookmark
-                            </h2>
-                        </div>
-                    </GridItem>
-
-                    {/* Delete Mode */}
-                    {/* <GridItem key="delete">
-                        <div className="bookmark item delete">
-                            <div className="Icon">
-                                <Delete
-                                    width={64}
-                                    height={64}
-                                    sx={{
-                                        color: "#ff0000",
-                                    }}
-                                    fontSize="large"
-                                />
-                            </div>
-                            <h2 className="bookmarkTitle">
-                                Bulk Delete
-                            </h2>
-                        </div>
-                    </GridItem> */}
-
-                    {/* Settings */}
-                    <GridItem key="settings">
-                        <div className="bookmark item" onClick={(e) => {
-                            setModalData({
-                                ...ModalData,
-                                isSettingsOpen: true,
-                                isOpen: true,
-                            });
-                        }}>
-                            <div className="Icon">
-                                <Settings
-                                    width={64}
-                                    height={64}
-                                    sx={{
-                                        color: "#6e6e6e"
-                                    }}
-                                    fontSize="large"
-                                />
-                            </div>
-                            <h2 className="bookmarkTitle">
-                                Settings
-                            </h2>
-                        </div>
-                    </GridItem>
 
                 </GridDropZone>
             </GridContextProvider>
@@ -768,6 +808,23 @@ function Tools() {
                                     }}
                                 >
                                     Links Open in New Tab
+                                </Checkbox>
+
+                                {/* Cloud Sync */}
+                                <Checkbox
+                                    className="mt-1 ml-1"
+                                    isSelected={State.Settings.CloudSync}
+                                    onValueChange={(value) => {
+                                        setState({
+                                            ...State,
+                                            Settings: {
+                                                ...State.Settings,
+                                                CloudSync: value
+                                            },
+                                        });
+                                    }}
+                                >
+                                    Cloud Sync
                                 </Checkbox>
 
                                 {/* Reset Database */}

@@ -19,7 +19,7 @@ import {
 import { SocialLinks } from "@Config/SocialLinks";
 import { useTheme } from "@Hooks/useTheme";
 
-function Footer() {
+function Footer({ ShowonFirstRender }: { ShowonFirstRender?: boolean }) {
     const { theme, toggleTheme } = useTheme();
     const [State, setState] = React.useState({
         isFooterVisible: false,
@@ -38,8 +38,7 @@ function Footer() {
 
         const handleScroll = () => {
             const currentScroll = window.scrollY;
-            const isAtBottom =
-                window.innerHeight + window.scrollY >= document.body.scrollHeight - 10;
+            const isAtBottom = window.innerHeight + window.scrollY >= document.body.scrollHeight - 10;
 
             if (isAtBottom) {
                 setState({
@@ -57,6 +56,13 @@ function Footer() {
         };
 
         window.addEventListener("scroll", handleScroll);
+
+        if (ShowonFirstRender) {
+            setState({
+                ...State,
+                isFooterVisible: true,
+            });
+        }
 
         return () => {
             window.removeEventListener("scroll", handleScroll);

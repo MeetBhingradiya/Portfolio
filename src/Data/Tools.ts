@@ -333,7 +333,7 @@ const BookmarksDB_: Array<IBookmark> = [
         icon: "https://teams.microsoft.com/favicon.ico"
     },
     {
-        name: "Visual Studio Code - Web",
+        name: "Visual Studio Code",
         url: "https://vscode.dev/",
         icon: "https://code.visualstudio.com/favicon.ico"
     },
@@ -558,7 +558,7 @@ const BookmarksDB_: Array<IBookmark> = [
         icon: "https://static.figma.com/uploads/b6df2735e4cb368306acf5480b50f96e69f96099"
     },
     {
-        name: "FullStack Website Clones",
+        name: "FullStack Site Clones",
         url: "https://www.codewithantonio.com/"
     },
     {
@@ -566,7 +566,7 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://replit.com"
     },
     {
-        name: "MDN Web Docs",
+        name: "MDN Docs",
         url: "https://developer.mozilla.org/en-US/"
     },
     {
@@ -746,10 +746,11 @@ const BookmarksDB_: Array<IBookmark> = [
         name: "AWS",
         url: "https://aws.amazon.com/",
         keywords: [
+            "Amazon Web Services",
             "Amazon",
             "Web",
             "Services",
-            "Cloud"
+            "Cloud",
         ]
     },
     {

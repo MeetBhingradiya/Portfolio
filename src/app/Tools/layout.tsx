@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "NewTab - Meet Bhingradiya",
+    title: "Tools - Meet Bhingradiya",
     description: "Basic Chrome NewTab Page",
     icons: "/favicon.ico",
     keywords: [

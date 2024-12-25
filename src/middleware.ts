@@ -10,7 +10,7 @@ export async function middleware(req: NextRequest) {
     );
 
     const response = NextResponse.next();
-    response.cookies.set('csrf_token', csrfToken, {
+    response.cookies.set('csrf', csrfToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -18,8 +18,8 @@ export async function middleware(req: NextRequest) {
     });
 
     if (req.nextUrl.pathname.startsWith('/api')) {
-        const csrfTokenFromHeader = req.headers.get('x-csrf-token');
-        const csrfTokenFromCookie = req.cookies.get('csrf_token');
+        // const csrfTokenFromHeader = req.headers.get('x-csrf');
+        const csrfTokenFromCookie = req.cookies.get('csrf');
 
         const excludedRoutes = [
             '/api/sitemap',
@@ -30,13 +30,13 @@ export async function middleware(req: NextRequest) {
             return NextResponse.next();
         }
 
-        if (!csrfTokenFromHeader) {
-            return NextResponse.json({ 
-                Status: 0,
-                Message: 'CSRF token missing in request header',
-                StatusCode: 403
-            }, { status: 403 });
-        }
+        // if (!csrfTokenFromHeader) {
+        //     return NextResponse.json({ 
+        //         Status: 0,
+        //         Message: 'CSRF token missing in request header',
+        //         StatusCode: 403
+        //     }, { status: 403 });
+        // }
 
         if (!csrfTokenFromCookie) {
             return NextResponse.json({ 
@@ -46,16 +46,16 @@ export async function middleware(req: NextRequest) {
             }, { status: 403 });
         }
 
-        if (csrfTokenFromHeader === csrfTokenFromCookie.value) {
-            return NextResponse.json({
-                Status: 1,
-                Message: 'Invalid CSRF token',
-                StatusCode: 403
-            }, { status: 403 });
-        }
+        // if (csrfTokenFromHeader === csrfTokenFromCookie.value) {
+        //     return NextResponse.json({
+        //         Status: 1,
+        //         Message: 'Invalid CSRF token',
+        //         StatusCode: 403
+        //     }, { status: 403 });
+        // }
 
         try {
-            const verified = await jwtVerify(csrfTokenFromHeader, await importJWK({ kty: 'oct', k: CSRF_KEY }), {
+            const verified = await jwtVerify(csrfTokenFromCookie?.value ?? "", await importJWK({ kty: 'oct', k: CSRF_KEY }), {
                 algorithms: ['HS256'],
             });
 

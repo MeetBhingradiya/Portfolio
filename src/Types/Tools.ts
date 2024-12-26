@@ -1,5 +1,3 @@
-import React from "react"
-
 interface IBookmark {
     // ? Unique identifier for the bookmark
     id?: string
@@ -135,6 +133,7 @@ interface IState {
         SearchEngine: ISearchEngine
         Locale: string
         CloudSync: boolean
+        windowWidth: number
     }
 }
 

@@ -4,15 +4,30 @@
 
 // @Theme&Variables
 :root
-    // ? New Variables
-    --font-color: 255, 255, 255
-    --background-start: 0,0,0
-    --background-end: 0, 15, 24
-    --primary-color: 10, 10, 10
+    // ? Root Variables
+    --background: var(--background-light)
+    --font-color: var(--font-color-light)
+    
+    // ? Theme Variables
+    --background-dark: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(0, 15, 24), rgb(0,0,0) 70%)
+    --background-light: linear-gradient(117deg, #e4f1ff 41.82%, #ffdff2 60.59%), radial-gradient(circle at center, rgb(255, 255, 255), rgb(240, 240, 240) 70%)
+    --font-color-light: #000
+    --font-color-dark: #fff
+    --divider-light: rgba(0, 0, 0, 0.1)
+
+html.dark
+    --background: var(--background-dark)
+    --font-color: var(--font-color-dark)
+
+@media (prefers-color-scheme: dark)
+    html.system
+        --background: var(--background-dark)
+        --font-color: var(--font-color-dark)
 
 // @GlobalStyles
 body
-    background: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(var(--background-end)), rgb(var(--background-start)) 70%)
+    background: var(--background)
+    color: var(--font-color)
     transition: background-color 0.3s ease, color 0.3s ease
     overflow: hidden
     overflow-y: auto
@@ -48,6 +63,15 @@ body:has(::-webkit-scrollbar)
 .Hide
     display: none
     position: relative
+
+.Page
+    width: 100vw
+    height: 100vh
+
+.CENTER
+    display: flex
+    justify-content: center
+    align-items: center
 
 // @ Components
 .SVGComponent

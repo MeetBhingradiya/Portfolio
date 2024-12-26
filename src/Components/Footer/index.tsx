@@ -94,11 +94,11 @@ function Footer({ ShowonFirstRender }: { ShowonFirstRender?: boolean }) {
             </motion.div>
             All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
             <div className="flex items-center">
-                <Tooltip content="Language" placement="top">
+                {/* <Tooltip content="Language" placement="top">
                     <div className="Version">
                         <Language />
                     </div>
-                </Tooltip>
+                </Tooltip> */}
                 <Tooltip content={theme} placement="top">
                     <div
                         className="Version theme-toggle"

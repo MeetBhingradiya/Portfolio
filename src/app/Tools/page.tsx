@@ -49,6 +49,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
+import { log } from "@/Utils/log";
+import { Sleep } from "@/Utils/Sleep";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -107,7 +109,6 @@ const StorageKey = "Tools";
 function Tools() {
     // @ States
     const isClient = useWindowCheck();
-    const [windowWidth, setWindowWidth] = React.useState(isClient ? window.innerWidth : 0);
     const [State, setState] = React.useState<IState>({
         FilterSuggestions: [],
         FilterBookmarks: [],
@@ -121,6 +122,7 @@ function Tools() {
             CloudSync: false,
             SearchEngine: ISearchEngine.GOOGLE,
             Locale: ILocale.EN,
+            windowWidth: isClient ? window.innerWidth : 0,
         },
     });
     const [contextMenu, setContextMenu] = React.useState<{
@@ -365,58 +367,76 @@ function Tools() {
     }
 
     const handleResize = () => {
-        setWindowWidth(window.innerWidth);
+        setState({
+            ...State,
+            Settings: {
+                ...State.Settings,
+                windowWidth: window.innerWidth,
+            },
+        })
     };
+
+    async function PageUpdates() {
+        // ! Step 1 get Data From Local Storage
+        handleResize();
+        const data = localStorage.getItem(StorageKey);
+        await Sleep(1);
+        // ! Step 2 if Data Found Update State but only Loads Settings
+        if (data === null) {
+            log("[/Tools] No Local Storage Data Found !");
+            setState({
+                ...State,
+                Settings: {
+                    ...State.Settings,
+                    isFirstRun: false
+                },
+            });
+        } else {
+            log("[/Tools] Local Storage Data Found !", JSON.parse(data).Settings);
+            setState({
+                ...State,
+                Settings: {
+                    ...State.Settings,
+                    ...JSON.parse(data).Settings,
+                    isFirstRun: false
+                },
+            })
+        }
+        // ! Step 3 Run the Cloud Sync Function if that Enabled
+        await Sleep(1);
+        if (State.Settings.CloudSync) {
+            await getServerBookmarks();
+        }
+        // ! Step 4 Loads Bookmarks Local First then Server Bookmarks
+        await Sleep(1);
+        setState({
+            ...State,
+            FilterBookmarks: JSON.parse(data as string).Booksmarks.map((bookmark: any) => {
+                return {
+                    ...bookmark,
+                    isServer: false,
+                }
+            }),
+            Bookmarks: JSON.parse(data as string).Booksmarks.map((bookmark: any) => {
+                return {
+                    ...bookmark,
+                    isServer: false,
+                }
+            }),
+        })
+    }
 
     // @Updates
     React.useEffect(() => {
         // ? Auto Focus on Page Load
         if (searchInputRef.current && State.Settings.isFirstRun) {
             searchInputRef.current.focus();
-            handleResize();
-            if (State.Settings.CloudSync) {
-                getServerBookmarks();
-            }
         }
 
         window.addEventListener("keydown", handleKeyPress);
-
-        // ? Local Storage Checks
-        const data = localStorage.getItem(StorageKey);
-        if (data !== null) {
-            setState({
-                ...State,
-                FilterBookmarks: JSON.parse(data).Booksmarks.map((bookmark: any) => {
-                    return {
-                        ...bookmark,
-                        isServer: false,
-                    }
-                }),
-                Bookmarks: JSON.parse(data).Booksmarks.map((bookmark: any) => {
-                    return {
-                        ...bookmark,
-                        isServer: false,
-                    }
-                }),
-                Settings: {
-                    ...State.Settings,
-                    ...JSON.parse(data).Settings,
-                    isFirstRun: false,
-                },
-            });
-        } else {
-            setState({
-                ...State,
-                FilterBookmarks: [...BookmarksDB],
-                Bookmarks: [...BookmarksDB],
-                Settings: {
-                    ...State.Settings,
-                    isFirstRun: false,
-                },
-            });
-        }
-
         window.addEventListener("resize", handleResize);
+
+        PageUpdates()
 
         return () => {
             window.removeEventListener("keydown", handleKeyPress);
@@ -425,6 +445,7 @@ function Tools() {
     }, []);
 
     React.useEffect(() => {
+        log("[/Tools] State Updated !", State);
         localStorage.setItem(StorageKey, JSON.stringify({
             Booksmarks: State.Bookmarks,
             Settings: {
@@ -444,7 +465,7 @@ function Tools() {
         State.Settings.CloudSync,
     ]);
 
-    const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 1);
+    const boxesPerRow = Math.max(Math.floor(State.Settings.windowWidth / 200), 1);
     const rows = Math.ceil(State.FilterBookmarks.length / boxesPerRow);
 
     // Add some space for the footer

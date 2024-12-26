@@ -1,0 +1,16 @@
+# Meet Bhingradiya - Site TechStack
+
++ Next.js (React.js Framework)
++ Rayzorpay (Payment Gateway)
++ Firebase (Sosial Authentification)
++ Vercel (Hosting)
++ Tailwind CSS (Styling)
++ Git & Github (Cloud & Version Control)
++ Next UI, Matirial UI (UI Library)
++ Bun (Package Manager)
++ Node.js (Runtime Environment)
++ MongoDB (Database)
++ Cloudinary (Image Hosting)
++ Google Search Console (SEO)
++ Google Analytics (Tracking & Analysis)
++ Google AdSense (Monetization)

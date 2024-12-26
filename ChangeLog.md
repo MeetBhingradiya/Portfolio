@@ -2,12 +2,20 @@
 
 All notable changes to this project will be documented here.  
 
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).  
+The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## Comming Up Next! 🚀
+- 
 
 ---
 
 ## 🔐 Vulnerability, Bug, or Issue Disclosures  
-- 🛡️ **`SvgComponent`** - Sanitized to ensure better security.  
+- **`SvgComponent`** - Sanitized to ensure better security.
+- **`CSRF`** - Every Request Must be an Made by Real End User or Automation BOT's not a DDOS or Auto Spam!
+- **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
+- Issue : Cloud Sync Settings not saving in Local Storage & not retreiving on page load.
 
 ---
 
@@ -26,22 +34,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 ---
 
 -->
-# ✨ 1.0.5 - 1/1/2024 (Expected)  
+# ✨ 1.0.5 - 1/1/2024 (Expected)
 
 ### 🌟 Added
 - Page > Tools > Searchbar > Clear Query Button added with Animation Visibility on Exit also.
+- Page > Tools > Google Trends Query Generator > Fixed Deplyment Issue.
+- App > Struture > Added New Endpoints for User, Auth, Dashboard, Admin etc.
 
 ### 🔄 Changed
 - Page > Tools > Searchbar has now Add & Settings Button as Floating Action Button like A `Dashy` Extenstion has.
 - Chnagelog > Decorated & Enhanced for better readability.
+- Models > Transactions & Wallets > Updated with new fields.
+- 📦 **Dependencies**: Updated to the latest versions (as of `26-12-2024`).  
 
 ### 🗑️ Removed  
 - Disabled CSRF Protection for temporary time.
 
 ---
-
-
-
 
 ## v1.0.4 - 22/12/2024 🎉  
 

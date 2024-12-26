@@ -8,25 +8,16 @@ import { useRouter } from 'next/navigation';
 import { Config } from "@Config/index";
 
 // @ Icons Import
-import {
-    LinkedIn,
-    GitHub,
-    Instagram,
-    YouTube,
-} from '@mui/icons-material';
-import type { Metadata } from "next";
 import Link from "next/link";
-import Footer from "@Components/Footer";
 import { SocialLinks } from "@Config/SocialLinks";
-
 
 // @ File
 export default function Home() {
-    const { push } = useRouter();
+    const router = useRouter();
 
     React.useEffect(() => {
         if (Config.isHomeReleased) {
-            push('/Home');
+            router.replace('/Home');
         }
     }, []);
 

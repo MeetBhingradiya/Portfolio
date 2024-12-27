@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
 import { StaticPages } from './StaticPages';
+import { Sitemap_Model } from '@Models/Sitemap';
+import dbConnect from '@Utils/dbConnect';
 
 const defaultPriority = 0.5;
 const defaultFrequency = 'weekly';
 
 const fetchDynamicPages = async () => {
-    return [
-        // { route: 'blog/some-article', priority: 0.5, frequency: 'weekly' },
-        // { route: 'projects/some-project', priority: 0.3 }
-    ];
+    await dbConnect();
+    const dynamicPages = await Sitemap_Model.find({ Enabled: true });
+    return dynamicPages.map((page) => {
+        return {
+            route: page.Endpoint,
+            priority: page.Priority,
+            frequency: page.Frequency
+        };
+    });
 };
 
 const SitemapTemplate = 

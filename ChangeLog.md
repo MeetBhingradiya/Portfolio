@@ -40,6 +40,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Page > Tools > Searchbar > Clear Query Button added with Animation Visibility on Exit also.
 - Page > Tools > Google Trends Query Generator > Fixed Deplyment Issue.
 - App > Struture > Added New Endpoints for User, Auth, Dashboard, Admin etc.
+- SEO > Sitemaps > Dynamic Sitemaps Enabled from `MongoDB` Database.
 
 ### 🔄 Changed
 - Page > Tools > Searchbar has now Add & Settings Button as Floating Action Button like A `Dashy` Extenstion has.

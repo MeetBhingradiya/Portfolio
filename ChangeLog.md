@@ -45,7 +45,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Page > Tools > Searchbar has now Add & Settings Button as Floating Action Button like A `Dashy` Extenstion has.
 - Chnagelog > Decorated & Enhanced for better readability.
 - Models > Transactions & Wallets > Updated with new fields.
-- 📦 **Dependencies**: Updated to the latest versions (as of `26-12-2024`).  
+- 📦 **Dependencies**: Updated to the latest versions (as of `26-12-2024`).
+- Theme > SASS Variable Setup for Light, Dark & System Theme.
 
 ### 🗑️ Removed  
 - Disabled CSRF Protection for temporary time.

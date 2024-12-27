@@ -55,6 +55,13 @@ export default function RootLayout({
 
                 {/* Google Search Console Verification */}
                 <meta name="google-site-verification" content="-eIAp0-BRCYjfoSuMDWpQTpgjQHadfvBbnf4le5IWBk" />
+
+                {/* Google ADS Monetization */}
+                <script
+                    async
+                    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1096073946887913"
+                    crossOrigin="anonymous"
+                ></script>
             </head>
             <body className={inter.className}>
                 <Providers>

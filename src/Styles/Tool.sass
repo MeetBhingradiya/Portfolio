@@ -23,6 +23,7 @@ $card-border-radius: 8px
         display: flex
         justify-content: center
         align-items: center
+        gap: 0.5rem
         z-index: 1
         .search
             width: 20%
@@ -44,9 +45,27 @@ $card-border-radius: 8px
             &:hover
                 width: 50%
                 transition: width 0.3s
-
-    .search::placeholder
-        color: #757575
+        .search::placeholder
+            color: #757575
+        .button
+            padding: 10px
+            border: 1px solid #4646468f
+            border: none
+            border-radius: 8px
+            background: #0000004d
+            backdrop-filter: blur(4px)
+            border: 1px solid #35353554
+            color: #ffffff
+            font-size: 1rem
+            margin-bottom: 20px
+            outline: none
+            transition: 0.3s
+            cursor: pointer
+            &:focus
+                outline: 2px solid #6200ea
+            &:hover
+                transform: scale(1.1)
+                transition: 0.3s
 
     .grid
         display: grid
@@ -88,6 +107,17 @@ $card-border-radius: 8px
 
         &.drag-over
             outline: 2px dashed #6200ea
+        
+        .ServerIcon
+            position: absolute
+            width: 16px
+            height: 16px
+            top: 0px
+            left: 7px
+            color: #808080
+            svg
+                width: 100%
+                height: 100%
 
         .Icon
             display: flex
@@ -109,3 +139,17 @@ $card-border-radius: 8px
         .link
             color: inherit
             text-decoration: none
+
+// ? For Tablets
+@media (max-width: 768px)
+    .search
+        width: 50%
+    .grid
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))
+        
+// ? For Mobile
+@media (max-width: 425px)
+    .search
+        width: 80%
+    .grid
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))

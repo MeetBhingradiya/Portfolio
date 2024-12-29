@@ -1,5 +1,3 @@
-import React from "react"
-
 interface IBookmark {
     // ? Unique identifier for the bookmark
     id?: string
@@ -27,6 +25,8 @@ interface IBookmark {
 
     // ? Defualt Icon Size
     size?: "128" | "64" | "32" | "16"
+
+    isServer?: boolean
 }
 
 enum ILocale {
@@ -132,6 +132,8 @@ interface IState {
         RandomizeLinks: boolean
         SearchEngine: ISearchEngine
         Locale: string
+        CloudSync: boolean
+        windowWidth?: number
     }
 }
 

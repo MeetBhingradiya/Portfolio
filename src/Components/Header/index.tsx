@@ -10,9 +10,13 @@ interface QuickLinks_Type {
     isAnchour: boolean
     AnchourID: string
     Menu: Array<{
-        icon?: string
-        Label: string
-        URL: string
+        Category: string
+        Icon?: string
+        Items: Array<{
+            icon?: string
+            Label: string
+            URL: string
+        }>
     }>
 }
 
@@ -21,7 +25,7 @@ function Header() {
         <motion.div className={"Header"}>
             <div className={"Brand"}>
                 <div className={"Icon"}>
-                    
+
                 </div>
                 <div className={"Text"}>
 

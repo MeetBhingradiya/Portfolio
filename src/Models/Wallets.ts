@@ -1,8 +1,21 @@
-import { Schema, Document, model } from 'mongoose';
+import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 import { Currency } from '@Types/Currency';
 
-const Wallets_Schema: Schema = new Schema({
+enum Permissions {
+    DEBIT = "DEBIT",
+    CREDIT = "CREDIT",
+    REVERT = "REVERT",
+    BAL_READ = "BAL_READ"
+}
+
+enum Privacy {
+    PUBLIC = "PUBLIC",
+    PRIVATE = "PRIVATE",
+    SHARED = "SHARED"
+}
+
+const Wallets_Schema: mongoose.Schema = new mongoose.Schema({
     WalletID: {
         type: String,
         default: v4,
@@ -10,49 +23,61 @@ const Wallets_Schema: Schema = new Schema({
     },
     Balance: {
         type: Number,
-        required: true
+        default: 0.00
     },
-    Currency: {
+    LinkedWalletID: {
         type: String,
-        enum: Object.values(Currency),
-        default: Currency.INR
     },
-    CreatorID: {
+    Ownership: {
         type: String,
-        required: true
-    },
-    OwnerID: {
-        type: String,
-        required: true
+        enum: ["PERSONAL", "ORGANIZATION"],
+        default: "PERSONAL"
     },
     OrganizationID: {
         type: String,
     },
-    Permissions: {
-        DEBIT: {
-            type: [String],
-            default: []
+    Members: [{
+        UserID: {
+            type: String,
+            required: true
         },
-        CREDIT: {
+        Permissions: {
             type: [String],
-            default: []
+            default: [
+                Permissions.DEBIT,
+                Permissions.CREDIT,
+                Permissions.REVERT,
+                Permissions.BAL_READ
+            ]
         },
-        REVERT: {
-            type: [String],
-            default: []
+        isCreator: {
+            type: Boolean,
+            default: false
         },
-        BAL_READ: {
-            type: [String],
-            default: []
+        isOwner: {
+            type: Boolean,
+            default: false
+        },
+        isRemoved: {
+            type: Boolean,
+            default: false
         }
-    },
+    }],
     Name: {
         type: String,
         required: true
     },
+    Currency: {
+        type: String,
+        default: "INR"
+    },
     Description: {
         type: String,
-        required: true
+    },
+    Type: {
+        type: String,
+        enum: ["WALLET", "BANK", "UPI"],
+        default: "WALLET"
     },
     isDeleted: {
         type: Boolean,
@@ -61,38 +86,64 @@ const Wallets_Schema: Schema = new Schema({
     isLocked: {
         type: Boolean,
         default: false
+    },
+    Privacy: {
+        type: String,
+        enum: ["PUBLIC", "PRIVATE", "SHARED"],
+        default: "PRIVATE"
+    },
+    MinimumBalance: {
+        type: Number,
+        default: 0.00
     }
 }, {
     timestamps: true,
-    versionKey: true,
-    _id: false
+    versionKey: "v1",
 });
 
-export interface IWallets extends Document {
+export interface IWallets extends mongoose.Document {
     WalletID: string
+
+    // ? Bank Wallet ID only for UPI Wallets
+    LinkedWalletID?: string
 
     // ? Wallets Balance its also can be 00.00
     Balance: number
 
-    // ? Wallets Currency
-    Currency: Currency
-
     // ? Linked with Organization
-    OrganizationID: string
+    Ownership: "PERSONAL" | "ORGANIZATION"
+    OrganizationID?: string
 
     Members: Array<{
+        // ? User Identifier
         UserID: string
-        PermissionID: string
 
-        isCreator: boolean // ? READ ONLY
-        isOwner: boolean
+        // ? Current User Permissions
+        Permissions: Array<Permissions> // @Modifiable
+
+        // ? Who Created Wallet
+        isCreator: boolean
+
+        // ? Current Owner of Wallet
+        isOwner: boolean // @Modifiable
+
+        // ? When User is Removed from Wallet
+        isRemoved?: boolean // @Modifiable
     }>
-
-    Name: string
-    Description: string
-
+    
+    // ? Wallet Information
+    Name: string // @Modifiable
+    Currency: Currency // @Default INR
+    Description: string // @Modifiable
+    Type: "WALLET" | "BANK" | "UPI" // @Default WALLET
+    
+    // ? Wallets Settings
     isDeleted: boolean
     isLocked: boolean
+    Privacy: Privacy
+
+    // ? Required for Banks
+    MinimumBalance?: number // @Default 0.00
 }
 
-export default model<IWallets>('Wallets', Wallets_Schema);
+export const Wallets_Model: mongoose.Model<IWallets> = mongoose.models?.Wallets || mongoose.model<IWallets>("Wallets", Wallets_Schema);

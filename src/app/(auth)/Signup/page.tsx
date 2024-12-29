@@ -1,7 +1,7 @@
 function Signup() {
     return (
-        <div>
-        <h1>Signup</h1>
+        <div className="Page">
+            <h1>SignUp</h1>
         </div>
     );
 }

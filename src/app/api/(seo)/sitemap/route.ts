@@ -1,14 +1,21 @@
 import { NextResponse } from 'next/server';
 import { StaticPages } from './StaticPages';
+import { Sitemap_Model } from '@Models/Sitemap';
+import dbConnect from '@Utils/dbConnect';
 
 const defaultPriority = 0.5;
 const defaultFrequency = 'weekly';
 
 const fetchDynamicPages = async () => {
-    return [
-        // { route: 'blog/some-article', priority: 0.5, frequency: 'weekly' },
-        // { route: 'projects/some-project', priority: 0.3 }
-    ];
+    await dbConnect();
+    const dynamicPages = await Sitemap_Model.find({ Enabled: true });
+    return dynamicPages.map((page) => {
+        return {
+            route: page.Endpoint,
+            priority: page.Priority,
+            frequency: page.Frequency
+        };
+    });
 };
 
 const SitemapTemplate = 
@@ -17,6 +24,37 @@ const SitemapTemplate =
 @Pages
 </urlset>
 `
+
+const SitemapIndexTemplate =
+`<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+@Sitemaps
+</sitemapindex>
+`
+
+const SitemapIndexItemTemplate =
+`
+<sitemap>
+<loc>@Endpoint</loc>
+</sitemap>
+`
+
+const SitemapItemTemplate = 
+`
+<url>
+<loc>@Endpoint</loc>
+<lastmod>@Timestemp</lastmod>
+<changefreq>@Frequency</changefreq>
+<priority>@Priority</priority>
+</url>
+`
+
+const SitemapTemplates = {
+    SitemapTemplate,
+    SitemapIndexTemplate,
+    SitemapIndexItemTemplate,
+    SitemapItemTemplate
+}
 
 export async function GET() {
     const baseUrl = 'https://meetbhingradiya.vercel.app';

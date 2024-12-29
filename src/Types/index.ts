@@ -1,4 +1,3 @@
-export * from "./Transactions";
 export * from "./Privacy";
 export * from "./ChromeExtensions";
 export * from "./Currency";

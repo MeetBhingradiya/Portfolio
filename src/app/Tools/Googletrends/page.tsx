@@ -172,7 +172,7 @@ function GoogleTredensQuerys() {
                     <div className="flex items-center justify-center">
                         <Alert
                             hideIconWrapper
-                            color="error"
+                            color="danger"
                             description="Add CORS Extension to your Browser to Fix this Issue"
                             title="Server ERROR"
                             variant="bordered"

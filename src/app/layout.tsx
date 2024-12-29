@@ -3,6 +3,7 @@ import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
 import Footer from "@Components/Footer";
+import { Config } from "@Config/index";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -25,10 +26,12 @@ export const metadata: Metadata = {
         "India",
         "meetbhingradiya.com",
         "meetbhingradiya.dev",
-        "meetbhingradiya.in",
+        // "meetbhingradiya.in",
         "meetbhingradiya.live",
+        "meetbhingradiya.site",
         "meetbhingradiya.shop",
         "meetbhingradiya.co.in",
+        "meetbhingradiya.tech",
     ],
     authors: {
         name: "Meet Bhingradiya",
@@ -55,13 +58,26 @@ export default function RootLayout({
 
                 {/* Google Search Console Verification */}
                 <meta name="google-site-verification" content="-eIAp0-BRCYjfoSuMDWpQTpgjQHadfvBbnf4le5IWBk" />
+
+                {/* Google ADS Monetization */}
+                {
+                    Config.Environment === "production" && (
+                        <>
+                            <script
+                                data-ad-client="ca-pub-1096073946887913"
+                                async
+                                src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
+                            ></script>
+                        </>
+                    )
+                }
             </head>
             <body className={inter.className}>
                 <Providers>
                     {children}
                 </Providers>
 
-                <Footer />
+                <Footer ShowonFirstRender />
             </body>
         </html>
     );

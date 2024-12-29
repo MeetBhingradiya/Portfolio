@@ -6,7 +6,7 @@ import type { IBookmark, IState } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB } from "@Data/Tools";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { v4 as uuidv4 } from 'uuid';
 import "@Styles/Tool.sass";
 import {
@@ -17,9 +17,12 @@ import {
     Save,
     OpenInNew,
     Settings,
+    Cloud,
+    Restore,
+    Book,
+    Bookmark
 } from "@mui/icons-material";
 import {
-    Slide,
     Menu,
     MenuItem,
     MenuProps,
@@ -36,10 +39,10 @@ import {
     Input,
     Select,
     SelectItem,
-    Checkbox
+    Checkbox,
+    Tooltip
 } from "@nextui-org/react";
 import { styled, alpha } from '@mui/material/styles';
-import { TransitionProps } from '@mui/material/transitions';
 import {
     GridContextProvider,
     GridDropZone,
@@ -48,8 +51,10 @@ import {
 } from "react-grid-dnd";
 import 'react-toastify/dist/ReactToastify.css';
 import SvgComponent from "@Components/SVGComponent";
-import Footer from "@Components/Footer";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
+import { Axios } from "@Utils/Axios";
+import { log } from "@/Utils/log";
+import { Sleep } from "@/Utils/Sleep";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -95,7 +100,6 @@ const StyledMenu = styled((props: MenuProps) => (
                     theme.palette.action.selectedOpacity,
                 ),
             },
-
             // ? Last Child No Margin at Bottom
             '&:last-child': {
                 marginBottom: 0,
@@ -107,24 +111,24 @@ const StyledMenu = styled((props: MenuProps) => (
 const StorageKey = "Tools";
 
 function Tools() {
-
     // @ States
     const isClient = useWindowCheck();
-    const [windowWidth, setWindowWidth] = React.useState(isClient ? window.innerWidth : 0);
     const [State, setState] = React.useState<IState>({
         FilterSuggestions: [],
         FilterBookmarks: [],
-        Bookmarks: BookmarksDB,
+        Bookmarks: [...BookmarksDB],
         Suggestions: [],
         Query: "",
         Settings: {
             isFirstRun: true,
-            isNewTab: false,
-            RandomizeLinks: false,
+            isNewTab: true,
+            RandomizeLinks: true,
+            CloudSync: true,
             SearchEngine: ISearchEngine.GOOGLE,
-            Locale: ILocale.EN,
-        },
+            Locale: ILocale.EN
+        }
     });
+    const [windowWidth, setWindowWidth] = React.useState<number>(isClient ? window.innerWidth : 0);
     const [contextMenu, setContextMenu] = React.useState<{
         mouseX: number;
         mouseY: number;
@@ -267,6 +271,7 @@ function Tools() {
             ...ModalData,
             isSettingsOpen: false,
             isOpen: false,
+            isEdit: false,
             BookmarkData: {
                 id: "",
                 name: "",
@@ -289,6 +294,45 @@ function Tools() {
         }
     }
 
+    async function getServerBookmarks() {
+        const response = await Axios("/api/bookmarks");
+
+        const ServerBookmarks = response.data.data;
+        if (!ServerBookmarks) {
+            return;
+        }
+
+        let ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
+            return {
+                id: bookmark.BookmarkID,
+                name: bookmark.name,
+                url: bookmark.url,
+                icon: bookmark.icon,
+                keywords: bookmark.keywords,
+                isSVGSrc: bookmark.isSVGSrc,
+                SVGStyles: bookmark.SVGStyles,
+                description: bookmark.description,
+                size: bookmark.size,
+                isServer: true,
+            }
+        })
+
+        let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
+            return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
+        });
+
+        // ? Randomize Links
+        if (State.Settings.RandomizeLinks) {
+            ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
+        }
+
+        setState({
+            ...State,
+            Bookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+            FilterBookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+        })
+    }
+
     async function ConfirmEdit() {
         const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.id === ModalData.BookmarkData.id);
         if (bookmarkIndex === -1) {
@@ -301,7 +345,7 @@ function Tools() {
         await setState({
             ...State,
             Bookmarks: newBookmarks,
-            FilterBookmarks: newBookmarks,
+            FilterBookmarks: newBookmarks
         });
 
         await CloseModel();
@@ -332,45 +376,65 @@ function Tools() {
         await CloseModel();
     }
 
+    const handleResize = () => {
+        log("[/Tools] Window Resized !", window.innerWidth);
+        setWindowWidth(window.innerWidth);
+    };
 
     // @Updates
+
+    // ? Initial Run & Window Resize, Focus on Search Input Listeners
     React.useEffect(() => {
-        // ? Auto Focus on Page Load
-        if (searchInputRef.current && State.Settings.isFirstRun) {
-            searchInputRef.current.focus();
+
+        // ? Only Run at First Load
+        if (State.Settings.isFirstRun) {
+            handleResize();
+
+            // ? Focus on Search Input
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+            }
+
+            // ? get Settings & Bookmarks from Local Storage
+            const data = localStorage.getItem(StorageKey);
+
+            // ? Step 1 if No Data Found
+            if (data === null) {
+                log("[/Tools] No Local Storage Data Found !");
+                setState({
+                    ...State,
+                    Settings: {
+                        ...State.Settings,
+                        isFirstRun: false
+                    },
+                    FilterBookmarks: BookmarksDB,
+                });
+            } else {
+                let StorageData = JSON.parse(data as string);
+                log("[/Tools] Local Storage Data Found !", StorageData);
+                setState({
+                    ...State,
+                    Settings: {
+                        ...StorageData.Settings,
+                        isFirstRun: false
+                    },
+                    Bookmarks: StorageData.Booksmarks.map((bookmark: any) => {
+                        return {
+                            ...bookmark,
+                            isServer: false,
+                        }
+                    }),
+                    FilterBookmarks: StorageData.Booksmarks.map((bookmark: any) => {
+                        return {
+                            ...bookmark,
+                            isServer: false,
+                        }
+                    })
+                })
+            }
         }
 
         window.addEventListener("keydown", handleKeyPress);
-
-        // ? Local Storage Checks
-        const data = localStorage.getItem(StorageKey);
-        if (data !== null) {
-            setState({
-                ...State,
-                FilterBookmarks: JSON.parse(data).Booksmarks,
-                Bookmarks: JSON.parse(data).Booksmarks,
-                Settings: {
-                    ...State.Settings,
-                    ...JSON.parse(data).Settings,
-                    isFirstRun: false,
-                },
-            });
-        } else {
-            setState({
-                ...State,
-                FilterBookmarks: BookmarksDB,
-                Bookmarks: BookmarksDB,
-                Settings: {
-                    ...State.Settings,
-                    isFirstRun: false,
-                },
-            });
-        }
-
-        const handleResize = () => {
-            setWindowWidth(window.innerWidth);
-        };
-
         window.addEventListener("resize", handleResize);
 
         return () => {
@@ -379,7 +443,19 @@ function Tools() {
         };
     }, []);
 
+    // ? Cloud Sync After the First Run
     React.useEffect(() => {
+        if (!State.Settings.isFirstRun) {
+            if (State.Settings.CloudSync) {
+                getServerBookmarks();
+            }
+        }
+    }, [State.Settings.isFirstRun]);
+
+    // ? State Sync with Storage
+    React.useEffect(() => {
+        log("[/Tools] State Updated !", State);
+
         localStorage.setItem(StorageKey, JSON.stringify({
             Booksmarks: State.Bookmarks,
             Settings: {
@@ -387,22 +463,23 @@ function Tools() {
                 RandomizeLinks: State.Settings.RandomizeLinks,
                 SearchEngine: State.Settings.SearchEngine,
                 Locale: State.Settings.Locale,
+                CloudSync: State.Settings.CloudSync,
             },
         }));
     }, [
         State.Bookmarks,
+        State.Settings.CloudSync,
         State.Settings.isNewTab,
         State.Settings.RandomizeLinks,
         State.Settings.SearchEngine,
         State.Settings.Locale,
     ]);
 
-    const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 7);
-    const rows = Math.ceil((State.FilterBookmarks.length + 2) / boxesPerRow);
-
-    // Add some space for the footer
-    const footerHeight = 50;
+    const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 1);
+    const rows = Math.ceil(State.FilterBookmarks.length / boxesPerRow);
+    const footerHeight = 100;
     const gridHeight = rows * 150 + footerHeight;
+
     // @Component
     return (
         <div className="Tool"
@@ -426,9 +503,25 @@ function Tools() {
                 hideProgressBar={false}
                 stacked
             />
+
             <div
                 className="SearchWarp"
             >
+                <motion.div
+                    className="button"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                    onClick={(e) => {
+                        setModalData({
+                            ...ModalData,
+                            isSettingsOpen: false,
+                            isOpen: true,
+                        });
+                    }}
+                >
+                    <Add />
+                </motion.div>
                 <motion.input
                     id="search"
                     type="text"
@@ -452,6 +545,43 @@ function Tools() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
                 />
+                <AnimatePresence>
+                    {
+                        State.Query !== "" && (
+                            <motion.div
+                                className="button"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ delay: 0.2, duration: 0.2, ease: "easeInOut" }}
+                                onClick={(e) => {
+                                    setState({
+                                        ...State,
+                                        FilterBookmarks: State.Bookmarks,
+                                        Query: "",
+                                    })
+                                }}
+                            >
+                                <Close />
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence>
+                <motion.div
+                    className="button"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                    onClick={(e) => {
+                        setModalData({
+                            ...ModalData,
+                            isSettingsOpen: true,
+                            isOpen: true,
+                        });
+                    }}
+                >
+                    <Settings />
+                </motion.div>
             </div>
 
             <GridContextProvider onChange={onGridChange}>
@@ -527,8 +657,6 @@ function Tools() {
                                                     borderRadius: "15px",
                                                     userSelect: "none",
                                                     MozWindowDragging: "no-drag",
-                                                    // width: "64px",
-                                                    // height: "64px",
                                                 }}
                                                 onDragStart={(e) => e.preventDefault()}
                                             />)
@@ -536,74 +664,16 @@ function Tools() {
                                     </div>
                                 )}
                                 <h2 className="bookmarkTitle">{item.name}</h2>
+                                {
+                                    item.isServer && (
+                                        <div className="ServerIcon">
+                                            <Cloud />
+                                        </div>
+                                    )
+                                }
                             </div>
                         </GridItem>
                     ))}
-
-                    {/* Add */}
-                    <GridItem key="add">
-                        <div className="bookmark item" onClick={(e) => {
-                            OpenNewBookmarkModel();
-                        }}>
-                            <div className="Icon">
-                                <Add
-                                    width={64}
-                                    height={64}
-                                    sx={{
-                                        color: "#6e6e6e"
-                                    }}
-                                    fontSize="large"
-                                />
-                            </div>
-                            <h2 className="bookmarkTitle">
-                                Add Bookmark
-                            </h2>
-                        </div>
-                    </GridItem>
-
-                    {/* Delete Mode */}
-                    {/* <GridItem key="delete">
-                        <div className="bookmark item delete">
-                            <div className="Icon">
-                                <Delete
-                                    width={64}
-                                    height={64}
-                                    sx={{
-                                        color: "#ff0000",
-                                    }}
-                                    fontSize="large"
-                                />
-                            </div>
-                            <h2 className="bookmarkTitle">
-                                Bulk Delete
-                            </h2>
-                        </div>
-                    </GridItem> */}
-
-                    {/* Settings */}
-                    <GridItem key="settings">
-                        <div className="bookmark item" onClick={(e) => {
-                            setModalData({
-                                ...ModalData,
-                                isSettingsOpen: true,
-                                isOpen: true,
-                            });
-                        }}>
-                            <div className="Icon">
-                                <Settings
-                                    width={64}
-                                    height={64}
-                                    sx={{
-                                        color: "#6e6e6e"
-                                    }}
-                                    fontSize="large"
-                                />
-                            </div>
-                            <h2 className="bookmarkTitle">
-                                Settings
-                            </h2>
-                        </div>
-                    </GridItem>
 
                 </GridDropZone>
             </GridContextProvider>
@@ -688,6 +758,7 @@ function Tools() {
                 }
                 isOpen={ModalData.isOpen}
                 onClose={CloseModel}
+                hideCloseButton={true}
             >
                 {
                     ModalData.isSettingsOpen && (
@@ -709,8 +780,8 @@ function Tools() {
                                             },
                                         });
                                     }}
-                                    label="🔍 Engine"
-                                    variant="faded"
+                                    label="🔍 Search Engine"
+                                    variant="bordered"
                                     multiple={false}
                                 >
                                     {
@@ -739,8 +810,8 @@ function Tools() {
                                             },
                                         });
                                     }}
-                                    label="🌍 Locale"
-                                    variant="faded"
+                                    label="🌍 Suggestions Language"
+                                    variant="bordered"
                                     multiple={false}
                                 >
                                     {
@@ -770,12 +841,44 @@ function Tools() {
                                     Links Open in New Tab
                                 </Checkbox>
 
-                                {/* Reset Database */}
-                                <Button
-                                    color="danger"
-                                    variant="light"
-                                    className="mt-4"
-                                    onPress={() => {
+                                {/* Cloud Sync */}
+                                <Checkbox
+                                    className="mt-1 ml-1"
+                                    isSelected={State.Settings.CloudSync}
+                                    onValueChange={(value) => {
+                                        setState({
+                                            ...State,
+                                            Settings: {
+                                                ...State.Settings,
+                                                CloudSync: value
+                                            },
+                                        });
+                                    }}
+                                >
+                                    Cloud Import
+                                </Checkbox>
+
+                                {/* Randomize Cloud Import */}
+                                <Checkbox
+                                    className="mt-1 ml-1"
+                                    isSelected={State.Settings.RandomizeLinks}
+                                    onValueChange={(value) => {
+                                        setState({
+                                            ...State,
+                                            Settings: {
+                                                ...State.Settings,
+                                                RandomizeLinks: value
+                                            },
+                                        });
+                                    }}
+                                >
+                                    Randomize Cloud Import
+                                </Checkbox>
+
+                            </ModalBody>
+                            <ModalFooter>
+                                <Tooltip content="Reset Bookmarks" placement="top">
+                                    <Button isIconOnly color="secondary" variant="light" onPress={() => {
                                         localStorage.removeItem(StorageKey);
                                         setState({
                                             ...State,
@@ -787,16 +890,15 @@ function Tools() {
                                             isSettingsOpen: false,
                                             isOpen: false,
                                         });
-                                    }}
-                                >
-                                    Reset Database
-                                </Button>
-
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
-                                    <Close />
-                                </Button>
+                                    }}>
+                                        <Restore />
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip content="Close" placement="top">
+                                    <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
+                                        <Close />
+                                    </Button>
+                                </Tooltip>
                             </ModalFooter>
                         </ModalContent>
                     )
@@ -805,7 +907,12 @@ function Tools() {
                     !ModalData.isSettingsOpen && (
 
                         <ModalContent>
-                            <ModalHeader className="flex flex-col gap-1">
+                            <ModalHeader className="flex flex-row gap-2">
+                                {
+                                    ModalData.isEdit
+                                        ? <Bookmark />
+                                        : <Book />
+                                }
                                 {
                                     ModalData.isEdit
                                         ? "Edit Bookmark"
@@ -816,7 +923,7 @@ function Tools() {
                                 <div className="grid grid-cols-[1fr_auto] gap-4 items-start">
                                     {/* Input Fields */}
                                     <div className="flex flex-col gap-4">
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             Name
                                             <Input
                                                 type="text"
@@ -832,7 +939,7 @@ function Tools() {
                                                 }}
                                             />
                                         </label>
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             URL
                                             <Input
                                                 type="text"
@@ -848,7 +955,7 @@ function Tools() {
                                                 }}
                                             />
                                         </label>
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             Icon
                                             <Input
                                                 type="text"
@@ -865,7 +972,7 @@ function Tools() {
                                                 }}
                                             />
                                         </label>
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             Keywords
                                             <Input
                                                 type="text"
@@ -904,29 +1011,37 @@ function Tools() {
 
                             </ModalBody>
                             <ModalFooter>
-                                <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
-                                    <Close />
-                                </Button>
-                                <Button
-                                    isIconOnly
-                                    color={
-                                        ModalData.isEdit
-                                            ? "success"
-                                            : "primary"
-                                    }
-                                    onPress={
-                                        ModalData.isEdit
-                                            ? ConfirmEdit
-                                            : ConfirmNewBookmark
-                                    }
-                                    variant="light"
-                                >
-                                    {
-                                        ModalData.isEdit
-                                            ? <Save />
-                                            : "Add"
-                                    }
-                                </Button>
+                                <Tooltip content={
+                                    ModalData.isEdit
+                                        ? "Save Changes"
+                                        : "Add New Bookmark"
+                                } placement="top">
+                                    <Button
+                                        isIconOnly
+                                        color={
+                                            ModalData.isEdit
+                                                ? "primary"
+                                                : "success"
+                                        }
+                                        onPress={
+                                            ModalData.isEdit
+                                                ? ConfirmEdit
+                                                : ConfirmNewBookmark
+                                        }
+                                        variant="light"
+                                    >
+                                        {
+                                            ModalData.isEdit
+                                                ? <Save />
+                                                : <Add />
+                                        }
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip content="Close" placement="top">
+                                    <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
+                                        <Close />
+                                    </Button>
+                                </Tooltip>
                             </ModalFooter>
                         </ModalContent>
                     )

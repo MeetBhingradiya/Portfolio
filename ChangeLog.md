@@ -11,32 +11,46 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - [ ] Wallet Management System with Transactions Like a Expense Efficient Tracker.
 - [ ] Analytics & SEO Tools for Better Performance & SEO.
 - [ ] Privacy & Terms of Service Page
-
 ---
 
 ## 🔐 Vulnerability, Bug, or Issue Disclosures
 - **`SvgComponent`** - Sanitized to ensure better security.
 - **`CSRF`** - Every Request Must be an Made by Real End User or Automation BOT's not a DDOS or Auto Spam!
 - **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
-- Issue : Cloud Sync Settings not saving in Local Storage & not retreiving on page load.
-
+- **`Issues`** - Theme Switching on Tailwind, Material UI, Next UI & Some Page Variables Apply is Pending. (Dark theme works properly)
+- Bookmark API Not Working due to CSRF Protection Enabled on All the API's.
 ---
 
-<!-- ✨ vUnreleased - DD/MM/YYYY (Expected)  
+<!-- # vUnreleased - DD/MM/YYYY (Expected)
 
-### 🌟 Added  
+### 🌟 Added
 - 🚀 New feature XYZ.  
 - 🛠️ Improved performance of the ABC module.  
 
-### 🔄 Changed  
+### 🔄 Changed
 - 🔧 Refactored code in the XYZ module.  
 
-### 🗑️ Removed  
+### 🗑️ Removed
 - 🐞 Bug in ABC module.  
 
 ---
 
 -->
+
+# v1.0.6 - 15/1/2025 (Expected)
+
+### 🌟 Added
+- Pages > Test Page > New Page for Testing the New Features & Components.
+- Security > CSRF > Advanced CSRF Protection Added for All the API's excluding SiteMap & Robots.
+
+### 🔄 Changed
+- 
+
+### 🗑️ Removed
+-
+
+---
+
 # v1.0.5 - 29/12/2024
 
 ### 🌟 Added

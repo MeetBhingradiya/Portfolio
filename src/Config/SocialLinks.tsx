@@ -22,7 +22,7 @@ const SocialLinks: Array<{
             Label: "Instagram",
             URL: "https://www.instagram.com/meetbhingradiya_/",
             Component: <Instagram />,
-            isEnable: false,
+            isEnable: true,
         },
         {
             Label: "YouTube",

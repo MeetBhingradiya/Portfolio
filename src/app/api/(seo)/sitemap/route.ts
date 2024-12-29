@@ -25,6 +25,37 @@ const SitemapTemplate =
 </urlset>
 `
 
+const SitemapIndexTemplate =
+`<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+@Sitemaps
+</sitemapindex>
+`
+
+const SitemapIndexItemTemplate =
+`
+<sitemap>
+<loc>@Endpoint</loc>
+</sitemap>
+`
+
+const SitemapItemTemplate = 
+`
+<url>
+<loc>@Endpoint</loc>
+<lastmod>@Timestemp</lastmod>
+<changefreq>@Frequency</changefreq>
+<priority>@Priority</priority>
+</url>
+`
+
+const SitemapTemplates = {
+    SitemapTemplate,
+    SitemapIndexTemplate,
+    SitemapIndexItemTemplate,
+    SitemapItemTemplate
+}
+
 export async function GET() {
     const baseUrl = 'https://meetbhingradiya.vercel.app';
     const dynamicPages = await fetchDynamicPages();

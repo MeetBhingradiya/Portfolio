@@ -3,7 +3,7 @@ const Config = {
     releasedate: "2025-1-1",
     visiblebranch: "Development",
     isHomeReleased: true,
-    Environment: "Development",
+    Environment: process.env.NODE_ENV,
 }
 
 export { Config };

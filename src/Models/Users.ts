@@ -1,7 +1,7 @@
-import { Schema, Document, model } from 'mongoose';
+import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 
-const User_Schema: Schema = new Schema({
+const User_Schema: mongoose.Schema = new mongoose.Schema({
     UserID: {
         type: String,
         default: v4,
@@ -113,12 +113,10 @@ const User_Schema: Schema = new Schema({
     _id: false
 });
 
-export interface IUser extends Document {
+export interface IUser extends mongoose.Document {
     UserID: string;
     Emails: Array<{
         Email: string
-
-        // ? Email Status
         isVerified: boolean
 
         // ? Email Settings
@@ -170,4 +168,4 @@ export interface IUser extends Document {
     isDeleted: boolean
 }
 
-export default model<IUser>('Users', User_Schema);
+export const Users_Model: mongoose.Model<IUser> = mongoose.models?.Users || mongoose.model<IUser>("Users", User_Schema);

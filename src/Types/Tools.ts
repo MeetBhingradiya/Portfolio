@@ -133,7 +133,7 @@ interface IState {
         SearchEngine: ISearchEngine
         Locale: string
         CloudSync: boolean
-        windowWidth: number
+        windowWidth?: number
     }
 }
 

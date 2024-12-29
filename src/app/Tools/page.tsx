@@ -17,7 +17,10 @@ import {
     Save,
     OpenInNew,
     Settings,
-    Cloud
+    Cloud,
+    Restore,
+    Book,
+    Bookmark
 } from "@mui/icons-material";
 import {
     Menu,
@@ -36,7 +39,8 @@ import {
     Input,
     Select,
     SelectItem,
-    Checkbox
+    Checkbox,
+    Tooltip
 } from "@nextui-org/react";
 import { styled, alpha } from '@mui/material/styles';
 import {
@@ -117,14 +121,14 @@ function Tools() {
         Query: "",
         Settings: {
             isFirstRun: true,
-            isNewTab: false,
-            RandomizeLinks: false,
-            CloudSync: false,
+            isNewTab: true,
+            RandomizeLinks: true,
+            CloudSync: true,
             SearchEngine: ISearchEngine.GOOGLE,
-            Locale: ILocale.EN,
-            windowWidth: isClient ? window.innerWidth : 0,
-        },
+            Locale: ILocale.EN
+        }
     });
+    const [windowWidth, setWindowWidth] = React.useState<number>(isClient ? window.innerWidth : 0);
     const [contextMenu, setContextMenu] = React.useState<{
         mouseX: number;
         mouseY: number;
@@ -267,6 +271,7 @@ function Tools() {
             ...ModalData,
             isSettingsOpen: false,
             isOpen: false,
+            isEdit: false,
             BookmarkData: {
                 id: "",
                 name: "",
@@ -297,7 +302,7 @@ function Tools() {
             return;
         }
 
-        const ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
+        let ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
             return {
                 id: bookmark.BookmarkID,
                 name: bookmark.name,
@@ -315,6 +320,11 @@ function Tools() {
         let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
             return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
         });
+
+        // ? Randomize Links
+        if (State.Settings.RandomizeLinks) {
+            ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
+        }
 
         setState({
             ...State,
@@ -335,7 +345,7 @@ function Tools() {
         await setState({
             ...State,
             Bookmarks: newBookmarks,
-            FilterBookmarks: newBookmarks,
+            FilterBookmarks: newBookmarks
         });
 
         await CloseModel();
@@ -367,76 +377,65 @@ function Tools() {
     }
 
     const handleResize = () => {
-        setState({
-            ...State,
-            Settings: {
-                ...State.Settings,
-                windowWidth: window.innerWidth,
-            },
-        })
+        log("[/Tools] Window Resized !", window.innerWidth);
+        setWindowWidth(window.innerWidth);
     };
 
-    async function PageUpdates() {
-        // ! Step 1 get Data From Local Storage
-        handleResize();
-        const data = localStorage.getItem(StorageKey);
-        await Sleep(1);
-        // ! Step 2 if Data Found Update State but only Loads Settings
-        if (data === null) {
-            log("[/Tools] No Local Storage Data Found !");
-            setState({
-                ...State,
-                Settings: {
-                    ...State.Settings,
-                    isFirstRun: false
-                },
-            });
-        } else {
-            log("[/Tools] Local Storage Data Found !", JSON.parse(data).Settings);
-            setState({
-                ...State,
-                Settings: {
-                    ...State.Settings,
-                    ...JSON.parse(data).Settings,
-                    isFirstRun: false
-                },
-            })
-        }
-        // ! Step 3 Run the Cloud Sync Function if that Enabled
-        await Sleep(1);
-        if (State.Settings.CloudSync) {
-            await getServerBookmarks();
-        }
-        // ! Step 4 Loads Bookmarks Local First then Server Bookmarks
-        await Sleep(1);
-        setState({
-            ...State,
-            FilterBookmarks: JSON.parse(data as string).Booksmarks.map((bookmark: any) => {
-                return {
-                    ...bookmark,
-                    isServer: false,
-                }
-            }),
-            Bookmarks: JSON.parse(data as string).Booksmarks.map((bookmark: any) => {
-                return {
-                    ...bookmark,
-                    isServer: false,
-                }
-            }),
-        })
-    }
-
     // @Updates
+
+    // ? Initial Run & Window Resize, Focus on Search Input Listeners
     React.useEffect(() => {
-        // ? Auto Focus on Page Load
-        if (searchInputRef.current && State.Settings.isFirstRun) {
-            searchInputRef.current.focus();
+
+        // ? Only Run at First Load
+        if (State.Settings.isFirstRun) {
+            handleResize();
+
+            // ? Focus on Search Input
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+            }
+
+            // ? get Settings & Bookmarks from Local Storage
+            const data = localStorage.getItem(StorageKey);
+
+            // ? Step 1 if No Data Found
+            if (data === null) {
+                log("[/Tools] No Local Storage Data Found !");
+                setState({
+                    ...State,
+                    Settings: {
+                        ...State.Settings,
+                        isFirstRun: false
+                    },
+                    FilterBookmarks: BookmarksDB,
+                });
+            } else {
+                let StorageData = JSON.parse(data as string);
+                log("[/Tools] Local Storage Data Found !", StorageData);
+                setState({
+                    ...State,
+                    Settings: {
+                        ...StorageData.Settings,
+                        isFirstRun: false
+                    },
+                    Bookmarks: StorageData.Booksmarks.map((bookmark: any) => {
+                        return {
+                            ...bookmark,
+                            isServer: false,
+                        }
+                    }),
+                    FilterBookmarks: StorageData.Booksmarks.map((bookmark: any) => {
+                        return {
+                            ...bookmark,
+                            isServer: false,
+                        }
+                    })
+                })
+            }
         }
 
         window.addEventListener("keydown", handleKeyPress);
         window.addEventListener("resize", handleResize);
-
-        PageUpdates()
 
         return () => {
             window.removeEventListener("keydown", handleKeyPress);
@@ -444,8 +443,19 @@ function Tools() {
         };
     }, []);
 
+    // ? Cloud Sync After the First Run
+    React.useEffect(() => {
+        if (!State.Settings.isFirstRun) {
+            if (State.Settings.CloudSync) {
+                getServerBookmarks();
+            }
+        }
+    }, [State.Settings.isFirstRun]);
+
+    // ? State Sync with Storage
     React.useEffect(() => {
         log("[/Tools] State Updated !", State);
+
         localStorage.setItem(StorageKey, JSON.stringify({
             Booksmarks: State.Bookmarks,
             Settings: {
@@ -458,19 +468,18 @@ function Tools() {
         }));
     }, [
         State.Bookmarks,
+        State.Settings.CloudSync,
         State.Settings.isNewTab,
         State.Settings.RandomizeLinks,
         State.Settings.SearchEngine,
         State.Settings.Locale,
-        State.Settings.CloudSync,
     ]);
 
-    const boxesPerRow = Math.max(Math.floor(State.Settings.windowWidth / 200), 1);
+    const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 1);
     const rows = Math.ceil(State.FilterBookmarks.length / boxesPerRow);
-
-    // Add some space for the footer
-    const footerHeight = 50;
+    const footerHeight = 100;
     const gridHeight = rows * 150 + footerHeight;
+
     // @Component
     return (
         <div className="Tool"
@@ -749,6 +758,7 @@ function Tools() {
                 }
                 isOpen={ModalData.isOpen}
                 onClose={CloseModel}
+                hideCloseButton={true}
             >
                 {
                     ModalData.isSettingsOpen && (
@@ -770,8 +780,8 @@ function Tools() {
                                             },
                                         });
                                     }}
-                                    label="🔍 Engine"
-                                    variant="faded"
+                                    label="🔍 Search Engine"
+                                    variant="bordered"
                                     multiple={false}
                                 >
                                     {
@@ -800,8 +810,8 @@ function Tools() {
                                             },
                                         });
                                     }}
-                                    label="🌍 Locale"
-                                    variant="faded"
+                                    label="🌍 Suggestions Language"
+                                    variant="bordered"
                                     multiple={false}
                                 >
                                     {
@@ -845,15 +855,30 @@ function Tools() {
                                         });
                                     }}
                                 >
-                                    Cloud Sync
+                                    Cloud Import
                                 </Checkbox>
 
-                                {/* Reset Database */}
-                                <Button
-                                    color="danger"
-                                    variant="light"
-                                    className="mt-4"
-                                    onPress={() => {
+                                {/* Randomize Cloud Import */}
+                                <Checkbox
+                                    className="mt-1 ml-1"
+                                    isSelected={State.Settings.RandomizeLinks}
+                                    onValueChange={(value) => {
+                                        setState({
+                                            ...State,
+                                            Settings: {
+                                                ...State.Settings,
+                                                RandomizeLinks: value
+                                            },
+                                        });
+                                    }}
+                                >
+                                    Randomize Cloud Import
+                                </Checkbox>
+
+                            </ModalBody>
+                            <ModalFooter>
+                                <Tooltip content="Reset Bookmarks" placement="top">
+                                    <Button isIconOnly color="secondary" variant="light" onPress={() => {
                                         localStorage.removeItem(StorageKey);
                                         setState({
                                             ...State,
@@ -865,16 +890,15 @@ function Tools() {
                                             isSettingsOpen: false,
                                             isOpen: false,
                                         });
-                                    }}
-                                >
-                                    Reset Database
-                                </Button>
-
-                            </ModalBody>
-                            <ModalFooter>
-                                <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
-                                    <Close />
-                                </Button>
+                                    }}>
+                                        <Restore />
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip content="Close" placement="top">
+                                    <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
+                                        <Close />
+                                    </Button>
+                                </Tooltip>
                             </ModalFooter>
                         </ModalContent>
                     )
@@ -883,7 +907,12 @@ function Tools() {
                     !ModalData.isSettingsOpen && (
 
                         <ModalContent>
-                            <ModalHeader className="flex flex-col gap-1">
+                            <ModalHeader className="flex flex-row gap-2">
+                                {
+                                    ModalData.isEdit
+                                        ? <Bookmark />
+                                        : <Book />
+                                }
                                 {
                                     ModalData.isEdit
                                         ? "Edit Bookmark"
@@ -894,7 +923,7 @@ function Tools() {
                                 <div className="grid grid-cols-[1fr_auto] gap-4 items-start">
                                     {/* Input Fields */}
                                     <div className="flex flex-col gap-4">
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             Name
                                             <Input
                                                 type="text"
@@ -910,7 +939,7 @@ function Tools() {
                                                 }}
                                             />
                                         </label>
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             URL
                                             <Input
                                                 type="text"
@@ -926,7 +955,7 @@ function Tools() {
                                                 }}
                                             />
                                         </label>
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             Icon
                                             <Input
                                                 type="text"
@@ -943,7 +972,7 @@ function Tools() {
                                                 }}
                                             />
                                         </label>
-                                        <label className="flex flex-col">
+                                        <label className="flex flex-col gap-2">
                                             Keywords
                                             <Input
                                                 type="text"
@@ -982,29 +1011,37 @@ function Tools() {
 
                             </ModalBody>
                             <ModalFooter>
-                                <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
-                                    <Close />
-                                </Button>
-                                <Button
-                                    isIconOnly
-                                    color={
-                                        ModalData.isEdit
-                                            ? "success"
-                                            : "primary"
-                                    }
-                                    onPress={
-                                        ModalData.isEdit
-                                            ? ConfirmEdit
-                                            : ConfirmNewBookmark
-                                    }
-                                    variant="light"
-                                >
-                                    {
-                                        ModalData.isEdit
-                                            ? <Save />
-                                            : "Add"
-                                    }
-                                </Button>
+                                <Tooltip content={
+                                    ModalData.isEdit
+                                        ? "Save Changes"
+                                        : "Add New Bookmark"
+                                } placement="top">
+                                    <Button
+                                        isIconOnly
+                                        color={
+                                            ModalData.isEdit
+                                                ? "primary"
+                                                : "success"
+                                        }
+                                        onPress={
+                                            ModalData.isEdit
+                                                ? ConfirmEdit
+                                                : ConfirmNewBookmark
+                                        }
+                                        variant="light"
+                                    >
+                                        {
+                                            ModalData.isEdit
+                                                ? <Save />
+                                                : <Add />
+                                        }
+                                    </Button>
+                                </Tooltip>
+                                <Tooltip content="Close" placement="top">
+                                    <Button isIconOnly color="danger" variant="light" onPress={CloseModel}>
+                                        <Close />
+                                    </Button>
+                                </Tooltip>
                             </ModalFooter>
                         </ModalContent>
                     )

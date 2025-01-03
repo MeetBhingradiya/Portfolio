@@ -8,22 +8,11 @@ import "@Styles/Home.sass";
 
 // @ Icons Import
 import {
-    LinkedIn,
-    GitHub,
-    Instagram,
-    YouTube,
-    Language,
-    LightMode,
-    DarkMode,
-    Contrast,
-    Build,
     Bookmark,
     QrCode2,
 } from '@mui/icons-material';
 import Link from "next/link";
-import Footer from "@Components/Footer";
 import { SocialLinks } from "@Config/SocialLinks";
-import { Config } from "@Config/index";
 
 // @ File
 export default function Home() {

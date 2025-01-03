@@ -1,9 +1,20 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 
-function initializeStorage(storageKey: string, storageType: "session" | "local") {
+const ThemeContext = createContext<{
+    theme: "light" | "dark" | "system";
+    effectiveMode: "light" | "dark";
+    toggleTheme: () => void;
+    setTheme: React.Dispatch<React.SetStateAction<"light" | "dark" | "system">>;
+}>({
+    theme: "system",
+    effectiveMode: "light",
+    toggleTheme: () => { },
+    setTheme: () => { },
+});
 
+function initializeStorage(storageType: "session" | "local") {
     const set = (key: string, value: any) => {
         if (typeof window !== "undefined") {
             const storage = storageType === "session" ? sessionStorage : localStorage;
@@ -20,29 +31,24 @@ function initializeStorage(storageKey: string, storageType: "session" | "local")
         return null;
     };
 
-    const remove = (key: string) => {
-        if (typeof window !== "undefined") {
-            const storage = storageType === "session" ? sessionStorage : localStorage;
-            storage.removeItem(key);
-        }
-    };
-
-    return { set, get, remove };
+    return { set, get };
 }
 
-export function useTheme(storageType: "session" | "local" = "local") {
-    const storageKey = 'theme';
-    const { set, get } = initializeStorage(storageKey, storageType);
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+    const storageKey = "theme";
+    const storage = React.useMemo(() => initializeStorage("local"), []);
+    const { set, get } = storage;
     const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
+    const [effectiveMode, setEffectiveMode] = useState<"light" | "dark">("light");
 
     useEffect(() => {
         const storedTheme = get(storageKey);
-        if (storedTheme) {
+        if (storedTheme && storedTheme !== theme) {
             setTheme(storedTheme);
-        } else {
+        } else if (!storedTheme) {
             set(storageKey, theme);
         }
-    }, [get]);
+    }, [get, theme]);
 
     useEffect(() => {
         const root = document.documentElement;
@@ -51,9 +57,11 @@ export function useTheme(storageType: "session" | "local" = "local") {
             const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
                 ? "dark"
                 : "light";
+            setEffectiveMode(systemTheme);
             root.classList.remove("light", "dark");
             root.classList.add(systemTheme);
         } else {
+            setEffectiveMode(theme);
             root.classList.remove("light", "dark");
             root.classList.add(theme);
         }
@@ -63,6 +71,7 @@ export function useTheme(storageType: "session" | "local" = "local") {
         if (theme === "system") {
             const listener = (e: MediaQueryListEvent) => {
                 const systemTheme = e.matches ? "dark" : "light";
+                setEffectiveMode(systemTheme);
                 document.documentElement.classList.remove("light", "dark");
                 document.documentElement.classList.add(systemTheme);
             };
@@ -79,5 +88,16 @@ export function useTheme(storageType: "session" | "local" = "local") {
         set(storageKey, newTheme);
     }, [theme, set, storageKey]);
 
-    return { theme, toggleTheme };
+    const contextValue = React.useMemo(
+        () => ({ theme, effectiveMode, toggleTheme, setTheme }),
+        [theme, effectiveMode, toggleTheme]
+    );
+
+    return (
+        <ThemeContext.Provider value={contextValue}>
+            {children}
+        </ThemeContext.Provider>
+    );
 }
+
+export const useTheme = () => useContext(ThemeContext);

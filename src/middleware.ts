@@ -11,7 +11,13 @@ export async function middleware(req: NextRequest) {
     .setExpirationTime('20m')
     .sign(await importJWK({ kty: 'oct', k: CSRF_KEY }));
 
-    const response = NextResponse.next();
+    const ModifiedHeaders = new Headers(req.headers);
+    ModifiedHeaders.set('x-url', req.url);
+    const response = NextResponse.next({
+        request: {
+            headers: ModifiedHeaders
+        }
+    });
 
     if (!req.cookies.get('csrf')) {
         response.cookies.set('csrf', csrfToken, {
@@ -28,19 +34,23 @@ export async function middleware(req: NextRequest) {
         const csrfTokenFromCookie = req.cookies.get('csrf');
 
         const excludedRoutes = [
-            '/api/csrf',
+            '/api/trace',
             '/api/sitemap',
             '/api/robots'
         ];
 
         if (excludedRoutes.includes(req.nextUrl.pathname)) {
-            return NextResponse.next();
+            return NextResponse.next({
+                request: {
+                    headers: ModifiedHeaders
+                }
+            });
         }
 
         if (!csrfTokenFromHeader) {
             return NextResponse.json({ 
                 Status: 0,
-                Message: 'CSRF token missing in request header',
+                Message: 'Invalid Authorization',
                 StatusCode: 403
             }, { status: 403 });
         }
@@ -48,7 +58,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromCookie) {
             return NextResponse.json({ 
                 Status: 0,
-                Message: 'CSRF token missing in cookies',
+                Message: 'Invalid Authorization',
                 StatusCode: 403
             }, { status: 403 });
         }
@@ -56,7 +66,7 @@ export async function middleware(req: NextRequest) {
         if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
             return NextResponse.json({
                 Status: 1,
-                Message: 'Invalid CSRF token [Mismatch]',
+                Message: 'Invalid Authorization',
                 StatusCode: 403
             }, { status: 403 });
         }
@@ -67,10 +77,10 @@ export async function middleware(req: NextRequest) {
             });
 
             if (!verified) {
-                return NextResponse.json({ message: 'Invalid CSRF token' }, { status: 403 });
+                return NextResponse.json({ message: 'Invalid Authorization' }, { status: 403 });
             }
         } catch (error) {
-            return NextResponse.json({ message: 'Invalid CSRF token' }, { status: 403 });
+            return NextResponse.json({ message: 'Invalid Authorization' }, { status: 403 });
         }
     }
 

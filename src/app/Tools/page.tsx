@@ -53,8 +53,9 @@ import 'react-toastify/dist/ReactToastify.css';
 import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
-import { log } from "@/Utils/log";
-import { Sleep } from "@/Utils/Sleep";
+import { log } from "@Utils/log";
+import { Sleep } from "@Utils/Sleep";
+import { getCSRFToken } from "@/Utils/getTrace";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -163,6 +164,13 @@ function Tools() {
         // ? On Escape focus remove
         if (e.key === "Escape" && searchInputRef.current) {
             searchInputRef.current.blur();
+        }
+
+        // ? On Enter Open First Link
+        if (e.key === "Enter") {
+            if (State.FilterBookmarks.length > 0) {
+                window.open(State.FilterBookmarks[0].url, State.Settings.isNewTab ? "_blank" : "_self");
+            }
         }
     };
 
@@ -351,21 +359,6 @@ function Tools() {
         await CloseModel();
     }
 
-    function OpenNewBookmarkModel() {
-        setModalData({
-            ...ModalData,
-            isOpen: true,
-            isEdit: false,
-            BookmarkData: {
-                id: uuidv4(),
-                name: "",
-                url: "",
-                icon: "",
-                keywords: [],
-            },
-        });
-    }
-
     async function ConfirmNewBookmark() {
         await setState({
             ...State,
@@ -482,7 +475,9 @@ function Tools() {
 
     // @Component
     return (
-        <div className="Tool"
+        <div
+            key={"Tool"}
+            className="Tool"
             onKeyDown={(e) => {
                 if (searchInputRef.current) {
                     searchInputRef.current.focus();
@@ -504,6 +499,7 @@ function Tools() {
                 stacked
             />
 
+            {/* Search Warp */}
             <div
                 className="SearchWarp"
             >

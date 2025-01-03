@@ -7,32 +7,27 @@ import React, { useState, useEffect } from "react";
 function Page() {
     // const [csrfToken, setCsrfToken] = useState("");
 
-    // useEffect(() => {
-        // async function fetchCsrfToken() {
-        //     const response = await fetch('/api/csrf', { method: 'POST' });
-        //     if (response.ok) {
-        //         const data = await response.json();
-        //         setCsrfToken(data.csrfToken);
-        //     } else {
-        //         console.error('Failed to fetch CSRF token');
-        //     }
-        // }
-        // fetchCsrfToken();
-    // }, []);
-
-    // async function sendRequest() {
-    //     const response = await fetch('/api/bookmarks/sync', {
-    //         method: 'POST',
-    //         headers: {
-    //             'Content-Type': 'application/json',
-    //             'x-csrf': csrfToken,
-    //         },
-    //         body: JSON.stringify({ someData: 'value' }),
-    //     });
-
-    //     const data = await response.json();
-    //     console.log(data);
-    // }
+    useEffect(() => {
+        async function getData() {
+            const response = await fetch('https://api.ipdata.co?api-key=eca677b284b3bac29eb72f5e496aa9047f26543605efe99ff2ce35c9', {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Origin': 'https://ipdata.co',
+                    'Referer': 'https://ipdata.co',
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3',
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                console.log(data);
+            } else {
+                console.error('Failed to fetch CSRF token');
+            }
+        }
+        
+        
+        getData();
+    }, []);
 
     return (
         <div className="Page CENTER">

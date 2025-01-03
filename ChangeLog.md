@@ -17,8 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - **`SvgComponent`** - Sanitized to ensure better security.
 - **`CSRF`** - Every Request Must be an Made by Real End User or Automation BOT's not a DDOS or Auto Spam!
 - **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
-- **`Issues`** - Theme Switching on Tailwind, Material UI, Next UI & Some Page Variables Apply is Pending. (Dark theme works properly)
-- Bookmark API Not Working due to CSRF Protection Enabled on All the API's.
+<!-- - **`Issues`** -  -->
 ---
 
 <!-- # vUnreleased - DD/MM/YYYY (Expected)
@@ -42,12 +41,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 ### 🌟 Added
 - Pages > Test Page > New Page for Testing the New Features & Components.
 - Security > CSRF > Advanced CSRF Protection Added for All the API's excluding SiteMap & Robots.
+- Providers > NextUi Provider Moved to MUIRegistry for Better Performance & Theme Switching.
+- Hooks > useTheme > Now Contex Based Theme Switching with LocalStorage & System Theme. Added Toggle, Effective Mode & Specific Mode Switching.
+
 
 ### 🔄 Changed
-- 
+- Fixed > Bookmark API Not Working due to CSRF Protection Enabled on All the API's.
+- Fixed > NextUI & MUI Theme Chnage Simeotaniously on Native Theme Switching.
+- `CSRF` Renamed to `Trace`
 
 ### 🗑️ Removed
--
 
 ---
 

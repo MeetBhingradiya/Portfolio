@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
 import Footer from "@Components/Footer";
 import { Config } from "@Config/index";
+import { ThemeProvider } from "@Hooks/useTheme";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -46,7 +47,7 @@ export default function RootLayout({
     children: React.ReactNode;
 }>) {
 
-    
+
 
     return (
         <html lang="en">
@@ -76,11 +77,13 @@ export default function RootLayout({
                 }
             </head>
             <body className={inter.className}>
-                <Providers>
-                    {children}
-                </Providers>
+                <ThemeProvider>
+                    <Providers>
+                        {children}
+                    </Providers>
 
-                <Footer ShowonFirstRender />
+                    <Footer ShowonFirstRender />
+                </ThemeProvider>
             </body>
         </html>
     );

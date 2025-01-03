@@ -1,22 +1,27 @@
 'use client';
+
 import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-// import CssBaseline from '@mui/material/CssBaseline';
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTheme } from '@Hooks/useTheme';
 
-const theme = createTheme({
-    palette: {
-        mode: 'dark',
-    },
-});
+export default function MUIRegistry(props: any) {
+    const { effectiveMode } = useTheme();
 
-export default function ThemeRegistry(props: any) {
-    const { options, children } = props;
+    const MUITheme = useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: effectiveMode,
+                },
+            }),
+        [effectiveMode]
+    );
 
-    const [{ cache, flush }] = React.useState(() => {
-        const cache = createCache(options);
+    const [{ cache, flush }] = useState(() => {
+        const cache = createCache(props.options);
         cache.compat = true;
         const prevInsert = cache.insert;
         let inserted: string[] = [];
@@ -57,9 +62,8 @@ export default function ThemeRegistry(props: any) {
 
     return (
         <CacheProvider value={cache}>
-            <ThemeProvider theme={theme}>
-                {/* <CssBaseline /> */}
-                {children}
+            <ThemeProvider theme={MUITheme}>
+                {props.children}
             </ThemeProvider>
         </CacheProvider>
     );

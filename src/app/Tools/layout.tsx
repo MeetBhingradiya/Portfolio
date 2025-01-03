@@ -1,3 +1,4 @@
+import ToolNavigation from "@Components/ToolNavigation";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -16,10 +17,15 @@ export const metadata: Metadata = {
 }
 
 // @ File
-export default function ToolsLayout({
+export default async function ToolsLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return (
+        <>
+            <ToolNavigation />
+            {children}
+        </>
+    )
 }

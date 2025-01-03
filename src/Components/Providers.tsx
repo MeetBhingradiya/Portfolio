@@ -1,24 +1,24 @@
-import { NextUIProvider, NextUIProviderProps } from "@nextui-org/react";
+import { NextUIProvider } from "@nextui-org/system";
 import { buildProvidersTree } from "./BuildProvidersTree";
-import ThemeRegistry from '@Utils/ThemeRegistry';
+import MUIRegistry from '@Components/MUIRegistry';
 
 export function Providers({ children }: { children: React.ReactNode }) {
-
     const ProvidersTree = buildProvidersTree([
         [
-            NextUIProvider, 
+            NextUIProvider,
             {
-                theme: 'dark',
-                children
-            } as NextUIProviderProps
-        ],
-        [
-            ThemeRegistry,
-            {
-                options: { key: 'nextui' },
                 children
             }
-        ]
+        ],
+        [
+            MUIRegistry,
+            {
+                options: {
+                    key: "muiregistry",
+                },
+                children,
+            },
+        ],
     ]);
 
     return (

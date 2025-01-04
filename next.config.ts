@@ -41,7 +41,10 @@ const nextConfig: NextConfig = {
                             directive: {
                                 // ? No Iframe Allowed
                                 [CSPDirectiveOptions.FrameSrc]: {
-                                    None: true
+                                    None: true,
+                                    Domains: [
+                                        'https://googleads.g.doubleclick.net',
+                                    ]
                                 },
                                 [CSPDirectiveOptions.FrameAncestors]: {
                                     None: true
@@ -56,7 +59,10 @@ const nextConfig: NextConfig = {
                                     Self: true,
                                     Inline: true,
                                     Eval: true,
-                                    Domains: ['https://pagead2.googlesyndication.com']
+                                    Domains: [
+                                        'https://pagead2.googlesyndication.com',
+                                        'https://ep2.adtrafficquality.google',
+                                    ]
                                 },
                             },
                             minify: true,

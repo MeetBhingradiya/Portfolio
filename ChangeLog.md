@@ -43,12 +43,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Security > CSRF > Advanced CSRF Protection Added for All the API's excluding SiteMap & Robots.
 - Providers > NextUi Provider Moved to MUIRegistry for Better Performance & Theme Switching.
 - Hooks > useTheme > Now Contex Based Theme Switching with LocalStorage & System Theme. Added Toggle, Effective Mode & Specific Mode Switching.
+- Page > Tools > Enter to Open Bookmark Added for Faster Access.
+- Page > Tools > Cloud Sync Now Fully Supported All of the Devices.
+- Page > Tools > New Only Dev Environment Setting : Global Database Sync
 
 
 ### 🔄 Changed
 - Fixed > Bookmark API Not Working due to CSRF Protection Enabled on All the API's.
 - Fixed > NextUI & MUI Theme Chnage Simeotaniously on Native Theme Switching.
 - `CSRF` Renamed to `Trace`
+- Page > Tools > Improved Search Algorithm Name > Keywords > URL is Priority.
+- Utils > Axios > Timeout > `5s` to `8s`.
 
 ### 🗑️ Removed
 

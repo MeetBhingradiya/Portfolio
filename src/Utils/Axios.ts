@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 
 import { getCSRFToken } from './getTrace';
 
 const Axios: AxiosInstance = axios.create({
-    timeout: 5000,
+    timeout: 8000,
     headers: {
         'Content-Type': 'application/json',
     },

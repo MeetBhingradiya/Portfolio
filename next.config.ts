@@ -41,10 +41,10 @@ const nextConfig: NextConfig = {
                             directive: {
                                 // ? No Iframe Allowed
                                 [CSPDirectiveOptions.FrameSrc]: {
-                                    None: true,
                                     Domains: [
                                         'https://googleads.g.doubleclick.net',
-                                    ]
+                                    ],
+                                    Self: true
                                 },
                                 [CSPDirectiveOptions.FrameAncestors]: {
                                     None: true

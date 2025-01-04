@@ -39,22 +39,19 @@ const nextConfig: NextConfig = {
                         key: 'Content-Security-Policy',
                         value: CSPGenerator({
                             directive: {
-                                // ? No Iframe Allowed
                                 [CSPDirectiveOptions.FrameSrc]: {
                                     Domains: [
-                                        'https://googleads.g.doubleclick.net',
+                                        '*',
                                     ],
                                     Self: true
                                 },
                                 [CSPDirectiveOptions.FrameAncestors]: {
                                     None: true
                                 },
-                                // ? Any Domain Image Allowed
                                 [CSPDirectiveOptions.ImgSrc]: {
                                     Self: true,
                                     Domains: ['*']
                                 },
-                                // ? No Script Allowed (Inline or External or Eval)
                                 [CSPDirectiveOptions.ScriptSrc]: {
                                     Self: true,
                                     Inline: true,

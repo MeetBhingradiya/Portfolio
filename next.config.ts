@@ -56,6 +56,7 @@ const nextConfig: NextConfig = {
                                     Self: true,
                                     Inline: true,
                                     Eval: true,
+                                    Domains: ['https://pagead2.googlesyndication.com']
                                 },
                             },
                             minify: true,

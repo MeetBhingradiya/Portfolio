@@ -27,7 +27,7 @@
 "use client"
 
 import React from "react";
-import { Countrys } from "@/Utils/Types/Region";
+import { Countrys } from "@Types/Region";
 import "@Styles/Tools-GoogleTrends.sass";
 import {
     Alert,

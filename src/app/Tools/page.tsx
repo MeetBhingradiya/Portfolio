@@ -27,8 +27,8 @@
 "use client";
 
 import React from "react";
-import { ISearchEngine, ILocale } from "@/Utils/Types/Tools";
-import type { IBookmark, IState } from "@/Utils/Types/Tools";
+import { ISearchEngine, ILocale } from "@Types/Tools";
+import type { IBookmark, IState } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB } from "@Data/Tools";
 import Image from "next/image";

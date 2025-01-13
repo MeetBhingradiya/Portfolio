@@ -6,24 +6,42 @@
 :root
     // ? Root Variables
     --background: var(--background-light)
+    --background-solid: var(--background-light-solid)
     --font-color: var(--font-color-light)
     --accent-color: #a600ff
-    
+    --divider: var(--divider-light)
+    --chip-hover: var(--chip-hover-light)
+
     // ? Theme Variables
     --background-dark: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(0, 15, 24), rgb(0,0,0) 70%)
     --background-light: linear-gradient(117deg, #e4f1ff 41.82%, #ffdff2 60.59%), radial-gradient(circle at center, rgb(255, 255, 255), rgb(240, 240, 240) 70%)
+
+    --background-dark-solid: linear-gradient(117deg, #263545 41.82%, #461d35 60.59%), radial-gradient(circle at center, rgb(0, 15, 24), rgb(0,0,0) 70%)
+    --background-light-solid: linear-gradient(117deg, #a2cfff 41.82%, #ffaadd 60.59%), radial-gradient(circle at center, rgb(255, 255, 255), rgb(240, 240, 240) 70%)
+    
     --font-color-light: #000
     --font-color-dark: #fff
-    --divider-light: rgba(0, 0, 0, 0.1) 
+    
+    --divider-light: rgba(0, 0, 0, 0.1)
+    --divider-dark: rgba(255, 255, 255, 0.1)
+    
+    --chip-hover-light: #00000020
+    --chip-hover-dark: #e3fffd24
 
 html.dark
     --background: var(--background-dark)
+    --background-solid: var(--background-dark-solid)
     --font-color: var(--font-color-dark)
+    --divider: var(--divider-dark)
+    --chip-hover: var(--chip-hover-dark)
 
 @media (prefers-color-scheme: dark)
     html.system
         --background: var(--background-dark)
+        --background-solid: var(--background-dark-solid)
         --font-color: var(--font-color-dark)
+        --divider: var(--divider-dark)
+        --chip-hover: var(--chip-hover-dark)
 
 // @GlobalStyles
 body

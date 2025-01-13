@@ -1,3 +1,29 @@
+/**
+ *  @file        app\api\(auth)\trace\route.ts
+ *  @description No description available for app\api\(auth)\trace\route.ts.
+ *  @author      Meet Bhingradiya
+ *  @license     Licensed to Meet Bhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING 
+ *  FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  DEALINGS IN THE SOFTWARE.
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 13/01/25 12:54 PM IST (Kolkata +5:30 UTC)
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT, importJWK } from 'jose';
 import { Config } from '@Config/index';
@@ -6,6 +32,13 @@ const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 const ALLOWED_ORIGINS = [
     ...Config.WhiteListedDomains.map((domain) => `https://${domain}`),
     Config.Environment === 'development' ? 'http://localhost:3000' : null
+];
+const WhiteListedPlatforms = [
+    'Windows', 
+    'Linux', 
+    // '"MacOS"', 
+    'Android', 
+    // '"iOS"'
 ];
 
 export async function POST(req: NextRequest) {
@@ -33,7 +66,13 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Browser Automation Detection
-    const browserSignatures = ['HeadlessChrome', 'puppeteer', 'selenium', 'webdriver'];
+    const browserSignatures = [
+        'HeadlessChrome', 
+        'puppeteer', 
+        'selenium', 
+        'webdriver',
+        'playwright',
+    ];
     if (browserSignatures.some((signature) => userAgent.includes(signature))) {
         return NextResponse.json({ 
             Status: 0, 
@@ -58,7 +97,9 @@ export async function POST(req: NextRequest) {
         }, { status: 403 });
     }
 
-    if (!secUaPlatform.includes('Windows') && !secUaPlatform.includes('Linux')) {
+    if (
+        !WhiteListedPlatforms.includes(secUaPlatform.replace(/"/g, ''))
+    ) {
         return NextResponse.json({ 
             Status: 0, 
             Message: 'Unsupported platform', 
@@ -78,8 +119,8 @@ export async function POST(req: NextRequest) {
     // **Set Secure CSRF Cookie**
     const response = NextResponse.json({ 
         Status: 1, 
-        Message: 'CSRF token generated successfully', 
-        csrfToken 
+        Message: 'Trace token generated successfully', 
+        data: csrfToken 
     });
     response.cookies.set('csrf', csrfToken, {
         httpOnly: true,

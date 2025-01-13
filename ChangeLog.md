@@ -1,24 +1,18 @@
-# 📝 Meet Bhingradiya Portfolio - Change Log  
-
-All notable changes to this project will be documented here.  
-
-The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
+# 📝 Meet Bhingradiya Portfolio - ChangeLog
+- The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
-## Comming Up Next! 🚀
-- [ ] Powerfull Dashboard with Admin & Authentication System.
-- [ ] Wallet Management System with Transactions Like a Expense Efficient Tracker.
-- [ ] Analytics & SEO Tools for Better Performance & SEO.
-- [ ] Privacy & Terms of Service Page
----
-
-## 🔐 Vulnerability, Bug, or Issue Disclosures
+## 🔐 Vulnerability Disclosures
 - **`SvgComponent`** - Sanitized to ensure better security.
 - **`CSRF`** - Every Request Must be an Made by Real End User or Automation BOT's not a DDOS or Auto Spam!
 - **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
-<!-- - **`Issues`** -  -->
 ---
+
+## 🗒️ Tasks
+- [ ] **Tool/Google Trends** - Flags are not showing [Detected on Production]
+- [ ] **Cloud Logo** - Showing Even Local Links [Detected on Dev]
+- [ ] **Python I/O Drivers Improvements** - Currently Source Files are Read & Edited By Python & Proceesed by 80% Nodejs, 20% Python. we need more spped on Process so We Process Files 100% on Nodejs & Python needs only to Read & Write to Improve Speed of I/O Oprations.
+- [ ] **Fix Domains on Sitemap API** - Currently Google Index Denined to Index Our Vercel Page due to Redirect to main Domain.
 
 <!-- # vUnreleased - DD/MM/YYYY (Expected)
 
@@ -36,7 +30,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 
 -->
 
-# v1.0.6 - 15/1/2025 (Expected)
+# v1.0.6 - 20/1/2025 (Expected)
 
 ### 🌟 Added
 - Pages > Test Page > New Page for Testing the New Features & Components.
@@ -46,7 +40,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - Page > Tools > Enter to Open Bookmark Added for Faster Access.
 - Page > Tools > Cloud Sync Now Fully Supported All of the Devices.
 - Page > Tools > New Only Dev Environment Setting : Global Database Sync
-
+- Global > File Licensing Added for All the Files with Future of Git Modify Detect & Create Dates are Dynamic on each & Every File
 
 ### 🔄 Changed
 - Fixed > Bookmark API Not Working due to CSRF Protection Enabled on All the API's.
@@ -54,6 +48,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and 
 - `CSRF` Renamed to `Trace`
 - Page > Tools > Improved Search Algorithm Name > Keywords > URL is Priority.
 - Utils > Axios > Timeout > `5s` to `8s`.
+- 📦 **Dependencies**: Updated to the latest versions (as of `04-01-2025`).
+- Mac & IOS Now Blocklisted Systems
 
 ### 🗑️ Removed
 

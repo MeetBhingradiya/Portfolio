@@ -1,11 +1,37 @@
+/**
+ *  @file        Config\index.ts
+ *  @description This file contains configuration settings for the project.
+ *  @author      Meet Bhingradiya
+ *  @license     Licensed to Meet Bhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING 
+ *  FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  DEALINGS IN THE SOFTWARE.
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 13/01/25 12:54 PM IST (Kolkata +5:30 UTC)
+ */
+
 const Config = {
     version: "1.0.6",
-    releasedate: "2025-1-15",
+    releasedate: "2025-1-20",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
     WhiteListedDomains: [
-        "admin.meetbhingradiya.tech",
+        // "admin.meetbhingradiya.tech",
         "stage.meetbhingradiya.tech",
         "dev.meetbhingradiya.tech",
         "meetbhingradiya.tech",
@@ -13,6 +39,13 @@ const Config = {
         // "dev-meetbhingradiya.vercel.app",
         // "stage-meetbhingradiya.vercel.app",
         // "admin-meetbhingradiya.vercel.app"
+    ],
+    WhiteListedPlatforms: [
+        "Windows",
+        "Linux",
+        "Android",
+        // "iOS",
+        // "MacOS"
     ]
 }
 

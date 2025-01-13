@@ -1,10 +1,39 @@
+/**
+ *  @file        app\api\(seo)\sitemap\route.ts
+ *  @description No description available for app\api\(seo)\sitemap\route.ts.
+ *  @author      Meet Bhingradiya
+ *  @license     Licensed to Meet Bhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING 
+ *  FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  DEALINGS IN THE SOFTWARE.
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 13/01/25 12:54 PM IST (Kolkata +5:30 UTC)
+ */
+
 import { NextResponse } from 'next/server';
 import { StaticPages } from './StaticPages';
 import { Sitemap_Model } from '@Models/Sitemap';
 import dbConnect from '@Utils/dbConnect';
+import { Config } from '@Config/index';
 
-const defaultPriority = 0.5;
-const defaultFrequency = 'weekly';
+const Default_sitemap_Settings = {
+    priority: 0.5,
+    frequency: 'weekly'
+}
 
 const fetchDynamicPages = async () => {
     await dbConnect();
@@ -56,19 +85,22 @@ const SitemapTemplates = {
     SitemapItemTemplate
 }
 
+function getSitemapIndex(){}
+function getSitemap(){}
+
 export async function GET() {
     const baseUrl = 'https://meetbhingradiya.vercel.app';
     const dynamicPages = await fetchDynamicPages();
 
     const allPages = [...StaticPages, ...dynamicPages];
 
-    const generatedSitemap = SitemapTemplate.replace('@Pages', allPages.map((page) => {
+    const generatedSitemap = SitemapTemplates.SitemapTemplate.replace('@Pages', allPages.map((page) => {
         return `
     <url>
         <loc>${baseUrl}/${page.route? page.route : ""}</loc>
         <lastmod>${new Date().toISOString()}</lastmod>
-        <changefreq>${page.frequency ? page.frequency : defaultFrequency}</changefreq>
-        <priority>${page.priority ? page.priority : defaultPriority}</priority>
+        <changefreq>${page.frequency ? page.frequency : Default_sitemap_Settings.frequency}</changefreq>
+        <priority>${page.priority ? page.priority : Default_sitemap_Settings.priority}</priority>
     </url>
         `;
     }).join(''));

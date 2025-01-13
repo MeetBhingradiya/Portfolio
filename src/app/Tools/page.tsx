@@ -1,8 +1,34 @@
+/**
+ *  @file        app\Tools\page.tsx
+ *  @description No description available for app\Tools\page.tsx.
+ *  @author      Meet Bhingradiya
+ *  @license     Licensed to Meet Bhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING 
+ *  FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  DEALINGS IN THE SOFTWARE.
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 13/01/25 12:54 PM IST (Kolkata +5:30 UTC)
+ */
+
 "use client";
 
 import React from "react";
-import { ISearchEngine, ILocale } from "@Types/Tools";
-import type { IBookmark, IState } from "@Types/Tools";
+import { ISearchEngine, ILocale } from "@/Utils/Types/Tools";
+import type { IBookmark, IState } from "@/Utils/Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB } from "@Data/Tools";
 import Image from "next/image";
@@ -314,42 +340,46 @@ function Tools() {
     }
 
     async function getServerBookmarks() {
-        const response = await Axios("/api/bookmarks");
+        try {
+            const response = await Axios("/api/bookmarks");
 
-        const ServerBookmarks = response.data.data;
-        if (!ServerBookmarks) {
-            return;
-        }
-
-        let ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
-            return {
-                id: bookmark.BookmarkID,
-                name: bookmark.name,
-                url: bookmark.url,
-                icon: bookmark.icon,
-                keywords: bookmark.keywords,
-                isSVGSrc: bookmark.isSVGSrc,
-                SVGStyles: bookmark.SVGStyles,
-                description: bookmark.description,
-                size: bookmark.size,
-                isServer: true,
+            const ServerBookmarks = response.data.data;
+            if (!ServerBookmarks) {
+                return;
             }
-        })
 
-        let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
-            return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
-        });
+            let ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
+                return {
+                    id: bookmark.BookmarkID,
+                    name: bookmark.name,
+                    url: bookmark.url,
+                    icon: bookmark.icon,
+                    keywords: bookmark.keywords,
+                    isSVGSrc: bookmark.isSVGSrc,
+                    SVGStyles: bookmark.SVGStyles,
+                    description: bookmark.description,
+                    size: bookmark.size,
+                    isServer: true,
+                }
+            })
 
-        // ? Randomize Links
-        if (State.Settings.RandomizeLinks) {
-            ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
+            let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
+                return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
+            });
+
+            // ? Randomize Links
+            if (State.Settings.RandomizeLinks) {
+                ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
+            }
+
+            setState({
+                ...State,
+                Bookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+                FilterBookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+            })
+        } catch (error: any) {
+            toast.error(`Cloud Sync : ${error.Message}`);
         }
-
-        setState({
-            ...State,
-            Bookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
-            FilterBookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
-        })
     }
 
     async function ConfirmEdit() {

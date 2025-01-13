@@ -1,3 +1,29 @@
+/**
+ *  @file        Data\Tools.ts
+ *  @description No description available for Data\Tools.ts.
+ *  @author      Meet Bhingradiya
+ *  @license     Licensed to Meet Bhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
+ *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
+ *  FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL 
+ *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
+ *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING 
+ *  FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
+ *  DEALINGS IN THE SOFTWARE.
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 13/01/25 12:54 PM IST (Kolkata +5:30 UTC)
+ */
+
 import type {
     IBookmark,
     ISuggestion
@@ -884,10 +910,42 @@ const BookmarksDB_: Array<IBookmark> = [
             "Photos",
             "Ideas"
         ]
-    }
+    },
+    {
+        name: "Meta Ai",
+        url: "https://www.meta.ai/",
+        keywords: [
+            "Meta",
+            "AI",
+            "Chat"
+        ]
+    },
+    {
+        name: "Rayzor Pay",
+        url: "https://razorpay.com/",
+        keywords: [
+            "Razor",
+            "Pay",
+            "Payment",
+            "Gateway",
+            "UPI QR"
+        ]
+    },
+    {
+        name: "Phone Pay",
+        url: "https://www.phonepe.com/",
+        keywords: [
+            "Phone",
+            "Pay",
+            "Payment",
+            "Gateway",
+            "UPI QR"
+        ]
+    },
+    
 ]
 
-function ResolveIcon(link: IBookmark) {
+export function ResolveIcon(link: IBookmark) {
     const iconUrl = link.icon
         ? link.icon
         : `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${link.url}&size=128`;

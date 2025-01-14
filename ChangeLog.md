@@ -10,8 +10,6 @@
 
 ## 🗒️ Tasks
 - [ ] **Tool/Google Trends** - Flags are not showing [Detected on Production]
-- [ ] **Cloud Logo** - Showing Even Local Links [Detected on Dev]
-- [ ] **Python I/O Drivers Improvements** - Currently Source Files are Read & Edited By Python & Proceesed by 80% Nodejs, 20% Python. we need more spped on Process so We Process Files 100% on Nodejs & Python needs only to Read & Write to Improve Speed of I/O Oprations.
 - [ ] **Fix Domains on Sitemap API** - Currently Google Index Denined to Index Our Vercel Page due to Redirect to main Domain.
 
 <!-- # vUnreleased - DD/MM/YYYY (Expected)
@@ -40,7 +38,8 @@
 - Page > Tools > Enter to Open Bookmark Added for Faster Access.
 - Page > Tools > Cloud Sync Now Fully Supported All of the Devices.
 - Page > Tools > New Only Dev Environment Setting : Global Database Sync
-- Global > File Licensing Added for All the Files with Future of Git Modify Detect & Create Dates are Dynamic on each & Every File
+- Scripts > File Licensing Added for All the Files with Future of Git Modify Detect & Create Dates are Dynamic on each & Every File
+- Scripts > Python Automation Done of SEO Boost
 
 ### 🔄 Changed
 - Fixed > Bookmark API Not Working due to CSRF Protection Enabled on All the API's.
@@ -52,8 +51,12 @@
 - Mac & IOS Now Blocklisted Systems
 
 ### 🗑️ Removed
+- Python Comment Updater Engine Removed Due to Too Slow when Multiple Files are Reqired to Open!
+- Below has Benchmarks that i tested on localy on my machine. Full Src Folder Replaced Comment time with `console.time()`
 
----
+| **Nodejs** Native Fs **Sync Module** | **Python** Driver |
+| ------- | ------- |
+| `35s` | `120.51s` |
 
 # v1.0.5 - 29/12/2024
 

@@ -1,27 +1,19 @@
 /**
- *  @file        Utils\CSP.ts
- *  @description No description available for Utils\CSP.ts.
- *  @author      Meet Bhingradiya
- *  @license     Licensed to Meet Bhingradiya
+ *  @FileID          Utils\CSP.ts
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
  *  
  *  -----------------------------------------------------------------------------
  *  Copyright (c) 2025 Meet Bhingradiya
  *  All rights reserved.
  *  
- *  This file is part of the MeetBhingradiya's Portfolio project and is protected under copyright
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
  *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
  *  without explicit permission from the author.
  *  
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
- *  FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL 
- *  THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER 
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING 
- *  FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
- *  DEALINGS IN THE SOFTWARE.
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 13/01/25 12:54 PM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
  */
 
 enum CSPDirectiveOptions {
@@ -55,7 +47,7 @@ enum CSPDirectiveOptions {
     FrameAncestors = 'frame-ancestors',
     // @ The plugin-types directive restricts the set of plugins that can be invoked by the protected resource by limiting the types of resources that can be embedded.
     PluginTypes = 'plugin-types',
-    // @ The base-uri directive restricts the URLs that can appear in a page’s <base> element.
+    // @ The base-uri directive restricts the URLs that can appear in a pageÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢s <base> element.
     BaseUri = 'base-uri',
     // @ The manifest-src directive specifies which manifest can be applied to the resource.
     ReportTo = 'report-to',
@@ -71,7 +63,7 @@ enum CSPDirectiveOptions {
     RequireTrustedTypesFor = 'require-trusted-types-for',
     // @ The trusted-types directive specifies valid sources for Trusted Types usage.
     TrustedTypes = 'trusted-types',
-    // @ The upgrade-insecure-requests directive instructs user agents to treat all of a site’s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS).
+    // @ The upgrade-insecure-requests directive instructs user agents to treat all of a siteÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS).
     UpgradeInsecureRequests = 'upgrade-insecure-requests',
     // @ The block-all-mixed-content directive prevents loading any assets using HTTP when the page is loaded using HTTPS.
     BlockAllMixedContent = 'block-all-mixed-content',

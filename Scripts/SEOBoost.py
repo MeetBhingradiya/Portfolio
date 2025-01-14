@@ -1,30 +1,77 @@
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
 import time
+from selenium.webdriver.remote.webdriver import By
+import selenium.webdriver.support.expected_conditions as EC
+from selenium.webdriver.support.wait import WebDriverWait
 
-# Create a new instance of the Chrome driver
-driver = webdriver.Chrome()
+from selenium import webdriver
+from selenium.webdriver.chrome.webdriver import WebDriver
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 
-try:
-    while True:
-        # Open Google
-        driver.get("https://www.google.com")
+Query = "Meet Bhingradiya"
+TargetDomainORLink = "meetbhingradiya.tech"
+USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
 
-        # Find the search input element and enter "Meet Bhingradiya"
-        search_input = driver.find_element_by_name("q")
-        search_input.send_keys("Meet Bhingradiya")
-        search_input.send_keys(Keys.RETURN)
+def init():
+    options = ChromeOptions()
+    options.add_argument(f"--user-agent={USER_AGENT}")
+    options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
+    options.add_argument('--disable-blink-features=AutomationControlled')
+    options.add_argument('--log-level=3')
+    options.add_argument("--start-maximized")
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
+    return driver
 
-        # Wait for the search results to load
-        time.sleep(2)
+def main(ClickCount):
+    sleep = time.sleep
+    driver = init()
+    driver.get("https://www.google.com")
 
-        # Find the search result link and click on it
-        search_result_link = driver.find_element_by_partial_link_text("https://meetbhingradiya.vercel.app")
-        search_result_link.click()
+    try:
+        driver.find_elements(By.XPATH, '//*[contains(text(), "Reject all")]')[-1].click()
+    except:
+        pass
 
-        # Wait for the page to load
-        time.sleep(2)
+    inp_search = driver.find_element(By.NAME, 'q')
+    inp_search.send_keys(f"{Query}\n")
 
-except KeyboardInterrupt:
-    # Terminate the program when Ctrl+C is pressed
-    driver.quit()
+    found = False
+
+    for page in range(1, 4): 
+        sleep(2)
+        if found:
+            break
+        
+        results_container = WebDriverWait(driver, timeout=5).until(
+            EC.presence_of_element_located((By.ID, "rso"))
+        )
+        
+        for idx, item in enumerate(results_container.find_elements(By.TAG_NAME, 'a')):
+            link = item.get_attribute("href")
+            if "meetbhingradiya.tech" in link:
+                rank = idx
+                print(f"Found link at rank {rank}: {link}")
+                item.click() 
+                sleep(2)
+                driver.quit()
+                found = True
+                break
+
+        if not found:
+            next_page = driver.find_element(By.XPATH, f'//a[@aria-label="Page {page+1}"]')
+            next_page.click()
+            sleep(2)
+
+    if not found:
+        print("Link not found within the first 3 pages")
+
+    if found:
+        ClickCount += 1
+        print(f"Link {ClickCount} times clicked, restarting process...")
+        sleep(2)
+        main(ClickCount)
+
+if __name__ == "__main__":
+    ClickCount = 0
+    main(ClickCount)

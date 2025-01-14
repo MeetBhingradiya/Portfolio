@@ -1,3 +1,21 @@
+/**
+ *  @FileID          Types\Region.ts
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ */
+
 const Countrys = {
     // AD: "Andorra",
     // AE: "United Arab Emirates",
@@ -13,7 +31,7 @@ const Countrys = {
     // AT: "Austria",
     // AU: "Australia",
     // AW: "Aruba",
-    // AX: "Åland Islands",
+    // AX: "ÃƒÆ’Ã¢â‚¬Â¦land Islands",
     // AZ: "Azerbaijan",
     // BA: "Bosnia & Herzegovina",
     // BB: "Barbados",
@@ -24,7 +42,7 @@ const Countrys = {
     // BH: "Bahrain",
     // BI: "Burundi",
     // BJ: "Benin",
-    // BL: "St. Barthélemy",
+    // BL: "St. BarthÃƒÆ’Ã‚Â©lemy",
     // BM: "Bermuda",
     // BN: "Brunei",
     // BO: "Bolivia",
@@ -42,7 +60,7 @@ const Countrys = {
     // CF: "Central African Republic",
     // CG: "Congo - Brazzaville",
     // CH: "Switzerland",
-    // CI: "Côte d’Ivoire",
+    // CI: "CÃƒÆ’Ã‚Â´te dÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ivoire",
     // CK: "Cook Islands",
     // CL: "Chile",
     // CM: "Cameroon",
@@ -51,7 +69,7 @@ const Countrys = {
     // CR: "Costa Rica",
     // CU: "Cuba",
     // CV: "Cape Verde",
-    // CW: "Curaçao",
+    // CW: "CuraÃƒÆ’Ã‚Â§ao",
     // CX: "Christmas Island",
     // CY: "Cyprus",
     // CZ: "Czechia",
@@ -186,7 +204,7 @@ const Countrys = {
     // PW: "Palau",
     // PY: "Paraguay",
     // QA: "Qatar",
-    // RE: "Réunion",
+    // RE: "RÃƒÆ’Ã‚Â©union",
     // RO: "Romania",
     // RS: "Serbia",
     // RU: "Russia",
@@ -207,7 +225,7 @@ const Countrys = {
     // SO: "Somalia",
     // SR: "Suriname",
     // SS: "South Sudan",
-    // ST: "São Tomé & Príncipe",
+    // ST: "SÃƒÆ’Ã‚Â£o TomÃƒÆ’Ã‚Â© & PrÃƒÆ’Ã‚Â­ncipe",
     // SV: "El Salvador",
     // SX: "Sint Maarten",
     // SY: "Syria",
@@ -273,7 +291,7 @@ enum Region {
     AT = "Austria",
     AU = "Australia",
     AW = "Aruba",
-    AX = "Åland Islands",
+    AX = "ÃƒÆ’Ã¢â‚¬Â¦land Islands",
     AZ = "Azerbaijan",
     BA = "Bosnia & Herzegovina",
     BB = "Barbados",
@@ -284,7 +302,7 @@ enum Region {
     BH = "Bahrain",
     BI = "Burundi",
     BJ = "Benin",
-    BL = "St. Barthélemy",
+    BL = "St. BarthÃƒÆ’Ã‚Â©lemy",
     BM = "Bermuda",
     BN = "Brunei",
     BO = "Bolivia",
@@ -302,7 +320,7 @@ enum Region {
     CF = "Central African Republic",
     CG = "Congo - Brazzaville",
     CH = "Switzerland",
-    CI = "Côte d’Ivoire",
+    CI = "CÃƒÆ’Ã‚Â´te dÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ivoire",
     CK = "Cook Islands",
     CL = "Chile",
     CM = "Cameroon",
@@ -312,7 +330,7 @@ enum Region {
     CR = "Costa Rica",
     CU = "Cuba",
     CV = "Cape Verde",
-    CW = "Curaçao",
+    CW = "CuraÃƒÆ’Ã‚Â§ao",
     CX = "Christmas Island",
     CY = "Cyprus",
     CZ = "Czechia",
@@ -450,7 +468,7 @@ enum Region {
     PW = "Palau",
     PY = "Paraguay",
     QA = "Qatar",
-    RE = "Réunion",
+    RE = "RÃƒÆ’Ã‚Â©union",
     RO = "Romania",
     RS = "Serbia",
     RU = "Russia",
@@ -471,7 +489,7 @@ enum Region {
     SO = "Somalia",
     SR = "Suriname",
     SS = "South Sudan",
-    ST = "São Tomé & Príncipe",
+    ST = "SÃƒÆ’Ã‚Â£o TomÃƒÆ’Ã‚Â© & PrÃƒÆ’Ã‚Â­ncipe",
     SV = "El Salvador",
     SX = "Sint Maarten",
     SY = "Syria",

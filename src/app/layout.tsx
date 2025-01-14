@@ -1,9 +1,28 @@
+/**
+ *  @FileID          app\layout.tsx
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ */
+
 import type { Metadata } from "next";
 import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
 import Footer from "@Components/Footer";
 import { Config } from "@Config/index";
+import { ThemeProvider } from "@Hooks/useTheme";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -45,6 +64,9 @@ export default function RootLayout({
 }: Readonly<{
     children: React.ReactNode;
 }>) {
+
+
+
     return (
         <html lang="en">
             <head>
@@ -73,11 +95,13 @@ export default function RootLayout({
                 }
             </head>
             <body className={inter.className}>
-                <Providers>
-                    {children}
-                </Providers>
+                <ThemeProvider>
+                    <Providers>
+                        {children}
+                    </Providers>
 
-                <Footer ShowonFirstRender />
+                    <Footer ShowonFirstRender />
+                </ThemeProvider>
             </body>
         </html>
     );

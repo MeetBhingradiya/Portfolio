@@ -1,0 +1,5 @@
+requests
+selenium
+webdriver-manager
+func-timeout
+rich

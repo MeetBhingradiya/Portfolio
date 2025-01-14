@@ -90,7 +90,7 @@
         </strong>
     </h3>
     <img 
-        src="https://skillicons.dev/icons?theme=dark&perline=10&i=git,github,gitlab,githubactions,nodejs,vite,html,css,sass,tailwind,js,ts,react,redux,java,c,cpp,py,firebase,mongodb,mysql,postman,netlify,vercel,figma,materialui,docker,aws,bootstrap,gcp,md,php,replit,rollupjs,stackoverflow,supabase,vite,discord,cloudflare"
+        src="https://skillicons.dev/icons?theme=dark&perline=10&i=git,github,gitlab,githubactions,nodejs,vite,html,css,sass,tailwind,js,ts,react,redux,java,c,cpp,py,firebase,mongodb,mysql,postman,netlify,vercel,figma,materialui,aws,bootstrap,gcp,md,php,replit,stackoverflow,vite,discord,cloudflare,"
         alt="skills logos" 
     />
     <h2></h2>
@@ -100,7 +100,7 @@
         </strong>
     </h3>
     <img 
-        src="https://skillicons.dev/icons?theme=dark&perline=10&i=nextjs,dotnet"
+        src="https://skillicons.dev/icons?theme=dark&perline=10&i=nextjs,docker"
         alt="skills actively learning logos"
     />
     <h2></h2>
@@ -110,7 +110,7 @@
         </strong>
     </h3>
     <img 
-        src="https://skillicons.dev/icons?theme=dark&perline=10&i=remix,azure,dart,django,dynamodb,flask,flutter,gatsby,heroku,jenkins,jest,kotlin,jquery,linux,laravel,latex,maven,nestjs,nginx,nuxtjs,perl,ps,powershell,prisma,pug,pytorch,rust,svelte,sequelize,swift,tensorflow,unity,unreal,vitest,vue,vscode,webpack,wordpress,workers,xd, bots"
+        src="https://skillicons.dev/icons?theme=dark&perline=10&i=remix,azure,dart,django,dynamodb,flask,flutter,gatsby,heroku,jenkins,jest,kotlin,jquery,linux,laravel,latex,maven,nestjs,nginx,nuxtjs,perl,ps,powershell,prisma,pug,pytorch,rust,svelte,sequelize,swift,tensorflow,unity,unreal,vitest,vue,vscode,webpack,wordpress,workers,xd,bots,dotnet,supabase,rollupjs"
         alt="skills planning to learn logos"
     />
 </div>

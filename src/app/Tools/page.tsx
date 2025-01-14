@@ -1,3 +1,21 @@
+/**
+ *  @FileID          app\Tools\page.tsx
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  @created 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ */
+
 "use client";
 
 import React from "react";
@@ -53,8 +71,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
-import { log } from "@/Utils/log";
-import { Sleep } from "@/Utils/Sleep";
+import { Config } from "@Config/index";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -154,7 +171,7 @@ function Tools() {
     const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     // @ Functions
-    const handleKeyPress = (e: KeyboardEvent) => {
+    const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>) => {
         const isAlphaNumericOrSymbol = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]$/.test(e.key);
         if (isAlphaNumericOrSymbol && searchInputRef.current) {
             searchInputRef.current.focus();
@@ -164,7 +181,29 @@ function Tools() {
         if (e.key === "Escape" && searchInputRef.current) {
             searchInputRef.current.blur();
         }
-    };
+
+        // ? On Enter Open First Link
+        if (e.key === "Enter") {
+            if (State.FilterBookmarks.length > 0 && State.Query.length > 0) {
+                window.open(State.FilterBookmarks[0].url, State.Settings.isNewTab ? "_blank" : "_self");
+                setState({
+                    ...State,
+                    FilterBookmarks: State.Bookmarks,
+                    Query: "",
+                });
+            }
+        }
+
+        // ? Clear Query on Escape or Delete
+        if (e.key === "Delete" || e.key === "Escape") {
+            if (State.Query.length === 0) {
+                setState({
+                    ...State,
+                    FilterBookmarks: State.Bookmarks,
+                });
+            }
+        }
+    }
 
     function onGridChange(
         sourceId: any,
@@ -187,59 +226,57 @@ function Tools() {
     const onQueryChange = (e: any) => {
         const query = e.target.value.toLowerCase();
 
-        if (query === "") {
-            setState({
-                ...State,
-                Query: query,
-                FilterBookmarks: State.Bookmarks
-            });
-        } else {
-            const exactMatch = (name: string, keywords: Array<string> = []): boolean => {
-                return name.toLowerCase() === query || keywords.some((keyword) => keyword.toLowerCase() === query);
-            };
+        const isExactMatch = (name: string, keywords: Array<string> = []): boolean => {
+            return name.toLowerCase() === query || keywords.some((keyword) => keyword.toLowerCase() === query);
+        };
 
-            const filteredBookmarks = State.Bookmarks.filter((bookmark) => {
-                return (
-                    bookmark.name.toLowerCase().includes(query) ||
-                    (bookmark?.keywords ?? []).some((keyword) => keyword.toLowerCase().includes(query))
-                );
-            }).sort((a, b) => {
-                const aIsExactMatch = exactMatch(a.name, a.keywords);
-                const bIsExactMatch = exactMatch(b.name, b.keywords);
+        const filteredBookmarks = State.Bookmarks.filter((bookmark) => {
+            return (
+                bookmark.name.toLowerCase().includes(query) ||
+                (bookmark.keywords ?? []).some((keyword) => keyword.toLowerCase().includes(query)) ||
+                isExactMatch(bookmark.name, bookmark.keywords) ||
+                bookmark.url.toLowerCase().includes(query)
+            );
+        }).sort((a, b) => {
+            // ? Exact match comparison
+            const aIsExactMatch = isExactMatch(a.name, a.keywords);
+            const bIsExactMatch = isExactMatch(b.name, b.keywords);
 
-                if (aIsExactMatch && !bIsExactMatch) {
-                    return -1;
-                } else if (!aIsExactMatch && bIsExactMatch) {
-                    return 1;
-                } else {
-                    const aStartsWithQuery = a.name.toLowerCase().startsWith(query);
-                    const bStartsWithQuery = b.name.toLowerCase().startsWith(query);
-                    if (aStartsWithQuery && !bStartsWithQuery) {
-                        return -1;
-                    } else if (!aStartsWithQuery && bStartsWithQuery) {
-                        return 1;
-                    } else {
-                        const aKeywordMatch = a.keywords?.find((keyword) => keyword.toLowerCase().includes(query));
-                        const bKeywordMatch = b.keywords?.find((keyword) => keyword.toLowerCase().includes(query));
+            if (aIsExactMatch && !bIsExactMatch) return -1;
+            if (!aIsExactMatch && bIsExactMatch) return 1;
 
-                        if (aKeywordMatch && !bKeywordMatch) {
-                            return -1;
-                        } else if (!aKeywordMatch && bKeywordMatch) {
-                            return 1;
-                        } else {
-                            return 0;
-                        }
-                    }
-                }
-            });
+            // ? Starts with query comparison
+            const aStartsWithQuery = a.name.toLowerCase().startsWith(query);
+            const bStartsWithQuery = b.name.toLowerCase().startsWith(query);
 
-            setState({
-                ...State,
-                Query: query,
-                FilterBookmarks: filteredBookmarks
-            });
-        }
+            if (aStartsWithQuery && !bStartsWithQuery) return -1;
+            if (!aStartsWithQuery && bStartsWithQuery) return 1;
+
+            // ? Keyword match comparison
+            const aKeywordMatch = a.keywords?.some((keyword) => keyword.toLowerCase().includes(query));
+            const bKeywordMatch = b.keywords?.some((keyword) => keyword.toLowerCase().includes(query));
+
+            if (aKeywordMatch && !bKeywordMatch) return -1;
+            if (!aKeywordMatch && bKeywordMatch) return 1;
+
+            // ? URL match comparison
+            const aUrlMatch = a.url.toLowerCase().includes(query);
+            const bUrlMatch = b.url.toLowerCase().includes(query);
+
+            if (aUrlMatch && !bUrlMatch) return -1;
+            if (!aUrlMatch && bUrlMatch) return 1;
+
+            // ? Fallback to alphabetical sorting (optional)
+            return a.name.localeCompare(b.name);
+        });
+
+        setState({
+            ...State,
+            Query: query,
+            FilterBookmarks: filteredBookmarks
+        });
     };
+
 
     function handleContextMenu(e: React.MouseEvent<HTMLDivElement>, ID: string) {
         e.preventDefault();
@@ -295,42 +332,46 @@ function Tools() {
     }
 
     async function getServerBookmarks() {
-        const response = await Axios("/api/bookmarks");
+        try {
+            const response = await Axios("/api/bookmarks");
 
-        const ServerBookmarks = response.data.data;
-        if (!ServerBookmarks) {
-            return;
-        }
-
-        let ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
-            return {
-                id: bookmark.BookmarkID,
-                name: bookmark.name,
-                url: bookmark.url,
-                icon: bookmark.icon,
-                keywords: bookmark.keywords,
-                isSVGSrc: bookmark.isSVGSrc,
-                SVGStyles: bookmark.SVGStyles,
-                description: bookmark.description,
-                size: bookmark.size,
-                isServer: true,
+            const ServerBookmarks = response.data.data;
+            if (!ServerBookmarks) {
+                return;
             }
-        })
 
-        let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
-            return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
-        });
+            let ProcessedBookmarks = ServerBookmarks.map((bookmark: any) => {
+                return {
+                    id: bookmark.BookmarkID,
+                    name: bookmark.name,
+                    url: bookmark.url,
+                    icon: bookmark.icon,
+                    keywords: bookmark.keywords,
+                    isSVGSrc: bookmark.isSVGSrc,
+                    SVGStyles: bookmark.SVGStyles,
+                    description: bookmark.description,
+                    size: bookmark.size,
+                    isServer: true,
+                }
+            })
 
-        // ? Randomize Links
-        if (State.Settings.RandomizeLinks) {
-            ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
+            let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
+                return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
+            });
+
+            // ? Randomize Links
+            if (State.Settings.RandomizeLinks) {
+                ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
+            }
+
+            setState({
+                ...State,
+                Bookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+                FilterBookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
+            })
+        } catch (error: any) {
+            toast.error(`Cloud Sync : ${error.Message}`);
         }
-
-        setState({
-            ...State,
-            Bookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
-            FilterBookmarks: Array.from(new Set([...RemoveDublicatesfromLocal, ...ProcessedBookmarks])) as any,
-        })
     }
 
     async function ConfirmEdit() {
@@ -351,21 +392,6 @@ function Tools() {
         await CloseModel();
     }
 
-    function OpenNewBookmarkModel() {
-        setModalData({
-            ...ModalData,
-            isOpen: true,
-            isEdit: false,
-            BookmarkData: {
-                id: uuidv4(),
-                name: "",
-                url: "",
-                icon: "",
-                keywords: [],
-            },
-        });
-    }
-
     async function ConfirmNewBookmark() {
         await setState({
             ...State,
@@ -377,7 +403,6 @@ function Tools() {
     }
 
     const handleResize = () => {
-        log("[/Tools] Window Resized !", window.innerWidth);
         setWindowWidth(window.innerWidth);
     };
 
@@ -400,7 +425,6 @@ function Tools() {
 
             // ? Step 1 if No Data Found
             if (data === null) {
-                log("[/Tools] No Local Storage Data Found !");
                 setState({
                     ...State,
                     Settings: {
@@ -411,7 +435,6 @@ function Tools() {
                 });
             } else {
                 let StorageData = JSON.parse(data as string);
-                log("[/Tools] Local Storage Data Found !", StorageData);
                 setState({
                     ...State,
                     Settings: {
@@ -454,7 +477,6 @@ function Tools() {
 
     // ? State Sync with Storage
     React.useEffect(() => {
-        log("[/Tools] State Updated !", State);
 
         localStorage.setItem(StorageKey, JSON.stringify({
             Booksmarks: State.Bookmarks,
@@ -482,11 +504,14 @@ function Tools() {
 
     // @Component
     return (
-        <div className="Tool"
+        <div
+            key={"Tool"}
+            className="Tool"
             onKeyDown={(e) => {
                 if (searchInputRef.current) {
                     searchInputRef.current.focus();
                 }
+                handleKeyPress(e);
             }}
         >
             <ToastContainer
@@ -504,6 +529,7 @@ function Tools() {
                 stacked
             />
 
+            {/* Search Warp */}
             <div
                 className="SearchWarp"
             >
@@ -531,6 +557,7 @@ function Tools() {
                     onChange={onQueryChange}
                     className="search"
                     ref={searchInputRef}
+                    autoComplete="off"
                     onHoverStart={() => {
                         if (searchInputRef.current !== null) {
                             searchInputRef.current.focus();
@@ -748,6 +775,7 @@ function Tools() {
                 </MenuItem>
             </StyledMenu>
 
+            {/* Modal */}
             <Modal
                 backdrop="blur"
                 isDismissable={
@@ -855,7 +883,7 @@ function Tools() {
                                         });
                                     }}
                                 >
-                                    Cloud Import
+                                    Cloud Sync
                                 </Checkbox>
 
                                 {/* Randomize Cloud Import */}
@@ -872,8 +900,31 @@ function Tools() {
                                         });
                                     }}
                                 >
-                                    Randomize Cloud Import
+                                    Randomize Cloud Links Sync
                                 </Checkbox>
+
+                                {/* Sync Global Database */}
+                                {
+                                    Config.Environment === "development" && (
+                                        <div
+                                            className="mt-1 ml-3 mr-3 flex flex-row justify-between items-center gap-2"
+                                        >
+                                            <div>
+                                                Global Database
+                                            </div>
+
+                                            <Button
+                                                color="primary"
+                                                variant="light"
+                                                onPress={() => {
+                                                    Axios.get("/api/bookmarks/sync")
+                                                }}
+                                            >
+                                                Sync
+                                            </Button>
+                                        </div>
+                                    )
+                                }
 
                             </ModalBody>
                             <ModalFooter>

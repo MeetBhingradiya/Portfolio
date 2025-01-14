@@ -39,23 +39,27 @@ const nextConfig: NextConfig = {
                         key: 'Content-Security-Policy',
                         value: CSPGenerator({
                             directive: {
-                                // ? No Iframe Allowed
                                 [CSPDirectiveOptions.FrameSrc]: {
-                                    None: true
+                                    Domains: [
+                                        '*',
+                                    ],
+                                    Self: true
                                 },
                                 [CSPDirectiveOptions.FrameAncestors]: {
                                     None: true
                                 },
-                                // ? Any Domain Image Allowed
                                 [CSPDirectiveOptions.ImgSrc]: {
                                     Self: true,
                                     Domains: ['*']
                                 },
-                                // ? No Script Allowed (Inline or External or Eval)
                                 [CSPDirectiveOptions.ScriptSrc]: {
                                     Self: true,
                                     Inline: true,
                                     Eval: true,
+                                    Domains: [
+                                        'https://pagead2.googlesyndication.com',
+                                        'https://ep2.adtrafficquality.google',
+                                    ]
                                 },
                             },
                             minify: true,
@@ -87,18 +91,19 @@ const nextConfig: NextConfig = {
                     ...config.resolve.alias,
                 },
                 extensions: [
-                    '.css',
-                    '.mdx',
-                    '.ts',
                     '.tsx',
-                    '.json',
+                    '.ts',
+                    '.jsx',
+                    '.js',
+                    '.sass',
+                    '.ico',
                     '.svg',
                     '.webp',
+                    '.mdx',
+                    '.json',
+                    '.css',
                     '.png',
                     '.jpg',
-                    '.ico',
-                    '.js',
-                    '.jsx',
                     ...config.resolve.extensions
                 ],
             },

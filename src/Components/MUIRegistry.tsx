@@ -1,22 +1,45 @@
-'use client';
+/**
+ *  @FileID          Components\MUIRegistry.tsx
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ */
+
+"use client";
+
 import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-// import CssBaseline from '@mui/material/CssBaseline';
-import React from 'react';
+import React, { useMemo, useState } from 'react';
+import { useTheme } from '@Hooks/useTheme';
 
-const theme = createTheme({
-    palette: {
-        mode: 'dark',
-    },
-});
+export default function MUIRegistry(props: any) {
+    const { effectiveMode } = useTheme();
 
-export default function ThemeRegistry(props: any) {
-    const { options, children } = props;
+    const MUITheme = useMemo(
+        () =>
+            createTheme({
+                palette: {
+                    mode: effectiveMode,
+                },
+            }),
+        [effectiveMode]
+    );
 
-    const [{ cache, flush }] = React.useState(() => {
-        const cache = createCache(options);
+    const [{ cache, flush }] = useState(() => {
+        const cache = createCache(props.options);
         cache.compat = true;
         const prevInsert = cache.insert;
         let inserted: string[] = [];
@@ -57,9 +80,8 @@ export default function ThemeRegistry(props: any) {
 
     return (
         <CacheProvider value={cache}>
-            <ThemeProvider theme={theme}>
-                {/* <CssBaseline /> */}
-                {children}
+            <ThemeProvider theme={MUITheme}>
+                {props.children}
             </ThemeProvider>
         </CacheProvider>
     );

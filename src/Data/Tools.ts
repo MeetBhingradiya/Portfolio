@@ -1,3 +1,21 @@
+/**
+ *  @FileID          Data\Tools.ts
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  @created 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ */
+
 import type {
     IBookmark,
     ISuggestion
@@ -259,7 +277,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Bing",
         url: "https://www.bing.com",
-        icon: "https://www.bing.com/favicon.ico"
+        icon: "https://www.bing.com/favicon.ico",
     },
     {
         name: "Copilot",
@@ -276,6 +294,11 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Chat GPT",
         url: "https://chat.openai.com",
+        icon: `<svg xmlns="http://www.w3.org/2000/svg" width="2500" height="2500" fill="none" stroke-width="1.5" class="h-6 w-6" viewBox="-0.17090198558635983 0.482230148717937 41.14235318283891 40.0339509076386"><text x="-9999" y="-9999">ChatGPT</text><path d="M37.532 16.87a9.963 9.963 0 0 0-.856-8.184 10.078 10.078 0 0 0-10.855-4.835A9.964 9.964 0 0 0 18.306.5a10.079 10.079 0 0 0-9.614 6.977 9.967 9.967 0 0 0-6.664 4.834 10.08 10.08 0 0 0 1.24 11.817 9.965 9.965 0 0 0 .856 8.185 10.079 10.079 0 0 0 10.855 4.835 9.965 9.965 0 0 0 7.516 3.35 10.078 10.078 0 0 0 9.617-6.981 9.967 9.967 0 0 0 6.663-4.834 10.079 10.079 0 0 0-1.243-11.813zM22.498 37.886a7.474 7.474 0 0 1-4.799-1.735c.061-.033.168-.091.237-.134l7.964-4.6a1.294 1.294 0 0 0 .655-1.134V19.054l3.366 1.944a.12.12 0 0 1 .066.092v9.299a7.505 7.505 0 0 1-7.49 7.496zM6.392 31.006a7.471 7.471 0 0 1-.894-5.023c.06.036.162.099.237.141l7.964 4.6a1.297 1.297 0 0 0 1.308 0l9.724-5.614v3.888a.12.12 0 0 1-.048.103l-8.051 4.649a7.504 7.504 0 0 1-10.24-2.744zM4.297 13.62A7.469 7.469 0 0 1 8.2 10.333c0 .068-.004.19-.004.274v9.201a1.294 1.294 0 0 0 .654 1.132l9.723 5.614-3.366 1.944a.12.12 0 0 1-.114.01L7.04 23.856a7.504 7.504 0 0 1-2.743-10.237zm27.658 6.437l-9.724-5.615 3.367-1.943a.121.121 0 0 1 .113-.01l8.052 4.648a7.498 7.498 0 0 1-1.158 13.528v-9.476a1.293 1.293 0 0 0-.65-1.132zm3.35-5.043c-.059-.037-.162-.099-.236-.141l-7.965-4.6a1.298 1.298 0 0 0-1.308 0l-9.723 5.614v-3.888a.12.12 0 0 1 .048-.103l8.05-4.645a7.497 7.497 0 0 1 11.135 7.763zm-21.063 6.929l-3.367-1.944a.12.12 0 0 1-.065-.092v-9.299a7.497 7.497 0 0 1 12.293-5.756 6.94 6.94 0 0 0-.236.134l-7.965 4.6a1.294 1.294 0 0 0-.654 1.132l-.006 11.225zm1.829-3.943l4.33-2.501 4.332 2.5v5l-4.331 2.5-4.331-2.5V18z" fill="currentColor"/></svg>`,
+        isSVGSrc: true,
+        SVGStyles: {
+            fill: "#fff"
+        },
         keywords: [
             "OpenAI",
             "GPT",
@@ -385,7 +408,11 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Facebook",
         url: "https://facebook.com",
-        icon: "https://www.facebook.com/favicon.ico",
+        icon: `<svg xmlns=\"http://www.w3.org/2000/svg\" fill=\"currentColor\" class=\"type-color-fill\" viewBox=\"0 0 16 16\">\n  <path d=\"M16 8.049c0-4.446-3.582-8.05-8-8.05C3.58 0-.002 3.603-.002 8.05c0 4.017 2.926 7.347 6.75 7.951v-5.625h-2.03V8.05H6.75V6.275c0-2.017 1.195-3.131 3.022-3.131.876 0 1.791.157 1.791.157v1.98h-1.009c-.993 0-1.303.621-1.303 1.258v1.51h2.218l-.354 2.326H9.25V16c3.824-.604 6.75-3.934 6.75-7.951z\"/>\n</svg>`,
+        isSVGSrc: true,
+        SVGStyles: {
+            fill: "#1877F2"
+        },
         keywords: [
             "Social",
             "Facebook",
@@ -866,9 +893,51 @@ const BookmarksDB_: Array<IBookmark> = [
             "Gateway"
         ]
     },
+    {
+        name: "Pinterest",
+        url: "https://www.pinterest.com/",
+        keywords: [
+            "Pinterest",
+            "Images",
+            "Photos",
+            "Ideas"
+        ]
+    },
+    {
+        name: "Meta Ai",
+        url: "https://www.meta.ai/",
+        keywords: [
+            "Meta",
+            "AI",
+            "Chat"
+        ]
+    },
+    {
+        name: "Rayzor Pay",
+        url: "https://razorpay.com/",
+        keywords: [
+            "Razor",
+            "Pay",
+            "Payment",
+            "Gateway",
+            "UPI QR"
+        ]
+    },
+    {
+        name: "Phone Pay",
+        url: "https://www.phonepe.com/",
+        keywords: [
+            "Phone",
+            "Pay",
+            "Payment",
+            "Gateway",
+            "UPI QR"
+        ]
+    },
+    
 ]
 
-function ResolveIcon(link: IBookmark) {
+export function ResolveIcon(link: IBookmark) {
     const iconUrl = link.icon
         ? link.icon
         : `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${link.url}&size=128`;

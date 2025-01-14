@@ -1,3 +1,21 @@
+/**
+ *  @FileID          Utils\CSP.ts
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ */
+
 enum CSPDirectiveOptions {
     // @ The default-src directive serves as a fallback for the other CSP fetch directives.
     DefaultSrc = 'default-src',
@@ -29,7 +47,7 @@ enum CSPDirectiveOptions {
     FrameAncestors = 'frame-ancestors',
     // @ The plugin-types directive restricts the set of plugins that can be invoked by the protected resource by limiting the types of resources that can be embedded.
     PluginTypes = 'plugin-types',
-    // @ The base-uri directive restricts the URLs that can appear in a page’s <base> element.
+    // @ The base-uri directive restricts the URLs that can appear in a pageÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢s <base> element.
     BaseUri = 'base-uri',
     // @ The manifest-src directive specifies which manifest can be applied to the resource.
     ReportTo = 'report-to',
@@ -45,7 +63,7 @@ enum CSPDirectiveOptions {
     RequireTrustedTypesFor = 'require-trusted-types-for',
     // @ The trusted-types directive specifies valid sources for Trusted Types usage.
     TrustedTypes = 'trusted-types',
-    // @ The upgrade-insecure-requests directive instructs user agents to treat all of a site’s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS).
+    // @ The upgrade-insecure-requests directive instructs user agents to treat all of a siteÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢s insecure URLs (those served over HTTP) as though they have been replaced with secure URLs (those served over HTTPS).
     UpgradeInsecureRequests = 'upgrade-insecure-requests',
     // @ The block-all-mixed-content directive prevents loading any assets using HTTP when the page is loaded using HTTPS.
     BlockAllMixedContent = 'block-all-mixed-content',
@@ -74,10 +92,6 @@ interface DirectiveOptions {
     Nonce?: string
 }
 
-/**
- * Interface for CSP generator options
- * @description This interface defines the options for generating a CSP string.
- */
 interface CSPGeneratorOptions {
     directive?: {
         [key in CSPDirectiveOptions]?: DirectiveOptions
@@ -89,11 +103,6 @@ interface CSPGeneratorOptions {
 // Default directives with common configurations
 const DEFAULT_DIRECTIVES: { [key in CSPDirectiveOptions]?: string } = {};
 
-/**
- * Generate CSP string based on the provided options.
- * @param options - The options for generating the CSP string.
- * @returns The generated CSP string.
- */
 function CSPGenerator(options: CSPGeneratorOptions = {}): string {
     // Destructure the options
     const { directive = {}, removeWhitespace = false, minify = false } = options;

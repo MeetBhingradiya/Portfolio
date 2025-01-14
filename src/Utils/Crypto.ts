@@ -1,3 +1,21 @@
+/**
+ *  @FileID          Utils\Crypto.ts
+ *  @Description     Currently, there is no description available.
+ *  @Author          @MeetBhingradiya
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Copyright (c) 2025 Meet Bhingradiya
+ *  All rights reserved.
+ *  
+ *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
+ *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
+ *  without explicit permission from the author.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ */
+
 import crypto from "crypto";
 
 enum EncryptionAlgorithms {
@@ -70,7 +88,7 @@ const applySalt = (data: string, salt: string, format: "front" | "back" | "both"
 
 async function Encrypt(options: EncryptOptions): Promise<string> {
     const {
-        Data, Secret, Salt, Format, Rounds, Expires, Algorithm = EncryptionAlgorithms.AES_256_CBC
+        Data, Secret, Salt, Format, Rounds, Expires, Algorithm = EncryptionAlgorithms.AES_256_CTR
     } = options;
 
     const serializedData = typeof Data === "object" ? JSON.stringify(Data) : Data.toString();
@@ -97,7 +115,7 @@ async function Decrypt(
     token: string, 
     Secret: string, 
     Rounds: number, 
-    Algorithm: EncryptionAlgorithms = EncryptionAlgorithms.AES_256_CBC
+    Algorithm: EncryptionAlgorithms = EncryptionAlgorithms.AES_256_CTR
 ): Promise<any | null> {
     const decoded = JSON.parse(Buffer.from(token, "base64").toString()) as TokenPayload;
 
@@ -118,8 +136,13 @@ async function Decrypt(
     }
 }
 
+function generateSalt(length: number = 64): string {
+    return crypto.randomBytes(length).toString("hex");
+}
+
 export {
     Decrypt,
     Encrypt,
-    EncryptionAlgorithms
+    EncryptionAlgorithms,
+    generateSalt
 };

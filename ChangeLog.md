@@ -28,7 +28,7 @@
 
 -->
 
-# v1.0.6 - 20/1/2025 (Expected)
+# v1.0.6 - 15/1/2025
 
 ### 🌟 Added
 - Pages > Test Page > New Page for Testing the New Features & Components.
@@ -51,10 +51,10 @@
 - Mac & IOS Now Blocklisted Systems
 
 ### 🗑️ Removed
-- Python Comment Updater Engine Removed Due to Too Slow when Multiple Files are Reqired to Open!
+- Python CommentUpdater Engine Removed Due to Too Slow when Multiple Files are Reqired to Open & Write!
 - Below has Benchmarks that i tested on localy on my machine. Full Src Folder Replaced Comment time with `console.time()`
 
-| **Nodejs** Native Fs **Sync Module** | **Python** Driver |
+| **Nodejs** Native Fs **Sync Module** | **Python** Terminal Driver |
 | ------- | ------- |
 | `35s` | `120.51s` |
 

@@ -16,7 +16,7 @@
  *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
  */
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { StaticPages } from './StaticPages';
 import { Sitemap_Model } from '@Models/Sitemap';
 import dbConnect from '@Utils/dbConnect';
@@ -77,11 +77,9 @@ const SitemapTemplates = {
     SitemapItemTemplate
 }
 
-function getSitemapIndex(){}
-function getSitemap(){}
-
-export async function GET() {
-    const baseUrl = 'https://meetbhingradiya.vercel.app';
+export async function GET(req: NextRequest) {
+    const URL_ = req.headers.get('x-url');
+    const baseUrl = new URL(URL_ as string).origin;
     const dynamicPages = await fetchDynamicPages();
 
     const allPages = [...StaticPages, ...dynamicPages];

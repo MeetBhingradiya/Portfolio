@@ -21,7 +21,7 @@
  * @param data - The XML content to wrap.
  * @returns The XML-wrapped string.
  */
-export function XMLWrap(data: string): string {
+function XMLWrap(data: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>\n${data}`;
 }
 
@@ -30,7 +30,7 @@ export function XMLWrap(data: string): string {
  * @param data - The combined URL items as a string.
  * @returns The `<urlset>` wrapped string.
  */
-export function SitemapURLSetWrap(data: string): string {
+function SitemapURLSetWrap(data: string): string {
     return `<urlset 
     xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
     xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -43,7 +43,7 @@ ${data}
  * @param data - The combined sitemap index items as a string.
  * @returns The `<sitemapindex>` wrapped string.
  */
-export function SitemapIndexWrap(data: string): string {
+function SitemapIndexWrap(data: string): string {
     return `<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${data}
 </sitemapindex>`;
@@ -54,7 +54,7 @@ ${data}
  * @param endpoint - The URL of the sitemap index item.
  * @returns The generated `<sitemap>` string.
  */
-export function SitemapIndexItemWrap(endpoint: string): string {
+function SitemapIndexItemWrap(endpoint: string): string {
     if (!endpoint) throw new Error('Endpoint is required for SitemapIndexItemWrap.');
     return `<sitemap>
 <loc>${endpoint}</loc>
@@ -66,7 +66,7 @@ export function SitemapIndexItemWrap(endpoint: string): string {
  * @param params - The parameters for the URL item.
  * @returns The generated `<url>` string.
  */
-export function SitemapItemWrap({
+function SitemapItemWrap({
     endpoint,
     lastmod = new Date().toISOString(),
     frequency = 'weekly',
@@ -102,7 +102,7 @@ ${alternateLinks}
  * @param items - Array of sitemap items as strings.
  * @returns The complete `<urlset>` wrapped sitemap.
  */
-export function generateSitemap(items: string[]): string {
+function generateSitemap(items: string[]): string {
     const content = items.join('\n');
     return XMLWrap(SitemapURLSetWrap(content));
 }
@@ -112,7 +112,14 @@ export function generateSitemap(items: string[]): string {
  * @param items - Array of sitemap index items as strings.
  * @returns The complete `<sitemapindex>` wrapped sitemap index.
  */
-export function generateSitemapIndex(items: string[]): string {
+function generateSitemapIndex(items: string[]): string {
     const content = items.join('\n');
     return XMLWrap(SitemapIndexWrap(content));
+}
+
+export {
+    generateSitemap,
+    generateSitemapIndex,
+    SitemapItemWrap,
+    SitemapIndexItemWrap
 }

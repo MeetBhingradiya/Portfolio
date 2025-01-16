@@ -1,5 +1,7 @@
 const DescriptionMap: Record<string, string> = {
-    'Config\\index.ts': 'This file contains configuration settings for the project.',
+    'Config\\index.ts': 'configuration settings for the project.',
+    'Utils\\Sitemap.ts': 'utility functions for generating sitemaps.',
+    'Config\\SocialLinks.tsx': 'social media links for the landing page.',
 };
 
 function generateDescription(filename: string): string {

@@ -54,10 +54,11 @@ export async function middleware(req: NextRequest) {
         const excludedRoutes = [
             '/api/trace',
             '/api/sitemap',
+            '/api/sitemap/*',
             '/api/robots'
         ];
 
-        if (excludedRoutes.includes(req.nextUrl.pathname)) {
+        if (excludedRoutes.some(route => req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(route))) {
             return NextResponse.next({
                 request: {
                     headers: ModifiedHeaders

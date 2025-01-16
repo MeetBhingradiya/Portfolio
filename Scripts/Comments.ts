@@ -24,21 +24,19 @@ function formatDate(date: Date): string {
 
 function isFileModified(filePath: string): boolean {
     try {
-        execSync(`git diff --name-only --quiet ${filePath}`, { encoding: 'utf-8' });
+        execSync(`git diff --quiet ${filePath}`);
         return false;
     } catch (error) {
         return true;
     }
 }
 
-async function generateFileComment(filename: string, filePath: string, fileContent: string): Promise<string> {
+async function generateFileComment(FileID: string, fileContent: string): Promise<string> {
 
     let createdDate = '';
     let modifiedDate = formatDate(new Date());
 
-    const createdRegex = /@created (\d{2}\/\d{2}\/\d{2} \d{2}:\d{2} (AM|PM))/;
-    const modifiedRegex = /@modified (\d{2}\/\d{2}\/\d{2} \d{2}:\d{2} (AM|PM))/;
-
+    const createdRegex = /@created (\d{2}\/\d{2}\/\d{2} \d{1,2}:\d{2} (AM|PM) [A-Za-z]+ (\([A-Za-z\s\+:\d]+\))?)/;
     const createdMatch = fileContent.match(createdRegex);
     if (createdMatch) {
         createdDate = `@created ${createdMatch[1]} IST (Kolkata +5:30 UTC)`;
@@ -46,23 +44,11 @@ async function generateFileComment(filename: string, filePath: string, fileConte
         createdDate = `@created ${formatDate(new Date())} IST (Kolkata +5:30 UTC)`;
     }
 
-    const modifiedMatch = fileContent.match(modifiedRegex);
-    const FileModified = isFileModified(filePath)
-    if (modifiedMatch && FileModified) {
-        modifiedDate = `@modified ${formatDate(new Date())} IST (Kolkata +5:30 UTC)`;
-    } else if (modifiedMatch) {
-        modifiedDate = `@modified ${modifiedMatch[1]} IST (Kolkata +5:30 UTC)`;
-    }
-
-
-    if (!modifiedMatch) {
-        modifiedDate = `@modified ${modifiedDate} IST (Kolkata +5:30 UTC)`;
-    }
-
+    modifiedDate = `@modified ${formatDate(new Date())} IST (Kolkata +5:30 UTC)`;
 
     return `/**
- *  @FileID          ${filename}
- *  @Description     ${generateDescription(filename)}
+ *  @FileID          ${FileID}
+ *  @Description     ${generateDescription(FileID)}
  *  @Author          @MeetBhingradiya
  *  
  *  -----------------------------------------------------------------------------
@@ -76,28 +62,37 @@ async function generateFileComment(filename: string, filePath: string, fileConte
  *  -----------------------------------------------------------------------------
  *  ${createdDate}
  *  ${modifiedDate}
- */\n`;
+ */\n`
 }
 
-async function processFile(filePath: string): Promise<void> {
-    const filename = path.relative('src', filePath);
-    const File = fs.readFileSync(filePath, 'utf-8');
-    const comment = await generateFileComment(filename, filePath, File);
+async function processFile(FilePath: string): Promise<void> {
+    const FileData = {
+        ID: path.relative('src', FilePath),
+        isModified: isFileModified(FilePath)
+    }
+
+    if (!FileData.isModified) {
+        return;
+    } else {
+        console.log(`[File Licensing] File is begain modified: ${FilePath}`);
+    }
+
+    const FileContent = fs.readFileSync(FilePath, 'utf-8');
+    const Comment = await generateFileComment(FileData.ID, FileContent)
 
     try {
         let updatedContent: string;
-        if (File.startsWith('/**')) {
-            const closingIndex = File.indexOf('*/') + 2;
-            const contentAfterComment = File.slice(closingIndex).trimStart();
-            updatedContent = `${comment}\n${contentAfterComment}`;
+        if (FileContent.startsWith('/**')) {
+            const closingIndex = FileContent.indexOf('*/') + 2;
+            const contentAfterComment = FileContent.slice(closingIndex).trimStart();
+            updatedContent = `${Comment}\n${contentAfterComment}`;
         } else {
-            updatedContent = `${comment}\n${File}`;
+            updatedContent = `${Comment}\n${FileContent}`;
         }
 
-        await fs.writeFileSync(filePath, updatedContent, 'utf-8');
-        console.log(`[File Licensing] Processed file: ${filePath}`);
+        await fs.writeFileSync(FilePath, updatedContent, 'utf-8');
     } catch (error) {
-        console.error(`Failed to process ${filePath}:`, (error as Error).message);
+        console.error(`Failed to process ${FilePath}:`, (error as Error).message);
     }
 }
 
@@ -107,6 +102,7 @@ async function processDirectory(directory: string): Promise<void> {
     if (directory === targetDirectory) {
         console.time(`[File Licensing] ${Itrations}`);
     }
+
     const entries = fs.readdirSync(directory);
 
     for (const entry of entries) {
@@ -123,7 +119,6 @@ async function processDirectory(directory: string): Promise<void> {
     if (directory === targetDirectory) {
         console.timeEnd(`[File Licensing] ${Itrations}`);
     }
-    console.log(`[File Licensing] Processed directory: ${directory}`);
 }
 
 const targetDirectory: string = "src";

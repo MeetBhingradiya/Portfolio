@@ -7,8 +7,8 @@
         "start": "next start",
         "lint": "next lint",
         "precommit": "bun run build",
-        "Sync:blogs": "bun run build",
-        "Update:Comments": "bun Scripts/UpdateComments.ts"
+        "Sync:blogs": "bun Scripts/SyncBlogs.ts",
+        "comments": "bun Scripts/Comments.ts"
     },
     "dependencies": {
         "@emotion/react": "^11.14.0",

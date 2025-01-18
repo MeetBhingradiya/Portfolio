@@ -22,6 +22,7 @@ const Config = {
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
+    GoogleADS: false,
     WhiteListedDomains: [
         // "admin.meetbhingradiya.tech",
         "stage.meetbhingradiya.tech",

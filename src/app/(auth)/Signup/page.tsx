@@ -198,8 +198,8 @@ function ColorlibStepIcon(props: StepIconProps) {
     const { active, completed, className } = props;
 
     const icons: { [index: string]: React.ReactElement<unknown> } = {
-        1: <Person />,
-        2: <AlternateEmail />,
+        1: <AlternateEmail />,
+        2: <Person />,
         3: <Shield />,
         4: <Verified />,
         5: <Fingerprint />,
@@ -213,26 +213,27 @@ function ColorlibStepIcon(props: StepIconProps) {
 }
 
 const steps = [
-    'Basic Info',
     'Email',
+    'Basic Info',
     'Security',
     'Activate Account',
     'Username'
 ];
 
 interface IState {
-    // ? Step 1 : Basic Info
-    Fname: string;
-    Lname: string;
-    Gender: string;
-
-    // ? Step 2 : Email
-    Email: string;
+    // ? Step 1 : Email
+    Email: string
     S2_isERROR: boolean
     S2_Message: string
 
+    // ? Step 2 : Basic Info
+    Fname: string
+    Lname: string
+    Gender: string
+
     // ? Step 3 : Create Password
-    Password: string;
+    Password: string
+    Visible: boolean
     S3_isERROR: boolean
     S3_Message: string
 
@@ -256,10 +257,11 @@ export default function SignUp() {
         Gender: "Female",
 
         Email: "",
-        S2_isERROR: true,
-        S2_Message: "Invalid Email",
+        S2_isERROR: false,
+        S2_Message: "",
 
         Password: "",
+        Visible: false,
         S3_isERROR: false,
         S3_Message: "",
 
@@ -323,7 +325,7 @@ export default function SignUp() {
                             </Stepper>
                         </Stack>
                         {
-                            ActiveStep === 0 && (<div className="flex flex-col gap-5 p-10">
+                            ActiveStep === 1 && (<div className="flex flex-col gap-5 p-10">
                                 <div className="flex flex-row gap-3 items-center justify-center">
                                     <Input
                                         label="First Name"
@@ -349,20 +351,21 @@ export default function SignUp() {
                             </div>)
                         }
                         {
-                            ActiveStep === 1 && (
+                            ActiveStep === 0 && (
                                 <div className="flex flex-col gap-5 p-10">
-                                    {
+                                    {   
                                         State.S2_isERROR && (
-                                            <Alert 
-                                            description={`${State.S2_Message}`} 
-                                            title={`ERROR`} 
-                                            color="danger" 
+                                            <Alert
+                                                description={`${State.S2_Message}`}
+                                                title={`ERROR`}
+                                                color="danger"
                                             />
                                         )
                                     }
                                     <div className="flex flex-row gap-3 items-center justify-center">
                                         <Input
                                             label="Email"
+                                            type="email"
                                             startContent={<AlternateEmail />}
                                             value={State.Email}
                                             onChange={(e) => setState({ ...State, Email: e.target.value })}
@@ -375,15 +378,46 @@ export default function SignUp() {
                                         * spefic Whitelisted Domain
                                         * Not be Already Registered
                                      */}
-                                    
+
                                 </div>
                             )
                         }
                         {
-                            ActiveStep === 2 && (<div>Step 3</div>)
+                            ActiveStep === 2 && (
+                                <div className="flex flex-col gap-5 p-10">
+                                    {
+                                        State.S3_isERROR && (
+                                            <Alert
+                                                description={`${State.S3_Message}`}
+                                                title={`ERROR`}
+                                                color="danger"
+                                            />
+                                        )
+                                    }
+                                    <div className="flex flex-row gap-3 items-center justify-center">
+                                        <Input
+                                            label="Password"
+                                            type="password"
+                                            startContent={<Shield />}
+                                            endContent={<VisibilityOff />}
+                                            value={State.Email}
+                                            onChange={(e) => setState({ ...State, Password: e.target.value })}
+                                        />
+                                    </div>
+                                    {/* Email Checker Labels After Lab Checks */}
+                                    {/* 
+                                
+                                    * Not be Empty
+                                    * spefic Whitelisted Domain
+                                    * Not be Already Registered
+                                 */}
+                                </div>
+                            )
                         }
                         {
-                            ActiveStep === 3 && (<div>Step 4</div>)
+                            ActiveStep === 3 && (<div className="flex flex-col gap-5 p-10 items-center">
+                                <InputOtp length={6} size="lg" />
+                            </div>)
                         }
                         {
                             ActiveStep === 4 && (<div>Step 5</div>)
@@ -391,7 +425,7 @@ export default function SignUp() {
                     </ModalBody>
                     <ModalFooter>
                         {
-                            ActiveStep > 0 && (
+                            (ActiveStep > 0 && ActiveStep < 2) && (
                                 <Button
                                     onPress={() => setActiveStep(ActiveStep - 1)}
                                 >
@@ -415,7 +449,7 @@ export default function SignUp() {
                                 <Button
                                     onPress={() => { }}
                                 >
-                                    Go Dashbord
+                                    Finish
                                 </Button>
                             )
                         }

@@ -8,10 +8,6 @@
 - **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
 ---
 
-## 🗒️ Tasks
-- [ ] **Tool/Google Trends** - Flags are not showing [Detected on Production]
-- [ ] **Fix Domains on Sitemap API** - Currently Google Index Denined to Index Our Vercel Page due to Redirect to main Domain.
-
 <!-- # vUnreleased - DD/MM/YYYY (Expected)
 
 ### 🌟 Added

@@ -20,6 +20,12 @@
 
 import React from "react";
 import { Countrys } from "@Types/Region";
+
+type CountryMap = {
+    [key: string]: string;
+};
+const countryMap: CountryMap = Countrys;
+
 import "@Styles/Tools-GoogleTrends.sass";
 import {
     Alert,
@@ -32,7 +38,10 @@ import {
     ModalHeader,
     Select,
     SelectItem,
+    SelectedItems,
+    Tooltip,
 } from "@nextui-org/react";
+import type { Selection } from "@nextui-org/react";
 import { Settings } from "@mui/icons-material";
 import {
     Select as MUISelect,
@@ -45,11 +54,13 @@ import Footer from "@Components/Footer";
 import Image from "next/image";
 import { removeDuplicates } from "@Utils/RemoveDuplicates";
 
+type Region = {
+    label: string
+    value: string
+};
+
 interface IState {
-    Regions: Array<{
-        key: string
-        value: string
-    }>
+    Regions: Selection
     PreviousDays: number
     Queries: Array<string>
     Loading: boolean
@@ -65,14 +76,9 @@ interface IState {
     }
 }
 
-function GoogleTredensQuerys() {
+function BingQuerys() {
     const [State, setState] = React.useState<IState>({
-        Regions: [
-            {
-                key: "India",
-                value: "IN"
-            }
-        ],
+        Regions: new Set(["IN"]),
         PreviousDays: 1,
         Queries: [],
         Loading: false,
@@ -104,7 +110,7 @@ function GoogleTredensQuerys() {
                 _date = _date.toISOString();
                 _date = _date.substring(0, _date.indexOf('T')).replace(/-/g, '');
                 urls.push(
-                    `https://trends.google.com/trends/api/dailytrends?geo=${Region.value ?? 'IN'}&ed=${_date}`
+                    `https://trends.google.com/trends/api/dailytrends?geo=${Region ?? 'IN'}&ed=${_date}`
                 );
             }
         }
@@ -191,8 +197,8 @@ function GoogleTredensQuerys() {
                         <Alert
                             hideIconWrapper
                             color="danger"
-                            description="Add CORS Extension to your Browser to Fix this Issue"
-                            title="Server ERROR"
+                            description="Missing / Disabled CORS Extension on your Browser."
+                            title="Browser ERROR"
                             variant="bordered"
                         />
                     </div>
@@ -205,7 +211,7 @@ function GoogleTredensQuerys() {
                     type="range"
                     min={1}
                     max={11}
-                    step={2}
+                    step={1}
                     className="max-w-xs"
                     value={State.PreviousDays}
                     onChange={(e: any) => {
@@ -220,138 +226,62 @@ function GoogleTredensQuerys() {
                     }}
                 />
 
-                {/* <MUISelect
-                    className="max-w-xs"
-                    multiple
-                    renderValue={(selected) => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                            {
-                                State.Regions.map(({ key, value }, index: number) => (
-                                    <div key={key} className="flex items-center gap-3">
-                                        <Image className="flex-shrink-0" height={30} width={40} src={`/flags/${value}.png`} alt={key} />
-                                        {
-                                            State.Settings.ShowChips && (
-                                                <Chip
-                                                    label={key}
-                                                // onDelete={() => {
-                                                //     let Regions = State.Regions;
-                                                //     Regions.splice(index, 1);
-                                                //     setState({
-                                                //         ...State,
-                                                //         Regions
-                                                //     });
-                                                // }}
-                                                />
-                                            )
-                                        }
-                                    </div>
-                                ))
-                            }
-                        </Box>
-                    )}
-                    value={State.Regions}
-                >
-                    {
-                        Object.entries(Countrys).map(([code, name]) => (
-                            <MenuItem
-                                key={code}
-                                value={code}
-                                onClick={() => {
-                                    let Regions = State.Regions;
-                                    let index = Regions.findIndex(r => r.value === code);
-                                    // ? Set Limit to 5
-                                    if (Regions.length >= 5 && index === -1) {
-                                        return;
-                                    }
-                                    if (index === -1) {
-                                        Regions.push({
-                                            key: name,
-                                            value: code
-                                        });
-                                    } else {
-                                        Regions.splice(index, 1);
-                                    }
-                                    setState({
-                                        ...State,
-                                        Regions
-                                    });
-                                }}
-                                sx={{
-                                    // ? Highlight Selected
-                                    backgroundColor: State.Regions.findIndex(r => r.value === code) !== -1 ? "rgba(0, 0, 0, 0.1)" : "transparent"
-                                }}
-                            >
-                                <div className="flex gap-2 items-center">
-                                    <Image className="flex-shrink-0" height={90} width={120} src={`/flags/${code}.png`} alt={name} />
-                                    <div className="flex flex-col">
-                                        <span className="text-small">{name}</span>
-                                        <span className="text-tiny text-default-400">{code}</span>
-                                    </div>
-                                </div>
-                            </MenuItem>
-                        ))
-                    }
-                </MUISelect> */}
-
                 <Select
                     aria-label="Select"
-                    className="min-w-36 w-[30vw] p-5"
-                    value={State.Regions.map(r => r.value)}
-                    renderValue={(selected) => (
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                    selectionMode="multiple"
+                    className="min-w-36 w-[25vw] p-5"
+                    selectedKeys={State.Regions}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
+                        if (e.target.value.split(",").filter(item => item.trim() !== "").length < 1) {
+                            return;
+                        }
+                        setState({
+                            ...State,
+                            Regions: new Set(e.target.value.split(",").filter(item => item.trim() !== ""))
+                        });
+                    }}
+                    renderValue={(items) => {
+                        return (<div className="flex flex-wrap gap-3">
                             {
-                                State.Regions.map(({ key, value }) => (
-                                    <div key={key} className="flex items-center gap-3">
-                                        <img className="flex-shrink-0 h-[20px] w-[30px]" src={`/flags/${value}.png`} alt={key} />
-                                        {
-                                            State.Settings.ShowChips && (
-                                                <Chip
-                                                    label={key}
-                                                />
-                                            )
-                                        }
-                                    </div>
-                                ))
+                                Array.from(State.Regions).map((Code: any) => {
+                                    let CountryLable = countryMap[Code]
+
+                                    if (!CountryLable) {
+                                        CountryLable = Code
+                                    }
+
+                                    return (
+                                        <Tooltip content={CountryLable} key={Code}>
+                                            <Image
+                                                width={30}
+                                                height={20}
+                                                src={`/assets/flags/${Code}.png`}
+                                                alt={Code}
+                                            />
+                                        </Tooltip>
+                                    )
+                                })
                             }
-                        </Box>
-                    )}
+                        </div>)
+                    }}
                 >
                     {
-                        Object.entries(Countrys).map(([code, name]) => (
+                        Object.entries(Countrys).map(([key, name]) => (
                             <SelectItem
                                 textValue={name.toString()}
-                                key={name}
-                                value={code}
-                                onPress={() => {
-                                    let Regions = State.Regions;
-                                    let index = Regions.findIndex(r => r.value === code);
-                                    // ? Set Limit to 5
-                                    if (Regions.length >= 5 && index === -1) {
-                                        return;
-                                    }
-                                    if (index === -1) {
-                                        Regions.push({
-                                            key: name,
-                                            value: code
-                                        });
-                                    } else {
-                                        Regions.splice(index, 1);
-                                    }
-                                    setState({
-                                        ...State,
-                                        Regions
-                                    });
-                                }}
-                                style={{
-                                    // ? Highlight Selected
-                                    backgroundColor: State.Regions.findIndex(r => r.value === code) !== -1 ? "rgba(0, 0, 0, 0.1)" : "transparent"
-                                }}
+                                key={key}
                             >
-                                <div className="flex gap-2 items-center">
-                                    <img className="flex-shrink-0 h-[70px] w-[100px]" src={`/flags/${code}.png`} alt={name} />
+                                <div className="flex gap-4 items-center">
+                                    <Image
+                                        className="flex-shrink-0 h-[70px] w-[100px] rounded-md"
+                                        height={70}
+                                        width={100}
+                                        src={`/assets/flags/${key}.png`}
+                                        alt={name}
+                                    />
                                     <div className="flex flex-col">
                                         <span className="text-small">{name}</span>
-                                        <span className="text-tiny text-default-400">{code}</span>
+                                        <span className="text-tiny text-default-400">{key}</span>
                                     </div>
                                 </div>
                             </SelectItem>
@@ -359,7 +289,7 @@ function GoogleTredensQuerys() {
                     }
                 </Select>
 
-                <Button
+                {/* <Button
                     onPress={async () => {
                         // TODO: Add Model For Settings
                     }}
@@ -368,7 +298,8 @@ function GoogleTredensQuerys() {
                     isIconOnly
                 >
                     <Settings />
-                </Button>
+                </Button> */}
+                
             </div>
             {/* List of Querys with Copy Button */}
             <div className={
@@ -392,4 +323,4 @@ function GoogleTredensQuerys() {
     )
 }
 
-export default GoogleTredensQuerys;
+export default BingQuerys;

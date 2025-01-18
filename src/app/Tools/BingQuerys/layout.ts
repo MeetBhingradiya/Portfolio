@@ -19,8 +19,8 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Google Trends Querys for Bing - Meet Bhingradiya",
-    description: "Copy Querys from Google Trends for Bing",
+    title: "Bing Querys - Meet Bhingradiya",
+    description: "Copy Querys from Google Trends for Bing Rewards",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
@@ -28,10 +28,10 @@ export const metadata: Metadata = {
         "Bhingradiya",
         "Portfolio",
         "Tools",
+        "Bing Querys",
+        "Bing",
+        "Querys",
         "Google Trends",
-        "Google Trends Querys",
-        "Google Trends Bing",
-        "Copy Google Trends Querys",
     ]
 }
 

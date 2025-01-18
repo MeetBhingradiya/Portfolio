@@ -189,7 +189,7 @@ function BingQuerys() {
 
     return (
         <div className={"GoogleTrends"}>
-            <h1>Google Tredens Querys</h1>
+            <h1>Google Trends Querys</h1>
             {/* Form Hook */}
             {
                 State.isERROR && (
@@ -255,7 +255,7 @@ function BingQuerys() {
                                             <Image
                                                 width={30}
                                                 height={20}
-                                                src={`/assets/${Code}.png`}
+                                                src={`/flags/${Code.toLowerCase()}.png`}
                                                 alt={Code}
                                             />
                                         </Tooltip>
@@ -276,7 +276,7 @@ function BingQuerys() {
                                         className="flex-shrink-0 h-[70px] w-[100px] rounded-md"
                                         height={70}
                                         width={100}
-                                        src={`/assets/${key}.png`}
+                                        src={`/flags/${key.toLowerCase()}.png`}
                                         alt={name}
                                     />
                                     <div className="flex flex-col">

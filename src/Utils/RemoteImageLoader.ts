@@ -12,16 +12,13 @@
  *  without explicit permission from the author.
  *  
  *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC) IST (Kolkata +5:30 UTC)
+ *  @modified 18/01/25 2:27 PM IST (Kolkata +5:30 UTC)
  */
 
 export default function RemoteImageLoader({
     src,
-    width
-}: {
-    src: string
-    width: number
-}) {
+    width,
+}: any) {
     return src
 }

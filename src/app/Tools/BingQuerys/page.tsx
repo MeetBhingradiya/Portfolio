@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\Tools\Googletrends\page.tsx
+ *  @FileID          app\Tools\BingQuerys\page.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          @MeetBhingradiya
  *  
@@ -12,8 +12,8 @@
  *  without explicit permission from the author.
  *  
  *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC) IST (Kolkata +5:30 UTC)
+ *  @modified 18/01/25 2:26 PM IST (Kolkata +5:30 UTC)
  */
 
 "use client"
@@ -255,7 +255,7 @@ function BingQuerys() {
                                             <Image
                                                 width={30}
                                                 height={20}
-                                                src={`/assets/flags/${Code}.png`}
+                                                src={`/assets/${Code}.png`}
                                                 alt={Code}
                                             />
                                         </Tooltip>
@@ -276,7 +276,7 @@ function BingQuerys() {
                                         className="flex-shrink-0 h-[70px] w-[100px] rounded-md"
                                         height={70}
                                         width={100}
-                                        src={`/assets/flags/${key}.png`}
+                                        src={`/assets/${key}.png`}
                                         alt={name}
                                     />
                                     <div className="flex flex-col">

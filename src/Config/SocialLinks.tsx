@@ -25,15 +25,15 @@ const SocialLinks: Array<{
     isEnable: boolean;
 }> = [
         {
-            Label: "LinkedIn",
-            URL: "https://www.linkedin.com/in/meetbhingradiya/",
-            Component: <LinkedIn />,
-            isEnable: true,
-        },
-        {
             Label: "GitHub",
             URL: "https://github.com/MeetBhingradiya",
             Component: <GitHub />,
+            isEnable: true,
+        },
+        {
+            Label: "LinkedIn",
+            URL: "https://www.linkedin.com/in/meetbhingradiya/",
+            Component: <LinkedIn />,
             isEnable: true,
         },
         {

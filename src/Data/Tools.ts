@@ -1034,6 +1034,56 @@ const BookmarksDB_: Array<IBookmark> = [
             "Twitter Copy",
             "Twitter Dublicate",
         ]
+    },
+    {
+        name: "Local - Pi-Hole ",
+        url: "http://localhost:2001/admin/",
+        icon: "https://pi-hole.net/wp-content/uploads/2016/12/Vortex-R.png",
+        keywords: [
+            "Pi-Hole",
+            "Local",
+            "DNS",
+            "Ad Blocker"
+        ]
+    },
+    {
+        name: "Myntra",
+        url: "https://www.myntra.com/",
+        keywords: [
+            "Myntra",
+            "Fashion",
+            "Clothing",
+            "Apparel"
+        ],
+    },
+    {
+        name: "Blinkit",
+        url: "https://www.blinkit.com/",
+        keywords: [
+            "Blinkit",
+            "Grocery",
+            "Delivery",
+        ],
+    },
+    {
+        name: "Flipkart",
+        url: "https://www.flipkart.com/",
+        keywords: [
+            "Flipkart",
+            "Ecommerce",
+            "Shopping",
+        ],
+    },
+    {
+        name: "Chrome Web Store",
+        url: "https://chromewebstore.google.com/",
+        icon: "https://fonts.gstatic.com/s/i/productlogos/chrome_store/v7/192px.svg",
+        keywords: [
+            "Chrome",
+            "Web",
+            "Store",
+            "Extensions"
+        ]
     }
 ]
 

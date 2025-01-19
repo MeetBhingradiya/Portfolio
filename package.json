@@ -7,7 +7,7 @@
         "start": "next start",
         "lint": "next lint",
         "precommit": "bun run build",
-        "Sync:blogs": "bun Scripts/SyncBlogs.ts",
+        "Blogs": "bun Scripts/SyncBlogs.ts",
         "comments": "bun Scripts/Comments.ts"
     },
     "dependencies": {

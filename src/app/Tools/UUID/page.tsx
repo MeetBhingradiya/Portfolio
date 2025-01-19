@@ -3,7 +3,7 @@
 import { Button, Tooltip } from '@nextui-org/react';
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { CopyAll } from '@mui/icons-material'; // Lightweight icon library
+import { CopyAll } from '@mui/icons-material';
 
 function UUIDGenerator() {
     const [uuid, setUUID] = React.useState<string>('');
@@ -44,7 +44,6 @@ function UUIDGenerator() {
                 >
                     Generate
                 </Button>
-
 
             </div>
         </div>

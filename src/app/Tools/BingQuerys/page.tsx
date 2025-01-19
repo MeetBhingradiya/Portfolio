@@ -53,6 +53,7 @@ import {
 import Footer from "@Components/Footer";
 import Image from "next/image";
 import { removeDuplicates } from "@Utils/RemoveDuplicates";
+import { Axios } from "@Utils/Axios";
 
 type Region = {
     label: string
@@ -118,16 +119,24 @@ function BingQuerys() {
         try {
             let results = await Promise.all(
                 urls.map((url) =>
-                    fetch(url).then((r) => {
-                        if (!r.ok) {
-                            setState({
-                                ...State,
-                                isERROR: true,
-                            });
-                            throw new Error(`Failed to fetch: ${url}`);
+                    // fetch(url).then((r) => {
+                    //     if (!r.ok) {
+                    //         setState({
+                    //             ...State,
+                    //             isERROR: true,
+                    //         });
+                    //         throw new Error(`Failed to fetch: ${url}`);
+                    //     }
+                    //     return r.text();
+                    // })
+                    Axios.post("/api/cors", {
+                        body: {
+                            endpoint: url,
+                            method: "GET",
+                            body: null,
+                            headers: {}
                         }
-                        return r.text();
-                    })
+                    }).then((r) => r.data.data)
                 )
             );
 
@@ -169,7 +178,7 @@ function BingQuerys() {
                     isFirstRender: false
                 }
             });
-            getQuerys();
+            // getQuerys();
         }
     }, []);
 
@@ -299,7 +308,7 @@ function BingQuerys() {
                 >
                     <Settings />
                 </Button> */}
-                
+
             </div>
             {/* List of Querys with Copy Button */}
             <div className={

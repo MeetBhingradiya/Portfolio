@@ -1,6 +1,6 @@
 /**
  *  @FileID          Config\index.ts
- *  @Description     This file contains configuration settings for the project.
+ *  @Description     configuration settings for the project.
  *  @Author          @MeetBhingradiya
  *  
  *  -----------------------------------------------------------------------------
@@ -13,12 +13,12 @@
  *  
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 19/01/25 9:44 AM IST (Kolkata +5:30 UTC)
  */
 
 const Config = {
-    version: "1.0.6",
-    releasedate: "2025-1-15",
+    version: "1.0.7",
+    releasedate: "2025-1-20",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,

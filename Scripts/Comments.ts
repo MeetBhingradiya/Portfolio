@@ -39,7 +39,7 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
     const createdRegex = /@created (\d{2}\/\d{2}\/\d{2} \d{1,2}:\d{2} (AM|PM) [A-Za-z]+ (\([A-Za-z\s\+:\d]+\))?)/;
     const createdMatch = fileContent.match(createdRegex);
     if (createdMatch) {
-        createdDate = `@created ${createdMatch[1]} IST (Kolkata +5:30 UTC)`;
+        createdDate = `@created ${createdMatch[1]}`;
     } else {
         createdDate = `@created ${formatDate(new Date())} IST (Kolkata +5:30 UTC)`;
     }

@@ -1,5 +1,5 @@
 /**
- *  @FileID          Utils\RemoteImageLoader.ts
+ *  @FileID          Types\Gender.ts
  *  @Description     Currently, there is no description available.
  *  @Author          @MeetBhingradiya
  *  
@@ -12,12 +12,17 @@
  *  without explicit permission from the author.
  *  
  *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)githubgggg
- *  @modified 18/01/25 2:27 PM IST (Kolkata +5:30 UTC)
+ *  @created 16/01/25 12:51 PM IST (Kolkata +5:30 UTC)
+ *  @modified 16/01/25 12:51 PM IST (Kolkata +5:30 UTC)
  */
 
-export default function RemoteImageLoader({
-    src,
-}: any) {
-    return src
+enum IGender {
+    FEMALE = "Female",
+    MALE = "male",
+    CUSTOM = "Custom",
+    UNSPECIFIED = "Unspecified"
+}
+
+export {
+    IGender
 }

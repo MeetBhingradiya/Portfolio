@@ -45,7 +45,7 @@
 
 - 🐾 I’m looking to network and make friends here! <br><br><br>
 
-- 🌊 2024 Goals: Contribute to Open Source Projects. <br><br><br>
+- 🌊 2025 Goals: My Portfolio Project & Explore Indutry. <br><br><br>
 
 - ☕ Interest: Science, Space, GeoPolitics, and Coding. <br><br><br>
 

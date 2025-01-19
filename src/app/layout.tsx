@@ -83,7 +83,7 @@ export default function RootLayout({
 
                 {/* Google ADS Monetization */}
                 {
-                    Config.Environment === "production" && (
+                    (Config.Environment === "production" && Config.GoogleADS) && (
                         <>
                             <script
                                 data-ad-client="ca-pub-1096073946887913"

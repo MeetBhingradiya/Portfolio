@@ -8,10 +8,6 @@
 - **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
 ---
 
-## 🗒️ Tasks
-- [ ] **Tool/Google Trends** - Flags are not showing [Detected on Production]
-- [ ] **Fix Domains on Sitemap API** - Currently Google Index Denined to Index Our Vercel Page due to Redirect to main Domain.
-
 <!-- # vUnreleased - DD/MM/YYYY (Expected)
 
 ### 🌟 Added
@@ -27,6 +23,31 @@
 ---
 
 -->
+# v1.0.7 - 20/01/2025
+
+### 🌟 Added
+- Github Projects Now New Tracking System for the Project.
+- 2 New File Descriptions.
+- Bypass CORS API (#18)
+- New Tool : UUID Generator
+- 5 New Bookmarks Added.
+
+### 🔄 Changed
+- Scripts > Git Modifyed Files Detection Imporved.
+- Global > Main Github Profile Readme Updated Status.
+- Utils > Sitemap Domains now follows which domain is opened that domain sitemap will be generated.
+- Middleware > Exluded CSRF Endpoints Accuracy Improved using Regex.
+- Types > Gender Enum Moved to Types
+- Tools > Google Trend Querys to Bing Querys
+- Tools > BingQuerys > Now not need of Extension for Query Fetching (#18).
+- Tools > Bookmark Commands using Keywords Added for Faster Access.
+
+### 🗑️ Removed
+- Footer > Removed Unwanted String from the Footer.
+- Tools > Flag Not Loading Issue Fixed by (#17)
+- Tools > Selected Value Rendering (#16)
+
+---
 
 # v1.0.6 - 15/1/2025
 

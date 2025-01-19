@@ -40,19 +40,18 @@ const BookmarksDB_: Array<IBookmark> = [
         keywords: [
             "QR",
             "Code",
-            "Generator"
+            "Generator",
+            "tool/qr"
         ]
     },
     {
-        name: "Google Trends",
-        url: "/Tools/Googletrends",
+        name: "Bing Querys",
+        url: "/Tools/BingQuerys",
         icon: "https://www.gstatic.com/trends/favicon.ico",
         keywords: [
-            "Google",
             "Trends",
             "Querys",
-            "Copy",
-            "Paste"
+            "tools/trends"
         ]
     },
     {
@@ -69,6 +68,7 @@ const BookmarksDB_: Array<IBookmark> = [
         name: "Accounts",
         url: "https://accounts.google.com",
         keywords: [
+            "google/account",
             "Google",
             "Accounts",
             "Login"
@@ -159,12 +159,18 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "Android",
-        url: "https://developer.android.com/"
+        url: "https://developer.android.com/",
+        keywords: [
+            "google/android"
+        ]
     },
     {
         name: "Colab",
         url: "https://colab.research.google.com/",
-        icon: "https://ssl.gstatic.com/colaboratory-static/common/b124d179c25e30ffc6a1ff293e85eba8/img/favicon.ico"
+        icon: "https://ssl.gstatic.com/colaboratory-static/common/b124d179c25e30ffc6a1ff293e85eba8/img/favicon.ico",
+        keywords: [
+            "google/cloud/colab"
+        ]
     },
     {
         name: "Fonts",
@@ -187,9 +193,14 @@ const BookmarksDB_: Array<IBookmark> = [
         icon: "https://lh3.googleusercontent.com/6cr6PdE9s0J1ovFNm38uf-dwcOP--68QMWey603BCUah-QcO0gL0TvyqmTBYIgNnJfk8AEgISH_xpw_zd8FNao0jA14Q5MQ7p-eeIto=h120"
     },
     {
-        name: "Trends",
+        name: "Google Trends",
         url: "https://trends.google.com/trends/?geo=US",
-        icon: "https://ssl.gstatic.com/trends_nrtr/2431_RC03/favicon.ico"
+        icon: "https://ssl.gstatic.com/trends_nrtr/2431_RC03/favicon.ico",
+        keywords: [
+            "Trends",
+            "Google",
+            "GT"
+        ]
     },
     {
         name: "Assistant",
@@ -239,12 +250,10 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "Signout",
+        name: "Logout",
         url: "https://accounts.google.com/Logout",
         keywords: [
-            "Logout",
-            "Sign Out",
-            "Google"
+            "google/logout"
         ]
     },
     {
@@ -395,16 +404,16 @@ const BookmarksDB_: Array<IBookmark> = [
             "AI"
         ]
     },
-    {
-        name: "Fluent 2 UI",
-        url: "https://fluent2.microsoft.design/",
-        icon: "https://www.microsoft.com/favicon.ico"
-    },
-    {
-        name: "Fluent UI",
-        url: "https://developer.microsoft.com/en-us/fluentui#/controls/web",
-        icon: "https://developer.microsoft.com/favicon.ico"
-    },
+    // {
+    //     name: "Fluent 2 UI",
+    //     url: "https://fluent2.microsoft.design/",
+    //     icon: "https://www.microsoft.com/favicon.ico"
+    // },
+    // {
+    //     name: "Fluent UI",
+    //     url: "https://developer.microsoft.com/en-us/fluentui#/controls/web",
+    //     icon: "https://developer.microsoft.com/favicon.ico"
+    // },
     {
         name: "Facebook",
         url: "https://facebook.com",
@@ -416,7 +425,8 @@ const BookmarksDB_: Array<IBookmark> = [
         keywords: [
             "Social",
             "Facebook",
-            "FB"
+            "FB",
+            "Meta",
         ]
     },
     {
@@ -473,6 +483,7 @@ const BookmarksDB_: Array<IBookmark> = [
             fill: "#4CAF50"
         },
         keywords: [
+            "Meta",
             "Social",
             "WhatsApp",
             "W"
@@ -495,7 +506,8 @@ const BookmarksDB_: Array<IBookmark> = [
         keywords: [
             "Social",
             "LinkedIn",
-            "In"
+            "In",
+            "Microsoft"
         ]
     },
     {
@@ -515,11 +527,19 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Notion",
         url: "https://notion.so",
-        icon: "https://www.notion.so/images/favicon.ico"
+        icon: "https://www.notion.so/images/favicon.ico",
+        keywords: [
+            "Prodductivity",
+            "Todo",
+            "Kamban"
+        ]
     },
     {
         name: "Notion Logout",
-        url: "https://www.notion.so/logout"
+        url: "https://www.notion.so/logout",
+        keywords: [
+            "notion/logout"
+        ]
     },
     {
         name: "W3Schools",
@@ -543,12 +563,20 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Remix",
         url: "https://remix.run",
-        icon: "https://remix.run/favicon-128.png"
+        icon: "https://remix.run/favicon-128.png",
+        keywords: [
+            "React Framework",
+            "React Router"
+        ]
     },
     {
         name: "Next Js",
         url: "https://nextjs.org",
-        icon: "https://nextjs.org/static/favicon/favicon.ico"
+        icon: "https://nextjs.org/static/favicon/favicon.ico",
+        keywords: [
+            "React Framework",
+            "Varcel Inc."
+        ]
     },
     {
         name: "Tailwind UI",
@@ -567,12 +595,32 @@ const BookmarksDB_: Array<IBookmark> = [
     },
     {
         name: "MUi",
-        url: "https://mui.com"
+        url: "https://mui.com",
+        keywords: [
+            "UI Framework",
+            "Website Templates",
+            "React Components"
+        ]
     },
     {
-        name: "Domain Lookup",
+        name: "NextUI",
+        url: "http://nextui.org/",
+        keywords: [
+            "UI Framework",
+            "React Components",
+            "Tailwind & Frammer Motion"
+        ]
+    },
+    {
+        name: "Whois",
         url: "https://www.whois.com/whois/",
-        icon: "https://www.whois.com/images/favicon.ico"
+        icon: "https://www.whois.com/images/favicon.ico",
+        keywords: [
+            "Whois",
+            "Domain",
+            "DNS",
+            "Lookup"
+        ]
     },
     {
         name: "Icon8",
@@ -582,7 +630,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Figma",
         url: "https://figma.com",
-        icon: "https://static.figma.com/uploads/b6df2735e4cb368306acf5480b50f96e69f96099"
+        icon: "https://static.figma.com/uploads/b6df2735e4cb368306acf5480b50f96e69f96099",
     },
     {
         name: "FullStack Site Clones",
@@ -597,74 +645,72 @@ const BookmarksDB_: Array<IBookmark> = [
         url: "https://developer.mozilla.org/en-US/"
     },
     {
-        name: "Dashboard",
-        url: "https://dash.cloudflare.com/",
-        icon: "https://dash.cloudflare.com/favicon.ico"
-    },
-    {
         name: "Cloudflare",
         url: "https://cloudflare.com/",
         icon: "https://www.cloudflare.com/favicon.ico"
     },
     {
-        name: "Warp",
-        url: "https://1.1.1.1/"
+        name: "Dashboard",
+        url: "https://dash.cloudflare.com/",
+        icon: "https://dash.cloudflare.com/favicon.ico",
+        keywords: [
+            "cloudflare/dashbord"
+        ]
+    },
+    {
+        name: "WARP",
+        url: "https://1.1.1.1/",
+        keywords: [
+            "VPN",
+            "cloudflare/download"
+        ]
     },
     {
         name: "P P Savani University",
         url: "https://ppsu.ac.in/",
-        icon: "/assets/ppsu.png"
+        icon: "/assets/ppsu.png",
+        keywords: [
+            "PPSU"
+        ]
     },
     {
         name: "Student Syllabus",
         url: "https://ppsu.ac.in/soe/Academics.php",
-        icon: "/assets/ppsu.png"
+        icon: "/assets/ppsu.png",
+        keywords: [
+            "PPSU"
+        ]
+    },
+    {
+        name: "OLD Student Portal",
+        url: "https://ppsu.emli.in/student-ppsavani.php",
+        icon: "/assets/ppsu.png",
+        keywords: [
+            "PPSU"
+        ]
     },
     {
         name: "Student Portal",
-        url: "https://ppsu.emli.in/student-ppsavani.php",
-        icon: "/assets/ppsu.png"
-    },
-    {
-        name: "New Student Portal",
         url: "https://erp.ppsu.ac.in/",
-        icon: "/assets/ppsu.png"
+        icon: "/assets/ppsu.png",
+        keywords: [
+            "PPSU"
+        ]
     },
     {
-        name: "PPSU - Exam Papers",
+        name: "Exam Papers",
         url: "https://sites.google.com/ppsu.ac.in/soeexam",
-        icon: "/assets/ppsu.png"
+        icon: "/assets/ppsu.png",
+        keywords: [
+            "PPSU"
+        ]
     },
     {
-        name: "Redux",
-        url: "https://redux.js.org/"
-    },
-    {
-        name: "Toolkit",
+        name: "Redux Toolkit",
         url: "https://redux-toolkit.js.org/",
         keywords: [
             "Redux",
             "Toolkit",
-            "JS",
-            "Framework"
-        ]
-    },
-    {
-        name: "React Redux",
-        url: "https://react-redux.js.org/",
-        keywords: [
-            "React",
-            "Redux",
-            "JS",
-            "Framework"
-        ]
-    },
-    {
-        name: "Saga",
-        url: "https://redux-saga.js.org/",
-        keywords: [
-            "Redux",
-            "Saga",
             "JS",
             "Framework"
         ]
@@ -934,7 +980,111 @@ const BookmarksDB_: Array<IBookmark> = [
             "UPI QR"
         ]
     },
-    
+    {
+        name: "Treding View",
+        url: "https://www.tradingview.com/",
+        keywords: [
+            "Trading",
+            "View",
+            "Stocks",
+            "Markets",
+            "Market",
+        ]
+    },
+    {
+        name: "Dhan",
+        url: "https://dhan.co/",
+        icon:"https://dhan.co/_next/static/media/dhanns.91594e14.svg",
+        keywords: [
+            "Dhan",
+            "Stocks",
+            "Markets",
+            "Market",
+        ]
+    },
+    {
+        name: "Angel One",
+        url: "https://www.angelone.in/",
+        keywords: [
+            "Angel",
+            "One",
+            "Stocks",
+            "Markets",
+            "Market",
+        ]
+    },
+    {
+        name: "Groww",
+        url: "https://groww.in/",
+        keywords: [
+            "Grow",
+            "Stocks",
+            "Markets",
+            "Market",
+        ]
+    },
+    {
+        name: "Threads",
+        url:"https://www.threads.net/",
+        keywords: [
+            "Threads",
+            "Insta Threads",
+            "Social",
+            "X Copy",
+            "Twitter Copy",
+            "Twitter Dublicate",
+        ]
+    },
+    {
+        name: "Local - Pi-Hole ",
+        url: "http://localhost:2001/admin/",
+        icon: "https://pi-hole.net/wp-content/uploads/2016/12/Vortex-R.png",
+        keywords: [
+            "Pi-Hole",
+            "Local",
+            "DNS",
+            "Ad Blocker"
+        ]
+    },
+    {
+        name: "Myntra",
+        url: "https://www.myntra.com/",
+        keywords: [
+            "Myntra",
+            "Fashion",
+            "Clothing",
+            "Apparel"
+        ],
+    },
+    {
+        name: "Blinkit",
+        url: "https://www.blinkit.com/",
+        keywords: [
+            "Blinkit",
+            "Grocery",
+            "Delivery",
+        ],
+    },
+    {
+        name: "Flipkart",
+        url: "https://www.flipkart.com/",
+        keywords: [
+            "Flipkart",
+            "Ecommerce",
+            "Shopping",
+        ],
+    },
+    {
+        name: "Chrome Web Store",
+        url: "https://chromewebstore.google.com/",
+        icon: "https://fonts.gstatic.com/s/i/productlogos/chrome_store/v7/192px.svg",
+        keywords: [
+            "Chrome",
+            "Web",
+            "Store",
+            "Extensions"
+        ]
+    }
 ]
 
 export function ResolveIcon(link: IBookmark) {

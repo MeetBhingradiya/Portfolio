@@ -13,7 +13,7 @@
  *  
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 19/01/25 9:44 AM IST (Kolkata +5:30 UTC)
  */
 
 "use client";
@@ -31,8 +31,13 @@ const Tools: Array<{
     Icon?: string | React.ReactNode,
 }> = [
         {
-            Query: "Googletrends",
-            Title: "Google Trends",
+            Query: "BingQuerys",
+            Title: "Bing Querys",
+            Icon: "https://www.gstatic.com/trends/favicon.ico",
+        },
+        {
+            Query: "UUID",
+            Title: "UUID Generator",
             Icon: "https://www.gstatic.com/trends/favicon.ico",
         },
         {

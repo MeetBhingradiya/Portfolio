@@ -19,19 +19,15 @@
 import { Metadata } from "next";
 
 export const metadata: Metadata = {
-    title: "Google Trends Querys for Bing - Meet Bhingradiya",
-    description: "Copy Querys from Google Trends for Bing",
+    title: "UUID Generator - Meet Bhingradiya",
+    description: "Generate UUIDs with a single click",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
         "Meet",
         "Bhingradiya",
         "Portfolio",
-        "Tools",
-        "Google Trends",
-        "Google Trends Querys",
-        "Google Trends Bing",
-        "Copy Google Trends Querys",
+        "Tools"
     ]
 }
 

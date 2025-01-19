@@ -110,7 +110,7 @@ function Footer({ ShowonFirstRender }: { ShowonFirstRender?: boolean }) {
                     }
                 })}
             </motion.div>
-            All rights reserved. Meet Bhingradiya Ãƒâ€šÃ‚Â© 2021 - {new Date().getFullYear()}
+            All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
             <div className="flex items-center">
                 {/* <Tooltip content="Language" placement="top">
                     <div className="Version">

@@ -38,7 +38,10 @@ import {
     Cloud,
     Restore,
     Book,
-    Bookmark
+    Bookmark,
+    Home,
+    Circle,
+    ScatterPlot
 } from "@mui/icons-material";
 import {
     Menu,
@@ -72,6 +75,7 @@ import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
 import { Config } from "@Config/index";
+import Link from "next/link";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -140,7 +144,7 @@ function Tools() {
             isFirstRun: true,
             isNewTab: true,
             RandomizeLinks: true,
-            CloudSync: true,
+            CloudSync: false,
             SearchEngine: ISearchEngine.GOOGLE,
             Locale: ILocale.EN
         }
@@ -533,82 +537,131 @@ function Tools() {
             <div
                 className="SearchWarp"
             >
-                <motion.div
-                    className="button"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                    onClick={(e) => {
-                        setModalData({
-                            ...ModalData,
-                            isSettingsOpen: false,
-                            isOpen: true,
-                        });
-                    }}
-                >
-                    <Add />
-                </motion.div>
-                <motion.input
-                    id="search"
-                    type="text"
-                    placeholder="🔍 Search"
-                    tabIndex={1}
-                    value={State.Query}
-                    onChange={onQueryChange}
-                    className="search"
-                    ref={searchInputRef}
-                    autoComplete="off"
-                    onHoverStart={() => {
-                        if (searchInputRef.current !== null) {
-                            searchInputRef.current.focus();
+                {/* Suggestions */}
+                {
+                    State.FilterBookmarks.length === 0 && (
+                        <div className="Suggestions">
+                            {
+                                State.FilterSuggestions.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="Suggestion"
+                                        onClick={() => {
+                                            // ! TODO: Implement Link Builder
+                                        }}
+                                    >
+                                        <h2 className="Thumbnail">{item?.Thumbnail}</h2>
+                                        <p className="Title">{item?.Query}</p>
+                                    </div>
+                                ))
+                            }
+
+                            {
+                                State.FilterSuggestions.length === 0 && (
+                                    <div
+                                        className="Suggestion"
+                                    >
+                                        <p className="Thumbnail Loading">
+                                            <ScatterPlot />
+                                        </p>
+                                        <h2 className="Title">Loading...</h2>
+                                    </div>)
+                            }
+                        </div>
+                    )
+                }
+                <div className="flex flex-row gap-2 CommandRow">
+                    <Tooltip content="Go Home" placement="top">
+                        <motion.div
+                            className="button"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                            onClick={() => {
+                                window.location.href = "/Home";
+                            }}
+                        >
+                            <Home />
+                        </motion.div>
+                    </Tooltip>
+
+                    <motion.div
+                        className="button"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                        onClick={(e) => {
+                            setModalData({
+                                ...ModalData,
+                                isSettingsOpen: false,
+                                isOpen: true,
+                            });
+                        }}
+                    >
+                        <Add />
+                    </motion.div>
+                    <motion.input
+                        id="search"
+                        type="text"
+                        placeholder="🔍 Search"
+                        tabIndex={1}
+                        value={State.Query}
+                        onChange={onQueryChange}
+                        className="search"
+                        ref={searchInputRef}
+                        autoComplete="off"
+                        onHoverStart={() => {
+                            if (searchInputRef.current !== null) {
+                                searchInputRef.current.focus();
+                            }
+                        }}
+                        onHoverEnd={() => {
+                            if (searchInputRef.current !== null) {
+                                searchInputRef.current.blur();
+                            }
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                    />
+                    <AnimatePresence>
+                        {
+                            State.Query !== "" && (
+                                <motion.div
+                                    className="button"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ delay: 0.2, duration: 0.2, ease: "easeInOut" }}
+                                    onClick={(e) => {
+                                        setState({
+                                            ...State,
+                                            FilterBookmarks: State.Bookmarks,
+                                            Query: "",
+                                        })
+                                    }}
+                                >
+                                    <Close />
+                                </motion.div>
+                            )
                         }
-                    }}
-                    onHoverEnd={() => {
-                        if (searchInputRef.current !== null) {
-                            searchInputRef.current.blur();
-                        }
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                />
-                <AnimatePresence>
-                    {
-                        State.Query !== "" && (
-                            <motion.div
-                                className="button"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ delay: 0.2, duration: 0.2, ease: "easeInOut" }}
-                                onClick={(e) => {
-                                    setState({
-                                        ...State,
-                                        FilterBookmarks: State.Bookmarks,
-                                        Query: "",
-                                    })
-                                }}
-                            >
-                                <Close />
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence>
-                <motion.div
-                    className="button"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                    onClick={(e) => {
-                        setModalData({
-                            ...ModalData,
-                            isSettingsOpen: true,
-                            isOpen: true,
-                        });
-                    }}
-                >
-                    <Settings />
-                </motion.div>
+                    </AnimatePresence>
+                    <motion.div
+                        className="button"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                        onClick={(e) => {
+                            setModalData({
+                                ...ModalData,
+                                isSettingsOpen: true,
+                                isOpen: true,
+                            });
+                        }}
+                    >
+                        <Settings />
+                    </motion.div>
+                </div>
             </div>
 
             <GridContextProvider onChange={onGridChange}>

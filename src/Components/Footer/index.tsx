@@ -37,7 +37,11 @@ import {
 import { SocialLinks } from "@Config/SocialLinks";
 import { useTheme } from "@Hooks/useTheme";
 
-function Footer({ ShowonFirstRender }: { ShowonFirstRender?: boolean }) {
+function Footer({ ShowonFirstRender, isHideSocialLinks }: {
+    ShowonFirstRender?: boolean
+    isHideSocialLinks?: boolean
+}
+) {
     const { theme, toggleTheme } = useTheme();
     const [State, setState] = React.useState({
         isFooterVisible: false,
@@ -94,22 +98,25 @@ function Footer({ ShowonFirstRender }: { ShowonFirstRender?: boolean }) {
             animate={{ y: State.isFooterVisible ? 0 : "100%" }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-            <motion.div
-                className="Social"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-            >
-                {SocialLinks.map((item, index) => {
-                    if (item.isEnable) {
-                        return (
-                            <Tooltip key={index} content={item.Label} placement="top">
-                                <a href={item.URL}>{item.Component}</a>
-                            </Tooltip>
-                        );
-                    }
-                })}
-            </motion.div>
+            {
+                !isHideSocialLinks && (<motion.div
+                    className="Social"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                >
+                    {SocialLinks.map((item, index) => {
+                        if (item.isEnable) {
+                            return (
+                                <Tooltip key={index} content={item.Label} placement="top">
+                                    <a href={item.URL}>{item.Component}</a>
+                                </Tooltip>
+                            );
+                        }
+                    })}
+                </motion.div>)
+            }
+
             All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
             <div className="flex items-center">
                 {/* <Tooltip content="Language" placement="top">

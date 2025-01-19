@@ -1,13 +1,13 @@
 {
     "name": "meetbhingradiya",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "scripts": {
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
         "precommit": "bun run build",
-        "Blogs": "bun Scripts/SyncBlogs.ts",
+        "blogs": "bun Scripts/SyncBlogs.ts",
         "comments": "bun Scripts/Comments.ts"
     },
     "dependencies": {

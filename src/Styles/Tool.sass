@@ -15,57 +15,120 @@ $card-border-radius: 8px
         margin-bottom: 20px
         font-size: 2rem
     .SearchWarp
-        position: fixed
-        bottom: 2rem
-        width: 100%
-        height: max-content
-        padding: 10px
         display: flex
         justify-content: center
         align-items: center
-        gap: 0.5rem
+        flex-direction: column
+        position: fixed
+        bottom: 2.5rem
+        width: calc( 100% - 20px * 2 )
+        gap: 0.3rem
         z-index: 1
-        .search
-            width: 20%
+        .Suggestions
+            position: relative
+            width: 50%
             padding: 10px
+            display: flex
+            justify-content: center
+            align-items: center
+            flex-direction: column
             border: none
             border-radius: 8px
             background: #0000004d
             backdrop-filter: blur(8px)
             border: 1px solid #4646468f
             color: #ffffff
-            font-size: 1rem
-            margin-bottom: 20px
-            outline: none
-            transition: width 0.3s
-            &:focus
-                width: 50%
-                transition: width 0.3s
-                outline: 2px solid #6200ea
-            &:hover
-                width: 50%
-                transition: width 0.3s
-        .search::placeholder
-            color: #757575
-        .button
-            padding: 10px
-            border: 1px solid #4646468f
-            border: none
-            border-radius: 8px
-            background: #0000004d
-            backdrop-filter: blur(4px)
-            border: 1px solid #35353554
-            color: #ffffff
-            font-size: 1rem
-            margin-bottom: 20px
-            outline: none
-            transition: 0.3s
-            cursor: pointer
-            &:focus
-                outline: 2px solid #6200ea
-            &:hover
-                transform: scale(1.1)
+            z-index: 2
+            gap: 0.4rem
+            .Suggestion
+                position: relative
+                width: 100%
+                border-radius: 8px
+                padding: 10px
+                border-bottom: 1px solid #4646468f
+                color: var(--font-color)
+                font-size: 0.8rem
+                outline: none
                 transition: 0.3s
+                cursor: pointer
+                display: flex
+                flex-direction: row
+                justify-content: start
+                align-items: center
+                gap: 0.5rem
+                &:focus
+                    outline: 2px solid #6200ea
+                &:hover
+                    background: #0000004d
+                    transition: 0.3s
+                .Loading
+                    animation: rotate 1s linear infinite
+                    // ? Rotate Animation
+                    @keyframes rotate
+                        0%
+                            transform: rotate(0deg)
+                        100%
+                            transform: rotate(360deg)
+                .Thumbnail
+                    width: 32px
+                    height: 32px
+                    border-radius: 8px
+                    overflow: hidden
+                    img
+                        width: 100%
+                        height: 100%
+                    svg
+                        width: 100%
+                        height: 100%
+                &:nth-last-child(1)
+                    border-bottom: none
+        .CommandRow
+            display: flex
+            justify-content: center
+            align-items: center
+            flex-direction: row
+            width: 100%
+            gap: 0.5rem
+            .search
+                width: 20%
+                padding: 10px
+                height: max-content
+                border: none
+                border-radius: 8px
+                background: #0000004d
+                backdrop-filter: blur(8px)
+                border: 1px solid #4646468f
+                color: #ffffff
+                font-size: 1rem
+                outline: none
+                transition: width 0.3s
+                &:focus
+                    width: 50%
+                    transition: width 0.3s
+                    outline: 2px solid #6200ea
+                &:hover
+                    width: 50%
+                    transition: width 0.3s
+            .search::placeholder
+                color: #757575
+            .button
+                padding: 10px
+                border: 1px solid #4646468f
+                border: none
+                border-radius: 8px
+                background: #0000004d
+                backdrop-filter: blur(4px)
+                border: 1px solid #35353554
+                color: #ffffff
+                font-size: 1rem
+                outline: none
+                transition: 0.3s
+                cursor: pointer
+                &:focus
+                    outline: 2px solid #6200ea
+                &:hover
+                    transform: scale(1.1)
+                    transition: 0.3s
 
     .grid
         display: grid
@@ -107,7 +170,7 @@ $card-border-radius: 8px
 
         &.drag-over
             outline: 2px dashed #6200ea
-        
+
         .ServerIcon
             position: absolute
             width: 16px
@@ -146,10 +209,10 @@ $card-border-radius: 8px
         width: 50%
     .grid
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr))
-        
+
 // ? For Mobile
-@media (max-width: 425px)
+@media (max-width: 475px)
     .search
-        width: 80%
+        width: 100%
     .grid
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))

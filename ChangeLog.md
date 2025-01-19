@@ -2,12 +2,6 @@
 - The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
-## 🔐 Vulnerability Disclosures
-- **`SvgComponent`** - Sanitized to ensure better security.
-- **`CSRF`** - Every Request Must be an Made by Real End User or Automation BOT's not a DDOS or Auto Spam!
-- **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
----
-
 <!-- # vUnreleased - DD/MM/YYYY (Expected)
 
 ### 🌟 Added
@@ -23,6 +17,22 @@
 ---
 
 -->
+
+# 1.0.8 - 30/01/2025 (Expected)
+
+### 🌟 Added
+- 2 New Bookmark Added.
+- Tools > Suggestions Container Added with Loading Info.
+
+### 🔄 Changed
+- Tools > Cloud Sync Disabled By Default.
+- Tools > Icons Improved for Better Visibility.
+
+### 🗑️ Removed
+- Chnagelog > Vulnerability Disclosures
+
+---
+
 # v1.0.7 - 20/01/2025
 
 ### 🌟 Added

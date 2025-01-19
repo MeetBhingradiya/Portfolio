@@ -537,6 +537,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Notion Logout",
         url: "https://www.notion.so/logout",
+        icon: "https://www.notion.so/images/favicon.ico",
         keywords: [
             "notion/logout"
         ]
@@ -603,8 +604,8 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "NextUI",
-        url: "http://nextui.org/",
+        name: "HeroUI",
+        url: "https://www.heroui.com/",
         keywords: [
             "UI Framework",
             "React Components",
@@ -754,6 +755,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "NPM",
         url: "https://www.npmjs.com/",
+        icon: "https://avatars.githubusercontent.com/u/9950313?s=200&v=4",
         keywords: [
             "NPM",
             "Node",
@@ -952,6 +954,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Meta Ai",
         url: "https://www.meta.ai/",
+        icon: "https://aimode.co/wp-content/uploads/2024/07/meta-ai-logo.webp",
         keywords: [
             "Meta",
             "AI",
@@ -1049,6 +1052,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Myntra",
         url: "https://www.myntra.com/",
+        icon:"https://cdn.iconscout.com/icon/free/png-512/free-myntra-logo-icon-download-in-svg-png-gif-file-formats--shopping-brand-online-application-app-mobile-indian-companies-pack-logos-icons-2249158.png?f=webp&w=256",
         keywords: [
             "Myntra",
             "Fashion",
@@ -1083,6 +1087,26 @@ const BookmarksDB_: Array<IBookmark> = [
             "Web",
             "Store",
             "Extensions"
+        ]
+    },
+    {
+        name: "Password Manager",
+        url: "https://passwords.google.com/",
+        icon: "https://img.icons8.com/fluency/256/google-password.png",
+        keywords: [
+            "Password",
+            "Manager",
+            "Google"
+        ]
+    },
+    {
+        name: "Photos",
+        url: "https://photos.google.com/",
+        icon: "https://photos.google.com/favicon.ico",
+        keywords: [
+            "Photos",
+            "Google",
+            "Gallery"
         ]
     }
 ]

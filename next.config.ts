@@ -58,9 +58,9 @@ const nextConfig: NextConfig = {
                                     Eval: true,
                                     Domains: [
                                         'https://pagead2.googlesyndication.com',
-                                        'https://ep2.adtrafficquality.google',
+                                        'https://ep2.adtrafficquality.google'
                                     ]
-                                },
+                                }
                             },
                             minify: true,
                             removeWhitespace: true

@@ -22,11 +22,15 @@
 
 ### 🌟 Added
 - 2 New Bookmark Added.
-- Tools > Suggestions Container Added with Loading Info.
+- Tools > Suggestions & Search Engine Funcations Added.
+- Tools > Search bar now Focus on Spacebar Press.
+- Axios > Request Cancelation Added for Faster Response on Searchbar Query.
 
 ### 🔄 Changed
 - Tools > Cloud Sync Disabled By Default.
 - Tools > Icons Improved for Better Visibility.
+- Utils > Sitemap Utils Improved for Better Performance & Faster Response.
+- API > Sitemap > `Prorities` Now Dynamically Generated from `Frequency`.
 
 ### 🗑️ Removed
 - Chnagelog > Vulnerability Disclosures

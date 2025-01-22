@@ -50,7 +50,8 @@ import {
     Verified,
     Fingerprint,
     Shield,
-    Warning
+    Warning,
+    Email
 } from "@mui/icons-material"
 import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
 import { StepIconProps } from '@mui/material/StepIcon';
@@ -198,11 +199,11 @@ function ColorlibStepIcon(props: StepIconProps) {
     const { active, completed, className } = props;
 
     const icons: { [index: string]: React.ReactElement<unknown> } = {
-        1: <AlternateEmail />,
+        1: <Email />,
         2: <Person />,
         3: <Shield />,
         4: <Verified />,
-        5: <Fingerprint />,
+        5: <AlternateEmail />,
     };
 
     return (
@@ -215,7 +216,7 @@ function ColorlibStepIcon(props: StepIconProps) {
 const steps = [
     'Email',
     'Basic Info',
-    'Security',
+    'Authentication',
     'Activate Account',
     'Username'
 ];
@@ -230,6 +231,7 @@ interface IState {
     Fname: string
     Lname: string
     Gender: string
+    DOB?: string
 
     // ? Step 3 : Create Password
     Password: string
@@ -299,6 +301,55 @@ export default function SignUp() {
         // Todo: DB Check with API
     }
 
+    async function Valdate_Step_1(): Promise<boolean> {
+        return true;
+    }
+
+    async function Valdate_Step_2(): Promise<boolean> {
+        return true;
+    }
+
+    async function Valdate_Step_3(): Promise<boolean> {
+        return true;
+    }
+
+    async function Valdate_Step_4(): Promise<boolean> {
+        return true;
+    }
+
+    async function Valdate_Step_5(): Promise<boolean> {
+        return true;
+    }
+
+
+    async function ValidateStep(): Promise<void> {
+        switch (ActiveStep) {
+            case 0:
+                if (await Valdate_Step_1()) {
+                    setActiveStep(ActiveStep + 1);
+                    break;
+                }
+            case 1:
+                if (await Valdate_Step_2()) {
+                    setActiveStep(ActiveStep + 1);
+                    break;
+                }
+            case 2:
+                if (await Valdate_Step_3()) {
+                    setActiveStep(ActiveStep + 1);
+                    break;
+                }
+            case 3:
+                if (await Valdate_Step_4()) {
+                    setActiveStep(ActiveStep + 1);
+                    break;
+                }
+            case 4:
+                await Valdate_Step_5();
+                break;
+        }
+    }
+
     return (
         <div className="Page CENTER">
             <Modal
@@ -325,6 +376,38 @@ export default function SignUp() {
                             </Stepper>
                         </Stack>
                         {
+                            ActiveStep === 0 && (
+                                <div className="flex flex-col gap-5 p-10">
+                                    {
+                                        State.S2_isERROR && (
+                                            <Alert
+                                                description={`${State.S2_Message}`}
+                                                title={`ERROR`}
+                                                color="danger"
+                                            />
+                                        )
+                                    }
+                                    <div className="flex flex-row gap-3 items-center justify-center">
+                                        <Input
+                                            label="Email"
+                                            type="email"
+                                            startContent={<Email />}
+                                            value={State.Email}
+                                            onChange={(e) => setState({ ...State, Email: e.target.value })}
+                                        />
+                                    </div>
+                                    {/* Email Checker Labels After Lab Checks */}
+                                    {/* 
+                                    
+                                        * Not be Empty
+                                        * spefic Whitelisted Domain
+                                        * Not be Already Registered
+                                     */}
+
+                                </div>
+                            )
+                        }
+                                                {
                             ActiveStep === 1 && (<div className="flex flex-col gap-5 p-10">
                                 <div className="flex flex-row gap-3 items-center justify-center">
                                     <Input
@@ -351,38 +434,6 @@ export default function SignUp() {
                             </div>)
                         }
                         {
-                            ActiveStep === 0 && (
-                                <div className="flex flex-col gap-5 p-10">
-                                    {   
-                                        State.S2_isERROR && (
-                                            <Alert
-                                                description={`${State.S2_Message}`}
-                                                title={`ERROR`}
-                                                color="danger"
-                                            />
-                                        )
-                                    }
-                                    <div className="flex flex-row gap-3 items-center justify-center">
-                                        <Input
-                                            label="Email"
-                                            type="email"
-                                            startContent={<AlternateEmail />}
-                                            value={State.Email}
-                                            onChange={(e) => setState({ ...State, Email: e.target.value })}
-                                        />
-                                    </div>
-                                    {/* Email Checker Labels After Lab Checks */}
-                                    {/* 
-                                    
-                                        * Not be Empty
-                                        * spefic Whitelisted Domain
-                                        * Not be Already Registered
-                                     */}
-
-                                </div>
-                            )
-                        }
-                        {
                             ActiveStep === 2 && (
                                 <div className="flex flex-col gap-5 p-10">
                                     {
@@ -399,18 +450,11 @@ export default function SignUp() {
                                             label="Password"
                                             type="password"
                                             startContent={<Shield />}
-                                            endContent={<VisibilityOff />}
+                                            endContent={State.Visible ? <VisibilityOff /> : <Visibility />}
                                             value={State.Email}
                                             onChange={(e) => setState({ ...State, Password: e.target.value })}
                                         />
                                     </div>
-                                    {/* Email Checker Labels After Lab Checks */}
-                                    {/* 
-                                
-                                    * Not be Empty
-                                    * spefic Whitelisted Domain
-                                    * Not be Already Registered
-                                 */}
                                 </div>
                             )
                         }
@@ -420,12 +464,31 @@ export default function SignUp() {
                             </div>)
                         }
                         {
-                            ActiveStep === 4 && (<div>Step 5</div>)
+                            ActiveStep === 4 && (<div className="flex flex-col gap-5 p-10">
+                                {
+                                    State.S4_isERROR && (
+                                        <Alert
+                                            description={`${State.S4_Message}`}
+                                            title={`ERROR`}
+                                            color="danger"
+                                        />
+                                    )
+                                }
+                                <div className="flex flex-row gap-3 items-center justify-center">
+                                    <Input
+                                        label="Password"
+                                        type="text"
+                                        startContent={<AlternateEmail />}
+                                        value={State.Username}
+                                        onChange={(e) => setState({ ...State, Username: e.target.value })}
+                                    />
+                                </div>
+                            </div>)
                         }
                     </ModalBody>
                     <ModalFooter>
                         {
-                            (ActiveStep > 0 && ActiveStep < 2) && (
+                            (ActiveStep > 0 && ActiveStep < 3) && (
                                 <Button
                                     onPress={() => setActiveStep(ActiveStep - 1)}
                                 >
@@ -437,7 +500,7 @@ export default function SignUp() {
                         {
                             ActiveStep < 4 && (
                                 <Button
-                                    onPress={() => setActiveStep(ActiveStep + 1)}
+                                    onPress={ValidateStep}
                                 >
                                     Next
                                 </Button>

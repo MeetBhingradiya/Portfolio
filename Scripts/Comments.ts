@@ -49,20 +49,32 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
     return `/**
  *  @FileID          ${FileID}
  *  @Description     ${generateDescription(FileID)}
- *  @Author          @MeetBhingradiya
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
- *  Copyright (c) ${new Date().getFullYear()} Meet Bhingradiya
+ *  
+ *  Copyright (c) 2021 - ${new Date().getFullYear()} Meet Bhingradiya.
  *  All rights reserved.
  *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author.
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  via any medium, is strictly prohibited without prior written consent from the
+ *  author or the organization.
  *  
+ *  -----------------------------------------------------------------------------
+ *  
+ *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
+ *  Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Last sUpdated on Version: 1.0.8
  *  -----------------------------------------------------------------------------
  *  ${createdDate}
  *  ${modifiedDate}
- */\n`
+ */
+\n`
 }
 
 async function processFile(FilePath: string): Promise<void> {

@@ -146,8 +146,8 @@ interface ISuggestionResponse {
 interface ISuggestion {
     Query: string
     Thumbnail?: string
-    Link: string
     Keywords?: Array<string>
+    Description?: string
 }
 
 interface IState {
@@ -161,7 +161,6 @@ interface IState {
         SearchEngine: ISearchEngine
         Locale: string
         CloudSync: boolean
-        windowWidth?: number
     }
 }
 

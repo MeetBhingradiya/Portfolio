@@ -23,6 +23,7 @@ import { Providers } from "@Components/Providers";
 import Footer from "@Components/Footer";
 import { Config } from "@Config/index";
 import { ThemeProvider } from "@Hooks/useTheme";
+import LandingFooter from "@Components/Footer/LandingFooter";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -101,6 +102,7 @@ export default function RootLayout({
                     </Providers>
 
                     <Footer ShowonFirstRender />
+                    {/* <LandingFooter /> */}
                 </ThemeProvider>
             </body>
         </html>

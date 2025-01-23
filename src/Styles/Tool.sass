@@ -43,8 +43,8 @@ $card-border-radius: 8px
             .Suggestion
                 position: relative
                 width: 100%
-                border-radius: 8px
-                padding: 10px
+                border-radius: 8px 8px 0px 0px
+                padding: 5px 10px
                 border-bottom: 1px solid #4646468f
                 color: var(--font-color)
                 font-size: 0.8rem
@@ -55,7 +55,7 @@ $card-border-radius: 8px
                 flex-direction: row
                 justify-content: start
                 align-items: center
-                gap: 0.5rem
+                gap: 1rem
                 &:focus
                     outline: 2px solid #6200ea
                 &:hover
@@ -69,19 +69,33 @@ $card-border-radius: 8px
                             transform: rotate(0deg)
                         100%
                             transform: rotate(360deg)
+                .QueryWarp
+                    display: flex
+                    justify-content: center
+                    align-items: center
+                    flex-direction: column
+                    padding: 1px
+                    .Title
+                        font-size: 0.9rem
+                        align-items: center
+                        color: var(--font-color)
+                        width: 100%
+                        font-weight: 500
+                    .Description
+                        width: 100%
+                        // padding-left: 5px
+                        align-items: center
+                        font-size: 0.7rem
+                        color: var(--description-font-color)
+                        font-weight: 300
                 .Thumbnail
                     width: 32px
                     height: 32px
                     border-radius: 8px
                     overflow: hidden
-                    img
+                    img, svg
                         width: 100%
                         height: 100%
-                    svg
-                        width: 100%
-                        height: 100%
-                &:nth-last-child(1)
-                    border-bottom: none
         .CommandRow
             display: flex
             justify-content: center

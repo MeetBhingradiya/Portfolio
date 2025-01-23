@@ -53,7 +53,8 @@ import {
     Bookmark,
     Home,
     Circle,
-    ScatterPlot
+    ScatterPlot,
+    Search
 } from "@mui/icons-material";
 import {
     Menu,
@@ -88,6 +89,7 @@ import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
 import { Config } from "@Config/index";
 import Link from "next/link";
+import { changeCase } from "@Utils/CaseChnage";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -214,7 +216,6 @@ function Tools() {
         // ? On Enter Open First Link
         if (e.key === "Enter") {
             if (State.FilterBookmarks.length > 0 && State.Query.length > 0) {
-                console.log("Opening First Link");
                 window.open(State.FilterBookmarks[0].url, State.Settings.isNewTab ? "_blank" : "_self");
                 setState({
                     ...State,
@@ -272,10 +273,6 @@ function Tools() {
     const onQueryChange = async (e: any) => {
         const query = e.target.value.toLowerCase();
         const OriginalQuery = e.target.value;
-
-        if (OriginalQuery.trim() === "") {
-            return;
-        }
 
         const isExactMatch = (name: string, keywords: Array<string> = []): boolean => {
             return name.toLowerCase() === query || keywords.some((keyword) => keyword.toLowerCase() === query);
@@ -381,7 +378,7 @@ function Tools() {
                 });
             } catch (error: any) {
                 if (error.name === "CanceledError") {
-                    console.log("Request canceled.");
+                    console.warn("Request Aborted");
                 }
             }
         }
@@ -672,10 +669,34 @@ function Tools() {
                                                 />
                                             )
                                         }
-                                        <h2 className="Title">{item?.Query}</h2>
+                                        {
+                                            !item?.Thumbnail && (
+                                                <p className="Thumbnail">
+                                                    <Search />
+                                                </p>
+                                            )
+                                        }
+                                        <div className="QueryWarp">
+                                            <h2 className="Title">{changeCase.upperFirst(item?.Query)}</h2>
+                                            <p className="Description">{item?.Description}</p>
+                                        </div>
                                     </div>
                                 ))
                             }
+
+                            {/* ? Defualt Query as Suggestion */}
+                            <div className="Suggestion"
+                                onClick={() => {
+                                    window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
+                                }}
+                            >
+                                <p className="Thumbnail">
+                                    <Search />
+                                </p>
+                                <div className="QueryWarp">
+                                    <h2 className="Title">{changeCase.upperFirst(State.Query)}</h2>
+                                </div>
+                            </div>
 
                             {
                                 Suggestions.length === 0 && (

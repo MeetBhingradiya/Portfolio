@@ -75,7 +75,7 @@ import {
     SelectItem,
     Checkbox,
     Tooltip
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { styled, alpha } from '@mui/material/styles';
 import {
     GridContextProvider,

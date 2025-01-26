@@ -42,7 +42,13 @@ Axios.interceptors.request.use(
     async (config: InternalAxiosRequestConfig<any>) => {
         let csrfToken: any = null;
         if (localStorage.getItem('trace')) {
-            csrfToken = JSON.parse(localStorage.getItem('trace') || '{}');
+            const LocalStorehasValidToken = JSON.parse(localStorage.getItem('trace') || '{}')?.data; 
+            if (LocalStorehasValidToken) {
+                csrfToken = LocalStorehasValidToken
+            } else {
+                csrfToken = await getCSRFToken();
+                localStorage.setItem('trace', JSON.stringify(csrfToken));
+            }
         } else {
             csrfToken = await getCSRFToken();
             localStorage.setItem('trace', JSON.stringify(csrfToken));

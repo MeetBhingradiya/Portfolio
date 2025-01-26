@@ -37,6 +37,9 @@
             "@Pages/*": [
                 "./src/pages/*"
             ],
+            "@Config": [
+                "./src/Config/index.ts"
+            ],
             "@Config/*": [
                 "./src/Config/*"
             ],
@@ -49,8 +52,17 @@
             "@Data/*": [
                 "./src/Data/*"
             ],
+            "@Emails/*": [
+                "./src/Emails/*"
+            ],
             "@Hooks/*": [
                 "./src/Hooks/*"
+            ],
+            "@Lib/*": [
+                "./src/Lib/*"
+            ],
+            "@Middlewares/*": [
+                "./src/Middlewares/*"
             ],
             "@Models/*": [
                 "./src/Models/*"

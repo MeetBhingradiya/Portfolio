@@ -22,7 +22,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { QrCode2 } from '@mui/icons-material';
 import Image from 'next/image';
 import "@Styles/Tools-Navigation.sass";
-import { Tooltip } from '@nextui-org/react';
+import { Tooltip } from '@heroui/react';
 import SvgComponent from './SVGComponent';
 
 const Tools: Array<{

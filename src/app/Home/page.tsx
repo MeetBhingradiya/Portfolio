@@ -20,7 +20,7 @@
 
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Tooltip } from "@nextui-org/react";
+import { Tooltip } from "@heroui/react";
 import { getRelativeTime } from "@Utils/Relativetime";
 import "@Styles/Home.sass";
 

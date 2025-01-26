@@ -23,7 +23,7 @@ import "@Styles/Footer.sass";
 import { motion } from "framer-motion";
 import { Config } from "@Config/index";
 import { getRelativeTime } from "@Utils/Relativetime";
-import { Tooltip } from "@nextui-org/react";
+import { Tooltip } from "@heroui/react";
 import {
     Contrast,
     DarkMode,

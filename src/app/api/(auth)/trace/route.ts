@@ -18,7 +18,8 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT, importJWK } from 'jose';
-import { Config } from '@Config/index';
+import { Config } from '@Config';
+import { UserAgent } from '@Utils/UserAgent';
 
 const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 const ALLOWED_ORIGINS = [
@@ -32,6 +33,11 @@ const WhiteListedPlatforms = [
     'Android', 
     // '"iOS"'
 ];
+
+const WhiteListedBrowsers = [
+    'Chrome', 
+    'Edge'
+]
 
 export async function POST(req: NextRequest) {
     const origin = req.headers.get('origin');
@@ -68,36 +74,49 @@ export async function POST(req: NextRequest) {
     if (browserSignatures.some((signature) => userAgent.includes(signature))) {
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Automated browser detected', 
-            StatusCode: 403 
+            Message: 'Unsupported browser [Signatures]', 
+            StatusCode: 403
         }, { status: 403 });
     }
 
     // 3. User-Agent and Sec-CH-UA Validation
-    if (!userAgent.includes('Chrome') && !userAgent.includes('Edge')) {
+    if (
+        // !userAgent.includes('Chrome') && !userAgent.includes('Edge')
+        !WhiteListedBrowsers.includes(new UserAgent(userAgent).parse().browser)
+    ) {
+        console.log({
+            UserAgent: userAgent.split(' '),
+            Condition: WhiteListedBrowsers.includes(userAgent.split(' ')[0])
+        });
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported browser', 
+            Message: 'Unsupported browser [User-Agent]', 
             StatusCode: 403 
         }, { status: 403 });
     }
-    if (!secUa.includes('Chrome') && !secUa.includes('Edge')) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Sec-CH-UA does not match User-Agent', 
-            StatusCode: 403 
-        }, { status: 403 });
-    }
+    // if (
+        // !secUa.includes('Chrome') && !secUa.includes('Edge')
+        // !WhiteListedBrowsers.includes(secUa.split(' ')[0])
+    // ) {
+    //     return NextResponse.json({ 
+    //         Status: 0, 
+    //         Message: 'Unsupported browser [Sec-CH-UA]', 
+    //         StatusCode: 403 
+    //     }, { status: 403 });
+    // }
 
     if (
         !WhiteListedPlatforms.includes(secUaPlatform.replace(/"/g, ''))
     ) {
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported platform', 
+            Message: 'Unsupported Platform [Sec-CH-UA-Platform]', 
             StatusCode: 403 
         }, { status: 403 });
     }
+
+    // 4. WEBRTC Checks
+    
 
     // @ TODO: IP CHECKS Like Tor, VPN, Proxy, etc.
 
@@ -111,7 +130,7 @@ export async function POST(req: NextRequest) {
     // **Set Secure CSRF Cookie**
     const response = NextResponse.json({ 
         Status: 1, 
-        Message: 'Trace token generated successfully', 
+        Message: 'Supported browser', 
         data: csrfToken 
     });
     response.cookies.set('csrf', csrfToken, {

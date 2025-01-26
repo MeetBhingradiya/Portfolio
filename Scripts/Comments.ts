@@ -60,7 +60,7 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
  *  via any medium, is strictly prohibited without prior written consent from the
- *  author or the organization.
+ *  author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  

@@ -52,8 +52,8 @@ import {
     SelectItem,
     SelectedItems,
     Tooltip,
-} from "@nextui-org/react";
-import type { Selection } from "@nextui-org/react";
+} from "@heroui/react";
+import type { Selection } from "@heroui/react";
 import { Settings } from "@mui/icons-material";
 import {
     Select as MUISelect,
@@ -66,7 +66,6 @@ import Footer from "@Components/Footer";
 import Image from "next/image";
 import { removeDuplicates } from "@Utils/RemoveDuplicates";
 import { Axios } from "@Utils/Axios";
-import axios from "axios";
 
 type Region = {
     label: string
@@ -142,7 +141,7 @@ function BingQuerys() {
                     //     }
                     //     return r.text();
                     // })
-                    axios.post("/api/cors", {
+                    Axios.post("/api/cors", {
                         body: {
                             endpoint: url,
                             method: "GET",

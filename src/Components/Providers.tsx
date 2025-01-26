@@ -16,14 +16,14 @@
  *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
  */
 
-import { NextUIProvider } from "@nextui-org/system";
+import { HeroUIProvider } from "@heroui/system";
 import { buildProvidersTree } from "./BuildProvidersTree";
 import MUIRegistry from '@Components/MUIRegistry';
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const ProvidersTree = buildProvidersTree([
         [
-            NextUIProvider,
+            HeroUIProvider,
             {
                 children
             }

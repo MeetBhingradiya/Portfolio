@@ -19,7 +19,7 @@
 "use client";
 
 import { Axios } from "@Utils/Axios";
-import { Button } from "@nextui-org/react";
+import { Button } from "@heroui/react";
 import Link from "next/link";
 import React, { useState, useEffect } from "react";
 import { Config } from "@Config/index";

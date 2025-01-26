@@ -18,19 +18,21 @@
 
 -->
 
-# 1.0.8 - 30/01/2025 (Expected)
+# v1.0.8 - 30/01/2025 (Expected)
 
 ### 🌟 Added
 - 2 New Bookmark Added.
 - Tools > Suggestions & Search Engine Funcations Added.
 - Tools > Search bar now Focus on Spacebar Press.
 - Axios > Request Cancelation Added for Faster Response on Searchbar Query.
+- Library > React Bits - for Advanced Animations & Animated Components.
 
 ### 🔄 Changed
 - Tools > Cloud Sync Disabled By Default.
 - Tools > Icons Improved for Better Visibility.
 - Utils > Sitemap Utils Improved for Better Performance & Faster Response.
 - API > Sitemap > `Prorities` Now Dynamically Generated from `Frequency`.
+- NextUI > HeroUI > Migration is Done.
 
 ### 🗑️ Removed
 - Chnagelog > Vulnerability Disclosures
@@ -53,13 +55,13 @@
 - Middleware > Exluded CSRF Endpoints Accuracy Improved using Regex.
 - Types > Gender Enum Moved to Types
 - Tools > Google Trend Querys to Bing Querys
-- Tools > BingQuerys > Now not need of Extension for Query Fetching (#18).
+- Tools > BingQuerys > Now not need of Extension for Query Fetching #18
 - Tools > Bookmark Commands using Keywords Added for Faster Access.
 
 ### 🗑️ Removed
 - Footer > Removed Unwanted String from the Footer.
-- Tools > Flag Not Loading Issue Fixed by (#17)
-- Tools > Selected Value Rendering (#16)
+- Tools > Flag Not Loading Issue Fixed by #17
+- Tools > Selected Value Rendering #16
 
 ---
 

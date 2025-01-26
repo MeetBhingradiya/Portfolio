@@ -34,7 +34,7 @@ import {
     Button,
     ButtonGroup,
     Tooltip
-} from "@nextui-org/react";
+} from "@heroui/react";
 
 import {
     ToggleButton,

@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import { generateDescription } from './FilesDescriptions';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 let Itrations = 0;
 const WhitelistedExtensions = [
@@ -24,7 +24,7 @@ function formatDate(date: Date): string {
 
 function isFileModified(filePath: string): boolean {
     try {
-        execSync(`git diff --quiet ${filePath}`);
+        execFileSync('git', ['diff', '--quiet', filePath]);
         return false;
     } catch (error) {
         return true;

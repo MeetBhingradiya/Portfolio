@@ -36,6 +36,7 @@
 
 ### 🗑️ Removed
 - Chnagelog > Vulnerability Disclosures
+- CodeQL > Shell command built from environment values
 
 ---
 

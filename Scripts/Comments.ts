@@ -69,7 +69,7 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
  *  Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last sUpdated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.8
  *  -----------------------------------------------------------------------------
  *  ${createdDate}
  *  ${modifiedDate}

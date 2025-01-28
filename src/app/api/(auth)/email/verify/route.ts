@@ -12,7 +12,7 @@
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
  *  via any medium, is strictly prohibited without prior written consent from the
- *  author or the organization.
+ *  author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -21,10 +21,10 @@
  *  Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last sUpdated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.8
  *  -----------------------------------------------------------------------------
  *  @created 22/01/25 1:05 PM IST (Kolkata +5:30 UTC)
- *  @modified 22/01/25 1:05 PM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
 
 

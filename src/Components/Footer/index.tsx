@@ -1,20 +1,32 @@
 /**
  *  @FileID          Components\Footer\index.tsx
  *  @Description     Currently, there is no description available.
- *  @Author          @MeetBhingradiya
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
- *  Copyright (c) 2025 Meet Bhingradiya
+ *  
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author.
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  via any medium, is strictly prohibited without prior written consent from the
+ *  author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
+ *  
+ *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
+ *  Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Last Updated on Version: 1.0.8
+ *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
+
 
 "use client";
 
@@ -23,7 +35,7 @@ import "@Styles/Footer.sass";
 import { motion } from "framer-motion";
 import { Config } from "@Config/index";
 import { getRelativeTime } from "@Utils/Relativetime";
-import { Tooltip } from "@nextui-org/react";
+import { Tooltip } from "@heroui/react";
 import {
     Contrast,
     DarkMode,
@@ -37,7 +49,11 @@ import {
 import { SocialLinks } from "@Config/SocialLinks";
 import { useTheme } from "@Hooks/useTheme";
 
-function Footer({ ShowonFirstRender }: { ShowonFirstRender?: boolean }) {
+function Footer({ ShowonFirstRender, isHideSocialLinks }: {
+    ShowonFirstRender?: boolean
+    isHideSocialLinks?: boolean
+}
+) {
     const { theme, toggleTheme } = useTheme();
     const [State, setState] = React.useState({
         isFooterVisible: false,
@@ -94,22 +110,25 @@ function Footer({ ShowonFirstRender }: { ShowonFirstRender?: boolean }) {
             animate={{ y: State.isFooterVisible ? 0 : "100%" }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
         >
-            <motion.div
-                className="Social"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-            >
-                {SocialLinks.map((item, index) => {
-                    if (item.isEnable) {
-                        return (
-                            <Tooltip key={index} content={item.Label} placement="top">
-                                <a href={item.URL}>{item.Component}</a>
-                            </Tooltip>
-                        );
-                    }
-                })}
-            </motion.div>
+            {
+                !isHideSocialLinks && (<motion.div
+                    className="Social"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                >
+                    {SocialLinks.map((item, index) => {
+                        if (item.isEnable) {
+                            return (
+                                <Tooltip key={index} content={item.Label} placement="top">
+                                    <a href={item.URL}>{item.Component}</a>
+                                </Tooltip>
+                            );
+                        }
+                    })}
+                </motion.div>)
+            }
+
             All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
             <div className="flex items-center">
                 {/* <Tooltip content="Language" placement="top">

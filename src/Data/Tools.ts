@@ -1,20 +1,32 @@
 /**
  *  @FileID          Data\Tools.ts
  *  @Description     Currently, there is no description available.
- *  @Author          @MeetBhingradiya
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
- *  Copyright (c) 2025 Meet Bhingradiya
+ *  
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author.
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  via any medium, is strictly prohibited without prior written consent from the
+ *  author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
+ *  
+ *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
+ *  Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Last Updated on Version: 1.0.8
+ *  -----------------------------------------------------------------------------
  *  @created 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
+
 
 import type {
     IBookmark,
@@ -537,6 +549,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Notion Logout",
         url: "https://www.notion.so/logout",
+        icon: "https://www.notion.so/images/favicon.ico",
         keywords: [
             "notion/logout"
         ]
@@ -603,8 +616,8 @@ const BookmarksDB_: Array<IBookmark> = [
         ]
     },
     {
-        name: "NextUI",
-        url: "http://nextui.org/",
+        name: "HeroUI",
+        url: "https://www.heroui.com/",
         keywords: [
             "UI Framework",
             "React Components",
@@ -754,6 +767,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "NPM",
         url: "https://www.npmjs.com/",
+        icon: "https://avatars.githubusercontent.com/u/9950313?s=200&v=4",
         keywords: [
             "NPM",
             "Node",
@@ -952,6 +966,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Meta Ai",
         url: "https://www.meta.ai/",
+        icon: "https://aimode.co/wp-content/uploads/2024/07/meta-ai-logo.webp",
         keywords: [
             "Meta",
             "AI",
@@ -1049,6 +1064,7 @@ const BookmarksDB_: Array<IBookmark> = [
     {
         name: "Myntra",
         url: "https://www.myntra.com/",
+        icon:"https://cdn.iconscout.com/icon/free/png-512/free-myntra-logo-icon-download-in-svg-png-gif-file-formats--shopping-brand-online-application-app-mobile-indian-companies-pack-logos-icons-2249158.png?f=webp&w=256",
         keywords: [
             "Myntra",
             "Fashion",
@@ -1083,6 +1099,26 @@ const BookmarksDB_: Array<IBookmark> = [
             "Web",
             "Store",
             "Extensions"
+        ]
+    },
+    {
+        name: "Password Manager",
+        url: "https://passwords.google.com/",
+        icon: "https://img.icons8.com/fluency/256/google-password.png",
+        keywords: [
+            "Password",
+            "Manager",
+            "Google"
+        ]
+    },
+    {
+        name: "Photos",
+        url: "https://photos.google.com/",
+        icon: "https://photos.google.com/favicon.ico",
+        keywords: [
+            "Photos",
+            "Google",
+            "Gallery"
         ]
     }
 ]

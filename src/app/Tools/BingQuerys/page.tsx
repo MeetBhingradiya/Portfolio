@@ -1,20 +1,32 @@
 /**
  *  @FileID          app\Tools\BingQuerys\page.tsx
  *  @Description     Currently, there is no description available.
- *  @Author          @MeetBhingradiya
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
- *  Copyright (c) 2025 Meet Bhingradiya
+ *  
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author.
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  via any medium, is strictly prohibited without prior written consent from the
+ *  author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC) IST (Kolkata +5:30 UTC)
- *  @modified 18/01/25 2:26 PM IST (Kolkata +5:30 UTC)
+ *  
+ *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
+ *  Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Last Updated on Version: 1.0.8
+ *  -----------------------------------------------------------------------------
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
+
 
 "use client"
 
@@ -40,8 +52,8 @@ import {
     SelectItem,
     SelectedItems,
     Tooltip,
-} from "@nextui-org/react";
-import type { Selection } from "@nextui-org/react";
+} from "@heroui/react";
+import type { Selection } from "@heroui/react";
 import { Settings } from "@mui/icons-material";
 import {
     Select as MUISelect,

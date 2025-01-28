@@ -1,3 +1,4 @@
+// @use "tailwindcss"
 @tailwind base
 @tailwind components
 @tailwind utilities
@@ -8,6 +9,7 @@
     --background: var(--background-light)
     --background-solid: var(--background-light-solid)
     --font-color: var(--font-color-light)
+    --description-font-color: var(--description-font-color-light)
     --font-color-anti: var(--font-color-dark)
     --accent-color: #a600ff
     --divider: var(--divider-light)
@@ -22,6 +24,9 @@
     
     --font-color-light: #000
     --font-color-dark: #fff
+
+    --description-font-color-light: #0000008f
+    --description-font-color-dark: #ffffff8f
     
     --divider-light: rgba(0, 0, 0, 0.1)
     --divider-dark: rgba(255, 255, 255, 0.1)
@@ -33,6 +38,7 @@ html.dark
     --background: var(--background-dark)
     --background-solid: var(--background-dark-solid)
     --font-color: var(--font-color-dark)
+    --description-font-color: var(--description-font-color-dark)
     --font-color-anti: var(--font-color-light)
     --divider: var(--divider-dark)
     --chip-hover: var(--chip-hover-dark)
@@ -42,6 +48,7 @@ html.dark
         --background: var(--background-dark)
         --background-solid: var(--background-dark-solid)
         --font-color: var(--font-color-dark)
+        --description-font-color: var(--description-font-color-dark)
         --font-color-anti: var(--font-color-light)
         --divider: var(--divider-dark)
         --chip-hover: var(--chip-hover-dark)

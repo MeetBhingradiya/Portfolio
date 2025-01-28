@@ -1,0 +1,25 @@
+/*
+	jsrepo 1.28.4
+	Installed from https://reactbits.dev/default/
+	26-1-2025
+*/
+
+.magnetLines-container {
+  display: grid;
+  grid-template-columns: repeat(var(--columns), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+
+  /* Center each span in its grid cell */
+  justify-items: center;
+  align-items: center;
+
+  width: 80vmin;
+  height: 80vmin;
+}
+
+.magnetLines-container span {
+  display: block;
+  transform-origin: center; /* so rotation pivots at the center */
+  will-change: transform;
+  transform: rotate(var(--rotate));
+}

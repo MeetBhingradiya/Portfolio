@@ -13,6 +13,12 @@ const nextConfig: NextConfig = {
         loaderFile: "./src/Utils/RemoteImageLoader.ts",
         minimumCacheTTL: 60,
         unoptimized: true,
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: "*", // Match all hostnames
+            }
+        ]
     },
     async headers() {
         return [
@@ -58,9 +64,9 @@ const nextConfig: NextConfig = {
                                     Eval: true,
                                     Domains: [
                                         'https://pagead2.googlesyndication.com',
-                                        'https://ep2.adtrafficquality.google',
+                                        'https://ep2.adtrafficquality.google'
                                     ]
-                                },
+                                }
                             },
                             minify: true,
                             removeWhitespace: true
@@ -73,8 +79,29 @@ const nextConfig: NextConfig = {
 
     // ? SASS Options
     sassOptions: {
-        silenceDeprecations: ["legacy-js-api"],
-        implementation: 'sass'
+        silenceDeprecations: ['legacy-js-api'],
+        implementation: 'sass',
+        includePaths: [path.join(__dirname, 'src', 'Styles')],
+    },
+    experimental: {
+        turbo: {
+            resolveAlias: {
+                ...Object.fromEntries(
+                    Object.entries(tsconfig.compilerOptions.paths).map(([key, value]) => [
+                        key.replace('/*', ''),
+                        path.resolve(path.resolve(), value[0].replace('/*', ''))
+                    ])
+                )
+            },
+            // ! Turbo Pack Missing Loader
+            // rules: {
+            //     // ? Image Loader
+            //     'image/*': {
+            //         loader: 'remote',
+            //         asset: "sdfsd",
+            //     },
+            // }
+        }
     },
     webpack: (config: any, { buildId, dev, isServer, defaultLoaders, webpack }: any) => {
         let Config = {

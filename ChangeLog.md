@@ -2,12 +2,6 @@
 - The format follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ---
 
-## 🔐 Vulnerability Disclosures
-- **`SvgComponent`** - Sanitized to ensure better security.
-- **`CSRF`** - Every Request Must be an Made by Real End User or Automation BOT's not a DDOS or Auto Spam!
-- **`XSS Filter`** - Add XSS Filter to All the Input Elements that Connected to API & Database
----
-
 <!-- # vUnreleased - DD/MM/YYYY (Expected)
 
 ### 🌟 Added
@@ -23,6 +17,30 @@
 ---
 
 -->
+
+# v1.0.8 - 28/01/2025
+
+### 🌟 Added
+- 2 New Bookmark Added.
+- Tools > Suggestions & Search Engine Funcations Added.
+- Tools > Search bar now Focus on Spacebar Press.
+- Axios > Request Cancelation Added for Faster Response on Searchbar Query.
+- Library > React Bits - for Advanced Animations & Animated Components.
+
+### 🔄 Changed
+- Tools > Cloud Sync Disabled By Default.
+- Tools > Icons Improved for Better Visibility.
+- Utils > Sitemap Utils Improved for Better Performance & Faster Response.
+- API > Sitemap > `Prorities` Now Dynamically Generated from `Frequency`.
+- NextUI > HeroUI > Migration is Done.
+
+### 🗑️ Removed
+- Chnagelog > Vulnerability Disclosures
+- CodeQL > Shell command built from environment values
+- Profile README > Moved to Another Repository for Security Reasons of this Repository.
+
+---
+
 # v1.0.7 - 20/01/2025
 
 ### 🌟 Added
@@ -39,13 +57,13 @@
 - Middleware > Exluded CSRF Endpoints Accuracy Improved using Regex.
 - Types > Gender Enum Moved to Types
 - Tools > Google Trend Querys to Bing Querys
-- Tools > BingQuerys > Now not need of Extension for Query Fetching (#18).
+- Tools > BingQuerys > Now not need of Extension for Query Fetching #18
 - Tools > Bookmark Commands using Keywords Added for Faster Access.
 
 ### 🗑️ Removed
 - Footer > Removed Unwanted String from the Footer.
-- Tools > Flag Not Loading Issue Fixed by (#17)
-- Tools > Selected Value Rendering (#16)
+- Tools > Flag Not Loading Issue Fixed by #17
+- Tools > Selected Value Rendering #16
 
 ---
 

@@ -1,26 +1,38 @@
 /**
  *  @FileID          app\Tools\page.tsx
  *  @Description     Currently, there is no description available.
- *  @Author          @MeetBhingradiya
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
- *  Copyright (c) 2025 Meet Bhingradiya
+ *  
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author.
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  via any medium, is strictly prohibited without prior written consent from the
+ *  author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
+ *  
+ *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
+ *  Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Last Updated on Version: 1.0.8
+ *  -----------------------------------------------------------------------------
  *  @created 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
+
 
 "use client";
 
 import React from "react";
 import { ISearchEngine, ILocale } from "@Types/Tools";
-import type { IBookmark, IState } from "@Types/Tools";
+import type { IBookmark, IState, ISuggestion } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB } from "@Data/Tools";
 import Image from "next/image";
@@ -38,7 +50,11 @@ import {
     Cloud,
     Restore,
     Book,
-    Bookmark
+    Bookmark,
+    Home,
+    Circle,
+    ScatterPlot,
+    Search
 } from "@mui/icons-material";
 import {
     Menu,
@@ -59,7 +75,7 @@ import {
     SelectItem,
     Checkbox,
     Tooltip
-} from "@nextui-org/react";
+} from "@heroui/react";
 import { styled, alpha } from '@mui/material/styles';
 import {
     GridContextProvider,
@@ -72,6 +88,8 @@ import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
 import { Config } from "@Config/index";
+import Link from "next/link";
+import { changeCase } from "@Utils/CaseChnage";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -127,24 +145,32 @@ const StyledMenu = styled((props: MenuProps) => (
 
 const StorageKey = "Tools";
 
+const SearchEnginePresets = {
+    google: `https://www.google.com/search?q=@Query&utm_source=${Config.WhiteListedDomains[0]}`,
+    bing: `https://www.bing.com/search?q=@Query&utm_source=${Config.WhiteListedDomains[0]}`,
+    duckduckgo: `https://duckduckgo.com/?q=@Query&utm_source=${Config.WhiteListedDomains[0]}`,
+    brave: `https://search.brave.com/search?q=@Query&utm_source=${Config.WhiteListedDomains[0]}`,
+    qwant: `https://www.qwant.com/?q=@Query&utm_source=${Config.WhiteListedDomains[0]}`,
+    yahoo: `https://search.yahoo.com/search?p=@Query&utm_source=${Config.WhiteListedDomains[0]}`,
+}
+
 function Tools() {
     // @ States
     const isClient = useWindowCheck();
     const [State, setState] = React.useState<IState>({
-        FilterSuggestions: [],
         FilterBookmarks: [],
         Bookmarks: [...BookmarksDB],
-        Suggestions: [],
         Query: "",
         Settings: {
             isFirstRun: true,
             isNewTab: true,
             RandomizeLinks: true,
-            CloudSync: true,
+            CloudSync: false,
             SearchEngine: ISearchEngine.GOOGLE,
             Locale: ILocale.EN
         }
     });
+    const [Suggestions, setSuggestions] = React.useState<Array<ISuggestion>>([]);
     const [windowWidth, setWindowWidth] = React.useState<number>(isClient ? window.innerWidth : 0);
     const [contextMenu, setContextMenu] = React.useState<{
         mouseX: number;
@@ -182,6 +208,11 @@ function Tools() {
             searchInputRef.current.blur();
         }
 
+        // ? On Space Focus on Search
+        if (e.key === " " && searchInputRef.current) {
+            searchInputRef.current.focus();
+        }
+
         // ? On Enter Open First Link
         if (e.key === "Enter") {
             if (State.FilterBookmarks.length > 0 && State.Query.length > 0) {
@@ -191,6 +222,21 @@ function Tools() {
                     FilterBookmarks: State.Bookmarks,
                     Query: "",
                 });
+                return;
+            }
+
+            if (State.Query.length > 0) {
+                window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
+                setState({
+                    ...State,
+                    FilterBookmarks: State.Bookmarks,
+                    Query: "",
+                });
+                return;
+            }
+
+            if (State.Query.length === 0 && searchInputRef.current) {
+                searchInputRef.current.focus();
             }
         }
 
@@ -223,8 +269,10 @@ function Tools() {
         });
     }
 
-    const onQueryChange = (e: any) => {
+    const abortControllerRef = React.useRef<AbortController | null>(null);
+    const onQueryChange = async (e: any) => {
         const query = e.target.value.toLowerCase();
+        const OriginalQuery = e.target.value;
 
         const isExactMatch = (name: string, keywords: Array<string> = []): boolean => {
             return name.toLowerCase() === query || keywords.some((keyword) => keyword.toLowerCase() === query);
@@ -272,11 +320,71 @@ function Tools() {
 
         setState({
             ...State,
-            Query: query,
+            Query: OriginalQuery,
             FilterBookmarks: filteredBookmarks
         });
+
+        if (query.length > 0) {
+            FetchSuggestions();
+        } else {
+            setSuggestions([]);
+        }
     };
 
+    const FetchSuggestions = async () => {
+        let ProcessedSuggestions: any[] = [];
+
+        if (State.FilterBookmarks.length === 0) {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
+
+            const controller = new AbortController();
+            abortControllerRef.current = controller;
+
+            let API = "https://api.suggestions.victr.me/";
+            let _API = new URL(API);
+            _API.searchParams.append("q", State.Query);
+            _API.searchParams.append("l", State.Settings.Locale);
+            _API.searchParams.append("with", State.Settings.SearchEngine);
+
+            try {
+                const response = (await Axios.post(
+                    "/api/cors",
+                    {
+                        body: {
+                            endpoint: _API,
+                            method: "GET",
+                            body: null,
+                            headers: {},
+                        },
+                        method: "POST",
+                    },
+                    { signal: controller.signal }
+                )).data;
+
+                const Suggestions = response.data
+
+                if (!Suggestions) {
+                    return;
+                }
+
+                ProcessedSuggestions = Suggestions.map((suggestion: any) => {
+                    return {
+                        Query: suggestion.text,
+                        Thumbnail: suggestion.image,
+                        Description: suggestion.desc,
+                    };
+                });
+            } catch (error: any) {
+                if (error.name === "CanceledError") {
+                    console.warn("Request Aborted");
+                }
+            }
+        }
+
+        setSuggestions(ProcessedSuggestions);
+    };
 
     function handleContextMenu(e: React.MouseEvent<HTMLDivElement>, ID: string) {
         e.preventDefault();
@@ -406,6 +514,11 @@ function Tools() {
         setWindowWidth(window.innerWidth);
     };
 
+    function SearchEngineLinkBuilder(query: string) {
+        let SearchEngine = SearchEnginePresets[State.Settings.SearchEngine as ISearchEngine];
+        return SearchEngine.replace("@Query", query);
+    }
+
     // @Updates
 
     // ? Initial Run & Window Resize, Focus on Search Input Listeners
@@ -477,7 +590,6 @@ function Tools() {
 
     // ? State Sync with Storage
     React.useEffect(() => {
-
         localStorage.setItem(StorageKey, JSON.stringify({
             Booksmarks: State.Bookmarks,
             Settings: {
@@ -533,82 +645,165 @@ function Tools() {
             <div
                 className="SearchWarp"
             >
-                <motion.div
-                    className="button"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                    onClick={(e) => {
-                        setModalData({
-                            ...ModalData,
-                            isSettingsOpen: false,
-                            isOpen: true,
-                        });
-                    }}
-                >
-                    <Add />
-                </motion.div>
-                <motion.input
-                    id="search"
-                    type="text"
-                    placeholder="🔍 Search"
-                    tabIndex={1}
-                    value={State.Query}
-                    onChange={onQueryChange}
-                    className="search"
-                    ref={searchInputRef}
-                    autoComplete="off"
-                    onHoverStart={() => {
-                        if (searchInputRef.current !== null) {
-                            searchInputRef.current.focus();
-                        }
-                    }}
-                    onHoverEnd={() => {
-                        if (searchInputRef.current !== null) {
-                            searchInputRef.current.blur();
-                        }
-                    }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                />
-                <AnimatePresence>
-                    {
-                        State.Query !== "" && (
-                            <motion.div
-                                className="button"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ delay: 0.2, duration: 0.2, ease: "easeInOut" }}
-                                onClick={(e) => {
-                                    setState({
-                                        ...State,
-                                        FilterBookmarks: State.Bookmarks,
-                                        Query: "",
-                                    })
+                {/* Suggestions */}
+                {
+                    State.FilterBookmarks.length === 0 && (
+                        <div className="Suggestions">
+                            {
+                                Suggestions.map((item, index) => (
+                                    <div
+                                        key={index}
+                                        className="Suggestion"
+                                        onClick={() => {
+                                            window.open(SearchEngineLinkBuilder(item.Query), State.Settings.isNewTab ? "_blank" : "_self");
+                                        }}
+                                    >
+                                        {
+                                            item?.Thumbnail && (
+                                                <Image
+                                                    className="Thumbnail"
+                                                    width={64}
+                                                    height={64}
+                                                    src={item?.Thumbnail}
+                                                    alt="Thumbnail"
+                                                />
+                                            )
+                                        }
+                                        {
+                                            !item?.Thumbnail && (
+                                                <p className="Thumbnail">
+                                                    <Search />
+                                                </p>
+                                            )
+                                        }
+                                        <div className="QueryWarp">
+                                            <h2 className="Title">{changeCase.upperFirst(item?.Query)}</h2>
+                                            <p className="Description">{item?.Description}</p>
+                                        </div>
+                                    </div>
+                                ))
+                            }
+
+                            {/* ? Defualt Query as Suggestion */}
+                            <div className="Suggestion"
+                                onClick={() => {
+                                    window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
                                 }}
                             >
-                                <Close />
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence>
-                <motion.div
-                    className="button"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                    onClick={(e) => {
-                        setModalData({
-                            ...ModalData,
-                            isSettingsOpen: true,
-                            isOpen: true,
-                        });
-                    }}
-                >
-                    <Settings />
-                </motion.div>
+                                <p className="Thumbnail">
+                                    <Search />
+                                </p>
+                                <div className="QueryWarp">
+                                    <h2 className="Title">{changeCase.upperFirst(State.Query)}</h2>
+                                </div>
+                            </div>
+
+                            {
+                                Suggestions.length === 0 && (
+                                    <div
+                                        className="Suggestion"
+                                    >
+                                        <p className="Thumbnail Loading">
+                                            <ScatterPlot />
+                                        </p>
+                                        <h2 className="Title">Loading...</h2>
+                                    </div>)
+                            }
+                        </div>
+                    )
+                }
+                <div className="flex flex-row gap-2 CommandRow">
+                    <Tooltip content="Go Home" placement="top">
+                        <motion.div
+                            className="button"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                            onClick={() => {
+                                window.location.href = "/Home";
+                            }}
+                        >
+                            <Home />
+                        </motion.div>
+                    </Tooltip>
+
+                    <motion.div
+                        className="button"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                        onClick={(e) => {
+                            setModalData({
+                                ...ModalData,
+                                isSettingsOpen: false,
+                                isOpen: true,
+                            });
+                        }}
+                    >
+                        <Add />
+                    </motion.div>
+                    <motion.input
+                        id="search"
+                        type="text"
+                        placeholder="🔍 Search"
+                        tabIndex={1}
+                        value={State.Query}
+                        onChange={onQueryChange}
+                        className="search"
+                        ref={searchInputRef}
+                        autoComplete="off"
+                        onHoverStart={() => {
+                            if (searchInputRef.current !== null) {
+                                searchInputRef.current.focus();
+                            }
+                        }}
+                        onHoverEnd={() => {
+                            if (searchInputRef.current !== null) {
+                                searchInputRef.current.blur();
+                            }
+                        }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                    />
+                    <AnimatePresence>
+                        {
+                            State.Query !== "" && (
+                                <motion.div
+                                    className="button"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ delay: 0.2, duration: 0.2, ease: "easeInOut" }}
+                                    onClick={(e) => {
+                                        setState({
+                                            ...State,
+                                            FilterBookmarks: State.Bookmarks,
+                                            Query: "",
+                                        })
+                                    }}
+                                >
+                                    <Close />
+                                </motion.div>
+                            )
+                        }
+                    </AnimatePresence>
+                    <motion.div
+                        className="button"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                        onClick={(e) => {
+                            setModalData({
+                                ...ModalData,
+                                isSettingsOpen: true,
+                                isOpen: true,
+                            });
+                        }}
+                    >
+                        <Settings />
+                    </motion.div>
+                </div>
             </div>
 
             <GridContextProvider onChange={onGridChange}>

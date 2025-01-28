@@ -1,20 +1,34 @@
 /**
  *  @FileID          Utils\Sitemap.ts
- *  @Description     Currently, there is no description available.
- *  @Author          @MeetBhingradiya
+ *  @Description     utility functions for generating sitemaps.
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
- *  Copyright (c) 2025 Meet Bhingradiya
+ *  
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author.
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  via any medium, is strictly prohibited without prior written consent from the
+ *  author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
+ *  
+ *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
+ *  Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------
+ *  Last Updated on Version: 1.0.8
+ *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 12:00 PM IST (Kolkata +5:30 UTC)
  */
+
+
+import { config } from "process";
 
 /**
  * Generates the XML header for the sitemap.
@@ -68,34 +82,78 @@ function SitemapIndexItemWrap(endpoint: string): string {
  */
 function SitemapItemWrap({
     endpoint,
-    lastmod = new Date().toISOString(),
-    frequency = 'weekly',
-    priority = 0.5,
-    alternates = []
+    lastmod,
+    frequency,
+    priority,
+    alternates,
+    config
 }: {
+    /**
+     * The URL of the sitemap item.
+     */
     endpoint: string;
+    /**
+     * The last modified date of the sitemap item.
+     */
     lastmod?: string | Date;
-    frequency?: 'always' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'yearly' | 'never';
+    /**
+     * The frequency of the sitemap item.
+     * @example "always", "hourly", "daily", "weekly", "monthly", "yearly", "never"
+     */
+    frequency?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+    /**
+     * The priority of the sitemap item.
+     */
     priority?: number;
+    /**
+     * The alternate links for the sitemap item.
+     */
     alternates?: { lang: string; url: string }[];
+    /**
+     * Configuration options for the sitemap item.
+     */
+    config?: {
+        /**
+         * Automatically set the priority based on the frequency.
+         * ! Requires the `frequency` parameter to be set.
+         * ! Overrides the `priority` parameter.
+         */
+        autoPriority?: boolean;
+    }
 }): string {
-    if (!endpoint) throw new Error('Endpoint is required for SitemapItemWrap.');
+    if (!endpoint) throw new Error("Endpoint is required for SitemapItemWrap.");
 
     const alternateLinks = alternates
-        .map(
+        ?.map(
             ({ lang, url }) =>
                 `<xhtml:link rel="alternate" hreflang="${lang}" href="${url}" />`
         )
-        .join('\n');
+        .join("\n");
 
-    return `<url>
-<loc>${endpoint}</loc>
-<lastmod>${lastmod instanceof Date ? lastmod.toISOString() : lastmod}</lastmod>
-<changefreq>${frequency}</changefreq>
-<priority>${priority}</priority>
-${alternateLinks}
-</url>`;
+    let sitemapItem = `<url>\n<loc>${endpoint}</loc>\n`;
+
+    if (lastmod) {
+        sitemapItem += `<lastmod>${lastmod instanceof Date ? lastmod.toISOString() : lastmod
+            }</lastmod>\n`;
+    }
+    if (frequency) {
+        sitemapItem += `<changefreq>${frequency}</changefreq>\n`;
+    }
+    if (priority !== undefined) {
+        sitemapItem += `<priority>${priority}</priority>\n`;
+    }
+    if (config?.autoPriority) {
+        sitemapItem += `<priority>${getPriority(frequency!)}</priority>\n`;
+    }
+    if (alternateLinks) {
+        sitemapItem += `${alternateLinks}\n`;
+    }
+
+    sitemapItem += `</url>`;
+
+    return sitemapItem;
 }
+
 
 /**
  * Combines multiple sitemap items into a single sitemap URL set.
@@ -117,9 +175,59 @@ function generateSitemapIndex(items: string[]): string {
     return XMLWrap(SitemapIndexWrap(content));
 }
 
+type Frequency =
+    | "always"
+    | "hourly"
+    | "daily"
+    | "weekly"
+    | "monthly"
+    | "yearly"
+    | "never";
+
+function getPriority(frequency: Frequency): number {
+    const priorityMap: Record<Frequency, number> = {
+        always: 1.0,
+        hourly: 0.9,
+        daily: 0.8,
+        weekly: 0.6,
+        monthly: 0.4,
+        yearly: 0.2,
+        never: 0.0,
+    };
+
+    return priorityMap[frequency];
+}
+
+interface EndpointFrequency {
+    route: string
+    frequency: Frequency
+}
+
+interface RoutePriority {
+    route: string
+    priority: number
+    frequency: Frequency
+}
+
+function mapEndpointsToPriorities(endpoints: EndpointFrequency[]): RoutePriority[] {
+    return endpoints.map(({ route, frequency }) => ({
+        route,
+        priority: getPriority(frequency),
+        frequency,
+    }));
+}
+
 export {
     generateSitemap,
     generateSitemapIndex,
     SitemapItemWrap,
-    SitemapIndexItemWrap
+    SitemapIndexItemWrap,
+    mapEndpointsToPriorities,
+    getPriority,
+}
+
+export type {
+    EndpointFrequency,
+    RoutePriority,
+    Frequency
 }

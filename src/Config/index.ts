@@ -30,7 +30,7 @@
 
 const Config = {
     version: "1.0.8",
-    releasedate: "2025-1-30",
+    releasedate: "2025-1-28",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,

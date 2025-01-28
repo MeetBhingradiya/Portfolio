@@ -18,7 +18,7 @@
 
 -->
 
-# v1.0.8 - 30/01/2025 (Expected)
+# v1.0.8 - 28/01/2025
 
 ### 🌟 Added
 - 2 New Bookmark Added.
@@ -37,6 +37,7 @@
 ### 🗑️ Removed
 - Chnagelog > Vulnerability Disclosures
 - CodeQL > Shell command built from environment values
+- Profile README > Moved to Another Repository for Security Reasons of this Repository.
 
 ---
 

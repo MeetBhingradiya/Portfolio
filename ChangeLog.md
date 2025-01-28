@@ -16,23 +16,42 @@
 
 ---
 
+
 -->
+
+# v1.0.9 - 14/02/2025 (Expected)
+
+### 🌟 Added
+-
+
+### 🔄 Changed
+- Scripts > Comments Version Updated to `1.0.9`
+
+
+### 🗑️ Removed
+-
+
+---
+
+
 
 # v1.0.8 - 28/01/2025
 
 ### 🌟 Added
-- 2 New Bookmark Added.
-- Tools > Suggestions & Search Engine Funcations Added.
+- 2 New Bookmark Added & Few of them are Modified.
+- Tools > Suggestions & Search Engine Funcations Added #21
 - Tools > Search bar now Focus on Spacebar Press.
-- Axios > Request Cancelation Added for Faster Response on Searchbar Query.
-- Library > React Bits - for Advanced Animations & Animated Components.
+- Axios > Request Cancelation Added for Faster Response on Searchbar Query #22
+- Library > React Bits - for Advanced Animations & Animated Components #33
+- Utils > UserAgent Parser #28
 
 ### 🔄 Changed
 - Tools > Cloud Sync Disabled By Default.
 - Tools > Icons Improved for Better Visibility.
 - Utils > Sitemap Utils Improved for Better Performance & Faster Response.
 - API > Sitemap > `Prorities` Now Dynamically Generated from `Frequency`.
-- NextUI > HeroUI > Migration is Done.
+- NextUI > HeroUI > Migration is Done #23
+- Bug > Producation > 403 Invalid Auth on Quey Fetching #26
 
 ### 🗑️ Removed
 - Chnagelog > Vulnerability Disclosures

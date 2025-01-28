@@ -27,10 +27,9 @@
  *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
 
-
 const Config = {
-    version: "1.0.8",
-    releasedate: "2025-1-28",
+    version: "1.0.9",
+    releasedate: "2025-2-14",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,

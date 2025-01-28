@@ -27,30 +27,6 @@
  *  @modified 28/01/25 12:00 PM IST (Kolkata +5:30 UTC)
  */
 
-
-
-// ? Upper Comment is Auto Generated. Please, Don't Consider it Main Content Due to This File is Third Party Library.
-
-/**!
- *  @FileID          Utils\UserAgent.ts
- *  @Description     UserAgent Parser class for Next.js
- *  @Author          @biggora (express-useragent)
- *  @ModifiedBy      @MeetBhingradiya
- *  @License         MIT
- *  
- *  -----------------------------------------------------------------------------
- *  Copyright (c) 2011-2020 Aleksejs Gordejevs
- *  All rights reserved.
- *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author, modifier or the organization.
- *  
- *  -----------------------------------------------------------------------------
- *  @created 25/01/25 05:52 AM IST (Kolkata +5:30 UTC)
- *  @modified 25/01/25 05:52 PM IST (Kolkata +5:30 UTC)
- */
-
 interface Agent {
     source: string;
     os: string;

@@ -22,11 +22,12 @@
 # v1.0.9 - 14/02/2025 (Expected)
 
 ### 🌟 Added
--
+- 3 New Database Models Added #40
+- Blogs > Blogs Controllers Added
 
 ### 🔄 Changed
-- Scripts > Comments Version Updated to `1.0.9`
-
+- 🗨️ **Auto Comments** : License Updated.
+<!-- - 📦 **Dependencies**: Updated to the latest versions (as of `05-02-2025`). -->
 
 ### 🗑️ Removed
 -

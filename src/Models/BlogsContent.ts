@@ -1,5 +1,5 @@
 /**
- *  @FileID          Models\Categories.ts
+ *  @FileID          Models\Blogs.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -16,49 +16,39 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
- *  This project is not officially affiliated with, endorsed by, or in any way associated 
- *  with GitHub or Microsoft Corporation.
+ *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
+ *  Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.8
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 30/01/25 8:47 PM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
-
 
 import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 
-const Categorie_Schema: mongoose.Schema = new mongoose.Schema({
-    CategorieID: {
+const BlogsContents_Schema: mongoose.Schema = new mongoose.Schema({
+    ContentID: {
         type: String,
         default: v4,
         unique: true,
         required: true
     },
-    Title: {
+    Data: {
         type: String,
         required: true
-    },
-    Description: {
-        type: String
-    },
-    AuthorID: {
-        type: String
     }
 }, {
     timestamps: true,
     versionKey: "v1"
 });
 
-export interface ICategorie extends mongoose.Document {
-    CategorieID: string;
-    Title: string;
-    Description: string;
-    AuthorID: string;
+export interface IBlogsContents extends mongoose.Document {
+    ContentID: string;
+    Data: string;
 }
 
-export const Categories_Model: mongoose.Model<ICategorie> = mongoose.models?.Categories || mongoose.model<ICategorie>("Categories", Categorie_Schema);
+export const BlogsContents_Model: mongoose.Model<IBlogsContents> = mongoose.models?.BlogsContents || mongoose.model<IBlogsContents>("BlogsContents", BlogsContents_Schema);

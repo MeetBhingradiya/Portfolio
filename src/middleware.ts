@@ -34,12 +34,11 @@ import { SignJWT, importJWK, jwtVerify } from 'jose';
 const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 
 export async function middleware(req: NextRequest) {
-
     const csrfToken = await new SignJWT({})
-    .setProtectedHeader({ alg: 'HS256' })
-    .setIssuedAt()
-    .setExpirationTime('20m')
-    .sign(await importJWK({ kty: 'oct', k: CSRF_KEY }));
+        .setProtectedHeader({ alg: 'HS256' })
+        .setIssuedAt()
+        .setExpirationTime('20m')
+        .sign(await importJWK({ kty: 'oct', k: CSRF_KEY }));
 
     const ModifiedHeaders = new Headers(req.headers);
     ModifiedHeaders.set('x-url', req.url);
@@ -79,26 +78,26 @@ export async function middleware(req: NextRequest) {
         }
 
         if (!csrfTokenFromHeader) {
-            return NextResponse.json({ 
+            return NextResponse.json({
                 Status: 0,
                 Message: 'Invalid Authorization',
-                StatusCode: 403
+                StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
 
         if (!csrfTokenFromCookie) {
-            return NextResponse.json({ 
+            return NextResponse.json({
                 Status: 0,
                 Message: 'Invalid Authorization',
-                StatusCode: 403
+                StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
 
         if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
             return NextResponse.json({
-                Status: 1,
+                Status: 0,
                 Message: 'Invalid Authorization',
-                StatusCode: 403
+                StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
 
@@ -108,10 +107,18 @@ export async function middleware(req: NextRequest) {
             });
 
             if (!verified) {
-                return NextResponse.json({ message: 'Invalid Authorization' }, { status: 403 });
+                return NextResponse.json({
+                    Status: 0,
+                    Message: 'Invalid Authorization',
+                    StatusCode: 'INVALID_AUTHORIZATION'
+                }, { status: 403 });
             }
         } catch (error) {
-            return NextResponse.json({ message: 'Invalid Authorization' }, { status: 403 });
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Invalid Authorization',
+                StatusCode: "INVALID_AUTHORIZATION"
+            }, { status: 403 });
         }
     }
 

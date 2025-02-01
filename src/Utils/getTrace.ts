@@ -27,7 +27,6 @@
  *  @modified 28/01/25 12:00 PM IST (Kolkata +5:30 UTC)
  */
 
-
 async function getCSRFToken() {
     const response = await fetch('/api/trace', { method: 'POST' });
     const data = await response.json();

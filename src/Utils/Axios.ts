@@ -27,7 +27,6 @@
  *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
 
-
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { getCSRFToken } from './getTrace';
 
@@ -38,47 +37,47 @@ const Axios: AxiosInstance = axios.create({
     },
 });
 
+let csrfToken: any = null;
+let csrfRetryAttempted = false;
+
 Axios.interceptors.request.use(
     async (config: InternalAxiosRequestConfig<any>) => {
-        let csrfToken: any = null;
-        if (localStorage.getItem('trace')) {
-            const LocalStorehasValidToken = JSON.parse(localStorage.getItem('trace') || '{}')?.data; 
-            if (LocalStorehasValidToken) {
-                csrfToken = LocalStorehasValidToken
-            } else {
-                csrfToken = await getCSRFToken();
+        if (!csrfToken) {
+            csrfToken = await getCSRFToken().catch(() => null);
+            if (csrfToken?.Status === 1) {
                 localStorage.setItem('trace', JSON.stringify(csrfToken));
+            } else {
+                csrfToken = null;
+                return Promise.reject({ message: 'CSRF token retrieval failed' });
             }
-        } else {
-            csrfToken = await getCSRFToken();
-            localStorage.setItem('trace', JSON.stringify(csrfToken));
         }
 
-        if (csrfToken.Status === 1) {   
-            config.headers['x-csrf'] = csrfToken.data;
-            config.withCredentials = true;
-            return config;
-        } else {
-            return Promise.reject(csrfToken);
-        }
+        config.headers['x-csrf'] = csrfToken.data;
+        config.withCredentials = true;
+        return config;
     },
-    (error: any) => {
-        return Promise.reject(error);
-    }
+    (error: any) => Promise.reject(error)
 );
 
 Axios.interceptors.response.use(
-    (response: AxiosResponse) => {
-        return response;
-    },
-    (error: any) => {
-        if (error.response?.status === 403) {
+    (response: AxiosResponse) => response,
+    async (error: any) => {
+        if (error.response?.data?.StatusCode === "INVALID_AUTHORIZATION") {
             localStorage.removeItem('trace');
-            window.location.reload();
-            return Promise.reject(error);
+            csrfToken = null;
+
+            if (!csrfRetryAttempted) {
+                csrfRetryAttempted = true;
+                csrfToken = await getCSRFToken().catch(() => null);
+                if (csrfToken?.Status === 1) {
+                    localStorage.setItem('trace', JSON.stringify(csrfToken));
+                    return Axios.request(error.config);
+                }
+            }
         }
         return Promise.reject(error);
     }
 );
 
 export { Axios };
+

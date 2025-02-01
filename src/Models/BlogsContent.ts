@@ -1,5 +1,5 @@
 /**
- *  @FileID          Utils\getTrace.ts
+ *  @FileID          Models\Blogs.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -24,13 +24,31 @@
  *  Last Updated on Version: 1.0.8
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 12:00 PM IST (Kolkata +5:30 UTC)
+ *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
 
-async function getCSRFToken() {
-    const response = await fetch('/api/trace', { method: 'POST' });
-    const data = await response.json();
-    return data
+import mongoose from 'mongoose';
+import { v4 } from 'uuid';
+
+const BlogsContents_Schema: mongoose.Schema = new mongoose.Schema({
+    ContentID: {
+        type: String,
+        default: v4,
+        unique: true,
+        required: true
+    },
+    Data: {
+        type: String,
+        required: true
+    }
+}, {
+    timestamps: true,
+    versionKey: "v1"
+});
+
+export interface IBlogsContents extends mongoose.Document {
+    ContentID: string;
+    Data: string;
 }
 
-export { getCSRFToken };
+export const BlogsContents_Model: mongoose.Model<IBlogsContents> = mongoose.models?.BlogsContents || mongoose.model<IBlogsContents>("BlogsContents", BlogsContents_Schema);

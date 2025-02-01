@@ -27,7 +27,6 @@
  *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
  */
 
-
 import { default as Ballpit } from "./Ballpit";
 import { default as GridDistortion } from "./GridDistortion";
 import { default as ShapeBlur } from "./ShapeBlur";
@@ -36,8 +35,8 @@ import { default as GridMotion } from "./GridMotion";
 import { default as Squares } from "./Squares";
 import { default as LetterGlitch } from "./LetterGlitch";
 import { default as Waves } from "./Waves";
+import { default as BallpitUtils } from "./ballpit-utility";
 
-import BallpitUtils from "./ballpit-utility";
 import { hyperspeedPresets as HyperspeedPresets } from "./HyperSpeedPresets";
 
 const Backgrounds = {

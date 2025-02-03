@@ -27,39 +27,43 @@ $card-border-radius: 8px
         .Suggestions
             position: relative
             width: 50%
-            padding: 10px
+            padding: 5px 10px
             display: flex
             justify-content: center
             align-items: center
             flex-direction: column
             border: none
             border-radius: 8px
-            background: #0000004d
+            background: $card-bg-color
             backdrop-filter: blur(8px)
-            border: 1px solid #4646468f
+            border: 1px solid #333333a5
             color: #ffffff
             z-index: 2
-            gap: 0.4rem
+            gap: 0.3rem
+            .SuggestionActive
+                transform: scale(1.01)
+                background: #2f2f2faa
+                transition: 0.3s
             .Suggestion
                 position: relative
                 width: 100%
-                border-radius: 8px 8px 0px 0px
+                border-radius: 8px
                 padding: 5px 10px
-                border-bottom: 1px solid #4646468f
+                // border-bottom: 1px solid #4646468f
                 color: var(--font-color)
                 font-size: 0.8rem
                 outline: none
-                transition: 0.3s
+                border: 1px solid #ffffff00
                 cursor: pointer
                 display: flex
                 flex-direction: row
                 justify-content: start
                 align-items: center
                 gap: 1rem
-                &:focus
-                    outline: 2px solid #6200ea
+                transition: 0.3s
                 &:hover
-                    background: #0000004d
+                    transform: scale(1.01)
+                    background: #2f2f2faa
                     transition: 0.3s
                 .Loading
                     animation: rotate 1s linear infinite
@@ -127,12 +131,11 @@ $card-border-radius: 8px
                 color: #757575
             .button
                 padding: 10px
-                border: 1px solid #4646468f
                 border: none
                 border-radius: 8px
                 background: #0000004d
-                backdrop-filter: blur(4px)
-                border: 1px solid #35353554
+                backdrop-filter: blur(8px)
+                border: 1px solid #4646468f
                 color: #ffffff
                 font-size: 1rem
                 outline: none
@@ -141,6 +144,7 @@ $card-border-radius: 8px
                 &:focus
                     outline: 2px solid #6200ea
                 &:hover
+                    border: 1px dashed #6200ea
                     transform: scale(1.1)
                     transition: 0.3s
 
@@ -170,7 +174,7 @@ $card-border-radius: 8px
         background-color: $card-bg-color
         text-align: center
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
-        border: 1px solid #333
+        border: 1px solid #333333a5
         border-radius: $card-border-radius
         transition: transform 0.2s ease
         cursor: pointer

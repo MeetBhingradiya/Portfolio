@@ -19,18 +19,19 @@
 
 -->
 
-# v1.0.9 - 14/02/2025 (Expected)
+# v1.0.9 - 28/02/2025 (Expected)
 
 ### 🌟 Added
 - 3 New Database Models Added #40
 - Blogs > Blogs Controllers Added
+- Vercel Speed Inslights
 
 ### 🔄 Changed
 - 🗨️ **Auto Comments** : License Updated.
 <!-- - 📦 **Dependencies**: Updated to the latest versions (as of `05-02-2025`). -->
 
 ### 🗑️ Removed
--
+- Expired Trace Tokens Automatically Renewed & Request Try Again Automatically. #41
 
 ---
 

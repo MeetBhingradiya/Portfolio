@@ -160,7 +160,7 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.1, duration: 0.5, ease: "easeInOut" }}
                     >
-                        v{Config.version} | {getRelativeTime(new Date(Config.releasedate))}
+                        {Config.version} | {getRelativeTime(new Date(Config.releasedate))}
                     </motion.a>
                 </Tooltip>
             </div>

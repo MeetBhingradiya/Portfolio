@@ -29,6 +29,7 @@
 
 
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
@@ -104,6 +105,9 @@ export default function RootLayout({
                         </>
                     )
                 }
+
+                {/* ? Vercel Speed Insights */}
+                <SpeedInsights />
             </head>
             <body className={inter.className}>
                 <ThemeProvider>

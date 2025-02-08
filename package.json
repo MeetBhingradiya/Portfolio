@@ -26,6 +26,7 @@
         "@react-spring/web": "^9.7.4",
         "@sindresorhus/slugify": "^2.2.1",
         "@tailwindcss/postcss": "^4.0.0",
+        "@vercel/speed-insights": "^1.1.0",
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.9",
         "cloudinary": "^2.5.1",

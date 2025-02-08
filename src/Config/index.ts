@@ -28,8 +28,8 @@
  */
 
 const Config = {
-    version: "1.0.9",
-    releasedate: "2025-2-14",
+    version: "Staging v1.0.9",
+    releasedate: "2025-2-28",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,

@@ -16,39 +16,24 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @modified 09/02/25 3:13 PM IST (Kolkata +5:30 UTC)
  */
 
 
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { Users_Model } from "@Models/Users";
 import dbConnect from "@Utils/dbConnect";
 
 async function is_email_already_exists(email: string): Promise<boolean> {
-    // return new Promise((resolve, reject) => {
-    //     Users_Model.findOne({
-    //         Emails: {
-    //             $elemMatch: {
-    //                 Email: email
-    //             }
-    //         }
-    //     }, (err: any, doc: any) => {
-    //         if (err) {
-    //             reject(err);
-    //         } else {
-    //             resolve(doc);
-    //         }
-    //     });
-    // });
-
     await dbConnect();
     const doc = await Users_Model.findOne({
         Emails: {
@@ -61,23 +46,6 @@ async function is_email_already_exists(email: string): Promise<boolean> {
 }
 
 async function is_email_Verified(email: string): Promise<boolean> {
-    // return new Promise((resolve, reject) => {
-    //     Users_Model.findOne({
-    //         Emails: {
-    //             $elemMatch: {
-    //                 Email: email,
-    //                 isVerified: true
-    //             }
-    //         }
-    //     }, (err: any, doc: any) => {
-    //         if (err) {
-    //             reject(err);
-    //         } else {
-    //             resolve(doc);
-    //         }
-    //     });
-    // });
-
     await dbConnect();
     const doc = await Users_Model.findOne({
         Emails: {
@@ -89,6 +57,8 @@ async function is_email_Verified(email: string): Promise<boolean> {
     });
     return doc ? true : false;
 }
+
+async function Signup(){}
 
 export {
     is_email_already_exists,

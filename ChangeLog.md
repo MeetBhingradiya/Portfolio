@@ -28,6 +28,7 @@
 - Utils > [#50](https://github.com/MeetBhingradiya/Portfolio/issues/50)
 - Models > [#46](https://github.com/MeetBhingradiya/Portfolio/issues/46)
 - Github Actions > Stale & Issue Template for Bug Reports
+- Tools > [#43](https://github.com/MeetBhingradiya/Portfolio/issues/43)
 
 ### 🔄 Changed
 - 🗨️ **Auto Comments** : License Updated.

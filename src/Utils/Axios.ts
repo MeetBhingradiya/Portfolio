@@ -16,16 +16,18 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @modified 09/02/25 3:13 PM IST (Kolkata +5:30 UTC)
  */
+
 
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { getCSRFToken } from './getTrace';
@@ -39,10 +41,15 @@ const Axios: AxiosInstance = axios.create({
 
 let csrfToken: any = null;
 let csrfRetryAttempted = false;
+let CSRF_UnderProgress = false;
 
 Axios.interceptors.request.use(
     async (config: InternalAxiosRequestConfig<any>) => {
         if (!csrfToken) {
+            if (CSRF_UnderProgress) {
+                return Promise.reject({ message: 'CSRF token retrieval in progress' });
+            }
+            CSRF_UnderProgress = true;
             csrfToken = await getCSRFToken().catch(() => null);
             if (csrfToken?.Status === 1) {
                 localStorage.setItem('trace', JSON.stringify(csrfToken));
@@ -50,6 +57,7 @@ Axios.interceptors.request.use(
                 csrfToken = null;
                 return Promise.reject({ message: 'CSRF token retrieval failed' });
             }
+            CSRF_UnderProgress = false;
         }
 
         config.headers['x-csrf'] = csrfToken.data;
@@ -80,4 +88,3 @@ Axios.interceptors.response.use(
 );
 
 export { Axios };
-

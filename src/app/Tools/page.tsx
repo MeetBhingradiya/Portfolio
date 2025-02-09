@@ -16,15 +16,16 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @modified 09/02/25 3:13 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -161,6 +162,7 @@ function Tools() {
         FilterBookmarks: [],
         Bookmarks: [...BookmarksDB],
         Query: "",
+        QueryDisplay: "",
         Settings: {
             isFirstRun: true,
             isNewTab: true,
@@ -170,6 +172,7 @@ function Tools() {
             Locale: ILocale.EN
         }
     });
+    const [Index, setIndex] = React.useState<number>(0);
     const [Suggestions, setSuggestions] = React.useState<Array<ISuggestion>>([]);
     const [windowWidth, setWindowWidth] = React.useState<number>(isClient ? window.innerWidth : 0);
     const [contextMenu, setContextMenu] = React.useState<{
@@ -197,7 +200,50 @@ function Tools() {
     const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     // @ Functions
-    const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>, ArrayKeysOnly?: boolean) => {
+        if (ArrayKeysOnly && ArrayKeysOnly === true) {
+            if (e.key === "ArrowDown") {
+                if ((Index + 1) <= (Suggestions.length)) {
+                    setIndex((index) => index + 1);
+                    setState((State) => {
+                        return {
+                            ...State,
+                            QueryDisplay: Suggestions[Index].Query
+                        }
+                    })
+                } else {
+                    setIndex(0);
+                    setState((State) => {
+                        return {
+                            ...State,
+                            QueryDisplay: State.Query
+                        }
+                    })
+                }
+            }
+
+            if (e.key === "ArrowUp") {
+                if ((Index - 1) >= 1) {
+                    setIndex((index) => index - 1);
+                    setState((State) => {
+                        return {
+                            ...State,
+                            QueryDisplay: Suggestions[Index - 2]?.Query
+                        }
+                    })
+                } else {
+                    setIndex(Suggestions.length + 1);
+                    setState((State) => {
+                        return {
+                            ...State,
+                            QueryDisplay: State.Query
+                        }
+                    })
+                }
+            }
+
+            return;
+        }
         const isAlphaNumericOrSymbol = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]$/.test(e.key);
         if (isAlphaNumericOrSymbol && searchInputRef.current) {
             searchInputRef.current.focus();
@@ -222,6 +268,7 @@ function Tools() {
                     FilterBookmarks: State.Bookmarks,
                     Query: "",
                 });
+                setIndex(0);
                 return;
             }
 
@@ -232,6 +279,7 @@ function Tools() {
                     FilterBookmarks: State.Bookmarks,
                     Query: "",
                 });
+                setIndex(0);
                 return;
             }
 
@@ -321,6 +369,7 @@ function Tools() {
         setState({
             ...State,
             Query: OriginalQuery,
+            QueryDisplay: OriginalQuery,
             FilterBookmarks: filteredBookmarks
         });
 
@@ -570,14 +619,18 @@ function Tools() {
             }
         }
 
-        window.addEventListener("keydown", handleKeyPress);
         window.addEventListener("resize", handleResize);
 
         return () => {
-            window.removeEventListener("keydown", handleKeyPress);
             window.removeEventListener("resize", handleResize);
         };
     }, []);
+
+    React.useEffect(() => {
+        if (State.Settings.isFirstRun) {
+            window.addEventListener("keydown", handleKeyPress);
+        }
+    }, [Index])
 
     // ? Cloud Sync After the First Run
     React.useEffect(() => {
@@ -623,7 +676,8 @@ function Tools() {
                 if (searchInputRef.current) {
                     searchInputRef.current.focus();
                 }
-                handleKeyPress(e);
+
+                handleKeyPress(e, true);
             }}
         >
             <ToastContainer
@@ -653,7 +707,7 @@ function Tools() {
                                 Suggestions.map((item, index) => (
                                     <div
                                         key={index}
-                                        className="Suggestion"
+                                        className={`Suggestion ${Index === (index + 1) ? "SuggestionActive" : ""}`}
                                         onClick={() => {
                                             window.open(SearchEngineLinkBuilder(item.Query), State.Settings.isNewTab ? "_blank" : "_self");
                                         }}
@@ -677,7 +731,7 @@ function Tools() {
                                             )
                                         }
                                         <div className="QueryWarp">
-                                            <h2 className="Title">{changeCase.upperFirst(item?.Query)}</h2>
+                                            <h2 className="Title">{index + 1} {changeCase.upperFirst(item?.Query)}</h2>
                                             <p className="Description">{item?.Description}</p>
                                         </div>
                                     </div>
@@ -685,7 +739,7 @@ function Tools() {
                             }
 
                             {/* ? Defualt Query as Suggestion */}
-                            <div className="Suggestion"
+                            {/* <div className="Suggestion"
                                 onClick={() => {
                                     window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
                                 }}
@@ -696,7 +750,7 @@ function Tools() {
                                 <div className="QueryWarp">
                                     <h2 className="Title">{changeCase.upperFirst(State.Query)}</h2>
                                 </div>
-                            </div>
+                            </div> */}
 
                             {
                                 Suggestions.length === 0 && (
@@ -747,7 +801,7 @@ function Tools() {
                         type="text"
                         placeholder="🔍 Search"
                         tabIndex={1}
-                        value={State.Query}
+                        value={State.QueryDisplay}
                         onChange={onQueryChange}
                         className="search"
                         ref={searchInputRef}
@@ -781,6 +835,7 @@ function Tools() {
                                             FilterBookmarks: State.Bookmarks,
                                             Query: "",
                                         })
+                                        setIndex(0);
                                     }}
                                 >
                                     <Close />

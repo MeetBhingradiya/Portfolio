@@ -25,6 +25,9 @@
 - 3 New Database Models Added #40
 - Blogs > Blogs Controllers Added
 - Vercel Speed Inslights
+- Utils > [#50](https://github.com/MeetBhingradiya/Portfolio/issues/50)
+- Models > [#46](https://github.com/MeetBhingradiya/Portfolio/issues/46)
+- Github Actions > Stale & Issue Template for Bug Reports
 
 ### 🔄 Changed
 - 🗨️ **Auto Comments** : License Updated.

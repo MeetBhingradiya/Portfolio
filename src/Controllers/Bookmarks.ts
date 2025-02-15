@@ -104,6 +104,24 @@ async function Controller_GET_SyncBookmarks() {
     return;
 }
 
+async function Controller_POST_PublishBookmark(id: string) {
+    await dbConnect()
+    const Bookmark = await Bookmarks_Model.findOne({
+        BookmarkID: id
+    }).exec()
+
+    if (!Bookmark) {
+        return {
+            Status: 404,
+            Message: "Bookmark not found"
+        }
+    }
+
+    Bookmark.isPublished = true
+
+}
+
+
 export {
     Controller_GET_Bookmarks,
     Controller_GET_SyncBookmarks,

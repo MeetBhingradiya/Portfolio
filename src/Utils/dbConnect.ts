@@ -40,7 +40,7 @@ declare global {
 const MONGODB_URIs = getEnvs("MONGODB_URI_");
 
 if (!MONGODB_URIs.length) {
-    throw new Error("Please define at least one MONGODB_URI environment variable inside .env.local or .env");
+    throw new Error("Please define at least one `MONGODB_URI_` environment variable inside .env.local or .env");
 }
 
 const cachedConnections: Record<string, {
@@ -80,7 +80,7 @@ const MONGODB_URI = MONGODB_URIs[0];
 
 if (!MONGODB_URI) {
     throw new Error(
-        "Please define the MONGODB_URI environment variables inside .env.local or .env",
+        "Please define the `MONGODB_URI_` environment variables inside .env.local or .env",
     );
 }
 

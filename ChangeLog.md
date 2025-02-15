@@ -25,6 +25,9 @@
 - 3 New Database Models Added #40
 - Blogs > Blogs Controllers Added
 - Vercel Speed Inslights
+- New Settings Ui
+- MarketPlace
+- Edit & Create 
 - Utils > [#50](https://github.com/MeetBhingradiya/Portfolio/issues/50)
 - Models > [#46](https://github.com/MeetBhingradiya/Portfolio/issues/46)
 - Github Actions > Stale & Issue Template for Bug Reports
@@ -32,10 +35,14 @@
 
 ### 🔄 Changed
 - 🗨️ **Auto Comments** : License Updated.
+- Auto Redirect to Original Origin on "INVALID_ORIGIN" Backend ERROR.
 <!-- - 📦 **Dependencies**: Updated to the latest versions (as of `05-02-2025`). -->
 
 ### 🗑️ Removed
+- Select Defualt Search Engine & Its Local Settings (Temporarily, will be come back soon)
+- Keywords Editor (Temporarily, , will be come back soon)
 - Expired Trace Tokens Automatically Renewed & Request Try Again Automatically. #41
+- Fixed Data Image CSP Issue
 
 ---
 

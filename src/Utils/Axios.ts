@@ -28,7 +28,7 @@
  *  @modified 09/02/25 3:13 PM IST (Kolkata +5:30 UTC)
  */
 
-
+import { Config } from '@Config/index';
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { getCSRFToken } from './getTrace';
 
@@ -83,6 +83,11 @@ Axios.interceptors.response.use(
                 }
             }
         }
+
+        if (error.response?.data?.StatusCode === "INVALID_ORIGIN") {
+            window.location.href = `https://${Config.WhiteListedDomains[0]}${window.location.pathname}`;
+        }
+
         return Promise.reject(error);
     }
 );

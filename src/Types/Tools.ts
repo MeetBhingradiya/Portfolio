@@ -28,7 +28,6 @@
  *  @modified 09/02/25 3:13 PM IST (Kolkata +5:30 UTC)
  */
 
-
 interface IBookmark {
     // ? Unique identifier for the bookmark
     id?: string
@@ -58,6 +57,10 @@ interface IBookmark {
     size?: "128" | "64" | "32" | "16"
 
     isServer?: boolean
+
+    // ? Advanced Data
+    windowsapp?: string
+    androidapp?: string
 }
 
 enum ILocale {
@@ -159,16 +162,59 @@ interface IState {
     Settings: {
         isFirstRun: boolean
         isNewTab: boolean
-        RandomizeLinks: boolean
         SearchEngine: ISearchEngine
         Locale: string
         CloudSync: boolean
+
+        isNewWindow?: boolean
+        priorityWindowsApp?: boolean
+        priorityAndroidapp?: boolean
+        CloudSyncRandomize?: boolean
+    }
+}
+
+enum ModelType {
+    // ? Not Dismisable 
+    Edit = "edit",
+    Create = "create",
+
+    // ? Core Models
+    Settings = "settings",
+    Marketplace = "marketplace",
+    About = "about",
+
+    // ? Only for Admins
+    Requests = "requests",
+    Unpublished = "unpublished",
+    Modify = "modify"
+}
+
+interface SettingsProps {
+    isOpen: boolean
+    onClose: () => void
+    type: ModelType
+    SwitchModelType: (type: ModelType) => void
+
+    State: IState
+    Dispatch: React.Dispatch<React.SetStateAction<IState>>
+
+    EditBookmarkData?: IBookmark
+}
+
+interface SettingsState {
+    New_Bookmark: IBookmark
+    Search_Settings_Query: string
+    MarketPlace: {
+        Remote_Bookmarks: Array<IBookmark>
+        Serch_Bookmarks_Query: string
+        isFetched: boolean
     }
 }
 
 export {
     ISearchEngine,
-    ILocale
+    ILocale,
+    ModelType
 }
 
 export type {
@@ -176,5 +222,7 @@ export type {
     ISuggestionPrams,
     ISuggestionResponse,
     ISuggestion,
-    IState
+    IState,
+    SettingsProps,
+    SettingsState
 }

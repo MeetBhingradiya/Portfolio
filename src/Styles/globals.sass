@@ -43,7 +43,7 @@
     --font-color: var(--font-color-light)
     --description-font-color: var(--description-font-color-light)
     --font-color-anti: var(--font-color-dark)
-    --accent-color: #a600ff
+    --accent-color: #6200ea
     --divider: var(--divider-light)
     --anti-divider: var(--anti-divider-light)
     --chip-hover: var(--chip-hover-light)
@@ -111,6 +111,12 @@ body:has(::-webkit-scrollbar)
 .Hide
     display: none
     position: relative
+
+.HideScrollbars
+
+    &::-webkit-scrollbar
+        width: 0px
+        height: 0px
 
 .Page
     width: 100vw

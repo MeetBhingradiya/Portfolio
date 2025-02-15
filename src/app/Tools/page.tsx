@@ -32,10 +32,10 @@
 "use client";
 
 import React from "react";
-import { ISearchEngine, ILocale } from "@Types/Tools";
+import { ISearchEngine, ILocale, ModelType } from "@Types/Tools";
 import type { IBookmark, IState, ISuggestion } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
-import { BookmarksDB } from "@Data/Tools";
+import { BookmarksDB, ResolveIcon } from "@Data/Tools";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { v4 as uuidv4 } from 'uuid';
@@ -55,7 +55,14 @@ import {
     Home,
     Circle,
     ScatterPlot,
-    Search
+    Search,
+    AutoFixHigh,
+    LocalMall,
+    LocalMallOutlined,
+    SettingsOutlined,
+    AddOutlined,
+    HomeOutlined,
+    Warning
 } from "@mui/icons-material";
 import {
     Menu,
@@ -89,8 +96,9 @@ import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
 import { Config } from "@Config/index";
-import Link from "next/link";
+// import Link from "next/link";
 import { changeCase } from "@Utils/CaseChnage";
+import SettingsModel from "./Settings";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -160,16 +168,20 @@ function Tools() {
     const isClient = useWindowCheck();
     const [State, setState] = React.useState<IState>({
         FilterBookmarks: [],
-        Bookmarks: [...BookmarksDB],
+        Bookmarks: [],
         Query: "",
         QueryDisplay: "",
         Settings: {
             isFirstRun: true,
             isNewTab: true,
-            RandomizeLinks: true,
             CloudSync: false,
+            CloudSyncRandomize: true,
             SearchEngine: ISearchEngine.GOOGLE,
-            Locale: ILocale.EN
+            Locale: ILocale.EN,
+
+            isNewWindow: false,
+            priorityWindowsApp: false,
+            priorityAndroidapp: false,
         }
     });
     const [Index, setIndex] = React.useState<number>(0);
@@ -185,21 +197,40 @@ function Tools() {
         isOpen: boolean;
         isEdit: boolean;
         BookmarkData: IBookmark;
+        type: ModelType;
     }>({
-        isSettingsOpen: false,
+        type: ModelType.Settings,
         isOpen: false,
-        isEdit: false,
         BookmarkData: {
             id: "",
             name: "",
+            description: "",
             url: "",
             icon: "",
             keywords: [],
+            androidapp: "",
+            windowsapp: "",
+            isSVGSrc: false,
+            SVGStyles: {
+                fill: "",
+            },
+            size: "128",
         },
+        isSettingsOpen: false,
+        isEdit: false,
     });
     const searchInputRef = React.useRef<HTMLInputElement>(null);
 
     // @ Functions
+    const SwitchModelType = (type: ModelType) => {
+        setModalData((ModalData) => {
+            return {
+                ...ModalData,
+                type: type,
+            }
+        });
+    }
+
     const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>, ArrayKeysOnly?: boolean) => {
         if (ArrayKeysOnly && ArrayKeysOnly === true) {
             if (e.key === "ArrowDown") {
@@ -242,6 +273,22 @@ function Tools() {
                 }
             }
 
+            if (e.key === "Enter") {
+                if (Index > 0) {
+                    window.open(SearchEngineLinkBuilder(Suggestions[Index - 1].Query), State.Settings.isNewTab ? "_blank" : "_self");
+                } else {
+                    window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
+                }
+
+                setState({
+                    ...State,
+                    FilterBookmarks: State.Bookmarks,
+                    Query: "",
+                });
+                setIndex(0);
+                return;
+            }
+
             return;
         }
         const isAlphaNumericOrSymbol = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]$/.test(e.key);
@@ -267,17 +314,7 @@ function Tools() {
                     ...State,
                     FilterBookmarks: State.Bookmarks,
                     Query: "",
-                });
-                setIndex(0);
-                return;
-            }
-
-            if (State.Query.length > 0) {
-                window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
-                setState({
-                    ...State,
-                    FilterBookmarks: State.Bookmarks,
-                    Query: "",
+                    QueryDisplay: "",
                 });
                 setIndex(0);
                 return;
@@ -470,9 +507,18 @@ function Tools() {
                 id: "",
                 name: "",
                 url: "",
+                description: "",
                 icon: "",
                 keywords: [],
+                androidapp: "",
+                windowsapp: "",
+                isSVGSrc: false,
+                SVGStyles: {
+                    fill: "",
+                },
+                size: "128",
             },
+            type: ModelType.Settings,
         });
     }
 
@@ -481,8 +527,8 @@ function Tools() {
         if (bookmark) {
             setModalData({
                 ...ModalData,
+                type: ModelType.Edit,
                 isOpen: true,
-                isEdit: true,
                 BookmarkData: bookmark,
             });
         }
@@ -517,7 +563,7 @@ function Tools() {
             });
 
             // ? Randomize Links
-            if (State.Settings.RandomizeLinks) {
+            if (State.Settings.CloudSyncRandomize) {
                 ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
             }
 
@@ -593,7 +639,7 @@ function Tools() {
                         ...State.Settings,
                         isFirstRun: false
                     },
-                    FilterBookmarks: BookmarksDB,
+                    FilterBookmarks: State.Bookmarks,
                 });
             } else {
                 let StorageData = JSON.parse(data as string);
@@ -647,19 +693,23 @@ function Tools() {
             Booksmarks: State.Bookmarks,
             Settings: {
                 isNewTab: State.Settings.isNewTab,
-                RandomizeLinks: State.Settings.RandomizeLinks,
+                CloudSyncRandomize: State.Settings.CloudSyncRandomize,
                 SearchEngine: State.Settings.SearchEngine,
                 Locale: State.Settings.Locale,
                 CloudSync: State.Settings.CloudSync,
+                priorityAndroidapp: State.Settings.priorityAndroidapp,
+                priorityWindowsApp: State.Settings.priorityWindowsApp,
             },
         }));
     }, [
         State.Bookmarks,
         State.Settings.CloudSync,
         State.Settings.isNewTab,
-        State.Settings.RandomizeLinks,
+        State.Settings.CloudSyncRandomize,
         State.Settings.SearchEngine,
         State.Settings.Locale,
+        State.Settings.priorityAndroidapp,
+        State.Settings.priorityWindowsApp,
     ]);
 
     const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 1);
@@ -701,7 +751,27 @@ function Tools() {
             >
                 {/* Suggestions */}
                 {
-                    State.FilterBookmarks.length === 0 && (
+                    State.FilterBookmarks.length === 0 && State.Bookmarks.length <= 0 && (
+                        <div className="Suggestions" onClick={()=> {
+                            setModalData({
+                                ...ModalData,
+                                isOpen: true,
+                                type: ModelType.Marketplace,
+                            });
+                        }}>
+                            <div className={`Suggestion`}>
+                                <p className="Thumbnail">
+                                    <Warning />
+                                </p>
+                                <div className="QueryWarp">
+                                    <h2 className="Title">{changeCase.upperFirst("Add Bookmarks from Marketplace to Enable Query Suggestions")}</h2>
+                                </div>
+                            </div>
+                        </div>
+                    )
+                }
+                {
+                    (State.FilterBookmarks.length === 0 && State.Bookmarks.length >= 1) && (
                         <div className="Suggestions">
                             {
                                 Suggestions.map((item, index) => (
@@ -731,7 +801,7 @@ function Tools() {
                                             )
                                         }
                                         <div className="QueryWarp">
-                                            <h2 className="Title">{index + 1} {changeCase.upperFirst(item?.Query)}</h2>
+                                            <h2 className="Title">{changeCase.upperFirst(item?.Query)}</h2>
                                             <p className="Description">{item?.Description}</p>
                                         </div>
                                     </div>
@@ -739,7 +809,7 @@ function Tools() {
                             }
 
                             {/* ? Defualt Query as Suggestion */}
-                            {/* <div className="Suggestion"
+                            {/* <div className={`Suggestion ${(Index + 1) === 0 ?? "SuggestionActive"}`}
                                 onClick={() => {
                                     window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
                                 }}
@@ -780,8 +850,7 @@ function Tools() {
                             <Home />
                         </motion.div>
                     </Tooltip>
-
-                    <motion.div
+                    {/* <motion.div
                         className="button"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -789,13 +858,13 @@ function Tools() {
                         onClick={(e) => {
                             setModalData({
                                 ...ModalData,
-                                isSettingsOpen: false,
                                 isOpen: true,
+                                type: ModelType.Create,
                             });
                         }}
                     >
                         <Add />
-                    </motion.div>
+                    </motion.div> */}
                     <motion.input
                         id="search"
                         type="text"
@@ -834,6 +903,7 @@ function Tools() {
                                             ...State,
                                             FilterBookmarks: State.Bookmarks,
                                             Query: "",
+                                            QueryDisplay: "",
                                         })
                                         setIndex(0);
                                     }}
@@ -851,13 +921,28 @@ function Tools() {
                         onClick={(e) => {
                             setModalData({
                                 ...ModalData,
-                                isSettingsOpen: true,
                                 isOpen: true,
+                                type: ModelType.Settings,
                             });
                         }}
                     >
                         <Settings />
                     </motion.div>
+                    {/* <motion.div
+                        className="button"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
+                        onClick={(e) => {
+                            setModalData({
+                                ...ModalData,
+                                isOpen: true,
+                                type: ModelType.Marketplace,
+                            });
+                        }}
+                    >
+                        <LocalMall />
+                    </motion.div> */}
                 </div>
             </div>
 
@@ -881,7 +966,12 @@ function Tools() {
                                     e.currentTarget.dataset.dragStartX = e.clientX.toString();
                                     e.currentTarget.dataset.dragStartY = e.clientY.toString();
 
-                                    e.currentTarget.style.cursor = "grabbing";
+                                    if (State.Query.length > 0) {
+
+                                        e.currentTarget.style.cursor = "not-allowed";
+                                    } else {
+                                        e.currentTarget.style.cursor = "grabbing";
+                                    }
                                 }}
                                 onMouseUp={(e: React.MouseEvent<HTMLDivElement>) => {
 
@@ -925,7 +1015,7 @@ function Tools() {
                                         }
                                         {
                                             !item.isSVGSrc && (<Image
-                                                src={item.icon}
+                                                src={ResolveIcon(item)}
                                                 alt={item.name}
                                                 width={64}
                                                 height={64}
@@ -952,6 +1042,15 @@ function Tools() {
                         </GridItem>
                     ))}
 
+                    {
+                        (State.FilterBookmarks.length === 0 && State.Bookmarks.length > 0) && (
+                            <GridItem className="absolute top-0 bottom-0 left-0 right-0 w-full h-full flex flex-row gap-1 select-none cursor-not-allowed">
+                                <Book />
+                                <h2>Bookmarks not Found</h2>
+                            </GridItem>
+                        )
+                    }
+
                 </GridDropZone>
             </GridContextProvider>
 
@@ -966,6 +1065,68 @@ function Tools() {
                         : undefined
                 }
             >
+                {
+                    State.Settings.priorityWindowsApp && (
+                        <MenuItem
+                            onClick={() => {
+                                if (State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp) {
+                                    // ? Open Link in New Windows
+                                    window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp ?? "", "_blank", `width=${window.innerWidth},height=${window.innerHeight}`);
+                                    setContextMenu(null);
+                                } else {
+                                    setContextMenu(null);
+                                    toast.error("No Windows App Found");
+                                }
+                            }}
+                        >
+                            <ListItemIcon>
+                                <Image
+                                    src="https://img.icons8.com/fluency/128/windows-10.png"
+                                    alt="Windows"
+                                    placeholder="blur"
+                                    blurDataURL="https://img.icons8.com/fluency/40/windows-10.png"
+                                    width={24}
+                                    height={24}
+                                />
+                            </ListItemIcon>
+                            <ListItemText>
+                                Open in Windows
+                            </ListItemText>
+                        </MenuItem>
+                    )
+                }
+
+                {
+                    State.Settings.priorityAndroidapp && (
+                        <MenuItem
+                            onClick={() => {
+                                if (State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp) {
+                                    // ? Open Link in New Android
+                                    window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp ?? "", "_blank", `width=${window.innerWidth},height=${window.innerHeight}`);
+                                    setContextMenu(null);
+                                } else {
+                                    setContextMenu(null);
+                                    toast.error("No Android App Found");
+                                }
+                            }}
+                        >
+                            <ListItemIcon>
+                                <Image
+                                    src="https://img.icons8.com/fluency/128/android-os.png"
+                                    alt="Windows"
+                                    placeholder="blur"
+                                    blurDataURL="https://img.icons8.com/fluency/40/android-os.png"
+                                    width={24}
+                                    height={24}
+                                />
+                            </ListItemIcon>
+                            <ListItemText>
+                                Open in Android
+                            </ListItemText>
+                        </MenuItem>
+                    )
+                }
+
                 <MenuItem
                     onClick={() => {
                         // ? Open Link in New Tab
@@ -988,7 +1149,12 @@ function Tools() {
                     }}
                 >
                     <ListItemIcon>
-                        <OpenInNew />
+                        <Image
+                            src="https://img.icons8.com/fluency/128/new-window.png"
+                            alt="Windows"
+                            width={24}
+                            height={24}
+                        />
                     </ListItemIcon>
                     <ListItemText>
                         Open in New Window
@@ -1002,7 +1168,7 @@ function Tools() {
                     }}
                 >
                     <ListItemIcon>
-                        <Edit />
+                        <AutoFixHigh />
                     </ListItemIcon>
                     <ListItemText>
                         Edit
@@ -1025,8 +1191,18 @@ function Tools() {
                 </MenuItem>
             </StyledMenu>
 
+            <SettingsModel
+                State={State}
+                Dispatch={setState}
+                isOpen={ModalData.isOpen}
+                onClose={CloseModel}
+                type={ModalData.type}
+                SwitchModelType={SwitchModelType}
+                EditBookmarkData={ModalData.BookmarkData}
+            />
+
             {/* Modal */}
-            <Modal
+            {/* <Modal
                 backdrop="blur"
                 isDismissable={
                     ModalData.isSettingsOpen ? true : false
@@ -1046,7 +1222,6 @@ function Tools() {
                             </ModalHeader>
                             <ModalBody>
 
-                                {/* 🔍 Search Engine */}
                                 <Select
                                     selectedKeys={[State.Settings.SearchEngine]}
                                     onChange={(e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -1072,7 +1247,6 @@ function Tools() {
                                     }
                                 </Select>
 
-                                {/* 🌍 Locale */}
                                 <Select
                                     className="mt-1"
                                     selectedKeys={[State.Settings.Locale]}
@@ -1102,7 +1276,6 @@ function Tools() {
                                     }
                                 </Select>
 
-                                {/* NewTab */}
                                 <Checkbox
                                     className="mt-1 ml-1"
                                     isSelected={State.Settings.isNewTab}
@@ -1119,7 +1292,6 @@ function Tools() {
                                     Links Open in New Tab
                                 </Checkbox>
 
-                                {/* Cloud Sync */}
                                 <Checkbox
                                     className="mt-1 ml-1"
                                     isSelected={State.Settings.CloudSync}
@@ -1136,16 +1308,15 @@ function Tools() {
                                     Cloud Sync
                                 </Checkbox>
 
-                                {/* Randomize Cloud Import */}
                                 <Checkbox
                                     className="mt-1 ml-1"
-                                    isSelected={State.Settings.RandomizeLinks}
+                                    isSelected={State.Settings.CloudSyncRandomize}
                                     onValueChange={(value) => {
                                         setState({
                                             ...State,
                                             Settings: {
                                                 ...State.Settings,
-                                                RandomizeLinks: value
+                                                CloudSyncRandomize: value
                                             },
                                         });
                                     }}
@@ -1153,7 +1324,6 @@ function Tools() {
                                     Randomize Cloud Links Sync
                                 </Checkbox>
 
-                                {/* Sync Global Database */}
                                 {
                                     Config.Environment === "development" && (
                                         <div
@@ -1222,7 +1392,6 @@ function Tools() {
                             </ModalHeader>
                             <ModalBody>
                                 <div className="grid grid-cols-[1fr_auto] gap-4 items-start">
-                                    {/* Input Fields */}
                                     <div className="flex flex-col gap-4">
                                         <label className="flex flex-col gap-2">
                                             Name
@@ -1291,7 +1460,6 @@ function Tools() {
                                         </label>
                                     </div>
 
-                                    {/* Icon Preview */}
                                     <div className="flex flex-col items-center">
                                         <div className="w-24 h-24">
                                             {ModalData.BookmarkData.icon ? (
@@ -1347,7 +1515,7 @@ function Tools() {
                         </ModalContent>
                     )
                 }
-            </Modal>
+            </Modal> */}
         </div>
     );
 }

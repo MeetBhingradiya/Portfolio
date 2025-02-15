@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ 
             Status: 0, 
             Message: 'Invalid origin', 
-            StatusCode: 403 
+            StatusCode: "INVALID_ORIGIN" 
         }, { status: 403 });
     }
     if (referer && !referer.startsWith(origin)) {
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     if (browserSignatures.some((signature) => userAgent.includes(signature))) {
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported browser [Signatures]', 
+            Message: 'Unsupported browser', 
             StatusCode: 403
         }, { status: 403 });
     }
@@ -102,13 +102,16 @@ export async function POST(req: NextRequest) {
         });
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported browser [User-Agent]', 
+            Message: 'Unsupported browser', 
             StatusCode: 403 
         }, { status: 403 });
     }
+
     // if (
         // !secUa.includes('Chrome') && !secUa.includes('Edge')
         // !WhiteListedBrowsers.includes(secUa.split(' ')[0])
+
+        // !WhiteListedBrowsers.includes(new UserAgent(secUa).parse().browser)
     // ) {
     //     return NextResponse.json({ 
     //         Status: 0, 
@@ -122,7 +125,7 @@ export async function POST(req: NextRequest) {
     ) {
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported Platform [Sec-CH-UA-Platform]', 
+            Message: 'Unsupported Platform', 
             StatusCode: 403 
         }, { status: 403 });
     }

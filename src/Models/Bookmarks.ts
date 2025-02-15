@@ -46,6 +46,12 @@ const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
         type: String,
         required: true
     },
+    windowsapp: {
+        type: String,
+    },
+    androidapp: {
+        type: String
+    },
     icon: {
         type: String,
     },
@@ -79,7 +85,7 @@ const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
     }
 }, {
     timestamps: true,
-    versionKey: "v1"
+    versionKey: "v2"
 });
 
 export interface IBookmark extends mongoose.Document {
@@ -91,6 +97,10 @@ export interface IBookmark extends mongoose.Document {
 
     // ? Site URL
     url: string
+
+    // ? Advanced Data URLs
+    windowsapp?: string
+    androidapp?: string
 
     // ? Site Icon
     icon?: string
@@ -111,7 +121,6 @@ export interface IBookmark extends mongoose.Document {
     size?: "128" | "64" | "32" | "16"
 
     isPublished: boolean
-
     isDeleted: boolean
 }
 

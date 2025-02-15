@@ -56,6 +56,7 @@ const nextConfig: NextConfig = {
                                 },
                                 [CSPDirectiveOptions.ImgSrc]: {
                                     Self: true,
+                                    Data: true,
                                     Domains: ['*']
                                 },
                                 [CSPDirectiveOptions.ScriptSrc]: {

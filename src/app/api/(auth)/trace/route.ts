@@ -16,15 +16,16 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ 
             Status: 0, 
             Message: 'Invalid origin', 
-            StatusCode: 403 
+            StatusCode: "INVALID_ORIGIN" 
         }, { status: 403 });
     }
     if (referer && !referer.startsWith(origin)) {
@@ -86,7 +87,7 @@ export async function POST(req: NextRequest) {
     if (browserSignatures.some((signature) => userAgent.includes(signature))) {
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported browser [Signatures]', 
+            Message: 'Unsupported browser', 
             StatusCode: 403
         }, { status: 403 });
     }
@@ -102,13 +103,16 @@ export async function POST(req: NextRequest) {
         });
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported browser [User-Agent]', 
+            Message: 'Unsupported browser', 
             StatusCode: 403 
         }, { status: 403 });
     }
+
     // if (
         // !secUa.includes('Chrome') && !secUa.includes('Edge')
         // !WhiteListedBrowsers.includes(secUa.split(' ')[0])
+
+        // !WhiteListedBrowsers.includes(new UserAgent(secUa).parse().browser)
     // ) {
     //     return NextResponse.json({ 
     //         Status: 0, 
@@ -122,7 +126,7 @@ export async function POST(req: NextRequest) {
     ) {
         return NextResponse.json({ 
             Status: 0, 
-            Message: 'Unsupported Platform [Sec-CH-UA-Platform]', 
+            Message: 'Unsupported Platform', 
             StatusCode: 403 
         }, { status: 403 });
     }

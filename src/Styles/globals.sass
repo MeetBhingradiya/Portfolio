@@ -5,55 +5,74 @@
 
 // @Theme&Variables
 :root
-    // ? Root Variables
-    --background: var(--background-light)
-    --background-solid: var(--background-light-solid)
-    --font-color: var(--font-color-light)
-    --description-font-color: var(--description-font-color-light)
-    --font-color-anti: var(--font-color-dark)
-    --accent-color: #a600ff
-    --divider: var(--divider-light)
-    --chip-hover: var(--chip-hover-light)
-
     // ? Theme Variables
     --background-dark: linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(0, 15, 24), rgb(0,0,0) 70%)
     --background-light: linear-gradient(117deg, #e4f1ff 41.82%, #ffdff2 60.59%), radial-gradient(circle at center, rgb(255, 255, 255), rgb(240, 240, 240) 70%)
 
     --background-dark-solid: linear-gradient(117deg, #263545 41.82%, #461d35 60.59%), radial-gradient(circle at center, rgb(0, 15, 24), rgb(0,0,0) 70%)
     --background-light-solid: linear-gradient(117deg, #a2cfff 41.82%, #ffaadd 60.59%), radial-gradient(circle at center, rgb(255, 255, 255), rgb(240, 240, 240) 70%)
-    
+
     --font-color-light: #000
     --font-color-dark: #fff
 
     --description-font-color-light: #0000008f
     --description-font-color-dark: #ffffff8f
-    
-    --divider-light: rgba(0, 0, 0, 0.1)
-    --divider-dark: rgba(255, 255, 255, 0.1)
-    
+
+    // ? Tools > Bookmarks
+    --bookmark-light: #ffffff1e
+    --bookmark-dark: #1e1e1ea2
+
+    --bookmark-hover-light: #00000016
+    --bookmark-hover-dark: #2f2f2faa
+
+    --bookmark-border-light: #0000001e
+    --bookmark-border-dark: #333333a5
+
+    // ? Footer Dividers
+    --divider-light: 0, 0, 0
+    --divider-dark: 255, 255, 255
+    --anti-divider-light: 255, 240, 231
+    --anti-divider-dark: 0, 15, 24
+
     --chip-hover-light: #00000020
     --chip-hover-dark: #e3fffd24
+        
+    // ? Root Variables
+    --background: var(--background-light)
+    --background-solid: var(--background-light-solid)
+    --font-color: var(--font-color-light)
+    --description-font-color: var(--description-font-color-light)
+    --font-color-anti: var(--font-color-dark)
+    --accent-color: #6200ea
+    --divider: var(--divider-light)
+    --anti-divider: var(--anti-divider-light)
+    --chip-hover: var(--chip-hover-light)
+    --bookmark: var(--bookmark-light)
+    --bookmark-hover: var(--bookmark-hover-light)
+    --bookmark-border: var(--bookmark-border-light)
 
-html.dark
+@mixin dark-theme-styles
     --background: var(--background-dark)
     --background-solid: var(--background-dark-solid)
     --font-color: var(--font-color-dark)
     --description-font-color: var(--description-font-color-dark)
     --font-color-anti: var(--font-color-light)
     --divider: var(--divider-dark)
+    --anti-divider: var(--anti-divider-dark)
     --chip-hover: var(--chip-hover-dark)
+    --bookmark: var(--bookmark-dark)
+    --bookmark-hover: var(--bookmark-hover-dark)
+    --bookmark-border: var(--bookmark-border-dark)
+
+// @GlobalStyles
+
+html.dark
+    @include dark-theme-styles
 
 @media (prefers-color-scheme: dark)
     html.system
-        --background: var(--background-dark)
-        --background-solid: var(--background-dark-solid)
-        --font-color: var(--font-color-dark)
-        --description-font-color: var(--description-font-color-dark)
-        --font-color-anti: var(--font-color-light)
-        --divider: var(--divider-dark)
-        --chip-hover: var(--chip-hover-dark)
+        @include dark-theme-styles
 
-// @GlobalStyles
 body
     background: var(--background)
     color: var(--font-color)
@@ -92,6 +111,12 @@ body:has(::-webkit-scrollbar)
 .Hide
     display: none
     position: relative
+
+.HideScrollbars
+
+    &::-webkit-scrollbar
+        width: 0px
+        height: 0px
 
 .Page
     width: 100vw

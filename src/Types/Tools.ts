@@ -16,15 +16,16 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -57,6 +58,10 @@ interface IBookmark {
     size?: "128" | "64" | "32" | "16"
 
     isServer?: boolean
+
+    // ? Advanced Data
+    windowsapp?: string
+    androidapp?: string
 }
 
 enum ILocale {
@@ -154,19 +159,63 @@ interface IState {
     FilterBookmarks: Array<IBookmark>
     Bookmarks: Array<IBookmark>
     Query: string
+    QueryDisplay: string
     Settings: {
         isFirstRun: boolean
         isNewTab: boolean
-        RandomizeLinks: boolean
         SearchEngine: ISearchEngine
         Locale: string
         CloudSync: boolean
+
+        isNewWindow?: boolean
+        priorityWindowsApp?: boolean
+        priorityAndroidapp?: boolean
+        CloudSyncRandomize?: boolean
+    }
+}
+
+enum ModelType {
+    // ? Not Dismisable 
+    Edit = "edit",
+    Create = "create",
+
+    // ? Core Models
+    Settings = "settings",
+    Marketplace = "marketplace",
+    About = "about",
+
+    // ? Only for Admins
+    Requests = "requests",
+    Unpublished = "unpublished",
+    Modify = "modify"
+}
+
+interface SettingsProps {
+    isOpen: boolean
+    onClose: () => void
+    type: ModelType
+    SwitchModelType: (type: ModelType) => void
+
+    State: IState
+    Dispatch: React.Dispatch<React.SetStateAction<IState>>
+
+    EditBookmarkData?: IBookmark
+}
+
+interface SettingsState {
+    New_Bookmark: IBookmark
+    Search_Settings_Query: string
+    MarketPlace: {
+        Remote_Bookmarks: Array<IBookmark>
+        Serch_Bookmarks_Query: string
+        isFetched: boolean
     }
 }
 
 export {
     ISearchEngine,
-    ILocale
+    ILocale,
+    ModelType
 }
 
 export type {
@@ -174,5 +223,7 @@ export type {
     ISuggestionPrams,
     ISuggestionResponse,
     ISuggestion,
-    IState
+    IState,
+    SettingsProps,
+    SettingsState
 }

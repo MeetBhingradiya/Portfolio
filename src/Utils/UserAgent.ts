@@ -16,40 +16,18 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
- *  -----------------------------------------------------------------------------
- *  @created 25/01/25 05:52 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 12:00 PM IST (Kolkata +5:30 UTC)
- */
-
-
-
-// ? Upper Comment is Auto Generated. Please, Don't Consider it Main Content Due to This File is Third Party Library.
-
-/**!
- *  @FileID          Utils\UserAgent.ts
- *  @Description     UserAgent Parser class for Next.js
- *  @Author          @biggora (express-useragent)
- *  @ModifiedBy      @MeetBhingradiya
- *  @License         MIT
- *  
- *  -----------------------------------------------------------------------------
- *  Copyright (c) 2011-2020 Aleksejs Gordejevs
- *  All rights reserved.
- *  
- *  This file is part of the @MeetBhingradiya's Portfolio project and is protected under copyright
- *  law. Unauthorized copying of this file, via any medium, is strictly prohibited
- *  without explicit permission from the author, modifier or the organization.
- *  
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 25/01/25 05:52 AM IST (Kolkata +5:30 UTC)
- *  @modified 25/01/25 05:52 PM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
+
 
 interface Agent {
     source: string;

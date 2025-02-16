@@ -7,6 +7,8 @@ let Itrations = 0;
 const WhitelistedExtensions = [
     '.ts',
     '.tsx',
+    '.js',
+    '.jsx',
 ];
 
 function formatDate(date: Date): string {
@@ -64,12 +66,13 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  ${createdDate}
  *  ${modifiedDate}
@@ -83,11 +86,11 @@ async function processFile(FilePath: string): Promise<void> {
         isModified: isFileModified(FilePath)
     }
 
-    if (!FileData.isModified) {
-        return;
-    } else {
-        console.log(`[File Licensing] File is begain modified: ${FilePath}`);
-    }
+    // if (!FileData.isModified) {
+    //     return;
+    // } else {
+    //     console.log(`[File Licensing] File is begain modified: ${FilePath}`);
+    // }
 
     const FileContent = fs.readFileSync(FilePath, 'utf-8');
     const Comment = await generateFileComment(FileData.ID, FileContent)

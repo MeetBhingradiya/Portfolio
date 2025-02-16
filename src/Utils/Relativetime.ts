@@ -16,17 +16,22 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 12:00 PM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
+
+function isFutureDate(date: Date): boolean {
+    return date.getTime() > Date.now();
+}
 
 function getRelativeTime(date: Date): string {
     const now = new Date();
@@ -54,7 +59,6 @@ function getRelativeTime(date: Date): string {
         return diff < 0 ? `in ${days} days` : `${days} days ago`;
     }
 
-    // Future dates within the next 30 days
     if (diff < 0 && days <= 30) {
         return `in ${days} days`;
     }
@@ -69,5 +73,6 @@ function getRelativeTime(date: Date): string {
 }
 
 export {
-    getRelativeTime
+    getRelativeTime,
+    isFutureDate
 }

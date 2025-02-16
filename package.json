@@ -1,6 +1,6 @@
 {
     "name": "meetbhingradiya",
-    "version": "1.0.8",
+    "version": "1.0.9",
     "scripts": {
         "dev": "next dev",
         "fast": "next dev --turbo",
@@ -12,7 +12,6 @@
         "comments": "bun Scripts/Comments.ts"
     },
     "dependencies": {
-        "@chakra-ui/react": "^2.8.2",
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.0",
         "@heroui/react": "^2.6.14",
@@ -26,6 +25,7 @@
         "@react-spring/web": "^9.7.4",
         "@sindresorhus/slugify": "^2.2.1",
         "@tailwindcss/postcss": "^4.0.0",
+        "@vercel/speed-insights": "^1.1.0",
         "autoprefixer": "^10.4.20",
         "axios": "^1.7.9",
         "cloudinary": "^2.5.1",

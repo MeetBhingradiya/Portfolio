@@ -16,15 +16,16 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -56,7 +57,7 @@ function initializeStorage(storageType: "session" | "local") {
         if (typeof window !== "undefined") {
             const storage = storageType === "session" ? sessionStorage : localStorage;
             const item = storage.getItem(key);
-            return item ? JSON.parse(item) : null;
+            return item ? item : null;
         }
         return null;
     };
@@ -74,7 +75,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     useEffect(() => {
         const storedTheme = get(storageKey);
         if (storedTheme && storedTheme !== theme) {
-            setTheme(storedTheme);
+            setTheme(storedTheme.replace(/"/g, "") as "light" | "dark" | "system");
         } else if (!storedTheme) {
             set(storageKey, theme);
         }

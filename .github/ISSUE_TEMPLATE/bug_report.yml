@@ -1,0 +1,51 @@
+name: Bug report
+description: Make sure you check if you are purposefully causing an error! (bad installation, etc.)
+labels: [ "🐛 Type: Bug" ]
+body:
+
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before submitting a bug report...
+      options:
+        - label: |
+            This bug wasn't already reported.
+            (I have checked every bug report on GitHub)
+          required: true
+        - label: |
+            I've cleared the sessions folder.
+          required: true
+  - type: dropdown
+    id: branch
+    attributes:
+      label: Branch
+      options:
+        - Release
+        - Development
+      default: 0
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: Commit
+      placeholder: 5fd7d6c (get using `git rev-parse --short HEAD`)
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: |
+        A clear and concise description of what the issue is.
+        Provide as much information as possible.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Copy and paste your error
+      description: |
+        From the terminal or console that was running the website, copy and paste the error/bug here.
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots
+      description: |
+        copy and paste the screenshots here.

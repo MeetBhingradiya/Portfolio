@@ -16,15 +16,16 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
- *  Notice: GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is not affiliated with, endorsed by, or in any way associated with GitHub or 
- *  Microsoft Corporation.
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.8
+ *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -34,7 +35,7 @@ import React from "react";
 import "@Styles/Footer.sass";
 import { motion } from "framer-motion";
 import { Config } from "@Config/index";
-import { getRelativeTime } from "@Utils/Relativetime";
+import { getRelativeTime, isFutureDate } from "@Utils/Relativetime";
 import { Tooltip } from "@heroui/react";
 import {
     Contrast,
@@ -160,7 +161,7 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.1, duration: 0.5, ease: "easeInOut" }}
                     >
-                        v{Config.version} | {getRelativeTime(new Date(Config.releasedate))}
+                        {Config.version} | {isFutureDate(new Date(Config.releasedate)) ? "Release" : ""} {getRelativeTime(new Date(Config.releasedate))}
                     </motion.a>
                 </Tooltip>
             </div>

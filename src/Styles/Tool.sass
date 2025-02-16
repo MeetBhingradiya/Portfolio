@@ -1,9 +1,3 @@
-$icon-size: 64px
-$grid-gap: 10px
-$card-padding: 10px
-$card-bg-color: #1e1e1ea2
-$card-border-radius: 8px
-
 .Tool
     color: #ffffff
     font-family: 'Roboto', sans-serif
@@ -20,50 +14,52 @@ $card-border-radius: 8px
         align-items: center
         flex-direction: column
         position: fixed
-        bottom: 2.5rem
+        bottom: 3.5rem
         width: calc( 100% - 20px * 2 )
         gap: 0.3rem
         z-index: 1
         .Suggestions
             position: relative
             width: 50%
-            padding: 10px
+            padding: 5px 10px
             display: flex
             justify-content: center
             align-items: center
             flex-direction: column
             border: none
             border-radius: 8px
-            background: #0000004d
+            background: var(--bookmark)
             backdrop-filter: blur(8px)
-            border: 1px solid #4646468f
-            color: #ffffff
+            border: 1px solid var(--bookmark-border)
+            color: var(--font-color)
             z-index: 2
-            gap: 0.4rem
+            gap: 0.3rem
+            .SuggestionActive
+                transform: scale(1.01)
+                background: #2f2f2faa
+                transition: 0.3s
             .Suggestion
                 position: relative
                 width: 100%
-                border-radius: 8px 8px 0px 0px
+                border-radius: 8px
                 padding: 5px 10px
-                border-bottom: 1px solid #4646468f
                 color: var(--font-color)
                 font-size: 0.8rem
                 outline: none
-                transition: 0.3s
+                border: 1px solid #ffffff00
                 cursor: pointer
                 display: flex
                 flex-direction: row
                 justify-content: start
                 align-items: center
                 gap: 1rem
-                &:focus
-                    outline: 2px solid #6200ea
+                transition: 0.3s
                 &:hover
-                    background: #0000004d
+                    transform: scale(1.01)
+                    background: var(--bookmark-hover)
                     transition: 0.3s
                 .Loading
                     animation: rotate 1s linear infinite
-                    // ? Rotate Animation
                     @keyframes rotate
                         0%
                             transform: rotate(0deg)
@@ -83,7 +79,6 @@ $card-border-radius: 8px
                         font-weight: 500
                     .Description
                         width: 100%
-                        // padding-left: 5px
                         align-items: center
                         font-size: 0.7rem
                         color: var(--description-font-color)
@@ -109,17 +104,18 @@ $card-border-radius: 8px
                 height: max-content
                 border: none
                 border-radius: 8px
-                background: #0000004d
+                background: var(--bookmark)
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
                 backdrop-filter: blur(8px)
-                border: 1px solid #4646468f
-                color: #ffffff
+                border: 1px solid var(--bookmark-border)
+                color: var(--font-color)
                 font-size: 1rem
                 outline: none
                 transition: width 0.3s
                 &:focus
                     width: 50%
                     transition: width 0.3s
-                    outline: 2px solid #6200ea
+                    outline: 2px solid var(--accent-color)
                 &:hover
                     width: 50%
                     transition: width 0.3s
@@ -127,27 +123,28 @@ $card-border-radius: 8px
                 color: #757575
             .button
                 padding: 10px
-                border: 1px solid #4646468f
                 border: none
                 border-radius: 8px
-                background: #0000004d
-                backdrop-filter: blur(4px)
-                border: 1px solid #35353554
-                color: #ffffff
+                background: var(--bookmark)
+                backdrop-filter: blur(8px)
+                border: 1px solid var(--bookmark-border)
+                color: var(--font-color)
                 font-size: 1rem
                 outline: none
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
                 transition: 0.3s
                 cursor: pointer
-                &:focus
+                &:active
                     outline: 2px solid #6200ea
                 &:hover
+                    background: var(--bookmark-hover)
                     transform: scale(1.1)
                     transition: 0.3s
 
     .grid
         display: grid
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr))
-        gap: $grid-gap
+        gap: 10px
 
     .item
         padding: 15px
@@ -167,23 +164,22 @@ $card-border-radius: 8px
         flex-direction: column
         justify-content: center
         align-items: center
-        background-color: $card-bg-color
+        background-color: var(--bookmark)
         text-align: center
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2)
-        border: 1px solid #333
-        border-radius: $card-border-radius
+        border: 1px solid var(--bookmark-border)
+        border-radius: 8px
         transition: transform 0.2s ease
         cursor: pointer
         word-wrap: no-warp
         user-select: none
-        backdrop-filter: blur(4px)
 
         &:hover
             transform: translateY(-5px)
-            border: 3px dashed #6200ea
+            background: var(--bookmark-hover)
 
         &.drag-over
-            outline: 2px dashed #6200ea
+            outline: 2px solid #6200ea
 
         .ServerIcon
             position: absolute
@@ -200,17 +196,17 @@ $card-border-radius: 8px
             display: flex
             justify-content: center
             align-items: center
-            padding: $card-padding
+            padding: 10px
 
             img
-                width: $icon-size
-                height: $icon-size
+                width: 64px
+                height: 64px
 
         .bookmarkTitle
-            padding: $card-padding
+            padding: 10px
             margin-top: 8px
             font-size: 1rem
-            color: #ffffff
+            color: var(--font-color)
             word-break: break-word
 
         .link

@@ -34,7 +34,7 @@
 - Tools > [#43](https://github.com/MeetBhingradiya/Portfolio/issues/43)
 
 ### 🔄 Changed
-- 🗨️ **Auto Comments** : License Updated.
+- 🗨️ **Auto Comments** : All Files License Updated.
 - Auto Redirect to Original Origin on "INVALID_ORIGIN" Backend ERROR.
 <!-- - 📦 **Dependencies**: Updated to the latest versions (as of `05-02-2025`). -->
 

@@ -25,13 +25,13 @@
  *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 09/02/25 3:13 PM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
 
 const Config = {
-    version: "v1.0.9 Beta",
-    releasedate: "2025-2-28",
+    version: "v1.0.9",
+    releasedate: "2025-2-16",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -53,7 +53,7 @@ const Config = {
         // "iOS",
         // "MacOS"
     ],
-    VercelSpeedInsight: false
+    VercelSpeedInsight: true
 }
 
 export { Config };

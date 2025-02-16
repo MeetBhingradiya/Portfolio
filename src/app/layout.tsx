@@ -25,7 +25,7 @@
  *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 09/02/25 3:13 PM IST (Kolkata +5:30 UTC)
+ *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -109,7 +109,7 @@ export default function RootLayout({
 
                 {/* ? Vercel Speed Insights */}
                 {
-                    Config.VercelSpeedInsight && <SpeedInsights />
+                    (Config.Environment === "production" && Config.VercelSpeedInsight) && <SpeedInsights />
                 }
             </head>
             <body className={inter.className}>

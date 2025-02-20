@@ -28,10 +28,32 @@
  *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
+interface IConfig {
+    Name: string;
 
-const Config = {
-    version: "v1.0.9",
-    releasedate: "2025-2-16",
+    // ? vX.X.X Stage | Beta
+    version: `v${number}.${number}.${number}${" Stage" | " Beta" | ""}`;
+
+    // ? YYYY-MM-DD
+    releasedate: `${number}-${number}-${number}`;
+    
+    visiblebranch: "Release" | "Development";
+    isHomeReleased: boolean;
+    Environment: "development" | "production" | "test";
+    GoogleADS: boolean;
+    WhiteListedDomains: string[];
+    WhiteListedPlatforms: Array<"Windows" | "Linux" | "Android" | "iOS" | "MacOS">;
+    WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc">;
+    VercelSpeedInsight: boolean;
+    ThreatIntelligence: Array<"TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon">;
+    Cookie_Prefix: string;
+}
+
+
+const Config: IConfig = {
+    Name: "Meet Bhingradiya",
+    version: "v1.0.10 Stage",
+    releasedate: "2025-3-15",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -49,11 +71,28 @@ const Config = {
     WhiteListedPlatforms: [
         "Windows",
         "Linux",
-        "Android",
-        // "iOS",
-        // "MacOS"
+        "Android"
     ],
-    VercelSpeedInsight: true
+    WhiteListedBrowsers: [
+        "Chrome",
+        "Edge",
+        "Firefox",
+        "Opera" 
+    ],
+    VercelSpeedInsight: true,
+    ThreatIntelligence: [
+        "TOR",
+        "VPN",
+        "ICloud-Relay",
+        "Proxy",
+        "Datacenter",
+        "Anonymous",
+        "KnownAttacker",
+        "KnownAbuser",
+        "Threat",
+        "Bogon",
+    ],
+    Cookie_Prefix: "smnetwork_",
 }
 
 export { Config };

@@ -29,8 +29,9 @@
  */
 
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
+import { Config } from '@Config/index';
 
 const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 
@@ -49,8 +50,8 @@ export async function middleware(req: NextRequest) {
         }
     });
 
-    if (!req.cookies.get('csrf')) {
-        response.cookies.set('csrf', csrfToken, {
+    if (!req.cookies.get(`${Config.Cookie_Prefix}csrf`)) {
+        response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
             httpOnly: true,
             secure: true,
             sameSite: 'strict',
@@ -61,9 +62,10 @@ export async function middleware(req: NextRequest) {
 
     if (req.nextUrl.pathname.startsWith('/api')) {
         const csrfTokenFromHeader = req.headers.get('x-csrf');
-        const csrfTokenFromCookie = req.cookies.get('csrf');
+        const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
 
         const excludedRoutes = [
+            '/api/ip',
             '/api/trace',
             '/api/sitemap',
             '/api/sitemap/*',

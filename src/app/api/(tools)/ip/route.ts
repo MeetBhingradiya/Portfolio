@@ -1,9 +1,8 @@
-import { NextApiRequest, NextApiResponse } from 'next'
 import { NextResponse } from 'next/server'
-import requestIp from 'request-ip'
+import requestIp, { Request } from 'request-ip'
 
 export async function GET(
-    req: NextApiRequest,
+    req: Request,
 ) {
     return NextResponse.json({ ip: requestIp.getClientIp(req) }, { status: 200, statusText: 'OK' })
 }

@@ -89,7 +89,7 @@ function CRXDownload() {
                     onChange={(e) => SetState({ ...State, Version: e.target.value })}
                 >
                     {State.Versions.map((Item) => (
-                        <SelectItem key={Item.version} value={Item.version}>
+                        <SelectItem key={Item.version}>
                             Chrome {Item.version}
                         </SelectItem>
                     ))}

@@ -721,7 +721,7 @@ function Settings({
                                                 {
                                                     // ? Enum to Array of Object { Key: Value }
                                                     Object.values(ISearchEngine).map((engine) => (
-                                                        <SelectItem key={engine} value={engine}>
+                                                        <SelectItem key={engine}>
                                                             {engine}
                                                         </SelectItem>
                                                     ))
@@ -759,7 +759,7 @@ function Settings({
                                                 {
                                                     // ? Enum to Array of Object { Key: Value }
                                                     Object.values(ILocale).map((locale) => (
-                                                        <SelectItem key={locale} value={locale}>
+                                                        <SelectItem key={locale}>
                                                             {locale}
                                                         </SelectItem>
                                                     ))

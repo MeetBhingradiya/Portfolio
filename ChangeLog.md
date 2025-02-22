@@ -19,7 +19,23 @@
 
 -->
 
-# v1.0.9 - 28/02/2025 (Expected)
+# v1.0.10 - 28/02/2025 (Expected)
+
+### 🌟 Added
+- Models > Passkeys, Users, Sessions
+
+
+### 🔄 Changed
+- 📦 **Dependencies**: Updated to the latest versions (as of `16-02-2025`).
+- TailwindCSS V4 Still not Migrated due to `HeroUI` Update is Pending.
+- Landing Footer now on Layout by Default.
+
+### 🗑️ Removed
+
+---
+
+
+# v1.0.9 - 16/02/2025
 
 ### 🌟 Added
 - 3 New Database Models Added #40

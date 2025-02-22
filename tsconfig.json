@@ -84,7 +84,7 @@
         "**/*.ts",
         "**/*.tsx",
         ".next/types/**/*.ts"
-    ],
+, "Test/test.js"    ],
     "exclude": [
         "node_modules"
     ]

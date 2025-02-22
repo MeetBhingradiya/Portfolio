@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 22/02/25 7:26 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,13 +40,68 @@ const User_Schema: mongoose.Schema = new mongoose.Schema({
         default: v4,
         unique: true
     },
+    Username: {
+        type: String,
+        required: true,
+        unique: true
+    },
+    Emails: {
+        type: [{
+            Email: String,
+            isVerified: Boolean
+        }]
+    },
+    PhoneNumbers: {
+        type: [{
+            PhoneNumber: String,
+            isPrimary: Boolean,
+            isVerified: Boolean
+        }]
+    },
+    Credentials: {
+        type: [{
+            Salt: String,
+            Secret: String,
+            Data: String,
+            Rounds: Number,
+            isActive: Boolean
+        }]
+    },
+    Icon: {
+        type: String
+    },
+    FirstName: {
+        type: String
+    },
+    LastName: {
+        type: String
+    },
+    DateOfBirth: {
+        type: Date
+    },
+    Gender: {
+        type: String
+    },
+    CustomGender: {
+        type: String
+    },
+
 }, {
     timestamps: true,
     versionKey: "v1"
 });
 
 export interface IUser extends mongoose.Document {
+
+    // ? Unique Identifiers
+
+    // ? Used for Sessions & Passkey Identification
     UserID: string
+
+    // ? Used for Login, Profile and Account Recovery
+    Username: string
+    
+    // ? Used for Account Recovery, Login and Verification
     Emails: Array<{
         Email: string
         isVerified: boolean
@@ -58,11 +114,15 @@ export interface IUser extends mongoose.Document {
     }>
 
     // ? Acsess Credentials
-    Salt: string
-    HashKey: string
+    Credentials: Array<{
+        Salt: string
+        Secret: string
+        Data: string
+        Rounds: number
+        isActive: boolean
+    }>
 
     // ? Personal Information
-    Username: string
     Icon: string
     FirstName: string
     LastName: string
@@ -70,11 +130,9 @@ export interface IUser extends mongoose.Document {
     Gender: IGender
     CustomGender: string
 
-    // ? Profile Permissions
-    Permissions: Array<string>
-
     // ? Authentication Methods
-    isMultiFactorAuthEnabled: boolean
+    isMFA: boolean
+    isSuspicousActivity: boolean
 
     // ? Authenticator App
     AuthenticatorApp: {
@@ -82,14 +140,8 @@ export interface IUser extends mongoose.Document {
         Secret: string
     }
 
-    // ? Passkey
-    Passkey: {
-        isEnabled: boolean
-        Passkey: string
-    }
-
     // ? Priority
-    Priority: "Passkey" | "AuthenticatorApp" | "Phone"
+    Priority: "Passkey" | "AuthenticatorApp" | "Phone" | "Email" | "RecoveryCodes"
 
     // ? Admins & Security
     isLocked: boolean

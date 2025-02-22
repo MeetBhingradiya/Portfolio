@@ -2,6 +2,7 @@ import path from 'path';
 import { NextConfig } from 'next';
 import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
 import tsconfig from './tsconfig.json';
+import { Config } from '@Config/index';
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -73,7 +74,24 @@ const nextConfig: NextConfig = {
                             minify: true,
                             removeWhitespace: true
                         })
-                    }
+                    },
+                    // ? CORS Headers
+                    {
+                        key: 'Access-Control-Allow-Origin',
+                        value: ''
+                    },
+                    {
+                        key: 'Access-Control-Allow-Methods',
+                        value: 'GET, POST, OPTIONS',
+                    },
+                    {
+                        key: 'Access-Control-Allow-Headers',
+                        value: 'Content-Type, Authorization',
+                    },
+                    {
+                        key: 'Access-Control-Allow-Credentials',
+                        value: 'true',
+                    },
                 ]
             }
         ];

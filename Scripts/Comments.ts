@@ -55,14 +55,15 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - ${new Date().getFullYear()} Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -72,7 +73,7 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  ${createdDate}
  *  ${modifiedDate}
@@ -86,11 +87,11 @@ async function processFile(FilePath: string): Promise<void> {
         isModified: isFileModified(FilePath)
     }
 
-    // if (!FileData.isModified) {
-    //     return;
-    // } else {
-    //     console.log(`[File Licensing] File is begain modified: ${FilePath}`);
-    // }
+    if (!FileData.isModified) {
+        return;
+    } else {
+        console.log(`[File Licensing] File is begain modified: ${FilePath}`);
+    }
 
     const FileContent = fs.readFileSync(FilePath, 'utf-8');
     const Comment = await generateFileComment(FileData.ID, FileContent)

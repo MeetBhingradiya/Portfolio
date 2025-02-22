@@ -1,5 +1,3 @@
-import type { Request } from "express"
-
 interface IuseEmptyFields {
     Fields: Array<string>
     Request?: Request

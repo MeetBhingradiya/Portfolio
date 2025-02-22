@@ -26,7 +26,7 @@ function useEmptyFields({
     if (Type === undefined) Type = "Object";
 
     if (Type === "Request") {
-        Filter_Object = Object.keys(Request?.body);
+        Filter_Object = Object.keys(Request?.body as any);
     } else if (Type === "Object") {
         Filter_Object = Object.keys(object);
     } else {

@@ -28,7 +28,6 @@
  *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
-
 "use Client"
 
 import React from 'react';
@@ -36,7 +35,7 @@ import "@Styles/Header.sass";
 import { motion } from 'framer-motion';
 
 interface QuickLinks_Type {
-    Type: "SimpleLinks" | "MenuLink" | "Button" | "Theme" | "MobileToggle"
+    Type: "SimpleLink" | "MenuLink" | "Button" | "Theme" | "MobileToggle"
     URL?: string
     isAnchour: boolean
     AnchourID: string
@@ -53,35 +52,38 @@ interface QuickLinks_Type {
 
 function Header() {
     return (
-        <motion.div className={"Header"}>
-            <div className={"Brand"}>
-                <div className={"Icon"}>
-
+        <div className={"Header"}>
+            <div className="Warp">
+                <div className={"Brand"}>
+                    <div className={"Icon"}>
+                        <img src={"/favicon.ico"} alt={"Brand Icon"} />
+                    </div>
                 </div>
-                <div className={"Text"}>
 
+                <div className={"QuickLinks"}>
+                    {/* Links Types */}
+
+                    {/* Type 1 */}
+                    <div className={"SimpleLink"}>Home</div>
+                    <div className={"SimpleLink"}>About</div>
+                    <div className={"SimpleLink"}>Showcase</div>
+                    <div className={"SimpleLink"}>Contact</div>
+                    <div className={"SimpleLink"}>Resume</div>
+
+                    {/* Type 2 */}
+                    {/* <div className={"MenuLink"}></div> */}
+
+                    {/* Type 3 */}
+                    {/* <div className={"Button"}></div> */}
+
+                    {/* Type 4 */}
+                    {/* <div className={"Theme"}></div> */}
+
+                    {/* Type 4 */}
+                    {/* <div className={"MobileToggle"}></div> */}
                 </div>
             </div>
-
-            <div className={"QuickLinks"}>
-                {/* Links Types */}
-
-                {/* Type 1 */}
-                <div className={"SimpleLinks"}></div>
-
-                {/* Type 2 */}
-                <div className={"MenuLink"}></div>
-
-                {/* Type 3 */}
-                <div className={"Button"}></div>
-
-                {/* Type 4 */}
-                <div className={"Theme"}></div>
-
-                {/* Type 4 */}
-                <div className={"MobileToggle"}></div>
-            </div>
-        </motion.div>
+        </div>
     )
 }
 

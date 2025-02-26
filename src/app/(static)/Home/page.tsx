@@ -45,14 +45,16 @@ import {
 } from '@mui/icons-material';
 import Link from "next/link";
 import { SocialLinks } from "@Config/SocialLinks";
+import Header from "@Components/Header";
 
 // @ File
 export default function Home() {
     return (
         <>
+            <Header />
             <div className="Home">
                 <motion.div
-                    className="Container"
+                    className="Box"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.2, duration: 0.7, ease: "easeInOut" }}
@@ -129,7 +131,6 @@ export default function Home() {
                     </motion.div>
 
                 </motion.div>
-
             </div>
         </>
     );

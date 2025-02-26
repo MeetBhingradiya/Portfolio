@@ -29,15 +29,17 @@
  *  @modified 22/02/25 7:25 PM IST (Kolkata +5:30 UTC)
  */
 
-
 import { NextRequest, NextResponse } from "next/server";
+import { getClientIp } from "@Lib/request-ip";
 
 export async function GET(req: NextRequest) {
+    const IP = getClientIp(req);
 
     return NextResponse.json({
         Stats: 0,
         Message: "Currently IP Address API is not available",
-        StatusCode: 200
+        StatusCode: 200,
+        IP: IP
     }, {
         status: 200,
     });

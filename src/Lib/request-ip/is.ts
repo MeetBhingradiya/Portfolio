@@ -10,11 +10,16 @@ function not(func: Function) {
 }
 
 function existy(value: any) {
-    return value != null;
+    return value !== null;
 }
 
-function ip(value: string): boolean {
-    return existy(value) && regexes.ipv4.test(value) || regexes.ipv6.test(value);
+function ip(value: string | null): boolean {
+
+    if (value !== null && typeof value === 'string') {
+        return regexes.ipv4.test(value) || regexes.ipv6.test(value);
+    }
+
+    return false
 }
 
 function object(value: any) {

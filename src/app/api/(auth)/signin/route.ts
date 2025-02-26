@@ -45,12 +45,11 @@ export function GET(req: NextRequest) {
     const Body = req.body;
 
     if (useEmptyFields({
-        Fields: [
+        ReqiuredFields: [
             "email",
             "password"
         ],
-        object: Body,
-        Type: "Object"
+        Object: Body
     }).isMising) {
         return NextResponse.json({
             Status: 0,
@@ -58,9 +57,6 @@ export function GET(req: NextRequest) {
             StatusCode: 400
         }, { status: 400 });
     }
-
-
-
 
     return NextResponse.json({ Status: 1, Message: 'Email status route is working', StatusCode: 200 }, { status: 200 });
 }

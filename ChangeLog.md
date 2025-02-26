@@ -23,7 +23,9 @@
 
 ### 🌟 Added
 - Models > Passkeys, Users, Sessions
-
+- NextConfig > CORS Headers
+- Lib > Request IP for Advanced 
+- Hooks > useEmptyFields for Fast Body Validations
 
 ### 🔄 Changed
 - 📦 **Dependencies**: Updated to the latest versions (as of `16-02-2025`).

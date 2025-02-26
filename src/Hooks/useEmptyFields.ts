@@ -1,8 +1,6 @@
 interface IuseEmptyFields {
-    Fields: Array<string>
-    Request?: Request
-    object?: any
-    Type?: "Request" | "Object"
+    ReqiuredFields: Array<string>
+    Object: any
 }
 
 interface useEmptyFields_Return {
@@ -12,29 +10,22 @@ interface useEmptyFields_Return {
 }
 
 /**
- * check in object if the required fields are present in the request body or object
+ * ? check in object if the required fields are present in the object.
  */
 function useEmptyFields({
-    Fields,
-    Request,
-    object,
-    Type
+    ReqiuredFields,
+    Object
 }: IuseEmptyFields): useEmptyFields_Return {
-
-    var Filter_Object: Array<string> = {} as Array<string>;
-
-    if (Type === undefined) Type = "Object";
-
-    if (Type === "Request") {
-        Filter_Object = Object.keys(Request?.body as any);
-    } else if (Type === "Object") {
-        Filter_Object = Object.keys(object);
-    } else {
-        throw new Error("Invalid Type of useEmptyFields Hook");
+    if (ReqiuredFields === undefined) {
+        throw new Error("Required Fields are not provided in useEmptyFields Hook");
     }
 
-    const Empty_Fields: Array<string> = Fields.filter((field: string) => {
-        return !Filter_Object.includes(field);
+    if (Object === undefined) {
+        throw new Error("Object is not provided in useEmptyFields Hook");
+    }
+
+    const Empty_Fields: Array<string> = ReqiuredFields.filter((field: string) => {
+        return !Object[field];
     })
 
     if (Empty_Fields.length > 0) {

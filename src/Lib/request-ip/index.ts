@@ -1,44 +1,12 @@
 import { NextRequest } from "next/server";
-import * as http from "http";
 import { is } from "./is";
-
-interface RequestHeaders extends http.IncomingHttpHeaders {
-    "x-client-ip"?: string | undefined;
-    "x-forwarded-for"?: string | undefined;
-    "x-real-ip"?: string | undefined;
-    "x-cluster-client-ip"?: string | undefined;
-    "x-forwarded"?: string | undefined;
-    "forwarded-for"?: string | undefined;
-    "forwarded"?: string | undefined;
-}
-
-interface Request {
-    headers?: RequestHeaders;
-    connection?: {
-        remoteAddress?: string | undefined;
-        socket?: {
-            remoteAddress?: string | undefined;
-        } | undefined;
-    } | undefined;
-    info?: {
-        remoteAddress?: string | undefined;
-    } | undefined;
-    socket?: {
-        remoteAddress?: string | undefined;
-    } | undefined;
-}
-
-interface Options {
-    attributeName: string;
-}
-
 
 function getClientIpFromXForwardedFor(value: any) {
     if (!is.existy(value)) {
         return null;
     }
 
-    if (is.not.string(value)) {
+    if (typeof value !== 'string') {
         throw new TypeError("Expected a string, got \"".concat(typeof value, "\""));
     }
 
@@ -67,52 +35,36 @@ function getClientIpFromXForwardedFor(value: any) {
 
 function getClientIp(req: NextRequest): string | string[] | null | undefined {
     if (req.headers) {
-        if (is.ip(req.headers.get['x-client-ip'])) {
-            return req.headers['x-client-ip'];
+        if(is.ip(req.headers.get('x-client-ip'))){
+            return req.headers.get('x-client-ip');
         }
 
-        var xForwardedFor = getClientIpFromXForwardedFor(req.headers['x-forwarded-for']);
+        var xForwardedFor = getClientIpFromXForwardedFor(req.headers.get('x-forwarded-for'));
 
         if (is.ip(xForwardedFor)) {
             return xForwardedFor;
         }
 
-        if (is.ip(req.headers['cf-connecting-ip'])) {
-            return req.headers['cf-connecting-ip'];
-        }
 
-        if (is.ip(req.headers['fastly-client-ip'])) {
-            return req.headers['fastly-client-ip'];
-        }
+        const FindHeaders = [
+            'fastly-client-ip',
+            'true-client-ip',
+            'x-real-ip',
+            'x-cluster-client-ip',
+            'x-forwarded',
+            'forwarded-for',
+            'forwarded',
+            'x-appengine-user-ip'
+        ]
 
-        if (is.ip(req.headers['true-client-ip'])) {
-            return req.headers['true-client-ip'];
-        }
-
-        if (is.ip(req.headers['x-real-ip'])) {
-            return req.headers['x-real-ip'];
-        }
-
-        if (is.ip(req.headers['x-cluster-client-ip'])) {
-            return req.headers['x-cluster-client-ip'];
-        }
-
-        if (is.ip(req.headers['x-forwarded'])) {
-            return req.headers['x-forwarded'];
-        }
-
-        if (is.ip(req.headers['forwarded-for'])) {
-            return req.headers['forwarded-for'];
-        }
-
-        if (is.ip(req.headers.forwarded)) {
-            return req.headers.forwarded;
-        }
-
-        if (is.ip(req.headers['x-appengine-user-ip'])) {
-            return req.headers['x-appengine-user-ip'];
-        }
+        FindHeaders.forEach((header) => {
+            if(is.ip(req.headers.get(header))){
+                return req.headers.get(header);
+            }
+        })
     }
 
     return null;
 }
+
+export { getClientIp };

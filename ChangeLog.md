@@ -29,7 +29,7 @@
 - REDIRECT Protocols > Network, Browser, Plateform
 
 ### 🔄 Changed
-- 📦 **Dependencies**: Updated to the latest versions (as of `16-02-2025`).
+- 📦 **Dependencies**: Updated to the latest versions (as of `27-02-2025`).
 - TailwindCSS V4 Still not Migrated due to `HeroUI` Update is Pending.
 - Landing Footer now on Layout by Default.
 - "INVALID_ORIGIN" Protocol Now Redirect to Original Origin insted of giving ERROR on Console.

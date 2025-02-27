@@ -55,6 +55,27 @@ Axios.interceptors.request.use(
             if (csrfToken?.Status === 1) {
                 localStorage.setItem('trace', JSON.stringify(csrfToken));
             } else {
+
+                // ? Redirect Protocols
+                
+                if (csrfToken?.StatusCode === "INVALID_ORIGIN") {
+                    window.location.href = `https://${Config.WhiteListedDomains[0]}${window.location.pathname}`;
+                    return Promise.reject({ message: 'Invalid origin' });
+                }
+
+                if (csrfToken?.StatusCode === "UNSUPPORTED_NETWORK") {
+                    window.location.href = `https://${Config.WhiteListedDomains[0]}/UnSupportedPlateform`;
+                    return Promise.reject({ message: 'Unsupported network' });
+                }
+                if (csrfToken?.StatusCode === "UNSUPPORTED_BROWSER") {
+                    window.location.href = `https://${Config.WhiteListedDomains[0]}/UnSupportedPlateform`;
+                    return Promise.reject({ message: 'Unsupported browser' });
+                }
+                if (csrfToken?.StatusCode === "UNSUPPORTED_PLATFORM") {
+                    window.location.href = `https://${Config.WhiteListedDomains[0]}/UnSupportedPlateform`;
+                    return Promise.reject({ message: 'Unsupported platform' });
+                }
+                
                 csrfToken = null;
                 return Promise.reject({ message: 'CSRF token retrieval failed' });
             }

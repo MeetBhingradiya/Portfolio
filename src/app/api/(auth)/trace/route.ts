@@ -34,7 +34,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT, importJWK } from 'jose';
 import { Config } from '@Config';
 import { UserAgent } from '@Utils/UserAgent';
+import { IPData } from '@Utils/IPData';
 import { changeCase } from '@Utils/CaseChnage';
+import { getClientIp } from "@Lib/request-ip";
+import { ParseIPDataConfig } from '@/Utils/ParseIPDatatoConfig';
 
 const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 const ALLOWED_ORIGINS = [
@@ -54,32 +57,33 @@ export async function POST(req: NextRequest) {
     // **Validation:**
     // 1. Origin & Referer Checks
     if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Invalid origin', 
-            StatusCode: "INVALID_ORIGIN" 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Invalid origin',
+            StatusCode: "INVALID_ORIGIN"
         }, { status: 403 });
     }
+
     if (referer && !referer.startsWith(origin)) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Invalid referer', 
-            StatusCode: 403 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Invalid referer',
+            StatusCode: 403
         }, { status: 403 });
     }
 
     // 2. Browser Automation Detection
     const browserSignatures = [
-        'HeadlessChrome', 
-        'puppeteer', 
-        'selenium', 
+        'HeadlessChrome',
+        'puppeteer',
+        'selenium',
         'webdriver',
         'playwright',
     ];
     if (browserSignatures.some((signature) => userAgent.includes(signature))) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Unsupported browser', 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Unsupported browser',
             StatusCode: 403
         }, { status: 403 });
     }
@@ -93,27 +97,47 @@ export async function POST(req: NextRequest) {
             UserAgent: userAgent.split(' '),
             Condition: WhiteListedBrowsers.includes(changeCase.upperFirst(userAgent.split(' ')[0]) as any)
         });
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Unsupported browser', 
-            StatusCode: 403 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Unsupported browser',
+            StatusCode: 403
         }, { status: 403 });
     }
 
     if (
         !WhiteListedPlatforms.includes(changeCase.upperFirst(secUaPlatform.replace(/"/g, '')) as any)
     ) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Unsupported Platform', 
-            StatusCode: 403 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Unsupported Platform',
+            StatusCode: 403
         }, { status: 403 });
     }
 
     // 4. WEBRTC Checks
-    
 
-    // @ TODO: IP CHECKS Like Tor, VPN, Proxy, etc.
+
+    // if (Config.Environment !== 'development') {
+    const IP = getClientIp(req) as string;
+
+    const TreatIntelligence = await IPData(Config.Environment !== 'development' ? "104.28.252.40" : IP);
+
+    if (TreatIntelligence?.isERROR) {
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Threat Detectection Failed',
+            StatusCode: "UNSUPPORTED_NETWORK"
+        }, { status: 500 });
+    }
+
+    if (ParseIPDataConfig(TreatIntelligence).isFound) {
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Threat Detected',
+            StatusCode: "UNSUPPORTED_NETWORK"
+        })   
+    }
+    // }
 
     // **Generate CSRF Token**
     const csrfToken = await new SignJWT({})
@@ -123,12 +147,12 @@ export async function POST(req: NextRequest) {
         .sign(await importJWK({ kty: 'oct', k: CSRF_KEY }));
 
     // **Set Secure CSRF Cookie**
-    const response = NextResponse.json({ 
-        Status: 1, 
-        Message: 'Supported browser', 
-        data: csrfToken 
+    const response = NextResponse.json({
+        Status: 1,
+        Message: 'Supported browser',
+        data: csrfToken
     });
-    response.cookies.set('csrf', csrfToken, {
+    response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',

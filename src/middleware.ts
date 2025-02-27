@@ -28,7 +28,6 @@
  *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
-
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config/index';
@@ -50,22 +49,22 @@ export async function middleware(req: NextRequest) {
         }
     });
 
-    if (!req.cookies.get(`${Config.Cookie_Prefix}csrf`)) {
-        response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            path: '/',
-            maxAge: 60 * 20
-        });
-    }
+    // if (!req.cookies.get(`${Config.Cookie_Prefix}csrf`)) {
+    //     response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
+    //         httpOnly: true,
+    //         secure: true,
+    //         sameSite: 'strict',
+    //         path: '/',
+    //         maxAge: 60 * 20
+    //     });
+    // }
 
     if (req.nextUrl.pathname.startsWith('/api')) {
         const csrfTokenFromHeader = req.headers.get('x-csrf');
         const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
 
         const excludedRoutes = [
-            '/api/ip',
+            // '/api/ip',
             '/api/trace',
             '/api/sitemap',
             '/api/sitemap/*',
@@ -83,7 +82,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromHeader) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by HEADER',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
@@ -91,7 +90,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromCookie) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by COOKIE',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
@@ -99,7 +98,7 @@ export async function middleware(req: NextRequest) {
         if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by TOKEN',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
@@ -112,14 +111,14 @@ export async function middleware(req: NextRequest) {
             if (!verified) {
                 return NextResponse.json({
                     Status: 0,
-                    Message: 'Invalid Authorization',
+                    Message: 'Invalid Authorization by VERIFY',
                     StatusCode: 'INVALID_AUTHORIZATION'
                 }, { status: 403 });
             }
         } catch (error) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by 500 VERIFY',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }

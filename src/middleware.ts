@@ -30,7 +30,7 @@
 
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
-import { Config } from '@Config/index';
+import { Config } from '@Config';
 
 const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 

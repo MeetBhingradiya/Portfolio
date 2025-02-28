@@ -1,4 +1,4 @@
-import { Config } from "@Config/index";
+import { Config } from "@Config";
 import Axios from "axios";
 
 type Iip = `${number}.${number}.${number}.${number}` | string;

@@ -95,7 +95,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
-import { Config } from "@Config/index";
+import { Config } from "@Config";
 // import Link from "next/link";
 import { changeCase } from "@Utils/CaseChnage";
 import SettingsModel from "./Settings";

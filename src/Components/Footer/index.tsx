@@ -34,7 +34,7 @@
 import React from "react";
 import "@Styles/Footer.sass";
 import { motion } from "framer-motion";
-import { Config } from "@Config/index";
+import { Config } from "@Config";
 import { getRelativeTime, isFutureDate } from "@Utils/Relativetime";
 import { Tooltip } from "@heroui/react";
 import {

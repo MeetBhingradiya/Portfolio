@@ -51,7 +51,7 @@ import Header from "@Components/Header";
 export default function Home() {
     return (
         <>
-            <Header />
+            {/* <Header /> */}
             <div className="Home">
                 <motion.div
                     className="Box"

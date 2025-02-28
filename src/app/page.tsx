@@ -36,7 +36,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Tooltip } from "@heroui/react";
 import { useRouter } from 'next/navigation';
-import { Config } from "@Config/index";
+import { Config } from "@Config";
 
 // @ Icons Import
 import Link from "next/link";

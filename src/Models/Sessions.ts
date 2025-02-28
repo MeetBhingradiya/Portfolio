@@ -51,16 +51,14 @@ export interface ISessions extends Document {
 
     // ? Used to Access Identiy on Local Storage or Cookie as Non Trackable Key
     RSAKeyID: string
-    AcessToken: string
+    AcessToken: string // ? Send Encrypted Using 2 Different RSA Keys (Local & Cookie)
 
     // ? NEW Properties
     IP: string
     IPv4: string
     IPv6: string
     UserAgent: string
-    Cookies: Array<{
-        [key: string]: string
-    }>
+    
     UknownRequestHeaders: Array<{
         [key: string]: string
     }>

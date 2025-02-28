@@ -29,7 +29,7 @@
  */
 
 
-import { Config } from '@Config/index';
+import { Config } from '@Config';
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { getCSRFToken } from './getTrace';
 

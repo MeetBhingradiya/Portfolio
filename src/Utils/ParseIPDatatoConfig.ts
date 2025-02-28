@@ -1,5 +1,5 @@
 import type { IResponse } from "./IPData"
-import { Config } from "@Config/index"
+import { Config } from "@Config"
 
 function ParseIPDataConfig(Response: IResponse) {
     // ? "TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon"

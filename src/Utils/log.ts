@@ -29,7 +29,7 @@
  */
 
 
-import { Config } from "@Config/index";
+import { Config } from "@Config";
 
 export function log(...args: any[]) {
     if (Config.Environment === "development") {

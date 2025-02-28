@@ -36,7 +36,7 @@ import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
 import Footer from "@Components/Footer";
-import { Config } from "@Config/index";
+import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
 import LandingFooter from "@Components/Footer/LandingFooter";
 

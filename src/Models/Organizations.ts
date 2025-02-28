@@ -31,7 +31,7 @@
 
 import { Schema, Document, model } from 'mongoose';
 import { v4 } from 'uuid';
-import { Organization_Roles } from '@Types/Organization';
+import { Organization_Roles } from '@Types';
 
 const Organizations_Schema: Schema = new Schema({
     OrganizationID: {

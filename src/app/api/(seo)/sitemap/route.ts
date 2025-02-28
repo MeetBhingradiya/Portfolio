@@ -33,7 +33,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { StaticPages } from './StaticPages';
 import { Sitemap_Model } from '@Models/Sitemap';
 import dbConnect from '@Utils/dbConnect';
-import { Config } from '@Config/index';
+import { Config } from '@Config';
 import { Frequency, generateSitemap, SitemapItemWrap } from '@Utils/Sitemap';
 
 const Default_sitemap_Settings = {

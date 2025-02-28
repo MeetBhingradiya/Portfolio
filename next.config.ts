@@ -2,13 +2,11 @@ import path from 'path';
 import { NextConfig } from 'next';
 import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
 import tsconfig from './tsconfig.json';
-import { Config } from '@Config/index';
+import { Config } from '@Config';
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
-    devIndicators: {
-        appIsrStatus: false,
-    },
+    devIndicators: false,
     images: {
         loader: 'custom',
         loaderFile: "./src/Utils/RemoteImageLoader.ts",

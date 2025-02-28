@@ -46,6 +46,9 @@
             "@Components/*": [
                 "./src/Components/*"
             ],
+            "@Controllers": [
+                "./src/Controllers/index.ts"
+            ],
             "@Controllers/*": [
                 "./src/Controllers/*"
             ],
@@ -64,14 +67,23 @@
             "@Middlewares/*": [
                 "./src/Middlewares/*"
             ],
+            "@Models": [
+                "./src/Models/index.ts"
+            ],
             "@Models/*": [
                 "./src/Models/*"
             ],
             "@Styles/*": [
                 "./src/Styles/*"
             ],
+            "@Types": [
+                "./src/Types/index.ts"
+            ],
             "@Types/*": [
                 "./src/Types/*"
+            ],
+            "@Utils": [
+                "./src/Utils/index.ts"
             ],
             "@Utils/*": [
                 "./src/Utils/*"
@@ -83,8 +95,9 @@
         "next-env.d.ts",
         "**/*.ts",
         "**/*.tsx",
-        ".next/types/**/*.ts"
-, "Test/test.js"    ],
+        ".next/types/**/*.ts",
+        "Test/test.js"
+    ],
     "exclude": [
         "node_modules"
     ]

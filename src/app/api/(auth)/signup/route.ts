@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Users_Model, IUser } from "@Models/Users";
-import { VerificationCodes_Model, IVerificationCodes } from "@Models/VerificationCodes";
+// import { OTPs_Model, IOTP, OTPs } from "@Models/OneTimePass";
 // import { Sessions_Model, ISessions } from "@Models/Sessions";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 

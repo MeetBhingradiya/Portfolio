@@ -36,10 +36,9 @@ export async function GET(req: NextRequest) {
     const IP = getClientIp(req);
 
     return NextResponse.json({
-        Stats: 0,
-        Message: "Currently IP Address API is not available",
-        StatusCode: 200,
-        IP: IP
+        Stats: 1,
+        Message: IP,
+        StatusCode: 200
     }, {
         status: 200,
     });

@@ -160,6 +160,5 @@ export interface IBlog extends mongoose.Document {
 }
 
 Blog_Schema.plugin(mongoosePaginate);
-Blog_Schema.index({ BlogID: 1 });
 
 export const Blogs_Model: mongoose.Model<IBlog> = mongoose.models?.Blogs || mongoose.model<IBlog>("Blogs", Blog_Schema);

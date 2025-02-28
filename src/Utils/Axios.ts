@@ -31,7 +31,7 @@
 
 import { Config } from '@Config';
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { getCSRFToken } from './getTrace';
+import { RedirectProtocolExecuter , getCSRFToken} from '@Utils';
 
 const Axios: AxiosInstance = axios.create({
     timeout: 8000,
@@ -57,24 +57,7 @@ Axios.interceptors.request.use(
             } else {
 
                 // ? Redirect Protocols
-                
-                if (csrfToken?.StatusCode === "INVALID_ORIGIN") {
-                    window.location.href = `https://${Config.WhiteListedDomains[0]}${window.location.pathname}`;
-                    return Promise.reject({ message: 'Invalid origin' });
-                }
-
-                if (csrfToken?.StatusCode === "UNSUPPORTED_NETWORK") {
-                    window.location.href = `https://${Config.WhiteListedDomains[0]}/UnSupportedPlateform`;
-                    return Promise.reject({ message: 'Unsupported network' });
-                }
-                if (csrfToken?.StatusCode === "UNSUPPORTED_BROWSER") {
-                    window.location.href = `https://${Config.WhiteListedDomains[0]}/UnSupportedPlateform`;
-                    return Promise.reject({ message: 'Unsupported browser' });
-                }
-                if (csrfToken?.StatusCode === "UNSUPPORTED_PLATFORM") {
-                    window.location.href = `https://${Config.WhiteListedDomains[0]}/UnSupportedPlateform`;
-                    return Promise.reject({ message: 'Unsupported platform' });
-                }
+                RedirectProtocolExecuter(csrfToken?.StatusCode);
                 
                 csrfToken = null;
                 return Promise.reject({ message: 'CSRF token retrieval failed' });

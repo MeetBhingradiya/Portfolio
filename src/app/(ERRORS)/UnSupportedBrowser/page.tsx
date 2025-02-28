@@ -1,5 +1,5 @@
 /**
- *  @FileID          Config\Endpoints.ts
+ *  @FileID          app\(ERRORS)\UnSupportedPlateform\page.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -24,8 +24,45 @@
  *  -----------------------------------------------------------------------------
  *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
- *  @created 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
  *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
 
+"use client";
+import React from 'react';
+
+function UnSupportedPlateform_Page() {
+    const [platform, setPlatform] = React.useState('');
+
+    React.useEffect(() => {
+
+        const userAgent = navigator.userAgent;
+        if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+            setPlatform('iOS');
+        } else if (userAgent.includes('Android')) {
+            setPlatform('Android');
+        } else if (userAgent.includes('Windows')) {
+            setPlatform('Windows');
+        } else if (userAgent.includes('Mac')) {
+            setPlatform('Mac');
+        }
+
+    }, []);
+
+    return (
+
+        <div className='Page CENTER'>
+
+            <div className='flex flex-col gap-4 justify-center items-center'>
+                <h1 className='text-4xl'>UnSupported Oprating System</h1>
+                <p className='text-2xl'>{platform}</p>
+            </div>
+
+        </div>
+
+    );
+
+}
+
+export default UnSupportedPlateform_Page;

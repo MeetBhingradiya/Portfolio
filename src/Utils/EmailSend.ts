@@ -30,7 +30,7 @@
  */
 
 
-import nodemailer from 'nodemailer';
+// import nodemailer from 'nodemailer';
 
 /**
  * Send Email using Nodemailer
@@ -39,25 +39,25 @@ import nodemailer from 'nodemailer';
  * @param {string} html Email Body
  * @returns {Promise<boolean>} Email Sent Status
  */
-async function SendEmail(to: string, subject: string, html: string): Promise<boolean> {
-    const transporter = nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: 587,
-        secure: true,
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS
-        }
-    });
+// async function SendEmail(to: string, subject: string, html: string): Promise<boolean> {
+//     const transporter = nodemailer.createTransport({
+//         host: process.env.EMAIL_HOST,
+//         port: 587,
+//         secure: true,
+//         auth: {
+//             user: process.env.EMAIL_USER,
+//             pass: process.env.EMAIL_PASS
+//         }
+//     });
 
-    const info = await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to,
-        subject,
-        html
-    });
+//     const info = await transporter.sendMail({
+//         from: process.env.EMAIL_FROM,
+//         to,
+//         subject,
+//         html
+//     });
 
-    return info.accepted.length > 0;
-}
+//     return info.accepted.length > 0;
+// }
 
-export { SendEmail };
+// export { SendEmail };

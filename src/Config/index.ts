@@ -29,6 +29,8 @@
  *  @modified 22/02/25 7:25 PM IST (Kolkata +5:30 UTC)
  */
 
+export * from "./RedirectProtocols";
+export * from "./SocialLinks";
 
 interface IConfig {
     Name: string;

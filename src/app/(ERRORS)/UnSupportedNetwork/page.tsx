@@ -1,5 +1,5 @@
 /**
- *  @FileID          Data\APIMessages.ts
+ *  @FileID          app\(ERRORS)\UnSupportedPlateform\page.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -24,51 +24,28 @@
  *  -----------------------------------------------------------------------------
  *  Last Updated on Version: 1.0.9
  *  -----------------------------------------------------------------------------
- *  @created 13/01/25 12:45 PM IST (Kolkata +5:30 UTC)
+ *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
  *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
  */
 
+import React from 'react';
 
-import { NextResponse } from "next/server"
+function UnSupportedPlateform_Page() {
 
-interface IStatusMessages {
-    [key: number]: {
-        message?: string
-        statuscode: number
-        status: 0 | 1
-    }
+
+    return (
+
+        <div className='Page CENTER'>
+
+            <div className='flex flex-col gap-4 justify-center items-center'>
+                <h1 className='text-4xl'>UnSupported Networks</h1>
+                <p className='text-2xl'></p>
+            </div>
+
+        </div>
+
+    );
+
 }
 
-export const StatusMessages: IStatusMessages = {
-    200: {
-        statuscode: 200,
-        status: 1
-    },
-    404: {
-        message: "No Documents Found",
-        statuscode: 404,
-        status: 0
-    }
-}
-
-export function APIResponse(key:number, {
-    data,
-    headers
-}: {
-    data?: any
-    headers?: [string, string][] | Record<string, string>
-}) {
-    const Response = StatusMessages[key]
-
-    const newResponse = NextResponse.json({
-        Status: Response.status,
-        Message: Response.message,
-        data
-    },
-    {
-        status: Response.statuscode,
-        headers: headers
-    })
-
-    return newResponse    
-}
+export default UnSupportedPlateform_Page;

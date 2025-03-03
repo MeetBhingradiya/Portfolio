@@ -2,7 +2,6 @@ import path from 'path';
 import { NextConfig } from 'next';
 import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
 import tsconfig from './tsconfig.json';
-import { Config } from '@Config';
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -77,7 +76,7 @@ const nextConfig: NextConfig = {
                     // ? Allow Origins From Config.WhiteListedDomains
                     {
                         key: 'Access-Control-Allow-Origin',
-                        value: Config.WhiteListedDomains.join(', '),
+                        value: 'meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech'
                     },
                     {
                         key: 'Access-Control-Allow-Methods',

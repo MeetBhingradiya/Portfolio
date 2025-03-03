@@ -149,9 +149,9 @@ function Settings({
 
     async function FetchMarketPlaceBookmarks() {
         try {
-            const response = await Axios("/api/bookmarks");
+            const response = (await Axios("/api/bookmarks")).data;
 
-            const ServerBookmarks = response.data.data;
+            const ServerBookmarks = response.Data;
             if (!ServerBookmarks) {
                 return;
             }
@@ -175,7 +175,6 @@ function Settings({
             })
 
             ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
-
 
             SetSettingsState({
                 ...SettingsState,

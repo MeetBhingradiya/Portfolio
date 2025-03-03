@@ -90,9 +90,7 @@ Axios.interceptors.response.use(
             }
         }
 
-        if (error.response?.data?.StatusCode === "INVALID_ORIGIN") {
-            window.location.href = `https://${Config.WhiteListedDomains[0]}${window.location.pathname}`;
-        }
+        RedirectProtocolExecuter(error.response?.data?.StatusCode);
 
         return Promise.reject(error);
     }

@@ -150,6 +150,21 @@ interface AuroraProps {
     speed?: number;
 }
 
+/**
+ * Renders a dynamic aurora effect using WebGL.
+ *
+ * This React component sets up a WebGL rendering context with custom vertex and fragment shaders
+ * to create an animated aurora effect. It updates shader uniforms such as time, amplitude, blend, 
+ * and color stops in an animation loop, adjusts the canvas size in response to container changes, 
+ * and cleans up the WebGL context when unmounted.
+ *
+ * @param props - An object containing options for customizing the aurora effect:
+ *   - colorStops: Optional array of hex color strings defining the gradient (default: ["#00d8ff", "#7cff67", "#00d8ff"]).
+ *   - amplitude: Optional value controlling the displacement intensity (default: 1.0).
+ *   - blend: Optional value determining the blending factor (default: 0.5).
+ *   - time: Optional starting time offset for the animation.
+ *   - speed: Optional multiplier for the animation speed.
+ */
 export default function Aurora(props: AuroraProps) {
     const {
         colorStops = ["#00d8ff", "#7cff67", "#00d8ff"],

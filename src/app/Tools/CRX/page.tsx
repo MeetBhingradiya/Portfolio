@@ -40,6 +40,16 @@ import "@Styles/Tools-CRX.sass"
 
 const URL = "https://clients2.google.com/service/update2/crx?response=redirect&prodversion=@PRODVERSION&x=id%3D@EXTENSIONID%26uc"
 
+/**
+ * Renders a user interface for downloading Chrome extension CRX files.
+ *
+ * This component fetches available Chrome versions on its initial render and displays:
+ * - An input field for specifying the extension ID.
+ * - A dropdown list for selecting a Chrome version.
+ * - A download button that constructs and opens the download URL in a new browser window.
+ *
+ * @returns The React element representing the CRX download UI.
+ */
 function CRXDownload() {
     const [State, SetState] = React.useState<{
         ID: string,

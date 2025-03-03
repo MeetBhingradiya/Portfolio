@@ -40,6 +40,14 @@ import { Encrypt, Decrypt } from "@Utils/Crypto";
 import { RSA } from "@Utils/RSA";
 import { getRelativeTime } from "@Utils/Relativetime";
 
+/**
+ * Handles GET requests for the user sign-in route.
+ *
+ * This function checks the incoming request's body for the required "email" and "password" fields using a validation utility. It returns a JSON response with a 400 status if any of the required fields are missing; otherwise, it returns a JSON response confirming that the email status route is operational with a 200 status.
+ *
+ * @param req - The incoming HTTP request.
+ * @returns A JSON response indicating an error with missing fields (400) or a successful email status message (200).
+ */
 export function GET(req: NextRequest) {
 
     const Body = req.body;

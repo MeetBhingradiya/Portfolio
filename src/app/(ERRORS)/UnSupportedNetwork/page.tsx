@@ -32,6 +32,14 @@
 
 import React from 'react';
 
+/**
+ * Renders a page indicating that the current network is unsupported.
+ *
+ * This component displays a centered layout with a heading reading "UnSupported Networks" and an empty paragraph,
+ * serving as a placeholder for additional information if needed.
+ *
+ * @returns A JSX element representing the unsupported network screen.
+ */
 function UnSupportedPlateform_Page() {
 
 

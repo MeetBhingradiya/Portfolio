@@ -36,6 +36,15 @@ import { Users_Model, IUser } from "@Models/Users";
 // import { Sessions_Model, ISessions } from "@Models/Sessions";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 
+/**
+ * Processes a POST request for user signup.
+ *
+ * This function extracts user registration data from the request body and validates that all required fields
+ * (email, password, username, firstname, lastname, gender, and dateofbirth) are present. It then checks whether
+ * a user with the provided email or username already exists. If validation fails or a duplicate is found, it returns
+ * a JSON response with a 400 status code and an appropriate error message. If the data is valid and unique, it creates 
+ * a new user record and responds with a success message and a 200 status code.
+ */
 export async function POST(req: NextRequest) {
 
     const Body: {

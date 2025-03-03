@@ -33,6 +33,19 @@ function isFileModified(filePath: string): boolean {
     }
 }
 
+/**
+ * Generates a formatted file comment block with licensing, metadata, and timestamp information.
+ *
+ * This function creates a comment block that includes the file's identifier, a description generated
+ * from that identifier, and details about the author and licensing. It extracts an existing creation
+ * timestamp from the file content using a regular expression; if not found, it uses the current date with
+ * a specified IST timezone. The modification timestamp is also updated to the current date and time.
+ *
+ * @param FileID - The identifier for the file, used to generate the file description.
+ * @param fileContent - The content of the file from which the creation date may be extracted.
+ *
+ * @returns A promise that resolves to a formatted comment block string.
+ */
 async function generateFileComment(FileID: string, fileContent: string): Promise<string> {
 
     let createdDate = '';
@@ -81,6 +94,16 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
 \n`
 }
 
+/**
+ * Processes a file to add or update its licensing comment block.
+ *
+ * This asynchronous function checks if the file identified by the given path has been modified. If not,
+ * the function exits early. Otherwise, it reads the file's content, generates a new licensing comment (including
+ * metadata such as file ID and timestamps), and updates the file by replacing an existing comment block or
+ * prepending the new comment. Any errors encountered during the file update are logged to the console.
+ *
+ * @param FilePath - The path of the file to process.
+ */
 async function processFile(FilePath: string): Promise<void> {
     const FileData = {
         ID: path.relative('src', FilePath),

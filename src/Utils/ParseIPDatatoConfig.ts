@@ -33,6 +33,18 @@
 import type { IResponse } from "./IPData"
 import { Config } from "@Config"
 
+/**
+ * Parses threat indicators from an IP response and returns a filtered list of recognized threats.
+ *
+ * This function inspects various threat flags within the provided response object (e.g., "TOR", "VPN", "ICloud-Relay",
+ * "Proxy", "Datacenter", "Anonymous", "KnownAttacker", "KnownAbuser", "Threat", "Bogon"). For each flag that is enabled,
+ * it adds the corresponding threat string to a list. The function then filters this list against a predefined set of valid
+ * threat types defined in {@link Config.ThreatIntelligence} and finally returns an object containing a boolean flag indicating
+ * whether any recognized threat was found and the filtered list of threats.
+ *
+ * @param Response - The response object containing IP threat indicator properties.
+ * @returns An object with an 'isFound' boolean that is true if any valid threat was detected, and a 'Threats' array with the filtered threat strings.
+ */
 function ParseIPDataConfig(Response: IResponse) {
     // ? "TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon"
     // ? is_tor is_vpn is_icloud_relay is_proxy is_datacenter is_anonymous is_known_attacker is_known_abuser is_threat is_bogon

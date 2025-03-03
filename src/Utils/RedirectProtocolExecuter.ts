@@ -33,6 +33,17 @@
 import { RedirectProtocols } from "@Config/RedirectProtocols";
 import { Config } from "@Config";
 
+/**
+ * Redirects the browser to an appropriate URL based on the provided server response status code.
+ *
+ * The function searches for a matching protocol in the `RedirectProtocols` array using the given status code.
+ * If a matching protocol is found, it constructs a URL using the primary domain from `Config.WhiteListedDomains` and either:
+ * - the current window pathname if the protocol specifies to use the user's path, or
+ * - a predefined redirect path from the protocol.
+ * If no matching protocol is found, the function does nothing.
+ *
+ * @param ServerResponseStatuscode - The server response status code used to select the corresponding redirect protocol.
+ */
 function RedirectProtocolExecuter(ServerResponseStatuscode: string | undefined) {
     const Protocol = RedirectProtocols.find((protocol) => protocol.protocol === ServerResponseStatuscode);
 

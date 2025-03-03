@@ -42,7 +42,25 @@ interface useEmptyFields_Return {
 }
 
 /**
- * ? check in object if the required fields are present in the object.
+ * Checks whether all required fields are present in the provided object.
+ *
+ * This function verifies that each field specified in the ReqiuredFields array exists in the given Object.
+ * If the object is provided as a JSON string, it is parsed before checking. If the Object is undefined or null,
+ * the function treats all required fields as missing.
+ *
+ * @param ReqiuredFields - Array of required field names.
+ * @param Object - The object or JSON string to check for the required fields.
+ *
+ * @returns An object containing:
+ *  - isMising: a boolean indicating if any required fields are missing.
+ *  - MissingFields: an array of field names that are missing.
+ *  - Length: the number of missing fields.
+ *
+ * @throws {Error} When the ReqiuredFields array is not provided.
+ *
+ * @example
+ * const result = useEmptyFields({ ReqiuredFields: ["name", "email"], Object: { name: "Alice" } });
+ * // result.isMising === true, result.MissingFields === ["email"], result.Length === 1
  */
 function useEmptyFields({
     ReqiuredFields,

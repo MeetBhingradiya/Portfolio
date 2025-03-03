@@ -36,6 +36,13 @@ import { Controller_GET_Bookmarks } from "@Controllers/Bookmarks";
 // ? Enables Cache 
 export const revalidate = 60
 
+/**
+ * Handles HTTP GET requests for retrieving bookmarks.
+ *
+ * This function calls the bookmark controller to fetch bookmark data and returns a structured JSON response. If no bookmarks are found, it responds with a 404 status, otherwise with a 200 status and includes the retrieved bookmarks.
+ *
+ * @returns A JSON response object with a status indicator, message, HTTP status code, and optionally the fetched bookmark data.
+ */
 export async function GET(req: NextRequest) {
     let Response: Array<any> = await Controller_GET_Bookmarks()
 

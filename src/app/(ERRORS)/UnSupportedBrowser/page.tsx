@@ -33,6 +33,13 @@
 "use client";
 import React from 'react';
 
+/**
+ * Renders a page notifying users that their operating system is not supported.
+ *
+ * This React component examines the browser's user agent to identify the operating system
+ * (iOS, Android, Windows, or Mac) and updates its state accordingly. It then displays a message
+ * along with the detected platform.
+ */
 function UnSupportedPlateform_Page() {
     const [platform, setPlatform] = React.useState('');
 

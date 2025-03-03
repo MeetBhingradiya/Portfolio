@@ -130,6 +130,16 @@ const headers = {
     'User-Agent': Config.CORS.Useragent,
 }
 
+/**
+ * Fetches IP-related data from the IPData API.
+ *
+ * Constructs the target URL by appending an optional IP address to the base API URL and adding an API key as a query parameter.
+ * Makes an HTTP GET request using Axios with predefined headers and returns the response data.
+ * If the request fails, returns an object containing an error flag and a descriptive error message.
+ *
+ * @param ip - Optional IP address to retrieve data for; if omitted, data for the base API is fetched.
+ * @returns The API response data on success, or an error object with `isERROR` and `Message` properties on failure.
+ */
 async function IPData(ip?: Iip): Promise<any> {
     try {
         const API_URL = new URL(`${API}${ip ? ip : ""}`);

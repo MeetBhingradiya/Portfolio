@@ -48,6 +48,16 @@ import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import PasswordManagers from 'password-managers' with { type: 'json' };
 import { Config } from "@/Config";
 
+/**
+ * Retrieves available password managers.
+ *
+ * Checks if any password managers exist by examining the keys of the collection. If no password managers
+ * are found, the function returns a JSON response with a 404 status and an appropriate message. Otherwise,
+ * it returns a JSON response with the password managers data and a 200 status.
+ *
+ * @returns A promise that resolves to a JSON response with either the password managers data (HTTP 200) or
+ * a not found message (HTTP 404).
+ */
 async function Controller_GET_PasswordManagers() {
     if (Object.keys(PasswordManagers).length === 0) {
         return NextResponse.json({
@@ -70,7 +80,27 @@ async function Controller_GET_PasswordManagers() {
 }
 
 /**
- *  ? Start creating a new passkey by serving registration options.
+ * Initiates passkey registration by generating registration options for a new passkey.
+ *
+ * This function performs the following steps:
+ * - Connects to the database.
+ * - Retrieves a predefined authorized user and fetches their existing passkeys from the database.
+ * - Checks the user's current passkey count against the limits defined for their subscription plan:
+ *   - "User": Maximum of 1 passkey.
+ *   - "Plus": Maximum of 2 passkeys.
+ *   - "Premium": Maximum of 5 passkeys.
+ * - If the passkey limit is reached, returns a JSON response with a 403 status and an appropriate error message.
+ * - Otherwise, generates passkey registration options using configuration data and user details.
+ * - Saves the generated challenge and a new passkey identifier to the database.
+ * - Returns a JSON response with a 200 status containing the registration options.
+ *
+ * @returns A JSON response indicating either that the passkey registration has started with the generated registration options,
+ *          or an error message if the user's passkey limit has been reached.
+ *
+ * @example
+ * Controller_POST_Register_Passkey_Request()
+ *   .then(response => response.json())
+ *   .then(data => console.log(data));
  */
 async function Controller_POST_Register_Passkey_Request() {
     await dbConnect()
@@ -183,17 +213,35 @@ async function Controller_POST_Register_Passkey_Request() {
 }
 
 /**
- * ? Register a new passkey to the server.
+ * Processes the client response for passkey registration.
+ *
+ * This controller function is intended to finalize the passkey registration process by handling
+ * the attestation data returned from the client. When fully implemented, it will validate the response,
+ * verify the attestation, and complete the linking of the new passkey with the user's account.
+ *
+ * @remarks
+ * This function is currently a placeholder and is not yet implemented.
  */
 async function Controller_POST_Register_Passkey_Response() { }
 
 /**
- * ? Start authenticating a passkey by serving authentication options.
+ * Initiates the passkey authentication process by providing the client with authentication options.
+ *
+ * This asynchronous controller function is intended to generate and serve the necessary options to complete
+ * passkey authentication. The complete implementation should handle input validation, challenge generation,
+ * and respond with the appropriate HTTP status and authentication options.
+ *
+ * @remarks
+ * This function is currently a placeholder awaiting further implementation.
  */
 async function Controller_POST_Authenticate_Passkey_Request() { }
 
 /**
- * ? Authenticate a passkey to the server & provide account access to the user if authenticated.
+ * Authenticates a passkey response and grants account access.
+ *
+ * This asynchronous function processes the authentication response provided by the client,
+ * validates the passkey credentials, and authorizes the corresponding user account if the
+ * authentication is successful.
  */
 async function Controller_POST_Authenticate_Passkey_Response() { }
 

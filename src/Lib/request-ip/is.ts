@@ -35,16 +35,42 @@ var regexes = {
     ipv6: /^((?=.*::)(?!.*::.+::)(::)?([\dA-F]{1,4}:(:|\b)|){5}|([\dA-F]{1,4}:){6})((([\dA-F]{1,4}((?!\3)::|:\b|$))|(?!\2\3)){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i
 };
 
+/**
+ * Creates a new function that returns the boolean negation of the result from the provided function.
+ *
+ * When the returned function is invoked, it applies all its received arguments to the original function
+ * and negates its return value. This is useful for generating functions that check for the opposite condition
+ * of the original function.
+ *
+ * @param func - The function whose returned value will be inverted.
+ * @returns A function that returns false when the original function returns a truthy value, and true otherwise.
+ */
 function not(func: Function) {
     return function () {
         return !func.apply(null, Array.prototype.slice.call(arguments));
     };
 }
 
+/**
+ * Checks whether the provided value is not null.
+ *
+ * @param value - The value to evaluate.
+ * @returns True if the value is not null, otherwise false.
+ */
 function existy(value: any) {
     return value !== null;
 }
 
+/**
+ * Validates if the input is a valid IP address.
+ *
+ * This function checks whether the provided value is a non-null string and then tests it against
+ * predefined patterns for IPv4 and IPv6 addresses. It returns true if the value matches either format,
+ * and false otherwise.
+ *
+ * @param value - The value to validate as an IP address.
+ * @returns True if the input is a valid IPv4 or IPv6 address; otherwise, false.
+ */
 function ip(value: string | null): boolean {
 
     if (value !== null && typeof value === 'string') {
@@ -54,10 +80,26 @@ function ip(value: string | null): boolean {
     return false
 }
 
+/**
+ * Determines whether the provided value is an object.
+ *
+ * This function returns true when the value is a non-primitive object. Primitives and null will result in false.
+ *
+ * @param value - The value to check.
+ * @returns True if the value is an object; otherwise, false.
+ */
 function object(value: any) {
     return Object(value) === value;
 }
 
+/**
+ * Checks whether the provided value is a string.
+ *
+ * This function compares the internal [[Class]] of the value to determine if it is a string.
+ *
+ * @param value - The value to validate.
+ * @returns True if the value is a string; otherwise, false.
+ */
 function string(value: any) {
     return Object.prototype.toString.call(value) === '[object String]';
 }

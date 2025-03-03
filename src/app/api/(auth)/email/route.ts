@@ -40,6 +40,20 @@ import { useEmptyFields } from "@Hooks";
 import { Config } from "@Config";
 import { dbConnect } from "@Utils/dbConnect";
 
+/**
+ * Processes a POST request to validate an email and check related user setup.
+ *
+ * This API endpoint:
+ * - Parses the JSON body of the incoming request and verifies that the "email" field is provided.
+ * - Establishes a database connection.
+ * - Determines if the provided email already exists:
+ *   - If the email exists and is verified, it checks whether a username has been created and returns a response indicating that username creation is required if not.
+ *   - If the email exists but is not verified, it returns a response indicating that the email requires verification.
+ *   - If the email does not exist, it confirms that the email is available.
+ * - Returns appropriate JSON responses with relevant status codes, including handling error conditions with a 500 status code.
+ *
+ * @returns A JSON response object conveying the email verification and username creation status.
+ */
 export async function POST(req: NextRequest) {
     try {
         let Request = await req.json();

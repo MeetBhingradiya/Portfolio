@@ -33,6 +33,19 @@
 import { NextRequest } from "next/server";
 import { is } from "./is";
 
+/**
+ * Extracts the first valid client IP address from a comma-separated "X-Forwarded-For" header value.
+ *
+ * This function verifies that the input is defined and a string. It splits the header value by commas,
+ * trims each entry, and for entries containing a colon (indicative of IPv6 formatting), it extracts the segment
+ * before the colon if exactly two segments are present. The function then checks each candidate with an IP validation
+ * utility and returns the first valid IP address found.
+ *
+ * @param value - A comma-separated string from the "X-Forwarded-For" header.
+ * @returns The first valid IP address, or null if no valid IP is found or if the input does not exist.
+ *
+ * @throws {TypeError} If the provided value is not a string.
+ */
 function getClientIpFromXForwardedFor(value: any) {
     if (!is.existy(value)) {
         return null;
@@ -65,6 +78,17 @@ function getClientIpFromXForwardedFor(value: any) {
     return null;
 }
 
+/**
+ * Retrieves the client's IP address from a Next.js HTTP request by checking multiple headers.
+ *
+ * The function first examines the "x-client-ip" header and returns its value if it is a valid IP address.
+ * If not, it processes the "x-forwarded-for" header using the helper function getClientIpFromXForwardedFor and checks its validity.
+ * Finally, it iterates through a predefined list of alternative headers (such as "fastly-client-ip", "true-client-ip", and others)
+ * and returns the first valid IP address found. If no valid IP is detected, the function returns null.
+ *
+ * @param req - The NextRequest object containing HTTP headers.
+ * @returns The first valid client IP address found, or null if none is valid.
+ */
 function getClientIp(req: NextRequest): string | string[] | null | undefined {
     if (req.headers) {
         if(is.ip(req.headers.get('x-client-ip'))){

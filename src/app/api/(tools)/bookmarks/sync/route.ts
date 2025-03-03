@@ -33,6 +33,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Controller_GET_SyncBookmarks } from "@Controllers";
 
+/**
+ * Handles an HTTP GET request to sync bookmarks.
+ *
+ * This function invokes a controller to synchronize bookmarks and returns a JSON response confirming the operation.
+ * The response includes a status flag, a confirmation message, and an HTTP status code.
+ *
+ * @returns A JSON response with keys `Status`, `Message`, and `StatusCode`, sent with HTTP status 200.
+ */
 export async function GET(req: NextRequest) {
     await Controller_GET_SyncBookmarks()
 

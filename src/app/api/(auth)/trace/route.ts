@@ -47,6 +47,14 @@ const ALLOWED_ORIGINS = [
 const WhiteListedPlatforms = Config.WhiteListedPlatforms;
 const WhiteListedBrowsers = Config.WhiteListedBrowsers;
 
+/**
+ * Processes a POST request to validate request headers, detect threats, and generate a CSRF token.
+ *
+ * This function checks the incoming request's origin, referer, user agent, and platform against allowed values and known automation signatures. In non-development environments, it performs IP-based threat detection. If all validations pass, a CSRF token is generated, returned in a JSON response, and set as a secure, HTTP-only cookie.
+ *
+ * @param req - The incoming HTTP request.
+ * @returns A JSON response containing the CSRF token on success or an error message with the appropriate HTTP status code on failure.
+ */
 export async function POST(req: NextRequest) {
     const origin = req.headers.get('origin');
     const referer = req.headers.get('referer');

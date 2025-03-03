@@ -53,6 +53,13 @@ interface Group {
     isEnable?: boolean
 }
 
+/**
+ * Renders the landing page footer with brand information and categorized navigation links.
+ *
+ * This component displays a brand section featuring an icon and title, and dynamically renders multiple groups of links. Each group and its links are conditionally displayed based on their `isEnable` property. Links can be standard hyperlinks, show tooltips for additional context, or execute custom functions (such as toggling the theme).
+ *
+ * @returns The JSX element representing the landing page footer.
+ */
 function LandingFooter() {
     const { theme, toggleTheme } = useTheme();
 

@@ -47,7 +47,11 @@ import Link from "next/link";
 import { SocialLinks } from "@Config/SocialLinks";
 import Header from "@Components/Header";
 
-// @ File
+/**
+ * Renders the home page featuring a personal introduction, animated profile image, social media links, and navigation to bookmarks and QR sections.
+ *
+ * The component uses Framer Motion to animate its content, creating smooth transitions for the main container, social links, and navigational items.
+ */
 export default function Home() {
     return (
         <>

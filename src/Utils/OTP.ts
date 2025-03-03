@@ -32,6 +32,30 @@
 
 import { v4 } from "uuid";
 
+/**
+ * Generates a one-time password (OTP) based on a set of customizable options.
+ *
+ * The OTP is composed by first building a pool of characters according to the specified flags:
+ * digits, uppercase letters, lowercase letters, and/or special characters. Special character handling
+ * can be fine-tuned by excluding or explicitly including certain characters. Additionally, a portion
+ * of the OTP may be derived from a generated UUID, with the counted characters deducted from the total length.
+ *
+ * @param options - Configuration for OTP generation:
+ *   - Length: Total length of the OTP (default is 6). When UUIDChars is provided, these characters are generated
+ *     from a UUID and deducted from this length.
+ *   - Digits: Include numeric digits (0-9) (default is true).
+ *   - Uppercase: Include uppercase letters (A-Z) (default is false).
+ *   - Lowercase: Include lowercase letters (a-z) (default is false).
+ *   - Special: Include a default set of special characters (default is false).
+ *   - UUIDChars: Number of characters to extract from a hyphen-less UUID (default is 0).
+ *   - ExcludeSpecialChars: Array of special characters to exclude from the default set.
+ *   - IncludeSpecialChars: Array of special characters to include; if provided, this may override the default set.
+ *   - IncludeSpecialCharsOnly: If true, only the provided special characters (or the default set, if none are provided)
+ *     are used for OTP generation, ignoring other character types (default is false).
+ *   - ExcludeSpecialCharsOnly: If true, the excluded special characters are removed from the overall character pool (default is false).
+ *
+ * @returns The generated OTP as a string.
+ */
 function OTP_Generate({
     Length = 6,
     Digits = true,

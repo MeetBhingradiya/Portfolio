@@ -91,6 +91,13 @@ interface IState {
     }
 }
 
+/**
+ * Renders a component that fetches and displays Google Trends queries.
+ *
+ * This component enables users to select regions and a date range (in previous days) to retrieve trending search queries via Google Trends. It builds request URLs for each region and day, fetches data through a CORS proxy using Axios, parses and deduplicates the results, and displays them as clickable chips that copy the query text when clicked. An error alert is shown if data fetching fails, indicating a possible issue with the browser's CORS setup.
+ *
+ * @returns The JSX element representing the component.
+ */
 function BingQuerys() {
     const [State, setState] = React.useState<IState>({
         Regions: new Set(["IN"]),

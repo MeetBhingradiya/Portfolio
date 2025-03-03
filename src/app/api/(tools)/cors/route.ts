@@ -77,7 +77,19 @@ import axios from 'axios';
 //             { status: error.response?.status || 500 }
 //         );
 //     }
-// }
+/**
+ * Processes a POST request by performing a dynamic Axios call.
+ *
+ * This function extracts API call details from the JSON body of the request—including the endpoint,
+ * HTTP method (defaulting to "GET" if not provided), headers, and body. It validates that an endpoint
+ * is specified before configuring and executing the Axios request. The Axios response is then forwarded
+ * as a JSON response containing the status, status text, headers, and data. In case of an error,
+ * a JSON response with the error message and additional details is returned with the appropriate status code.
+ *
+ * @param req - The HTTP request carrying the API call configuration in its JSON body.
+ *
+ * @returns A JSON response with either the Axios request result or an error message and relevant details.
+ */
 
 export async function POST(req: NextRequest) {
     try {

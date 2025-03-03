@@ -32,6 +32,11 @@
 
 import React from 'react'
 
+/**
+ * Renders a basic page component.
+ *
+ * This component returns a <div> element displaying the text "page".
+ */
 function page() {
     return (
         <div>page</div>

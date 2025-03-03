@@ -106,6 +106,22 @@ const BodyStyles: {
     }
 }
 
+/**
+ * Renders the Settings modal for managing bookmarks and application settings.
+ *
+ * This component displays a modal interface that dynamically adjusts its content based on the current mode,
+ * such as creating or editing a bookmark, browsing marketplace items, configuring settings, or viewing about details.
+ * In marketplace mode, it fetches and processes remote bookmark data before displaying them, while in edit and create
+ * modes it initializes the form with existing data or default values.
+ *
+ * @param isOpen - Indicates whether the modal should be visible.
+ * @param onClose - Callback to close the modal.
+ * @param type - Specifies the current mode of the modal (e.g., Edit, Create, Marketplace, Settings, or About).
+ * @param State - The parent state holding bookmarks and settings.
+ * @param Dispatch - Function to update the parent state.
+ * @param EditBookmarkData - Bookmark data used to pre-populate the form when editing an existing bookmark.
+ * @param SwitchModelType - Callback to switch the modal's view mode.
+ */
 function Settings({
     isOpen,
     onClose,

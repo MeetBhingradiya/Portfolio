@@ -32,6 +32,15 @@
 
 import { Config } from "@Config";
 
+/**
+ * Logs messages to the console when running in a development environment.
+ *
+ * This function accepts a variable number of arguments and passes them to the native console.log method
+ * if {@link Config.Environment} is set to "development". In environments other than development, no action is taken.
+ *
+ * @example
+ * log("Debug information:", { id: 123, status: "active" });
+ */
 export function log(...args: any[]) {
     if (Config.Environment === "development") {
         console.log(...args);

@@ -52,6 +52,14 @@ interface QuickLinks_Type {
     }>
 }
 
+/**
+ * Renders the header component containing the brand icon and quick links.
+ *
+ * This component displays a brand icon (sourced from "/favicon.ico") alongside a series of simple links:
+ * Home, About, Showcase, Contact, and Resume. Additional link types are outlined in commented sections for future use.
+ *
+ * @returns A JSX element representing the header.
+ */
 function Header() {
     return (
         <div className={"Header"}>

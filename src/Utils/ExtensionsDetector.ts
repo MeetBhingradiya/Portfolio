@@ -37,6 +37,17 @@ import type {
 // import { ExtensionsDB } from "@Data/ExtensionsDB"
 import axios from "axios"
 
+/**
+ * Detects the installation statuses of Chrome extensions and updates the state accordingly.
+ *
+ * This function initializes a state object with default values and processes an array of extensions. 
+ * For each extension, it attempts to verify installation by checking if any of its files are accessible via HTTP GET requests.
+ * If accessible, the extension's settings flag is updated to "Installed" and the extension is added to the flagged list;
+ * otherwise, its flag is set to "NInstalled". The state is also updated to reflect if any installed extension is marked as blocked or warning.
+ *
+ * @returns The updated state object containing the list of all processed extensions, flagged extensions,
+ *          and status flags indicating if any extension is blocked or marked with a warning.
+ */
 function ExtensionsDetector(): IState {
     const state: IState = {
         Extensions: [],

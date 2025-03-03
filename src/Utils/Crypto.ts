@@ -125,6 +125,17 @@ async function Encrypt(options: EncryptOptions): Promise<string> {
     return Buffer.from(JSON.stringify(token)).toString("base64");
 }
 
+/**
+ * Decrypts an encoded token and returns its original content.
+ *
+ * This function decodes a base64-encoded token containing encryption details, including an initialization vector, salt, encrypted data, and an optional expiration timestamp. If the token has expired, the function returns null. Otherwise, it derives a decryption key from the provided secret and salt using PBKDF2 with the specified rounds, decrypts the encrypted data using the given algorithm, and removes the salt from the decrypted output. If the resulting string is valid JSON, it returns the parsed object; otherwise, it returns the decrypted string.
+ *
+ * @param token - A base64-encoded string representing the token payload.
+ * @param Secret - The secret used to derive the decryption key.
+ * @param Rounds - The number of iterations for key derivation; a falsy value defaults to 10.
+ * @param Algorithm - The encryption algorithm used for decryption; defaults to AES_256_CTR.
+ * @returns A promise that resolves with the decrypted content, or null if the token has expired.
+ */
 async function Decrypt(
     token: string,
     Secret: string,
@@ -150,14 +161,42 @@ async function Decrypt(
     }
 }
 
+/**
+ * Generates a cryptographically secure random salt as a hexadecimal string.
+ *
+ * This function creates a salt by generating a specified number of random bytes using
+ * a cryptographic random number generator, then converts the bytes to a hexadecimal string.
+ * By default, it generates 64 random bytes, resulting in a 128-character hexadecimal string.
+ *
+ * @param length - The number of random bytes to generate (default is 64).
+ * @returns A hexadecimal string representing the generated salt.
+ */
 function generateSalt(length: number = 64): string {
     return crypto.randomBytes(length).toString("hex");
 }
 
+/**
+ * Returns a random integer between 1 and 10.
+ *
+ * The returned value can be used as the number of rounds for cryptographic key derivation.
+ *
+ * @returns A random integer between 1 and 10, inclusive.
+ */
 function generateRounds(): number {
     return Math.floor(Math.random() * 10) + 1;
 }
 
+/**
+ * Generates a secret string for cryptographic use.
+ *
+ * The returned string is prefixed with "DO_NOT_SHARE_THIS_" followed by a 32-byte random hexadecimal value.
+ *
+ * @example
+ * const secret = generateSecret();
+ * // secret might be "DO_NOT_SHARE_THIS_a3d7f045e8b9..."
+ *
+ * @returns A unique secret string.
+ */
 function generateSecret(): string {
     return `DO_NOT_SHARE_THIS_${crypto.randomBytes(32).toString("hex")}`;
 }

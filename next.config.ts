@@ -15,7 +15,7 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: "*", // Match all hostnames
+                hostname: "*",
             }
         ]
     },
@@ -73,14 +73,15 @@ const nextConfig: NextConfig = {
                             removeWhitespace: true
                         })
                     },
-                    // ? CORS Headers
+                    // ? CORS Headers 
+                    // ? Allow Origins From Config.WhiteListedDomains
                     {
                         key: 'Access-Control-Allow-Origin',
-                        value: ''
+                        value: Config.WhiteListedDomains.join(', '),
                     },
                     {
                         key: 'Access-Control-Allow-Methods',
-                        value: 'GET, POST, OPTIONS',
+                        value: 'GET, POST, PUT, DELETE, OPTIONS',
                     },
                     {
                         key: 'Access-Control-Allow-Headers',

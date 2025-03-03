@@ -1,5 +1,5 @@
 /**
- *  @FileID          Lib\request-ip\is.ts
+ *  @FileID          Lib/request-ip/is.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -35,7 +35,7 @@ var regexes = {
     ipv6: /^((?=.*::)(?!.*::.+::)(::)?([\dA-F]{1,4}:(:|\b)|){5}|([\dA-F]{1,4}:){6})((([\dA-F]{1,4}((?!\3)::|:\b|$))|(?!\2\3)){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i
 };
 
-function not(func: Function) {
+function not<T extends (...args: any[]) => boolean>(func: T): (...args: Parameters<T>) => boolean {
     return function () {
         return !func.apply(null, Array.prototype.slice.call(arguments));
     };

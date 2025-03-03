@@ -1,5 +1,5 @@
 /**
- *  @FileID          Utils\OTP.ts
+ *  @FileID          Utils/OTP.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,16 +23,16 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:12 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:12 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
 import { v4 } from "uuid";
 
-function OTP_Generate({
+function OTP({
     Length = 6,
     Digits = true,
     Uppercase = false,
@@ -106,5 +106,5 @@ function OTP_Generate({
 }
 
 export {
-    OTP_Generate
+    OTP
 }

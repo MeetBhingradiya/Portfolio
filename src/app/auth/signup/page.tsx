@@ -515,22 +515,22 @@ export default function SignUp() {
                                         placeholder="Gender"
                                         onChange={(e) => setState({ ...State, Gender: e.target.value as IGender })}
                                         value={State.Gender}
-                                        renderValue={(items) => {
-                                            return (
-                                                <div className="flex flex-wrap gap-2">
-                                                    {items.map((item) => (
-                                                        <div className="flex flex-row gap-1">
-                                                            {/* {
-                                                                Genders.find({ key: item.key })?.icon
-                                                            }
-                                                            <Chip
-                                                                label={ item.label }
-                                                            /> */}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            );
-                                        }}
+                                        // renderValue={(items) => {
+                                        //     return (
+                                        //         <div className="flex flex-wrap gap-2">
+                                        //             {items.map((item) => (
+                                        //                 <div className="flex flex-row gap-1">
+                                        //                     {
+                                        //                         Genders.find({ key: item.key })?.icon
+                                        //                     }
+                                        //                     <Chip
+                                        //                         label={ item.label }
+                                        //                     />
+                                        //                 </div>
+                                        //             ))}
+                                        //         </div>
+                                        //     );
+                                        // }}
                                     >
                                         {Genders.map((gender) => (
                                             <SelectItem key={gender.key} textValue={gender.label}>

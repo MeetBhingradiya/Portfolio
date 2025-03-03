@@ -58,8 +58,14 @@
             "@Emails/*": [
                 "./src/Emails/*"
             ],
+            "@Hooks": [
+                "./src/Hooks/index.ts"
+            ],
             "@Hooks/*": [
                 "./src/Hooks/*"
+            ],
+            "@Lib": [
+                "./src/Lib/index.ts"
             ],
             "@Lib/*": [
                 "./src/Lib/*"

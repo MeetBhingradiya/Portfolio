@@ -26,8 +26,11 @@
  *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 22/02/25 7:25 PM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
+
+
+import { Protocols } from "./Protocols";
 
 export * from "./RedirectProtocols";
 export * from "./SocialLinks";
@@ -40,7 +43,7 @@ interface IConfig {
 
     // ? YYYY-MM-DD
     releasedate: `${number}-${number}-${number}`;
-    
+
     visiblebranch: "Release" | "Development";
     isHomeReleased: boolean;
     Environment: "development" | "production" | "test";
@@ -54,13 +57,17 @@ interface IConfig {
     CORS: {
         Useragent: string;
     }
+    DatabaseBydefualt: {
+        SignupUsername: string;
+    }
+    StatusCodes: typeof Protocols;
 }
 
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
-    version: "v1.0.10 Stage",
-    releasedate: "2025-3-15",
+    version: "v1.0.10",
+    releasedate: "2025-3-3",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -84,7 +91,7 @@ const Config: IConfig = {
         "Chrome",
         "Edge",
         "Firefox",
-        "Opera" 
+        "Opera"
     ],
     VercelSpeedInsight: true,
     ThreatIntelligence: [
@@ -103,6 +110,10 @@ const Config: IConfig = {
         Useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
     },
     Cookie_Prefix: "smnetwork_",
+    DatabaseBydefualt: {
+        SignupUsername: "Anonymous"
+    },
+    StatusCodes: Protocols
 }
 
 export { Config };

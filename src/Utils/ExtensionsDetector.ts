@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:12 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -33,7 +34,7 @@ import type {
     IState,
     IExtensions
 } from "@Types/ChromeExtensions"
-import { ExtensionsDB } from "@Data/ExtensionsDB"
+// import { ExtensionsDB } from "@Data/ExtensionsDB"
 import axios from "axios"
 
 function ExtensionsDetector(): IState {
@@ -44,7 +45,7 @@ function ExtensionsDetector(): IState {
         FlaggedExtensions: []
     }
 
-    const extensions: Array<IExtensions> = ExtensionsDB
+    const extensions: Array<IExtensions> = []
 
     extensions.forEach((extension: IExtensions) => {
         const { ID, Files, Settings } = extension

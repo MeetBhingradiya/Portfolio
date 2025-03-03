@@ -1,18 +1,19 @@
 /**
- *  @FileID          app\(auth)\signup\page.tsx
+ *  @FileID          app\auth\signup\page.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,16 +23,27 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
 "use client";
 
 import React from "react";
+import { useRouter } from 'next/navigation'
+import { styled } from '@mui/material/styles';
+import Stack from '@mui/material/Stack';
+import Stepper from '@mui/material/Stepper';
+import Step from '@mui/material/Step';
+import StepLabel from '@mui/material/StepLabel';
+import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
+import { StepIconProps } from '@mui/material/StepIcon';
+import { Axios } from "@Utils";
+import { IGender } from "@Types";
+import { Config } from "@Config";
 import {
     Modal,
     ModalContent,
@@ -42,13 +54,12 @@ import {
     useDisclosure,
     Input,
     InputOtp,
-    Alert
+    Alert,
+    CircularProgress,
+    Select,
+    SelectItem,
+    Chip
 } from "@heroui/react";
-import { styled } from '@mui/material/styles';
-import Stack from '@mui/material/Stack';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
 import {
     Check,
     Settings,
@@ -64,10 +75,11 @@ import {
     Fingerprint,
     Shield,
     Warning,
-    Email
+    Email,
+    Male,
+    Female,
+    Transgender
 } from "@mui/icons-material"
-import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
-import { StepIconProps } from '@mui/material/StepIcon';
 
 // ? MUI Step Utils
 const QontoConnector = styled(StepConnector)(({ theme }) => ({
@@ -243,7 +255,7 @@ interface IState {
     // ? Step 2 : Basic Info
     Fname: string
     Lname: string
-    Gender: string
+    Gender: IGender
     DOB?: string
 
     // ? Step 3 : Create Password
@@ -264,12 +276,20 @@ interface IState {
     S5_Message: string
 }
 
+const Genders = [
+    { key: IGender.MALE, label: "Male", icon: <Male /> },
+    { key: IGender.FEMALE, label: "Female", icon: <Female /> },
+    { key: IGender.TRANSGENDER, label: "Transgender", icon: <Transgender /> },
+]
+
 export default function SignUp() {
+    const router = useRouter();
     const { isOpen, onOpen } = useDisclosure();
+    const [inProgress, setInProgress] = React.useState(false);
     const [State, setState] = React.useState<IState>({
         Fname: "",
         Lname: "",
-        Gender: "Female",
+        Gender: IGender.FEMALE,
 
         Email: "",
         S2_isERROR: false,
@@ -295,70 +315,118 @@ export default function SignUp() {
         onOpen();
     }, [])
 
-    function getEmailErrors() {
-        // ? Not be Empty
+    async function Valdate_Step_1(): Promise<boolean> {
+        if (inProgress) return false;
+        setInProgress(true);
+
+        // ? Bla bla Email Validation
         if (State.Email === "") {
             setState({ ...State, S2_isERROR: true, S2_Message: "Email is Required" });
-            return;
+            return false;
         }
 
-        // ? Whitelisted Domain
-        // ? Gmail & Outlook & Yahoo
+        // ? Check for Whitelisted Domain
         const Domain = State.Email.split("@")[1];
         if (Domain !== "gmail.com" && Domain !== "outlook.com" && Domain !== "yahoo.com") {
             setState({ ...State, S2_isERROR: true, S2_Message: "Invalid Domain" });
-            return;
+            return false;
         }
 
-        // ? Not be Already Registered
-        // Todo: DB Check with API
-    }
+        // ? Check on Server for Email Availability
+        try {
+            const Response = await Axios.post("/api/email", {
+                email: State.Email
+            });
 
-    async function Valdate_Step_1(): Promise<boolean> {
-        return true;
+            if (Response.data.Status === 1 && Response.data.StatusCode === Config.StatusCodes.UsernameRequired) {
+                // TODO: Redirect to Username Creation
+                setState({ ...State, S2_isERROR: true, S2_Message: Response.data.Message });
+                return true
+            }
+
+            if (Response.data.Status === 1 && Response.data.StatusCode === Config.StatusCodes.VerificationRequired) {
+                // TODO: Redirect to Email Verification
+                setState({ ...State, S2_isERROR: true, S2_Message: Response.data.Message });
+                return true
+            }
+
+            if (Response.data.Status === 1 && Response.data.StatusCode === 200) {
+                setState({ ...State, S2_isERROR: true, S2_Message: Response.data.Message });
+                return true
+            }
+
+            setState({ ...State, S2_isERROR: true, S2_Message: "Currupted Server Response" });
+            return false;
+        } catch (error: any) {
+            setState({ ...State, S2_isERROR: true, S2_Message: error?.response?.data?.Message || "Server Error" });
+            return false;
+        }
     }
 
     async function Valdate_Step_2(): Promise<boolean> {
-        return true;
+        if (inProgress) return false;
+        setInProgress(true);
+
+        return false;
     }
 
     async function Valdate_Step_3(): Promise<boolean> {
-        return true;
+        if (inProgress) return false;
+        setInProgress(true);
+
+        return false;
     }
 
     async function Valdate_Step_4(): Promise<boolean> {
-        return true;
+        if (inProgress) return false;
+        setInProgress(true);
+
+        return false;
     }
 
     async function Valdate_Step_5(): Promise<boolean> {
-        return true;
+        if (inProgress) return false;
+        setInProgress(true);
+
+        return false;
     }
 
 
     async function ValidateStep(): Promise<void> {
         switch (ActiveStep) {
             case 0:
-                if (await Valdate_Step_1()) {
+                console.log("Validating Step 1");
+                let Res = await Valdate_Step_1()
+                if (Res) {
                     setActiveStep(ActiveStep + 1);
-                    break;
                 }
+                setInProgress(false);
+                break;
             case 1:
+                console.log("Validating Step 2");
                 if (await Valdate_Step_2()) {
                     setActiveStep(ActiveStep + 1);
-                    break;
                 }
+                setInProgress(false);
+                break;
             case 2:
+                console.log("Validating Step 3");
                 if (await Valdate_Step_3()) {
                     setActiveStep(ActiveStep + 1);
-                    break;
                 }
+                setInProgress(false);
+                break;
             case 3:
+                console.log("Validating Step 4");
                 if (await Valdate_Step_4()) {
                     setActiveStep(ActiveStep + 1);
-                    break;
                 }
+                setInProgress(false);
+                break;
             case 4:
+                console.log("Validating Step 5");
                 await Valdate_Step_5();
+                setInProgress(false);
                 break;
         }
     }
@@ -371,7 +439,7 @@ export default function SignUp() {
                 onClose={() => { }}
                 isDismissable={false}
                 isKeyboardDismissDisabled={false}
-                closeButton={false}
+                hideCloseButton={true}
             >
                 <ModalContent>
                     <ModalHeader className="flex flex-row items-center gap-4 justify-center">
@@ -420,29 +488,57 @@ export default function SignUp() {
                                 </div>
                             )
                         }
-                                                {
+                        {
                             ActiveStep === 1 && (<div className="flex flex-col gap-5 p-10">
                                 <div className="flex flex-row gap-3 items-center justify-center">
                                     <Input
                                         label="First Name"
-                                        startContent={<Person />}
                                         value={State.Fname}
                                         onChange={(e) => setState({ ...State, Fname: e.target.value })}
                                     />
                                     <Input
                                         label="Last Name"
-                                        startContent={<Person />}
                                         value={State.Lname}
                                         onChange={(e) => setState({ ...State, Lname: e.target.value })}
                                     />
                                 </div>
                                 <div className="flex flex-row gap-3 items-center justify-center">
-                                    <Input
+                                    {/* <Input
                                         label="Gender"
                                         startContent={<Person />}
                                         value={State.Fname}
                                         onChange={(e) => setState({ ...State, Fname: e.target.value })}
-                                    />
+                                    /> */}
+                                    <Select
+                                        className="max-w-xs"
+                                        label="Gender"
+                                        placeholder="Gender"
+                                        onChange={(e) => setState({ ...State, Gender: e.target.value as IGender })}
+                                        value={State.Gender}
+                                        renderValue={(items) => {
+                                            return (
+                                                <div className="flex flex-wrap gap-2">
+                                                    {items.map((item) => (
+                                                        <div className="flex flex-row gap-1">
+                                                            {/* {
+                                                                Genders.find({ key: item.key })?.icon
+                                                            }
+                                                            <Chip
+                                                                label={ item.label }
+                                                            /> */}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        }}
+                                    >
+                                        {Genders.map((gender) => (
+                                            <SelectItem key={gender.key} textValue={gender.label}>
+                                                {gender.icon}
+                                                {gender.label}
+                                            </SelectItem>
+                                        ))}
+                                    </Select>
                                 </div>
                             </div>)
                         }
@@ -500,8 +596,19 @@ export default function SignUp() {
                         }
                     </ModalBody>
                     <ModalFooter>
+                        {/* {
+                            (ActiveStep === 0 && !inProgress) && (
+                                <Button
+                                    onPress={() => {
+                                        router.push("/auth/signin");
+                                    }}
+                                >
+                                    SignIn
+                                </Button>
+                            )
+                        } */}
                         {
-                            (ActiveStep > 0 && ActiveStep < 3) && (
+                            (ActiveStep > 0 && ActiveStep < 3 && !inProgress) && (
                                 <Button
                                     onPress={() => setActiveStep(ActiveStep - 1)}
                                 >
@@ -511,7 +618,7 @@ export default function SignUp() {
                         }
 
                         {
-                            ActiveStep < 4 && (
+                            (ActiveStep < 4 && !inProgress) && (
                                 <Button
                                     onPress={ValidateStep}
                                 >
@@ -521,13 +628,17 @@ export default function SignUp() {
                         }
 
                         {
-                            ActiveStep >= 4 && (
+                            (ActiveStep >= 4 && !inProgress) && (
                                 <Button
                                     onPress={() => { }}
                                 >
                                     Finish
                                 </Button>
                             )
+                        }
+
+                        {
+                            inProgress && <CircularProgress size="sm" />
                         }
                     </ModalFooter>
                 </ModalContent>

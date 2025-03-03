@@ -26,7 +26,7 @@
  *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 22/02/25 7:25 PM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -117,27 +117,27 @@ export async function POST(req: NextRequest) {
     // 4. WEBRTC Checks
 
 
-    // if (Config.Environment !== 'development') {
-    const IP = getClientIp(req) as string;
+    if (Config.Environment !== 'development') {
+        const IP = getClientIp(req) as string;
 
-    const TreatIntelligence = await IPData(Config.Environment !== 'development' ? "104.28.252.40" : IP);
+        const TreatIntelligence = await IPData(IP);
 
-    if (TreatIntelligence?.isERROR) {
-        return NextResponse.json({
-            Status: 0,
-            Message: 'Threat Detectection Failed',
-            StatusCode: "UNSUPPORTED_NETWORK"
-        }, { status: 500 });
+        if (TreatIntelligence?.isERROR) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Threat Detectection Failed',
+                StatusCode: "UNSUPPORTED_NETWORK"
+            }, { status: 500 });
+        }
+
+        if (ParseIPDataConfig(TreatIntelligence).isFound) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Threat Detected',
+                StatusCode: "UNSUPPORTED_NETWORK"
+            })
+        }
     }
-
-    if (ParseIPDataConfig(TreatIntelligence).isFound) {
-        return NextResponse.json({
-            Status: 0,
-            Message: 'Threat Detected',
-            StatusCode: "UNSUPPORTED_NETWORK"
-        })   
-    }
-    // }
 
     // **Generate CSRF Token**
     const csrfToken = await new SignJWT({})

@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,19 +23,18 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
 import { NextResponse } from "next/server";
 import { Users_Model } from "@Models/Users";
-import dbConnect from "@Utils/dbConnect";
+import { Config } from "@Config";
 
 async function is_email_already_exists(email: string): Promise<boolean> {
-    await dbConnect();
     const doc = await Users_Model.findOne({
         Emails: {
             $elemMatch: {
@@ -46,7 +46,6 @@ async function is_email_already_exists(email: string): Promise<boolean> {
 }
 
 async function is_email_Verified(email: string): Promise<boolean> {
-    await dbConnect();
     const doc = await Users_Model.findOne({
         Emails: {
             $elemMatch: {
@@ -58,9 +57,31 @@ async function is_email_Verified(email: string): Promise<boolean> {
     return doc ? true : false;
 }
 
-async function Signup(){}
+async function is_username_created(email: string): Promise<boolean> {
+    const doc = await Users_Model.findOne({ 
+        Emails: {
+            $elemMatch: {
+                Email: email
+            }
+        },
+        Username: Config.DatabaseBydefualt.SignupUsername
+    });
+
+    return doc ? false : true;
+}
+
+async function is_username_already_exists(username: string): Promise<boolean> {
+    const doc = await Users_Model.findOne({
+        Username: username
+    });
+    return doc ? true : false;
+}
+
+async function Signup() { }
 
 export {
     is_email_already_exists,
-    is_email_Verified
+    is_email_Verified,
+    is_username_created,
+    is_username_already_exists,
 }

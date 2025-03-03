@@ -22,19 +22,22 @@
 # v1.0.10 - 15/03/2025 (Expected)
 
 ### 🌟 Added
-- Models > Passkeys, Users, Sessions
+- Models > Passkeys, Users, Sessions, Pomodoros
 - NextConfig > CORS Headers
 - Lib > Request IP for Advanced 
 - Hooks > useEmptyFields for Fast Body Validations
 - REDIRECT Protocols > Network, Browser, Plateform, Origin
+- Signup > Email Checks Added
+- IPData > TreatIntellegence Added for Advanced IP Checks [Cloudflare WARP (Proxy) is Whitelisted]
 
 ### 🔄 Changed
 - 📦 **Dependencies**: Updated to the latest versions (as of `27-02-2025`).
-- TailwindCSS V4 Still not Migrated due to `HeroUI` Update is Pending.
-- Landing Footer now on Layout by Default.
 - "INVALID_ORIGIN" Protocol Now Redirect to Original Origin insted of giving ERROR on Console.
+- License > Updated to v1.0.10 (All Files)
 
 ### 🗑️ Removed
+- TailwindCSS V4 Still not Migrated due to `HeroUI` Update is Pending.
+- Removed Unused Data Files
 
 ---
 

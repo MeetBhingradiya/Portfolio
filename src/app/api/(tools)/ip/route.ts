@@ -26,14 +26,15 @@
  *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 22/02/25 7:25 PM IST (Kolkata +5:30 UTC)
- *  @modified 22/02/25 7:25 PM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
+
 import { NextRequest, NextResponse } from "next/server";
-import { getClientIp } from "@Lib/request-ip";
+import Libraries from "@Lib";
 
 export async function GET(req: NextRequest) {
-    const IP = getClientIp(req);
+    const IP = Libraries.requestIp(req);
 
     return NextResponse.json({
         Stats: 1,

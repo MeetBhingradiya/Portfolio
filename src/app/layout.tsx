@@ -26,7 +26,7 @@
  *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 22/02/25 7:25 PM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -128,7 +128,7 @@ export default function RootLayout({
                     </Providers>
 
                     <Footer ShowonFirstRender />
-                    <LandingFooter />
+                    {/* <LandingFooter /> */}
                 </ThemeProvider>
             </body>
         </html>

@@ -32,10 +32,10 @@
 
 import React from 'react'
 
-function page() {
-  return (
-    <div>Privacy</div>
-  )
+function PrivacyPage() {
+    return (
+        <div>Privacy</div>
+    )
 }
 
-export default page
+export default PrivacyPage

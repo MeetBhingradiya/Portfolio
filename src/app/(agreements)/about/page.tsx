@@ -32,10 +32,10 @@
 
 import React from 'react'
 
-function page() {
+function AboutPage() {
   return (
-    <div>page</div>
+      <div>About</div>
   )
 }
 
-export default page
+export default AboutPage

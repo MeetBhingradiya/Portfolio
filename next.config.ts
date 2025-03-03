@@ -2,7 +2,6 @@ import path from 'path';
 import { NextConfig } from 'next';
 import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
 import tsconfig from './tsconfig.json';
-import { Config } from '@Config';
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -15,7 +14,7 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: "*", // Match all hostnames
+                hostname: "*",
             }
         ]
     },
@@ -73,14 +72,15 @@ const nextConfig: NextConfig = {
                             removeWhitespace: true
                         })
                     },
-                    // ? CORS Headers
+                    // ? CORS Headers 
+                    // ? Allow Origins From Config.WhiteListedDomains
                     {
                         key: 'Access-Control-Allow-Origin',
-                        value: ''
+                        value: 'meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech'
                     },
                     {
                         key: 'Access-Control-Allow-Methods',
-                        value: 'GET, POST, OPTIONS',
+                        value: 'GET, POST, PUT, DELETE, OPTIONS',
                     },
                     {
                         key: 'Access-Control-Allow-Headers',

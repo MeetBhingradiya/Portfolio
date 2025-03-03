@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\(ERRORS)\UnSupportedPlateform\page.tsx
+ *  @FileID          app/(ERRORS)/UnSupportedPlatform/page.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,32 +23,33 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
  */
 
 
 "use client";
 import React from 'react';
 
-function UnSupportedPlateform_Page() {
+function UnsupportedPlatformPage() {
     const [platform, setPlatform] = React.useState('');
 
     React.useEffect(() => {
-
-        const userAgent = navigator.userAgent;
-        if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
-            setPlatform('iOS');
-        } else if (userAgent.includes('Android')) {
-            setPlatform('Android');
-        } else if (userAgent.includes('Windows')) {
-            setPlatform('Windows');
-        } else if (userAgent.includes('Mac')) {
-            setPlatform('Mac');
+        if (navigator.platform) {
+            if (/iPad|iPhone|iPod/.test(navigator.platform)) {
+                setPlatform('iOS');
+            } else if (/Android/.test(navigator.userAgent)) {
+                setPlatform('Android');
+            } else if (/Win/.test(navigator.platform)) {
+                setPlatform('Windows');
+            } else if (/Mac/.test(navigator.platform)) {
+                setPlatform('Mac');
+            } else {
+                setPlatform('Unknown');
+            }
         }
-
     }, []);
 
     return (
@@ -66,4 +67,4 @@ function UnSupportedPlateform_Page() {
 
 }
 
-export default UnSupportedPlateform_Page;
+export default UnsupportedPlatformPage;

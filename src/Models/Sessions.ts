@@ -1,5 +1,5 @@
 /**
- *  @FileID          Models\Sessions.ts
+ *  @FileID          Models/Sessions.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,6 +39,42 @@ const Sessions_Schema: mongoose.Schema = new mongoose.Schema({
         default: v4,
         unique: true
     },
+    UserID: {
+        type: String,
+        required: true,
+        index: true
+    },
+    LocalStorage_RSAKeyID: {
+        type: String,
+        required: true
+    },
+    Cookie_RSAKeyID: {
+        type: String,
+        required: true
+    },
+    AccessToken: {
+        type: String,
+        required: true
+    },
+    UserAgent: {
+        type: String,
+        required: true
+    },
+    UnknownRequestHeaders: {
+        type: [Object]
+    },
+    DetectedExtensions: {
+        type: [String]
+    },
+    Platform: {
+        type: String
+    },
+    Browser: {
+        type: String
+    },
+    IPDataMappedResponse: {
+        type: Object
+    }
 }, {
     timestamps: true,
     versionKey: "v1"
@@ -47,24 +83,24 @@ const Sessions_Schema: mongoose.Schema = new mongoose.Schema({
 export interface ISessions extends Document {
     SessionID: string
 
+    UserID: string
+
     // ? Linked Local Storage & Cookies Encryption
 
     // ? Used to Access Identiy on Local Storage or Cookie as Non Trackable Key
-    RSAKeyID: string
-    AcessToken: string // ? Send Encrypted Using 2 Different RSA Keys (Local & Cookie)
+    LocalStorage_RSAKeyID: string
+    Cookie_RSAKeyID: string
+    AccessToken: string // ? Send Encrypted Using 2 Different RSA Keys (Local & Cookie)
 
     // ? NEW Properties
-    IP: string
-    IPv4: string
-    IPv6: string
     UserAgent: string
     
-    UknownRequestHeaders: Array<{
+    UnknownRequestHeaders: Array<{
         [key: string]: string
     }>
     
     DetectedExtensions: string[]
-    Plateform: "Windows" | "Linux" | "Android" | "iOS" | "MacOS"
+    Platform: "Windows" | "Linux" | "Android" | "iOS" | "MacOS"
     Browser: "Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Unknown"
 
     IPDataMappedResponse: {

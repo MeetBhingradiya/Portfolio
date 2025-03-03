@@ -19,7 +19,18 @@
 
 -->
 
-# v1.0.10 - 15/03/2025 (Expected)
+# v1.0.11 - 30/03/2025 (Expected)
+
+### 🌟 Added
+
+### 🔄 Changed
+- License > Updated to v1.0.11 (File ID Format Changed)
+
+### 🗑️ Removed
+
+---
+
+# v1.0.10 - 3/03/2025
 
 ### 🌟 Added
 - Models > Passkeys, Users, Sessions, Pomodoros

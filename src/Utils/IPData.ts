@@ -1,5 +1,5 @@
 /**
- *  @FileID          Utils\IPData.ts
+ *  @FileID          Utils/IPData.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:12 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:12 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -116,12 +116,10 @@ type IResponse = {
 const API = "https://api.ipdata.co/";
 const Query = {
     Key: "api-key",
-
-    // ? IPData Website API Key 😂 got from Network menu
-    Value: "eca677b284b3bac29eb72f5e496aa9047f26543605efe99ff2ce35c9"
+    Value: process.env.IPDATA_WEBSITE_KEY || ""
 }
 
-// ? Browser Spoofing Headers (if required we add more here even we pass windows.navigator object if they validate)
+// ? Browser Spoofing Headers (if required we add more here even we pass windows.navigator object if they validate 😅)
 const headers = {
     'Origin': 'https://ipdata.co',
     'Referer': 'https://ipdata.co/',
@@ -135,14 +133,6 @@ async function IPData(ip?: Iip): Promise<any> {
         const API_URL = new URL(`${API}${ip ? ip : ""}`);
         API_URL.searchParams.set(Query.Key, Query.Value);
 
-        // ? Native Fetch 😅
-        // const response = await fetch(API_URL.href, {
-        //     headers: headers
-        // });
-
-        // return await response.json();
-
-        // ? Hot Axios ♨️
         const response = await Axios.get(API_URL.href, {
             headers: headers
         });

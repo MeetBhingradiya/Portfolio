@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,17 +23,17 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
-import { Schema, Document, model } from 'mongoose';
+import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 
-const Session_Schema: Schema = new Schema({
+const Sessions_Schema: mongoose.Schema = new mongoose.Schema({
     SessionID: {
         type: String,
         default: v4,
@@ -40,22 +41,64 @@ const Session_Schema: Schema = new Schema({
     },
 }, {
     timestamps: true,
-    versionKey: true,
-    _id: false
+    versionKey: "v1"
 });
 
 export interface ISessions extends Document {
-    SessionID: string;
+    SessionID: string
+
+    // ? Linked Local Storage & Cookies Encryption
+
+    // ? Used to Access Identiy on Local Storage or Cookie as Non Trackable Key
+    RSAKeyID: string
+    AcessToken: string // ? Send Encrypted Using 2 Different RSA Keys (Local & Cookie)
+
+    // ? NEW Properties
+    IP: string
     IPv4: string
     IPv6: string
-    NativeIP: string
-    IPProvider: string
     UserAgent: string
-    Extensions: string[]
-    OS: "Windows" | "Mac" | "Linux" | "Android" | "iOS" | "Huawei"
-    Browser?: "Chrome" | "Edge"
-    JWTTokenHash: string
-    JWTTokenSalt: string
+    
+    UknownRequestHeaders: Array<{
+        [key: string]: string
+    }>
+    
+    DetectedExtensions: string[]
+    Plateform: "Windows" | "Linux" | "Android" | "iOS" | "MacOS"
+    Browser: "Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Unknown"
+
+    IPDataMappedResponse: {
+        IP: string
+
+        // ? Region
+        City: string
+        Region: string
+        RegionCode: string
+        Country: string
+        CountryCode: string
+        Flag: string
+
+        // ? Provider
+        Company: {
+            Name: string
+            Domain: string
+            Type: string
+            Network: string
+        }
+
+        // ? Timezone
+        Timezone: {
+            name: string
+            abbreviation: string
+            gmt_offset: number
+            current_time: string
+            is_daylight_saving: boolean
+        }
+
+        // ? Maplocation
+        Latitude: number
+        Longitude: number
+    }
 }
 
-export default model<ISessions>('Sessions', Session_Schema);
+export const Sessions_Model: mongoose.Model<ISessions> = mongoose.models?.Sessions || mongoose.model<ISessions>("Sessions", Sessions_Schema);

@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -148,9 +149,9 @@ function Settings({
 
     async function FetchMarketPlaceBookmarks() {
         try {
-            const response = await Axios("/api/bookmarks");
+            const response = (await Axios("/api/bookmarks")).data;
 
-            const ServerBookmarks = response.data.data;
+            const ServerBookmarks = response.Data;
             if (!ServerBookmarks) {
                 return;
             }
@@ -174,7 +175,6 @@ function Settings({
             })
 
             ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
-
 
             SetSettingsState({
                 ...SettingsState,
@@ -721,7 +721,7 @@ function Settings({
                                                 {
                                                     // ? Enum to Array of Object { Key: Value }
                                                     Object.values(ISearchEngine).map((engine) => (
-                                                        <SelectItem key={engine} value={engine}>
+                                                        <SelectItem key={engine}>
                                                             {engine}
                                                         </SelectItem>
                                                     ))
@@ -759,7 +759,7 @@ function Settings({
                                                 {
                                                     // ? Enum to Array of Object { Key: Value }
                                                     Object.values(ILocale).map((locale) => (
-                                                        <SelectItem key={locale} value={locale}>
+                                                        <SelectItem key={locale}>
                                                             {locale}
                                                         </SelectItem>
                                                     ))

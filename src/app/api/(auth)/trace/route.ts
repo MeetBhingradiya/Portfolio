@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -33,24 +34,18 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT, importJWK } from 'jose';
 import { Config } from '@Config';
 import { UserAgent } from '@Utils/UserAgent';
+import { IPData } from '@Utils/IPData';
+import { changeCase } from '@Utils/CaseChnage';
+import { getClientIp } from "@Lib/request-ip";
+import { ParseIPDataConfig } from '@/Utils/ParseIPDatatoConfig';
 
 const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 const ALLOWED_ORIGINS = [
     ...Config.WhiteListedDomains.map((domain) => `https://${domain}`),
     Config.Environment === 'development' ? 'http://localhost:3000' : null
 ];
-const WhiteListedPlatforms = [
-    'Windows', 
-    'Linux', 
-    // '"MacOS"', 
-    'Android', 
-    // '"iOS"'
-];
-
-const WhiteListedBrowsers = [
-    'Chrome', 
-    'Edge'
-]
+const WhiteListedPlatforms = Config.WhiteListedPlatforms;
+const WhiteListedBrowsers = Config.WhiteListedBrowsers;
 
 export async function POST(req: NextRequest) {
     const origin = req.headers.get('origin');
@@ -62,32 +57,33 @@ export async function POST(req: NextRequest) {
     // **Validation:**
     // 1. Origin & Referer Checks
     if (!origin || !ALLOWED_ORIGINS.includes(origin)) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Invalid origin', 
-            StatusCode: "INVALID_ORIGIN" 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Invalid origin',
+            StatusCode: "INVALID_ORIGIN"
         }, { status: 403 });
     }
+
     if (referer && !referer.startsWith(origin)) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Invalid referer', 
-            StatusCode: 403 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Invalid referer',
+            StatusCode: 403
         }, { status: 403 });
     }
 
     // 2. Browser Automation Detection
     const browserSignatures = [
-        'HeadlessChrome', 
-        'puppeteer', 
-        'selenium', 
+        'HeadlessChrome',
+        'puppeteer',
+        'selenium',
         'webdriver',
         'playwright',
     ];
     if (browserSignatures.some((signature) => userAgent.includes(signature))) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Unsupported browser', 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Unsupported browser',
             StatusCode: 403
         }, { status: 403 });
     }
@@ -95,46 +91,53 @@ export async function POST(req: NextRequest) {
     // 3. User-Agent and Sec-CH-UA Validation
     if (
         // !userAgent.includes('Chrome') && !userAgent.includes('Edge')
-        !WhiteListedBrowsers.includes(new UserAgent(userAgent).parse().browser)
+        !WhiteListedBrowsers.includes(changeCase.upperFirst(new UserAgent(userAgent).parse().browser) as any)
     ) {
         console.log({
             UserAgent: userAgent.split(' '),
-            Condition: WhiteListedBrowsers.includes(userAgent.split(' ')[0])
+            Condition: WhiteListedBrowsers.includes(changeCase.upperFirst(userAgent.split(' ')[0]) as any)
         });
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Unsupported browser', 
-            StatusCode: 403 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Unsupported browser',
+            StatusCode: 403
         }, { status: 403 });
     }
 
-    // if (
-        // !secUa.includes('Chrome') && !secUa.includes('Edge')
-        // !WhiteListedBrowsers.includes(secUa.split(' ')[0])
-
-        // !WhiteListedBrowsers.includes(new UserAgent(secUa).parse().browser)
-    // ) {
-    //     return NextResponse.json({ 
-    //         Status: 0, 
-    //         Message: 'Unsupported browser [Sec-CH-UA]', 
-    //         StatusCode: 403 
-    //     }, { status: 403 });
-    // }
-
     if (
-        !WhiteListedPlatforms.includes(secUaPlatform.replace(/"/g, ''))
+        !WhiteListedPlatforms.includes(changeCase.upperFirst(secUaPlatform.replace(/"/g, '')) as any)
     ) {
-        return NextResponse.json({ 
-            Status: 0, 
-            Message: 'Unsupported Platform', 
-            StatusCode: 403 
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Unsupported Platform',
+            StatusCode: 403
         }, { status: 403 });
     }
 
     // 4. WEBRTC Checks
-    
 
-    // @ TODO: IP CHECKS Like Tor, VPN, Proxy, etc.
+
+    if (Config.Environment !== 'development') {
+        const IP = getClientIp(req) as string;
+
+        const TreatIntelligence = await IPData(IP);
+
+        if (TreatIntelligence?.isERROR) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Threat Detectection Failed',
+                StatusCode: "UNSUPPORTED_NETWORK"
+            }, { status: 500 });
+        }
+
+        if (ParseIPDataConfig(TreatIntelligence).isFound) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Threat Detected',
+                StatusCode: "UNSUPPORTED_NETWORK"
+            })
+        }
+    }
 
     // **Generate CSRF Token**
     const csrfToken = await new SignJWT({})
@@ -144,12 +147,12 @@ export async function POST(req: NextRequest) {
         .sign(await importJWK({ kty: 'oct', k: CSRF_KEY }));
 
     // **Set Secure CSRF Cookie**
-    const response = NextResponse.json({ 
-        Status: 1, 
-        Message: 'Supported browser', 
-        data: csrfToken 
+    const response = NextResponse.json({
+        Status: 1,
+        Message: 'Supported browser',
+        data: csrfToken
     });
-    response.cookies.set('csrf', csrfToken, {
+    response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
         httpOnly: true,
         secure: true,
         sameSite: 'strict',

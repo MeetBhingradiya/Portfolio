@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -35,14 +36,14 @@ import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
 import Footer from "@Components/Footer";
-import { Config } from "@Config/index";
+import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
 import LandingFooter from "@Components/Footer/LandingFooter";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "Meet Bhingradiya",
-    description: "A Portfolio Website of Meet Bhingradiya",
+    description: "Advacnced Workspace EcoSystem & My Portfolio",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
@@ -51,21 +52,29 @@ export const metadata: Metadata = {
         "Portfolio",
         "Meet Bhingradiya Portfolio",
         "meetbhingradiya",
+
+        // ? Job Profile
         "Full Stack Developer",
         "Full Stack",
+
+        // ? Location
         "Surat, Gujarat",
         "Gujarat, India",
         "Surat",
         "Gujarat",
         "India",
+
+        // ? Domains
         "meetbhingradiya.com",
         "meetbhingradiya.dev",
-        // "meetbhingradiya.in",
         "meetbhingradiya.live",
         "meetbhingradiya.site",
         "meetbhingradiya.shop",
         "meetbhingradiya.co.in",
         "meetbhingradiya.tech",
+
+        // ? This Domain is not owned by me 
+        "meetbhingradiya.in",
     ],
     authors: {
         name: "Meet Bhingradiya",

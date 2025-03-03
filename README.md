@@ -1,2 +1,2 @@
-# Meet Bhingradiya's Portfolio Website Repository
-- This is the repository for my portfolio website.
+# Meet Bhingradiya's Portfolio Repository
+- Advanced Workspace EcoSystem & My Portfolio (Coming Soon!)

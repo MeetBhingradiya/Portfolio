@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,19 +23,24 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
 import { NextRequest, NextResponse } from "next/server";
-import { Controller_GET_SyncBookmarks } from "@Controllers/Bookmarks";
-import { APIResponse } from "@/Data/APIMessages";
+import { Controller_GET_SyncBookmarks } from "@Controllers";
 
 export async function GET(req: NextRequest) {
     await Controller_GET_SyncBookmarks()
 
-    return APIResponse(200, {})
+    return NextResponse.json({
+        Status: 1,
+        Message: "Bookmarks Synced",
+        StatusCode: 200
+    }, {
+        status: 200
+    })
 }

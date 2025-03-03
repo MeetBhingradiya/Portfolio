@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,15 +23,16 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
+import { Config } from '@Config';
 
 const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
 
@@ -49,21 +51,22 @@ export async function middleware(req: NextRequest) {
         }
     });
 
-    if (!req.cookies.get('csrf')) {
-        response.cookies.set('csrf', csrfToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'strict',
-            path: '/',
-            maxAge: 60 * 20
-        });
-    }
+    // if (!req.cookies.get(`${Config.Cookie_Prefix}csrf`)) {
+    //     response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
+    //         httpOnly: true,
+    //         secure: true,
+    //         sameSite: 'strict',
+    //         path: '/',
+    //         maxAge: 60 * 20
+    //     });
+    // }
 
     if (req.nextUrl.pathname.startsWith('/api')) {
         const csrfTokenFromHeader = req.headers.get('x-csrf');
-        const csrfTokenFromCookie = req.cookies.get('csrf');
+        const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
 
         const excludedRoutes = [
+            // '/api/ip',
             '/api/trace',
             '/api/sitemap',
             '/api/sitemap/*',
@@ -81,7 +84,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromHeader) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by HEADER',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
@@ -89,7 +92,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromCookie) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by COOKIE',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
@@ -97,7 +100,7 @@ export async function middleware(req: NextRequest) {
         if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by TOKEN',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }
@@ -110,14 +113,14 @@ export async function middleware(req: NextRequest) {
             if (!verified) {
                 return NextResponse.json({
                     Status: 0,
-                    Message: 'Invalid Authorization',
+                    Message: 'Invalid Authorization by VERIFY',
                     StatusCode: 'INVALID_AUTHORIZATION'
                 }, { status: 403 });
             }
         } catch (error) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'Invalid Authorization by 500 VERIFY',
                 StatusCode: "INVALID_AUTHORIZATION"
             }, { status: 403 });
         }

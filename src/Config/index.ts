@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,16 +23,51 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
-const Config = {
-    version: "v1.0.9",
-    releasedate: "2025-2-16",
+import { Protocols } from "./Protocols";
+
+export * from "./RedirectProtocols";
+export * from "./SocialLinks";
+
+interface IConfig {
+    Name: string;
+
+    // ? vX.X.X Stage | Beta
+    version: `v${number}.${number}.${number}${" Stage" | " Beta" | ""}`;
+
+    // ? YYYY-MM-DD
+    releasedate: `${number}-${number}-${number}`;
+
+    visiblebranch: "Release" | "Development";
+    isHomeReleased: boolean;
+    Environment: "development" | "production" | "test";
+    GoogleADS: boolean;
+    WhiteListedDomains: string[];
+    WhiteListedPlatforms: Array<"Windows" | "Linux" | "Android" | "iOS" | "MacOS">;
+    WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc">;
+    VercelSpeedInsight: boolean;
+    ThreatIntelligence: Array<"TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon">;
+    Cookie_Prefix: string;
+    CORS: {
+        Useragent: string;
+    }
+    DatabaseBydefualt: {
+        SignupUsername: string;
+    }
+    StatusCodes: typeof Protocols;
+}
+
+
+const Config: IConfig = {
+    Name: "Meet Bhingradiya",
+    version: "v1.0.10",
+    releasedate: "2025-3-3",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -49,11 +85,35 @@ const Config = {
     WhiteListedPlatforms: [
         "Windows",
         "Linux",
-        "Android",
-        // "iOS",
-        // "MacOS"
+        "Android"
     ],
-    VercelSpeedInsight: true
+    WhiteListedBrowsers: [
+        "Chrome",
+        "Edge",
+        "Firefox",
+        "Opera"
+    ],
+    VercelSpeedInsight: true,
+    ThreatIntelligence: [
+        "TOR",
+        "VPN",
+        "ICloud-Relay",
+        // "Proxy",
+        // "Datacenter",
+        // "Anonymous",
+        "KnownAttacker",
+        "KnownAbuser",
+        "Threat",
+        "Bogon",
+    ],
+    CORS: {
+        Useragent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
+    },
+    Cookie_Prefix: "smnetwork_",
+    DatabaseBydefualt: {
+        SignupUsername: "Anonymous"
+    },
+    StatusCodes: Protocols
 }
 
 export { Config };

@@ -19,7 +19,30 @@
 
 -->
 
-# v1.0.9 - 28/02/2025 (Expected)
+# v1.0.10 - 15/03/2025 (Expected)
+
+### 🌟 Added
+- Models > Passkeys, Users, Sessions, Pomodoros
+- NextConfig > CORS Headers
+- Lib > Request IP for Advanced 
+- Hooks > useEmptyFields for Fast Body Validations
+- REDIRECT Protocols > Network, Browser, Plateform, Origin
+- Signup > Email Checks Added
+- IPData > TreatIntellegence Added for Advanced IP Checks [Cloudflare WARP (Proxy) is Whitelisted]
+
+### 🔄 Changed
+- 📦 **Dependencies**: Updated to the latest versions (as of `27-02-2025`).
+- "INVALID_ORIGIN" Protocol Now Redirect to Original Origin insted of giving ERROR on Console.
+- License > Updated to v1.0.10 (All Files)
+
+### 🗑️ Removed
+- TailwindCSS V4 Still not Migrated due to `HeroUI` Update is Pending.
+- Removed Unused Data Files
+
+---
+
+
+# v1.0.9 - 16/02/2025
 
 ### 🌟 Added
 - 3 New Database Models Added #40
@@ -28,15 +51,15 @@
 - New Settings Ui
 - MarketPlace
 - Edit & Create 
-- Utils > [#50](https://github.com/MeetBhingradiya/Portfolio/issues/50)
-- Models > [#46](https://github.com/MeetBhingradiya/Portfolio/issues/46)
+- Utils > #50
+- Models > #46
 - Github Actions > Stale & Issue Template for Bug Reports
-- Tools > [#43](https://github.com/MeetBhingradiya/Portfolio/issues/43)
+- Tools > #43
 
 ### 🔄 Changed
 - 🗨️ **Auto Comments** : All Files License Updated.
 - Auto Redirect to Original Origin on "INVALID_ORIGIN" Backend ERROR.
-<!-- - 📦 **Dependencies**: Updated to the latest versions (as of `05-02-2025`). -->
+- 📦 **Dependencies**: Updated to the latest versions (as of `05-02-2025`).
 
 ### 🗑️ Removed
 - Select Defualt Search Engine & Its Local Settings (Temporarily, will be come back soon)

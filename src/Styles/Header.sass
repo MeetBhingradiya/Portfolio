@@ -1,13 +1,49 @@
 .Header
-    width: 100vw
+    width: auto
     position: fixed
-    top: 0
+    top: 0.1rem
     left: 0
     right: 0
     padding: 1rem
-    text-align: center
+    display: flex
+    justify-content: center
+    align-items: center
     font-size: 0.8rem
     user-select: none
-    border-image: linear-gradient(to right,rgba(var(--font-color), 0.01),rgba(var(--font-color), 0.4),rgba(var(--background-end), 0.5)) 1
-    border-top: 1px solid rgba(var(--font-color), 0.5)
 
+    .Warp
+        z-index: 1
+        background: rgba(88, 88, 88, 0.35)
+        border: 1px solid rgba(125, 125, 125, 0.25)
+        // box-shadow: 0px 2px 3px 0px rgba(4, 1, 1, 0.25)
+        backdrop-filter: blur(2px)
+        display: flex
+        flex-direction: row
+        justify-content: space-between
+        align-items: center
+        gap: 1rem
+        border-radius: 20px
+        padding: 0.5rem 1rem
+        .Brand
+            display: flex
+            flex-direction: row
+            justify-content: center
+            align-items: center
+            width: 100%
+            .Icon
+                width: 2.5rem
+                height: 2.5rem
+                margin-right: 0.5rem
+                img
+                    width: 100%
+                    height: 100%
+                    border-radius: 50%
+        .QuickLinks
+            width: 100%
+            display: flex
+            flex-direction: row
+            justify-content: space-around
+            align-items: center
+            gap: 1rem
+            .SimpleLink
+                position: relative

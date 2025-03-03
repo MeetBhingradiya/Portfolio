@@ -5,14 +5,15 @@
  *  
  *  -----------------------------------------------------------------------------
  *  
+ *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
- *  via any medium, is strictly prohibited without prior written consent from the
- *  author, modifier or the organization.
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier or the organization.
  *  
  *  -----------------------------------------------------------------------------
  *  
@@ -22,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.9
+ *  Last Updated on Version: 1.0.10
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 16/02/25 10:40 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -36,7 +37,7 @@ import "@Styles/Header.sass";
 import { motion } from 'framer-motion';
 
 interface QuickLinks_Type {
-    Type: "SimpleLinks" | "MenuLink" | "Button" | "Theme" | "MobileToggle"
+    Type: "SimpleLink" | "MenuLink" | "Button" | "Theme" | "MobileToggle"
     URL?: string
     isAnchour: boolean
     AnchourID: string
@@ -53,35 +54,38 @@ interface QuickLinks_Type {
 
 function Header() {
     return (
-        <motion.div className={"Header"}>
-            <div className={"Brand"}>
-                <div className={"Icon"}>
-
+        <div className={"Header"}>
+            <div className="Warp">
+                <div className={"Brand"}>
+                    <div className={"Icon"}>
+                        <img src={"/favicon.ico"} alt={"Brand Icon"} />
+                    </div>
                 </div>
-                <div className={"Text"}>
 
+                <div className={"QuickLinks"}>
+                    {/* Links Types */}
+
+                    {/* Type 1 */}
+                    <div className={"SimpleLink"}>Home</div>
+                    <div className={"SimpleLink"}>About</div>
+                    <div className={"SimpleLink"}>Showcase</div>
+                    <div className={"SimpleLink"}>Contact</div>
+                    <div className={"SimpleLink"}>Resume</div>
+
+                    {/* Type 2 */}
+                    {/* <div className={"MenuLink"}></div> */}
+
+                    {/* Type 3 */}
+                    {/* <div className={"Button"}></div> */}
+
+                    {/* Type 4 */}
+                    {/* <div className={"Theme"}></div> */}
+
+                    {/* Type 4 */}
+                    {/* <div className={"MobileToggle"}></div> */}
                 </div>
             </div>
-
-            <div className={"QuickLinks"}>
-                {/* Links Types */}
-
-                {/* Type 1 */}
-                <div className={"SimpleLinks"}></div>
-
-                {/* Type 2 */}
-                <div className={"MenuLink"}></div>
-
-                {/* Type 3 */}
-                <div className={"Button"}></div>
-
-                {/* Type 4 */}
-                <div className={"Theme"}></div>
-
-                {/* Type 4 */}
-                <div className={"MobileToggle"}></div>
-            </div>
-        </motion.div>
+        </div>
     )
 }
 

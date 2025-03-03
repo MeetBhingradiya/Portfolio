@@ -29,7 +29,6 @@
  *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
-
 import { HeroUIProvider } from "@heroui/system";
 import { buildProvidersTree } from "./BuildProvidersTree";
 import MUIRegistry from '@Components/MUIRegistry';

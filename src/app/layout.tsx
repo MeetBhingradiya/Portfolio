@@ -29,7 +29,6 @@
  *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
  */
 
-
 import type { Metadata } from "next";
 import { SpeedInsights } from "@vercel/speed-insights/next"
 import "@Styles/globals.sass";
@@ -123,12 +122,12 @@ export default function RootLayout({
             </head>
             <body className={inter.className}>
                 <ThemeProvider>
-                    <Providers>
-                        {children}
-                    </Providers>
+                        <Providers>
+                            {children}
+                        </Providers>
 
                     <Footer ShowonFirstRender />
-                    {/* <LandingFooter /> */}
+                    <LandingFooter />
                 </ThemeProvider>
             </body>
         </html>

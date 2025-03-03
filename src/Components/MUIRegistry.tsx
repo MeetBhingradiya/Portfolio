@@ -31,13 +31,14 @@
 
 
 "use client";
-
 import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import React, { useMemo, useState } from 'react';
 import { useTheme } from '@Hooks/useTheme';
+import { LocalizationProvider } from '@mui/x-date-pickers-pro';
+import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon';
 
 export default function MUIRegistry(props: any) {
     const { effectiveMode } = useTheme();
@@ -94,9 +95,11 @@ export default function MUIRegistry(props: any) {
 
     return (
         <CacheProvider value={cache}>
-            <ThemeProvider theme={MUITheme}>
-                {props.children}
-            </ThemeProvider>
+            <LocalizationProvider dateAdapter={AdapterLuxon}>
+                <ThemeProvider theme={MUITheme}>
+                    {props.children}
+                </ThemeProvider>
+            </LocalizationProvider>
         </CacheProvider>
     );
 }

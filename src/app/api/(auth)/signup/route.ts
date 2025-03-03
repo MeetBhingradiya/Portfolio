@@ -91,10 +91,15 @@ export async function POST(req: NextRequest) {
 
     // ? Create new user
     await Users_Model.create({
-        email: Body.email,
+        Emails: [
+            {
+                Email: Body.email,
+                isPrimary: true,
+                isVerified: false
+            }
+        ],
         // ? TODO: Encrypt Password not Hash
-        password: Body.password,
-        username: Config.DatabaseBydefualt.SignupUsername,
+        Username: Config.DatabaseBydefualt.SignupUsername,
         firstname: Body.firstname,
         lastname: Body.lastname,
         DateOfBirth: Body.dateofbirth,

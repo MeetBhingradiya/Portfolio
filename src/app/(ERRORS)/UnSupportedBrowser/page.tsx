@@ -39,15 +39,15 @@ function UnSupportedPlateform_Page() {
     React.useEffect(() => {
 
         const userAgent = navigator.userAgent;
-        if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
-            setPlatform('iOS');
-        } else if (userAgent.includes('Android')) {
-            setPlatform('Android');
-        } else if (userAgent.includes('Windows')) {
-            setPlatform('Windows');
-        } else if (userAgent.includes('Mac')) {
-            setPlatform('Mac');
-        }
+        // if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+        //     setPlatform('iOS');
+        // } else if (userAgent.includes('Android')) {
+        //     setPlatform('Android');
+        // } else if (userAgent.includes('Windows')) {
+        //     setPlatform('Windows');
+        // } else if (userAgent.includes('Mac')) {
+        //     setPlatform('Mac');
+        // }
 
     }, []);
 

@@ -83,6 +83,13 @@
 
 ---
 
+## Signup & Verification Security
+- 📧 **Email Verification**:
+  - 📥 **Email Verification Link** is sent to the user's email.
+  - 📝 **Verification Code** is required to complete the registration process.
+  - 📅 **Verification Link Expiry**: 24 hours. if account not verifyed within 24 hours account will be discarded 
+
+
 ## 📜 Summary
 
 This security framework ensures robust **deployment protection, account security, encryption standards, and client-side access restrictions**. Any future security updates should be documented and reviewed periodically to maintain high standards of protection.

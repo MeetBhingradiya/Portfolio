@@ -44,6 +44,8 @@ import { StepIconProps } from '@mui/material/StepIcon';
 import { Axios } from "@Utils";
 import { IGender } from "@Types";
 import { Config } from "@Config";
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DateTime } from "luxon";
 import {
     Modal,
     ModalContent,
@@ -58,7 +60,7 @@ import {
     CircularProgress,
     Select,
     SelectItem,
-    Chip
+    Chip,
 } from "@heroui/react";
 import {
     Check,
@@ -256,7 +258,7 @@ interface IState {
     Fname: string
     Lname: string
     Gender: IGender
-    DOB?: string
+    DOB: any
 
     // ? Step 3 : Create Password
     Password: string
@@ -290,6 +292,7 @@ export default function SignUp() {
         Fname: "",
         Lname: "",
         Gender: IGender.FEMALE,
+        DOB: DateTime.now(),
 
         Email: "",
         S2_isERROR: false,
@@ -315,6 +318,10 @@ export default function SignUp() {
         onOpen();
     }, [])
 
+    async function PasswordVisibility() {
+        setState({ ...State, Visible: !State.Visible });
+    }
+
     async function Valdate_Step_1(): Promise<boolean> {
         if (inProgress) return false;
         setInProgress(true);
@@ -339,15 +346,15 @@ export default function SignUp() {
             });
 
             if (Response.data.Status === 1 && Response.data.StatusCode === Config.StatusCodes.UsernameRequired) {
-                // TODO: Redirect to Username Creation
+                setActiveStep(4);
                 setState({ ...State, S2_isERROR: true, S2_Message: Response.data.Message });
-                return true
+                return false
             }
 
             if (Response.data.Status === 1 && Response.data.StatusCode === Config.StatusCodes.VerificationRequired) {
-                // TODO: Redirect to Email Verification
                 setState({ ...State, S2_isERROR: true, S2_Message: Response.data.Message });
-                return true
+                setActiveStep(3);
+                return false
             }
 
             if (Response.data.Status === 1 && Response.data.StatusCode === 200) {
@@ -367,14 +374,83 @@ export default function SignUp() {
         if (inProgress) return false;
         setInProgress(true);
 
-        return false;
+        if (State.Fname === "") {
+            setState({ ...State, S2_isERROR: true, S2_Message: "First Name is Required" });
+            return false;
+        }
+
+        if (State.Lname === "") {
+            setState({ ...State, S2_isERROR: true, S2_Message: "Last Name is Required" });
+            return false;
+        }
+
+        if (State.Gender === IGender.UNSPECIFIED) {
+            setState({ ...State, S2_isERROR: true, S2_Message: "Gender is Required" });
+            return false;
+        }
+
+        if (State.DOB === "") {
+            setState({ ...State, S2_isERROR: true, S2_Message: "Date of Birth is Required" });
+            return false;
+        }
+
+        return true;
     }
 
     async function Valdate_Step_3(): Promise<boolean> {
         if (inProgress) return false;
         setInProgress(true);
 
-        return false;
+        if (State.Password === "") {
+            setState({ ...State, S3_isERROR: true, S3_Message: "Password is Required" });
+            return false;
+        }
+
+        if (State.Password.length < 8) {
+            setState({ ...State, S3_isERROR: true, S3_Message: "Password must be 8 characters long" });
+            return false;
+        }
+
+        if (!State.Password.match(/[a-z]/)) {
+            setState({ ...State, S3_isERROR: true, S3_Message: "Password must contain a lowercase letter" });
+            return false;
+        }
+
+        if (!State.Password.match(/[A-Z]/)) {
+            setState({ ...State, S3_isERROR: true, S3_Message: "Password must contain a uppercase letter" });
+            return false;
+        }
+
+        if (!State.Password.match(/[0-9]/)) {
+            setState({ ...State, S3_isERROR: true, S3_Message: "Password must contain a digit" });
+            return false;
+        }
+
+        if (!State.Password.match(/[!@#$%^&*]/)) {
+            setState({ ...State, S3_isERROR: true, S3_Message: "Password must contain a special character" });
+            return false;
+        }
+
+        try {
+            const Response = await Axios.post("/api/signup", {
+                email: State.Email,
+                password: State.Password,
+                firstname: State.Fname,
+                lastname: State.Lname,
+                dateofbirth: State.DOB,
+                gender: State.Gender
+            });
+
+            if (Response.data.Status === 1) {
+                return true
+            }
+
+            setState({ ...State, S3_isERROR: true, S3_Message: Response.data.Message });
+            return false;
+        } catch (error: any) {
+            setState({ ...State, S3_isERROR: true, S3_Message: error?.response?.data?.Message || "Server Error" });
+            return false;
+        }
     }
 
     async function Valdate_Step_4(): Promise<boolean> {
@@ -492,11 +568,13 @@ export default function SignUp() {
                             ActiveStep === 1 && (<div className="flex flex-col gap-5 p-10">
                                 <div className="flex flex-row gap-3 items-center justify-center">
                                     <Input
+                                        required
                                         label="First Name"
                                         value={State.Fname}
                                         onChange={(e) => setState({ ...State, Fname: e.target.value })}
                                     />
                                     <Input
+                                        required
                                         label="Last Name"
                                         value={State.Lname}
                                         onChange={(e) => setState({ ...State, Lname: e.target.value })}
@@ -510,27 +588,28 @@ export default function SignUp() {
                                         onChange={(e) => setState({ ...State, Fname: e.target.value })}
                                     /> */}
                                     <Select
+                                        required
                                         className="max-w-xs"
                                         label="Gender"
                                         placeholder="Gender"
                                         onChange={(e) => setState({ ...State, Gender: e.target.value as IGender })}
                                         value={State.Gender}
-                                        // renderValue={(items) => {
-                                        //     return (
-                                        //         <div className="flex flex-wrap gap-2">
-                                        //             {items.map((item) => (
-                                        //                 <div className="flex flex-row gap-1">
-                                        //                     {
-                                        //                         Genders.find({ key: item.key })?.icon
-                                        //                     }
-                                        //                     <Chip
-                                        //                         label={ item.label }
-                                        //                     />
-                                        //                 </div>
-                                        //             ))}
-                                        //         </div>
-                                        //     );
-                                        // }}
+                                    // renderValue={(items) => {
+                                    //     return (
+                                    //         <div className="flex flex-wrap gap-2">
+                                    //             {items.map((item) => (
+                                    //                 <div className="flex flex-row gap-1">
+                                    //                     {
+                                    //                         Genders.find({ key: item.key })?.icon
+                                    //                     }
+                                    //                     <Chip
+                                    //                         label={ item.label }
+                                    //                     />
+                                    //                 </div>
+                                    //             ))}
+                                    //         </div>
+                                    //     );
+                                    // }}
                                     >
                                         {Genders.map((gender) => (
                                             <SelectItem key={gender.key} textValue={gender.label}>
@@ -539,6 +618,13 @@ export default function SignUp() {
                                             </SelectItem>
                                         ))}
                                     </Select>
+
+                                    {/* DOB */}
+                                    <DatePicker
+                                        label="Date of Birth"
+                                        value={State.DOB}
+                                        onChange={(e) => setState({ ...State, DOB: e as any })}
+                                    />
                                 </div>
                             </div>)
                         }
@@ -557,10 +643,10 @@ export default function SignUp() {
                                     <div className="flex flex-row gap-3 items-center justify-center">
                                         <Input
                                             label="Password"
-                                            type="password"
+                                            type={State.Visible ? "text" : "password"}
                                             startContent={<Shield />}
-                                            endContent={State.Visible ? <VisibilityOff /> : <Visibility />}
-                                            value={State.Email}
+                                            endContent={State.Visible ? <VisibilityOff onClick={PasswordVisibility} /> : <Visibility onClick={PasswordVisibility} />}
+                                            value={State.Password}
                                             onChange={(e) => setState({ ...State, Password: e.target.value })}
                                         />
                                     </div>
@@ -607,6 +693,17 @@ export default function SignUp() {
                                 </Button>
                             )
                         } */}
+                        {
+                            (ActiveStep === 4 && !inProgress) && (
+                                <Button
+                                    onPress={() => {
+                                        router.push("/auth/signin");
+                                    }}
+                                >
+                                    SignIn
+                                </Button>
+                            )
+                        }
                         {
                             (ActiveStep > 0 && ActiveStep < 3 && !inProgress) && (
                                 <Button

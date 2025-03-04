@@ -116,7 +116,7 @@ type IResponse = {
 const API = "https://api.ipdata.co/";
 const Query = {
     Key: "api-key",
-    Value: process.env.IPDATA_WEBSITE_KEY || ""
+    Value: Config.Env?.IPDATA_WEBSITE_KEY || ""
 }
 
 // ? Browser Spoofing Headers (if required we add more here even we pass windows.navigator object if they validate 😅)

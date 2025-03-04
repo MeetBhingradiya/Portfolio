@@ -33,7 +33,6 @@
 import { Protocols } from "./Protocols";
 
 export * from "./RedirectProtocols";
-export * from "./SocialLinks";
 
 interface IConfig {
     Name: string;
@@ -58,16 +57,23 @@ interface IConfig {
         Useragent: string;
     }
     DatabaseBydefualt: {
-        SignupUsername: string;
+        SignupUsername: string
     }
-    StatusCodes: typeof Protocols;
+    StatusCodes: typeof Protocols
+    Env: {
+        TRACE_SIGNATURE?: string
+        NODE_ENV?: "development" | "production" | "test"
+        CONTACT_EMAIL?: string
+        IPDATA_WEBSITE_KEY?: string
+        STATE_SIGNATURE?: string
+    };
 }
 
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
-    version: "v1.0.10",
-    releasedate: "2025-3-3",
+    version: "v1.0.11",
+    releasedate: "2025-3-15",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -113,7 +119,14 @@ const Config: IConfig = {
     DatabaseBydefualt: {
         SignupUsername: "Anonymous"
     },
-    StatusCodes: Protocols
+    StatusCodes: Protocols,
+    Env: {
+        TRACE_SIGNATURE: process.env.TRACE_SIGNATURE,
+        NODE_ENV: process.env.NODE_ENV as "development" | "production" | "test",
+        CONTACT_EMAIL: process.env.CONTACT_EMAIL,
+        IPDATA_WEBSITE_KEY: process.env.IPDATA_WEBSITE_KEY,
+        STATE_SIGNATURE: process.env.STATE_SIGNATURE
+    }
 }
 
 export { Config };

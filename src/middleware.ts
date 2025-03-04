@@ -34,7 +34,7 @@ import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
 
-const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
+const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 
 export async function middleware(req: NextRequest) {
     const csrfToken = await new SignJWT({})

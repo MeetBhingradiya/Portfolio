@@ -1,0 +1,41 @@
+{
+    "Signature": "4b7418d539616924b2423455f923215b0c5b79af54bff0552c409afb6f7713ba",
+    "File": {
+        "DatabaseBydefualt": {
+            "Signup_Username_Prefix": "Anonymous_",
+            "LocalStorage_RSAID": "",
+            "Cookie_RSAID": ""
+        },
+        "WhiteListed_Email_Domains": [
+            "gmail.com",
+            "yahoo.com",
+            "hotmail.com",
+            "outlook.com"
+        ],
+        "Password_Strength": {
+            "Length": 8,
+            "UpperCase": true,
+            "LowerCase": true,
+            "Digits": true,
+            "SpecialCharacters": true
+        },
+        "Authentication": {
+            "LoginPermission": true,
+            "RegisterPermission": true,
+            "ForgotPasswordPermission": true,
+            "ThreatIntelligence": [
+                "TOR",
+                "VPN",
+                "ICloud-Relay",
+                "KnownAttacker",
+                "KnownAbuser",
+                "Threat",
+                "Bogon"
+            ]
+        },
+        "Analytics_And_Monitization": {
+            "GoogleADS": false,
+            "VercelSpeedInsight": true
+        }
+    }
+}

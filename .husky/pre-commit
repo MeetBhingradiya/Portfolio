@@ -1,0 +1,3 @@
+bun comments
+bun run build
+bun run precommit

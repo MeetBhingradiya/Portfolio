@@ -87,11 +87,11 @@ async function processFile(FilePath: string): Promise<void> {
         isModified: isFileModified(FilePath)
     }
 
-    // if (!FileData.isModified) {
-    //     return;
-    // } else {
-    //     console.log(`[File Licensing] File is begain modified: ${FilePath}`);
-    // }
+    if (!FileData.isModified) {
+        return;
+    } else {
+        console.log(`[File Licensing] File is begain modified: ${FilePath}`);
+    }
 
     const FileContent = fs.readFileSync(FilePath, 'utf-8');
     const Comment = await generateFileComment(FileData.ID, FileContent)

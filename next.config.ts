@@ -23,6 +23,8 @@ const nextConfig: NextConfig = {
             {
                 source: '/(.*)',
                 headers: [
+                    // ? Security Headers
+                    // ? Prevents Clickjacking, MIME Sniffing, XSS, Referrer Leaks & IFrames Block                    
                     {
                         key: 'X-Frame-Options',
                         value: 'DENY',
@@ -38,6 +40,12 @@ const nextConfig: NextConfig = {
                     {
                         key: 'Referrer-Policy',
                         value: 'same-origin',
+                    },
+                    // ? CSP Headers
+                    // ? Provides Security to Users by Blocking Unwanted Scripts and Resources Paste
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains; preload',
                     },
                     {
                         key: 'Content-Security-Policy',

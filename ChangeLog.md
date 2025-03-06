@@ -19,12 +19,17 @@
 
 -->
 
-# v1.0.11 - 30/03/2025 (Expected)
+# v1.0.11 - 15/03/2025 (Expected)
 
 ### 🌟 Added
+- Server & Client Based Index Exports Alias in tsConfig
+- Flow Docs > Signup Flow Added
+- Utils > HMAC Signatures & `ControllerResponseMap` as Relpacement of `NextResponse.json()`
 
 ### 🔄 Changed
 - License > Updated to v1.0.11 (File ID Format Changed)
+- Env Structure Updated for Better Understanding Flow of Credentials
+- Hooks > useEmptyFields > `isMissing` from `isMising` as Typo Fixed
 
 ### 🗑️ Removed
 

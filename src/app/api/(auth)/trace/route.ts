@@ -39,7 +39,7 @@ import { changeCase } from '@Utils/CaseChnage';
 import { getClientIp } from "@Lib/request-ip";
 import { ParseIPDataConfig } from '@/Utils/ParseIPDatatoConfig';
 
-const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
+const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 const ALLOWED_ORIGINS = [
     ...Config.WhiteListedDomains.map((domain) => `https://${domain}`),
     Config.Environment === 'development' ? 'http://localhost:3000' : null

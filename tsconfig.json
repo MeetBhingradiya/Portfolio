@@ -22,30 +22,42 @@
             }
         ],
         "paths": {
+
+            // ? Root Aliases
             "@Root/*": [
                 "./"
-            ],
-            "@Public/*": [
-                "./src/public/*"
             ],
             "@/*": [
                 "./src/*"
             ],
+            
+            // ? Public Aliases
+            "@Public/*": [
+                "./src/public/*"
+            ],
+
+            // ? Routes Aliases
             "@App/*": [
                 "./src/app/*"
             ],
             "@Pages/*": [
                 "./src/pages/*"
             ],
+
+            // ? Config Aliases
             "@Config": [
                 "./src/Config/index.ts"
             ],
             "@Config/*": [
                 "./src/Config/*"
             ],
+
+            // ? Components Aliases
             "@Components/*": [
                 "./src/Components/*"
             ],
+
+            // ? Controllers Aliases
             "@Controllers": [
                 "./src/Controllers/index.ts"
             ],
@@ -58,35 +70,56 @@
             "@Emails/*": [
                 "./src/Emails/*"
             ],
+
+            // ? Hooks Aliases
             "@Hooks": [
                 "./src/Hooks/index.ts"
             ],
             "@Hooks/*": [
                 "./src/Hooks/*"
             ],
-            "@Lib": [
-                "./src/Lib/index.ts"
-            ],
-            "@Lib/*": [
-                "./src/Lib/*"
-            ],
-            "@Middlewares/*": [
-                "./src/Middlewares/*"
-            ],
+
+            // ? Models Aliases
             "@Models": [
                 "./src/Models/index.ts"
             ],
             "@Models/*": [
                 "./src/Models/*"
             ],
+
+            // ? Custom Librairies Aliases
+            "@Lib": [
+                "./src/Lib/index.ts"
+            ],
+            "@Lib/*": [
+                "./src/Lib/*"
+            ],
+
+            // ? Styles Aliases
             "@Styles/*": [
                 "./src/Styles/*"
+            ],
+
+            // ? Types Aliases
+            "@Types/Server": [
+                "./src/Types/index.Server.ts"
+            ],
+            "@Types/Client": [
+                "./src/Types/index.Client.ts"
             ],
             "@Types": [
                 "./src/Types/index.ts"
             ],
             "@Types/*": [
                 "./src/Types/*"
+            ],
+
+            // ? Utils Aliases
+            "@Utils/Server": [
+                "./src/Utils/index.Server.ts"
+            ],
+            "@Utils/Client": [
+                "./src/Utils/index.Client.ts"
             ],
             "@Utils": [
                 "./src/Utils/index.ts"

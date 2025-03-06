@@ -70,6 +70,7 @@ export const metadata: Metadata = {
         "meetbhingradiya.site",
         "meetbhingradiya.shop",
         "meetbhingradiya.co.in",
+        "meetbhingradiya.in",
         "meetbhingradiya.tech",
 
         // ? This Domain is not owned by me 

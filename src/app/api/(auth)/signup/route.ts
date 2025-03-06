@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     if (FindUser.length > 0) {
         return NextResponse.json({
             Status: 0,
-            Message: 'Email or Username already exists',
+            Message: 'Account already exists with this email',
             StatusCode: 400
         }, { status: 400 });
     }
@@ -103,6 +103,9 @@ export async function POST(req: NextRequest) {
         lastname: Body.lastname,
         DateOfBirth: Body.dateofbirth,
     });
+
+    // ? Generate OTP for Email Verification
+    // ? Create Session and RSA Key Pairs
 
     // ? Return Response
     return NextResponse.json({

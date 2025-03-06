@@ -1,7 +1,10 @@
 import path from 'path';
+import fs from 'fs';
 import { NextConfig } from 'next';
 import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
-import tsconfig from './tsconfig.json';
+import { jsonc } from 'jsonc';
+
+let tsconfig: any = jsonc.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json'), 'utf-8'));
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -113,7 +116,7 @@ const nextConfig: NextConfig = {
         turbo: {
             resolveAlias: {
                 ...Object.fromEntries(
-                    Object.entries(tsconfig.compilerOptions.paths).map(([key, value]) => [
+                    Object.entries(tsconfig.compilerOptions.paths).map(([key, value]: any) => [
                         key.replace('/*', ''),
                         path.resolve(path.resolve(), value[0].replace('/*', ''))
                     ])
@@ -136,7 +139,7 @@ const nextConfig: NextConfig = {
                 ...config.resolve,
                 alias: {
                     ...Object.fromEntries(
-                        Object.entries(tsconfig.compilerOptions.paths).map(([key, value]) => [
+                        Object.entries(tsconfig.compilerOptions.paths).map(([key, value]: any) => [
                             key.replace('/*', ''),
                             path.resolve(path.resolve(), value[0].replace('/*', ''))
                         ])

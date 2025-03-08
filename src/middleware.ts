@@ -26,13 +26,14 @@
  *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
+ *  @modified 08/03/25 4:24 PM IST (Kolkata +5:30 UTC)
  */
 
 
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
+import { RateLimiter } from '@Utils/RateLimit';
 
 const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 
@@ -62,6 +63,12 @@ export async function middleware(req: NextRequest) {
     // }
 
     if (req.nextUrl.pathname.startsWith('/api')) {
+        const rateLimit:any = await RateLimiter(req);
+
+        if (rateLimit instanceof NextResponse) {
+            return rateLimit;
+        }
+
         const csrfTokenFromHeader = req.headers.get('x-csrf');
         const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
 

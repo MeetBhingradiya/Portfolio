@@ -9,8 +9,7 @@
         "lint": "next lint",
         "precommit": "bun Scripts/pre-commit.ts",
         "blogs": "bun Scripts/SyncBlogs.ts",
-        "comments": "bun Scripts/Comments.ts",
-        "prepare": "husky"
+        "comments": "bun Scripts/Comments.ts"
     },
     "dependencies": {
         "@chakra-ui/icons": "^2.2.4",

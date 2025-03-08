@@ -26,7 +26,7 @@
  *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
+ *  @modified 08/03/25 4:24 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -42,20 +42,6 @@ function getClientIpFromXForwardedFor(value: any) {
         throw new TypeError("Expected a string, got \"".concat(typeof value, "\""));
     }
 
-    // ? This is the original code
-    // var forwardedIps = value.split(',').map(function (e: any) {
-    //     var ip = e.trim();
-
-    //     if (ip.includes(':')) {
-    //         var splitted = ip.split(':');
-
-    //         if (splitted.length === 2) {
-    //             return splitted[0];
-    //         }
-    //     }
-
-    //     return ip;
-    // });
 
     // ? By CodeRabbit Suggestions
     var forwardedIps = value.split(',').map(e => e.trim());
@@ -88,7 +74,6 @@ function getClientIp(req: NextRequest): string | string[] | null | undefined {
         if (is.ip(xForwardedFor)) {
             return xForwardedFor;
         }
-
 
         const FindHeaders = [
             'fastly-client-ip',

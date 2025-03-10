@@ -331,8 +331,9 @@ function Tools() {
             if (State.Query.length === 0) {
                 setState({
                     ...State,
-                    FilterBookmarks: State.Bookmarks,
+                    Query: "",
                 });
+                setIndex(0);
             }
         }
     }

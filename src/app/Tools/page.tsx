@@ -221,6 +221,8 @@ function Tools() {
         isEdit: false,
     });
     const searchInputRef = React.useRef<HTMLInputElement>(null);
+    const [longPressTimer, setLongPressTimer] = React.useState<NodeJS.Timeout | null>(null);
+    const longPressDuration = 500;
 
     // @ Functions
     const SwitchModelType = (type: ModelType) => {
@@ -232,82 +234,91 @@ function Tools() {
         });
     }
 
-    const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>, ArrayKeysOnly?: boolean) => {
-        if (ArrayKeysOnly && ArrayKeysOnly === true) {
-            if (e.key === "ArrowDown") {
-                if ((Index + 1) <= (Suggestions.length)) {
-                    setIndex((index) => index + 1);
-                    setState((State) => {
-                        return {
-                            ...State,
-                            QueryDisplay: Suggestions[Index].Query
-                        }
-                    })
-                } else {
-                    setIndex(0);
-                    setState((State) => {
-                        return {
-                            ...State,
-                            QueryDisplay: State.Query
-                        }
-                    })
-                }
-            }
-
-            if (e.key === "ArrowUp") {
-                if ((Index - 1) >= 1) {
-                    setIndex((index) => index - 1);
-                    setState((State) => {
-                        return {
-                            ...State,
-                            QueryDisplay: Suggestions[Index - 2]?.Query
-                        }
-                    })
-                } else {
-                    setIndex(Suggestions.length + 1);
-                    setState((State) => {
-                        return {
-                            ...State,
-                            QueryDisplay: State.Query
-                        }
-                    })
-                }
-            }
-
-            if (e.key === "Enter") {
-                if (Index > 0) {
-                    window.open(SearchEngineLinkBuilder(Suggestions[Index - 1].Query), State.Settings.isNewTab ? "_blank" : "_self");
-                } else {
-                    window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
-                }
-
-                setState({
-                    ...State,
-                    FilterBookmarks: State.Bookmarks,
-                    Query: "",
-                });
-                setIndex(0);
-                return;
-            }
-
+    const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>) => {
+        if (ModalData.isOpen) {
             return;
         }
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+            if ((Index + 1) <= (Suggestions.length)) {
+                setIndex((index) => index + 1);
+                setState((State) => {
+                    return {
+                        ...State,
+                        QueryDisplay: Suggestions[Index]?.Query || State.Query
+                    }
+                });
+            } else {
+                setIndex(0);
+                setState((State) => {
+                    return {
+                        ...State,
+                        QueryDisplay: State.Query
+                    }
+                });
+            }
+        }
+
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+            if ((Index - 1) >= 0) {
+                setIndex((index) => index - 1);
+                setState((State) => {
+                    return {
+                        ...State,
+                        QueryDisplay: Index === 1 ? State.Query : (Suggestions[Index - 2]?.Query || State.Query)
+                    }
+                });
+            } else {
+                setIndex(Suggestions.length);
+                setState((State) => {
+                    return {
+                        ...State,
+                        QueryDisplay: Suggestions[Suggestions.length - 1]?.Query || State.Query
+                    }
+                });
+            }
+        }
+
+        if (e.key === "Escape") {
+            if (searchInputRef.current) {
+                searchInputRef.current.blur();
+            }
+        }
+
+        if (e.key === "Backspace") {
+            if (State.Query === "" && searchInputRef.current) {
+                searchInputRef.current.focus();
+            }
+        }
+
+        if (e.key === "Delete") {
+            // ? Reset Query
+            setState({
+                ...State,
+                FilterBookmarks: State.Bookmarks,
+                Query: "",
+                QueryDisplay: "",
+            });
+            setIndex(0);
+        }
+
         const isAlphaNumericOrSymbol = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]$/.test(e.key);
-        if (isAlphaNumericOrSymbol && searchInputRef.current) {
+        if (isAlphaNumericOrSymbol && searchInputRef.current && !ModalData.isOpen) {
             searchInputRef.current.focus();
         }
 
-        // ? On Escape focus remove
-        if (e.key === "Escape" && searchInputRef.current) {
-            searchInputRef.current.blur();
+        if (e.key === "Escape") {
+            if (searchInputRef.current) {
+                searchInputRef.current.blur();
+            }
         }
 
-        // ? On Space Focus on Search
-        if (e.key === " " && searchInputRef.current) {
+        if (e.key === " " && searchInputRef.current && !ModalData.isOpen) {
             searchInputRef.current.focus();
         }
 
-        // ? On Enter Open First Link
         if (e.key === "Enter") {
             if (State.FilterBookmarks.length > 0 && State.Query.length > 0) {
                 window.open(State.FilterBookmarks[0].url, State.Settings.isNewTab ? "_blank" : "_self");
@@ -319,24 +330,36 @@ function Tools() {
                 });
                 setIndex(0);
                 return;
-            }
-
-            if (State.Query.length === 0 && searchInputRef.current) {
-                searchInputRef.current.focus();
-            }
-        }
-
-        // ? Clear Query on Escape or Delete
-        if (e.key === "Delete" || e.key === "Escape") {
-            if (State.Query.length === 0) {
+            } else {
+                if (Index > 0 && Suggestions.length > 0) {
+                    window.open(SearchEngineLinkBuilder(Suggestions[Index - 1].Query), State.Settings.isNewTab ? "_blank" : "_self");
+                } else if (State.FilterBookmarks.length > 0) {
+                    window.open(State.FilterBookmarks[0].url, State.Settings.isNewTab ? "_blank" : "_self");
+                } else {
+                    window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
+                }
+    
                 setState({
                     ...State,
+                    FilterBookmarks: State.Bookmarks,
                     Query: "",
+                    QueryDisplay: "",
                 });
                 setIndex(0);
+                return;
             }
         }
-    }
+    };
+
+    React.useEffect(() => {
+        if (!ModalData.isOpen) {
+            window.addEventListener("keydown", handleKeyPress);
+
+            return () => {
+                window.removeEventListener("keydown", handleKeyPress);
+            };
+        }
+    }, [Index, ModalData.isOpen, State.Query, State.FilterBookmarks, Suggestions]);
 
     function onGridChange(
         sourceId: any,
@@ -540,7 +563,7 @@ function Tools() {
         try {
             const response = await Axios("/api/bookmarks");
 
-            const ServerBookmarks = response.data.data;
+            const ServerBookmarks = response.data.Data;
             if (!ServerBookmarks) {
                 return;
             }
@@ -616,6 +639,10 @@ function Tools() {
         return SearchEngine.replace("@Query", query);
     }
 
+    const isMobileDevice = () => {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+
     // @Updates
 
     // ? Initial Run & Window Resize, Focus on Search Input Listeners
@@ -674,11 +701,21 @@ function Tools() {
         };
     }, []);
 
-    React.useEffect(() => {
-        if (State.Settings.isFirstRun) {
-            window.addEventListener("keydown", handleKeyPress);
+    // React.useEffect(() => {
+    // if (State.Settings.isFirstRun) {
+    //     window.addEventListener("keydown", handleKeyPress);
+    // }
+
+    // return () => {
+    //     window.removeEventListener("keydown", handleKeyPress);
+    // }
+    // }, [Index])
+
+    function FocusQueryInput() {
+        if (searchInputRef.current) {
+            searchInputRef.current.focus();
         }
-    }, [Index])
+    }
 
     // ? Cloud Sync After the First Run
     React.useEffect(() => {
@@ -724,13 +761,9 @@ function Tools() {
         <div
             key={"Tool"}
             className="Tool"
-            onKeyDown={(e) => {
-                if (searchInputRef.current) {
-                    searchInputRef.current.focus();
-                }
-
-                handleKeyPress(e, true);
-            }}
+        // onKeyDown={(e) => {
+        //     handleKeyPress(e, true);
+        // }}
         >
             <ToastContainer
                 autoClose={3000}
@@ -877,11 +910,7 @@ function Tools() {
                         className="search"
                         ref={searchInputRef}
                         autoComplete="off"
-                        onHoverStart={() => {
-                            if (searchInputRef.current !== null) {
-                                searchInputRef.current.focus();
-                            }
-                        }}
+                        onHoverStart={FocusQueryInput}
                         onHoverEnd={() => {
                             if (searchInputRef.current !== null) {
                                 searchInputRef.current.blur();
@@ -965,17 +994,19 @@ function Tools() {
                             <div
                                 className="bookmark"
                                 onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
+                                    if (isMobileDevice()) return; // Skip for mobile devices
+
                                     e.currentTarget.dataset.dragStartX = e.clientX.toString();
                                     e.currentTarget.dataset.dragStartY = e.clientY.toString();
 
                                     if (State.Query.length > 0) {
-
                                         e.currentTarget.style.cursor = "not-allowed";
                                     } else {
                                         e.currentTarget.style.cursor = "grabbing";
                                     }
                                 }}
                                 onMouseUp={(e: React.MouseEvent<HTMLDivElement>) => {
+                                    if (isMobileDevice()) return; // Skip for mobile devices
 
                                     if (e.button === 2) {
                                         return;
@@ -994,8 +1025,53 @@ function Tools() {
                                     e.currentTarget.style.cursor = "pointer";
                                 }}
                                 onContextMenu={(e: React.MouseEvent<HTMLDivElement>) => {
-                                    e.preventDefault();
+                                    if (isMobileDevice()) {
+                                        e.preventDefault(); // Prevent default context menu on mobile
+                                        return;
+                                    }
+
                                     handleContextMenu(e, item?.id ?? "");
+                                }}
+                                onTouchStart={(e) => {
+                                    if (!isMobileDevice()) return;
+
+                                    // Start long press timer
+                                    const timer = setTimeout(() => {
+                                        const touch = e.touches[0];
+                                        handleContextMenu(
+                                            {
+                                                clientX: touch.clientX,
+                                                clientY: touch.clientY,
+                                                preventDefault: () => { }
+                                            } as React.MouseEvent<HTMLDivElement>,
+                                            item?.id ?? ""
+                                        );
+                                    }, longPressDuration);
+
+                                    setLongPressTimer(timer);
+                                }}
+                                onTouchEnd={() => {
+                                    if (!isMobileDevice()) return;
+
+                                    // Clear long press timer
+                                    if (longPressTimer) {
+                                        clearTimeout(longPressTimer);
+                                        setLongPressTimer(null);
+                                    }
+
+                                    // Handle normal tap (if not a long press)
+                                    if (!contextMenu) {
+                                        window.open(item.url, State.Settings.isNewTab ? "_blank" : "_self");
+                                    }
+                                }}
+                                onTouchMove={() => {
+                                    if (!isMobileDevice()) return;
+
+                                    // Clear timer if user moves finger
+                                    if (longPressTimer) {
+                                        clearTimeout(longPressTimer);
+                                        setLongPressTimer(null);
+                                    }
                                 }}
                             >
                                 {item.icon && (
@@ -1068,17 +1144,11 @@ function Tools() {
                 }
             >
                 {
-                    State.Settings.priorityWindowsApp && (
+                    State.Settings.priorityWindowsApp && State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp && (
                         <MenuItem
                             onClick={() => {
-                                if (State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp) {
-                                    // ? Open Link in New Windows
-                                    window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp ?? "", "_blank", `width=${window.innerWidth},height=${window.innerHeight}`);
-                                    setContextMenu(null);
-                                } else {
-                                    setContextMenu(null);
-                                    toast.error("No Windows App Found");
-                                }
+                                window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp ?? "", "_self", `width=${window.innerWidth},height=${window.innerHeight}`);
+                                setContextMenu(null);
                             }}
                         >
                             <ListItemIcon>
@@ -1099,17 +1169,11 @@ function Tools() {
                 }
 
                 {
-                    State.Settings.priorityAndroidapp && (
+                    State.Settings.priorityAndroidapp && State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp && (
                         <MenuItem
                             onClick={() => {
-                                if (State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp) {
-                                    // ? Open Link in New Android
-                                    window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp ?? "", "_blank", `width=${window.innerWidth},height=${window.innerHeight}`);
-                                    setContextMenu(null);
-                                } else {
-                                    setContextMenu(null);
-                                    toast.error("No Android App Found");
-                                }
+                                window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp ?? "", "_self", `width=${window.innerWidth},height=${window.innerHeight}`);
+                                setContextMenu(null);
                             }}
                         >
                             <ListItemIcon>

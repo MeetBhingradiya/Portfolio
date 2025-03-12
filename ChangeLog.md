@@ -22,13 +22,19 @@
 # Coming Up
 - Next Rate Limit Library for Advanced Rate Limiting from `express-rate-limit` Package
 - `react-bits` Automatic Updates from the Official Repository Using Custom Build Script
+- Select Defualt Search Engine & Its Local Settings on Tools Page
+- Keywords Editor on Tools Page
 ---
 
-# v1.0.12 - 30/03/2025 (Expected)
+# v1.1.0 - 1/04/2025
 
 ### 🌟 Added
+- Tools > Touch Support Added for Mobile & Tablet Devices
+- Tools > Windows & Android Apps Redirects Added
 
 ### 🔄 Changed
+- Tools > Better Keyboard Shortcuts Added for Faster Access
+- Tools > Fixed Re Render Issue on Every State Change
 
 ### 🗑️ Removed
 

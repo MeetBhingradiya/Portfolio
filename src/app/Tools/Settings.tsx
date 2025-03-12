@@ -167,6 +167,8 @@ function Settings({
                     SVGStyles: bookmark.SVGStyles,
                     description: bookmark.description,
                     size: bookmark.size,
+                    androidapp: bookmark.androidapp,
+                    windowsapp: bookmark.windowsapp
                 }
             })
 

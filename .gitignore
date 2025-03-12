@@ -8,6 +8,7 @@ node_modules
 # ^ Logs and databases
 *.db
 *.log
+Prompts
 
 # ^ Environment
 .env

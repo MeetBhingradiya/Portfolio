@@ -218,7 +218,7 @@ function ToolNavigation() {
     const currentTool = pathname.split("/").pop() || "";
 
     // Check if we're in the Tools section
-    const isToolsSection = pathname.includes("/Tools");
+    const isToolsSection: boolean = !pathname.split("/").pop()?.includes("Tools") as boolean
 
     // Filter tools based on search query
     const filteredTools = Tools.filter(tool =>

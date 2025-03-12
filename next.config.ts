@@ -75,8 +75,9 @@ const nextConfig: NextConfig = {
                                     Domains: [
                                         'https://pagead2.googlesyndication.com',
                                         'https://ep2.adtrafficquality.google',
-                                        'https://va.vercel-scripts.com'
-                                    ]
+                                        'https://va.vercel-scripts.com',
+                                        'https://cdn.jsdelivr.net',
+                                    ],
                                 }
                             },
                             minify: true,

@@ -1,6 +1,150 @@
+// JSON Object Converter Styles
 .JSONObject
-    position: relative
-    
+    display: flex
+    flex-direction: column
+    align-items: center
+    width: 100%
+    max-width: 1200px
+    margin: 0 auto
+    padding: 2rem 1rem
+    min-height: max-content
+
+    .title
+        font-size: 2rem
+        font-weight: 700
+        margin-bottom: 0.5rem
+        text-align: center
+        color: var(--font-color)
+
+    .description
+        font-size: 1rem
+        color: var(--description-font-color)
+        margin-bottom: 2rem
+        text-align: center
+
+    .converter-container
+        display: flex
+        flex-direction: row
+        gap: 2rem
+        width: 100%
+        height: calc(100vh - 200px)
+        min-height: 400px
+
+        @media (max-width: 768px)
+            flex-direction: column
+            height: auto
+
+        .converter-box
+            flex: 1
+            display: flex
+            flex-direction: column
+            border-radius: 8px
+            overflow: hidden
+            transition: all 0.3s ease
+            height: 100%
+
+            // Glass effect
+            &.glass
+                background: rgba(255, 255, 255, 0.1)
+                backdrop-filter: blur(10px)
+                border: 1px solid rgba(255, 255, 255, 0.2)
+                // box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)
+
+                &:hover
+                    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.47)
+                    border: 1px solid rgba(255, 255, 255, 0.3)
+
+            .converter-header
+                display: flex
+                justify-content: space-between
+                align-items: center
+                padding: 1rem
+                background: rgba(255, 255, 255, 0.05)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+                h2
+                    font-size: 1.25rem
+                    font-weight: 600
+                    margin: 0
+                    color: var(--font-color)
+
+                .converter-actions
+                    display: flex
+                    gap: 0.5rem
+
+                    @media (max-width: 480px)
+                        gap: 0.25rem
+
+                    .action-button
+                        display: flex
+                        align-items: center
+                        justify-content: center
+                        padding: 0.5rem 0.75rem
+                        border: none
+                        border-radius: 4px
+                        background-color: #e9ecef
+                        color: #495057
+                        font-size: 0.875rem
+                        cursor: pointer
+                        transition: all 0.2s ease
+
+                        .icon
+                            font-size: 1.1rem
+                            margin-right: 0.25rem
+
+                        .button-text
+                            @media (max-width: 640px)
+                                display: none
+
+                        &:hover:not(:disabled)
+                            background-color: #dee2e6
+                            transform: translateY(-1px)
+
+                        &:active:not(:disabled)
+                            transform: translateY(1px)
+
+                        &:disabled
+                            opacity: 0.5
+                            cursor: not-allowed
+
+            .editor-container
+                flex: 1
+                min-height: 0
+                position: relative
+                overflow: hidden
+
+                // Monaco editor overrides
+                .monaco-editor
+                    .margin
+                        background: transparent !important
+                    
+                    .monaco-scrollable-element
+                        background: transparent !important
+
+                    .editor-container
+                        background: transparent !important
+
+            .error-message
+                padding: 0.75rem 1rem
+                background-color: rgba(250, 82, 82, 0.9)
+                color: white
+                font-size: 0.875rem
+                backdrop-filter: blur(5px)
+
+// Dark mode styles
 html.dark
     .JSONObject
-        position: relative
+        .converter-box
+            &.glass
+                background: rgba(0, 0, 0, 0.2)
+                border: 1px solid rgba(255, 255, 255, 0.1)
+
+                &:hover
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+
+            .converter-header
+                background: rgba(0, 0, 0, 0.3)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+            .error-message
+                background-color: rgba(224, 49, 49, 0.9)

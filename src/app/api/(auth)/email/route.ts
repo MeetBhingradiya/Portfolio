@@ -26,7 +26,7 @@
  *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
+ *  @modified 12/03/25 1:52 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,6 +39,7 @@ import {
 import { useEmptyFields } from "@Hooks";
 import { Config } from "@Config";
 import { dbConnect } from "@Utils/dbConnect";
+import { log } from "@Utils";
 
 export async function POST(req: NextRequest) {
     try {
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
             status: 200
         });
     } catch (error:any) {
-        console.error(error?.message);
+        log(error?.message);
         return NextResponse.json({
             Status: 0,
             Message: 'Internal server error',

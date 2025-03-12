@@ -26,7 +26,7 @@
  *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 22/01/25 1:05 PM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
+ *  @modified 12/03/25 1:52 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,24 +39,34 @@ import { Passkeys_Model } from "@Models/Passkeys";
 import { Encrypt, Decrypt } from "@Utils/Crypto";
 import { RSA } from "@Utils/RSA";
 import { getRelativeTime } from "@Utils/Relativetime";
+import { log } from "@Utils";
 
-export function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
+    try {
+        let Request = await req.json();
+        if (useEmptyFields({
+            ReqiuredFields: [
+                "email",
+                "password"
+            ],
+            targetObject: Request
+        }).isMising) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Missing required fields',
+                StatusCode: 400
+            }, { status: 400 });
+        }
 
-    const Body = req.body;
-
-    if (useEmptyFields({
-        ReqiuredFields: [
-            "email",
-            "password"
-        ],
-        targetObject: Body
-    }).isMising) {
+        
+    } catch (error:any) {
+        log(error?.message);
         return NextResponse.json({
             Status: 0,
-            Message: 'Missing required fields',
-            StatusCode: 400
-        }, { status: 400 });
+            Message: 'Internal server error',
+            StatusCode: 500
+        }, {
+            status: 500
+        });
     }
-
-    return NextResponse.json({ Status: 1, Message: 'Email status route is working', StatusCode: 200 }, { status: 200 });
 }

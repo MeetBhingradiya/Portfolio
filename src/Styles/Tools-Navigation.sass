@@ -1,41 +1,352 @@
-.ToolNavigation
-    height: 100%
+// Tools Navigation Styles
+.tool-nav-toggle
     position: fixed
-    width: 15rem
-    padding: 1rem
-    gap: 1rem
+    top: 1rem
+    left: 1rem
+    z-index: 1001
+    background: rgba(255, 255, 255, 0.2)
+    backdrop-filter: blur(10px)
+    border: 1px solid rgba(255, 255, 255, 0.2)
+    border-radius: 50%
+    width: 3rem
+    height: 3rem
     display: flex
-    justify-content: center
     align-items: center
-    flex-direction: column
+    justify-content: center
+    cursor: pointer
     color: var(--font-color)
-    background: #ffffffcb
-    z-index: 1
-    transition: left 0.3s ease
-    left: -14.9rem
+    transition: all 0.3s ease
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1)
 
     &:hover
-        transition: left 0.3s ease
-        left: 0
-
-    .ToolNavigation-Item
-        padding: 1rem
-        height: 50px
-        display: flex
-        justify-content: center
-        align-items: center
-        gap: 0.5rem
-        cursor: pointer
-        transition: background-color 0.3s ease
-        width: 100%
-        font-size: 0.8rem
-        border-radius: 0.5rem
-        &:hover
-            background: var(--background)
-    
-    .Active
+        transform: scale(1.05)
+        box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15)
         color: var(--accent-color)
+
+    // Hide on desktop
+    @media (min-width: 1024px)
+        display: none
+
+.tool-navigation
+    position: fixed
+    top: 0
+    left: 0
+    height: 100vh
+    width: 280px
+    display: flex
+    flex-direction: column
+    background: rgba(255, 255, 255, 0.1)
+    backdrop-filter: blur(10px)
+    border-right: 1px solid rgba(255, 255, 255, 0.2)
+    z-index: 1000
+    transition: all 0.3s ease
+    color: var(--font-color)
+    overflow-y: auto
+    overflow-x: hidden
+    
+    // Glass effect
+    background: rgba(255, 255, 255, 0.1)
+    backdrop-filter: blur(10px)
+    -webkit-backdrop-filter: blur(10px)
+    border-right: 1px solid rgba(255, 255, 255, 0.2)
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)
+
+    // Resizable handle - only on desktop
+    .resize-handle
+        position: absolute
+        top: 0
+        right: 0
+        width: 5px
+        height: 100%
+        cursor: ew-resize
+        background: transparent
+        z-index: 1002
         
+        &:hover
+            background: rgba(var(--accent-color-rgb), 0.3)
+            
+        // Hide on mobile
+        @media (max-width: 1023px)
+            display: none
+
+    // Hover functionality - desktop only
+    &.collapsed
+        @media (min-width: 1024px)
+            width: 75px
+            
+            .brand-header
+                .brand-title
+                    display: none
+                    
+            .search-container
+                display: none
+                
+            .tools-list
+                .category-header
+                    .category-title
+                        display: none
+                        
+                .tool-item
+                    .tool-title
+                        display: none
+                        
+            &:hover
+                width: 280px
+                
+                .brand-header
+                    .brand-title
+                        display: block
+                        
+                .search-container
+                    display: block
+                    
+                .tools-list
+                    .category-header
+                        .category-title
+                            display: block
+                            
+                    .tool-item
+                        .tool-title
+                            display: block
+
+    // Mobile styles
+    @media (max-width: 1023px)
+        transform: translateX(-100%)
+        opacity: 0
+        width: 100%
+        max-width: 320px
+
+        &.open
+            transform: translateX(0)
+            opacity: 1
+            
+        // Disable collapse on mobile
+        &.collapsed
+            width: 100%
+            max-width: 320px
+            
+            .brand-header .brand-title,
+            .search-container,
+            .tools-list .category-header .category-title,
+            .tools-list .tool-item .tool-title
+                display: block
+
+    // Brand header
+    .brand-header
+        padding: 1.5rem 1rem
+        display: flex
+        align-items: center
+        justify-content: space-between
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+        background-color: rgba(var(--accent-color-rgb), 0.1)
+
+        .brand-link
+            display: flex
+            align-items: center
+            gap: 0.75rem
+            text-decoration: none
+            color: var(--font-color)
+            transition: all 0.2s ease
+
+            &:hover
+                transform: scale(1.02)
+
+            .brand-icon
+                display: flex
+                align-items: center
+                justify-content: center
+                width: 2.5rem
+                height: 2.5rem
+                background: var(--accent-color)
+                border-radius: 12px
+                color: white
+
+            .brand-title
+                font-size: 1.25rem
+                font-weight: 600
+                margin: 0
+                
+        .toggle-collapse
+            display: flex
+            align-items: center
+            justify-content: center
+            width: 2rem
+            height: 2rem
+            border-radius: 50%
+            background: rgba(255, 255, 255, 0.1)
+            cursor: pointer
+            transition: all 0.2s ease
+            
+            // Hide on mobile
+            @media (max-width: 1023px)
+                display: none
+            
+            &:hover
+                background: rgba(var(--accent-color-rgb), 0.2)
+                transform: scale(1.05)
+                
+            svg
+                transition: transform 0.3s ease
+                
+            &.collapsed svg
+                transform: rotate(180deg)
+
+    // Search container
+    .search-container
+        padding: 1rem
+        position: relative
+
+        .search-icon
+            position: absolute
+            left: 1.75rem
+            top: 50%
+            transform: translateY(-50%)
+            color: var(--description-font-color)
+            font-size: 1.25rem
+
+        .search-input
+            width: 100%
+            padding: 0.75rem 1rem 0.75rem 2.5rem
+            border-radius: 8px
+            border: 1px solid rgba(255, 255, 255, 0.2)
+            background: rgba(255, 255, 255, 0.05)
+            color: var(--font-color)
+            font-size: 0.875rem
+            transition: all 0.2s ease
+
+            &:focus
+                outline: none
+                border-color: var(--accent-color)
+                box-shadow: 0 0 0 2px rgba(var(--accent-color-rgb), 0.2)
+
+            &::placeholder
+                color: var(--description-font-color)
+
+    // Tools list
+    .tools-list
+        flex: 1
+        display: flex
+        flex-direction: column
+        padding: 0.5rem
+        overflow-y: auto
+
+        &::-webkit-scrollbar
+            width: 6px
+            height: 6px
+
+        &::-webkit-scrollbar-track
+            background: transparent
+
+        &::-webkit-scrollbar-thumb
+            background: rgba(255, 255, 255, 0.2)
+            border-radius: 3px
+
+        &::-webkit-scrollbar-thumb:hover
+            background: rgba(255, 255, 255, 0.3)
+            
+        .category-group
+            margin-bottom: 1.5rem
+            
+            .category-header
+                display: flex
+                align-items: center
+                gap: 0.5rem
+                padding: 0.5rem 1rem
+                margin-bottom: 0.5rem
+                background-color: rgba(var(--accent-color-rgb), 0.05)
+                border-radius: 8px
+                
+                .category-icon
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    color: var(--accent-color)
+                
+                .category-title
+                    font-size: 0.85rem
+                    font-weight: 600
+                    margin: 0
+                    color: var(--accent-color)
+                    text-transform: uppercase
+                    letter-spacing: 0.05em
+
+        .tool-item
+            display: flex
+            align-items: center
+            gap: 1rem
+            padding: 0.75rem 1rem
+            border-radius: 8px
+            cursor: pointer
+            transition: all 0.2s ease
+            margin-bottom: 0.25rem
+
+            &:hover
+                background: rgba(var(--accent-color-rgb), 0.05)
+
+            &.active
+                background: rgba(var(--accent-color-rgb), 0.15)
+                border-left: 3px solid var(--accent-color)
+
+                .tool-title
+                    color: var(--accent-color)
+                    font-weight: 500
+                    
+                .tool-icon
+                    color: var(--accent-color)
+
+            .tool-icon
+                display: flex
+                align-items: center
+                justify-content: center
+                min-width: 32px
+                color: var(--font-color)
+
+                svg
+                    width: 24px
+                    height: 24px
+
+            .tool-title
+                font-size: 0.9rem
+                white-space: nowrap
+                overflow: hidden
+                text-overflow: ellipsis
+
+        .no-results
+            padding: 2rem 1rem
+            text-align: center
+            color: var(--description-font-color)
+            
+            p
+                font-size: 0.9rem
+                margin: 0
+                line-height: 1.5
+
+// Dark mode styles
 html.dark
-    .ToolNavigation
-        background: #717171
+    .tool-nav-toggle
+        background: rgba(0, 0, 0, 0.4)
+        border-color: rgba(255, 255, 255, 0.1)
+
+    .tool-navigation
+        background: rgba(0, 0, 0, 0.4)
+        border-right-color: rgba(255, 255, 255, 0.1)
+        
+        .brand-header
+            background-color: rgba(var(--accent-color-rgb), 0.15)
+
+        .search-container
+            .search-input
+                background: rgba(0, 0, 0, 0.2)
+                border-color: rgba(255, 255, 255, 0.1)
+
+        .tools-list
+            .category-group
+                .category-header
+                    background-color: rgba(var(--accent-color-rgb), 0.1)
+                    
+            .tool-item
+                &:hover
+                    background: rgba(255, 255, 255, 0.05)
+
+                &.active
+                    background: rgba(var(--accent-color-rgb), 0.25)

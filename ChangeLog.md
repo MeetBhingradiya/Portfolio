@@ -19,17 +19,27 @@
 
 -->
 
+# Coming Up
+- Next Rate Limit Library for Advanced Rate Limiting from `express-rate-limit` Package
+- `react-bits` Automatic Updates from the Official Repository Using Custom Build Script
+---
+
 # v1.0.11 - 15/03/2025 (Expected)
 
 ### 🌟 Added
 - Server & Client Based Index Exports Alias in tsConfig
 - Flow Docs > Signup Flow Added
 - Utils > HMAC Signatures & `ControllerResponseMap` as Relpacement of `NextResponse.json()`
+- Utils > Simple Rate Limiter Added for Basic Rate Limiting
+- New Tool Luanched > `JSON ⇄ JS Object` Converter with VS Code's Monaco Editor
+- Github > Issue Templates > Future Requests has been Added
 
 ### 🔄 Changed
 - License > Updated to v1.0.11 (File ID Format Changed)
 - Env Structure Updated for Better Understanding Flow of Credentials
 - Hooks > useEmptyFields > `isMissing` from `isMising` as Typo Fixed
+- #93
+- Components > ToolsNavigation > Enhanced UI & New Futures
 
 ### 🗑️ Removed
 

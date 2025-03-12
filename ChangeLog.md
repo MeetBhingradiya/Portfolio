@@ -24,7 +24,17 @@
 - `react-bits` Automatic Updates from the Official Repository Using Custom Build Script
 ---
 
-# v1.0.11 - 15/03/2025 (Expected)
+# v1.0.12 - 30/03/2025 (Expected)
+
+### 🌟 Added
+
+### 🔄 Changed
+
+### 🗑️ Removed
+
+---
+
+# v1.0.11 - 13/03/2025
 
 ### 🌟 Added
 - Server & Client Based Index Exports Alias in tsConfig
@@ -42,7 +52,8 @@
 - Components > ToolsNavigation > Enhanced UI & New Futures
 
 ### 🗑️ Removed
-
+- Husky Integration Removed. (Temporarily, will be come back soon)
+- RateLimit > Disabled due to Under Development
 ---
 
 # v1.0.10 - 3/03/2025

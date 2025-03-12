@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
         if (useEmptyFields({
             targetObject: Request,
             ReqiuredFields: ["email"]
-        }).isMising) {
+        }).isMissing) {
             return NextResponse.json({
                 Status: 0,
                 Message: 'Missing required fields',

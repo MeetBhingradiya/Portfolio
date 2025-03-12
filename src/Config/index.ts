@@ -73,7 +73,7 @@ interface IConfig {
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
     version: "v1.0.11",
-    releasedate: "2025-3-15",
+    releasedate: "2025-3-13",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,

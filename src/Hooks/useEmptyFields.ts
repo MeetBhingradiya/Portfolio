@@ -36,7 +36,6 @@ interface IuseEmptyFields {
 }
 
 interface useEmptyFields_Return {
-    isMising: boolean
     isMissing: boolean
     MissingFields: Array<string>
     Length: number
@@ -55,7 +54,6 @@ function useEmptyFields({
 
     if (inputObject === undefined || inputObject === null) {
         return {
-            isMising: true,
             isMissing: true,
             MissingFields: ReqiuredFields,
             Length: ReqiuredFields.length
@@ -70,7 +68,6 @@ function useEmptyFields({
         } catch (error) {
             console.error("Failed to parse string as JSON in useEmptyFields:", error);
             return {
-                isMising: true,
                 isMissing: true,
                 MissingFields: ReqiuredFields,
                 Length: ReqiuredFields.length
@@ -84,14 +81,12 @@ function useEmptyFields({
 
     if (Empty_Fields.length > 0) {
         return {
-            isMising: true,
             isMissing: true,
             MissingFields: Empty_Fields,
             Length: Empty_Fields.length
         }
     } else {
         return {
-            isMising: false,
             isMissing: false,
             MissingFields: [],
             Length: 0

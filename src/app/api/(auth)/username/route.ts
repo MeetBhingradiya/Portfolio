@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             ReqiuredFields: [
                 "username",
             ]
-        }).isMising) {
+        }).isMissing) {
             return NextResponse.json({
                 Status: 0,
                 Message: 'Missing required fields',

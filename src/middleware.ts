@@ -33,7 +33,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
-import { RateLimiter } from '@Utils/RateLimit';
+// import { RateLimiter } from '@Utils/RateLimit';
 
 const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 
@@ -52,22 +52,12 @@ export async function middleware(req: NextRequest) {
         }
     });
 
-    // if (!req.cookies.get(`${Config.Cookie_Prefix}csrf`)) {
-    //     response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
-    //         httpOnly: true,
-    //         secure: true,
-    //         sameSite: 'strict',
-    //         path: '/',
-    //         maxAge: 60 * 20
-    //     });
-    // }
-
     if (req.nextUrl.pathname.startsWith('/api')) {
-        const rateLimit:any = await RateLimiter(req);
+        // const rateLimit:any = await RateLimiter(req);
 
-        if (rateLimit instanceof NextResponse) {
-            return rateLimit;
-        }
+        // if (rateLimit instanceof NextResponse) {
+        //     return rateLimit;
+        // }
 
         const csrfTokenFromHeader = req.headers.get('x-csrf');
         const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);

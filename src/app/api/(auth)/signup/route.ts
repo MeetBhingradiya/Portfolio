@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
             "dateofbirth",
         ],
         targetObject: Body
-    }).isMising) {
+    }).isMissing) {
         return NextResponse.json({
             Status: 0,
             Message: 'Missing required fields',

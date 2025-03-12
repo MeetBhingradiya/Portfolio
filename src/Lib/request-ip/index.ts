@@ -1,5 +1,5 @@
 /**
- *  @FileID          Lib\request-ip\index.ts
+ *  @FileID          Lib/request-ip/index.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 08/03/25 4:24 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -42,17 +42,15 @@ function getClientIpFromXForwardedFor(value: any) {
         throw new TypeError("Expected a string, got \"".concat(typeof value, "\""));
     }
 
-    var forwardedIps = value.split(',').map(function (e: any) {
-        var ip = e.trim();
 
-        if (ip.includes(':')) {
-            var splitted = ip.split(':');
+    // ? By CodeRabbit Suggestions
+    var forwardedIps = value.split(',').map(e => e.trim());
 
-            if (splitted.length === 2) {
-                return splitted[0];
-            }
+    forwardedIps = forwardedIps.map(ip => {
+        const ipv4PortMatch = ip.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d+$/);
+        if (ipv4PortMatch) {
+            return ipv4PortMatch[1];
         }
-
         return ip;
     });
 
@@ -67,7 +65,7 @@ function getClientIpFromXForwardedFor(value: any) {
 
 function getClientIp(req: NextRequest): string | string[] | null | undefined {
     if (req.headers) {
-        if(is.ip(req.headers.get('x-client-ip'))){
+        if (is.ip(req.headers.get('x-client-ip'))) {
             return req.headers.get('x-client-ip');
         }
 
@@ -76,7 +74,6 @@ function getClientIp(req: NextRequest): string | string[] | null | undefined {
         if (is.ip(xForwardedFor)) {
             return xForwardedFor;
         }
-
 
         const FindHeaders = [
             'fastly-client-ip',
@@ -89,11 +86,12 @@ function getClientIp(req: NextRequest): string | string[] | null | undefined {
             'x-appengine-user-ip'
         ]
 
-        FindHeaders.forEach((header) => {
-            if(is.ip(req.headers.get(header))){
-                return req.headers.get(header);
+        for (const header of FindHeaders) {
+            const headerValue = req.headers.get(header);
+            if (is.ip(headerValue)) {
+                return headerValue;
             }
-        })
+        }
     }
 
     return null;

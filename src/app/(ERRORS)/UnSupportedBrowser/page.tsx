@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\(ERRORS)\UnSupportedBrowser\page.tsx
+ *  @FileID          app/(ERRORS)/UnSupportedBrowser/page.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,15 +39,15 @@ function UnSupportedPlateform_Page() {
     React.useEffect(() => {
 
         const userAgent = navigator.userAgent;
-        if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
-            setPlatform('iOS');
-        } else if (userAgent.includes('Android')) {
-            setPlatform('Android');
-        } else if (userAgent.includes('Windows')) {
-            setPlatform('Windows');
-        } else if (userAgent.includes('Mac')) {
-            setPlatform('Mac');
-        }
+        // if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
+        //     setPlatform('iOS');
+        // } else if (userAgent.includes('Android')) {
+        //     setPlatform('Android');
+        // } else if (userAgent.includes('Windows')) {
+        //     setPlatform('Windows');
+        // } else if (userAgent.includes('Mac')) {
+        //     setPlatform('Mac');
+        // }
 
     }, []);
 

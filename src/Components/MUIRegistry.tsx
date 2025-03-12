@@ -1,5 +1,5 @@
 /**
- *  @FileID          Components\MUIRegistry.tsx
+ *  @FileID          Components/MUIRegistry.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,21 +23,22 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
 "use client";
-
 import createCache from '@emotion/cache';
 import { useServerInsertedHTML } from 'next/navigation';
 import { CacheProvider } from '@emotion/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import React, { useMemo, useState } from 'react';
 import { useTheme } from '@Hooks/useTheme';
+import { LocalizationProvider } from '@mui/x-date-pickers-pro';
+import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon';
 
 export default function MUIRegistry(props: any) {
     const { effectiveMode } = useTheme();
@@ -94,9 +95,11 @@ export default function MUIRegistry(props: any) {
 
     return (
         <CacheProvider value={cache}>
-            <ThemeProvider theme={MUITheme}>
-                {props.children}
-            </ThemeProvider>
+            <LocalizationProvider dateAdapter={AdapterLuxon}>
+                <ThemeProvider theme={MUITheme}>
+                    {props.children}
+                </ThemeProvider>
+            </LocalizationProvider>
         </CacheProvider>
     );
 }

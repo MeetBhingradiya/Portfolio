@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\(ERRORS)\Test\page.tsx
+ *  @FileID          app/(ERRORS)/Test/page.tsx
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,37 +23,25 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
  */
 
 
 "use client";
 
-import { Axios } from "@Utils/Axios";
 import { Button } from "@heroui/react";
 import Link from "next/link";
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Config } from "@Config/index";
 
 function Page() {
 
     React.useEffect(() => {
         if (Config.Environment === "development") {
-            async function getData() {
-                return await Axios.post("/api/cors", {
-                    body: {
-                        endpoint: "https://trends.google.com/trends/api/dailytrends?geo=IN&ed=20250119",
-                        method: "GET",
-                        body: null,
-                        headers: {}
-                    }
-                })
-            }
-
-            console.log(getData());
+            // ? Do Something Here that Only work on Development Mode
         }
     }, []);
 

@@ -1,5 +1,5 @@
 /**
- *  @FileID          Config\SocialLinks.tsx
+ *  @FileID          Config/SocialLinks.tsx
  *  @Description     social media links for the landing page.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,14 +23,15 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
 import { GitHub, Instagram, LinkedIn, YouTube } from "@mui/icons-material";
+import { Config } from ".";
 
 const SocialLinks: Array<{
     Label: string;
@@ -94,7 +95,7 @@ const SocialLinks: Array<{
         },
         {
             Label: "Mail",
-            URL: `mailto:${process.env.CONTACT_EMAIL}`,
+            URL: `mailto:${Config.Env?.CONTACT_EMAIL}`,
             Component: (
                 <svg xmlns="http://www.w3.org/2000/svg" className="stackoverflowsvg" width="32" height="32" role="img" viewBox="0 0 24 24">
                     <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" />

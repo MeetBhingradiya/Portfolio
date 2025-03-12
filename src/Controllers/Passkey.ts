@@ -1,5 +1,5 @@
 /**
- *  @FileID          Controllers\Passkey.ts
+ *  @FileID          Controllers/Passkey.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -42,7 +42,7 @@ import {
     verifyAuthenticationResponse,
     AuthenticatorTransportFuture,
     AuthenticatorAttachment,
-    UserVerificationRequirement
+    UserVerificationRequirement,
 } from '@simplewebauthn/server';
 import { isoBase64URL } from '@simplewebauthn/server/helpers';
 import PasswordManagers from 'password-managers' with { type: 'json' };
@@ -75,7 +75,7 @@ async function Controller_GET_PasswordManagers() {
 async function Controller_POST_Register_Passkey_Request() {
     await dbConnect()
 
-    // ? get Authorized User
+    // ? get Authorized User [Temporary] we will fetch from users model
     const User = {
         UserID: "60d4b9e0b6b5c4a6e7c3e4d5",
         plan: "Plus",
@@ -145,8 +145,7 @@ async function Controller_POST_Register_Passkey_Request() {
     const option = await generateRegistrationOptions({
         rpName: Config.Name,
 
-        // ? Modify this if Domain got Expired
-        rpID: `https://${Config.WhiteListedDomains[1]}`,
+        rpID: `https://${Config.WhiteListedDomains[0]}`,
 
         // ? Users Data
         userName: User.username,

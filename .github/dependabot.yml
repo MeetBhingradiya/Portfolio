@@ -1,11 +1,21 @@
 version: 2
 updates:
-  # - package-ecosystem: "npm"
-  #   directory: "/"
-  #   schedule:
-  #     interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "v1.0.11"
+    labels:
+      - "🛍️ Scope : Dependencies"
+      - "🚀 Type : Update"
+      - "📦 Package : NPM"
+    schedule:
+      interval: "daily"
 
-  # - package-ecosystem: "pip"
-  #   directory: "/"
-  #   schedule:
-  #     interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/"
+    target-branch: "v1.0.11"
+    schedule:
+      interval: "daily"
+    labels:
+      - "🛍️ Scope : Dependencies"
+      - "🚀 Type : Update"
+      - "📦 Package : PIP"

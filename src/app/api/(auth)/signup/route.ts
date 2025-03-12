@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\api\(auth)\signup\route.ts
+ *  @FileID          app/api/(auth)/signup/route.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,43 +23,44 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
  */
-
 
 import { NextRequest, NextResponse } from "next/server";
 import { Users_Model, IUser } from "@Models/Users";
 // import { OTPs_Model, IOTP, OTPs } from "@Models/OneTimePass";
 // import { Sessions_Model, ISessions } from "@Models/Sessions";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
+import { Config } from "@Config";
 
 export async function POST(req: NextRequest) {
 
-    const Body: {
-        email: string,
-        password: string,
-        username: string,
-        firstname: string,
-        lastname: string,
-        dateofbirth: string,
-    } = req.body as any;
+    const rawBody = await req.json();
+    const Body = {
+        email: String(rawBody.email || ''),
+        password: String(rawBody.password || ''),
+        username: String(rawBody.username || ''),
+        firstname: String(rawBody.firstname || ''),
+        lastname: String(rawBody.lastname || ''),
+        dateofbirth: String(rawBody.dateofbirth || ''),
+        gender: String(rawBody.gender || '')
+    };
 
     // ? Check if required fields are missing
     if (useEmptyFields({
         ReqiuredFields: [
             "email",
             "password",
-            "username",
             "firstname",
             "lastname",
             "gender",
             "dateofbirth",
         ],
-        Object: Body
-    }).isMising) {
+        targetObject: Body
+    }).isMissing) {
         return NextResponse.json({
             Status: 0,
             Message: 'Missing required fields',
@@ -67,32 +68,44 @@ export async function POST(req: NextRequest) {
         }, { status: 400 });
     }
 
+    // ^ TODO:  Validations
+    // ? Email Regex & Domain Whitelist on State Collection
+    // ? Email on Users Collection
+    // ? Password Decrypt & Validate (Length, Special Characters, Uppercase, Lowercase, Digits)
+    // ? Username Regex & Users Collection
+    // ? Minimum Age Check on State Collection
+
     // ? Check if email is already registered or same username not exists
     const FindUser = await Users_Model.find({ 
-        $or: [
-            { email: Body.email },
-            { username: Body.username }
-        ]
+        email: Body.email,
     });
 
-    if (FindUser) {
+    if (FindUser.length > 0) {
         return NextResponse.json({
             Status: 0,
-            Message: 'Email or Username already exists',
+            Message: 'Account already exists with this email',
             StatusCode: 400
         }, { status: 400 });
     }
 
     // ? Create new user
     await Users_Model.create({
-        email: Body.email,
+        Emails: [
+            {
+                Email: Body.email,
+                isPrimary: true,
+                isVerified: false
+            }
+        ],
         // ? TODO: Encrypt Password not Hash
-        password: Body.password,
-        username: Body.username,
+        Username: Config.DatabaseBydefualt.SignupUsername,
         firstname: Body.firstname,
         lastname: Body.lastname,
         DateOfBirth: Body.dateofbirth,
     });
+
+    // ? Generate OTP for Email Verification
+    // ? Create Session and RSA Key Pairs
 
     // ? Return Response
     return NextResponse.json({

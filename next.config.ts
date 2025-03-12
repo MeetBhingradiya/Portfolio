@@ -1,8 +1,10 @@
 import path from 'path';
+import fs from 'fs';
 import { NextConfig } from 'next';
 import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
-import tsconfig from './tsconfig.json';
-import { Config } from '@Config';
+import { jsonc } from 'jsonc';
+
+let tsconfig: any = jsonc.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json'), 'utf-8'));
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -15,7 +17,7 @@ const nextConfig: NextConfig = {
         remotePatterns: [
             {
                 protocol: 'https',
-                hostname: "*", // Match all hostnames
+                hostname: "*",
             }
         ]
     },
@@ -24,6 +26,8 @@ const nextConfig: NextConfig = {
             {
                 source: '/(.*)',
                 headers: [
+                    // ? Security Headers
+                    // ? Prevents Clickjacking, MIME Sniffing, XSS, Referrer Leaks & IFrames Block                    
                     {
                         key: 'X-Frame-Options',
                         value: 'DENY',
@@ -39,6 +43,12 @@ const nextConfig: NextConfig = {
                     {
                         key: 'Referrer-Policy',
                         value: 'same-origin',
+                    },
+                    // ? CSP Headers
+                    // ? Provides Security to Users by Blocking Unwanted Scripts and Resources Paste
+                    {
+                        key: 'Strict-Transport-Security',
+                        value: 'max-age=31536000; includeSubDomains; preload',
                     },
                     {
                         key: 'Content-Security-Policy',
@@ -65,22 +75,24 @@ const nextConfig: NextConfig = {
                                     Domains: [
                                         'https://pagead2.googlesyndication.com',
                                         'https://ep2.adtrafficquality.google',
-                                        'https://va.vercel-scripts.com'
-                                    ]
+                                        'https://va.vercel-scripts.com',
+                                        'https://cdn.jsdelivr.net',
+                                    ],
                                 }
                             },
                             minify: true,
                             removeWhitespace: true
                         })
                     },
-                    // ? CORS Headers
+                    // ? CORS Headers 
+                    // ? Allow Origins From Config.WhiteListedDomains
                     {
                         key: 'Access-Control-Allow-Origin',
-                        value: ''
+                        value: 'meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech'
                     },
                     {
                         key: 'Access-Control-Allow-Methods',
-                        value: 'GET, POST, OPTIONS',
+                        value: 'GET, POST, PUT, DELETE, OPTIONS',
                     },
                     {
                         key: 'Access-Control-Allow-Headers',
@@ -105,7 +117,7 @@ const nextConfig: NextConfig = {
         turbo: {
             resolveAlias: {
                 ...Object.fromEntries(
-                    Object.entries(tsconfig.compilerOptions.paths).map(([key, value]) => [
+                    Object.entries(tsconfig.compilerOptions.paths).map(([key, value]: any) => [
                         key.replace('/*', ''),
                         path.resolve(path.resolve(), value[0].replace('/*', ''))
                     ])
@@ -128,7 +140,7 @@ const nextConfig: NextConfig = {
                 ...config.resolve,
                 alias: {
                     ...Object.fromEntries(
-                        Object.entries(tsconfig.compilerOptions.paths).map(([key, value]) => [
+                        Object.entries(tsconfig.compilerOptions.paths).map(([key, value]: any) => [
                             key.replace('/*', ''),
                             path.resolve(path.resolve(), value[0].replace('/*', ''))
                         ])

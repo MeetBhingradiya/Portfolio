@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\api\(auth)\signin\route.ts
+ *  @FileID          app/api/(auth)/signin/route.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 22/01/25 1:05 PM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 12/03/25 1:52 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,24 +39,34 @@ import { Passkeys_Model } from "@Models/Passkeys";
 import { Encrypt, Decrypt } from "@Utils/Crypto";
 import { RSA } from "@Utils/RSA";
 import { getRelativeTime } from "@Utils/Relativetime";
+import { log } from "@Utils";
 
-export function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
+    try {
+        let Request = await req.json();
+        if (useEmptyFields({
+            ReqiuredFields: [
+                "email",
+                "password"
+            ],
+            targetObject: Request
+        }).isMissing) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Missing required fields',
+                StatusCode: 400
+            }, { status: 400 });
+        }
 
-    const Body = req.body;
-
-    if (useEmptyFields({
-        ReqiuredFields: [
-            "email",
-            "password"
-        ],
-        Object: Body
-    }).isMising) {
+        
+    } catch (error:any) {
+        log(error?.message);
         return NextResponse.json({
             Status: 0,
-            Message: 'Missing required fields',
-            StatusCode: 400
-        }, { status: 400 });
+            Message: 'Internal server error',
+            StatusCode: 500
+        }, {
+            status: 500
+        });
     }
-
-    return NextResponse.json({ Status: 1, Message: 'Email status route is working', StatusCode: 200 }, { status: 200 });
 }

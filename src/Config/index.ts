@@ -1,5 +1,5 @@
 /**
- *  @FileID          Config\index.ts
+ *  @FileID          Config/index.ts
  *  @Description     configuration settings for the project.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,17 +23,16 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
 import { Protocols } from "./Protocols";
 
 export * from "./RedirectProtocols";
-export * from "./SocialLinks";
 
 interface IConfig {
     Name: string;
@@ -58,16 +57,23 @@ interface IConfig {
         Useragent: string;
     }
     DatabaseBydefualt: {
-        SignupUsername: string;
+        SignupUsername: string
     }
-    StatusCodes: typeof Protocols;
+    StatusCodes: typeof Protocols
+    Env: {
+        TRACE_SIGNATURE?: string
+        NODE_ENV?: "development" | "production" | "test"
+        CONTACT_EMAIL?: string
+        IPDATA_WEBSITE_KEY?: string
+        STATE_SIGNATURE?: string
+    };
 }
 
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
-    version: "v1.0.10",
-    releasedate: "2025-3-3",
+    version: "v1.0.11",
+    releasedate: "2025-3-13",
     visiblebranch: "Development",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -113,7 +119,14 @@ const Config: IConfig = {
     DatabaseBydefualt: {
         SignupUsername: "Anonymous"
     },
-    StatusCodes: Protocols
+    StatusCodes: Protocols,
+    Env: {
+        TRACE_SIGNATURE: process.env.TRACE_SIGNATURE,
+        NODE_ENV: process.env.NODE_ENV as "development" | "production" | "test",
+        CONTACT_EMAIL: process.env.CONTACT_EMAIL,
+        IPDATA_WEBSITE_KEY: process.env.IPDATA_WEBSITE_KEY,
+        STATE_SIGNATURE: process.env.STATE_SIGNATURE
+    }
 }
 
 export { Config };

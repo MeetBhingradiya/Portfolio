@@ -1,5 +1,5 @@
 /**
- *  @FileID          Models\Users.ts
+ *  @FileID          Models/Users.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,16 +23,17 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
 import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 import { IGender } from '@Types/Gender';
+import { unique } from 'next/dist/build/utils';
 
 const User_Schema: mongoose.Schema = new mongoose.Schema({
     UserID: {
@@ -43,6 +44,8 @@ const User_Schema: mongoose.Schema = new mongoose.Schema({
     Username: {
         type: String,
         required: true,
+        unique: true,
+        index: true
     },
     Emails: {
         type: [{
@@ -79,11 +82,54 @@ const User_Schema: mongoose.Schema = new mongoose.Schema({
         type: Date
     },
     Gender: {
-        type: String
+        type: String,
+        enum: {
+            values: Object.values(IGender),
+            message: "{VALUE} is not a valid gender"
+        }
     },
     CustomGender: {
         type: String
     },
+    isMFA: {
+        type: Boolean,
+        default: false
+    },
+    isSuspicousActivity: {
+        type: Boolean,
+        default: false
+    },
+    AuthenticatorApp: {
+        type: {
+            isEnabled: Boolean,
+            Secret: String
+        }
+    },
+    Priority: {
+        type: String,
+        enum: ["Passkey", "AuthenticatorApp", "Phone", "Email", "RecoveryCodes"],
+        default: "Email"
+    },
+    isLocked: {
+        type: Boolean,
+        default: false
+    },
+    isSuspended: {
+        type: Boolean,
+        default: false
+    },
+    isDeleted: {
+        type: Boolean,
+        default: false
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    },
+    updatedAt: {
+        type: Date,
+        default: Date.now
+    }
 }, {
     timestamps: true,
     versionKey: "v1"
@@ -103,6 +149,7 @@ export interface IUser extends mongoose.Document {
     Emails: Array<{
         Email: string
         isVerified: boolean
+        isPrimary: boolean
     }>
 
     PhoneNumbers: Array<{

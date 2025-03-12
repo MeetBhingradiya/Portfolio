@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\api\(auth)\email\route.ts
+ *  @FileID          app/api/(auth)/email/route.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 28/01/25 11:59 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 12/03/25 1:52 PM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,15 +39,16 @@ import {
 import { useEmptyFields } from "@Hooks";
 import { Config } from "@Config";
 import { dbConnect } from "@Utils/dbConnect";
+import { log } from "@Utils";
 
 export async function POST(req: NextRequest) {
     try {
         let Request = await req.json();
         
         if (useEmptyFields({
-            Object: Request,
+            targetObject: Request,
             ReqiuredFields: ["email"]
-        }).isMising) {
+        }).isMissing) {
             return NextResponse.json({
                 Status: 0,
                 Message: 'Missing required fields',
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest) {
             const isVerified = await is_email_Verified(Request.email);
             if (isVerified) {
                 // ? Check for Username Creation
-                const isUsernameCreated = await is_username_created(Request.username);
+                const isUsernameCreated = await is_username_created(Request.email);
                 if (!isUsernameCreated) {
                     return NextResponse.json({
                         Status: 1,
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
             status: 200
         });
     } catch (error:any) {
-        console.error(error?.message);
+        log(error?.message);
         return NextResponse.json({
             Status: 0,
             Message: 'Internal server error',

@@ -1,5 +1,5 @@
 /**
- *  @FileID          app\api\(auth)\trace\route.ts
+ *  @FileID          app/api/(auth)/trace/route.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,10 +23,10 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
  */
 
 
@@ -39,7 +39,7 @@ import { changeCase } from '@Utils/CaseChnage';
 import { getClientIp } from "@Lib/request-ip";
 import { ParseIPDataConfig } from '@/Utils/ParseIPDatatoConfig';
 
-const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
+const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 const ALLOWED_ORIGINS = [
     ...Config.WhiteListedDomains.map((domain) => `https://${domain}`),
     Config.Environment === 'development' ? 'http://localhost:3000' : null

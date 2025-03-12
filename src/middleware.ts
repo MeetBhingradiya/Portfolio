@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,18 +23,19 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 08/03/25 4:24 PM IST (Kolkata +5:30 UTC)
  */
 
 
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
+// import { RateLimiter } from '@Utils/RateLimit';
 
-const CSRF_KEY = process.env.CSRF_SESSION_KEY || 'CSRF-SESSION-KEY';
+const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 
 export async function middleware(req: NextRequest) {
     const csrfToken = await new SignJWT({})
@@ -51,17 +52,13 @@ export async function middleware(req: NextRequest) {
         }
     });
 
-    // if (!req.cookies.get(`${Config.Cookie_Prefix}csrf`)) {
-    //     response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
-    //         httpOnly: true,
-    //         secure: true,
-    //         sameSite: 'strict',
-    //         path: '/',
-    //         maxAge: 60 * 20
-    //     });
-    // }
-
     if (req.nextUrl.pathname.startsWith('/api')) {
+        // const rateLimit:any = await RateLimiter(req);
+
+        // if (rateLimit instanceof NextResponse) {
+        //     return rateLimit;
+        // }
+
         const csrfTokenFromHeader = req.headers.get('x-csrf');
         const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
 

@@ -1,5 +1,5 @@
 /**
- *  @FileID          Hooks\useEmptyFields.ts
+ *  @FileID          Hooks/useEmptyFields.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -11,7 +11,7 @@
  *  
  *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
  *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, folks, or modification of this file,
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
  *  prior written consent from the author, modifier or the organization.
  *  
@@ -23,20 +23,20 @@
  *  with GitHub or Microsoft Corporation.
  *  
  *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.10
+ *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
  *  @created 03/03/25 8:10 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
+ *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
 
 interface IuseEmptyFields {
     ReqiuredFields: Array<string>
-    Object: any
+    targetObject: any
 }
 
 interface useEmptyFields_Return {
-    isMising: boolean
+    isMissing: boolean
     MissingFields: Array<string>
     Length: number
 }
@@ -46,37 +46,48 @@ interface useEmptyFields_Return {
  */
 function useEmptyFields({
     ReqiuredFields,
-    Object
+    targetObject: inputObject
 }: IuseEmptyFields): useEmptyFields_Return {
     if (ReqiuredFields === undefined) {
         throw new Error("Required Fields are not provided in useEmptyFields Hook");
     }
 
-    if (Object === undefined || Object === null) {
+    if (inputObject === undefined || inputObject === null) {
         return {
-            isMising: true,
+            isMissing: true,
             MissingFields: ReqiuredFields,
             Length: ReqiuredFields.length
         }
     }
 
-    if (typeof Object === 'string') {
-        Object = JSON.parse(Object);
+    let processedObject = inputObject;
+
+    if (typeof inputObject === 'string') {
+        try {
+            processedObject = JSON.parse(inputObject);
+        } catch (error) {
+            console.error("Failed to parse string as JSON in useEmptyFields:", error);
+            return {
+                isMissing: true,
+                MissingFields: ReqiuredFields,
+                Length: ReqiuredFields.length
+            };
+        }
     }
 
     const Empty_Fields: Array<string> = ReqiuredFields.filter((field: string) => {
-        return !Object[field];
+        return !(field in processedObject) || processedObject[field] === undefined || processedObject[field] === null;
     })
 
     if (Empty_Fields.length > 0) {
         return {
-            isMising: true,
+            isMissing: true,
             MissingFields: Empty_Fields,
             Length: Empty_Fields.length
         }
     } else {
         return {
-            isMising: false,
+            isMissing: false,
             MissingFields: [],
             Length: 0
         }

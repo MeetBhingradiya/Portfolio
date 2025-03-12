@@ -15,7 +15,7 @@ updates:
     target-branch: "v1.0.11"
     schedule:
       interval: "daily"
-    Labels:
+    labels:
       - "🛍️ Scope : Dependencies"
       - "🚀 Type : Update"
       - "📦 Package : PIP"

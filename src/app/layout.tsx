@@ -128,7 +128,7 @@ export default function RootLayout({
                         </Providers>
 
                     <Footer ShowonFirstRender />
-                    <LandingFooter />
+                    {/* <LandingFooter /> */}
                 </ThemeProvider>
             </body>
         </html>

@@ -35,6 +35,24 @@ import type {
     ISuggestion
 } from "@Types/Tools";
 import { v4 as uuidv4 } from 'uuid';
+import React from 'react';
+import {
+    Search,
+    Fingerprint,
+    QrCode2,
+    DataObject,
+    Colorize,
+    Palette,
+    TextFields,
+    Extension,
+    DescriptionOutlined,
+    Security,
+    LinkOutlined,
+    Code,
+    Password,
+    CalendarMonth,
+    Key
+} from '@mui/icons-material';
 
 const BookmarksDB_: Array<IBookmark> = [
     {
@@ -1130,23 +1148,7 @@ export function ResolveIcon(link: IBookmark) {
         ? link.icon
         : `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${link.url}&size=128`;
 
-    const variables = [
-        { Name: "Date", Value: new Date().toLocaleDateString() },
-        { Name: "Day", Value: new Date().toLocaleDateString().split("/")[0] },
-        { Name: "Month", Value: new Date().toLocaleDateString().split("/")[1] },
-        { Name: "Year", Value: new Date().toLocaleDateString().split("/")[2] },
-        { Name: "Time", Value: new Date().toLocaleTimeString() },
-        { Name: "Hour", Value: new Date().toLocaleTimeString().split(":")[0] },
-        { Name: "Minute", Value: new Date().toLocaleTimeString().split(":")[1] },
-        { Name: "Second", Value: new Date().toLocaleTimeString().split(":")[2] },
-    ];
-
-    let resolvedIcon = iconUrl;
-    variables.forEach((variable) => {
-        resolvedIcon = resolvedIcon.replace(`@${variable.Name}`, variable.Value);
-    });
-
-    return resolvedIcon;
+    return iconUrl;
 }
 
 export const BookmarksDB: Array<IBookmark> = BookmarksDB_.map((bookmark) => {

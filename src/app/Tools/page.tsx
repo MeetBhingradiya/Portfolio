@@ -33,8 +33,6 @@
 "use client";
 
 import React from "react";
-import { ISearchEngine, ILocale, ModelType } from "@Types/Tools";
-import type { IBookmark, IState, ISuggestion } from "@Types/Tools";
 import { ToastContainer, toast } from 'react-toastify';
 import { BookmarksDB, ResolveIcon } from "@Data/Tools";
 import Image from "next/image";
@@ -100,6 +98,26 @@ import { Config } from "@Config";
 // import Link from "next/link";
 import { changeCase } from "@Utils/CaseChnage";
 import SettingsModel from "./Settings";
+import { log } from "@Utils";
+import {
+    DefualtBookmark,
+    DefualtToolsState,
+    DefualtToolsSuggestionsState,
+    DefualtToolsModalData,
+    IToolsSettingsTabs,
+    DefualtBookmarkContextMenu,
+    IBookmarkContextMenu,
+    IToolsSuggestionsState,
+    ILinkOpenTypes,
+    DefualtServerBookmarks,
+    DefualtBookmarkRequest
+} from "./Settings/Types"
+import type {
+    IBookmark,
+    IToolsModalData,
+    IToolsState,
+    IToolsSuggestion
+} from "./Settings/Types"
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -165,95 +183,63 @@ const SearchEnginePresets = {
 }
 
 function Tools() {
-    // @ States
     const isClient = useWindowCheck();
-    const [State, setState] = React.useState<IState>({
-        FilterBookmarks: [],
-        Bookmarks: [],
-        Query: "",
-        QueryDisplay: "",
-        Settings: {
-            isFirstRun: true,
-            isNewTab: true,
-            CloudSync: false,
-            CloudSyncRandomize: true,
-            SearchEngine: ISearchEngine.GOOGLE,
-            Locale: ILocale.EN,
-
-            isNewWindow: false,
-            priorityWindowsApp: false,
-            priorityAndroidapp: false,
-        }
-    });
-    const [Index, setIndex] = React.useState<number>(0);
-    const [Suggestions, setSuggestions] = React.useState<Array<ISuggestion>>([]);
-    const [windowWidth, setWindowWidth] = React.useState<number>(isClient ? window.innerWidth : 0);
-    const [contextMenu, setContextMenu] = React.useState<{
-        mouseX: number;
-        mouseY: number;
-        ItemID: string;
-    } | null>(null);
-    const [ModalData, setModalData] = React.useState<{
-        isSettingsOpen: boolean;
-        isOpen: boolean;
-        isEdit: boolean;
-        BookmarkData: IBookmark;
-        type: ModelType;
-    }>({
-        type: ModelType.Settings,
-        isOpen: false,
-        BookmarkData: {
-            id: "",
-            name: "",
-            description: "",
-            url: "",
-            icon: "",
-            keywords: [],
-            androidapp: "",
-            windowsapp: "",
-            isSVGSrc: false,
-            SVGStyles: {
-                fill: "",
-            },
-            size: "128",
-        },
-        isSettingsOpen: false,
-        isEdit: false,
-    });
-    const searchInputRef = React.useRef<HTMLInputElement>(null);
-    const [longPressTimer, setLongPressTimer] = React.useState<NodeJS.Timeout | null>(null);
     const longPressDuration = 500;
 
+    // @ States
+    const searchInputRef = React.useRef<HTMLInputElement>(null);
+    const [State, setState] = React.useState<IToolsState>(DefualtToolsState);
+    const [ModalState, SetModalState] = React.useState<IToolsModalData>(DefualtToolsModalData);
+    const [ContextMenu, setContextMenu] = React.useState<IBookmarkContextMenu>(DefualtBookmarkContextMenu);
+    const [windowWidth, setWindowWidth] = React.useState<number>(isClient ? window.innerWidth : 0);
+    const [longPressTimer, setLongPressTimer] = React.useState<NodeJS.Timeout | null>(null);
+    const [SuggestionsState, setSuggestionsState] = React.useState<IToolsSuggestionsState>(DefualtToolsSuggestionsState);
+
+
     // @ Functions
-    const SwitchModelType = (type: ModelType) => {
-        setModalData((ModalData) => {
-            return {
-                ...ModalData,
-                type: type,
-            }
-        });
+
+    const OpenLink = (url: string, OpenMethod?: ILinkOpenTypes) => {
+        if (!OpenMethod) {
+            OpenMethod = State.Preferences.OpenMethod;
+        }
+
+        if (OpenMethod === ILinkOpenTypes.NEW_TAB) {
+            window.open(url, "_blank");
+        } else if (OpenMethod === ILinkOpenTypes.CURRENT_TAB) {
+            window.open(url, "_self");
+        } else if (OpenMethod === ILinkOpenTypes.NEW_WINDOW) {
+            window.open(url, "_blank", `width=${window.innerWidth},height=${window.innerHeight},resizable=0`);
+        } else if (OpenMethod === ILinkOpenTypes.FULL_SCREEN) {
+            window.open(url, "_blank", `width=${window.screen.width},height=${window.screen.height}`);
+        }
     }
 
     const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>) => {
-        if (ModalData.isOpen) {
+        if (ModalState.isOpen) {
             return;
+        }
+
+        if (e.key === "Escape") {
+            if (searchInputRef.current) {
+                searchInputRef.current.blur();
+            }
         }
 
         if (e.key === "ArrowDown") {
             e.preventDefault();
-            if ((Index + 1) <= (Suggestions.length)) {
-                setIndex((index) => index + 1);
-                setState((State) => {
+            if ((SuggestionsState.Index + 1) <= (SuggestionsState.Suggestions.length)) {
+                setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                     return {
-                        ...State,
-                        QueryDisplay: Suggestions[Index]?.Query || State.Query
+                        ...SuggestionsState,
+                        Index: SuggestionsState.Index + 1,
+                        QueryDisplay: SuggestionsState.Suggestions[SuggestionsState.Index + 1]?.Query ?? State.Query
                     }
                 });
             } else {
-                setIndex(0);
-                setState((State) => {
+                setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                     return {
-                        ...State,
+                        ...SuggestionsState,
+                        Index: 0,
                         QueryDisplay: State.Query
                     }
                 });
@@ -262,20 +248,20 @@ function Tools() {
 
         if (e.key === "ArrowUp") {
             e.preventDefault();
-            if ((Index - 1) >= 0) {
-                setIndex((index) => index - 1);
-                setState((State) => {
+            if ((SuggestionsState.Index - 1) >= 0) {
+                setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                     return {
-                        ...State,
-                        QueryDisplay: Index === 1 ? State.Query : (Suggestions[Index - 2]?.Query || State.Query)
+                        ...SuggestionsState,
+                        Index: SuggestionsState.Index - 1,
+                        QueryDisplay: SuggestionsState.Suggestions[SuggestionsState.Index - 1]?.Query ?? State.Query
                     }
                 });
             } else {
-                setIndex(Suggestions.length);
-                setState((State) => {
+                setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                     return {
-                        ...State,
-                        QueryDisplay: Suggestions[Suggestions.length - 1]?.Query || State.Query
+                        ...SuggestionsState,
+                        Index: SuggestionsState.Suggestions.length,
+                        QueryDisplay: SuggestionsState.Suggestions[SuggestionsState.Suggestions.length - 1]?.Query ?? State.Query
                     }
                 });
             }
@@ -294,92 +280,102 @@ function Tools() {
         }
 
         if (e.key === "Delete") {
-            // ? Reset Query
-            setState({
-                ...State,
-                FilterBookmarks: State.Bookmarks,
-                Query: "",
-                QueryDisplay: "",
-            });
-            setIndex(0);
-        }
-
-        const isAlphaNumericOrSymbol = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]$/.test(e.key);
-        if (isAlphaNumericOrSymbol && searchInputRef.current && !ModalData.isOpen) {
-            searchInputRef.current.focus();
-        }
-
-        if (e.key === "Escape") {
-            if (searchInputRef.current) {
-                searchInputRef.current.blur();
+            // ? Reset Query, Bookmarks & Suggestions
+            if (State.Query !== "") {
+                setState({
+                    ...State,
+                    FilterBookmarks: State.Bookmarks,
+                    Query: ""
+                });
+                setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
+                    return {
+                        ...SuggestionsState,
+                        QueryDisplay: "",
+                        Index: 0
+                    }
+                });
             }
         }
 
-        if (e.key === " " && searchInputRef.current && !ModalData.isOpen) {
-            searchInputRef.current.focus();
+        if (e.key === " " && !ModalState.isOpen) {
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+            }
         }
 
         if (e.key === "Enter") {
             if (State.FilterBookmarks.length > 0 && State.Query.length > 0) {
-                window.open(State.FilterBookmarks[0].url, State.Settings.isNewTab ? "_blank" : "_self");
-                setState({
-                    ...State,
-                    FilterBookmarks: State.Bookmarks,
-                    Query: "",
-                    QueryDisplay: "",
+                handleBookmarkClick(State.FilterBookmarks[0]);
+                setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
+                    return {
+                        ...SuggestionsState,
+                        Index: 0,
+                        QueryDisplay: State.Query
+                    }
                 });
-                setIndex(0);
+                setState((State) => {
+                    return {
+                        ...State,
+                        FilterBookmarks: State.Bookmarks,
+                        Query: ""
+                    }
+                });
                 return;
             } else {
-                if (Index > 0 && Suggestions.length > 0) {
-                    window.open(SearchEngineLinkBuilder(Suggestions[Index - 1].Query), State.Settings.isNewTab ? "_blank" : "_self");
+                if (SuggestionsState.Index > 0 && SuggestionsState.Suggestions.length > 0) {
+                    OpenLink(SearchEngineLinkBuilder(SuggestionsState.Suggestions[SuggestionsState.Index - 1].Query));
                 } else if (State.FilterBookmarks.length > 0) {
-                    window.open(State.FilterBookmarks[0].url, State.Settings.isNewTab ? "_blank" : "_self");
+                    handleBookmarkClick(State.FilterBookmarks[0]);
                 } else {
-                    window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
+                    OpenLink(SearchEngineLinkBuilder(State.Query));
                 }
-    
+
                 setState({
                     ...State,
                     FilterBookmarks: State.Bookmarks,
                     Query: "",
-                    QueryDisplay: "",
                 });
-                setIndex(0);
+                setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
+                    return {
+                        ...SuggestionsState,
+                        Index: 0,
+                        QueryDisplay: ""
+                    }
+                });
                 return;
+            }
+        }
+
+        const isAlphaNumericOrSymbol = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]$/.test(e.key);
+            if (isAlphaNumericOrSymbol && !ModalState.isOpen) {
+            if (searchInputRef.current) {
+                searchInputRef.current.focus();
+                if (State.Query === "") {
+                    setState((State) => {
+                        return {
+                            ...State,
+                            Query: e.key
+                        }
+                    });
+                    setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
+                        return {
+                            ...SuggestionsState,
+                            QueryDisplay: e.key
+                        }
+                    });
+
+                    setTimeout(() => {
+                        if (searchInputRef.current) {
+                            const event = new Event('input', { bubbles: true });
+                            Object.defineProperty(event, 'target', { value: { value: e.key } });
+                            searchInputRef.current.dispatchEvent(event);
+                        }
+                    }, 0);
+                }
             }
         }
     };
 
-    React.useEffect(() => {
-        if (!ModalData.isOpen) {
-            window.addEventListener("keydown", handleKeyPress);
-
-            return () => {
-                window.removeEventListener("keydown", handleKeyPress);
-            };
-        }
-    }, [Index, ModalData.isOpen, State.Query, State.FilterBookmarks, Suggestions]);
-
-    function onGridChange(
-        sourceId: any,
-        sourceIndex: any,
-        targetIndex: any,
-        targetId: any
-    ) {
-        const nextState = swap(State.FilterBookmarks, sourceIndex, targetIndex);
-        if (State.Query !== "") {
-            toast.error("Cannot move bookmarks while searching.");
-            return;
-        }
-        setState({
-            ...State,
-            FilterBookmarks: nextState,
-            Bookmarks: nextState,
-        });
-    }
-
-    const abortControllerRef = React.useRef<AbortController | null>(null);
     const onQueryChange = async (e: any) => {
         const query = e.target.value.toLowerCase();
         const OriginalQuery = e.target.value;
@@ -424,26 +420,73 @@ function Tools() {
             if (aUrlMatch && !bUrlMatch) return -1;
             if (!aUrlMatch && bUrlMatch) return 1;
 
-            // ? Fallback to alphabetical sorting (optional)
+            // ? Fallback to alphabetical sorting
             return a.name.localeCompare(b.name);
         });
 
         setState({
             ...State,
             Query: OriginalQuery,
-            QueryDisplay: OriginalQuery,
             FilterBookmarks: filteredBookmarks
         });
 
         if (query.length > 0) {
-            FetchSuggestions();
+            // ? Make Delay for Debounce
+            setTimeout(() => {
+                FetchSuggestions();
+            }, 1000);
         } else {
-            setSuggestions([]);
+            setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
+                return {
+                    ...SuggestionsState,
+                    Suggestions: []
+                }
+            });
         }
     };
 
+    function onGridChange(
+        sourceId: any,
+        sourceIndex: any,
+        targetIndex: any,
+        targetId: any
+    ) {
+        const nextState = swap(State.FilterBookmarks, sourceIndex, targetIndex);
+        if (State.Query !== "") {
+            // ? No Future Implementations
+            toast.error("Cannot move bookmarks while searching.");
+
+
+            // ? Future Implementations
+            // let LocalBookmarks = State.Bookmarks;
+
+            // ? Add the Bookmarks to the Local Bookmarks
+            // LocalBookmarks.push(...nextState);
+
+            // ? Remove the same bookmarks
+            // LocalBookmarks = LocalBookmarks.filter((bookmark) => !nextState.some((b) => b.id === bookmark.id));
+
+            // ? Set the Local Bookmarks to the State
+            // setState({
+            //     ...State,
+            //     Bookmarks: nextState,
+            //     FilterBookmarks: LocalBookmarks,
+            // });
+
+            return;
+        }
+
+        setState({
+            ...State,
+            Bookmarks: nextState,
+            FilterBookmarks: nextState,
+        });
+        return;
+    }
+
+    const abortControllerRef = React.useRef<AbortController | null>(null);
     const FetchSuggestions = async () => {
-        let ProcessedSuggestions: any[] = [];
+        let ProcessedSuggestions: Array<IToolsSuggestion> = [];
 
         if (State.FilterBookmarks.length === 0) {
             if (abortControllerRef.current) {
@@ -456,8 +499,8 @@ function Tools() {
             let API = "https://api.suggestions.victr.me/";
             let _API = new URL(API);
             _API.searchParams.append("q", State.Query);
-            _API.searchParams.append("l", State.Settings.Locale);
-            _API.searchParams.append("with", State.Settings.SearchEngine);
+            _API.searchParams.append("l", State.Preferences.Locale);
+            _API.searchParams.append("with", State.Preferences.SearchEngine);
 
             try {
                 const response = (await Axios.post(
@@ -489,12 +532,18 @@ function Tools() {
                 });
             } catch (error: any) {
                 if (error.name === "CanceledError") {
-                    console.warn("Request Aborted");
+                    log("Request Aborted");
                 }
             }
         }
 
-        setSuggestions(ProcessedSuggestions);
+        setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
+            return {
+                ...SuggestionsState,
+                Suggestions: ProcessedSuggestions,
+                QueryDisplay: State.Query
+            }
+        });
     };
 
     function handleContextMenu(e: React.MouseEvent<HTMLDivElement>, ID: string) {
@@ -523,38 +572,24 @@ function Tools() {
     }
 
     function CloseModel() {
-        setModalData({
-            ...ModalData,
-            isSettingsOpen: false,
+        SetModalState({
+            ...ModalState,
             isOpen: false,
-            isEdit: false,
-            BookmarkData: {
-                id: "",
-                name: "",
-                url: "",
-                description: "",
-                icon: "",
-                keywords: [],
-                androidapp: "",
-                windowsapp: "",
-                isSVGSrc: false,
-                SVGStyles: {
-                    fill: "",
-                },
-                size: "128",
-            },
-            type: ModelType.Settings,
+            type: IToolsSettingsTabs.Preferences,
+            bookmark: DefualtBookmark,
+            adminBookmark: DefualtServerBookmarks,
+            bookmarkRequest: DefualtBookmarkRequest,
         });
     }
 
     function OpenEditModel(ID: string) {
         const bookmark = State.Bookmarks.find((bookmark) => bookmark.id === ID);
         if (bookmark) {
-            setModalData({
-                ...ModalData,
-                type: ModelType.Edit,
+            SetModalState({
+                ...ModalState,
+                type: IToolsSettingsTabs.Edit,
                 isOpen: true,
-                BookmarkData: bookmark,
+                bookmark: bookmark,
             });
         }
     }
@@ -587,10 +622,8 @@ function Tools() {
                 return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
             });
 
-            // ? Randomize Links
-            if (State.Settings.CloudSyncRandomize) {
-                ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
-            }
+            ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
+
 
             setState({
                 ...State,
@@ -603,13 +636,13 @@ function Tools() {
     }
 
     async function ConfirmEdit() {
-        const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.id === ModalData.BookmarkData.id);
+        const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.id === ModalState.bookmark.id);
         if (bookmarkIndex === -1) {
             return;
         }
 
         const newBookmarks = [...State.Bookmarks];
-        newBookmarks[bookmarkIndex] = ModalData.BookmarkData;
+        newBookmarks[bookmarkIndex] = ModalState.bookmark;
 
         await setState({
             ...State,
@@ -623,8 +656,8 @@ function Tools() {
     async function ConfirmNewBookmark() {
         await setState({
             ...State,
-            Bookmarks: [...State.Bookmarks, ModalData.BookmarkData],
-            FilterBookmarks: [...State.Bookmarks, ModalData.BookmarkData],
+            Bookmarks: [...State.Bookmarks, ModalState.bookmark],
+            FilterBookmarks: [...State.Bookmarks, ModalState.bookmark],
         });
 
         await CloseModel();
@@ -635,21 +668,83 @@ function Tools() {
     };
 
     function SearchEngineLinkBuilder(query: string) {
-        let SearchEngine = SearchEnginePresets[State.Settings.SearchEngine as ISearchEngine];
+        type SearchEngineKey = keyof typeof SearchEnginePresets;
+
+        const engineKey = (State.Preferences.SearchEngine as string) as SearchEngineKey;
+        let SearchEngine = SearchEnginePresets[engineKey] ?? SearchEnginePresets.google;
+
         return SearchEngine.replace("@Query", query);
     }
 
     const isMobileDevice = () => {
+        if (typeof navigator === 'undefined') return false;
         return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
     };
 
+    const canOpenWindowsApp = (windowsAppLink: string | undefined) => {
+        if (!windowsAppLink) return false;
+        return windowsAppLink.trim() !== "" &&
+            navigator.userAgent.indexOf("Windows") !== -1 &&
+            State.Preferences.priorityWindowsApp;
+    };
+
+    const canOpenAndroidApp = (androidAppLink: string | undefined) => {
+        if (!androidAppLink) return false;
+        return androidAppLink.trim() !== "" &&
+            /Android/i.test(navigator.userAgent) &&
+            State.Preferences.priorityAndroidapp;
+    };
+
+    const openAppLink = (appLink: string | undefined, isWindowsApp: boolean = false) => {
+        if (!appLink || appLink.trim() === "") return;
+
+        try {
+            window.location.href = appLink;
+        } catch (error) {
+            log("Failed to open app:", error);
+            const bookmark = State.Bookmarks.find((b) =>
+                isWindowsApp ? b.windowsapp === appLink : b.androidapp === appLink
+            );
+            if (bookmark) {
+                window.location.href = bookmark.url;
+            }
+        }
+    };
+
+    const handleBookmarkClick = (bookmark: IBookmark) => {
+        if (canOpenWindowsApp(bookmark.windowsapp)) {
+            openAppLink(bookmark.windowsapp, true);
+            return;
+        }
+
+        if (canOpenAndroidApp(bookmark.androidapp)) {
+            openAppLink(bookmark.androidapp);
+            return;
+        }
+
+        OpenLink(bookmark.url);
+    };
+
     // @Updates
+    React.useEffect(() => {
+        window.addEventListener("keydown", handleKeyPress);
+
+        return () => {
+            window.removeEventListener("keydown", handleKeyPress);
+        };
+    }, [
+        SuggestionsState.Index,
+        ModalState.isOpen,
+        State.Query,
+        State.FilterBookmarks,
+        SuggestionsState.Suggestions
+    ]);
 
     // ? Initial Run & Window Resize, Focus on Search Input Listeners
     React.useEffect(() => {
 
         // ? Only Run at First Load
-        if (State.Settings.isFirstRun) {
+        if (State.isFirstRun) {
             handleResize();
 
             // ? Focus on Search Input
@@ -664,18 +759,18 @@ function Tools() {
             if (data === null) {
                 setState({
                     ...State,
-                    Settings: {
-                        ...State.Settings,
-                        isFirstRun: false
+                    Preferences: {
+                        ...State.Preferences,
                     },
+                    isFirstRun: false,
                     FilterBookmarks: State.Bookmarks,
                 });
             } else {
                 let StorageData = JSON.parse(data as string);
                 setState({
                     ...State,
-                    Settings: {
-                        ...StorageData.Settings,
+                    Preferences: {
+                        ...StorageData.Preferences,
                         isFirstRun: false
                     },
                     Bookmarks: StorageData.Booksmarks.map((bookmark: any) => {
@@ -701,54 +796,35 @@ function Tools() {
         };
     }, []);
 
-    // React.useEffect(() => {
-    // if (State.Settings.isFirstRun) {
-    //     window.addEventListener("keydown", handleKeyPress);
-    // }
-
-    // return () => {
-    //     window.removeEventListener("keydown", handleKeyPress);
-    // }
-    // }, [Index])
-
-    function FocusQueryInput() {
-        if (searchInputRef.current) {
-            searchInputRef.current.focus();
-        }
-    }
-
     // ? Cloud Sync After the First Run
     React.useEffect(() => {
-        if (!State.Settings.isFirstRun) {
-            if (State.Settings.CloudSync) {
+        if (!State.isFirstRun) {
+            if (State.Preferences.CloudSync) {
                 getServerBookmarks();
             }
         }
-    }, [State.Settings.isFirstRun]);
+    }, [State.isFirstRun]);
 
-    // ? State Sync with Storage
     React.useEffect(() => {
         localStorage.setItem(StorageKey, JSON.stringify({
             Booksmarks: State.Bookmarks,
-            Settings: {
-                isNewTab: State.Settings.isNewTab,
-                CloudSyncRandomize: State.Settings.CloudSyncRandomize,
-                SearchEngine: State.Settings.SearchEngine,
-                Locale: State.Settings.Locale,
-                CloudSync: State.Settings.CloudSync,
-                priorityAndroidapp: State.Settings.priorityAndroidapp,
-                priorityWindowsApp: State.Settings.priorityWindowsApp,
+            Preferences: {
+                OpenMethod: State.Preferences.OpenMethod,
+                SearchEngine: State.Preferences.SearchEngine,
+                CloudSync: State.Preferences.CloudSync,
+                Locale: State.Preferences.Locale,
+                priorityAndroidapp: State.Preferences.priorityAndroidapp,
+                priorityWindowsApp: State.Preferences.priorityWindowsApp,
             },
         }));
     }, [
         State.Bookmarks,
-        State.Settings.CloudSync,
-        State.Settings.isNewTab,
-        State.Settings.CloudSyncRandomize,
-        State.Settings.SearchEngine,
-        State.Settings.Locale,
-        State.Settings.priorityAndroidapp,
-        State.Settings.priorityWindowsApp,
+        State.Preferences.CloudSync,
+        State.Preferences.OpenMethod,
+        State.Preferences.SearchEngine,
+        State.Preferences.Locale,
+        State.Preferences.priorityAndroidapp,
+        State.Preferences.priorityWindowsApp,
     ]);
 
     const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 1);
@@ -759,11 +835,7 @@ function Tools() {
     // @Component
     return (
         <div
-            key={"Tool"}
             className="Tool"
-        // onKeyDown={(e) => {
-        //     handleKeyPress(e, true);
-        // }}
         >
             <ToastContainer
                 autoClose={3000}
@@ -788,10 +860,10 @@ function Tools() {
                 {
                     State.FilterBookmarks.length === 0 && State.Bookmarks.length <= 0 && (
                         <div className="Suggestions" onClick={() => {
-                            setModalData({
-                                ...ModalData,
+                            SetModalState({
+                                ...ModalState,
                                 isOpen: true,
-                                type: ModelType.Marketplace,
+                                type: IToolsSettingsTabs.Marketplace,
                             });
                         }}>
                             <div className={`Suggestion`}>
@@ -809,12 +881,12 @@ function Tools() {
                     (State.FilterBookmarks.length === 0 && State.Bookmarks.length >= 1) && (
                         <div className="Suggestions">
                             {
-                                Suggestions.map((item, index) => (
+                                SuggestionsState.Suggestions.map((item: IToolsSuggestion, index: number) => (
                                     <div
                                         key={index}
-                                        className={`Suggestion ${Index === (index + 1) ? "SuggestionActive" : ""}`}
+                                        className={`Suggestion ${SuggestionsState.Index === (index + 1) ? "SuggestionActive" : ""}`}
                                         onClick={() => {
-                                            window.open(SearchEngineLinkBuilder(item.Query), State.Settings.isNewTab ? "_blank" : "_self");
+                                            OpenLink(SearchEngineLinkBuilder(item.Query));
                                         }}
                                     >
                                         {
@@ -843,22 +915,8 @@ function Tools() {
                                 ))
                             }
 
-                            {/* ? Defualt Query as Suggestion */}
-                            {/* <div className={`Suggestion ${(Index + 1) === 0 ?? "SuggestionActive"}`}
-                                onClick={() => {
-                                    window.open(SearchEngineLinkBuilder(State.Query), State.Settings.isNewTab ? "_blank" : "_self");
-                                }}
-                            >
-                                <p className="Thumbnail">
-                                    <Search />
-                                </p>
-                                <div className="QueryWarp">
-                                    <h2 className="Title">{changeCase.upperFirst(State.Query)}</h2>
-                                </div>
-                            </div> */}
-
                             {
-                                Suggestions.length === 0 && (
+                                SuggestionsState.Suggestions.length === 0 && (
                                     <div
                                         className="Suggestion"
                                     >
@@ -885,41 +943,45 @@ function Tools() {
                             <Home />
                         </motion.div>
                     </Tooltip>
-                    {/* <motion.div
+                    <motion.div
                         className="button"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
                         onClick={(e) => {
-                            setModalData({
-                                ...ModalData,
+                            SetModalState({
+                                ...ModalState,
                                 isOpen: true,
-                                type: ModelType.Create,
+                                type: IToolsSettingsTabs.Create,
                             });
                         }}
                     >
                         <Add />
-                    </motion.div> */}
-                    <motion.input
-                        id="search"
-                        type="text"
-                        placeholder="🔍 Search"
-                        tabIndex={1}
-                        value={State.QueryDisplay}
-                        onChange={onQueryChange}
-                        className="search"
-                        ref={searchInputRef}
-                        autoComplete="off"
-                        onHoverStart={FocusQueryInput}
-                        onHoverEnd={() => {
-                            if (searchInputRef.current !== null) {
-                                searchInputRef.current.blur();
-                            }
-                        }}
+                    </motion.div>
+                    <motion.div
+                        className="search-container"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                    />
+                    >
+                        <motion.input
+                            id="search"
+                            type="text"
+                            placeholder="🔍 Search"
+                            tabIndex={1}
+                            value={SuggestionsState.QueryDisplay}
+                            onChange={onQueryChange}
+                            className="search"
+                            ref={searchInputRef}
+                            autoComplete="off"
+                            onFocus={() => {
+                                window.removeEventListener("keydown", handleKeyPress);
+                            }}
+                            onBlur={() => {
+                                window.addEventListener("keydown", handleKeyPress);
+                            }}
+                        />
+                    </motion.div>
                     <AnimatePresence>
                         {
                             State.Query !== "" && (
@@ -934,9 +996,12 @@ function Tools() {
                                             ...State,
                                             FilterBookmarks: State.Bookmarks,
                                             Query: "",
-                                            QueryDisplay: "",
                                         })
-                                        setIndex(0);
+                                        setSuggestionsState({
+                                            ...SuggestionsState,
+                                            QueryDisplay: "",
+                                            Index: 0,
+                                        })
                                     }}
                                 >
                                     <Close />
@@ -950,30 +1015,30 @@ function Tools() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
                         onClick={(e) => {
-                            setModalData({
-                                ...ModalData,
+                            SetModalState({
+                                ...ModalState,
                                 isOpen: true,
-                                type: ModelType.Settings,
+                                type: IToolsSettingsTabs.Preferences,
                             });
                         }}
                     >
                         <Settings />
                     </motion.div>
-                    {/* <motion.div
+                    <motion.div
                         className="button"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
                         onClick={(e) => {
-                            setModalData({
-                                ...ModalData,
+                            SetModalState({
+                                ...ModalState,
                                 isOpen: true,
-                                type: ModelType.Marketplace,
+                                type: IToolsSettingsTabs.Marketplace,
                             });
                         }}
                     >
                         <LocalMall />
-                    </motion.div> */}
+                    </motion.div>
                 </div>
             </div>
 
@@ -994,7 +1059,7 @@ function Tools() {
                             <div
                                 className="bookmark"
                                 onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
-                                    if (isMobileDevice()) return; // Skip for mobile devices
+                                    if (isMobileDevice()) return;
 
                                     e.currentTarget.dataset.dragStartX = e.clientX.toString();
                                     e.currentTarget.dataset.dragStartY = e.clientY.toString();
@@ -1006,7 +1071,7 @@ function Tools() {
                                     }
                                 }}
                                 onMouseUp={(e: React.MouseEvent<HTMLDivElement>) => {
-                                    if (isMobileDevice()) return; // Skip for mobile devices
+                                    if (isMobileDevice()) return;
 
                                     if (e.button === 2) {
                                         return;
@@ -1019,14 +1084,14 @@ function Tools() {
                                     );
 
                                     if (dragDistance < 5) {
-                                        window.open(item.url, State.Settings.isNewTab ? "_blank" : "_self");
+                                        handleBookmarkClick(item);
                                     }
 
                                     e.currentTarget.style.cursor = "pointer";
                                 }}
                                 onContextMenu={(e: React.MouseEvent<HTMLDivElement>) => {
                                     if (isMobileDevice()) {
-                                        e.preventDefault(); // Prevent default context menu on mobile
+                                        e.preventDefault();
                                         return;
                                     }
 
@@ -1035,7 +1100,6 @@ function Tools() {
                                 onTouchStart={(e) => {
                                     if (!isMobileDevice()) return;
 
-                                    // Start long press timer
                                     const timer = setTimeout(() => {
                                         const touch = e.touches[0];
                                         handleContextMenu(
@@ -1053,21 +1117,18 @@ function Tools() {
                                 onTouchEnd={() => {
                                     if (!isMobileDevice()) return;
 
-                                    // Clear long press timer
                                     if (longPressTimer) {
                                         clearTimeout(longPressTimer);
                                         setLongPressTimer(null);
                                     }
 
-                                    // Handle normal tap (if not a long press)
-                                    if (!contextMenu) {
-                                        window.open(item.url, State.Settings.isNewTab ? "_blank" : "_self");
+                                    if (!ContextMenu) {
+                                        handleBookmarkClick(item);
                                     }
                                 }}
                                 onTouchMove={() => {
                                     if (!isMobileDevice()) return;
 
-                                    // Clear timer if user moves finger
                                     if (longPressTimer) {
                                         clearTimeout(longPressTimer);
                                         setLongPressTimer(null);
@@ -1077,7 +1138,7 @@ function Tools() {
                                 {item.icon && (
                                     <div className="Icon">
                                         {
-                                            item.isSVGSrc && (
+                                            item.isSVG && (
                                                 <SvgComponent
                                                     _class="SVGComponent"
                                                     svgString={item.icon}
@@ -1092,7 +1153,7 @@ function Tools() {
                                             )
                                         }
                                         {
-                                            !item.isSVGSrc && (<Image
+                                            !item.isSVG && (<Image
                                                 src={ResolveIcon(item)}
                                                 alt={item.name}
                                                 width={64}
@@ -1134,137 +1195,134 @@ function Tools() {
 
             {/* Context Menu */}
             <StyledMenu
-                open={contextMenu !== null}
+                open={ContextMenu !== null}
                 onClose={() => setContextMenu(null)}
                 anchorReference="anchorPosition"
                 anchorPosition={
-                    contextMenu !== null
-                        ? { top: contextMenu.mouseY, left: contextMenu.mouseX }
+                    ContextMenu !== null
+                        ? { top: ContextMenu.mouseY, left: ContextMenu.mouseX }
                         : undefined
                 }
             >
                 {
-                    State.Settings.priorityWindowsApp && State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp && (
-                        <MenuItem
-                            onClick={() => {
-                                window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.windowsapp ?? "", "_self", `width=${window.innerWidth},height=${window.innerHeight}`);
-                                setContextMenu(null);
-                            }}
-                        >
-                            <ListItemIcon>
-                                <Image
-                                    src="https://img.icons8.com/fluency/128/windows-10.png"
-                                    alt="Windows"
-                                    placeholder="blur"
-                                    blurDataURL="https://img.icons8.com/fluency/40/windows-10.png"
-                                    width={24}
-                                    height={24}
-                                />
-                            </ListItemIcon>
-                            <ListItemText>
-                                Open in Windows
-                            </ListItemText>
-                        </MenuItem>
-                    )
+                    ContextMenu && (() => {
+                        const bookmark = State.Bookmarks.find((b) => b.id === ContextMenu?.ItemID);
+                        return (
+                            <div>
+                                {bookmark?.windowsapp && bookmark.windowsapp.trim() !== "" && navigator.userAgent.indexOf("Windows") !== -1 && (
+                                    <MenuItem
+                                        onClick={() => {
+                                            openAppLink(bookmark.windowsapp || "", true);
+                                            setContextMenu(null);
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <Image
+                                                src="https://img.icons8.com/fluency/128/windows-10.png"
+                                                alt="Windows"
+                                                width={24}
+                                                height={24}
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText>
+                                            Open in Windows
+                                        </ListItemText>
+                                    </MenuItem>
+                                )}
+
+                                {bookmark?.androidapp && bookmark.androidapp.trim() !== "" && /Android/i.test(navigator.userAgent) && (
+                                    <MenuItem
+                                        onClick={() => {
+                                            openAppLink(bookmark.androidapp || "");
+                                            setContextMenu(null);
+                                        }}
+                                    >
+                                        <ListItemIcon>
+                                            <Image
+                                                src="https://img.icons8.com/fluency/128/android-os.png"
+                                                alt="Android"
+                                                width={24}
+                                                height={24}
+                                            />
+                                        </ListItemIcon>
+                                        <ListItemText>
+                                            Open in Android
+                                        </ListItemText>
+                                    </MenuItem>
+                                )}
+
+                                <MenuItem
+                                    onClick={() => {
+                                        OpenLink(bookmark?.url ?? "");
+                                        setContextMenu(null);
+                                    }}
+                                >
+                                    <ListItemIcon>
+                                        <OpenInNew />
+                                    </ListItemIcon>
+                                    <ListItemText>
+                                        Open in New Tab
+                                    </ListItemText>
+                                </MenuItem>
+
+                                <MenuItem
+                                    onClick={() => {
+                                        OpenLink(bookmark?.url ?? "");
+                                        setContextMenu(null);
+                                    }}
+                                >
+                                    <ListItemIcon>
+                                        <Image
+                                            src="https://img.icons8.com/fluency/128/new-window.png"
+                                            alt="New Window"
+                                            width={24}
+                                            height={24}
+                                        />
+                                    </ListItemIcon>
+                                    <ListItemText>
+                                        Open in New Window
+                                    </ListItemText>
+                                </MenuItem>
+
+                                <MenuItem
+                                    onClick={() => {
+                                        setContextMenu(null);
+                                        OpenEditModel(ContextMenu?.ItemID ?? "");
+                                    }}
+                                >
+                                    <ListItemIcon>
+                                        <AutoFixHigh />
+                                    </ListItemIcon>
+                                    <ListItemText>
+                                        Edit
+                                    </ListItemText>
+                                </MenuItem>
+
+                                <MenuItem
+                                    onClick={() => {
+                                        setContextMenu(null);
+                                        DeleteBookmark(ContextMenu?.ItemID ?? "");
+                                    }}
+                                    style={{ color: "red" }}
+                                >
+                                    <ListItemIcon color='error'>
+                                        <Delete style={{ color: "red" }} />
+                                    </ListItemIcon>
+                                    <ListItemText>
+                                        Delete
+                                    </ListItemText>
+                                </MenuItem>
+                            </div>
+                        );
+                    })()
                 }
-
-                {
-                    State.Settings.priorityAndroidapp && State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp && (
-                        <MenuItem
-                            onClick={() => {
-                                window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.androidapp ?? "", "_self", `width=${window.innerWidth},height=${window.innerHeight}`);
-                                setContextMenu(null);
-                            }}
-                        >
-                            <ListItemIcon>
-                                <Image
-                                    src="https://img.icons8.com/fluency/128/android-os.png"
-                                    alt="Windows"
-                                    placeholder="blur"
-                                    blurDataURL="https://img.icons8.com/fluency/40/android-os.png"
-                                    width={24}
-                                    height={24}
-                                />
-                            </ListItemIcon>
-                            <ListItemText>
-                                Open in Android
-                            </ListItemText>
-                        </MenuItem>
-                    )
-                }
-
-                <MenuItem
-                    onClick={() => {
-                        // ? Open Link in New Tab
-                        window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.url ?? "", "_blank");
-                        setContextMenu(null);
-                    }}
-                >
-                    <ListItemIcon>
-                        <OpenInNew />
-                    </ListItemIcon>
-                    <ListItemText>
-                        Open in New Tab
-                    </ListItemText>
-                </MenuItem>
-
-                <MenuItem
-                    onClick={() => {
-                        window.open(State.Bookmarks.find((bookmark) => bookmark.id === contextMenu?.ItemID)?.url ?? "", "_blank", `width=${window.innerWidth},height=${window.innerHeight}`);
-                        setContextMenu(null);
-                    }}
-                >
-                    <ListItemIcon>
-                        <Image
-                            src="https://img.icons8.com/fluency/128/new-window.png"
-                            alt="Windows"
-                            width={24}
-                            height={24}
-                        />
-                    </ListItemIcon>
-                    <ListItemText>
-                        Open in New Window
-                    </ListItemText>
-                </MenuItem>
-
-                <MenuItem
-                    onClick={() => {
-                        setContextMenu(null);
-                        OpenEditModel(contextMenu?.ItemID ?? "");
-                    }}
-                >
-                    <ListItemIcon>
-                        <AutoFixHigh />
-                    </ListItemIcon>
-                    <ListItemText>
-                        Edit
-                    </ListItemText>
-                </MenuItem>
-
-                <MenuItem
-                    onClick={() => {
-                        setContextMenu(null);
-                        DeleteBookmark(contextMenu?.ItemID ?? "");
-                    }}
-                    style={{ color: "red" }}
-                >
-                    <ListItemIcon color='error'>
-                        <Delete style={{ color: "red" }} />
-                    </ListItemIcon>
-                    <ListItemText>
-                        Delete
-                    </ListItemText>
-                </MenuItem>
             </StyledMenu>
 
             <SettingsModel
                 State={State}
                 Dispatch={setState}
-                isOpen={ModalData.isOpen}
-                onClose={CloseModel}
-                type={ModalData.type}
-                SwitchModelType={SwitchModelType}
-                EditBookmarkData={ModalData.BookmarkData}
+                ModalState={ModalState}
+                SetModalState={SetModalState}
             />
         </div>
     );

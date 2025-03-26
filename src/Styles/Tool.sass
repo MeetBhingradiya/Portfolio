@@ -155,26 +155,16 @@
             display: flex
             justify-content: center
             align-items: center
-            width: 100%
+            width: 100vw
             gap: 0.5rem
 
             @media (max-width: 480px)
                 flex-wrap: wrap
                 gap: 0.3rem
 
-            .search-container
-                flex: 1
-                max-width: 600px
-
-                @media (max-width: 480px)
-                    width: 100%
-                    order: -1
-                    margin-bottom: 0.5rem
-
             .search
-                width: 100%
+                width: 15%
                 padding: 10px 15px
-                height: 40px
                 border: none
                 border-radius: 10px
                 background: var(--bookmark)
@@ -185,6 +175,11 @@
                 font-size: 1rem
                 outline: none
                 transition: all 0.3s ease
+
+                @media (max-width: 480px)
+                    width: 100%
+                    order: -1
+                    margin-bottom: 0.5rem
 
                 &:focus
                     outline: 2px solid var(--accent-color)

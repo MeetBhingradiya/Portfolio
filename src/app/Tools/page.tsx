@@ -34,7 +34,7 @@
 
 import React from "react";
 import { ToastContainer, toast } from 'react-toastify';
-import { BookmarksDB, ResolveIcon } from "@Data/Tools";
+import { ResolveIcon } from "@Data/Tools";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import { v4 as uuidv4 } from 'uuid';
@@ -109,7 +109,6 @@ import {
     IBookmarkContextMenu,
     IToolsSuggestionsState,
     ILinkOpenTypes,
-    DefualtServerBookmarks,
     DefualtBookmarkRequest
 } from "./Settings/Types"
 import type {
@@ -347,7 +346,7 @@ function Tools() {
         }
 
         const isAlphaNumericOrSymbol = /^[a-zA-Z0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?`~]$/.test(e.key);
-            if (isAlphaNumericOrSymbol && !ModalState.isOpen) {
+        if (isAlphaNumericOrSymbol && !ModalState.isOpen) {
             if (searchInputRef.current) {
                 searchInputRef.current.focus();
                 if (State.Query === "") {
@@ -386,42 +385,42 @@ function Tools() {
 
         const filteredBookmarks = State.Bookmarks.filter((bookmark) => {
             return (
-                bookmark.name.toLowerCase().includes(query) ||
-                (bookmark.keywords ?? []).some((keyword) => keyword.toLowerCase().includes(query)) ||
-                isExactMatch(bookmark.name, bookmark.keywords) ||
-                bookmark.url.toLowerCase().includes(query)
+                bookmark.Name.toLowerCase().includes(query) ||
+                (bookmark.Keywords ?? []).some((keyword) => keyword.toLowerCase().includes(query)) ||
+                isExactMatch(bookmark.Name, bookmark.Keywords) ||
+                bookmark.URL.toLowerCase().includes(query)
             );
         }).sort((a, b) => {
             // ? Exact match comparison
-            const aIsExactMatch = isExactMatch(a.name, a.keywords);
-            const bIsExactMatch = isExactMatch(b.name, b.keywords);
+            const aIsExactMatch = isExactMatch(a.Name, a.Keywords);
+            const bIsExactMatch = isExactMatch(b.Name, b.Keywords);
 
             if (aIsExactMatch && !bIsExactMatch) return -1;
             if (!aIsExactMatch && bIsExactMatch) return 1;
 
             // ? Starts with query comparison
-            const aStartsWithQuery = a.name.toLowerCase().startsWith(query);
-            const bStartsWithQuery = b.name.toLowerCase().startsWith(query);
+            const aStartsWithQuery = a.Name.toLowerCase().startsWith(query);
+            const bStartsWithQuery = b.Name.toLowerCase().startsWith(query);
 
             if (aStartsWithQuery && !bStartsWithQuery) return -1;
             if (!aStartsWithQuery && bStartsWithQuery) return 1;
 
             // ? Keyword match comparison
-            const aKeywordMatch = a.keywords?.some((keyword) => keyword.toLowerCase().includes(query));
-            const bKeywordMatch = b.keywords?.some((keyword) => keyword.toLowerCase().includes(query));
+            const aKeywordMatch = a.Keywords?.some((keyword) => keyword.toLowerCase().includes(query));
+            const bKeywordMatch = b.Keywords?.some((keyword) => keyword.toLowerCase().includes(query));
 
             if (aKeywordMatch && !bKeywordMatch) return -1;
             if (!aKeywordMatch && bKeywordMatch) return 1;
 
             // ? URL match comparison
-            const aUrlMatch = a.url.toLowerCase().includes(query);
-            const bUrlMatch = b.url.toLowerCase().includes(query);
+            const aUrlMatch = a.URL.toLowerCase().includes(query);
+            const bUrlMatch = b.URL.toLowerCase().includes(query);
 
             if (aUrlMatch && !bUrlMatch) return -1;
             if (!aUrlMatch && bUrlMatch) return 1;
 
             // ? Fallback to alphabetical sorting
-            return a.name.localeCompare(b.name);
+            return a.Name.localeCompare(b.Name);
         });
 
         setState({
@@ -556,7 +555,7 @@ function Tools() {
     }
 
     function DeleteBookmark(ID: string) {
-        const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.id === ID);
+        const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.BookmarkID === ID);
         if (bookmarkIndex === -1) {
             return;
         }
@@ -577,13 +576,13 @@ function Tools() {
             isOpen: false,
             type: IToolsSettingsTabs.Preferences,
             bookmark: DefualtBookmark,
-            adminBookmark: DefualtServerBookmarks,
+            adminBookmark: DefualtBookmark,
             bookmarkRequest: DefualtBookmarkRequest,
         });
     }
 
     function OpenEditModel(ID: string) {
-        const bookmark = State.Bookmarks.find((bookmark) => bookmark.id === ID);
+        const bookmark = State.Bookmarks.find((bookmark) => bookmark.BookmarkID === ID);
         if (bookmark) {
             SetModalState({
                 ...ModalState,
@@ -619,7 +618,7 @@ function Tools() {
             })
 
             let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
-                return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.url === localBookmark.url);
+                return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.URL === localBookmark.URL);
             });
 
             ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
@@ -636,7 +635,7 @@ function Tools() {
     }
 
     async function ConfirmEdit() {
-        const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.id === ModalState.bookmark.id);
+        const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.BookmarkID === ModalState.bookmark.BookmarkID);
         if (bookmarkIndex === -1) {
             return;
         }
@@ -703,26 +702,26 @@ function Tools() {
         } catch (error) {
             log("Failed to open app:", error);
             const bookmark = State.Bookmarks.find((b) =>
-                isWindowsApp ? b.windowsapp === appLink : b.androidapp === appLink
+                isWindowsApp ? b.Windows === appLink : b.Android === appLink
             );
             if (bookmark) {
-                window.location.href = bookmark.url;
+                window.location.href = bookmark.URL;
             }
         }
     };
 
     const handleBookmarkClick = (bookmark: IBookmark) => {
-        if (canOpenWindowsApp(bookmark.windowsapp)) {
-            openAppLink(bookmark.windowsapp, true);
+        if (canOpenWindowsApp(bookmark.Windows)) {
+            openAppLink(bookmark.Windows, true);
             return;
         }
 
-        if (canOpenAndroidApp(bookmark.androidapp)) {
-            openAppLink(bookmark.androidapp);
+        if (canOpenAndroidApp(bookmark.Android)) {
+            openAppLink(bookmark.Android);
             return;
         }
 
-        OpenLink(bookmark.url);
+        OpenLink(bookmark.URL);
     };
 
     // @Updates
@@ -837,20 +836,6 @@ function Tools() {
         <div
             className="Tool"
         >
-            <ToastContainer
-                autoClose={3000}
-                position="bottom-right"
-                theme="dark"
-                pauseOnHover={false}
-                pauseOnFocusLoss={false}
-                closeOnClick
-                draggable
-                draggableDirection="x"
-                closeButton={false}
-                limit={3}
-                hideProgressBar={false}
-                stacked
-            />
 
             {/* Search Warp */}
             <div
@@ -958,30 +943,42 @@ function Tools() {
                     >
                         <Add />
                     </motion.div>
-                    <motion.div
-                        className="search-container"
+                    <motion.input
+                        id="search"
+                        type="text"
+                        placeholder="🔍 Search"
+                        tabIndex={1}
+                        value={SuggestionsState.QueryDisplay}
+                        onChange={onQueryChange}
+                        className="search"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5, duration: 0.7, ease: "easeInOut" }}
-                    >
-                        <motion.input
-                            id="search"
-                            type="text"
-                            placeholder="🔍 Search"
-                            tabIndex={1}
-                            value={SuggestionsState.QueryDisplay}
-                            onChange={onQueryChange}
-                            className="search"
-                            ref={searchInputRef}
-                            autoComplete="off"
-                            onFocus={() => {
-                                window.removeEventListener("keydown", handleKeyPress);
-                            }}
-                            onBlur={() => {
-                                window.addEventListener("keydown", handleKeyPress);
-                            }}
-                        />
-                    </motion.div>
+                        ref={searchInputRef}
+                        autoComplete="off"
+                        onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                            window.removeEventListener("keydown", handleKeyPress);
+                            if (searchInputRef.current) {
+                                searchInputRef.current.style.width = "55%";
+                            }
+                        }}
+                        onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
+                            window.addEventListener("keydown", handleKeyPress);
+                            if (searchInputRef.current) {
+                                searchInputRef.current.style.width = "15%";
+                            }
+                        }}
+                        onMouseEnter={() => {
+                            if (searchInputRef.current) {
+                                searchInputRef.current.focus();
+                            }
+                        }}
+                        onMouseLeave={() => {
+                            if (searchInputRef.current) {
+                                searchInputRef.current.blur();
+                            }
+                        }}
+                    />
                     <AnimatePresence>
                         {
                             State.Query !== "" && (
@@ -1053,7 +1050,7 @@ function Tools() {
                     }}
                 >
                     {State.FilterBookmarks.map((item, index) => (
-                        <GridItem key={item.id} style={{
+                        <GridItem key={item.BookmarkID} style={{
                             zIndex: 0,
                         }}>
                             <div
@@ -1095,7 +1092,7 @@ function Tools() {
                                         return;
                                     }
 
-                                    handleContextMenu(e, item?.id ?? "");
+                                    handleContextMenu(e, item?.BookmarkID ?? "");
                                 }}
                                 onTouchStart={(e) => {
                                     if (!isMobileDevice()) return;
@@ -1108,7 +1105,7 @@ function Tools() {
                                                 clientY: touch.clientY,
                                                 preventDefault: () => { }
                                             } as React.MouseEvent<HTMLDivElement>,
-                                            item?.id ?? ""
+                                            item?.BookmarkID ?? ""
                                         );
                                     }, longPressDuration);
 
@@ -1135,13 +1132,13 @@ function Tools() {
                                     }
                                 }}
                             >
-                                {item.icon && (
+                                {item.Icon && (
                                     <div className="Icon">
                                         {
                                             item.isSVG && (
                                                 <SvgComponent
                                                     _class="SVGComponent"
-                                                    svgString={item.icon}
+                                                    svgString={item.Icon}
                                                     style={{
                                                         borderRadius: "15px",
                                                         userSelect: "none",
@@ -1155,7 +1152,7 @@ function Tools() {
                                         {
                                             !item.isSVG && (<Image
                                                 src={ResolveIcon(item)}
-                                                alt={item.name}
+                                                alt={item.Name}
                                                 width={64}
                                                 height={64}
                                                 priority
@@ -1169,7 +1166,7 @@ function Tools() {
                                         }
                                     </div>
                                 )}
-                                <h2 className="bookmarkTitle">{item.name}</h2>
+                                <h2 className="bookmarkTitle">{item.Name}</h2>
                                 {
                                     item.isServer && (
                                         <div className="ServerIcon">
@@ -1206,13 +1203,13 @@ function Tools() {
             >
                 {
                     ContextMenu && (() => {
-                        const bookmark = State.Bookmarks.find((b) => b.id === ContextMenu?.ItemID);
+                        const bookmark = State.Bookmarks.find((b) => b.BookmarkID === ContextMenu?.ItemID);
                         return (
                             <div>
-                                {bookmark?.windowsapp && bookmark.windowsapp.trim() !== "" && navigator.userAgent.indexOf("Windows") !== -1 && (
+                                {bookmark?.Windows && bookmark.Windows.trim() !== "" && navigator.userAgent.indexOf("Windows") !== -1 && (
                                     <MenuItem
                                         onClick={() => {
-                                            openAppLink(bookmark.windowsapp || "", true);
+                                            openAppLink(bookmark.Windows || "", true);
                                             setContextMenu(null);
                                         }}
                                     >
@@ -1230,10 +1227,10 @@ function Tools() {
                                     </MenuItem>
                                 )}
 
-                                {bookmark?.androidapp && bookmark.androidapp.trim() !== "" && /Android/i.test(navigator.userAgent) && (
+                                {bookmark?.Android && bookmark.Android.trim() !== "" && /Android/i.test(navigator.userAgent) && (
                                     <MenuItem
                                         onClick={() => {
-                                            openAppLink(bookmark.androidapp || "");
+                                            openAppLink(bookmark.Android || "");
                                             setContextMenu(null);
                                         }}
                                     >
@@ -1253,7 +1250,7 @@ function Tools() {
 
                                 <MenuItem
                                     onClick={() => {
-                                        OpenLink(bookmark?.url ?? "");
+                                        OpenLink(bookmark?.URL ?? "");
                                         setContextMenu(null);
                                     }}
                                 >
@@ -1267,7 +1264,7 @@ function Tools() {
 
                                 <MenuItem
                                     onClick={() => {
-                                        OpenLink(bookmark?.url ?? "");
+                                        OpenLink(bookmark?.URL ?? "");
                                         setContextMenu(null);
                                     }}
                                 >

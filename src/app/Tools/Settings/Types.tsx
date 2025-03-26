@@ -2,31 +2,14 @@
 import { v4 } from 'uuid';
 import { Config } from '@Config';
 import {
-    Add,
-    Close,
-    Delete,
     Edit,
-    Save,
-    OpenInNew,
-    Settings as SettingsIcon,
-    Cloud,
-    Restore,
     Book,
     Bookmark,
-    Home,
-    Circle,
-    ScatterPlot,
-    Search,
     LocalMall,
-    Info,
     SettingsOutlined,
     LocalMallOutlined,
-    InfoOutlined,
     BookOutlined,
     BookmarkOutlined,
-    DragIndicator,
-    Label,
-    AddCircle,
     RequestPage,
     AdminPanelSettings,
     BookmarkAdd,
@@ -39,46 +22,76 @@ import {
     AdminPanelSettingsOutlined
 } from '@mui/icons-material';
 
-// ? Bookmark Data
-interface IBookmark {
-    id?: string
-    name: string
-    url: string
-    description?: string
-    keywords?: string[]
-    icon?: string
-    isSVG?: boolean
-    SVGStyles?: {
-        fill?: string
-    };
-    androidapp?: string
-    windowsapp?: string
-    size?: "128" | "64" | "32" | "16"
-    isServer?: boolean
-}
-
-const DefualtBookmark: IBookmark = {
-    id: v4(),
-    name: "",
-    url: "",
-    description: "",
-    keywords: [],
-    icon: "",
-    isSVG: false,
-    SVGStyles: {
-        fill: "#000000"
-    },
-    androidapp: "",
-    windowsapp: "",
-    size: "128",
-    isServer: false,
-}
-
 enum ILinkOpenTypes {
     NEW_TAB = "newTab",
     CURRENT_TAB = "currentTab",
     NEW_WINDOW = "newWindow",
     FULL_SCREEN = "fullScreen",
+}
+
+interface IBookmark {
+    BookmarkID?: string
+    Name: string
+    URL: string
+    Android?: string
+    Windows?: string
+    Description?: string
+    Keywords?: string[]
+    Icon?: string
+    isSVG?: boolean
+    SVGStyles?: {
+        fill?: string
+    }
+
+    ClientOptions?: {
+        // ? Priority of Link Open on Bookmark Click
+        OpenLinkPlateformPriority?: "desktop" | "mobile" | "web"
+
+        // ? Method of Link Open on Bookmark Click if not set then default settings will be used that set in preferences
+        OpenLinkMethod?: ILinkOpenTypes
+
+        // ? Visibility of Search Engine on Bookmark Click if not set then default settings will be used that set in preferences
+        isSearchVisible?: boolean
+    }
+
+    // ? Published or Not
+    isPublished?: boolean
+    isDeleted?: boolean
+    isServer?: boolean
+}
+
+const DefualtBookmark: IBookmark = {
+    // ? Identifier
+    BookmarkID: v4(),
+    Name: "",
+
+    // ? URLs
+    URL: "",
+    Android: "",
+    Windows: "",
+
+    // ? Search Engine
+    Description: "",
+    Keywords: [],
+
+    // ? Icons Related
+    Icon: "",
+    isSVG: false,
+    SVGStyles: {
+        fill: "#000000"
+    },
+
+    // ? Client Options
+    ClientOptions: {
+        OpenLinkPlateformPriority: "web",
+        OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
+        isSearchVisible: true,
+    },
+
+    // ? Admin Options
+    isPublished: false,
+    isDeleted: false,
+    isServer: false,
 }
 
 enum ISearchEngines {
@@ -155,6 +168,12 @@ enum ILocale {
 
 interface IPreferences {
     OpenMethod: ILinkOpenTypes
+    PlateformPriority: "desktop" | "mobile" | "web"
+    /**
+     * Cloud API Now Automatically Randomize Bookmarks Order that means this setting automatically set to true & it also true even you set it to false
+     * @deprecated - Will be removed in v1.2.0
+     */
+    CloudSyncRandomize?: boolean
     SearchEngine: ISearchEngines
     CloudSync: boolean
     Locale: ILocale
@@ -165,6 +184,8 @@ interface IPreferences {
 
 const DefualtPreferences: IPreferences = {
     OpenMethod: ILinkOpenTypes.NEW_TAB,
+    PlateformPriority: "web",
+    CloudSyncRandomize: false,
     SearchEngine: ISearchEngines.GOOGLE,
     CloudSync: false,
     Locale: ILocale.EN,
@@ -228,128 +249,18 @@ enum IToolsSettingsTabs {
     Marketplace = "marketplace",
     Preferences = "preferences",
 
-    RequestBookmark = "requestBookmark",
+    Contribute = "contribute",
     BeAdmin = "beadmin",
 
     // ? Admin
     AdminCreate = "admincreate",
     AdminEdit = "adminedit",
-    Requests = "requests",
-    Bookmarks = "bookmarks",
-}
-
-const ToolsSettingsTabsMenu = {
-    [IToolsSettingsTabs.Create]: {
-        Active: <Book />,
-        Inactive: <BookOutlined />,
-        Title: "Add New Bookmark",
-        Tab: "Create Bookmark",
-        Class: "flex flex-row md:flex-col gap-1 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.Edit]: {
-        Active: <Edit />,
-        Inactive: <EditOutlined />,
-        Title: "Edit Bookmark",
-        Tab: "Edit Bookmark",
-        Class: "flex flex-row md:flex-col gap-1 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.Marketplace]: {
-        Active: <LocalMall />,
-        Inactive: <LocalMallOutlined />,
-        Title: "Marketplace",
-        Tab: "Marketplace",
-        Class: "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.Preferences]: {
-        Active: <Settings />,
-        Inactive: <SettingsOutlined />,
-        Title: "Preferences",
-        Tab: "Preferences",
-        Class: "flex flex-col gap-3 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.RequestBookmark]: {
-        Active: <RequestPage />,
-        Inactive: <RequestPageOutlined />,
-        Title: "Request Bookmark",
-        Tab: "Request Bookmark",
-        Class: "flex flex-row md:flex-col gap-1 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.BeAdmin]: {
-        Active: <VerifiedUser />,
-        Inactive: <VerifiedUserOutlined />,
-        Title: "Be Admin",
-        Tab: "Be Admin",
-        Class: "flex flex-row md:flex-col gap-1 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.AdminCreate]: {
-        Active: <BookmarkAdd />,
-        Inactive: <BookmarkAddOutlined />,
-        Title: "Add New Bookmark - Admin",
-        Tab: "Create Bookmark - Admin",
-        Class: "flex flex-row md:flex-col gap-1 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.AdminEdit]: {
-        Active: <AdminPanelSettings />,
-        Inactive: <AdminPanelSettingsOutlined />,
-        Title: "Edit Bookmark - Admin",
-        Tab: "Edit Bookmark - Admin",
-        Class: "flex flex-row md:flex-col gap-1 px-2 py-16 HideScrollbars"
-    },
-    [IToolsSettingsTabs.Requests]: {
-        Active: <RequestPage />,
-        Inactive: <RequestPageOutlined />,
-        Title: "Requests",
-        Tab: "Requests",
-        Class: ""
-    },
-    [IToolsSettingsTabs.Bookmarks]: {
-        Active: <Bookmark />,
-        Inactive: <BookmarkOutlined />,
-        Title: "Bookmarks",
-        Tab: "Bookmarks",
-        Class: ""
-    }
-}
-
-interface IServerBookmarks {
-    BookmarkID: string
-    name: string
-    url: string
-    windowsapp?: string
-    androidapp?: string
-    icon?: string
-    isSVGSrc?: boolean
-    SVGStyles?: {
-        fill?: string
-    }
-    description?: string
-    keywords?: Array<string>
-    size?: "128" | "64" | "32" | "16"
-    isPublished: boolean
-    isDeleted: boolean
-}
-
-const DefualtServerBookmarks: IServerBookmarks = {
-    BookmarkID: "",
-    name: "",
-    url: "",
-    isPublished: false,
-    isDeleted: false,
-    windowsapp: "",
-    androidapp: "",
-    icon: "",
-    isSVGSrc: false,
-    SVGStyles: {
-        fill: "#000000"
-    },
-    description: "",
-    keywords: [],
-    size: "128",
+    Cloud = "cloud",
 }
 
 interface IBookmarkRequest {
     id: string
-    bookmark: IServerBookmarks
+    bookmark: IBookmark
     createdOn: Date
     approvedOn?: Date
     rejectedOn?: Date
@@ -359,7 +270,7 @@ interface IBookmarkRequest {
 
 const DefualtBookmarkRequest: IBookmarkRequest = {
     id: "",
-    bookmark: DefualtServerBookmarks,
+    bookmark: DefualtBookmark,
     createdOn: new Date(),
     status: "pending",
 }
@@ -370,6 +281,9 @@ interface IToolsModalData {
     isMinimized: boolean
     type: IToolsSettingsTabs
 
+    newKeyword: string
+    MarketPlaceQuery: string
+
     bookmark: IBookmark
     adminBookmark: IBookmark
     bookmarkRequest: IBookmarkRequest
@@ -378,10 +292,10 @@ interface IToolsModalData {
     isAdmin: boolean
     isMarketPlaceFetched: boolean
     isRequestsFetched: boolean
-    
+
     AdminSignature: string
     RemoteBookmarks: Array<IBookmark>
-    Requests: Array<IBookmarkRequest>
+    hasMore: boolean
 }
 
 const DefualtToolsModalData: IToolsModalData = {
@@ -390,6 +304,8 @@ const DefualtToolsModalData: IToolsModalData = {
     isMinimized: false,
     type: IToolsSettingsTabs.Preferences,
 
+    newKeyword: "",
+    MarketPlaceQuery: "",
     bookmark: DefualtBookmark,
     adminBookmark: DefualtBookmark,
     bookmarkRequest: DefualtBookmarkRequest,
@@ -401,7 +317,7 @@ const DefualtToolsModalData: IToolsModalData = {
 
     AdminSignature: "",
     RemoteBookmarks: [],
-    Requests: [],
+    hasMore: true
 }
 
 const SearchEnginePresets = {
@@ -435,8 +351,6 @@ export {
     DefualtToolsModalData,
     SearchEnginePresets,
     ToolsAPIS,
-    ToolsSettingsTabsMenu,
-    DefualtServerBookmarks,
     DefualtBookmarkRequest,
     DefualtBookmarkContextMenu
 }
@@ -447,7 +361,6 @@ export type {
     IToolsState,
     IToolsSuggestionsState,
     IToolsModalData,
-    IServerBookmarks,
     IBookmarkRequest,
     IBookmarkContextMenu
 }

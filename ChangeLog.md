@@ -35,6 +35,7 @@
 ### 🔄 Changed
 - Tools > Better Keyboard Shortcuts Added for Faster Access
 - Tools > Fixed Re Render Issue on Every State Change
+- Tools > Whole New UI Experience with Better Performance of MarketPlace, Preferences & Contribution
 
 ### 🗑️ Removed
 

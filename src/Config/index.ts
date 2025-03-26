@@ -61,6 +61,7 @@ interface IConfig {
     }
     StatusCodes: typeof Protocols
     Env: {
+        ADMIN_SIGNATURE?: string
         TRACE_SIGNATURE?: string
         NODE_ENV?: "development" | "production" | "test"
         CONTACT_EMAIL?: string
@@ -121,6 +122,7 @@ const Config: IConfig = {
     },
     StatusCodes: Protocols,
     Env: {
+        ADMIN_SIGNATURE: process.env.ADMIN_SIGNATURE,
         TRACE_SIGNATURE: process.env.TRACE_SIGNATURE,
         NODE_ENV: process.env.NODE_ENV as "development" | "production" | "test",
         CONTACT_EMAIL: process.env.CONTACT_EMAIL,

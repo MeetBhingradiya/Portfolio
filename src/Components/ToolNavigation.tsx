@@ -35,7 +35,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import "@Styles/Tools-Navigation.sass";
-import { Tools, Categories } from '@Data/ToolsData.js';
+import { Tools, Categories } from '@Data/ToolsData';
 import { Menu, Close, ChevronLeft, Search, Home, Star } from '@mui/icons-material';
 import ToolContextMenu from './ToolContextMenu';
 import Image from 'next/image';
@@ -62,7 +62,7 @@ import {
 interface Tool {
     Query: string;
     Title: string;
-    Icon: React.ReactNode;
+    Icon: React.JSX.Element;
     Description?: string;
     Category: 'data' | 'color' | 'text' | 'utility' | 'security';
 }
@@ -347,7 +347,7 @@ function ToolNavigation() {
                             </div>
                             <h3 className="category-title">Favorites</h3>
                         </div>
-                        {Tools.filter((tool: Tool) => favorites.includes(tool.Query)).map((tool: Tool) => (
+                        {Tools.filter((tool: any) => favorites.includes(tool.Query)).map((tool: any) => (
                             <div
                                 key={`fav-${tool.Query}`}
                                 className={`tool-item ${currentTool === tool.Query ? "active" : ""}`}
@@ -373,7 +373,7 @@ function ToolNavigation() {
                     {filteredTools.length > 0 ? (
                         searchQuery ? (
                             // When searching, show flat list
-                            filteredTools.map((tool: Tool) => (
+                            filteredTools.map((tool: any) => (
                                 <div
                                     className={`tool-item ${currentTool === tool.Query ? "active" : ""}`}
                                     key={tool.Query}
@@ -397,9 +397,9 @@ function ToolNavigation() {
                                 <div key={category} className="category-group">
                                     <div className="category-header">
                                         <div className="category-icon">
-                                            {Categories[category].icon}
+                                            {Categories[category as "data" | "utility" | "text" | "security" | "color"].icon}
                                         </div>
-                                        <h3 className="category-title">{Categories[category].label}</h3>
+                                        <h3 className="category-title">{Categories[category  as "data" | "utility" | "text" | "security" | "color"].label}</h3>
                                     </div>
                                     {tools.map((tool: Tool) => (
                                         <div

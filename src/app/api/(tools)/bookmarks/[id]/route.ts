@@ -52,8 +52,7 @@ async function verifyAdminToken(token: string): Promise<boolean> {
 
 // Get a specific bookmark by ID
 export async function GET(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+    req: NextRequest
 ) {
     // Admin validation
     const searchParams = req.nextUrl.searchParams;
@@ -82,8 +81,7 @@ export async function GET(
 
 // Publish a bookmark
 export async function PATCH(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+    req: NextRequest
 ) {
     // Admin validation
     const searchParams = req.nextUrl.searchParams;
@@ -100,8 +98,8 @@ export async function PATCH(
         });
     }
 
-    const bookmarkId = params.id;
-    const result = await Controller_POST_PublishBookmark(bookmarkId);
+    const bookmarkId = searchParams.get('id') ?? ""
+    const result = await Controller_POST_PublishBookmark(bookmarkId as string);
 
     return NextResponse.json({
         Status: result.Status === 200 ? 1 : 0,
@@ -114,8 +112,7 @@ export async function PATCH(
 
 // Delete a bookmark
 export async function DELETE(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+    req: NextRequest
 ) {
     // Admin validation
     const searchParams = req.nextUrl.searchParams;
@@ -132,8 +129,8 @@ export async function DELETE(
         });
     }
 
-    const bookmarkId = params.id;
-    const result = await Controller_DELETE_Bookmark(bookmarkId);
+    const bookmarkId = searchParams.get('id') ?? ""
+    const result = await Controller_DELETE_Bookmark(bookmarkId as string);
 
     return NextResponse.json({
         Status: result.Status === 200 ? 1 : 0,

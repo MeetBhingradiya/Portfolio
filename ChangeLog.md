@@ -24,6 +24,9 @@
 - `react-bits` Automatic Updates from the Official Repository Using Custom Build Script
 - Select Defualt Search Engine & Its Local Settings on Tools Page
 - Keywords Editor on Tools Page
+
+## By CodeRabbit
+- Confirm user intent on reset : A full reset of bookmark fields might discard user data unexpectedly. Consider adding a confirmation dialog or “undo” feature to improve user trust and reduce accidental data loss.
 ---
 
 # v1.1.0 - 1/04/2025

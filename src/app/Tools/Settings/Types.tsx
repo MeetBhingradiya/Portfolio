@@ -45,7 +45,7 @@ interface IBookmark {
 
     ClientOptions?: {
         // ? Priority of Link Open on Bookmark Click
-        OpenLinkPlateformPriority?: "desktop" | "mobile" | "web"
+        OpenLinkPlatformPriority?: "desktop" | "mobile" | "web"
 
         // ? Method of Link Open on Bookmark Click if not set then default settings will be used that set in preferences
         OpenLinkMethod?: ILinkOpenTypes
@@ -83,7 +83,7 @@ const DefualtBookmark: IBookmark = {
 
     // ? Client Options
     ClientOptions: {
-        OpenLinkPlateformPriority: "web",
+        OpenLinkPlatformPriority: "web",
         OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
         isSearchVisible: true,
     },

@@ -50,6 +50,21 @@ async function verifyAdminToken(token: string): Promise<boolean> {
     }
 }
 
+async function verifyAdminToken_CodeRabbit(token: string): Promise<boolean> {
+    try {
+        if (!token) return false;
+        const secret = new TextEncoder().encode(Config.Env.ADMIN_SIGNATURE);
+        const { payload } = await jose.jwtVerify(token, secret);
+        
+        // Check if the token contains a valid signature
+        // Example check using a custom field or standard claim
+        return payload.isAdmin === true;
+    } catch (error) {
+        console.error("Admin token verification error:", error);
+        return false;
+    }
+}
+
 // Get a specific bookmark by ID
 export async function GET(
     req: NextRequest
@@ -80,35 +95,30 @@ export async function GET(
 }
 
 // Publish a bookmark
-export async function PATCH(
-    req: NextRequest
-) {
+// export async function PATCH(req: NextRequest) {
     // Admin validation
-    const searchParams = req.nextUrl.searchParams;
-    const adminToken = searchParams.get('adminSignature');
-    const isAdmin = await verifyAdminToken(adminToken || '');
-
-    if (!isAdmin) {
-        return NextResponse.json({
-            Status: 0,
-            Message: "Unauthorized",
-            StatusCode: 401
-        }, {
-            status: 401
-        });
-    }
-
-    const bookmarkId = searchParams.get('id') ?? ""
-    const result = await Controller_POST_PublishBookmark(bookmarkId as string);
-
-    return NextResponse.json({
-        Status: result.Status === 200 ? 1 : 0,
-        Message: result.Message,
-        StatusCode: result.Status
-    }, {
-        status: result.Status
-    });
-}
+    // const searchParams = req.nextUrl.searchParams;
+    // const adminToken = searchParams.get('adminSignature');
+    // const isAdmin = await verifyAdminToken(adminToken || '');
+    // if (!isAdmin) {
+    //     return NextResponse.json({
+    //         Status: 0,
+    //         Message: "Unauthorized",
+    //         StatusCode: 401
+    //     }, {
+    //         status: 401
+    //     });
+    // }
+    // const bookmarkId = params.id || "";
+    // const result = await Controller_POST_PublishBookmark(bookmarkId as string);
+    // return NextResponse.json({
+    //     Status: result.Status === 200 ? 1 : 0,
+    //     Message: result.Message,
+    //     StatusCode: result.Status
+    // }, {
+    //     status: result.Status
+    // });
+// }
 
 // Delete a bookmark
 export async function DELETE(

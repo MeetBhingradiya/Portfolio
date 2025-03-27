@@ -98,9 +98,9 @@ function Sidebar({ ModalState, SetModalState }: SidebarProps) {
             {
                 ModalState.type === IToolsSettingsTabs.AdminEdit && (
                     <div
-                        key={IToolsSettingsTabs.Edit}
+                        key={IToolsSettingsTabs.AdminEdit}
                         className="flex flex-row gap-2 leading-6 cursor-pointer"
-                        onClick={() => SwitchTab(IToolsSettingsTabs.Edit)}
+                        onClick={() => SwitchTab(IToolsSettingsTabs.AdminEdit)}
                         style={{
                             color: ModalState.type === IToolsSettingsTabs.AdminEdit ? "var(--font-color)" : "var(--description-font-color)"
                         }}

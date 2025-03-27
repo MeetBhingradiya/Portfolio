@@ -351,14 +351,13 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                                     {bookmark.Icon && bookmark.isSVG ? (
                                         <div
                                             className="w-6 h-6"
-                                            dangerouslySetInnerHTML={{
-                                                __html: bookmark.Icon
-                                            }}
                                             style={{
                                                 color: bookmark.SVGStyles?.fill || '#000000',
                                                 fill: bookmark.SVGStyles?.fill || '#000000'
                                             }}
-                                        />
+                                        >
+                                            {bookmark.Icon}
+                                        </div>
                                     ) : bookmark.Icon ? (
                                         <img
                                             src={bookmark.Icon}

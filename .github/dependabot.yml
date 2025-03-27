@@ -2,7 +2,7 @@ version: 2
 updates:
   - package-ecosystem: "npm"
     directory: "/"
-    target-branch: "v1.1.11"
+    target-branch: "v1.1.0"
     labels:
       - "🛍️ Scope : Dependencies"
       - "🚀 Type : Update"
@@ -12,7 +12,7 @@ updates:
 
   - package-ecosystem: "pip"
     directory: "/"
-    target-branch: "v1.1.11"
+    target-branch: "v1.1.0"
     schedule:
       interval: "daily"
     labels:

@@ -888,20 +888,20 @@ function BookmarkEditor({
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "web"
+                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "web"
                                                 ? "border-primary bg-primary-50 dark:bg-primary-900/10"
                                                 : "border-gray-200 dark:border-gray-700"
                                                 }`}
-                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlateformPriority", "web")}
+                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlatformPriority", "web")}
                                         >
                                             <div className="flex items-center justify-center">
-                                                <Language className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "web"
+                                                <Language className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "web"
                                                     ? "text-primary"
                                                     : "text-gray-400"
                                                     }`} />
                                             </div>
                                             <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "web"
+                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "web"
                                                     ? "text-primary"
                                                     : ""
                                                     }`}>Web</p>
@@ -910,20 +910,20 @@ function BookmarkEditor({
                                         </div>
 
                                         <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "mobile"
+                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "mobile"
                                                 ? "border-primary bg-primary-50 dark:bg-primary-900/10"
                                                 : "border-gray-200 dark:border-gray-700"
                                                 }`}
-                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlateformPriority", "mobile")}
+                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlatformPriority", "mobile")}
                                         >
                                             <div className="flex items-center justify-center">
-                                                <Android className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "mobile"
+                                                <Android className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "mobile"
                                                     ? "text-primary"
                                                     : "text-gray-400"
                                                     }`} />
                                             </div>
                                             <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "mobile"
+                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "mobile"
                                                     ? "text-primary"
                                                     : ""
                                                     }`}>Mobile</p>
@@ -932,20 +932,20 @@ function BookmarkEditor({
                                         </div>
 
                                         <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "desktop"
+                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "desktop"
                                                 ? "border-primary bg-primary-50 dark:bg-primary-900/10"
                                                 : "border-gray-200 dark:border-gray-700"
                                                 }`}
-                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlateformPriority", "desktop")}
+                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlatformPriority", "desktop")}
                                         >
                                             <div className="flex items-center justify-center">
-                                                <Window className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "desktop"
+                                                <Window className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "desktop"
                                                     ? "text-primary"
                                                     : "text-gray-400"
                                                     }`} />
                                             </div>
                                             <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlateformPriority === "desktop"
+                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "desktop"
                                                     ? "text-primary"
                                                     : ""
                                                     }`}>Desktop</p>

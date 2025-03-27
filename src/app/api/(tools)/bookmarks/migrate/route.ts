@@ -85,15 +85,15 @@ export async function POST(req: NextRequest) {
                         { 
                             $set: migratedBookmark,
                             $unset: {
-                                name: undefined, 
-                                url: undefined, 
-                                isSVGSrc: undefined, 
-                                description: undefined, 
-                                size: undefined, 
-                                windowsapp: undefined, 
-                                androidapp: undefined,
-                                keywords: undefined,
-                                icon: undefined,
+                                name: 1, 
+                                url: 1, 
+                                isSVGSrc: 1, 
+                                description: 1, 
+                                size: 1, 
+                                windowsapp: 1, 
+                                androidapp: 1,
+                                keywords: 1,
+                                icon: 1,
                             }
                         }
                     );

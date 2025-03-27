@@ -75,7 +75,7 @@ const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
     ClientOptions: {
         type: Object,
         default: {
-            OpenLinkPlateformPriority: "web",
+            OpenLinkPlatformPriority: "web",
             OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
             isSearchVisible: true
         }
@@ -111,7 +111,7 @@ export interface IBookmark extends mongoose.Document {
         fill: string
     }
     ClientOptions: {
-        OpenLinkPlateformPriority: "desktop" | "mobile" | "web"
+        OpenLinkPlatformPriority: "desktop" | "mobile" | "web"
         OpenLinkMethod: ILinkOpenTypes
         isSearchVisible: boolean
     }

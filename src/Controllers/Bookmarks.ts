@@ -58,7 +58,7 @@ function migrateBookmarkFormat(oldBookmark: any):IBookmark {
             fill: oldBookmark.SVGStyles?.fill || '#000000'
         },
         ClientOptions: {
-            OpenLinkPlateformPriority: "web",
+            OpenLinkPlatformPriority: "web",
             OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
             isSearchVisible: true
         },
@@ -166,7 +166,7 @@ async function Controller_GET_SyncBookmarks() {
             Bookmark.isSVG = data.isSVG ?? false;
             Bookmark.SVGStyles.fill = data.SVGStyles?.fill ?? "#000000";
             Bookmark.Keywords = data.Keywords ?? [];
-            Bookmark.ClientOptions.OpenLinkPlateformPriority = data.ClientOptions?.OpenLinkPlateformPriority ?? "web";
+            Bookmark.ClientOptions.OpenLinkPlatformPriority = data.ClientOptions?.OpenLinkPlatformPriority ?? "web";
             Bookmark.ClientOptions.OpenLinkMethod = data.ClientOptions?.OpenLinkMethod ?? ILinkOpenTypes.NEW_TAB;
             Bookmark.ClientOptions.isSearchVisible = data.ClientOptions?.isSearchVisible ?? true;
             Bookmark.isPublished = true;

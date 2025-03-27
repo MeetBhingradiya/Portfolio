@@ -212,7 +212,7 @@ interface SettingsProps {
 interface SettingsState {
     MarketPlace: {
         Remote_Bookmarks: IBookmark[];
-        Serch_Bookmarks_Query: string;
+        Search_Bookmarks_Query: string;
         isFetched: boolean;
     };
     New_Bookmark: IBookmark;

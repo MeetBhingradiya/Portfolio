@@ -159,7 +159,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                         },
                                         isSVG: false,
                                         ClientOptions: {
-                                            OpenLinkPlateformPriority: "web",
+                                            OpenLinkPlatformPriority: "web",
                                             OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
                                             isSearchVisible: true
                                         },
@@ -201,7 +201,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                     },
                                     isSVG: false,
                                     ClientOptions: {
-                                        OpenLinkPlateformPriority: "web",
+                                        OpenLinkPlatformPriority: "web",
                                         OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
                                         isSearchVisible: true
                                     },

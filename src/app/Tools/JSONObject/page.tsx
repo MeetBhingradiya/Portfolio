@@ -283,7 +283,7 @@ export default function JSONObject() {
                         <MonacoEditor
                             height="100%"
                             language="json"
-                            value={state.json}
+                        value={state.json}
                             onChange={handleJSONChange}
                             theme={effectiveMode === "dark" ? "vs-dark" : "vs-light"}
                             options={{
@@ -339,7 +339,7 @@ export default function JSONObject() {
                             height="100%"
                             defaultLanguage="javascript"
                             defaultValue={state.object}
-                            value={state.object}
+                        value={state.object}
                             onChange={handleObjectChange}
                             theme={effectiveMode === "dark" ? "vs-dark" : "vs-light"}
                             options={{

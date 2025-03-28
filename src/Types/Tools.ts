@@ -29,7 +29,6 @@
  *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
-
 interface IBookmark {
     // ? Unique identifier for the bookmark
     id?: string
@@ -185,10 +184,17 @@ enum ModelType {
     Marketplace = "marketplace",
     About = "about",
 
+    // ? for Users can Request to Publish
+    Request = "request",
+
+    // ? Be able to add new keywords to the bookmark
+    beingAdmin = "beingAdmin",
+
     // ? Only for Admins
     Requests = "requests",
-    Unpublished = "unpublished",
-    Modify = "modify"
+    AdminEdit = "adminEdit",
+    AdminCreate = "adminCreate",
+    Admin = "admin"
 }
 
 interface SettingsProps {
@@ -204,13 +210,27 @@ interface SettingsProps {
 }
 
 interface SettingsState {
-    New_Bookmark: IBookmark
-    Search_Settings_Query: string
     MarketPlace: {
-        Remote_Bookmarks: Array<IBookmark>
-        Serch_Bookmarks_Query: string
-        isFetched: boolean
-    }
+        Remote_Bookmarks: IBookmark[];
+        Search_Bookmarks_Query: string;
+        isFetched: boolean;
+    };
+    New_Bookmark: IBookmark;
+    Search_Settings_Query: string;
+    newKeyword: string;
+    adminKey: string;
+    isAdmin: boolean;
+    requests: {
+        all: any[];
+        pending: any[];
+        approved: any[];
+        rejected: any[];
+    };
+    newRequest: {
+        name: string;
+        url: string;
+        description: string;
+    };
 }
 
 export {

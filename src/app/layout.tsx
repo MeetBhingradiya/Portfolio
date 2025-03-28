@@ -38,6 +38,7 @@ import Footer from "@Components/Footer";
 import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
 import LandingFooter from "@Components/Footer/LandingFooter";
+import { ToastContainer } from "react-toastify";
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -122,13 +123,27 @@ export default function RootLayout({
                 }
             </head>
             <body className={inter.className}>
+                <ToastContainer
+                    autoClose={3000}
+                    position="bottom-right"
+                    theme="dark"
+                    pauseOnHover={false}
+                    pauseOnFocusLoss={false}
+                    closeOnClick
+                    draggable
+                    draggableDirection="x"
+                    closeButton={false}
+                    limit={3}
+                    hideProgressBar={false}
+                    stacked
+                />
                 <ThemeProvider>
-                        <Providers>
-                            {children}
-                        </Providers>
+                    <Providers>
+                        {children}
+                    </Providers>
 
                     <Footer ShowonFirstRender />
-                    <LandingFooter />
+                    {/* <LandingFooter /> */}
                 </ThemeProvider>
             </body>
         </html>

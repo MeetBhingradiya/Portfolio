@@ -28,7 +28,7 @@
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
  *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
-
+"use client";
 
 import { useEffect, useState } from "react";
 

@@ -29,9 +29,9 @@
  *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
  */
 
-
 import mongoose from 'mongoose';
 import { v4 } from 'uuid';
+import { ILinkOpenTypes } from '@App/Tools/Settings/Types';
 
 const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
     BookmarkID: {
@@ -39,42 +39,46 @@ const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
         default: v4,
         unique: true
     },
-    name: {
+    Name: {
         type: String,
         required: true
     },
-    url: {
+    URL: {
         type: String,
         required: true
     },
-    windowsapp: {
+    Android: {
         type: String,
     },
-    androidapp: {
-        type: String
-    },
-    icon: {
+    Windows: {
         type: String,
     },
-    isSVGSrc: {
+    Description: {
+        type: String,
+    },
+    Keywords: {
+        type: [String],
+    },
+    Icon: {
+        type: String,
+    },
+    isSVG: {
         type: Boolean,
         default: false
     },
     SVGStyles: {
-        fill: {
-            type: String,
+        type: Object,
+        default: {
+            fill: "#000000"
         }
     },
-    description: {
-        type: String,
-    },
-    keywords: {
-        type: [String],
-    },
-    size: {
-        type: String,
-        enum: ["128", "64", "32", "16"],
-        default: "128"
+    ClientOptions: {
+        type: Object,
+        default: {
+            OpenLinkPlatformPriority: "web",
+            OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
+            isSearchVisible: true
+        }
     },
     isPublished: {
         type: Boolean,
@@ -83,6 +87,10 @@ const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
     isDeleted: {
         type: Boolean,
         default: false
+    },
+    isServer: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true,
@@ -90,39 +98,27 @@ const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
 });
 
 export interface IBookmark extends mongoose.Document {
-    // ? Unique identifier for the bookmark
     BookmarkID: string
-
-    // ? Site Name if given by the user otherwise fetched from Site URL
-    name: string
-
-    // ? Site URL
-    url: string
-
-    // ? Advanced Data URLs
-    windowsapp?: string
-    androidapp?: string
-
-    // ? Site Icon
-    icon?: string
-
-    // ? Site Icon as SVG
-    isSVGSrc?: boolean
-    SVGStyles?: {
-        fill?: string
+    Name: string
+    URL: string
+    Android: string
+    Windows: string
+    Description: string
+    Keywords: string[]
+    Icon: string
+    isSVG: boolean
+    SVGStyles: {
+        fill: string
     }
-
-    // ? Site Description if given by the user or fetched from meta tags of the site
-    description?: string
-
-    // ? Site Keywords if given by the user or fetched from meta tags of the site
-    keywords?: Array<string>
-
-    // ? Defualt Icon Size
-    size?: "128" | "64" | "32" | "16"
-
+    ClientOptions: {
+        OpenLinkPlatformPriority: "desktop" | "mobile" | "web"
+        OpenLinkMethod: ILinkOpenTypes
+        isSearchVisible: boolean
+    }
     isPublished: boolean
     isDeleted: boolean
+    isServer: boolean
 }
 
+export { ILinkOpenTypes }
 export const Bookmarks_Model: mongoose.Model<IBookmark> = mongoose.models?.Bookmarks || mongoose.model<IBookmark>("Bookmarks", Bookmarks_Schema);

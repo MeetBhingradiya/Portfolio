@@ -33,9 +33,12 @@
 "use client";
 import React, { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
 import "@Styles/Tools-Navigation.sass";
+import { Tools, Categories } from '@Data/ToolsData';
+import { Menu, Close, ChevronLeft, Search, Home, Star } from '@mui/icons-material';
+import ToolContextMenu from './ToolContextMenu';
+import Image from 'next/image';
 import { Tooltip } from '@heroui/react';
 import SvgComponent from './SVGComponent';
 
@@ -53,154 +56,16 @@ import {
     CalendarMonth,
     CalculateOutlined,
     Password,
-    Home,
-    Menu,
-    Close,
-    DataObject,
-    Fingerprint,
-    Security,
-    Search,
-    Palette,
-    ChevronLeft
 } from '@mui/icons-material';
 
-const Tools: Array<{
-    Query: string,
-    Title: string,
-    Icon: React.ReactNode,
-    Description?: string,
-    Category: 'data' | 'color' | 'text' | 'utility' | 'security',
-}> = [
-        {
-            Query: "BingQuerys",
-            Title: "Bing Queries",
-            Icon: <Search sx={{ width: 32, height: 32 }} />,
-            Description: "Generate and manage Bing search queries",
-            Category: 'utility'
-        },
-        {
-            Query: "UUID",
-            Title: "UUID Generator",
-            Icon: <Fingerprint sx={{ width: 32, height: 32 }} />,
-            Description: "Generate random UUIDs",
-            Category: 'utility'
-        },
-        {
-            Query: "QR",
-            Title: "QR Code Generator",
-            Icon: <QrCode2 sx={{ width: 32, height: 32 }} />,
-            Description: "Generate QR codes from text or URLs",
-            Category: 'utility'
-        },
-        {
-            Query: "JSONObject",
-            Title: "JSON/Object Converter",
-            Icon: <DataObject sx={{ width: 32, height: 32 }} />,
-            Description: "Convert between JSON and JavaScript objects",
-            Category: 'data'
-        },
-        {
-            Query: "ColourPalette",
-            Title: "Colour Picker",
-            Icon: <Colorize sx={{ width: 32, height: 32 }} />,
-            Description: "Pick and manage colors",
-            Category: 'color'
-        },
-        {
-            Query: "ColourConvert",
-            Title: "Colour Converter",
-            Icon: <Palette sx={{ width: 32, height: 32 }} />,
-            Description: "Convert between color formats (HEX, RGB, HSL)",
-            Category: 'color'
-        },
-        {
-            Query: "Case",
-            Title: "Case Changer",
-            Icon: <TextFields sx={{ width: 32, height: 32 }} />,
-            Description: "Convert text between different cases",
-            Category: 'text'
-        },
-        {
-            Query: "CRX",
-            Title: "CRX Downloader",
-            Icon: <Extension sx={{ width: 32, height: 32 }} />,
-            Description: "Download Chrome extensions as CRX files",
-            Category: 'utility'
-        },
-        {
-            Query: "Markdown",
-            Title: "Markdown Preview",
-            Icon: <DescriptionOutlined sx={{ width: 32, height: 32 }} />,
-            Description: "Preview and edit Markdown files",
-            Category: 'text'
-        },
-        {
-            Query: "JWT",
-            Title: "JWT Decoder",
-            Icon: <Security sx={{ width: 32, height: 32 }} />,
-            Description: "Decode and verify JWT tokens",
-            Category: 'security'
-        },
-        {
-            Query: "URL",
-            Title: "URL Builder",
-            Icon: <LinkOutlined sx={{ width: 32, height: 32 }} />,
-            Description: "Build and parse URLs with query parameters",
-            Category: 'utility'
-        },
-        {
-            Query: "RegExp",
-            Title: "RegExp Builder & Tester",
-            Icon: <Code sx={{ width: 32, height: 32 }} />,
-            Description: "Build and test regular expressions",
-            Category: 'text'
-        },
-        {
-            Query: "Password",
-            Title: "Password Generator",
-            Icon: <Password sx={{ width: 32, height: 32 }} />,
-            Description: "Generate secure passwords",
-            Category: 'security'
-        },
-        {
-            Query: "DateAndTime",
-            Title: "Date & Time Utils",
-            Icon: <CalendarMonth sx={{ width: 32, height: 32 }} />,
-            Description: "Date and time utilities",
-            Category: 'utility'
-        },
-        {
-            Query: "EncryptAndDecrypt",
-            Title: "Encrypt & Decrypt",
-            Icon: <Key sx={{ width: 32, height: 32 }} />,
-            Description: "Encrypt and decrypt text",
-            Category: 'security'
-        }
-    ];
-
-// Category labels and icons
-const Categories: Record<string, { label: string, icon: React.ReactNode }> = {
-    data: {
-        label: "Data Tools",
-        icon: <DataObject sx={{ width: 20, height: 20 }} />
-    },
-    color: {
-        label: "Color Tools",
-        icon: <Palette sx={{ width: 20, height: 20 }} />
-    },
-    text: {
-        label: "Text Tools",
-        icon: <TextFields sx={{ width: 20, height: 20 }} />
-    },
-    utility: {
-        label: "Utilities",
-        icon: <Extension sx={{ width: 20, height: 20 }} />
-    },
-    security: {
-        label: "Security Tools",
-        icon: <Security sx={{ width: 20, height: 20 }} />
-    }
-};
+// Define the Tool type
+interface Tool {
+    Query: string;
+    Title: string;
+    Icon: React.JSX.Element;
+    Description?: string;
+    Category: 'data' | 'color' | 'text' | 'utility' | 'security';
+}
 
 function ToolNavigation() {
     const router = useRouter();
@@ -213,6 +78,25 @@ function ToolNavigation() {
     const resizeRef = useRef<HTMLDivElement>(null);
     const isResizing = useRef(false);
     const [isMobile, setIsMobile] = useState(false);
+    
+    // Context menu state
+    const [contextMenu, setContextMenu] = useState<{
+        visible: boolean;
+        x: number;
+        y: number;
+        toolName: string;
+        toolQuery: string;
+    }>({
+        visible: false,
+        x: 0,
+        y: 0,
+        toolName: '',
+        toolQuery: ''
+    });
+    
+    // Favorites and bookmarks state
+    const [favorites, setFavorites] = useState<string[]>([]);
+    const [bookmarks, setBookmarks] = useState<string[]>([]);
 
     // Extract the current tool from the pathname
     const currentTool = pathname.split("/").pop() || "";
@@ -220,20 +104,89 @@ function ToolNavigation() {
     // Check if we're in the Tools section
     const isToolsSection: boolean = !pathname.split("/").pop()?.includes("Tools") as boolean
 
+    // Load favorites and bookmarks from localStorage
+    useEffect(() => {
+        const storedFavorites = localStorage.getItem('toolFavorites');
+        const storedBookmarks = localStorage.getItem('toolBookmarks');
+        
+        if (storedFavorites) {
+            setFavorites(JSON.parse(storedFavorites));
+        }
+        
+        if (storedBookmarks) {
+            setBookmarks(JSON.parse(storedBookmarks));
+        }
+    }, []);
+    
+    // Save favorites and bookmarks to localStorage when they change
+    useEffect(() => {
+        localStorage.setItem('toolFavorites', JSON.stringify(favorites));
+    }, [favorites]);
+    
+    useEffect(() => {
+        localStorage.setItem('toolBookmarks', JSON.stringify(bookmarks));
+    }, [bookmarks]);
+
     // Filter tools based on search query
-    const filteredTools = Tools.filter(tool =>
+    const filteredTools = Tools.filter((tool: any) =>
         tool.Title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (tool.Description && tool.Description.toLowerCase().includes(searchQuery.toLowerCase()))
     );
 
     // Group tools by category
-    const toolsByCategory = filteredTools.reduce((acc, tool) => {
+    const toolsByCategory = filteredTools.reduce((acc: Record<string, any[]>, tool: any) => {
         if (!acc[tool.Category]) {
             acc[tool.Category] = [];
         }
         acc[tool.Category].push(tool);
         return acc;
-    }, {} as Record<string, typeof Tools>);
+    }, {} as Record<string, any[]>);
+    
+    // Handle right-click on tool item
+    const handleContextMenu = (e: React.MouseEvent, toolName: string, toolQuery: string) => {
+        e.preventDefault();
+        setContextMenu({
+            visible: true,
+            x: e.clientX,
+            y: e.clientY,
+            toolName,
+            toolQuery
+        });
+    };
+    
+    // Close context menu
+    const closeContextMenu = () => {
+        setContextMenu({
+            ...contextMenu,
+            visible: false
+        });
+    };
+    
+    // Open tool in new tab
+    const openInNewTab = () => {
+        window.open(`/Tools/${contextMenu.toolQuery}`, '_blank');
+        closeContextMenu();
+    };
+    
+    // Add/remove from favorites
+    const toggleFavorite = () => {
+        if (favorites.includes(contextMenu.toolQuery)) {
+            setFavorites(favorites.filter(query => query !== contextMenu.toolQuery));
+        } else {
+            setFavorites([...favorites, contextMenu.toolQuery]);
+        }
+        closeContextMenu();
+    };
+    
+    // Add/remove from bookmarks
+    const toggleBookmark = () => {
+        if (bookmarks.includes(contextMenu.toolQuery)) {
+            setBookmarks(bookmarks.filter(query => query !== contextMenu.toolQuery));
+        } else {
+            setBookmarks([...bookmarks, contextMenu.toolQuery]);
+        }
+        closeContextMenu();
+    };
 
     // Check if we're on mobile
     useEffect(() => {
@@ -385,17 +338,42 @@ function ToolNavigation() {
                     />
                 </div>
 
+                {/* Favorites Section (if any) */}
+                {favorites.length > 0 && !searchQuery && (
+                    <div className="category-group">
+                        <div className="category-header">
+                            <div className="category-icon">
+                                <Star />
+                            </div>
+                            <h3 className="category-title">Favorites</h3>
+                        </div>
+                        {Tools.filter((tool: any) => favorites.includes(tool.Query)).map((tool: any) => (
+                            <div
+                                key={`fav-${tool.Query}`}
+                                className={`tool-item ${currentTool === tool.Query ? "active" : ""}`}
+                                onClick={() => {
+                                    if (currentTool !== tool.Query) {
+                                        router.push(`/Tools/${tool.Query}`);
+                                        setIsOpen(false);
+                                    }
+                                }}
+                                onContextMenu={(e) => handleContextMenu(e, tool.Title, tool.Query)}
+                            >
+                                <div className="tool-icon">
+                                    {tool.Icon}
+                                </div>
+                                <span className="tool-title">{tool.Title}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
                 {/* Tools List */}
                 <div className="tools-list">
                     {filteredTools.length > 0 ? (
                         searchQuery ? (
                             // When searching, show flat list
-                            filteredTools.map((tool) => (
-                                // <Tooltip 
-                                //     key={tool.Query} 
-                                //     content={tool.Description || tool.Title} 
-                                //     placement="right"
-                                // >
+                            filteredTools.map((tool: any) => (
                                 <div
                                     className={`tool-item ${currentTool === tool.Query ? "active" : ""}`}
                                     key={tool.Query}
@@ -405,30 +383,25 @@ function ToolNavigation() {
                                             setIsOpen(false);
                                         }
                                     }}
+                                    onContextMenu={(e) => handleContextMenu(e, tool.Title, tool.Query)}
                                 >
                                     <div className="tool-icon">
                                         {tool.Icon}
                                     </div>
                                     <span className="tool-title">{tool.Title}</span>
                                 </div>
-                                // </Tooltip>
                             ))
-                        ) : (
+                        ) :
                             // When not searching, group by category
-                            Object.entries(toolsByCategory).map(([category, tools]) => (
+                            Object.entries(toolsByCategory).map(([category, tools]: [string, any[]]) => (
                                 <div key={category} className="category-group">
                                     <div className="category-header">
                                         <div className="category-icon">
-                                            {Categories[category].icon}
+                                            {Categories[category as "data" | "utility" | "text" | "security" | "color"].icon}
                                         </div>
-                                        <h3 className="category-title">{Categories[category].label}</h3>
+                                        <h3 className="category-title">{Categories[category  as "data" | "utility" | "text" | "security" | "color"].label}</h3>
                                     </div>
-                                    {tools.map((tool) => (
-                                        // <Tooltip 
-                                        //     key={tool.Query} 
-                                        //     content={tool.Description || tool.Title} 
-                                        //     placement="right"
-                                        // >
+                                    {tools.map((tool: Tool) => (
                                         <div
                                             key={tool.Query}
                                             className={`tool-item ${currentTool === tool.Query ? "active" : ""}`}
@@ -438,17 +411,16 @@ function ToolNavigation() {
                                                     setIsOpen(false);
                                                 }
                                             }}
+                                            onContextMenu={(e) => handleContextMenu(e, tool.Title, tool.Query)}
                                         >
                                             <div className="tool-icon">
                                                 {tool.Icon}
                                             </div>
                                             <span className="tool-title">{tool.Title}</span>
                                         </div>
-                                        // </Tooltip>
                                     ))}
                                 </div>
                             ))
-                        )
                     ) : (
                         <div className="no-results">
                             <p>No tools found matching &quot;{searchQuery}&quot;</p>
@@ -456,6 +428,22 @@ function ToolNavigation() {
                     )}
                 </div>
             </div>
+            
+            {/* Context Menu */}
+            {contextMenu.visible && (
+                <ToolContextMenu
+                    x={contextMenu.x}
+                    y={contextMenu.y}
+                    toolName={contextMenu.toolName}
+                    toolQuery={contextMenu.toolQuery}
+                    onClose={closeContextMenu}
+                    onOpenInNewTab={openInNewTab}
+                    onAddToFavorites={toggleFavorite}
+                    onAddToBookmarks={toggleBookmark}
+                    isFavorite={favorites.includes(contextMenu.toolQuery)}
+                    isBookmarked={bookmarks.includes(contextMenu.toolQuery)}
+                />
+            )}
         </>
     );
 }

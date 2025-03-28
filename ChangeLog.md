@@ -22,13 +22,23 @@
 # Coming Up
 - Next Rate Limit Library for Advanced Rate Limiting from `express-rate-limit` Package
 - `react-bits` Automatic Updates from the Official Repository Using Custom Build Script
+- Select Defualt Search Engine & Its Local Settings on Tools Page
+- Keywords Editor on Tools Page
+
+## By CodeRabbit
+- Confirm user intent on reset : A full reset of bookmark fields might discard user data unexpectedly. Consider adding a confirmation dialog or “undo” feature to improve user trust and reduce accidental data loss.
 ---
 
-# v1.0.12 - 30/03/2025 (Expected)
+# v1.1.0 - 1/04/2025
 
 ### 🌟 Added
+- Tools > Touch Support Added for Mobile & Tablet Devices
+- Tools > Windows & Android Apps Redirects Added
 
 ### 🔄 Changed
+- Tools > Better Keyboard Shortcuts Added for Faster Access
+- Tools > Fixed Re Render Issue on Every State Change
+- Tools > Whole New UI Experience with Better Performance of MarketPlace, Preferences & Contribution
 
 ### 🗑️ Removed
 

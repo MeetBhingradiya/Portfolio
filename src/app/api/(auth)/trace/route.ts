@@ -42,7 +42,8 @@ import { ParseIPDataConfig } from '@/Utils/ParseIPDatatoConfig';
 const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 const ALLOWED_ORIGINS = [
     ...Config.WhiteListedDomains.map((domain) => `https://${domain}`),
-    Config.Environment === 'development' ? 'http://localhost:3000' : null
+    Config.Environment === 'development' ? 'http://localhost:3000' : null,
+    Config.Environment === 'development' ? 'http://192.168.0.101:3000' : null,
 ];
 const WhiteListedPlatforms = Config.WhiteListedPlatforms;
 const WhiteListedBrowsers = Config.WhiteListedBrowsers;
@@ -90,13 +91,8 @@ export async function POST(req: NextRequest) {
 
     // 3. User-Agent and Sec-CH-UA Validation
     if (
-        // !userAgent.includes('Chrome') && !userAgent.includes('Edge')
         !WhiteListedBrowsers.includes(changeCase.upperFirst(new UserAgent(userAgent).parse().browser) as any)
     ) {
-        console.log({
-            UserAgent: userAgent.split(' '),
-            Condition: WhiteListedBrowsers.includes(changeCase.upperFirst(userAgent.split(' ')[0]) as any)
-        });
         return NextResponse.json({
             Status: 0,
             Message: 'Unsupported browser',
@@ -116,7 +112,7 @@ export async function POST(req: NextRequest) {
 
     // 4. WEBRTC Checks
 
-
+    // 5. TreatIntelligence Checks
     if (Config.Environment !== 'development') {
         const IP = getClientIp(req) as string;
 

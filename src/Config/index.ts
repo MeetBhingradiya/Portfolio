@@ -100,7 +100,7 @@ const Config: IConfig = {
         "Firefox",
         "Opera"
     ],
-    VercelSpeedInsight: true,
+    VercelSpeedInsight: false,
     ThreatIntelligence: [
         "TOR",
         "VPN",

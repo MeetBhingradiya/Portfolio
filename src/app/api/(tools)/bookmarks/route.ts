@@ -44,10 +44,12 @@ async function verifyAdminToken(token: string): Promise<boolean> {
         if (!token) return false;
 
         const secret = new TextEncoder().encode(Config.Env.ADMIN_SIGNATURE);
-        const { payload } = await jose.jwtVerify(token, secret);
-        
-        // Check if the token contains a valid signature
-        return !!payload.signature;
+        const verified = await jose.jwtVerify(token, secret);
+
+        if (!verified) {
+            return false;
+        }
+        return true;
     } catch (error) {
         console.error("Admin token verification error:", error);
         return false;

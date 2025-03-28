@@ -110,7 +110,6 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                     const uniqueNewBookmarks = newBookmarks.filter((b: IBookmark) => !existingIds.has(b.BookmarkID));
 
                     newUniqueBookmarksAdded = uniqueNewBookmarks.length;
-                    console.log(`Received ${newBookmarks.length} bookmarks, ${uniqueNewBookmarks.length} are unique`);
 
                     if (uniqueNewBookmarks.length > 0) {
                         const updatedBookmarks = [...ModalState.RemoteBookmarks, ...uniqueNewBookmarks];
@@ -140,7 +139,6 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                     newUniqueBookmarksAdded > 0 &&
                     pageNum < 100;
 
-                console.log(`Setting hasMore to ${shouldContinuePagination}, pageNum: ${pageNum}`);
                 SetModalState(prev => ({
                     ...prev,
                     hasMore: shouldContinuePagination
@@ -158,7 +156,6 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                     }));
                 }
             } else {
-                console.log('API returned Status 0, no bookmarks found');
                 setFilteredBookmarks([]);
 
                 SetModalState(prev => ({
@@ -203,7 +200,6 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
 
     React.useEffect(() => {
         if (endIsVisible && ModalState.hasMore && !isLoading && !loadingTriggered) {
-            console.log("End is visible, triggering load more");
             setLoadingTriggered(true);
             loadMoreBookmarks();
         }
@@ -233,7 +229,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
             return;
         }
 
-        const query = Query.toLowerCase();
+        const query = Query?.toLowerCase();
         const filtered = ModalState.RemoteBookmarks.filter(bookmark => {
             return (
                 bookmark.Name.toLowerCase().includes(query) ||
@@ -534,7 +530,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                         <Typography variant="body2" className="text-gray-500 mt-1">
                             {ModalState.MarketPlaceQuery ? "Try different search terms" : "Check back later or Type to Search"}
                         </Typography>
-                        {/* {!ModalState.MarketPlaceQuery && (
+                        {!ModalState.MarketPlaceQuery && (
                             <Button
                                 variant="light"
                                 color="primary"
@@ -547,7 +543,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                             >
                                 Refresh
                             </Button>
-                        )} */}
+                        )}
                     </div>
                 )
             }

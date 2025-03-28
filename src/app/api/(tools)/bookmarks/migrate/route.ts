@@ -41,9 +41,12 @@ async function verifyAdminToken(token: string): Promise<boolean> {
         if (!token) return false;
 
         const secret = new TextEncoder().encode(Config.Env.ADMIN_SIGNATURE);
-        const { payload } = await jose.jwtVerify(token, secret);
-        
-        return !!payload.signature;
+        const verified = await jose.jwtVerify(token, secret);
+
+        if (!verified) {
+            return false;
+        }
+        return true;
     } catch (error) {
         console.error("Admin token verification error:", error);
         return false;
@@ -67,37 +70,37 @@ export async function POST(req: NextRequest) {
         }
 
         await dbConnect();
-        
+
         // Find all bookmarks in old format (having 'icon' but not 'Icon')
         const oldFormatBookmarks = await Bookmarks_Model.find({
             icon: { $exists: true }
         }).lean();
-        
+
         // Perform migration for each bookmark
         const migrationResults = await Promise.all(
             oldFormatBookmarks.map(async (bookmark) => {
                 try {
                     const migratedBookmark = migrateBookmarkFormat(bookmark);
-                    
+
                     // Update the database with the new format
                     await Bookmarks_Model.updateOne(
                         { _id: bookmark._id },
-                        { 
+                        {
                             $set: migratedBookmark,
                             $unset: {
-                                name: 1, 
-                                url: 1, 
-                                isSVGSrc: 1, 
-                                description: 1, 
-                                size: 1, 
-                                windowsapp: 1, 
+                                name: 1,
+                                url: 1,
+                                isSVGSrc: 1,
+                                description: 1,
+                                size: 1,
+                                windowsapp: 1,
                                 androidapp: 1,
                                 keywords: 1,
                                 icon: 1,
                             }
                         }
                     );
-                    
+
                     return {
                         id: bookmark.id,
                         newId: migratedBookmark.BookmarkID,
@@ -112,10 +115,10 @@ export async function POST(req: NextRequest) {
                 }
             })
         );
-        
+
         const successCount = migrationResults.filter(r => r.status === 'success').length;
         const failedCount = migrationResults.filter(r => r.status === 'failed').length;
-        
+
         return NextResponse.json({
             Status: 1,
             Message: `Successfully migrated ${successCount}/${oldFormatBookmarks.length} bookmarks`,
@@ -129,7 +132,7 @@ export async function POST(req: NextRequest) {
         }, {
             status: 200
         });
-        
+
     } catch (error) {
         console.error("Error during bookmark migration:", error);
         return NextResponse.json({

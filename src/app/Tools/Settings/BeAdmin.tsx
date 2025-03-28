@@ -46,7 +46,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
             SetState((State) => {
                 return {
                     ...State,
-                    AdminSignatureToken: response.data.Token,
+                    AdminSignatureToken: response.data.Data.Token,
                     isError: false,
                     Message: "Verified Successfully",
                 }
@@ -55,7 +55,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
                 return {
                     ...ModalState,
                     isAdmin: true,
-                    AdminSignature: response.data.Token,
+                    AdminSignature: response.data.Data.Token,
                     type: IToolsSettingsTabs.Cloud
                 }
             })
@@ -205,7 +205,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
                 <p className="text-sm text-gray-500 mt-1">
                     {State.isBlocked 
                         ? "Your access has been temporarily blocked" 
-                        : "Enter your admin signature to access administration features"}
+                        : "Enter your signature to access administration features"}
                 </p>
             </div>
 

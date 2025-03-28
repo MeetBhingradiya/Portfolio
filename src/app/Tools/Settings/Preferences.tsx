@@ -38,7 +38,7 @@ import { toast } from "react-toastify";
 interface PreferencesProps {
     State: IToolsState;
     Dispatch: React.Dispatch<React.SetStateAction<IToolsState>>;
-    ModalState?: IToolsModalData;
+    ModalState: IToolsModalData;
 }
 
 function Preferences({ State, Dispatch, ModalState }: PreferencesProps) {
@@ -384,7 +384,7 @@ function Preferences({ State, Dispatch, ModalState }: PreferencesProps) {
                                         // Call migration endpoint
                                         const response = await Axios.post('/api/bookmarks/migrate', {}, {
                                             headers: {
-                                                "x-admin-signature": ModalState?.AdminSignature || ""
+                                                "x-admin-signature": ModalState.AdminSignature
                                             }
                                         });
                                         

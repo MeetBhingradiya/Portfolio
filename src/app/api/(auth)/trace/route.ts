@@ -91,13 +91,8 @@ export async function POST(req: NextRequest) {
 
     // 3. User-Agent and Sec-CH-UA Validation
     if (
-        // !userAgent.includes('Chrome') && !userAgent.includes('Edge')
         !WhiteListedBrowsers.includes(changeCase.upperFirst(new UserAgent(userAgent).parse().browser) as any)
     ) {
-        console.log({
-            UserAgent: userAgent.split(' '),
-            Condition: WhiteListedBrowsers.includes(changeCase.upperFirst(userAgent.split(' ')[0]) as any)
-        });
         return NextResponse.json({
             Status: 0,
             Message: 'Unsupported browser',

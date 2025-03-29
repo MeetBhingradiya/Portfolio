@@ -1,6 +1,6 @@
 import { Config } from "@Config";
 import { Controller_Response } from "@Types";
-import { generateHMACSignature } from "@Utils";
+import { HMACSignature } from "@Utils/HMACSignature";
 import { useEmptyFields } from "@Hooks";
 import { NextResponse } from "next/server";
 
@@ -36,7 +36,7 @@ function ControllerResponseMap(Response: Controller_Response): NextResponse {
 
     // Generate Signature if Data is present
     if (Response.Data) {
-        Response.Signature = generateHMACSignature(JSON.stringify(Response.Data));
+        Response.Signature = HMACSignature().generateSignature(Response.Data);
     }
 
     // Ensure StatusNumber is set to a number

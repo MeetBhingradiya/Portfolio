@@ -1,6 +1,6 @@
 /**
- *  @FileID          Utils/index.ts
- *  @Description     Currently, there is no description available.
+ *  @FileID          app/Tools/Password/layout.tsx
+ *  @Description     Layout for Password Generator tool
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
@@ -25,27 +25,35 @@
  *  -----------------------------------------------------------------------------
  *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
- *  @created 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
+ *  @created 12/04/25 11:34 AM IST (Kolkata +5:30 UTC)
+ *  @modified 12/04/25 11:03 AM IST (Kolkata +5:30 UTC)
  */
 
-export * from "./Axios";
-export * from "./CaseChnage";
-export * from "./Crypto";
-export * from "./ExtensionsDetector";
-export * from "./getEnvs";
-export * from "./getTrace";
-export * from "./IPData";
-export * from "./log";
-export * from "./OTP";
-export * from "./ParseIPDatatoConfig";
-export * from "./Relativetime";
-export * from "./RemoteImageLoader";
-export * from "./RemoveDuplicates";
-export * from "./RSA";
-export * from "./Sitemap";
-export * from "./Sleep";
-export * from "./UserAgent";
-export * from "./windowcheck";
-export * from "./RedirectProtocolExecuter";
-export * from "./ControllerResponseMap";
+
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Password Generator - Meet Bhingradiya",
+    description: "Generate secure passwords and passphrases with customizable options.",
+    icons: "/favicon.ico",
+    keywords: [
+        "Meet Bhingradiya",
+        "Meet",
+        "Bhingradiya",
+        "Portfolio",
+        "Tools",
+        "Password",
+        "Password Generator",
+        "Passphrase Generator",
+        "Secure Password"
+    ]
+}
+
+// @ File
+export default function Layout({
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    return children
+}

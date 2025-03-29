@@ -1,0 +1,475 @@
+// RegExp Builder & Tester Styles
+.RegExpBuilder
+    display: flex
+    flex-direction: column
+    align-items: center
+    width: 100%
+    max-width: 1200px
+    margin: 0 auto
+    padding: 2rem 1rem
+    min-height: max-content
+
+    .title
+        font-size: 2rem
+        font-weight: 700
+        margin-bottom: 0.5rem
+        text-align: center
+        color: var(--font-color)
+
+    .description
+        font-size: 1rem
+        color: var(--description-font-color)
+        margin-bottom: 2rem
+        text-align: center
+
+    .regexp-container
+        display: flex
+        flex-direction: column
+        gap: 2rem
+        width: 100%
+        min-height: 800px
+
+        @media (max-width: 768px)
+            min-height: auto
+            
+        .regexp-builder
+            display: flex
+            flex-direction: column
+            border-radius: 8px
+            overflow: hidden
+            transition: all 0.3s ease
+
+            // Glass effect
+            &.glass
+                background: rgba(255, 255, 255, 0.1)
+                backdrop-filter: blur(10px)
+                border: 1px solid rgba(255, 255, 255, 0.2)
+
+                &:hover
+                    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.47)
+                    border: 1px solid rgba(255, 255, 255, 0.3)
+
+            .regexp-header
+                display: flex
+                justify-content: space-between
+                align-items: center
+                padding: 1rem
+                background: rgba(255, 255, 255, 0.05)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+                h2
+                    font-size: 1.25rem
+                    font-weight: 600
+                    margin: 0
+                    color: var(--font-color)
+
+                .regexp-actions
+                    display: flex
+                    gap: 0.5rem
+
+            .regexp-input
+                display: flex
+                padding: 1rem
+                gap: 1rem
+                flex-wrap: wrap
+
+                .regexp-field
+                    flex: 1
+                    min-width: 260px
+                    position: relative
+
+                    input, textarea
+                        width: 100%
+                        padding: 0.75rem 1rem
+                        border-radius: 4px
+                        border: 1px solid rgba(255, 255, 255, 0.2)
+                        background: rgba(0, 0, 0, 0.1)
+                        color: var(--font-color)
+                        resize: none
+
+                    .regexp-label
+                        font-size: 0.75rem
+                        color: var(--description-font-color)
+                        margin-bottom: 0.5rem
+                        display: flex
+                        justify-content: space-between
+                        align-items: center
+
+                        .regexp-badge
+                            background: rgba(79, 70, 229, 0.2)
+                            padding: 0.25rem 0.5rem
+                            border-radius: 4px
+                            font-size: 0.7rem
+                            color: #7c7cffdf
+
+                .regexp-flags
+                    display: flex
+                    gap: 1rem
+                    flex-wrap: wrap
+                    width: 100%
+                    margin-top: 1rem
+
+                    .flag-checkbox
+                        display: flex
+                        align-items: center
+                        gap: 0.5rem
+                        cursor: pointer
+
+                        input
+                            cursor: pointer
+
+                        label
+                            font-size: 0.85rem
+                            cursor: pointer
+                            color: var(--font-color)
+
+                        .flag-description
+                            font-size: 0.7rem
+                            color: var(--description-font-color)
+                            margin-left: 0.5rem
+
+        .preset-templates
+            display: flex
+            flex-direction: column
+            border-radius: 8px
+            overflow: hidden
+            transition: all 0.3s ease
+
+            // Glass effect
+            &.glass
+                background: rgba(255, 255, 255, 0.1)
+                backdrop-filter: blur(10px)
+                border: 1px solid rgba(255, 255, 255, 0.2)
+
+                &:hover
+                    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.47)
+                    border: 1px solid rgba(255, 255, 255, 0.3)
+
+            .presets-header
+                display: flex
+                justify-content: space-between
+                align-items: center
+                padding: 1rem
+                background: rgba(255, 255, 255, 0.05)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+                h2
+                    font-size: 1.25rem
+                    font-weight: 600
+                    margin: 0
+                    color: var(--font-color)
+
+            .presets-list
+                display: flex
+                flex-wrap: wrap
+                gap: 0.5rem
+                padding: 1rem
+
+                .preset-button
+                    padding: 0.5rem 1rem
+                    border-radius: 4px
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+                    background: rgba(0, 0, 0, 0.1)
+                    color: var(--font-color)
+                    cursor: pointer
+                    transition: all 0.2s ease
+                    font-size: 0.85rem
+
+                    &:hover
+                        background: rgba(79, 70, 229, 0.2)
+                        border-color: rgba(79, 70, 229, 0.4)
+
+        .regexp-test
+            display: flex
+            flex-direction: column
+            border-radius: 8px
+            overflow: hidden
+            transition: all 0.3s ease
+
+            // Glass effect
+            &.glass
+                background: rgba(255, 255, 255, 0.1)
+                backdrop-filter: blur(10px)
+                border: 1px solid rgba(255, 255, 255, 0.2)
+
+                &:hover
+                    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.47)
+                    border: 1px solid rgba(255, 255, 255, 0.3)
+
+            .test-header
+                display: flex
+                justify-content: space-between
+                align-items: center
+                padding: 1rem
+                background: rgba(255, 255, 255, 0.05)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+                h2
+                    font-size: 1.25rem
+                    font-weight: 600
+                    margin: 0
+                    color: var(--font-color)
+
+                .test-actions
+                    display: flex
+                    gap: 0.5rem
+
+            .test-input-area
+                padding: 1rem
+                display: flex
+                flex-direction: column
+                gap: 1rem
+
+                .test-input-label
+                    font-size: 0.9rem
+                    color: var(--font-color)
+                    margin-bottom: -0.5rem
+
+                .test-input
+                    width: 100%
+                    min-height: 150px
+                    padding: 0.75rem 1rem
+                    border-radius: 4px
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+                    background: rgba(0, 0, 0, 0.1)
+                    color: var(--font-color)
+                    resize: vertical
+                    font-family: monospace
+                    line-height: 1.6
+
+            .test-results
+                padding: 1rem
+                border-top: 1px solid rgba(255, 255, 255, 0.1)
+                
+                .matches-count
+                    font-size: 0.9rem
+                    color: var(--description-font-color)
+                    margin-bottom: 1rem
+
+                .no-matches
+                    font-size: 0.9rem
+                    color: #f87171
+                    font-style: italic
+
+                .matches-list
+                    display: flex
+                    flex-direction: column
+                    gap: 0.5rem
+                    max-height: 300px
+                    overflow-y: auto
+
+                    .match-item
+                        display: flex
+                        flex-direction: column
+                        gap: 0.25rem
+                        padding: 0.75rem
+                        border-radius: 4px
+                        background: rgba(0, 0, 0, 0.2)
+                        border-left: 3px solid #4f46e5
+
+                        .match-content
+                            font-family: monospace
+                            font-size: 0.9rem
+                            color: var(--font-color)
+                            word-break: break-all
+
+                        .match-info
+                            display: flex
+                            justify-content: space-between
+                            align-items: center
+                            font-size: 0.75rem
+                            color: var(--description-font-color)
+
+                            .match-groups
+                                display: flex
+                                gap: 0.5rem
+
+                                .group-item
+                                    background: rgba(79, 70, 229, 0.2)
+                                    padding: 0.25rem 0.5rem
+                                    border-radius: 4px
+                                    font-size: 0.7rem
+                                    color: #7c7cffdf
+
+        .string-tools
+            display: flex
+            flex-direction: column
+            border-radius: 8px
+            overflow: hidden
+            transition: all 0.3s ease
+
+            // Glass effect
+            &.glass
+                background: rgba(255, 255, 255, 0.1)
+                backdrop-filter: blur(10px)
+                border: 1px solid rgba(255, 255, 255, 0.2)
+
+                &:hover
+                    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.47)
+                    border: 1px solid rgba(255, 255, 255, 0.3)
+
+            .tools-header
+                display: flex
+                justify-content: space-between
+                align-items: center
+                padding: 1rem
+                background: rgba(255, 255, 255, 0.05)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+                h2
+                    font-size: 1.25rem
+                    font-weight: 600
+                    margin: 0
+                    color: var(--font-color)
+
+            .tools-content
+                padding: 1rem
+                display: flex
+                flex-direction: column
+                gap: 1.5rem
+
+                .tools-section
+                    display: flex
+                    flex-direction: column
+                    gap: 0.75rem
+
+                    h3
+                        font-size: 1rem
+                        font-weight: 500
+                        color: var(--font-color)
+                        margin: 0
+
+                    .tools-group
+                        display: flex
+                        flex-wrap: wrap
+                        gap: 0.5rem
+
+                        button
+                            padding: 0.5rem 1rem
+                            border-radius: 4px
+                            border: 1px solid rgba(255, 255, 255, 0.2)
+                            background: rgba(0, 0, 0, 0.1)
+                            color: var(--font-color)
+                            cursor: pointer
+                            transition: all 0.2s ease
+                            font-size: 0.85rem
+                            display: flex
+                            align-items: center
+                            gap: 0.5rem
+
+                            .icon
+                                font-size: 0.9rem
+
+                            &:hover
+                                background: rgba(79, 70, 229, 0.2)
+                                border-color: rgba(79, 70, 229, 0.4)
+
+                    .find-replace
+                        display: flex
+                        gap: 0.75rem
+                        flex-wrap: wrap
+
+                        .input-group
+                            flex: 1
+                            min-width: 200px
+
+                            label
+                                font-size: 0.85rem
+                                color: var(--description-font-color)
+                                margin-bottom: 0.25rem
+                                display: block
+
+                            input
+                                width: 100%
+                                padding: 0.5rem 0.75rem
+                                border-radius: 4px
+                                border: 1px solid rgba(255, 255, 255, 0.2)
+                                background: rgba(0, 0, 0, 0.1)
+                                color: var(--font-color)
+                                font-size: 0.85rem
+
+                        .action-buttons
+                            display: flex
+                            gap: 0.5rem
+                            align-items: flex-end
+                            margin-top: auto
+                            margin-bottom: 2px
+                            
+                            .checkbox-option
+                                display: flex
+                                align-items: center
+                                gap: 0.25rem
+                                margin-right: 0.5rem
+                                
+                                input
+                                    cursor: pointer
+                                    
+                                label
+                                    font-size: 0.75rem
+                                    cursor: pointer
+                                    color: var(--description-font-color)
+
+        // Error message
+        .error-message
+            padding: 0.75rem 1rem
+            background-color: rgba(250, 82, 82, 0.9)
+            color: white
+            font-size: 0.875rem
+            backdrop-filter: blur(5px)
+            border-radius: 0 0 8px 8px
+            margin-top: -1rem
+            margin-bottom: 1rem
+
+// Dark mode styles
+html.dark
+    .RegExpBuilder
+        .regexp-builder, .regexp-test, .preset-templates, .string-tools
+            &.glass
+                background: rgba(0, 0, 0, 0.2)
+                border: 1px solid rgba(255, 255, 255, 0.1)
+
+                &:hover
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+
+            .regexp-header, .test-header, .presets-header, .tools-header
+                background: rgba(0, 0, 0, 0.3)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+        .regexp-input
+            .regexp-field
+                input, textarea
+                    background: rgba(255, 255, 255, 0.05)
+                    color: var(--font-color)
+
+        .preset-templates
+            .presets-list
+                .preset-button
+                    background: rgba(255, 255, 255, 0.05)
+                    
+                    &:hover
+                        background: rgba(79, 70, 229, 0.3)
+
+        .regexp-test
+            .test-input-area
+                .test-input
+                    background: rgba(255, 255, 255, 0.05)
+                    
+            .test-results
+                .matches-list
+                    .match-item
+                        background: rgba(255, 255, 255, 0.05)
+
+        .string-tools
+            .tools-content
+                .tools-section
+                    .tools-group
+                        button
+                            background: rgba(255, 255, 255, 0.05)
+                            
+                            &:hover
+                                background: rgba(79, 70, 229, 0.3)
+                                
+                    .find-replace
+                        .input-group
+                            input
+                                background: rgba(255, 255, 255, 0.05) 

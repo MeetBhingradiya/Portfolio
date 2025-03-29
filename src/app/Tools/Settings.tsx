@@ -112,6 +112,7 @@ function Settings({
                     className="backdrop-blur-md"
                     style={{
                         height: ModalState.isMaximized ? "80vh" : "70vh",
+                        padding: "0",
                         transition: "all 0.5s ease",
                         borderRadius: "10px",
                         background: "var(--bookmark)",

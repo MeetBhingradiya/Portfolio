@@ -33,34 +33,24 @@
 "use client";
 
 import React from "react";
-import { ToastContainer, toast } from 'react-toastify';
+import { toast } from 'react-toastify';
 import { ResolveIcon } from "@Data/Tools";
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { v4 as uuidv4 } from 'uuid';
 import "@Styles/Tool.sass";
 import {
     Add,
     Close,
     Delete,
-    Edit,
-    Save,
     OpenInNew,
     Settings,
     Cloud,
-    Restore,
     Book,
-    Bookmark,
     Home,
-    Circle,
     ScatterPlot,
     Search,
     AutoFixHigh,
     LocalMall,
-    LocalMallOutlined,
-    SettingsOutlined,
-    AddOutlined,
-    HomeOutlined,
     Warning
 } from "@mui/icons-material";
 import {
@@ -71,16 +61,6 @@ import {
     ListItemText,
 } from '@mui/material';
 import {
-    Button,
-    Modal,
-    ModalBody,
-    ModalContent,
-    ModalFooter,
-    ModalHeader,
-    Input,
-    Select,
-    SelectItem,
-    Checkbox,
     Tooltip
 } from "@heroui/react";
 import { styled, alpha } from '@mui/material/styles';
@@ -95,7 +75,6 @@ import SvgComponent from "@Components/SVGComponent";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
 import { Axios } from "@Utils/Axios";
 import { Config } from "@Config";
-// import Link from "next/link";
 import { changeCase } from "@Utils/CaseChnage";
 import SettingsModel from "./Settings";
 import { log } from "@Utils";
@@ -214,6 +193,7 @@ function Tools() {
     }
 
     const handleKeyPress = (e: KeyboardEvent | React.KeyboardEvent<HTMLDivElement>) => {
+        log("Key Pressed", e.key);
         if (ModalState.isOpen) {
             return;
         }
@@ -349,28 +329,28 @@ function Tools() {
         if (isAlphaNumericOrSymbol && !ModalState.isOpen) {
             if (searchInputRef.current) {
                 searchInputRef.current.focus();
-                if (State.Query === "") {
-                    setState((State) => {
-                        return {
-                            ...State,
-                            Query: e.key
-                        }
-                    });
-                    setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
-                        return {
-                            ...SuggestionsState,
-                            QueryDisplay: e.key
-                        }
-                    });
+                // if (State.Query === "") {
+                //     setState((State) => {
+                //         return {
+                //             ...State,
+                //             Query: e.key
+                //         }
+                //     });
+                //     setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
+                //         return {
+                //             ...SuggestionsState,
+                //             QueryDisplay: e.key
+                //         }
+                //     });
 
-                    setTimeout(() => {
-                        if (searchInputRef.current) {
-                            const event = new Event('input', { bubbles: true });
-                            Object.defineProperty(event, 'target', { value: { value: e.key } });
-                            searchInputRef.current.dispatchEvent(event);
-                        }
-                    }, 0);
-                }
+                //     setTimeout(() => {
+                //         if (searchInputRef.current) {
+                //             const event = new Event('input', { bubbles: true });
+                //             Object.defineProperty(event, 'target', { value: { value: e.key } });
+                //             searchInputRef.current.dispatchEvent(event);
+                //         }
+                //     }, 0);
+                // }
             }
         }
     };
@@ -634,34 +614,6 @@ function Tools() {
         }
     }
 
-    async function ConfirmEdit() {
-        const bookmarkIndex = State.Bookmarks.findIndex((bookmark) => bookmark.BookmarkID === ModalState.bookmark.BookmarkID);
-        if (bookmarkIndex === -1) {
-            return;
-        }
-
-        const newBookmarks = [...State.Bookmarks];
-        newBookmarks[bookmarkIndex] = ModalState.bookmark;
-
-        await setState({
-            ...State,
-            Bookmarks: newBookmarks,
-            FilterBookmarks: newBookmarks
-        });
-
-        await CloseModel();
-    }
-
-    async function ConfirmNewBookmark() {
-        await setState({
-            ...State,
-            Bookmarks: [...State.Bookmarks, ModalState.bookmark],
-            FilterBookmarks: [...State.Bookmarks, ModalState.bookmark],
-        });
-
-        await CloseModel();
-    }
-
     const handleResize = () => {
         setWindowWidth(window.innerWidth);
     };
@@ -734,9 +686,9 @@ function Tools() {
     }, [
         SuggestionsState.Index,
         ModalState.isOpen,
-        State.Query,
-        State.FilterBookmarks,
-        SuggestionsState.Suggestions
+        // State.Query,
+        // State.FilterBookmarks,
+        // SuggestionsState.Suggestions
     ]);
 
     // ? Initial Run & Window Resize, Focus on Search Input Listeners

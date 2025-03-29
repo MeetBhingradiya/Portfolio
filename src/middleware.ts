@@ -33,6 +33,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
+import { ControllerResponseMap } from '@Utils';
 // import { RateLimiter } from '@Utils/RateLimit';
 
 const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
@@ -79,27 +80,30 @@ export async function middleware(req: NextRequest) {
         }
 
         if (!csrfTokenFromHeader) {
-            return NextResponse.json({
+            return ControllerResponseMap({
                 Status: 0,
                 Message: 'Invalid Authorization by HEADER',
-                StatusCode: "INVALID_AUTHORIZATION"
-            }, { status: 403 });
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
         }
 
         if (!csrfTokenFromCookie) {
-            return NextResponse.json({
+            return ControllerResponseMap({
                 Status: 0,
                 Message: 'Invalid Authorization by COOKIE',
-                StatusCode: "INVALID_AUTHORIZATION"
-            }, { status: 403 });
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
         }
 
         if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
-            return NextResponse.json({
+            return ControllerResponseMap({
                 Status: 0,
                 Message: 'Invalid Authorization by TOKEN',
-                StatusCode: "INVALID_AUTHORIZATION"
-            }, { status: 403 });
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
         }
 
         try {
@@ -108,18 +112,20 @@ export async function middleware(req: NextRequest) {
             });
 
             if (!verified) {
-                return NextResponse.json({
+                return ControllerResponseMap({
                     Status: 0,
                     Message: 'Invalid Authorization by VERIFY',
-                    StatusCode: 'INVALID_AUTHORIZATION'
-                }, { status: 403 });
+                    StatusCode: 'INVALID_AUTHORIZATION',
+                    StatusNumber: 403
+                });
             }
         } catch (error) {
-            return NextResponse.json({
+            return ControllerResponseMap({
                 Status: 0,
                 Message: 'Invalid Authorization by 500 VERIFY',
-                StatusCode: "INVALID_AUTHORIZATION"
-            }, { status: 403 });
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
         }
     }
 

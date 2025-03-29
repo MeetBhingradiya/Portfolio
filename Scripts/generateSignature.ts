@@ -45,6 +45,60 @@ fs.writeFileSync("./State.json", JSON.stringify(State, null, 4));
 //     }
 // }
 
+async function HMACSignature(SecretKey: string = SECRET_KEY) {
+    const generateSignature = (jsonData: any) => {
+        const clonedData = JSON.parse(JSON.stringify(jsonData));
+        const Minify = JSON.stringify(clonedData);
+        return crypto.createHmac("sha256", SecretKey).update(Minify).digest("hex");
+    }
+
+    const verifySignature = (jsonData: {
+        Signature: string;
+        Data: any;
+    }, URL?: string) => {
+
+        const originalSignature = jsonData.Signature;
+        if (!originalSignature) {
+            console.error("❌ No \"Signature\" found in the JSON.");
+            return false;
+        }
+
+        if (!jsonData.Data) {
+            console.error("❌ No \"Data\" found in the JSON.");
+            return false;
+        }
+
+        const calculatedSignature = generateSignature(jsonData.Data);
+
+        if (calculatedSignature === originalSignature) {
+            console.log("✅ Signature is valid!");
+            return true;
+        } else {
+            console.error("❌ Signature mismatch!");
+            return false;
+        }
+    }
+    
+    const verifySignatureFromUrl = async (url:string) => {
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`Failed to fetch data: ${response.statusText}`);
+
+            const jsonData = await response.json();
+            return verifySignature(jsonData);
+        } catch (error) {
+            console.error("❌ Verification Failed", error);
+            return false;
+        }
+    };
+
+    return {
+        generateSignature,
+        verifySignature,
+        verifySignatureFromUrl
+    };
+}
+
 // Function to fetch JSON from a GitHub Gist and verify the signature
 async function verifySignatureFromGist(gistUrl: string) {
     try {

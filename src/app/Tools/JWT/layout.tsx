@@ -1,6 +1,6 @@
 /**
- *  @FileID          Utils/index.ts
- *  @Description     Currently, there is no description available.
+ *  @FileID          app/Tools/JWT/layout.tsx
+ *  @Description     Layout for JWT Debugger tool
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------
@@ -25,27 +25,36 @@
  *  -----------------------------------------------------------------------------
  *  Last Updated on Version: 1.0.11
  *  -----------------------------------------------------------------------------
- *  @created 03/03/25 8:11 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
+ *  @created 12/04/25 1:45 PM IST (Kolkata +5:30 UTC)
+ *  @modified 12/04/25 1:45 PM IST (Kolkata +5:30 UTC)
  */
 
-export * from "./Axios";
-export * from "./CaseChnage";
-export * from "./Crypto";
-export * from "./ExtensionsDetector";
-export * from "./getEnvs";
-export * from "./getTrace";
-export * from "./IPData";
-export * from "./log";
-export * from "./OTP";
-export * from "./ParseIPDatatoConfig";
-export * from "./Relativetime";
-export * from "./RemoteImageLoader";
-export * from "./RemoveDuplicates";
-export * from "./RSA";
-export * from "./Sitemap";
-export * from "./Sleep";
-export * from "./UserAgent";
-export * from "./windowcheck";
-export * from "./RedirectProtocolExecuter";
-export * from "./ControllerResponseMap";
+
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "JWT Debugger - Meet Bhingradiya",
+    description: "Decode, verify and debug JSON Web Tokens (JWT) securely in your browser.",
+    icons: "/favicon.ico",
+    keywords: [
+        "Meet Bhingradiya",
+        "Meet",
+        "Bhingradiya",
+        "Portfolio",
+        "Tools",
+        "JWT",
+        "JSON Web Token",
+        "JWT Debugger",
+        "JWT Decoder",
+        "Token Verification"
+    ]
+}
+
+// @ File
+export default function Layout({
+    children,
+}: Readonly<{
+    children: React.ReactNode;
+}>) {
+    return children
+}

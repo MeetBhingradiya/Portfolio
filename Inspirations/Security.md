@@ -1,5 +1,8 @@
 # Security Framework
 
+## Client & Server Communication Security on DevTools
+- Server Data is Securely Verified with Signature before Accepting any Response from Server
+
 ## 🚀 Deployment Protection & DDoS Mitigation
 
 - 🌐 **Cloudflare Protection**: Active until domain expiration (1 year). If expired, fallback to **Vercel's Protection**.

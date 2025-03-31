@@ -198,6 +198,7 @@ interface IToolsState {
     FilterBookmarks: Array<IBookmark>
     Bookmarks: Array<IBookmark>
     Query: string
+    QueryDisplay: string
     isFirstRun: boolean
     Preferences: IPreferences
 }
@@ -206,6 +207,7 @@ const DefualtToolsState: IToolsState = {
     FilterBookmarks: [],
     Bookmarks: [],
     Query: "",
+    QueryDisplay: "",
     isFirstRun: true,
     Preferences: DefualtPreferences,
 }
@@ -232,13 +234,11 @@ interface IToolsSuggestionResponse {
 interface IToolsSuggestionsState {
     Suggestions: Array<IToolsSuggestion>
     Index: number
-    QueryDisplay: "",
 }
 
 const DefualtToolsSuggestionsState: IToolsSuggestionsState = {
     Suggestions: [],
     Index: 0,
-    QueryDisplay: "",
 }
 
 enum IToolsSettingsTabs {

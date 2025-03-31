@@ -211,6 +211,11 @@ function Tools() {
                     return {
                         ...SuggestionsState,
                         Index: SuggestionsState.Index + 1,
+                    }
+                });
+                setState((State) => {
+                    return {
+                        ...State,
                         QueryDisplay: SuggestionsState.Suggestions[SuggestionsState.Index + 1]?.Query ?? State.Query
                     }
                 });
@@ -219,6 +224,11 @@ function Tools() {
                     return {
                         ...SuggestionsState,
                         Index: 0,
+                    }
+                });
+                setState((State) => {
+                    return {
+                        ...State,
                         QueryDisplay: State.Query
                     }
                 });
@@ -226,36 +236,40 @@ function Tools() {
         }
 
         if (e.key === "ArrowUp") {
+
             e.preventDefault();
             if ((SuggestionsState.Index - 1) >= 0) {
+
                 setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                     return {
                         ...SuggestionsState,
-                        Index: SuggestionsState.Index - 1,
+                        Index: SuggestionsState.Index - 1
+                    }
+                });
+                setState((State) => {
+                    return {
+                        ...State,
                         QueryDisplay: SuggestionsState.Suggestions[SuggestionsState.Index - 1]?.Query ?? State.Query
                     }
                 });
+
             } else {
+
                 setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                     return {
                         ...SuggestionsState,
-                        Index: SuggestionsState.Suggestions.length,
+                        Index: SuggestionsState.Suggestions.length
+                    }
+                });
+                setState((State) => {
+                    return {
+                        ...State,
                         QueryDisplay: SuggestionsState.Suggestions[SuggestionsState.Suggestions.length - 1]?.Query ?? State.Query
                     }
                 });
-            }
-        }
 
-        if (e.key === "Escape") {
-            if (searchInputRef.current) {
-                searchInputRef.current.blur();
             }
-        }
 
-        if (e.key === "Backspace") {
-            if (State.Query === "" && searchInputRef.current) {
-                searchInputRef.current.focus();
-            }
         }
 
         if (e.key === "Delete") {
@@ -264,12 +278,12 @@ function Tools() {
                 setState({
                     ...State,
                     FilterBookmarks: State.Bookmarks,
-                    Query: ""
+                    Query: "",
+                    QueryDisplay: ""
                 });
                 setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                     return {
                         ...SuggestionsState,
-                        QueryDisplay: "",
                         Index: 0
                     }
                 });
@@ -329,28 +343,6 @@ function Tools() {
         if (isAlphaNumericOrSymbol && !ModalState.isOpen) {
             if (searchInputRef.current) {
                 searchInputRef.current.focus();
-                // if (State.Query === "") {
-                //     setState((State) => {
-                //         return {
-                //             ...State,
-                //             Query: e.key
-                //         }
-                //     });
-                //     setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
-                //         return {
-                //             ...SuggestionsState,
-                //             QueryDisplay: e.key
-                //         }
-                //     });
-
-                //     setTimeout(() => {
-                //         if (searchInputRef.current) {
-                //             const event = new Event('input', { bubbles: true });
-                //             Object.defineProperty(event, 'target', { value: { value: e.key } });
-                //             searchInputRef.current.dispatchEvent(event);
-                //         }
-                //     }, 0);
-                // }
             }
         }
     };
@@ -406,6 +398,7 @@ function Tools() {
         setState({
             ...State,
             Query: OriginalQuery,
+            QueryDisplay: OriginalQuery,
             FilterBookmarks: filteredBookmarks
         });
 
@@ -413,12 +406,13 @@ function Tools() {
             // ? Make Delay for Debounce
             setTimeout(() => {
                 FetchSuggestions();
-            }, 1000);
+            }, 500);
         } else {
             setSuggestionsState((SuggestionsState: IToolsSuggestionsState | any) => {
                 return {
                     ...SuggestionsState,
-                    Suggestions: []
+                    Suggestions: [],
+                    Index: 0
                 }
             });
         }
@@ -520,7 +514,6 @@ function Tools() {
             return {
                 ...SuggestionsState,
                 Suggestions: ProcessedSuggestions,
-                QueryDisplay: State.Query
             }
         });
     };
@@ -686,9 +679,9 @@ function Tools() {
     }, [
         SuggestionsState.Index,
         ModalState.isOpen,
-        // State.Query,
-        // State.FilterBookmarks,
-        // SuggestionsState.Suggestions
+        State.Query,
+        State.FilterBookmarks,
+        SuggestionsState.Suggestions
     ]);
 
     // ? Initial Run & Window Resize, Focus on Search Input Listeners
@@ -900,7 +893,7 @@ function Tools() {
                         type="text"
                         placeholder="🔍 Search"
                         tabIndex={1}
-                        value={SuggestionsState.QueryDisplay}
+                        value={State.QueryDisplay}
                         onChange={onQueryChange}
                         className="search"
                         initial={{ opacity: 0 }}
@@ -945,10 +938,10 @@ function Tools() {
                                             ...State,
                                             FilterBookmarks: State.Bookmarks,
                                             Query: "",
+                                            QueryDisplay: ""
                                         })
                                         setSuggestionsState({
                                             ...SuggestionsState,
-                                            QueryDisplay: "",
                                             Index: 0,
                                         })
                                     }}

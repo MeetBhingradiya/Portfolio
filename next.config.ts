@@ -9,6 +9,7 @@ let tsconfig: any = jsonc.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfi
 const nextConfig: NextConfig = {
     reactStrictMode: false,
     devIndicators: false,
+    // crossOrigin: "anonymous",
     images: {
         loader: 'custom',
         loaderFile: "./src/Utils/RemoteImageLoader.ts",

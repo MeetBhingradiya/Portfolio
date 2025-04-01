@@ -29,7 +29,11 @@ import {
     Info,
     Label,
     Warning,
-    DragIndicator
+    DragIndicator,
+    LocalMall,
+    Book,
+    Cached,
+    Security
 } from "@mui/icons-material";
 import {
     Card,
@@ -38,7 +42,8 @@ import {
     TextField,
     Stack,
     FormControlLabel,
-    Switch
+    Switch,
+    Typography
 } from "@mui/material";
 import {
     GridContextProvider,
@@ -58,6 +63,7 @@ import {
     DefualtBookmark,
     ILinkOpenTypes
 } from "./Types";
+import "@Styles/Tools-BookmarkEditor.sass"
 
 interface IBookmarkEditorProps {
     bookmark: IBookmark;
@@ -86,6 +92,13 @@ function BookmarkEditor({
     const [isValidWindowsUrl, setIsValidWindowsUrl] = React.useState<boolean>(true);
     const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
     const [iconPreviewUrl, setIconPreviewUrl] = React.useState<string>(bookmark.Icon || "");
+
+    function RegenerateUUID() {
+        setEditedBookmark({
+            ...editedBookmark,
+            BookmarkID: uuidv4()
+        })
+    }
 
     // URL validation function
     const validateUrl = (url: string, type: 'main' | 'android' | 'windows'): boolean => {
@@ -381,11 +394,69 @@ function BookmarkEditor({
     };
 
     return (
-        <div className="flex flex-col w-full max-w-4xl mx-auto p-4 gap-6">
-            <h1 className="text-2xl font-bold">
-                {isCreateMode ? "Create New Bookmark" : "Edit Bookmark"}
-            </h1>
-            <div className="flex flex-col gap-4 w-full">
+        <div className="Editor w-full mx-auto p-4 gap-6">
+            <div className="flex flex-col gap-2 justify-center items-center">
+                <Typography variant="h1" className="font-bold text-6xl">
+                    {
+                        isCreateMode ? <Book fontSize="inherit" /> : <Edit fontSize="inherit" />
+                    }
+                </Typography>
+                <Typography variant="h4" className="font-bold text-lg">
+                    {
+                        isCreateMode ? "Create a new bookmark" : "Edit an existing bookmark"
+                    }
+                </Typography>
+                <Typography variant="body1" className="text-gray-500 text-sm">
+                    {
+                        isCreateMode ? "Fill in the details to create a new bookmark" : "Edit the details of the bookmark below"
+                    }
+                </Typography>
+            </div>
+
+            <div className="flex flex-col justify-center items-center">
+                <div
+                    className="bookmark"
+                >
+                    {
+                        editedBookmark.Icon ? (
+                            editedBookmark.isSVG ? (
+                                <SvgComponent
+                                    svgString={editedBookmark.Icon}
+                                    _class="w-10 h-10"
+                                    style={{
+                                        color: editedBookmark.SVGStyles?.fill || "#000000"
+                                    }}
+                                />
+                            ) : (
+                                <Image
+                                    src={editedBookmark.Icon}
+                                    alt={editedBookmark.Name}
+                                    width={48}
+                                    height={48}
+                                    style={{
+                                        objectFit: "contain"
+                                    }}
+                                />
+                            )
+                        ) : (
+                            <Public className="w-10 h-10 text-gray-400" />
+                        )
+                    }
+                    <h2 className="bookmarkTitle">{editedBookmark.Name}</h2>
+                    <div className="ServerIcon">
+                        <Cloud />
+                    </div>
+                    {
+                        isAdmin && (
+                            <div className="AdminIcon">
+                                <Security />
+                            </div>
+                        )
+                    }
+                </div>
+            </div>
+
+            <div className="flex flex-col gap-7 w-full">
                 {/* General Information Tab */}
                 <div className="flex flex-col gap-4">
                     <h2 className="text-xl font-semibold">Basic Information</h2>
@@ -452,8 +523,16 @@ function BookmarkEditor({
                             {editedBookmark.BookmarkID ? (
                                 <div className="flex flex-col gap-1">
                                     <p className="text-xs text-gray-500">Bookmark ID</p>
-                                    <p className="text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded">
+                                    <p className="text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded flex justify-between items-center" style={{ color: "var(--font-color)" }}>
                                         {editedBookmark.BookmarkID}
+                                        <Button
+                                            color="primary"
+                                            variant="flat"
+                                            isIconOnly
+                                            onPress={RegenerateUUID}
+                                        >
+                                            <Cached />
+                                        </Button>
                                     </p>
                                 </div>
                             ) : (
@@ -489,7 +568,7 @@ function BookmarkEditor({
                                             size="sm"
                                             color="primary"
                                             variant="flat"
-                                            onClick={detectFavicon}
+                                            onPress={detectFavicon}
                                             isDisabled={!isValidUrl || !editedBookmark.URL}
                                         >
                                             Detect Favicon
@@ -499,7 +578,7 @@ function BookmarkEditor({
                                             size="sm"
                                             variant="flat"
                                             isDisabled={!isValidUrl || !editedBookmark.URL}
-                                            onClick={() => window.open(editedBookmark.URL, '_blank')}
+                                            onPress={() => window.open(editedBookmark.URL, '_blank')}
                                         >
                                             Test URL
                                         </Button>
@@ -603,7 +682,7 @@ function BookmarkEditor({
                                     </div>
                                     <Button
                                         color="primary"
-                                        onClick={addKeyword}
+                                        onPress={addKeyword}
                                         isDisabled={!newKeyword.trim()}
                                     >
                                         Add
@@ -791,7 +870,7 @@ function BookmarkEditor({
                                             <Button
                                                 color="primary"
                                                 variant="flat"
-                                                onClick={detectFavicon}
+                                                onPress={detectFavicon}
                                                 isDisabled={!isValidUrl || !editedBookmark.URL}
                                             >
                                                 Auto-detect from URL
@@ -1116,7 +1195,7 @@ function BookmarkEditor({
                                                 <Button
                                                     color="danger"
                                                     startContent={<Delete />}
-                                                    onClick={() => {
+                                                    onPress={() => {
                                                         if (confirm('Are you sure you want to delete this bookmark? This action cannot be undone.')) {
                                                             setEditedBookmark(prev => ({
                                                                 ...prev,
@@ -1147,7 +1226,7 @@ function BookmarkEditor({
                                                     isIconOnly
                                                     size="sm"
                                                     variant="flat"
-                                                    onClick={() => {
+                                                    onPress={() => {
                                                         if (editedBookmark.BookmarkID) {
                                                             navigator.clipboard.writeText(editedBookmark.BookmarkID);
                                                         }
@@ -1173,7 +1252,7 @@ function BookmarkEditor({
                         <Button
                             color="danger"
                             variant="flat"
-                            onClick={onCancel}
+                            onPress={onCancel}
                         >
                             Cancel
                         </Button>
@@ -1182,7 +1261,7 @@ function BookmarkEditor({
                     <div className="flex flex-row gap-2">
                         <Button
                             color="primary"
-                            onClick={() => onSave && onSave(editedBookmark)}
+                            onPress={() => onSave && onSave(editedBookmark)}
                         >
                             {isCreateMode ? "Create Bookmark" : "Save Changes"}
                         </Button>

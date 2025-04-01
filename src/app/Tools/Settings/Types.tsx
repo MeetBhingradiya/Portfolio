@@ -63,10 +63,10 @@ interface IBookmark {
 const DefualtBookmark: IBookmark = {
     // ? Identifier
     BookmarkID: v4(),
-    Name: "",
+    Name: "New Bookmark",
 
     // ? URLs
-    URL: "",
+    URL: "https://example.com",
     Android: "",
     Windows: "",
 

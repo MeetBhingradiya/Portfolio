@@ -360,7 +360,7 @@ function Tools() {
                 bookmark.Name.toLowerCase().includes(query) ||
                 (bookmark.Keywords ?? []).some((keyword) => keyword.toLowerCase().includes(query)) ||
                 isExactMatch(bookmark.Name, bookmark.Keywords) ||
-                bookmark.URL.toLowerCase().includes(query)
+                bookmark.WebLink.toLowerCase().includes(query)
             );
         }).sort((a, b) => {
             // ? Exact match comparison
@@ -385,8 +385,8 @@ function Tools() {
             if (!aKeywordMatch && bKeywordMatch) return 1;
 
             // ? URL match comparison
-            const aUrlMatch = a.URL.toLowerCase().includes(query);
-            const bUrlMatch = b.URL.toLowerCase().includes(query);
+            const aUrlMatch = a.WebLink.toLowerCase().includes(query);
+            const bUrlMatch = b.WebLink.toLowerCase().includes(query);
 
             if (aUrlMatch && !bUrlMatch) return -1;
             if (!aUrlMatch && bUrlMatch) return 1;
@@ -579,7 +579,7 @@ function Tools() {
                 return {
                     id: bookmark.BookmarkID,
                     name: bookmark.name,
-                    url: bookmark.url,
+                    url: bookmark.WebLink,
                     icon: bookmark.icon,
                     keywords: bookmark.keywords,
                     isSVGSrc: bookmark.isSVGSrc,
@@ -591,7 +591,7 @@ function Tools() {
             })
 
             let RemoveDublicatesfromLocal = State.Bookmarks.filter((localBookmark) => {
-                return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.URL === localBookmark.URL);
+                return !ProcessedBookmarks.some((serverBookmark: any) => serverBookmark.WebLink === localBookmark.WebLink);
             });
 
             ProcessedBookmarks = ProcessedBookmarks.sort(() => Math.random() - 0.5);
@@ -650,7 +650,7 @@ function Tools() {
                 isWindowsApp ? b.Windows === appLink : b.Android === appLink
             );
             if (bookmark) {
-                window.location.href = bookmark.URL;
+                window.location.href = bookmark.WebLink;
             }
         }
     };
@@ -666,7 +666,7 @@ function Tools() {
             return;
         }
 
-        OpenLink(bookmark.URL);
+        OpenLink(bookmark.WebLink);
     };
 
     // @Updates
@@ -1090,7 +1090,7 @@ function Tools() {
                                                         MozWindowDragging: "no-drag",
                                                         width: "64px",
                                                         height: "64px",
-                                                        color: item.SVGStyles?.fill ?? "black",
+                                                        color: item.fillColor ?? "black",
                                                     }} />
                                             )
                                         }
@@ -1113,7 +1113,7 @@ function Tools() {
                                 )}
                                 <h2 className="bookmarkTitle">{item.Name}</h2>
                                 {
-                                    item.isServer && (
+                                    item.isCloudSync && (
                                         <div className="ServerIcon">
                                             <Cloud />
                                         </div>
@@ -1195,7 +1195,7 @@ function Tools() {
 
                                 <MenuItem
                                     onClick={() => {
-                                        OpenLink(bookmark?.URL ?? "");
+                                        OpenLink(bookmark?.WebLink ?? "");
                                         setContextMenu(null);
                                     }}
                                 >
@@ -1209,7 +1209,7 @@ function Tools() {
 
                                 <MenuItem
                                     onClick={() => {
-                                        OpenLink(bookmark?.URL ?? "");
+                                        OpenLink(bookmark?.WebLink ?? "");
                                         setContextMenu(null);
                                     }}
                                 >

@@ -31,7 +31,6 @@
 
 export * from "./Axios";
 export * from "./CaseChnage";
-export * from "./Crypto";
 export * from "./ExtensionsDetector";
 export * from "./getEnvs";
 export * from "./getTrace";
@@ -42,7 +41,6 @@ export * from "./ParseIPDatatoConfig";
 export * from "./Relativetime";
 export * from "./RemoteImageLoader";
 export * from "./RemoveDuplicates";
-export * from "./RSA";
 export * from "./Sitemap";
 export * from "./Sleep";
 export * from "./UserAgent";

@@ -1,13 +1,22 @@
 import React from "react";
-import { ModalFooter, Tooltip, Button } from "@heroui/react"
-import { IToolsSettingsTabs, IToolsModalData, IToolsState, ILinkOpenTypes } from "./Types";
+import { toast } from "react-toastify";
+import { 
+    ModalFooter, 
+    Tooltip, 
+    Button 
+} from "@heroui/react"
+import {
+    IToolsSettingsTabs,
+    IToolsModalData,
+    IToolsState,
+    DefualtBookmark
+} from "./Types";
 import {
     Add,
     Restore,
     Save
 } from "@mui/icons-material";
-import { toast } from "react-hot-toast";
-import { v4 } from "uuid";
+
 interface FooterProps {
     ModalState: IToolsModalData
     SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>
@@ -17,7 +26,6 @@ interface FooterProps {
 }
 
 const StorageKey = "Tools";
-const AdminOptionVisibleKey = "AdminOptionVisible";
 
 const LongSidebarsOn = [
     IToolsSettingsTabs.Preferences,
@@ -64,7 +72,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                     return;
                                 }
 
-                                if (!isValidUrl(ModalState.bookmark.URL)) {
+                                if (!isValidUrl(ModalState.bookmark.WebLink)) {
                                     toast.error("Please enter a valid URL");
                                     return;
                                 }
@@ -116,7 +124,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                     return;
                                 }
 
-                                if (!isValidUrl(ModalState.bookmark.URL)) {
+                                if (!isValidUrl(ModalState.bookmark.WebLink)) {
                                     toast.error("Please enter a valid URL");
                                     return;
                                 }
@@ -145,28 +153,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
 
                                 SetModalState({
                                     ...ModalState,
-                                    bookmark: {
-                                        BookmarkID: v4(),
-                                        Name: "",
-                                        URL: "",
-                                        Icon: "",
-                                        Android: "",
-                                        Windows: "",
-                                        Description: "",
-                                        Keywords: [],
-                                        SVGStyles: {
-                                            fill: "#000000",
-                                        },
-                                        isSVG: false,
-                                        ClientOptions: {
-                                            OpenLinkPlatformPriority: "web",
-                                            OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
-                                            isSearchVisible: true
-                                        },
-                                        isPublished: true,
-                                        isDeleted: false,
-                                        isServer: false
-                                    }
+                                    bookmark: DefualtBookmark
                                 });
 
                                 SetModalState({
@@ -188,27 +175,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                         <Button isIconOnly color="secondary" variant="light" onPress={() => {
                             SetModalState({
                                 ...ModalState,
-                                bookmark: {
-                                    Name: "",
-                                    URL: "",
-                                    Icon: "",
-                                    Android: "",
-                                    Windows: "",
-                                    Description: "",
-                                    Keywords: [],
-                                    SVGStyles: {
-                                        fill: "#000000",
-                                    },
-                                    isSVG: false,
-                                    ClientOptions: {
-                                        OpenLinkPlatformPriority: "web",
-                                        OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
-                                        isSearchVisible: true
-                                    },
-                                    isPublished: true,
-                                    isDeleted: false,
-                                    isServer: false
-                                }
+                                bookmark: DefualtBookmark
                             })
                             return;
                         }}>

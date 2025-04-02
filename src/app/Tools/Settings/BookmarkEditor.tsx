@@ -10,7 +10,8 @@ import {
     Checkbox,
     Select,
     SelectItem,
-    Chip
+    Chip,
+    cn
 } from "@heroui/react";
 import {
     Cloud,
@@ -33,7 +34,11 @@ import {
     LocalMall,
     Book,
     Cached,
-    Security
+    Security,
+    Shield,
+    Star,
+    EditOff,
+    DeleteForever
 } from "@mui/icons-material";
 import {
     Card,
@@ -55,7 +60,6 @@ import SvgComponent from "@Components/SVGComponent";
 import { v4 as uuidv4 } from 'uuid';
 import { toast } from "react-toastify";
 import Image from "next/image";
-
 import type {
     IBookmark
 } from "./Types";
@@ -262,9 +266,9 @@ function BookmarkEditor({
     // Try to detect favicon from URL
     const detectFavicon = () => {
         toast.info("Favicon Detection Currently not Available");
-        // if (!editedBookmark.URL) return;
+        // if (!editedBookmark.WebLink) return;
 
-        // const url = new URL(editedBookmark.URL);
+        // const url = new URL(editedBookmark.WebLink);
         // const faviconUrl = `${url.protocol}//${url.hostname}/favicon.ico`;
 
         // // Check if the favicon URL is valid by making a request
@@ -284,7 +288,7 @@ function BookmarkEditor({
         //         }
         //     })
         //     .catch(error => {
-        //         fetch(editedBookmark.URL)
+        //         fetch(editedBookmark.WebLink)
         //             .then((response) => response.text())
         //             .then((html) => {
         //                 const parser = new DOMParser();
@@ -424,7 +428,7 @@ function BookmarkEditor({
                                     svgString={editedBookmark.Icon}
                                     _class="w-10 h-10"
                                     style={{
-                                        color: editedBookmark.SVGStyles?.fill || "#000000"
+                                        color: editedBookmark?.fillColor || "#000000"
                                     }}
                                 />
                             ) : (
@@ -494,7 +498,7 @@ function BookmarkEditor({
                                                 svgString={editedBookmark.Icon}
                                                 _class="w-10 h-10"
                                                 style={{
-                                                    color: editedBookmark.SVGStyles?.fill || "#000000"
+                                                    color: editedBookmark?.fillColor || "#000000"
                                                 }}
                                             />
                                         ) : (
@@ -554,7 +558,7 @@ function BookmarkEditor({
                                         name="URL"
                                         label="Web URL"
                                         placeholder="Enter website URL (https://example.com)"
-                                        value={editedBookmark.URL}
+                                        value={editedBookmark.WebLink}
                                         onChange={handleInputChange}
                                         isRequired={isCreateMode}
                                         isInvalid={!!errors.URL}
@@ -569,7 +573,7 @@ function BookmarkEditor({
                                             color="primary"
                                             variant="flat"
                                             onPress={detectFavicon}
-                                            isDisabled={!isValidUrl || !editedBookmark.URL}
+                                            isDisabled={!isValidUrl || !editedBookmark.WebLink}
                                         >
                                             Detect Favicon
                                         </Button>
@@ -577,8 +581,8 @@ function BookmarkEditor({
                                         <Button
                                             size="sm"
                                             variant="flat"
-                                            isDisabled={!isValidUrl || !editedBookmark.URL}
-                                            onPress={() => window.open(editedBookmark.URL, '_blank')}
+                                            isDisabled={!isValidUrl || !editedBookmark.WebLink}
+                                            onPress={() => window.open(editedBookmark.WebLink, '_blank')}
                                         >
                                             Test URL
                                         </Button>
@@ -831,33 +835,27 @@ function BookmarkEditor({
                                                     <Input
                                                         type="text"
                                                         placeholder="#000000"
-                                                        value={editedBookmark.SVGStyles?.fill || "#000000"}
+                                                        value={editedBookmark?.fillColor || "#000000"}
                                                         onChange={(e) => {
                                                             setEditedBookmark(prev => ({
                                                                 ...prev,
-                                                                SVGStyles: {
-                                                                    ...prev.SVGStyles,
-                                                                    fill: e.target.value
-                                                                }
+                                                                fillColor: e.target.value
                                                             }));
                                                         }}
                                                         startContent={
                                                             <div
                                                                 className="w-4 h-4 rounded-full"
-                                                                style={{ backgroundColor: editedBookmark.SVGStyles?.fill || "#000000" }}
+                                                                style={{ backgroundColor: editedBookmark?.fillColor || "#000000" }}
                                                             />
                                                         }
                                                     />
                                                     <Input
                                                         type="color"
-                                                        value={editedBookmark.SVGStyles?.fill || "#000000"}
+                                                        value={editedBookmark?.fillColor || "#000000"}
                                                         onChange={(e) => {
                                                             setEditedBookmark(prev => ({
                                                                 ...prev,
-                                                                SVGStyles: {
-                                                                    ...prev.SVGStyles,
-                                                                    fill: e.target.value
-                                                                }
+                                                                fillColor: e.target.value
                                                             }));
                                                         }}
                                                         className="w-12 h-10"
@@ -871,7 +869,7 @@ function BookmarkEditor({
                                                 color="primary"
                                                 variant="flat"
                                                 onPress={detectFavicon}
-                                                isDisabled={!isValidUrl || !editedBookmark.URL}
+                                                isDisabled={!isValidUrl || !editedBookmark.WebLink}
                                             >
                                                 Auto-detect from URL
                                             </Button>
@@ -887,7 +885,7 @@ function BookmarkEditor({
                                                         svgString={editedBookmark.Icon}
                                                         _class="w-20 h-20"
                                                         style={{
-                                                            color: editedBookmark.SVGStyles?.fill || "#000000"
+                                                            color: editedBookmark?.fillColor || "#000000"
                                                         }}
                                                     />
                                                 ) : (
@@ -967,20 +965,20 @@ function BookmarkEditor({
 
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                                         <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "web"
+                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "web"
                                                 ? "border-primary bg-primary-50 dark:bg-primary-900/10"
                                                 : "border-gray-200 dark:border-gray-700"
                                                 }`}
-                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlatformPriority", "web")}
+                                            onClick={() => handleSelectChange("Priority", "web")}
                                         >
                                             <div className="flex items-center justify-center">
-                                                <Language className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "web"
+                                                <Language className={`w-10 h-10 ${editedBookmark.Priority === "web"
                                                     ? "text-primary"
                                                     : "text-gray-400"
                                                     }`} />
                                             </div>
                                             <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "web"
+                                                <p className={`font-medium ${editedBookmark.Priority === "web"
                                                     ? "text-primary"
                                                     : ""
                                                     }`}>Web</p>
@@ -989,20 +987,20 @@ function BookmarkEditor({
                                         </div>
 
                                         <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "mobile"
+                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "android"
                                                 ? "border-primary bg-primary-50 dark:bg-primary-900/10"
                                                 : "border-gray-200 dark:border-gray-700"
                                                 }`}
-                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlatformPriority", "mobile")}
+                                            onClick={() => handleSelectChange("Priority", "android")}
                                         >
                                             <div className="flex items-center justify-center">
-                                                <Android className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "mobile"
+                                                <Android className={`w-10 h-10 ${editedBookmark.Priority === "android"
                                                     ? "text-primary"
                                                     : "text-gray-400"
                                                     }`} />
                                             </div>
                                             <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "mobile"
+                                                <p className={`font-medium ${editedBookmark.Priority === "android"
                                                     ? "text-primary"
                                                     : ""
                                                     }`}>Mobile</p>
@@ -1011,20 +1009,20 @@ function BookmarkEditor({
                                         </div>
 
                                         <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "desktop"
+                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "windows"
                                                 ? "border-primary bg-primary-50 dark:bg-primary-900/10"
                                                 : "border-gray-200 dark:border-gray-700"
                                                 }`}
-                                            onClick={() => handleSelectChange("ClientOptions.OpenLinkPlatformPriority", "desktop")}
+                                            onClick={() => handleSelectChange("Priority", "windows")}
                                         >
                                             <div className="flex items-center justify-center">
-                                                <Window className={`w-10 h-10 ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "desktop"
+                                                <Window className={`w-10 h-10 ${editedBookmark.Priority === "windows"
                                                     ? "text-primary"
                                                     : "text-gray-400"
                                                     }`} />
                                             </div>
                                             <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.ClientOptions?.OpenLinkPlatformPriority === "desktop"
+                                                <p className={`font-medium ${editedBookmark.Priority === "windows"
                                                     ? "text-primary"
                                                     : ""
                                                     }`}>Desktop</p>
@@ -1032,92 +1030,6 @@ function BookmarkEditor({
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div className="flex flex-col gap-3 mt-2">
-                                    <p className="text-sm font-medium">Link Open Method</p>
-                                    <p className="text-xs text-gray-500 mb-2">
-                                        How should the link be opened when a user clicks on this bookmark?
-                                    </p>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                                        {Object.values(ILinkOpenTypes).map((method) => (
-                                            <div
-                                                key={method}
-                                                className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.ClientOptions?.OpenLinkMethod === method
-                                                    ? "border-primary bg-primary-50 dark:bg-primary-900/10"
-                                                    : "border-gray-200 dark:border-gray-700"
-                                                    }`}
-                                                onClick={() => handleSelectChange("ClientOptions.OpenLinkMethod", method)}
-                                            >
-                                                <div className="flex items-center justify-center">
-                                                    {method === ILinkOpenTypes.NEW_TAB && (
-                                                        <svg viewBox="0 0 24 24" className={`w-8 h-8 ${editedBookmark.ClientOptions?.OpenLinkMethod === method
-                                                            ? "text-primary"
-                                                            : "text-gray-400"
-                                                            }`}>
-                                                            <path fill="currentColor" d="M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83l1.41 1.41L19 6.41V10h2V3h-7z" />
-                                                        </svg>
-                                                    )}
-                                                    {method === ILinkOpenTypes.CURRENT_TAB && (
-                                                        <svg viewBox="0 0 24 24" className={`w-8 h-8 ${editedBookmark.ClientOptions?.OpenLinkMethod === method
-                                                            ? "text-primary"
-                                                            : "text-gray-400"
-                                                            }`}>
-                                                            <path fill="currentColor" d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83l1.41 1.41L19 6.41V10h2V3h-7z" />
-                                                        </svg>
-                                                    )}
-                                                    {method === ILinkOpenTypes.NEW_WINDOW && (
-                                                        <svg viewBox="0 0 24 24" className={`w-8 h-8 ${editedBookmark.ClientOptions?.OpenLinkMethod === method
-                                                            ? "text-primary"
-                                                            : "text-gray-400"
-                                                            }`}>
-                                                            <path fill="currentColor" d="M6 8c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm6 12c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm-6 0c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm0-6c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm6 0c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm4-8c0 1.1.9 2 2 2s2-.9 2-2s-.9-2-2-2s-2 .9-2 2zm-4 2c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm6 6c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2zm0 6c1.1 0 2-.9 2-2s-.9-2-2-2s-2 .9-2 2s.9 2 2 2z" />
-                                                        </svg>
-                                                    )}
-                                                    {method === ILinkOpenTypes.FULL_SCREEN && (
-                                                        <svg viewBox="0 0 24 24" className={`w-8 h-8 ${editedBookmark.ClientOptions?.OpenLinkMethod === method
-                                                            ? "text-primary"
-                                                            : "text-gray-400"
-                                                            }`}>
-                                                            <path fill="currentColor" d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z" />
-                                                        </svg>
-                                                    )}
-                                                </div>
-                                                <div className="text-center">
-                                                    <p className={`font-medium text-sm ${editedBookmark.ClientOptions?.OpenLinkMethod === method
-                                                        ? "text-primary"
-                                                        : ""
-                                                        }`}>
-                                                        {method === ILinkOpenTypes.NEW_TAB && "New Tab"}
-                                                        {method === ILinkOpenTypes.CURRENT_TAB && "Current Tab"}
-                                                        {method === ILinkOpenTypes.NEW_WINDOW && "New Window"}
-                                                        {method === ILinkOpenTypes.FULL_SCREEN && "Full Screen"}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-col gap-2 mt-2">
-                                    <FormControlLabel
-                                        control={
-                                            <Switch
-                                                checked={editedBookmark.ClientOptions?.isSearchVisible || false}
-                                                onChange={handleSwitchChange('ClientOptions.isSearchVisible')}
-                                                color="primary"
-                                            />
-                                        }
-                                        label={
-                                            <div className="flex flex-col">
-                                                <span className="font-medium">Show in Search Results</span>
-                                                <span className="text-xs text-gray-500">
-                                                    When enabled, this bookmark will appear in search results
-                                                </span>
-                                            </div>
-                                        }
-                                    />
                                 </div>
                             </div>
                         </CardContent>
@@ -1127,15 +1039,18 @@ function BookmarkEditor({
                 {/* Admin Controls Tab */}
                 {isAdmin && (
                     <div className="flex flex-col gap-4">
-                        <h2 className="text-xl font-semibold">Admin Controls</h2>
+                        <h2 className="text-xl font-semibold">Admin</h2>
 
                         <Card>
                             <CardContent>
                                 <div className="flex flex-col gap-4">
                                     <div className="flex flex-col gap-2">
                                         <h3 className="text-base font-medium">Publishing Options</h3>
+
+                                        {/* For Users */}
                                         <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                             <FormControlLabel
+                                                className="w-full"
                                                 control={
                                                     <Switch
                                                         checked={editedBookmark.isPublished || false}
@@ -1145,9 +1060,9 @@ function BookmarkEditor({
                                                 }
                                                 label={
                                                     <div className="flex flex-col">
-                                                        <span className="font-medium">Publish Bookmark</span>
+                                                        <span className="font-medium">Publish</span>
                                                         <span className="text-xs text-gray-500">
-                                                            When published, this bookmark will be available to all users
+                                                            When published, this bookmark will be available to all users on marketplace
                                                         </span>
                                                     </div>
                                                 }
@@ -1156,30 +1071,146 @@ function BookmarkEditor({
                                                 <Info fontSize="small" className="text-gray-400" />
                                             </Tooltip>
                                         </div>
+
+                                        {/* For Admins */}
+                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                            <FormControlLabel
+                                                className="w-full"
+                                                control={
+                                                    <Switch
+                                                        checked={editedBookmark.isAdminOnly || false}
+                                                        disabled={!editedBookmark.isPublished}
+                                                        onChange={()=> {
+                                                            handleSwitchChange('isAdminOnly')
+                                                        }}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">Admin Only</span>
+                                                        <span className="text-xs text-gray-500">
+                                                            When published, this bookmark will be available to only to Admin Users
+                                                        </span>
+                                                    </div>
+                                                }
+                                            />
+                                            <Tooltip content="Publishing makes this bookmark accessible to all admins">
+                                                <Shield
+                                                    fontSize="small"
+                                                    className={`${editedBookmark.isAdminOnly ? 'text-primary' : 'text-gray-400'}`}
+                                                />
+                                            </Tooltip>
+                                        </div>
                                     </div>
 
                                     <div className="flex flex-col gap-2">
                                         <h3 className="text-base font-medium">Server Options</h3>
                                         <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                                             <FormControlLabel
+                                                className="w-full"
                                                 control={
                                                     <Switch
-                                                        checked={editedBookmark.isServer || false}
-                                                        onChange={handleSwitchChange('isServer')}
+                                                        checked={editedBookmark.isCloudSync || false}
+                                                        onChange={handleSwitchChange('isCloudSync')}
                                                         color="primary"
                                                     />
                                                 }
                                                 label={
                                                     <div className="flex flex-col">
-                                                        <span className="font-medium">Server-Stored Bookmark</span>
+                                                        <span className="font-medium">Sync on Cloud</span>
                                                         <span className="text-xs text-gray-500">
                                                             Store this bookmark on the server for cloud synchronization
                                                         </span>
                                                     </div>
                                                 }
                                             />
-                                            <Cloud className={`text-${editedBookmark.isServer ? 'primary' : 'gray-400'}`} />
+                                            <Cloud className={`text-${editedBookmark.isCloudSync ? 'primary' : 'gray-400'}`} />
                                         </div>
+
+                                        {/* is Sponsors */}
+                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                            <FormControlLabel
+                                                className="w-full"
+                                                control={
+                                                    <Switch
+                                                        checked={editedBookmark.isSponsored || false}
+                                                        onChange={handleSwitchChange('isSponsored')}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">Advertisement</span>
+                                                        <span className="text-xs text-gray-500">
+                                                            When published, this bookmark will serve as a sponsored Tag on Top Left
+                                                        </span>
+                                                    </div>
+                                                }
+                                            />
+                                            <Tooltip content="Publishing makes this bookmark accessible to all sponsors">
+                                                {/* <Star fontSize="small" className="text-gray-400" /> */}
+                                                <div
+                                                    className={
+                                                        cn(
+                                                            "flex items-center justify-center rounded-md p-1 text-xs font-medium",
+                                                            editedBookmark.isSponsored ? "bg-primary text-white" : "bg-gray-400 text-gray-800"
+                                                        )
+                                                    }
+                                                >
+                                                    AD
+                                                </div>
+                                            </Tooltip>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-2">
+                                        <h3 className="text-base font-medium">User Restrictions</h3>
+                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                            <FormControlLabel
+                                                className="w-full"
+                                                control={
+                                                    <Switch
+                                                        checked={editedBookmark.isEditBlock || false}
+                                                        onChange={handleSwitchChange('isEditBlock')}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">Prevent from Edit</span>
+                                                        <span className="text-xs text-gray-500">
+                                                            Prevent user from editing this bookmark
+                                                        </span>
+                                                    </div>
+                                                }
+                                            />
+                                            {/* <Cloud className={`text-${editedBookmark.isCloudSync ? 'primary' : 'gray-400'}`} /> */}
+                                            <EditOff className={`text-${editedBookmark.isEditBlock ? 'primary' : 'gray-400'}`} />
+                                        </div>
+
+                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                            <FormControlLabel
+                                                className="w-full"
+                                                control={
+                                                    <Switch
+                                                        checked={editedBookmark.isDeleteBlock || false}
+                                                        onChange={handleSwitchChange('isDeleteBlock')}
+                                                        color="primary"
+                                                    />
+                                                }
+                                                label={
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">Prevent from Delete</span>
+                                                        <span className="text-xs text-gray-500">
+                                                            Prevent user from deleting this bookmark
+                                                        </span>
+                                                    </div>
+                                                }
+                                            />
+                                            <DeleteForever className={`text-${editedBookmark.isDeleteBlock ? 'primary' : 'gray-400'}`} />
+                                        </div>
+
                                     </div>
 
                                     <div className="flex flex-col gap-2 mt-3">
@@ -1204,7 +1235,7 @@ function BookmarkEditor({
 
                                                             onSave && onSave({
                                                                 ...editedBookmark,
-                                                                isDeleted: true
+                                                                isDeleteBlock: true
                                                             });
                                                         }
                                                     }}

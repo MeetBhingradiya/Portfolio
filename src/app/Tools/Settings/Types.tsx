@@ -30,34 +30,31 @@ enum ILinkOpenTypes {
 }
 
 interface IBookmark {
-    BookmarkID?: string
+
+    BookmarkID: string
     Name: string
-    URL: string
+    Description?: string
+
+    Keywords?: string[]
+
+    WebLink: string
     Android?: string
     Windows?: string
-    Description?: string
-    Keywords?: string[]
+    Priority?: "windows" | "android" | "web"
+
     Icon?: string
     isSVG?: boolean
-    SVGStyles?: {
-        fill?: string
-    }
+    fillColor?: string
+    CORSProxy?: boolean
 
-    ClientOptions?: {
-        // ? Priority of Link Open on Bookmark Click
-        OpenLinkPlatformPriority?: "desktop" | "mobile" | "web"
+    isSponsored: boolean
+    isPublished: boolean
+    isCloudSync: boolean
+    isDefault: boolean
+    isAdminOnly: boolean
 
-        // ? Method of Link Open on Bookmark Click if not set then default settings will be used that set in preferences
-        OpenLinkMethod?: ILinkOpenTypes
-
-        // ? Visibility of Search Engine on Bookmark Click if not set then default settings will be used that set in preferences
-        isSearchVisible?: boolean
-    }
-
-    // ? Published or Not
-    isPublished?: boolean
-    isDeleted?: boolean
-    isServer?: boolean
+    isDeleteBlock: boolean
+    isEditBlock: boolean
 }
 
 const DefualtBookmark: IBookmark = {
@@ -66,9 +63,10 @@ const DefualtBookmark: IBookmark = {
     Name: "New Bookmark",
 
     // ? URLs
-    URL: "https://example.com",
+    WebLink: "https://example.com",
     Android: "",
     Windows: "",
+    Priority: "web",
 
     // ? Search Engine
     Description: "",
@@ -77,21 +75,17 @@ const DefualtBookmark: IBookmark = {
     // ? Icons Related
     Icon: "",
     isSVG: false,
-    SVGStyles: {
-        fill: "#000000"
-    },
-
-    // ? Client Options
-    ClientOptions: {
-        OpenLinkPlatformPriority: "web",
-        OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
-        isSearchVisible: true,
-    },
+    fillColor: "#000000",
+    CORSProxy: false,
 
     // ? Admin Options
     isPublished: false,
-    isDeleted: false,
-    isServer: false,
+    isDeleteBlock: false,
+    isCloudSync: false,
+    isDefault: false,
+    isAdminOnly: false,
+    isSponsored: false,
+    isEditBlock: false,
 }
 
 enum ISearchEngines {

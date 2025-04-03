@@ -132,10 +132,10 @@ async function verifySignatureFromGist(gistUrl: string) {
     }
 }
 
-const gistRawUrl = "https://gist.githubusercontent.com/MeetBhingradiya/8029e188041205ae8198d8c1cb8907ad/raw/State.json";
+// const gistRawUrl = "https://gist.githubusercontent.com/MeetBhingradiya/8029e188041205ae8198d8c1cb8907ad/raw/State.json";
 
 // Run verification
-verifySignatureFromGist(gistRawUrl);
+// verifySignatureFromGist(gistRawUrl);
 
 // Generate Signature
-// console.log("Signature:", generateHMACSignature(State.File));
+console.log("Signature:", generateHMACSignature(State.File));

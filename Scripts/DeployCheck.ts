@@ -10,11 +10,6 @@ async function isDeployBlockedByRepository(): Promise<boolean> {
         let branch = execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
         console.log(`🌿 Branch: ${branch}`);
 
-        if (branch !== "Release") {
-            console.log("🚫 Skipping deployment due to branch not being Release.");
-            return true;
-        }
-
         if (data?.File["CI/CD_Pipeline"].Release === false) {
             console.log("🚫 Deployment blocked by remote repository settings.");
             return true;

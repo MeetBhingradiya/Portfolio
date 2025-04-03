@@ -22,6 +22,7 @@
             }
         ],
         "paths": {
+
             // ? Root Aliases
             "@Root/*": [
                 "./"
@@ -29,10 +30,12 @@
             "@/*": [
                 "./src/*"
             ],
+            
             // ? Public Aliases
             "@Public/*": [
                 "./src/public/*"
             ],
+
             // ? Routes Aliases
             "@App/*": [
                 "./src/app/*"
@@ -40,6 +43,7 @@
             "@Pages/*": [
                 "./src/pages/*"
             ],
+
             // ? Config Aliases
             "@Config": [
                 "./src/Config/index.ts"
@@ -47,10 +51,12 @@
             "@Config/*": [
                 "./src/Config/*"
             ],
+
             // ? Components Aliases
             "@Components/*": [
                 "./src/Components/*"
             ],
+
             // ? Controllers Aliases
             "@Controllers": [
                 "./src/Controllers/index.ts"
@@ -64,6 +70,7 @@
             "@Emails/*": [
                 "./src/Emails/*"
             ],
+
             // ? Hooks Aliases
             "@Hooks": [
                 "./src/Hooks/index.ts"
@@ -71,6 +78,7 @@
             "@Hooks/*": [
                 "./src/Hooks/*"
             ],
+
             // ? Models Aliases
             "@Models": [
                 "./src/Models/index.ts"
@@ -78,6 +86,7 @@
             "@Models/*": [
                 "./src/Models/*"
             ],
+
             // ? Custom Librairies Aliases
             "@Lib": [
                 "./src/Lib/index.ts"
@@ -85,10 +94,12 @@
             "@Lib/*": [
                 "./src/Lib/*"
             ],
+
             // ? Styles Aliases
             "@Styles/*": [
                 "./src/Styles/*"
             ],
+
             // ? Types Aliases
             "@Types/Server": [
                 "./src/Types/index.Server.ts"
@@ -102,6 +113,7 @@
             "@Types/*": [
                 "./src/Types/*"
             ],
+
             // ? Utils Aliases
             "@Utils/Server": [
                 "./src/Utils/index.Server.ts"
@@ -122,8 +134,7 @@
         "next-env.d.ts",
         "**/*.ts",
         "**/*.tsx",
-        ".next/types/**/*.ts",
-        "Test/test.js",
+        ".next/types/**/*.ts"
     ],
     "exclude": [
         "node_modules"

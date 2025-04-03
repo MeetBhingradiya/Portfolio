@@ -1,13 +1,15 @@
-// ? Get Latest Commit Message
-
 import { execSync } from "child_process";
 
 const commitMessage = execSync("git log -1 --pretty=%B").toString().trim();
+const branch = process.env.VERCEL_GIT_COMMIT_REF || "unknown";
 
-// ? if Includes "NO_DEPLOY" in the commit message, then exit the process with code 1
+console.log(`📝 Commit Message: "${commitMessage}"`);
+console.log(`🌿 Branch: ${branch}`);
+
 if (commitMessage.includes("NO_DEPLOY")) {
-    process.exit(1);
+    console.log("🚫 Skipping deployment due to NO_DEPLOY in commit message.");
+    process.exit(1); // Exit with 1 to tell Vercel to SKIP the build
 }
 
-// ? if not, then exit the process with code 0
+console.log("✅ Proceeding with deployment.");
 process.exit(0);

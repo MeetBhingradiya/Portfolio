@@ -8,7 +8,8 @@ console.log(`🌿 Branch: ${branch}`);
 
 if (commitMessage.includes("NO_DEPLOY")) {
     console.log("🚫 Skipping deployment due to NO_DEPLOY in commit message.");
-    process.exit(1); // Exit with 1 to tell Vercel to SKIP the build
+    throw new Error("❌ FATAL: Deployment is explicitly disabled by commit message.");
+    process.exit(1);
 }
 
 console.log("✅ Proceeding with deployment.");

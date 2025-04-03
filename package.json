@@ -4,12 +4,13 @@
     "scripts": {
         "dev": "next dev",
         "fast": "next dev --turbo",
-        "build": "bun Scripts/Build.ts",
+        "build": "next build",
         "start": "next start",
         "lint": "next lint",
         "blogs": "bun Scripts/SyncBlogs.ts",
         "comments": "bun Scripts/Comments.ts",
-        "SignState": "bun Scripts/SignState.ts"
+        "SignState": "bun Scripts/SignState.ts",
+        "CheckDeploy": "bun Scripts/DeployCheck.ts"
     },
     "dependencies": {
         "@chakra-ui/icons": "^2.2.4",

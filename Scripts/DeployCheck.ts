@@ -1,22 +1,49 @@
-import { execSync } from "child_process"
-import fs from "fs"
+import { execSync } from "child_process";
 
-const commitMessage = execSync("git log -1 --pretty=%B").toString().trim()
-const branch = process.env.VERCEL_GIT_COMMIT_REF || "unknown"
-
-console.log(`📝 Commit Message: "${commitMessage}"`)
-console.log(`🌿 Branch: ${branch}`)
-
-if (commitMessage.includes("NO_DEPLOY")) {
-    console.log("🚫 Skipping deployment due to NO_DEPLOY in commit message.")
+async function isDeployBlockedByRepository(): Promise<boolean> {
+    const APIFile = "https://raw.githubusercontent.com/MeetBhingradiya/Portfolio-RemoteState/refs/heads/Release/State.json";
     
-    // Block deployment at the Vercel config level
-    fs.writeFileSync(".env", "DEPLOY_BLOCKED=true\n")
+    try {
+        const response = await fetch(APIFile);
+        const data = await response.json();
 
-    throw new Error("❌ FATAL: Deployment is explicitly disabled by commit message.")
+        let branch = execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
+        console.log(`🌿 Branch: ${branch}`);
+
+        if (branch !== "Release") {
+            console.log("🚫 Skipping deployment due to branch not being Release.");
+            return true;
+        }
+
+        if (data?.File["CI/CD_Pipeline"].Release === false) {
+            console.log("🚫 Deployment blocked by remote repository settings.");
+            return true;
+        }
+    } catch (error) {
+        console.error("⚠️ Error fetching repository state:", error);
+        return false;
+    }
+
+    return false;
 }
 
-// Make sure the env variable isn't blocking normal builds
-fs.writeFileSync(".env", "DEPLOY_BLOCKED=false\n")
+async function main() {
+    const commitMessage = execSync("git log -1 --pretty=%B").toString().trim();
+    console.log(`📝 Commit Message: "${commitMessage}"`);
 
-console.log("✅ Proceeding with deployment.")
+    if (commitMessage.includes("NO_DEPLOY")) {
+        process.exit(0);
+    }
+
+    if (await isDeployBlockedByRepository()) {
+        process.exit(0);
+    }
+
+    console.log("✅ Proceeding with deployment.");
+    process.exit(1);
+}
+
+main().catch((error) => {
+    console.error("❌ Error in deployment check:", error);
+    process.exit(1);
+});

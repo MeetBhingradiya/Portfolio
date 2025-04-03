@@ -1,0 +1,7 @@
+{
+    "build": {
+        "env": {
+            "DEPLOY_BLOCKED": "false"
+        }
+    }
+}

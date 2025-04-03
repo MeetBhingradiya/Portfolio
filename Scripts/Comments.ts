@@ -1,15 +1,23 @@
 import path from 'path';
 import fs from 'fs';
 import { generateDescription } from './FilesDescriptions';
-import { execFileSync } from 'child_process';
+import { execSync } from 'child_process';
+import packageJson from '../package.json'; // Import version from package.json
 
-let Itrations = 0;
-const WhitelistedExtensions = [
-    '.ts',
-    '.tsx',
-    '.js',
-    '.jsx',
-];
+const WhitelistedExtensions = ['.ts', '.tsx', '.js', '.jsx'];
+const targetDirectory = 'src/';
+
+function getModifiedFiles(): string[] {
+    try {
+        const output = execSync('git diff --name-only --diff-filter=M').toString().trim();
+        return output
+            ? output.split('\n').filter((file) => file.startsWith(targetDirectory))
+            : [];
+    } catch (error) {
+        console.error('⚠️ Error fetching modified files:', error);
+        return [];
+    }
+}
 
 function formatDate(date: Date): string {
     const day = date.getDate().toString().padStart(2, '0');
@@ -17,26 +25,18 @@ function formatDate(date: Date): string {
     const year = date.getFullYear().toString().slice(-2);
     const hours = date.getHours();
     const minutes = date.getMinutes().toString().padStart(2, '0');
-
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const formattedHours = hours % 12 === 0 ? 12 : hours % 12;
 
     return `${day}/${month}/${year} ${formattedHours}:${minutes} ${ampm}`;
 }
 
-function isFileModified(filePath: string): boolean {
-    try {
-        execFileSync('git', ['diff', '--quiet', filePath]);
-        return false;
-    } catch (error) {
-        return true;
-    }
-}
-
 async function generateFileComment(FileID: string, fileContent: string): Promise<string> {
-
     let createdDate = '';
-    let modifiedDate = formatDate(new Date());
+    let modifiedDate = `@modified ${formatDate(new Date())} IST (Kolkata +5:30 UTC)`;
+    let fileDescription = await generateDescription(FileID, fileContent);
+
+    const trimmedFileID = FileID.replace(/^src[\\/]/, '').replace(/\\/g, '/');
 
     const createdRegex = /@created (\d{2}\/\d{2}\/\d{2} \d{1,2}:\d{2} (AM|PM) [A-Za-z]+ (\([A-Za-z\s\+:\d]+\))?)/;
     const createdMatch = fileContent.match(createdRegex);
@@ -46,15 +46,12 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
         createdDate = `@created ${formatDate(new Date())} IST (Kolkata +5:30 UTC)`;
     }
 
-    modifiedDate = `@modified ${formatDate(new Date())} IST (Kolkata +5:30 UTC)`;
-
     return `/**
- *  @FileID          ${FileID.replace(/\\/g, '/')}
- *  @Description     ${generateDescription(FileID)}
+ *  @FileID          ${trimmedFileID}
+ *  @Description     ${fileDescription}
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
- *  -----------------------------------------------------------------------------
- *  
+ *  -----------------------------------------------------------------------------  
  *  @license
  *  Copyright (c) 2021 - ${new Date().getFullYear()} Meet Bhingradiya.
  *  All rights reserved.
@@ -63,80 +60,66 @@ async function generateFileComment(FileID: string, fileContent: string): Promise
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
+ *  prior written consent from the author, modifier, or the organization.
  *  
- *  -----------------------------------------------------------------------------
- *  
+ *  -----------------------------------------------------------------------------  
  *  GitHub® is a registered trademark of Microsoft Corporation. This project 
  *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
  *  This project is not officially affiliated with, endorsed by, or in any way associated 
  *  with GitHub or Microsoft Corporation.
  *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
+ *  -----------------------------------------------------------------------------  
+ *  Last Updated on Version: ${packageJson.version}
+ *  -----------------------------------------------------------------------------  
  *  ${createdDate}
  *  ${modifiedDate}
- */
-\n`
+ */\n`;
 }
 
-async function processFile(FilePath: string): Promise<void> {
-    const FileData = {
-        ID: path.relative('src', FilePath),
-        isModified: isFileModified(FilePath)
-    }
+/**
+ * Process a single modified file
+ */
+async function processFile(filePath: string): Promise<void> {
+    if (!WhitelistedExtensions.includes(path.extname(filePath))) return;
 
-    if (!FileData.isModified) {
-        return;
-    } else {
-        console.log(`[File Licensing] File is begain modified: ${FilePath}`);
-    }
+    console.log(`[File Licensing] Processing modified file: ${filePath}`);
 
-    const FileContent = fs.readFileSync(FilePath, 'utf-8');
-    const Comment = await generateFileComment(FileData.ID, FileContent)
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const comment = await generateFileComment(filePath, fileContent);
 
     try {
         let updatedContent: string;
-        if (FileContent.startsWith('/**')) {
-            const closingIndex = FileContent.indexOf('*/') + 2;
-            const contentAfterComment = FileContent.slice(closingIndex).trimStart();
-            updatedContent = `${Comment}\n${contentAfterComment}`;
+        if (fileContent.startsWith('/**')) {
+            const closingIndex = fileContent.indexOf('*/') + 2;
+            const contentAfterComment = fileContent.slice(closingIndex).trimStart();
+            updatedContent = `${comment}\n${contentAfterComment}`;
         } else {
-            updatedContent = `${Comment}\n${FileContent}`;
+            updatedContent = `${comment}\n${fileContent}`;
         }
 
-        await fs.writeFileSync(FilePath, updatedContent, 'utf-8');
+        fs.writeFileSync(filePath, updatedContent, 'utf-8');
     } catch (error) {
-        console.error(`Failed to process ${FilePath}:`, (error as Error).message);
+        console.error(`❌ Failed to process ${filePath}:`, (error as Error).message);
     }
 }
 
-async function processDirectory(directory: string): Promise<void> {
-    Itrations++;
+/**
+ * Process only modified files inside `src` folder
+ */
+async function processModifiedFiles() {
+    console.time(`[File Licensing] Execution Time`);
 
-    if (directory === targetDirectory) {
-        console.time(`[File Licensing] ${Itrations}`);
+    const modifiedFiles = getModifiedFiles();
+    if (modifiedFiles.length === 0) {
+        console.log('✅ No modified files in src/ to process.');
+        return;
     }
 
-    const entries = fs.readdirSync(directory);
-
-    for (const entry of entries) {
-        const fullPath = path.join(directory, entry);
-
-        if (fs.statSync(fullPath).isDirectory()) {
-            await processDirectory(fullPath);
-        } else if (WhitelistedExtensions.includes(path.extname(fullPath))) {
-            await processFile(fullPath);
-        }
+    for (const file of modifiedFiles) {
+        await processFile(file);
     }
 
-
-    if (directory === targetDirectory) {
-        console.timeEnd(`[File Licensing] ${Itrations}`);
-    }
+    console.timeEnd(`[File Licensing] Execution Time`);
 }
 
-const targetDirectory: string = "src";
-
-processDirectory(targetDirectory);
+processModifiedFiles();

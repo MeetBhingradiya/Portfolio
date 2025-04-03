@@ -38,7 +38,4 @@ async function main() {
     process.exit(1);
 }
 
-main().catch((error) => {
-    console.error("❌ Error in deployment check:", error);
-    process.exit(1);
-});
+main()

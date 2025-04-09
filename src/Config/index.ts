@@ -46,7 +46,7 @@ interface IConfig {
     GoogleADS: boolean;
     WhiteListedDomains: string[];
     WhiteListedPlatforms: Array<"Windows" | "Linux" | "Android" | "iOS" | "MacOS">;
-    WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc">;
+    WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Brave">;
     VercelSpeedInsight: boolean;
     ThreatIntelligence: Array<"TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon">;
     Cookie_Prefix: string;
@@ -72,7 +72,7 @@ const Config: IConfig = {
     Name: "Meet Bhingradiya",
     version: "v1.1.0",
     releasedate: "2025-04-01",
-    visiblebranch: "Development",
+    visiblebranch: "Release",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
     GoogleADS: false,
@@ -94,7 +94,6 @@ const Config: IConfig = {
     WhiteListedBrowsers: [
         "Chrome",
         "Edge",
-        "Firefox",
         "Opera"
     ],
     VercelSpeedInsight: false,
@@ -126,7 +125,6 @@ const Config: IConfig = {
         IPDATA_WEBSITE_KEY: process.env.IPDATA_WEBSITE_KEY,
         STATE_SIGNATURE: process.env.STATE_SIGNATURE
     }
-    
 }
 
 export { Config };

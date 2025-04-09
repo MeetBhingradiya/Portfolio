@@ -67,12 +67,15 @@ import {
     DefualtBookmark,
     ILinkOpenTypes
 } from "./Types";
-import "@Styles/Tools-BookmarkEditor.sass"
+import "@Styles/Tools-Bookmark.sass"
+import BookmarkItem from "./BookmarkItem";
+import BookmarkItemMarketPlace from "./BookmarkItemMarketPlace";
+import { motion } from "framer-motion"
 
 interface IBookmarkEditorProps {
     bookmark: IBookmark;
-    isAdmin: boolean; // ? If true then you have access to publish, delete & Terminate Bookmark Control Buttons Visible
-    isCreateMode: boolean; // ? Validations will be less strict in create mode
+    isAdmin: boolean;
+    isCreateMode: boolean;
     onSave?: (bookmark: IBookmark) => void;
     onCancel?: () => void;
 }
@@ -84,16 +87,13 @@ function BookmarkEditor({
     onSave,
     onCancel
 }: IBookmarkEditorProps) {
+    const constraintsRef = React.useRef<HTMLDivElement>(null)
     // Main bookmark state
     const [editedBookmark, setEditedBookmark] = React.useState<IBookmark>({ ...bookmark });
 
-    // UI states
-    const [activeTab, setActiveTab] = React.useState<string>("general");
     const [newKeyword, setNewKeyword] = React.useState<string>("");
     const [keywordSuggestions, setKeywordSuggestions] = React.useState<string[]>([]);
     const [isValidUrl, setIsValidUrl] = React.useState<boolean>(true);
-    const [isValidAndroidUrl, setIsValidAndroidUrl] = React.useState<boolean>(true);
-    const [isValidWindowsUrl, setIsValidWindowsUrl] = React.useState<boolean>(true);
     const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
     const [iconPreviewUrl, setIconPreviewUrl] = React.useState<string>(bookmark.Icon || "");
 
@@ -137,15 +137,13 @@ function BookmarkEditor({
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
 
-        if (name === 'URL') {
+        if (name === 'WebLink') {
             const isValid = validateUrl(value, 'main');
             setIsValidUrl(isValid);
         } else if (name === 'Android') {
             const isValid = validateUrl(value, 'android');
-            setIsValidAndroidUrl(isValid);
         } else if (name === 'Windows') {
             const isValid = validateUrl(value, 'windows');
-            setIsValidWindowsUrl(isValid);
         } else if (name === 'Name' && isCreateMode && !value.trim()) {
             setErrors(prev => ({ ...prev, Name: "Name is required" }));
         } else if (name === 'Name') {
@@ -167,12 +165,16 @@ function BookmarkEditor({
         }
     };
 
-    // Handle switch/checkbox changes
     const handleSwitchChange = (name: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
         const checked = e.target.checked;
 
-        if (name === 'isServer' && !isAdmin) {
-            // Non-admin users cannot change isServer
+        if (name === 'isPublished' && editedBookmark.isCloudSync === false && editedBookmark.isPublished === false) {
+            toast.error("can't Publish a Bookmark that is not Synced with Cloud");
+            return;
+        }
+
+        if (name === 'isCloudSync' && editedBookmark.isPublished === true) {
+            toast.error("can't Disable Cloud Store for a Published Bookmark instead of Delete the Bookmark");
             return;
         }
 
@@ -417,46 +419,30 @@ function BookmarkEditor({
                 </Typography>
             </div>
 
-            <div className="flex flex-col justify-center items-center">
-                <div
-                    className="bookmark"
-                >
-                    {
-                        editedBookmark.Icon ? (
-                            editedBookmark.isSVG ? (
-                                <SvgComponent
-                                    svgString={editedBookmark.Icon}
-                                    _class="w-10 h-10"
-                                    style={{
-                                        color: editedBookmark?.fillColor || "#000000"
-                                    }}
-                                />
-                            ) : (
-                                <Image
-                                    src={editedBookmark.Icon}
-                                    alt={editedBookmark.Name}
-                                    width={48}
-                                    height={48}
-                                    style={{
-                                        objectFit: "contain"
-                                    }}
-                                />
-                            )
-                        ) : (
-                            <Public className="w-10 h-10 text-gray-400" />
-                        )
-                    }
-                    <h2 className="bookmarkTitle">{editedBookmark.Name}</h2>
-                    <div className="ServerIcon">
-                        <Cloud />
-                    </div>
-                    {
-                        isAdmin && (
-                            <div className="AdminIcon">
-                                <Security />
-                            </div>
-                        )
-                    }
+            <div className="flex flex-col gap-7 w-full">
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-xl font-semibold">Preview</h2>
+
+                    <motion.div
+                        className="flex flex-row gap-5 justify-center items-center flex-wrap"
+                        ref={constraintsRef}
+                    >
+                        <BookmarkItem
+                            Data={editedBookmark}
+                            isMobileRender={false}
+                        />
+                        <BookmarkItemMarketPlace
+                            dragConstraints={constraintsRef}
+                            Data={editedBookmark}
+                            isAdmin={isAdmin}
+                            isSelected={false}
+                            toggleSelectBookmark={() => { }}
+                            style={{
+                                width: "20vw"
+                            }}
+                        />
+                    </motion.div>
+
                 </div>
             </div>
 
@@ -465,8 +451,30 @@ function BookmarkEditor({
                 <div className="flex flex-col gap-4">
                     <h2 className="text-xl font-semibold">Basic Information</h2>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 gap-4">
                         <div className="flex flex-col gap-2">
+                            {editedBookmark.BookmarkID ? (
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-xs text-gray-500">Bookmark ID</p>
+                                    <p className="text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded flex justify-between items-center" style={{ color: "var(--font-color)" }}>
+                                        {editedBookmark.BookmarkID}
+                                        <Button
+                                            color="primary"
+                                            variant="flat"
+                                            isIconOnly
+                                            disabled={!isCreateMode}
+                                            onPress={RegenerateUUID}
+                                        >
+                                            <Cached />
+                                        </Button>
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-xs text-gray-500">Bookmark ID will be generated on save</p>
+                                </div>
+                            )}
+
                             <Input
                                 name="Name"
                                 label="Bookmark Name"
@@ -489,14 +497,287 @@ function BookmarkEditor({
                             />
                         </div>
 
+                    </div>
+                </div>
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-xl font-semibold">URLs & Platform Links</h2>
+
+                    <div className="flex flex-col gap-4">
                         <div className="flex flex-col gap-2">
-                            <div className="flex flex-row gap-2 items-center">
-                                <div className="w-16 h-16 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+                            <Input
+                                name="WebLink"
+                                label="Web Link"
+                                placeholder="Enter website URL (https://example.com)"
+                                value={editedBookmark.WebLink}
+                                onChange={handleInputChange}
+                                isRequired={isCreateMode}
+                                isInvalid={!!errors.URL}
+                                errorMessage={errors.URL}
+                                startContent={<Language className="text-default-400" />}
+                                description="The main web URL for this bookmark"
+                            />
+
+                            <div className="flex flex-row gap-2 mt-1">
+                                <Button
+                                    size="sm"
+                                    color="primary"
+                                    variant="flat"
+                                    onPress={detectFavicon}
+                                    isDisabled={!isValidUrl || !editedBookmark.WebLink}
+                                >
+                                    Detect Favicon
+                                </Button>
+
+                                <Button
+                                    size="sm"
+                                    variant="flat"
+                                    isDisabled={!isValidUrl || !editedBookmark.WebLink}
+                                    onPress={() => window.open(editedBookmark.WebLink, '_blank')}
+                                >
+                                    Test URL
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                            <div className="flex flex-col gap-2">
+                                <Input
+                                    name="Android"
+                                    label="Android App URL/Link"
+                                    placeholder="Android app deep link or Play Store URL"
+                                    value={editedBookmark.Android || ""}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.Android}
+                                    errorMessage={errors.Android}
+                                    startContent={<Android className="text-default-400" />}
+                                    description="For Android app deep links or Play Store URLs"
+                                />
+
+                                {editedBookmark.Android && detectAndroidAppLink(editedBookmark.Android) && (
+                                    <div className="text-xs flex items-center gap-1 text-success">
+                                        <Info fontSize="small" />
+                                        Detected as Android app link
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <Input
+                                    name="Windows"
+                                    label="Windows App URL/Link"
+                                    placeholder="Windows app deep link or Microsoft Store URL"
+                                    value={editedBookmark.Windows || ""}
+                                    onChange={handleInputChange}
+                                    isInvalid={!!errors.Windows}
+                                    errorMessage={errors.Windows}
+                                    startContent={<Window className="text-default-400" />}
+                                    description="For Windows app deep links or Microsoft Store URLs"
+                                />
+
+                                {editedBookmark.Windows && detectWindowsAppLink(editedBookmark.Windows) && (
+                                    <div className="text-xs flex items-center gap-1 text-success">
+                                        <Info fontSize="small" />
+                                        Detected as Windows app link
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Keywords & SEO Tab */}
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-xl font-semibold">Keywords</h2>
+
+                    <div className="flex flex-col gap-4">
+                        <div className="flex flex-row gap-2 items-end">
+                            <div className="flex-1">
+                                <Input
+                                    name="newKeyword"
+                                    label="Add Keyword"
+                                    placeholder="Enter a keyword"
+                                    value={newKeyword}
+                                    onChange={(e) => setNewKeyword(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            e.preventDefault();
+                                            addKeyword();
+                                        }
+                                    }}
+                                    isInvalid={!!errors.keyword}
+                                    errorMessage={errors.keyword}
+                                />
+                            </div>
+                            <Button
+                                color="primary"
+                                onPress={addKeyword}
+                                isDisabled={!newKeyword.trim()}
+                            >
+                                Add
+                            </Button>
+                        </div>
+
+                        <div className="flex flex-col gap-3">
+                            <p className="text-sm font-medium">Current Keywords</p>
+                            <p className="text-xs text-gray-500">Drag and drop to reorder</p>
+
+                            {(!editedBookmark.Keywords || editedBookmark.Keywords.length === 0) && (
+                                <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center">
+                                    <p className="text-sm text-gray-500">No keywords added yet</p>
+                                    <p className="text-xs text-gray-400 mt-1">
+                                        Keywords help improve search visibility
+                                    </p>
+                                </div>
+                            )}
+
+                            {(editedBookmark.Keywords && editedBookmark.Keywords.length > 0) && (
+                                <div className="keywords-container">
+                                    <GridContextProvider onChange={onGridChange}>
+                                        <GridDropZone
+                                            id="keywords"
+                                            boxesPerRow={1}
+                                            rowHeight={40}
+                                            style={{
+                                                height: `${Math.ceil(editedBookmark.Keywords.length / 3) * 40}px`,
+                                                minHeight: '80px',
+                                            }}
+                                        >
+                                            {editedBookmark.Keywords.map((keyword, index) => (
+                                                <GridItem key={`${keyword}-${index}`}>
+                                                    <div className="flex items-center p-1">
+                                                        <Chip
+                                                            variant="flat"
+                                                            className="cursor-move"
+                                                            startContent={<DragIndicator fontSize="small" />}
+                                                            onClose={() => removeKeyword(keyword)}
+                                                        >
+                                                            {keyword}
+                                                        </Chip>
+                                                    </div>
+                                                </GridItem>
+                                            ))}
+                                        </GridDropZone>
+                                    </GridContextProvider>
+                                </div>
+                            )}
+                        </div>
+
+                        {keywordSuggestions.length > 0 && (
+                            <div className="flex flex-col gap-2 mt-2">
+                                <p className="text-sm font-medium">Suggested Keywords</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {keywordSuggestions.map((suggestion, index) => (
+                                        <Chip
+                                            key={`suggestion-${index}`}
+                                            variant="flat"
+                                            color="secondary"
+                                            startContent={<Add fontSize="small" />}
+                                            className="cursor-pointer hover:bg-secondary-200"
+                                            onClick={() => addSuggestedKeyword(suggestion)}
+                                        >
+                                            {suggestion}
+                                        </Chip>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                </div>
+
+                {/* Icon & Appearance Tab */}
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-xl font-semibold">Icon & Appearance</h2>
+
+                    <div className="flex flex-col gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="flex flex-col gap-3">
+                                <p className="text-sm font-medium">Icon URL</p>
+                                <Input
+                                    name="Icon"
+                                    placeholder="Enter icon URL (image or SVG)"
+                                    value={editedBookmark.Icon || ""}
+                                    onChange={(e) => {
+                                        setEditedBookmark(prev => ({
+                                            ...prev,
+                                            Icon: e.target.value
+                                        }));
+                                    }}
+                                    startContent={<Public className="text-default-400" />}
+                                />
+
+                                <div className="flex flex-row items-center gap-2 mt-1">
+                                    <FormControlLabel
+                                        control={
+                                            <Switch
+                                                checked={editedBookmark.isSVG || false}
+                                                onChange={handleSwitchChange('isSVG')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label="Is SVG"
+                                    />
+                                    <Tooltip content="Toggle if the icon is an SVG string">
+                                        <Info fontSize="small" className="text-gray-400" />
+                                    </Tooltip>
+                                </div>
+
+                                {editedBookmark.isSVG && (
+                                    <div className="flex flex-col gap-2 mt-2">
+                                        <p className="text-sm font-medium">SVG Color</p>
+                                        <div className="flex flex-row gap-2 items-center">
+                                            <Input
+                                                type="text"
+                                                placeholder="#000000"
+                                                value={editedBookmark?.fillColor || "#000000"}
+                                                onChange={(e) => {
+                                                    setEditedBookmark(prev => ({
+                                                        ...prev,
+                                                        fillColor: e.target.value
+                                                    }));
+                                                }}
+                                                startContent={
+                                                    <div
+                                                        className="w-4 h-4 rounded-full"
+                                                        style={{ backgroundColor: editedBookmark?.fillColor || "#000000" }}
+                                                    />
+                                                }
+                                            />
+                                            <Input
+                                                type="color"
+                                                value={editedBookmark?.fillColor || "#000000"}
+                                                onChange={(e) => {
+                                                    setEditedBookmark(prev => ({
+                                                        ...prev,
+                                                        fillColor: e.target.value
+                                                    }));
+                                                }}
+                                                className="w-12 h-10"
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="mt-3">
+                                    <Button
+                                        color="primary"
+                                        variant="flat"
+                                        onPress={detectFavicon}
+                                        isDisabled={!isValidUrl || !editedBookmark.WebLink}
+                                    >
+                                        Auto-detect from URL
+                                    </Button>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-3 items-center">
+                                <p className="text-sm font-medium">Icon Preview</p>
+                                <div className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
                                     {editedBookmark.Icon ? (
                                         editedBookmark.isSVG ? (
                                             <SvgComponent
                                                 svgString={editedBookmark.Icon}
-                                                _class="w-10 h-10"
+                                                _class="w-20 h-20"
                                                 style={{
                                                     color: editedBookmark?.fillColor || "#000000"
                                                 }}
@@ -505,446 +786,33 @@ function BookmarkEditor({
                                             <Image
                                                 src={editedBookmark.Icon}
                                                 alt={editedBookmark.Name}
-                                                width={48}
-                                                height={48}
+                                                width={80}
+                                                height={80}
                                                 style={{
                                                     objectFit: "contain"
+                                                }}
+                                                onError={() => {
+                                                    setEditedBookmark(prev => ({
+                                                        ...prev,
+                                                        Icon: ""
+                                                    }));
                                                 }}
                                             />
                                         )
                                     ) : (
-                                        <Public className="w-10 h-10 text-gray-400" />
-                                    )}
-                                </div>
-                                <div className="flex flex-col flex-1">
-                                    <p className="text-sm font-medium">Bookmark Preview</p>
-                                    <p className="text-xs text-gray-500">
-                                        Configure icon in the Appearance tab
-                                    </p>
-                                </div>
-                            </div>
-
-                            {editedBookmark.BookmarkID ? (
-                                <div className="flex flex-col gap-1">
-                                    <p className="text-xs text-gray-500">Bookmark ID</p>
-                                    <p className="text-sm font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded flex justify-between items-center" style={{ color: "var(--font-color)" }}>
-                                        {editedBookmark.BookmarkID}
-                                        <Button
-                                            color="primary"
-                                            variant="flat"
-                                            isIconOnly
-                                            onPress={RegenerateUUID}
-                                        >
-                                            <Cached />
-                                        </Button>
-                                    </p>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-1">
-                                    <p className="text-xs text-gray-500">Bookmark ID will be generated on save</p>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </div>
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-semibold">URLs & Platform Links</h2>
-
-                    <Card>
-                        <CardContent>
-                            <div className="flex flex-col gap-4">
-                                <div className="flex flex-col gap-2">
-                                    <Input
-                                        name="URL"
-                                        label="Web URL"
-                                        placeholder="Enter website URL (https://example.com)"
-                                        value={editedBookmark.WebLink}
-                                        onChange={handleInputChange}
-                                        isRequired={isCreateMode}
-                                        isInvalid={!!errors.URL}
-                                        errorMessage={errors.URL}
-                                        startContent={<Language className="text-default-400" />}
-                                        description="The main web URL for this bookmark"
-                                    />
-
-                                    <div className="flex flex-row gap-2 mt-1">
-                                        <Button
-                                            size="sm"
-                                            color="primary"
-                                            variant="flat"
-                                            onPress={detectFavicon}
-                                            isDisabled={!isValidUrl || !editedBookmark.WebLink}
-                                        >
-                                            Detect Favicon
-                                        </Button>
-
-                                        <Button
-                                            size="sm"
-                                            variant="flat"
-                                            isDisabled={!isValidUrl || !editedBookmark.WebLink}
-                                            onPress={() => window.open(editedBookmark.WebLink, '_blank')}
-                                        >
-                                            Test URL
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
-                                    <div className="flex flex-col gap-2">
-                                        <Input
-                                            name="Android"
-                                            label="Android App URL/Link"
-                                            placeholder="Android app deep link or Play Store URL"
-                                            value={editedBookmark.Android || ""}
-                                            onChange={handleInputChange}
-                                            isInvalid={!!errors.Android}
-                                            errorMessage={errors.Android}
-                                            startContent={<Android className="text-default-400" />}
-                                            description="For Android app deep links or Play Store URLs"
-                                        />
-
-                                        {editedBookmark.Android && detectAndroidAppLink(editedBookmark.Android) && (
-                                            <div className="text-xs flex items-center gap-1 text-success">
-                                                <Info fontSize="small" />
-                                                Detected as Android app link
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <Input
-                                            name="Windows"
-                                            label="Windows App URL/Link"
-                                            placeholder="Windows app deep link or Microsoft Store URL"
-                                            value={editedBookmark.Windows || ""}
-                                            onChange={handleInputChange}
-                                            isInvalid={!!errors.Windows}
-                                            errorMessage={errors.Windows}
-                                            startContent={<Window className="text-default-400" />}
-                                            description="For Windows app deep links or Microsoft Store URLs"
-                                        />
-
-                                        {editedBookmark.Windows && detectWindowsAppLink(editedBookmark.Windows) && (
-                                            <div className="text-xs flex items-center gap-1 text-success">
-                                                <Info fontSize="small" />
-                                                Detected as Windows app link
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <div className="flex flex-col gap-2 mt-2">
-                        <h3 className="text-lg font-medium">URL Format Tips</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
-                                <p className="font-medium">Web URL</p>
-                                <p className="text-xs mt-1">Format: https://example.com</p>
-                            </div>
-                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
-                                <p className="font-medium">Android App</p>
-                                <p className="text-xs mt-1">Examples:</p>
-                                <p className="text-xs">• market://details?id=com.example.app</p>
-                                <p className="text-xs">• android-app://com.example.app</p>
-                            </div>
-                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
-                                <p className="font-medium">Windows App</p>
-                                <p className="text-xs mt-1">Examples:</p>
-                                <p className="text-xs">• ms-windows-store://pdp/?productid=XXX</p>
-                                <p className="text-xs">• ms-settings://bluetooth</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Keywords & SEO Tab */}
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-semibold">Keywords & SEO</h2>
-
-                    <Card>
-                        <CardContent>
-                            <div className="flex flex-col gap-4">
-                                <div className="flex flex-row gap-2 items-end">
-                                    <div className="flex-1">
-                                        <Input
-                                            name="newKeyword"
-                                            label="Add Keyword"
-                                            placeholder="Enter a keyword"
-                                            value={newKeyword}
-                                            onChange={(e) => setNewKeyword(e.target.value)}
-                                            onKeyPress={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    e.preventDefault();
-                                                    addKeyword();
-                                                }
-                                            }}
-                                            isInvalid={!!errors.keyword}
-                                            errorMessage={errors.keyword}
-                                        />
-                                    </div>
-                                    <Button
-                                        color="primary"
-                                        onPress={addKeyword}
-                                        isDisabled={!newKeyword.trim()}
-                                    >
-                                        Add
-                                    </Button>
-                                </div>
-
-                                <div className="flex flex-col gap-3">
-                                    <p className="text-sm font-medium">Current Keywords</p>
-                                    <p className="text-xs text-gray-500">Drag and drop to reorder</p>
-
-                                    {(!editedBookmark.Keywords || editedBookmark.Keywords.length === 0) && (
-                                        <div className="p-4 bg-gray-100 dark:bg-gray-800 rounded-lg flex flex-col items-center justify-center">
-                                            <p className="text-sm text-gray-500">No keywords added yet</p>
-                                            <p className="text-xs text-gray-400 mt-1">
-                                                Keywords help improve search visibility
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    {(editedBookmark.Keywords && editedBookmark.Keywords.length > 0) && (
-                                        <div className="keywords-container">
-                                            <GridContextProvider onChange={onGridChange}>
-                                                <GridDropZone
-                                                    id="keywords"
-                                                    boxesPerRow={3}
-                                                    rowHeight={40}
-                                                    style={{
-                                                        height: `${Math.ceil(editedBookmark.Keywords.length / 3) * 40}px`,
-                                                        minHeight: '80px',
-                                                    }}
-                                                >
-                                                    {editedBookmark.Keywords.map((keyword, index) => (
-                                                        <GridItem key={`${keyword}-${index}`}>
-                                                            <div className="flex items-center p-1">
-                                                                <Chip
-                                                                    variant="flat"
-                                                                    className="cursor-move"
-                                                                    startContent={<DragIndicator fontSize="small" />}
-                                                                    onClose={() => removeKeyword(keyword)}
-                                                                >
-                                                                    {keyword}
-                                                                </Chip>
-                                                            </div>
-                                                        </GridItem>
-                                                    ))}
-                                                </GridDropZone>
-                                            </GridContextProvider>
-                                        </div>
+                                        <Public className="w-20 h-20 text-gray-400" />
                                     )}
                                 </div>
 
-                                {keywordSuggestions.length > 0 && (
-                                    <div className="flex flex-col gap-2 mt-2">
-                                        <p className="text-sm font-medium">Suggested Keywords</p>
-                                        <div className="flex flex-wrap gap-2">
-                                            {keywordSuggestions.map((suggestion, index) => (
-                                                <Chip
-                                                    key={`suggestion-${index}`}
-                                                    variant="flat"
-                                                    color="secondary"
-                                                    startContent={<Add fontSize="small" />}
-                                                    className="cursor-pointer hover:bg-secondary-200"
-                                                    onClick={() => addSuggestedKeyword(suggestion)}
-                                                >
-                                                    {suggestion}
-                                                </Chip>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                <div className="flex flex-col gap-2 mt-4">
-                                    <p className="text-sm font-medium">Description for SEO</p>
-                                    <Input
-                                        name="Description"
-                                        placeholder="Enter a detailed description for better search visibility"
-                                        value={editedBookmark.Description || ""}
-                                        onChange={handleInputChange}
-                                        startContent={<Description className="text-default-400" />}
-                                    />
-                                    <p className="text-xs text-gray-500">
-                                        A good description helps in search results and suggestions
-                                    </p>
+                                <div className="mt-3 text-center">
+                                    <p className="text-sm">Shown as bookmark icon</p>
+                                    {editedBookmark.isSVG && editedBookmark.Icon && (
+                                        <p className="text-xs text-success">SVG icons scale well on all devices</p>
+                                    )}
+                                    {!editedBookmark.isSVG && editedBookmark.Icon && (
+                                        <p className="text-xs text-gray-500">For best results, use a square icon (64x64 or larger)</p>
+                                    )}
                                 </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <div className="flex flex-col gap-2 mt-2">
-                        <h3 className="text-lg font-medium">Keyword Tips</h3>
-                        <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
-                            <ul className="list-disc ml-5 text-sm space-y-1">
-                                <li>Use specific, relevant keywords</li>
-                                <li>Include both broad and specific terms</li>
-                                <li>Consider including alternative spellings</li>
-                                <li>Keep keywords concise (1-3 words each)</li>
-                                <li>Arrange most important keywords first</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Icon & Appearance Tab */}
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-semibold">Icon & Appearance</h2>
-
-                    <Card>
-                        <CardContent>
-                            <div className="flex flex-col gap-4">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="flex flex-col gap-3">
-                                        <p className="text-sm font-medium">Icon URL</p>
-                                        <Input
-                                            name="Icon"
-                                            placeholder="Enter icon URL (image or SVG)"
-                                            value={editedBookmark.Icon || ""}
-                                            onChange={(e) => {
-                                                setEditedBookmark(prev => ({
-                                                    ...prev,
-                                                    Icon: e.target.value
-                                                }));
-                                            }}
-                                            startContent={<Public className="text-default-400" />}
-                                        />
-
-                                        <div className="flex flex-row items-center gap-2 mt-1">
-                                            <FormControlLabel
-                                                control={
-                                                    <Switch
-                                                        checked={editedBookmark.isSVG || false}
-                                                        onChange={handleSwitchChange('isSVG')}
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label="Is SVG"
-                                            />
-                                            <Tooltip content="Toggle if the icon is an SVG string">
-                                                <Info fontSize="small" className="text-gray-400" />
-                                            </Tooltip>
-                                        </div>
-
-                                        {editedBookmark.isSVG && (
-                                            <div className="flex flex-col gap-2 mt-2">
-                                                <p className="text-sm font-medium">SVG Color</p>
-                                                <div className="flex flex-row gap-2 items-center">
-                                                    <Input
-                                                        type="text"
-                                                        placeholder="#000000"
-                                                        value={editedBookmark?.fillColor || "#000000"}
-                                                        onChange={(e) => {
-                                                            setEditedBookmark(prev => ({
-                                                                ...prev,
-                                                                fillColor: e.target.value
-                                                            }));
-                                                        }}
-                                                        startContent={
-                                                            <div
-                                                                className="w-4 h-4 rounded-full"
-                                                                style={{ backgroundColor: editedBookmark?.fillColor || "#000000" }}
-                                                            />
-                                                        }
-                                                    />
-                                                    <Input
-                                                        type="color"
-                                                        value={editedBookmark?.fillColor || "#000000"}
-                                                        onChange={(e) => {
-                                                            setEditedBookmark(prev => ({
-                                                                ...prev,
-                                                                fillColor: e.target.value
-                                                            }));
-                                                        }}
-                                                        className="w-12 h-10"
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="mt-3">
-                                            <Button
-                                                color="primary"
-                                                variant="flat"
-                                                onPress={detectFavicon}
-                                                isDisabled={!isValidUrl || !editedBookmark.WebLink}
-                                            >
-                                                Auto-detect from URL
-                                            </Button>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-3 items-center">
-                                        <p className="text-sm font-medium">Icon Preview</p>
-                                        <div className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
-                                            {editedBookmark.Icon ? (
-                                                editedBookmark.isSVG ? (
-                                                    <SvgComponent
-                                                        svgString={editedBookmark.Icon}
-                                                        _class="w-20 h-20"
-                                                        style={{
-                                                            color: editedBookmark?.fillColor || "#000000"
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <Image
-                                                        src={editedBookmark.Icon}
-                                                        alt={editedBookmark.Name}
-                                                        width={80}
-                                                        height={80}
-                                                        style={{
-                                                            objectFit: "contain"
-                                                        }}
-                                                        onError={() => {
-                                                            setEditedBookmark(prev => ({
-                                                                ...prev,
-                                                                Icon: ""
-                                                            }));
-                                                        }}
-                                                    />
-                                                )
-                                            ) : (
-                                                <Public className="w-20 h-20 text-gray-400" />
-                                            )}
-                                        </div>
-
-                                        <div className="mt-3 text-center">
-                                            <p className="text-sm">Shown as bookmark icon</p>
-                                            {editedBookmark.isSVG && editedBookmark.Icon && (
-                                                <p className="text-xs text-success">SVG icons scale well on all devices</p>
-                                            )}
-                                            {!editedBookmark.isSVG && editedBookmark.Icon && (
-                                                <p className="text-xs text-gray-500">For best results, use a square icon (64x64 or larger)</p>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <div className="flex flex-col gap-2 mt-2">
-                        <h3 className="text-lg font-medium">Icon Tips</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
-                                <p className="font-medium">SVG Icons</p>
-                                <p className="text-xs mt-1">
-                                    • Provide the raw SVG code<br />
-                                    • Toggle &quot;Is SVG&quot; switch<br />
-                                    • Adjust the SVG color<br />
-                                    • Best for sharp, scalable icons
-                                </p>
-                            </div>
-                            <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded">
-                                <p className="font-medium">Image Icons</p>
-                                <p className="text-xs mt-1">
-                                    • Provide a direct image URL<br />
-                                    • Make sure &quot;Is SVG&quot; is off<br />
-                                    • Use PNG or JPG format<br />
-                                    • Square aspect ratio works best
-                                </p>
                             </div>
                         </div>
                     </div>
@@ -954,86 +822,82 @@ function BookmarkEditor({
                 <div className="flex flex-col gap-4">
                     <h2 className="text-xl font-semibold">Client Options</h2>
 
-                    <Card>
-                        <CardContent>
-                            <div className="flex flex-col gap-5">
-                                <div className="flex flex-col gap-3">
-                                    <p className="text-sm font-medium">Link Platform Priority</p>
-                                    <p className="text-xs text-gray-500 mb-2">
-                                        When a user clicks on this bookmark, which platform should be prioritized?
-                                    </p>
+                    <div className="flex flex-col gap-5">
+                        <div className="flex flex-col gap-3">
+                            <p className="text-sm font-medium">Link Platform Priority</p>
+                            <p className="text-xs text-gray-500 mb-2">
+                                When a user clicks on this bookmark, which platform should be prioritized?
+                            </p>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                        <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "web"
-                                                ? "border-primary bg-primary-50 dark:bg-primary-900/10"
-                                                : "border-gray-200 dark:border-gray-700"
-                                                }`}
-                                            onClick={() => handleSelectChange("Priority", "web")}
-                                        >
-                                            <div className="flex items-center justify-center">
-                                                <Language className={`w-10 h-10 ${editedBookmark.Priority === "web"
-                                                    ? "text-primary"
-                                                    : "text-gray-400"
-                                                    }`} />
-                                            </div>
-                                            <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.Priority === "web"
-                                                    ? "text-primary"
-                                                    : ""
-                                                    }`}>Web</p>
-                                                <p className="text-xs text-gray-500">Open in browser</p>
-                                            </div>
-                                        </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div
+                                    className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "web"
+                                        ? "border-primary bg-primary-50 dark:bg-primary-900/10"
+                                        : "border-gray-200 dark:border-gray-700"
+                                        }`}
+                                    onClick={() => handleSelectChange("Priority", "web")}
+                                >
+                                    <div className="flex items-center justify-center">
+                                        <Language className={`w-10 h-10 ${editedBookmark.Priority === "web"
+                                            ? "text-primary"
+                                            : "text-gray-400"
+                                            }`} />
+                                    </div>
+                                    <div className="text-center">
+                                        <p className={`font-medium ${editedBookmark.Priority === "web"
+                                            ? "text-primary"
+                                            : ""
+                                            }`}>Web</p>
+                                        <p className="text-xs text-gray-500">Open in browser</p>
+                                    </div>
+                                </div>
 
-                                        <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "android"
-                                                ? "border-primary bg-primary-50 dark:bg-primary-900/10"
-                                                : "border-gray-200 dark:border-gray-700"
-                                                }`}
-                                            onClick={() => handleSelectChange("Priority", "android")}
-                                        >
-                                            <div className="flex items-center justify-center">
-                                                <Android className={`w-10 h-10 ${editedBookmark.Priority === "android"
-                                                    ? "text-primary"
-                                                    : "text-gray-400"
-                                                    }`} />
-                                            </div>
-                                            <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.Priority === "android"
-                                                    ? "text-primary"
-                                                    : ""
-                                                    }`}>Mobile</p>
-                                                <p className="text-xs text-gray-500">Prefer Android app</p>
-                                            </div>
-                                        </div>
+                                <div
+                                    className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "android"
+                                        ? "border-primary bg-primary-50 dark:bg-primary-900/10"
+                                        : "border-gray-200 dark:border-gray-700"
+                                        }`}
+                                    onClick={() => handleSelectChange("Priority", "android")}
+                                >
+                                    <div className="flex items-center justify-center">
+                                        <Android className={`w-10 h-10 ${editedBookmark.Priority === "android"
+                                            ? "text-primary"
+                                            : "text-gray-400"
+                                            }`} />
+                                    </div>
+                                    <div className="text-center">
+                                        <p className={`font-medium ${editedBookmark.Priority === "android"
+                                            ? "text-primary"
+                                            : ""
+                                            }`}>Mobile</p>
+                                        <p className="text-xs text-gray-500">Prefer Android app</p>
+                                    </div>
+                                </div>
 
-                                        <div
-                                            className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "windows"
-                                                ? "border-primary bg-primary-50 dark:bg-primary-900/10"
-                                                : "border-gray-200 dark:border-gray-700"
-                                                }`}
-                                            onClick={() => handleSelectChange("Priority", "windows")}
-                                        >
-                                            <div className="flex items-center justify-center">
-                                                <Window className={`w-10 h-10 ${editedBookmark.Priority === "windows"
-                                                    ? "text-primary"
-                                                    : "text-gray-400"
-                                                    }`} />
-                                            </div>
-                                            <div className="text-center">
-                                                <p className={`font-medium ${editedBookmark.Priority === "windows"
-                                                    ? "text-primary"
-                                                    : ""
-                                                    }`}>Desktop</p>
-                                                <p className="text-xs text-gray-500">Prefer Windows app</p>
-                                            </div>
-                                        </div>
+                                <div
+                                    className={`flex flex-col gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${editedBookmark.Priority === "windows"
+                                        ? "border-primary bg-primary-50 dark:bg-primary-900/10"
+                                        : "border-gray-200 dark:border-gray-700"
+                                        }`}
+                                    onClick={() => handleSelectChange("Priority", "windows")}
+                                >
+                                    <div className="flex items-center justify-center">
+                                        <Window className={`w-10 h-10 ${editedBookmark.Priority === "windows"
+                                            ? "text-primary"
+                                            : "text-gray-400"
+                                            }`} />
+                                    </div>
+                                    <div className="text-center">
+                                        <p className={`font-medium ${editedBookmark.Priority === "windows"
+                                            ? "text-primary"
+                                            : ""
+                                            }`}>Desktop</p>
+                                        <p className="text-xs text-gray-500">Prefer Windows app</p>
                                     </div>
                                 </div>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Admin Controls Tab */}
@@ -1041,263 +905,230 @@ function BookmarkEditor({
                     <div className="flex flex-col gap-4">
                         <h2 className="text-xl font-semibold">Admin</h2>
 
-                        <Card>
-                            <CardContent>
-                                <div className="flex flex-col gap-4">
-                                    <div className="flex flex-col gap-2">
-                                        <h3 className="text-base font-medium">Publishing Options</h3>
+                        <div className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-2">
+                                <h3 className="text-base font-medium">Publishing Options</h3>
 
-                                        {/* For Users */}
-                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <FormControlLabel
-                                                className="w-full"
-                                                control={
-                                                    <Switch
-                                                        checked={editedBookmark.isPublished || false}
-                                                        onChange={handleSwitchChange('isPublished')}
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label={
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">Publish</span>
-                                                        <span className="text-xs text-gray-500">
-                                                            When published, this bookmark will be available to all users on marketplace
-                                                        </span>
-                                                    </div>
-                                                }
+                                {/* For Users */}
+                                <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <FormControlLabel
+                                        className="w-full"
+                                        control={
+                                            <Switch
+                                                checked={editedBookmark.isPublished || false}
+                                                onChange={handleSwitchChange('isPublished')}
+                                                color="primary"
                                             />
-                                            <Tooltip content="Publishing makes this bookmark accessible to all users">
-                                                <Info fontSize="small" className="text-gray-400" />
-                                            </Tooltip>
-                                        </div>
-
-                                        {/* For Admins */}
-                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <FormControlLabel
-                                                className="w-full"
-                                                control={
-                                                    <Switch
-                                                        checked={editedBookmark.isAdminOnly || false}
-                                                        disabled={!editedBookmark.isPublished}
-                                                        onChange={()=> {
-                                                            handleSwitchChange('isAdminOnly')
-                                                        }}
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label={
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">Admin Only</span>
-                                                        <span className="text-xs text-gray-500">
-                                                            When published, this bookmark will be available to only to Admin Users
-                                                        </span>
-                                                    </div>
-                                                }
-                                            />
-                                            <Tooltip content="Publishing makes this bookmark accessible to all admins">
-                                                <Shield
-                                                    fontSize="small"
-                                                    className={`${editedBookmark.isAdminOnly ? 'text-primary' : 'text-gray-400'}`}
-                                                />
-                                            </Tooltip>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <h3 className="text-base font-medium">Server Options</h3>
-                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <FormControlLabel
-                                                className="w-full"
-                                                control={
-                                                    <Switch
-                                                        checked={editedBookmark.isCloudSync || false}
-                                                        onChange={handleSwitchChange('isCloudSync')}
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label={
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">Sync on Cloud</span>
-                                                        <span className="text-xs text-gray-500">
-                                                            Store this bookmark on the server for cloud synchronization
-                                                        </span>
-                                                    </div>
-                                                }
-                                            />
-                                            <Cloud className={`text-${editedBookmark.isCloudSync ? 'primary' : 'gray-400'}`} />
-                                        </div>
-
-                                        {/* is Sponsors */}
-                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <FormControlLabel
-                                                className="w-full"
-                                                control={
-                                                    <Switch
-                                                        checked={editedBookmark.isSponsored || false}
-                                                        onChange={handleSwitchChange('isSponsored')}
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label={
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">Advertisement</span>
-                                                        <span className="text-xs text-gray-500">
-                                                            When published, this bookmark will serve as a sponsored Tag on Top Left
-                                                        </span>
-                                                    </div>
-                                                }
-                                            />
-                                            <Tooltip content="Publishing makes this bookmark accessible to all sponsors">
-                                                {/* <Star fontSize="small" className="text-gray-400" /> */}
-                                                <div
-                                                    className={
-                                                        cn(
-                                                            "flex items-center justify-center rounded-md p-1 text-xs font-medium",
-                                                            editedBookmark.isSponsored ? "bg-primary text-white" : "bg-gray-400 text-gray-800"
-                                                        )
-                                                    }
-                                                >
-                                                    AD
-                                                </div>
-                                            </Tooltip>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col gap-2">
-                                        <h3 className="text-base font-medium">User Restrictions</h3>
-                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <FormControlLabel
-                                                className="w-full"
-                                                control={
-                                                    <Switch
-                                                        checked={editedBookmark.isEditBlock || false}
-                                                        onChange={handleSwitchChange('isEditBlock')}
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label={
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">Prevent from Edit</span>
-                                                        <span className="text-xs text-gray-500">
-                                                            Prevent user from editing this bookmark
-                                                        </span>
-                                                    </div>
-                                                }
-                                            />
-                                            {/* <Cloud className={`text-${editedBookmark.isCloudSync ? 'primary' : 'gray-400'}`} /> */}
-                                            <EditOff className={`text-${editedBookmark.isEditBlock ? 'primary' : 'gray-400'}`} />
-                                        </div>
-
-                                        <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                            <FormControlLabel
-                                                className="w-full"
-                                                control={
-                                                    <Switch
-                                                        checked={editedBookmark.isDeleteBlock || false}
-                                                        onChange={handleSwitchChange('isDeleteBlock')}
-                                                        color="primary"
-                                                    />
-                                                }
-                                                label={
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">Prevent from Delete</span>
-                                                        <span className="text-xs text-gray-500">
-                                                            Prevent user from deleting this bookmark
-                                                        </span>
-                                                    </div>
-                                                }
-                                            />
-                                            <DeleteForever className={`text-${editedBookmark.isDeleteBlock ? 'primary' : 'gray-400'}`} />
-                                        </div>
-
-                                    </div>
-
-                                    <div className="flex flex-col gap-2 mt-3">
-                                        <h3 className="text-base font-medium">Danger Zone</h3>
-                                        <div className="border border-danger rounded-lg p-4">
-                                            <div className="flex flex-row justify-between items-center">
-                                                <div className="flex flex-col">
-                                                    <p className="font-medium text-danger">Delete Bookmark</p>
-                                                    <p className="text-xs text-gray-500">
-                                                        This action cannot be undone
-                                                    </p>
-                                                </div>
-                                                <Button
-                                                    color="danger"
-                                                    startContent={<Delete />}
-                                                    onPress={() => {
-                                                        if (confirm('Are you sure you want to delete this bookmark? This action cannot be undone.')) {
-                                                            setEditedBookmark(prev => ({
-                                                                ...prev,
-                                                                isDeleted: true
-                                                            }));
-
-                                                            onSave && onSave({
-                                                                ...editedBookmark,
-                                                                isDeleteBlock: true
-                                                            });
-                                                        }
-                                                    }}
-                                                >
-                                                    Delete
-                                                </Button>
+                                        }
+                                        label={
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">Publish</span>
+                                                <span className="text-xs text-gray-500">
+                                                    When published, this bookmark will be available to all users on marketplace
+                                                </span>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    {!isCreateMode && (
-                                        <div className="flex flex-col gap-2 mt-2">
-                                            <p className="text-sm font-medium">Bookmark ID</p>
-                                            <div className="flex flex-row gap-2 items-center">
-                                                <code className="bg-gray-100 dark:bg-gray-800 p-2 rounded flex-1 font-mono text-sm">
-                                                    {editedBookmark.BookmarkID || "No ID"}
-                                                </code>
-                                                <Button
-                                                    isIconOnly
-                                                    size="sm"
-                                                    variant="flat"
-                                                    onPress={() => {
-                                                        if (editedBookmark.BookmarkID) {
-                                                            navigator.clipboard.writeText(editedBookmark.BookmarkID);
-                                                        }
-                                                    }}
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                                                    </svg>
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
+                                        }
+                                    />
+                                    <Tooltip content="Publishing makes this bookmark accessible to all users">
+                                        <Info fontSize="small" className="text-gray-400" />
+                                    </Tooltip>
                                 </div>
-                            </CardContent>
-                        </Card>
+
+                                {/* For Admins */}
+                                <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <FormControlLabel
+                                        className="w-full"
+                                        control={
+                                            <Switch
+                                                checked={editedBookmark.isAdminOnly || false}
+                                                onChange={handleSwitchChange('isAdminOnly')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label={
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">Only for Admins</span>
+                                                <span className="text-xs text-gray-500">
+                                                    When published, this bookmark will be available to only to Admin Users
+                                                </span>
+                                            </div>
+                                        }
+                                    />
+                                    <Tooltip content="Publishing makes this bookmark accessible to all admins">
+                                        <Shield fontSize="small" className="text-gray-400" />
+                                    </Tooltip>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <h3 className="text-base font-medium">Server Options</h3>
+                                <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <FormControlLabel
+                                        className="w-full"
+                                        control={
+                                            <Switch
+                                                checked={editedBookmark.isCloudSync || false}
+
+                                                onChange={handleSwitchChange('isCloudSync')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label={
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">Sync on Cloud</span>
+                                                <span className="text-xs text-gray-500">
+                                                    Store this bookmark on the server for cloud synchronization
+                                                </span>
+                                            </div>
+                                        }
+                                    />
+                                    <Cloud className={`text-${editedBookmark.isCloudSync ? 'primary' : 'gray-400'}`} />
+                                </div>
+
+                                {/* is Sponsors */}
+                                <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <FormControlLabel
+                                        className="w-full"
+                                        control={
+                                            <Switch
+                                                checked={editedBookmark.isSponsored || false}
+                                                onChange={handleSwitchChange('isSponsored')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label={
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">Advertisement</span>
+                                                <span className="text-xs text-gray-500">
+                                                    When published, this bookmark will serve as a sponsored Tag on Top Left
+                                                </span>
+                                            </div>
+                                        }
+                                    />
+                                    <Tooltip content="Publishing makes this bookmark accessible to all sponsors">
+                                        <div
+                                            className={
+                                                cn(
+                                                    "flex items-center justify-center rounded-md p-1 text-xs font-medium",
+                                                    editedBookmark.isSponsored ? "bg-primary text-white" : "bg-gray-400 text-gray-800"
+                                                )
+                                            }
+                                        >
+                                            AD
+                                        </div>
+                                    </Tooltip>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col gap-2">
+                                <h3 className="text-base font-medium">User Restrictions</h3>
+                                <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <FormControlLabel
+                                        className="w-full"
+                                        control={
+                                            <Switch
+                                                checked={editedBookmark.isEditBlock || false}
+                                                onChange={handleSwitchChange('isEditBlock')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label={
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">Prevent from Edit</span>
+                                                <span className="text-xs text-gray-500">
+                                                    Prevent user from editing this bookmark
+                                                </span>
+                                            </div>
+                                        }
+                                    />
+                                    <EditOff className={`text-${editedBookmark.isEditBlock ? 'primary' : 'gray-400'}`} />
+                                </div>
+
+                                <div className="flex flex-row items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                    <FormControlLabel
+                                        className="w-full"
+                                        control={
+                                            <Switch
+                                                checked={editedBookmark.isDeleteBlock || false}
+                                                onChange={handleSwitchChange('isDeleteBlock')}
+                                                color="primary"
+                                            />
+                                        }
+                                        label={
+                                            <div className="flex flex-col">
+                                                <span className="font-medium">Prevent from Delete</span>
+                                                <span className="text-xs text-gray-500">
+                                                    Prevent user from deleting this bookmark
+                                                </span>
+                                            </div>
+                                        }
+                                    />
+                                    <DeleteForever className={`text-${editedBookmark.isDeleteBlock ? 'primary' : 'gray-400'}`} />
+                                </div>
+
+                            </div>
+
+                            <div className="flex flex-col gap-2 mt-3">
+                                <h3 className="text-base font-medium">Danger Zone</h3>
+                                <div className="border border-danger rounded-lg p-4">
+                                    <div className="flex flex-row justify-between items-center">
+                                        <div className="flex flex-col">
+                                            <p className="font-medium text-danger">Delete Bookmark</p>
+                                            <p className="text-xs text-gray-500">
+                                                This action cannot be undone
+                                            </p>
+                                        </div>
+                                        <Button
+                                            color="danger"
+                                            startContent={<Delete />}
+                                            onPress={() => {
+                                                if (confirm('Are you sure you want to delete this bookmark? This action cannot be undone.')) {
+                                                    setEditedBookmark(prev => ({
+                                                        ...prev,
+                                                        isDeleted: true
+                                                    }));
+
+                                                    onSave && onSave({
+                                                        ...editedBookmark,
+                                                        isDeleteBlock: true
+                                                    });
+                                                }
+                                            }}
+                                        >
+                                            Delete
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {!isCreateMode && (
+                                <div className="flex flex-col gap-2 mt-2">
+                                    <p className="text-sm font-medium">Bookmark ID</p>
+                                    <div className="flex flex-row gap-2 items-center">
+                                        <code className="bg-gray-100 dark:bg-gray-800 p-2 rounded flex-1 font-mono text-sm">
+                                            {editedBookmark.BookmarkID || "No ID"}
+                                        </code>
+                                        <Button
+                                            isIconOnly
+                                            size="sm"
+                                            variant="flat"
+                                            onPress={() => {
+                                                if (editedBookmark.BookmarkID) {
+                                                    navigator.clipboard.writeText(editedBookmark.BookmarkID);
+                                                }
+                                            }}
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                                            </svg>
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
-
-                {/* Buttons at the bottom */}
-                <div className="flex flex-row justify-between mt-4">
-                    <div className="flex flex-row gap-2">
-                        <Button
-                            color="danger"
-                            variant="flat"
-                            onPress={onCancel}
-                        >
-                            Cancel
-                        </Button>
-                    </div>
-
-                    <div className="flex flex-row gap-2">
-                        <Button
-                            color="primary"
-                            onPress={() => onSave && onSave(editedBookmark)}
-                        >
-                            {isCreateMode ? "Create Bookmark" : "Save Changes"}
-                        </Button>
-                    </div>
-                </div>
             </div>
         </div>
     );

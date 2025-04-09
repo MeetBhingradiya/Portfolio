@@ -21,6 +21,7 @@ import {
 import {
     useWindowCheck
 } from "@Hooks"
+import { log } from "@Utils";
 
 interface SidebarProps {
     ModalState: IToolsModalData
@@ -40,6 +41,7 @@ function Sidebar({ ModalState, SetModalState }: SidebarProps) {
     function CheckAdminOptionVisibility() {
         if (isClient) {
             const AdminSignature = localStorage.getItem("AdminOptions");
+            log("Admin Options Visiblity", AdminSignature);
             if (AdminSignature) {
                 SetModalState({
                     ...ModalState,

@@ -85,7 +85,7 @@ const DefualtBookmark: IBookmark = {
     isDefault: false,
     isAdminOnly: false,
     isSponsored: false,
-    isEditBlock: false,
+    isEditBlock: false
 }
 
 enum ISearchEngines {

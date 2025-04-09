@@ -1,5 +1,5 @@
 {
-    "Signature": "e7c36033219d7ef793b1ccf8211878945c757a7885cb73868d922be877006d4c",
+    "Signature": "c41a09e2df0f54d8a9444147c4c58102b0f152d846b56eb19e0c78ef5e098a86",
     "File": {
         "DatabaseBydefualt": {
             "Signup_Username_Prefix": "Anonymous_",
@@ -13,7 +13,7 @@
             "outlook.com"
         ],
         "Password_Strength": {
-            "Length": 8,
+            "Length": 12,
             "UpperCase": true,
             "LowerCase": true,
             "Digits": true,

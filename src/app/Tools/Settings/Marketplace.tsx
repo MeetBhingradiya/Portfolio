@@ -233,7 +233,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
         const filtered = ModalState.RemoteBookmarks.filter(bookmark => {
             return (
                 bookmark.Name.toLowerCase().includes(query) ||
-                bookmark.URL.toLowerCase().includes(query) ||
+                bookmark.WebLink.toLowerCase().includes(query) ||
                 bookmark.Description?.toLowerCase().includes(query) ||
                 bookmark.Keywords?.some(keyword =>
                     keyword.toLowerCase().includes(query)
@@ -274,7 +274,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
 
                     return (
                         bookmark.Name.toLowerCase().includes(query) ||
-                        bookmark.URL.toLowerCase().includes(query) ||
+                        bookmark.WebLink.toLowerCase().includes(query) ||
                         bookmark.Description?.toLowerCase().includes(query) ||
                         bookmark.Keywords?.some(k => k.toLowerCase().includes(query))
                     );
@@ -348,8 +348,8 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                                         <div
                                             className="w-6 h-6"
                                             style={{
-                                                color: bookmark.SVGStyles?.fill || '#000000',
-                                                fill: bookmark.SVGStyles?.fill || '#000000'
+                                                color: bookmark.fillColor || '#000000',
+                                                fill: bookmark.fillColor || '#000000'
                                             }}
                                         >
                                             {bookmark.Icon}
@@ -372,7 +372,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                                         {bookmark.Name || "Unnamed Bookmark"}
                                     </Typography>
                                     <Typography variant="body2" className="text-gray-500 text-xs truncate max-w-[200px]">
-                                        {bookmark.URL || "No URL provided"}
+                                        {bookmark.WebLink || "No URL provided"}
                                     </Typography>
                                 </div>
                             </div>

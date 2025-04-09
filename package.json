@@ -10,7 +10,9 @@
         "blogs": "bun Scripts/SyncBlogs.ts",
         "comments": "bun Scripts/Comments.ts",
         "SignState": "bun Scripts/SignState.ts",
-        "CheckDeploy": "bun Scripts/DeployCheck.ts"
+        "CheckDeploy": "bun Scripts/DeployCheck.ts",
+        "publish": "bun Scripts/Publish.ts",
+        "updateState": "bun Scripts/UpdateRemoteSettings.ts"
     },
     "dependencies": {
         "@chakra-ui/icons": "^2.2.4",

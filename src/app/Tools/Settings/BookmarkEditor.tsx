@@ -1,3 +1,32 @@
+/**
+ *  @FileID          app/Tools/Settings/BookmarkEditor.tsx
+ *  @Description     Currently, there is no description available.
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  @license
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
+ *  All rights reserved.
+ *  
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier, or the organization.
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  Last Updated on Version: 1.1.0
+ *  -----------------------------------------------------------------------------  
+ *  @created 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ *  @modified 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ */
+
 "use client";
 
 import React from "react";
@@ -74,18 +103,16 @@ import { motion } from "framer-motion"
 
 interface IBookmarkEditorProps {
     bookmark: IBookmark;
+    setBookmark: (bookmark: IBookmark) => void;
     isAdmin: boolean;
     isCreateMode: boolean;
-    onSave?: (bookmark: IBookmark) => void;
-    onCancel?: () => void;
 }
 
 function BookmarkEditor({
     bookmark = DefualtBookmark,
+    setBookmark = () => { },
     isAdmin = false,
-    isCreateMode = false,
-    onSave,
-    onCancel
+    isCreateMode = false
 }: IBookmarkEditorProps) {
     const constraintsRef = React.useRef<HTMLDivElement>(null)
     // Main bookmark state
@@ -399,6 +426,11 @@ function BookmarkEditor({
         }
     };
 
+    // ? Sync Bookmark to Perent Component for Add/Remove to Device/Cloud
+    React.useEffect(() => {
+        setBookmark(editedBookmark);
+    }, [editedBookmark]);
+
     return (
         <div className="Editor w-full mx-auto p-4 gap-6">
             <div className="flex flex-col gap-2 justify-center items-center">
@@ -440,6 +472,7 @@ function BookmarkEditor({
                             style={{
                                 width: "20vw"
                             }}
+                            drag={true}
                         />
                     </motion.div>
 
@@ -635,10 +668,10 @@ function BookmarkEditor({
                                     <GridContextProvider onChange={onGridChange}>
                                         <GridDropZone
                                             id="keywords"
-                                            boxesPerRow={1}
+                                            boxesPerRow={4}
                                             rowHeight={40}
                                             style={{
-                                                height: `${Math.ceil(editedBookmark.Keywords.length / 3) * 40}px`,
+                                                height: `${Math.ceil(editedBookmark.Keywords.length / 4) * 40}px`,
                                                 minHeight: '80px',
                                             }}
                                         >
@@ -1081,19 +1114,6 @@ function BookmarkEditor({
                                         <Button
                                             color="danger"
                                             startContent={<Delete />}
-                                            onPress={() => {
-                                                if (confirm('Are you sure you want to delete this bookmark? This action cannot be undone.')) {
-                                                    setEditedBookmark(prev => ({
-                                                        ...prev,
-                                                        isDeleted: true
-                                                    }));
-
-                                                    onSave && onSave({
-                                                        ...editedBookmark,
-                                                        isDeleteBlock: true
-                                                    });
-                                                }
-                                            }}
                                         >
                                             Delete
                                         </Button>

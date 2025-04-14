@@ -14,6 +14,8 @@ async function isDeployBlockedByRepository(): Promise<boolean> {
             console.log("🚫 Deployment blocked by remote repository settings.");
             return true;
         }
+
+        console.log("✅ Deployment Authorized By Remote Repository Settings.");
     } catch (error) {
         console.error("⚠️ Error fetching repository state:", error);
         return false;
@@ -22,7 +24,7 @@ async function isDeployBlockedByRepository(): Promise<boolean> {
     return false;
 }
 
-async function main() {
+(async function main() {
     const commitMessage = execSync("git log -1 --pretty=%B").toString().trim();
     console.log(`📝 Commit Message: "${commitMessage}"`);
 
@@ -36,6 +38,4 @@ async function main() {
 
     console.log("✅ Proceeding with deployment.");
     process.exit(1);
-}
-
-main()
+})()

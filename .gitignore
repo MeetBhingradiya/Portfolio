@@ -19,6 +19,7 @@ Test
 # ^ IDE
 .vscode
 .vercel
+.cursorignore
 
 # ^ Package managers Lock files
 package-lock.json

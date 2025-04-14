@@ -1,3 +1,32 @@
+/**
+ *  @FileID          app/Tools/Settings/Marketplace.tsx
+ *  @Description     Currently, there is no description available.
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  @license
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
+ *  All rights reserved.
+ *  
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier, or the organization.
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  Last Updated on Version: 1.1.0
+ *  -----------------------------------------------------------------------------  
+ *  @created 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ *  @modified 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ */
+
 "use client";
 
 import React from "react";
@@ -10,13 +39,9 @@ import {
 import {
     Card,
     Input,
-    Divider,
     Button,
-    Skeleton
 } from "@heroui/react";
 import {
-    Box,
-    CardContent,
     Typography,
     Grid2 as Grid
 } from "@mui/material";
@@ -26,18 +51,12 @@ import {
     AddCircleOutline,
     WarningAmber,
     CloudDownload,
-    CheckCircleOutline,
-    BookmarkOutlined,
-    CheckBox,
-    CheckBoxOutlineBlank,
     LocalMall
 } from "@mui/icons-material";
 import { Axios } from "@Utils/Axios";
 import { useInView } from "react-intersection-observer";
-import { FixedSizeList as List } from "react-window";
-import { toast } from "react-toastify";
-
-const MotionCard = motion.create(Card);
+import BookmarkItemMarketPlace from "./BookmarkItemMarketPlace";
+import BookmarkItemSkeleton from "./BookmarkItemSkeleton";
 interface MarketplaceProps {
     ModalState: IToolsModalData;
     SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>;
@@ -46,20 +65,11 @@ interface MarketplaceProps {
 }
 
 function Marketplace({ ModalState, SetModalState, State, Dispatch }: MarketplaceProps) {
-    // ? Optional
-    // const prefersReducedMotion = useReducedMotion();
-    const { ref: endRef, inView: endIsVisible } = useInView({ threshold: 0.1, rootMargin: "300px" });
 
     const [filteredBookmarks, setFilteredBookmarks] = React.useState<IBookmark[]>([]);
-    const [isLoading, setIsLoading] = React.useState(true);
+    const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
-    const [page, setPage] = React.useState(1);
     const [selectedBookmarks, setSelectedBookmarks] = React.useState<Set<string>>(new Set());
-    const [loadingTriggered, setLoadingTriggered] = React.useState(false);
-
-    const existingBookmarkIds = React.useMemo(() => {
-        return new Set(State.Bookmarks.map(bookmark => bookmark.BookmarkID));
-    }, [State.Bookmarks]);
 
     function setRemoteBookmarks(bookmarks: IBookmark[]) {
         SetModalState(prev => ({
@@ -68,100 +78,105 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
         }));
     }
 
+    const handleSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 
-    const fetchBookmarks = React.useCallback(async (pageNum: number = 1, isNewSearch: boolean = false) => {
+        SetModalState(prev => ({
+            ...prev,
+            MarketPlaceQuery: e.target.value
+        }));
+
+        // ? Chacks for Space
+        let Query = e.target.value.trim();
+
+        if (!Query) {
+            setFilteredBookmarks(ModalState.RemoteBookmarks);
+            return;
+        }
+
+        const query = Query?.toLowerCase();
+
+        const isExactMatch = (name: string, keywords: Array<string> = []): boolean => {
+            return name.toLowerCase() === query || keywords.some((keyword) => keyword.toLowerCase() === query);
+        };
+        
+        // ? Filter From Remote Bookmarks
+        const filteredBookmarks = ModalState.RemoteBookmarks.filter(bookmark => {
+            return (
+                bookmark.Name.toLowerCase().includes(query) ||
+                (bookmark.Keywords ?? []).some((keyword) => keyword.toLowerCase().includes(query)) ||
+                isExactMatch(bookmark.Name, bookmark.Keywords) ||
+                bookmark.WebLink.toLowerCase().includes(query)
+            );
+        }).sort((a, b) => {
+            // ? Exact match comparison
+            const aIsExactMatch = isExactMatch(a.Name, a.Keywords);
+            const bIsExactMatch = isExactMatch(b.Name, b.Keywords);
+
+            if (aIsExactMatch && !bIsExactMatch) return -1;
+            if (!aIsExactMatch && bIsExactMatch) return 1;
+
+            // ? Starts with query comparison
+            const aStartsWithQuery = a.Name.toLowerCase().startsWith(query);
+            const bStartsWithQuery = b.Name.toLowerCase().startsWith(query);
+
+            if (aStartsWithQuery && !bStartsWithQuery) return -1;
+            if (!aStartsWithQuery && bStartsWithQuery) return 1;
+
+            // ? Keyword match comparison
+            const aKeywordMatch = a.Keywords?.some((keyword) => keyword.toLowerCase().includes(query));
+            const bKeywordMatch = b.Keywords?.some((keyword) => keyword.toLowerCase().includes(query));
+
+            if (aKeywordMatch && !bKeywordMatch) return -1;
+            if (!aKeywordMatch && bKeywordMatch) return 1;
+
+            // ? URL match comparison
+            const aUrlMatch = a.WebLink.toLowerCase().includes(query);
+            const bUrlMatch = b.WebLink.toLowerCase().includes(query);
+
+            if (aUrlMatch && !bUrlMatch) return -1;
+            if (!aUrlMatch && bUrlMatch) return 1;
+
+            // ? Fallback to alphabetical sorting
+            return a.Name.localeCompare(b.Name);
+        });
+
+        if (filteredBookmarks.length > 0) {
+            setFilteredBookmarks(filteredBookmarks);
+            return;
+        }
+
         try {
             if (isLoading) return;
-
             setIsLoading(true);
 
             const existingIds = State.Bookmarks.map(bookmark => bookmark.BookmarkID);
 
             const requestBody = {
-                page: pageNum.toString(),
-                limit: '10',
-                existingIds: existingIds,
-                adminSignature: ModalState.isAdmin ? ModalState.AdminSignature : undefined
+                _page: 1,
+                _limit: '20',
+                excludeID: existingIds,
+                adminSignature: ModalState.isAdmin ? ModalState.AdminSignature : undefined,
+                query: query
             };
 
             const response = await Axios.post('/api/bookmarks', requestBody);
-            const data = response.data;
+            const data = response.data.Data;
 
-            if (data.Status === 1) {
-                let newBookmarks = data.Data || [];
+            if (response.data.Status === 1) {
+                setError(null);
 
-                if (newBookmarks.length === 0) {
-                    SetModalState(prev => ({
-                        ...prev,
-                        hasMore: false
-                    }));
-                    setIsLoading(false);
-                    return;
-                }
+                setFilteredBookmarks(data.Bookmarks || []);
 
-                let newUniqueBookmarksAdded = 0;
+                // ? If not Avilable in Remote Bookmarks then Add it
+                const newBookmarks = data.Bookmarks.filter((bookmark:any) => !ModalState.RemoteBookmarks.some(b => b.BookmarkID === bookmark.BookmarkID));
 
-                if (isNewSearch) {
-                    setRemoteBookmarks(newBookmarks);
-                    setFilteredBookmarks(newBookmarks);
-                    newUniqueBookmarksAdded = newBookmarks.length;
-                } else {
-                    const existingIds = new Set(ModalState.RemoteBookmarks.map(b => b.BookmarkID));
-                    const uniqueNewBookmarks = newBookmarks.filter((b: IBookmark) => !existingIds.has(b.BookmarkID));
-
-                    newUniqueBookmarksAdded = uniqueNewBookmarks.length;
-
-                    if (uniqueNewBookmarks.length > 0) {
-                        const updatedBookmarks = [...ModalState.RemoteBookmarks, ...uniqueNewBookmarks];
-                        setRemoteBookmarks(updatedBookmarks);
-
-                        if (ModalState.MarketPlaceQuery.trim()) {
-                            const query = ModalState.MarketPlaceQuery.toLowerCase();
-                            const filtered = updatedBookmarks.filter(bookmark => {
-                                return (
-                                    bookmark.Name.toLowerCase().includes(query) ||
-                                    bookmark.URL.toLowerCase().includes(query) ||
-                                    bookmark.Description?.toLowerCase().includes(query) ||
-                                    bookmark.Keywords?.some((keyword: string) =>
-                                        keyword.toLowerCase().includes(query)
-                                    )
-                                );
-                            });
-                            setFilteredBookmarks(filtered);
-                        } else {
-                            setFilteredBookmarks(updatedBookmarks);
-                        }
-                    }
-                }
-
-                const shouldContinuePagination =
-                    data.Pagination?.hasMore === true &&
-                    newUniqueBookmarksAdded > 0 &&
-                    pageNum < 100;
-
-                SetModalState(prev => ({
-                    ...prev,
-                    hasMore: shouldContinuePagination
-                }));
-
-                if (isNewSearch || newUniqueBookmarksAdded > 0) {
-                    SetModalState(prev => ({
-                        ...prev,
-                        RemoteBookmarks: isNewSearch ? data.Data : [
-                            ...prev.RemoteBookmarks.filter(b =>
-                                !newBookmarks.some((nb: IBookmark) => nb.BookmarkID === b.BookmarkID)
-                            ),
-                            ...newBookmarks
-                        ]
-                    }));
+                if (newBookmarks.length > 0) {
+                    setRemoteBookmarks([...ModalState.RemoteBookmarks, ...newBookmarks]);
                 }
             } else {
-                setFilteredBookmarks([]);
-
                 SetModalState(prev => ({
                     ...prev,
                     isMarketPlaceFetched: true,
-                    RemoteBookmarks: [],
                     hasMore: false
                 }));
             }
@@ -178,70 +193,6 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
         } finally {
             setIsLoading(false);
         }
-    }, [
-        State.Bookmarks,
-        ModalState.isAdmin,
-        ModalState.AdminSignature,
-        isLoading,
-        ModalState.MarketPlaceQuery,
-        ModalState.RemoteBookmarks,
-        SetModalState,
-        ModalState.hasMore,
-        page
-    ]);
-
-    const loadMoreBookmarks = React.useCallback(() => {
-        if (!isLoading && ModalState.hasMore) {
-            const nextPage = page + 1;
-            setPage(nextPage);
-            fetchBookmarks(nextPage);
-        }
-    }, [isLoading, ModalState.hasMore, page, fetchBookmarks]);
-
-    React.useEffect(() => {
-        if (endIsVisible && ModalState.hasMore && !isLoading && !loadingTriggered) {
-            setLoadingTriggered(true);
-            loadMoreBookmarks();
-        }
-
-        if (!endIsVisible) {
-            setLoadingTriggered(false);
-        }
-    }, [
-        endIsVisible,
-        ModalState.hasMore,
-        isLoading,
-        loadMoreBookmarks
-    ]);
-
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-
-        SetModalState(prev => ({
-            ...prev,
-            MarketPlaceQuery: e.target.value
-        }));
-
-        // ? Chacks for Space
-        let Query = e.target.value.trim();
-
-        if (!Query) {
-            setFilteredBookmarks(ModalState.RemoteBookmarks);
-            return;
-        }
-
-        const query = Query?.toLowerCase();
-        const filtered = ModalState.RemoteBookmarks.filter(bookmark => {
-            return (
-                bookmark.Name.toLowerCase().includes(query) ||
-                bookmark.WebLink.toLowerCase().includes(query) ||
-                bookmark.Description?.toLowerCase().includes(query) ||
-                bookmark.Keywords?.some(keyword =>
-                    keyword.toLowerCase().includes(query)
-                )
-            );
-        });
-
-        setFilteredBookmarks(filtered);
     };
 
     const toggleSelectBookmark = (bookmarkId: string | undefined) => {
@@ -307,172 +258,16 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
     };
 
     React.useEffect(() => {
-        if (ModalState.type === IToolsSettingsTabs.Marketplace && !ModalState.isMarketPlaceFetched) {
-            setError(null);
-            setPage(1);
-            fetchBookmarks(1, true);
+        if (!ModalState.isMarketPlaceFetched) {
+            if (!ModalState.RemoteBookmarks.length) {
+                setFilteredBookmarks([]);
+                return;
+            }
+            setFilteredBookmarks(ModalState.RemoteBookmarks);
         }
     }, [
-        ModalState.type,
-        ModalState.isMarketPlaceFetched
+        ModalState.RemoteBookmarks
     ]);
-
-    const renderBookmarkCard = (bookmark: IBookmark, index: number = 0, style?: React.CSSProperties) => {
-        const isSelected = bookmark.BookmarkID ? selectedBookmarks.has(bookmark.BookmarkID) : false;
-        const isAlreadyAdded = bookmark.BookmarkID ? existingBookmarkIds.has(bookmark.BookmarkID) : false;
-
-        return (
-            <div
-                key={bookmark.BookmarkID}
-                className="w-full h-full"
-                style={style}
-            >
-                <MotionCard
-                    className={`w-full h-full shadow-sm ${isSelected ? 'border-primary-500 border-2' : 'border border-gray-200 dark:border-gray-700'}`}
-                    initial={{ opacity: 0, y: 15 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                        duration: 0.05,
-                        ease: "easeOut"
-                    }}
-                    whileHover={{
-                        boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
-                        outline: "2px solid var(--accent-color)"
-                    }}
-                >
-                    <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 flex items-center justify-center rounded-md overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                    {bookmark.Icon && bookmark.isSVG ? (
-                                        <div
-                                            className="w-6 h-6"
-                                            style={{
-                                                color: bookmark.fillColor || '#000000',
-                                                fill: bookmark.fillColor || '#000000'
-                                            }}
-                                        >
-                                            {bookmark.Icon}
-                                        </div>
-                                    ) : bookmark.Icon ? (
-                                        <img
-                                            src={bookmark.Icon}
-                                            alt={bookmark.Name}
-                                            className="w-6 h-6 object-contain"
-                                            onError={(e) => {
-                                                (e.target as HTMLImageElement).src = "https://img.icons8.com/fluency/48/bookmark-ribbon.png";
-                                            }}
-                                        />
-                                    ) : (
-                                        <BookmarkOutlined className="w-6 h-6 text-gray-400" />
-                                    )}
-                                </div>
-                                <div className="flex flex-col">
-                                    <Typography variant="h6" className="font-semibold text-base">
-                                        {bookmark.Name || "Unnamed Bookmark"}
-                                    </Typography>
-                                    <Typography variant="body2" className="text-gray-500 text-xs truncate max-w-[200px]">
-                                        {bookmark.WebLink || "No URL provided"}
-                                    </Typography>
-                                </div>
-                            </div>
-
-                            <div>
-                                {isAlreadyAdded ? (
-                                    <Button
-                                        variant="light"
-                                        color="success"
-                                        isDisabled
-                                        startContent={<CheckCircleOutline />}
-                                        size="sm"
-                                    >
-                                        Added
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        variant={isSelected ? "solid" : "light"}
-                                        color="primary"
-                                        isIconOnly
-                                        size="sm"
-                                        onPress={() => toggleSelectBookmark(bookmark.BookmarkID)}
-                                    >
-                                        {isSelected ? <CheckBox /> : <CheckBoxOutlineBlank />}
-                                    </Button>
-                                )}
-                            </div>
-                        </div>
-
-                        {bookmark.Description && (
-                            <Typography variant="body2" className="mt-2 text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
-                                {bookmark.Description}
-                            </Typography>
-                        )}
-
-                        {bookmark.Keywords && bookmark.Keywords.length > 0 && (
-                            <div className="flex flex-wrap gap-1 mt-2">
-                                {bookmark.Keywords.slice(0, 3).map((keyword, idx) => (
-                                    <span
-                                        key={idx}
-                                        className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-300"
-                                    >
-                                        {keyword}
-                                    </span>
-                                ))}
-                                {bookmark.Keywords.length > 3 && (
-                                    <span className="px-2 py-1 text-xs bg-gray-100 dark:bg-gray-800 rounded-full text-gray-600 dark:text-gray-300">
-                                        +{bookmark.Keywords.length - 3}
-                                    </span>
-                                )}
-                            </div>
-                        )}
-
-                        <div className="flex items-center justify-between mt-3">
-                            <div className="flex gap-2">
-                                {bookmark.Android && (
-                                    <span className="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 text-gray-600 dark:text-gray-300">Android</span>
-                                )}
-                                {bookmark.Windows && (
-                                    <span className="text-xs bg-gray-100 dark:bg-gray-800 rounded-full px-2 py-1 text-gray-600 dark:text-gray-300">Windows</span>
-                                )}
-                            </div>
-                        </div>
-                    </CardContent>
-                </MotionCard>
-            </div>
-        );
-    };
-
-    const renderSkeletonCard = (index: number) => (
-        <MotionCard
-            className="w-full h-full border border-gray-200 dark:border-gray-700 shadow-sm"
-            initial={{ opacity: 0, y: 15 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-                duration: 0.2,
-                delay: Math.min(index * 0.03, 0.2),
-                ease: "easeOut"
-            }}
-        >
-            <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                        <Skeleton className="w-10 h-10 rounded-md" />
-                        <div className="flex flex-col gap-1">
-                            <Skeleton className="w-32 h-5 rounded-md" />
-                            <Skeleton className="w-40 h-3 rounded-md" />
-                        </div>
-                    </div>
-                    <Skeleton className="w-10 h-8 rounded-md" />
-                </div>
-                <Skeleton className="w-full h-10 mt-3 rounded-md" />
-                <div className="flex gap-2 mt-3">
-                    <Skeleton className="w-16 h-6 rounded-full" />
-                    <Skeleton className="w-16 h-6 rounded-full" />
-                    <Skeleton className="w-16 h-6 rounded-full" />
-                </div>
-            </CardContent>
-        </MotionCard>
-    );
 
     return (
         <div className="flex flex-col gap-3 w-full">
@@ -530,20 +325,20 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                         <Typography variant="body2" className="text-gray-500 mt-1">
                             {ModalState.MarketPlaceQuery ? "Try different search terms" : "Check back later or Type to Search"}
                         </Typography>
-                        {!ModalState.MarketPlaceQuery && (
+                        {/* {!ModalState.MarketPlaceQuery && (
                             <Button
                                 variant="light"
                                 color="primary"
                                 className="mt-4"
                                 onPress={() => {
-                                    setError(null);
-                                    setPage(1);
-                                    fetchBookmarks(1, true);
+                                    // setError(null);
+                                    // setPage(1);
+                                    // fetchBookmarks(1, true);
                                 }}
                             >
                                 Refresh
                             </Button>
-                        )}
+                        )} */}
                     </div>
                 )
             }
@@ -552,18 +347,18 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                 <div className="flex flex-col items-center justify-center p-6 text-center">
                     <WarningAmber className="text-warning mb-2" sx={{ fontSize: 48 }} />
                     <Typography variant="h6">{error}</Typography>
-                    <Button
+                    {/* <Button
                         variant="light"
                         color="primary"
                         className="mt-4"
                         onPress={() => {
-                            setError(null);
-                            setPage(1);
-                            fetchBookmarks(1, true);
+                            // setError(null);
+                            // setPage(1);
+                            // fetchBookmarks(1, true);
                         }}
                     >
                         Try Again
-                    </Button>
+                    </Button> */}
                 </div>
             ) : (
                 <div
@@ -571,10 +366,16 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                 >
                     {filteredBookmarks.map((bookmark, index) => (
                         <Grid component="div" size={{ xs: 12, sm: 6, md: 6, lg: 4 }} key={bookmark.BookmarkID}>
-                            {renderBookmarkCard(
-                                bookmark,
-                                index
-                            )}
+
+                            <BookmarkItemMarketPlace
+                                Data={bookmark}
+                                isSelected={selectedBookmarks.has(bookmark.BookmarkID)}
+                                isAdmin={ModalState.isAdmin}
+                                toggleSelectBookmark={() => toggleSelectBookmark(bookmark.BookmarkID)}
+                                style={{
+                                    padding: "10px"
+                                }}
+                            />
                         </Grid>
                     ))}
 
@@ -582,7 +383,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                         <React.Fragment>
                             {[...Array(6)].map((_, i) => (
                                 <Grid component="div" size={{ xs: 12, sm: 6, md: 6, lg: 4 }} key={`skeleton-${i}`}>
-                                    {renderSkeletonCard(i)}
+                                    <BookmarkItemSkeleton index={i} />
                                 </Grid>
                             ))}
                         </React.Fragment>
@@ -591,7 +392,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                 </div>
             )}
 
-            {ModalState.hasMore && !isLoading && !error && filteredBookmarks.length === 0 && (
+            {/* {ModalState.hasMore && !isLoading && !error && filteredBookmarks.length === 0 && (
                 <div
                     ref={endRef}
                     className="flex justify-center my-6 pb-4"
@@ -602,7 +403,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-bounce" style={{ animationDelay: '0.4s' }} />
                     </div>
                 </div>
-            )}
+            )} */}
 
         </div>
     );

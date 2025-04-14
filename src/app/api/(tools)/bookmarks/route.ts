@@ -3,8 +3,7 @@
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
- *  -----------------------------------------------------------------------------
- *  
+ *  -----------------------------------------------------------------------------  
  *  @license
  *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
  *  All rights reserved.
@@ -13,32 +12,31 @@
  *  and is protected under applicable copyright and intellectual property laws.
  *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
  *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
+ *  prior written consent from the author, modifier, or the organization.
  *  
- *  -----------------------------------------------------------------------------
- *  
+ *  -----------------------------------------------------------------------------  
  *  GitHub® is a registered trademark of Microsoft Corporation. This project 
  *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
  *  This project is not officially affiliated with, endorsed by, or in any way associated 
  *  with GitHub or Microsoft Corporation.
  *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
+ *  -----------------------------------------------------------------------------  
+ *  Last Updated on Version: 1.1.0
+ *  -----------------------------------------------------------------------------  
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
+ *  @modified 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
  */
 
-
-import { NextRequest, NextResponse } from "next/server";
-import { Controller_GET_Bookmarks } from "@Controllers/Bookmarks";
+import { NextRequest } from "next/server";
 import { Config } from "@Config";
+import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 import * as jose from 'jose';
+import dbConnect from "@Utils/dbConnect";
+import { Bookmarks_Model } from "@Models/Bookmarks";
 
 // ? Enables Cache 
 export const revalidate = 60
 
-// Verify admin signature using jose JWT token
 async function verifyAdminToken(token: string): Promise<boolean> {
     try {
         if (!token) return false;
@@ -51,86 +49,25 @@ async function verifyAdminToken(token: string): Promise<boolean> {
         }
         return true;
     } catch (error) {
-        console.error("Admin token verification error:", error);
         return false;
     }
-}
-
-export async function GET(req: NextRequest) {
-    // Get pagination parameters
-    const searchParams = req.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    
-    // Get admin signature token
-    const adminToken = searchParams.get('adminSignature');
-    const isAdmin = await verifyAdminToken(adminToken || '');
-    
-    // Get already added bookmark IDs
-    const existingBookmarks = searchParams.get('existingIds');
-    const excludeIds = existingBookmarks ? existingBookmarks.split(',') : [];
-    
-    // Check if we should skip migration
-    const skipMigration = searchParams.get('skipMigration') === 'true';
-    
-    // Get response from controller with options
-    let Response: Array<any> = await Controller_GET_Bookmarks({
-        isAdmin,
-        excludeIds,
-        showUnpublished: isAdmin,
-        migrateOldBookmarks: !skipMigration
-    });
-
-    if (Response.length === 0) {
-        return NextResponse.json({
-            Status: 1,
-            Message: "No bookmarks available",
-            StatusCode: 200,
-            Pagination: {
-                page,
-                limit,
-                totalItems: 0,
-                totalPages: 0,
-                hasMore: false
-            },
-            Data: []
-        }, {
-            status: 200
-        });
-    }
-
-    // Pagination
-    const totalItems = Response.length;
-    const totalPages = Math.ceil(totalItems / limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const paginatedResults = Response.slice(startIndex, endIndex);
-
-    return NextResponse.json({
-        Status: 1,
-        Message: "Bookmarks Fetched",
-        StatusCode: 200,
-        Pagination: {
-            page,
-            limit,
-            totalItems,
-            totalPages,
-            hasMore: page < totalPages
-        },
-        Data: paginatedResults
-    }, {
-        status: 200
-    });
 }
 
 export async function POST(req: NextRequest) {
     try {
         // Parse request body
         const body = await req.json();
-        
-        // Get pagination parameters from body
-        const page = parseInt(body.page || '1');
-        let limit = parseInt(body.limit || '20');
+
+        const {
+            _page,
+            _limit,
+            excludeID,
+            adminSignature,
+            query,
+        } = body;
+
+        let page = parseInt(_page || '1');
+        let limit = parseInt(_limit || '20');
 
         if (limit > 20) {
             limit = 20;
@@ -140,74 +77,90 @@ export async function POST(req: NextRequest) {
             limit = 5;
         }
         
-        // Get admin signature token from headers
-        const adminToken = req.headers.get('x-admin-signature') || body.adminSignature;
+        const adminToken = req.headers.get('x-admin-signature') || adminSignature;
         const isAdmin = await verifyAdminToken(adminToken || '');
         
         // Get already added bookmark IDs from body
-        const excludeIds = Array.isArray(body.existingIds) 
-            ? body.existingIds 
-            : (body.existingIds ? body.existingIds.split(',') : []);
-        
-        // Check if we should skip migration
-        const skipMigration = body.skipMigration === true;
-        
-        // Get response from controller with options
-        let Response: Array<any> = await Controller_GET_Bookmarks({
-            isAdmin,
-            excludeIds,
-            showUnpublished: isAdmin,
-            migrateOldBookmarks: !skipMigration
-        });
+        const excludeIds = Array.isArray(excludeID) 
+            ? excludeID 
+            : (excludeID ? excludeID.split(',') : []);
+            
+        await dbConnect();
 
-        if (Response.length === 0) {
-            return NextResponse.json({
+        let Bookmarks = await Bookmarks_Model.find({
+            isDeleted: false,
+            BookmarkID: { $nin: excludeIds },
+
+            // ? Only Admins Can See Unpublished Bookmarks
+            isPublished: isAdmin ? { $ne: false } : true,
+
+            // ? Only Admins Can See Admin Only Bookmarks
+            isAdminOnly: isAdmin ? { $ne: false } : false,
+
+            // ? Filter Bookmarks by Name, Description, Keywords
+            $or: [
+                { Name: { $regex: query, $options: 'i' } },
+                { Description: { $regex: query, $options: 'i' } },
+                { Keywords: { $regex: query, $options: 'i' } }
+            ],
+
+            // ? Sponsored Bookmarks Auto Top Priority on Results
+        }).limit(limit).skip((page - 1) * limit).sort({ createdAt: -1 }).lean().exec();
+        
+        if (!Bookmarks || Bookmarks.length === 0) {
+            return ControllerResponseMap({
                 Status: 1,
                 Message: "No bookmarks available",
                 StatusCode: 200,
-                Pagination: {
-                    page,
-                    limit,
-                    totalItems: 0,
-                    totalPages: 0,
-                    hasMore: false
-                },
-                Data: []
-            }, {
-                status: 200
+                Data: {
+                    Bookmarks: [],
+                    Pagination: {
+                        page,
+                        limit,
+                        totalItems: 0,
+                        totalPages: 0,
+                        hasMore: false
+                    }
+                }
             });
         }
 
+        // ? Sort on First Priority : Sponsored Bookmarks
+        Bookmarks = Bookmarks.sort((a, b) => {
+            if (a.isSponsored && !b.isSponsored) return -1;
+            if (!a.isSponsored && b.isSponsored) return 1;
+            return 0;
+        });
+
         // Pagination
-        const totalItems = Response.length;
+        const totalItems = Bookmarks.length;
         const totalPages = Math.ceil(totalItems / limit);
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        const paginatedResults = Response.slice(startIndex, endIndex);
+        const paginatedResults = Bookmarks.slice(startIndex, endIndex);
 
-        return NextResponse.json({
+        return ControllerResponseMap({
             Status: 1,
-            Message: "Bookmarks Fetched",
+            Message: "Bookmarks Successfully Fetched",
             StatusCode: 200,
-            Pagination: {
-                page,
-                limit,
-                totalItems,
-                totalPages,
-                hasMore: page < totalPages
-            },
-            Data: paginatedResults
-        }, {
-            status: 200
+            Data: {
+                Bookmarks: paginatedResults,
+                Pagination: {
+                    page,
+                    limit,
+                    totalItems,
+                    totalPages,
+                    hasMore: page < totalPages
+                }
+            }
         });
     } catch (error) {
-        console.error("Error fetching bookmarks:", error);
-        return NextResponse.json({
+        return ControllerResponseMap({
             Status: 0,
             Message: "Error processing request",
-            StatusCode: 500
-        }, {
-            status: 500
+            StatusCode: 500,
+            Data: [],
+            Debug: error
         });
     }
 }

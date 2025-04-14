@@ -1,5 +1,5 @@
 {
-    "Signature": "c41a09e2df0f54d8a9444147c4c58102b0f152d846b56eb19e0c78ef5e098a86",
+    "Signature": "67eee79e5cb9b009816226dce02b047c498e7ce339c4002e87edb8328bd73625",
     "File": {
         "DatabaseBydefualt": {
             "Signup_Username_Prefix": "Anonymous_",
@@ -34,11 +34,12 @@
             ]
         },
         "Analytics_And_Monitization": {
-            "GoogleADS": false,
-            "VercelSpeedInsight": true
+            "GoogleADS": true,
+            "VercelSpeedInsight": true,
+            "ReactScan": false
         },
         "CI/CD_Pipeline": {
-            "Release": false
+            "Release": true
         }
     }
 }

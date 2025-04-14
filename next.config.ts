@@ -78,6 +78,7 @@ const nextConfig: NextConfig = {
                                         'https://ep2.adtrafficquality.google',
                                         'https://va.vercel-scripts.com',
                                         'https://cdn.jsdelivr.net',
+                                        'https://unpkg.com',
                                     ],
                                 }
                             },

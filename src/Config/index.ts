@@ -24,7 +24,7 @@
  *  Last Updated on Version: 1.1.0
  *  -----------------------------------------------------------------------------  
  *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/04/25 11:12 AM IST (Kolkata +5:30 UTC)
+ *  @modified 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
  */
 
 import { Protocols } from "./Protocols";
@@ -44,10 +44,11 @@ interface IConfig {
     isHomeReleased: boolean;
     Environment: "development" | "production" | "test";
     GoogleADS: boolean;
+    VercelSpeedInsight: boolean;
+    ReactScan: boolean;
     WhiteListedDomains: string[];
     WhiteListedPlatforms: Array<"Windows" | "Linux" | "Android" | "iOS" | "MacOS">;
     WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Brave">;
-    VercelSpeedInsight: boolean;
     ThreatIntelligence: Array<"TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon">;
     Cookie_Prefix: string;
     CORS: {
@@ -76,6 +77,8 @@ const Config: IConfig = {
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
     GoogleADS: false,
+    VercelSpeedInsight: false,
+    ReactScan: false,
     WhiteListedDomains: [
         "meetbhingradiya.tech",
         // "meetbhingradiya.vercel.app",
@@ -96,7 +99,6 @@ const Config: IConfig = {
         "Edge",
         "Opera"
     ],
-    VercelSpeedInsight: false,
     ThreatIntelligence: [
         "TOR",
         "VPN",

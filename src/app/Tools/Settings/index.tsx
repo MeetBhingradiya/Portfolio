@@ -39,19 +39,36 @@ function ModelsBody({
         });
     }
 
-    const handleSaveBookmark = (bookmark: IBookmark) => {
-        SetModalState((prevState) => ({
-            ...prevState,
-            bookmark: bookmark
-        }));
-    };
+    const SetBookmark = (bookmark: IBookmark) => {
+        SetModalState((ModalData) => {
+            return {
+                ...ModalData,
+                bookmark: bookmark,
+            }
+        });
+    }
 
-    const handleCancelBookmark = () => {
-        SetModalState((prevState) => ({
-            ...prevState,
-            isOpen: false
-        }));
-    };
+    React.useEffect(() => {
+
+        if (ModalState.type === IToolsSettingsTabs.Create) {
+            SetModalState((ModalData) => {
+                return {
+                    ...ModalData,
+                    bookmark: DefualtBookmark,
+                }
+            });
+        }
+        
+        if (ModalState.type === IToolsSettingsTabs.Edit) {
+            SetModalState((ModalData) => {
+                return {
+                    ...ModalData,
+                    bookmark: DefualtBookmark,
+                }
+            });
+        }
+
+    }, [ModalState.type]);
 
     return (
         <ModalBody
@@ -85,8 +102,18 @@ function ModelsBody({
                             bookmark={DefualtBookmark}
                             isAdmin={ModalState.isAdmin}
                             isCreateMode={true}
-                            onSave={handleSaveBookmark}
-                            onCancel={handleCancelBookmark}
+                            setBookmark={SetBookmark}
+                        />
+                    )
+                }
+
+                {
+                    ModalState.type === IToolsSettingsTabs.Edit && (
+                        <BookmarkEditor
+                            bookmark={ModalState.bookmark}
+                            isAdmin={ModalState.isAdmin}
+                            isCreateMode={false}
+                            setBookmark={SetBookmark}
                         />
                     )
                 }

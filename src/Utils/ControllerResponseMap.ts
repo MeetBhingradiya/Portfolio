@@ -1,6 +1,35 @@
+/**
+ *  @FileID          Utils/ControllerResponseMap.ts
+ *  @Description     Currently, there is no description available.
+ *  @Author          Meet Bhingradiya (@MeetBhingradiya)
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  @license
+ *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
+ *  All rights reserved.
+ *  
+ *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
+ *  and is protected under applicable copyright and intellectual property laws.
+ *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
+ *  via any medium even in public/private repository, is strictly prohibited without
+ *  prior written consent from the author, modifier, or the organization.
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  GitHub® is a registered trademark of Microsoft Corporation. This project 
+ *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
+ *  This project is not officially affiliated with, endorsed by, or in any way associated 
+ *  with GitHub or Microsoft Corporation.
+ *  
+ *  -----------------------------------------------------------------------------  
+ *  Last Updated on Version: 1.1.0
+ *  -----------------------------------------------------------------------------  
+ *  @created 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ *  @modified 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ */
+
 import { Config } from "@Config";
 import { Controller_Response } from "@Types";
-import { HMACSignature } from "@Utils/HMACSignature";
+// import { HMACSignature } from "@Utils/HMACSignature";
 import { useEmptyFields } from "@Hooks";
 import { NextResponse } from "next/server";
 
@@ -36,7 +65,7 @@ function ControllerResponseMap(Response: Controller_Response): NextResponse {
 
     // Generate Signature if Data is present
     if (Response.Data) {
-        Response.Signature = HMACSignature().generateSignature(Response.Data);
+        // Response.Signature = HMACSignature().generateSignature(Response.Data);
     }
 
     // Ensure StatusNumber is set to a number

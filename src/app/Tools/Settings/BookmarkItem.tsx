@@ -25,13 +25,17 @@ function BookmarkItem({
                 {
                     Data.Icon ? (
                         Data.isSVG ? (
-                            <SvgComponent
-                                svgString={Data.Icon}
-                                _class="w-10 h-10"
+                            <div
+                                className="w-6 h-6"
                                 style={{
-                                    color: Data?.fillColor || "#000000"
+                                    color: Data.fillColor || '#000000',
+                                    fill: Data.fillColor || '#000000'
                                 }}
-                            />
+                            >
+                                <SvgComponent
+                                    svgString={Data.Icon}
+                                />
+                            </div>
                         ) : (
                             <Image
                                 src={Data.Icon}

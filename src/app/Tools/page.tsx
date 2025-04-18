@@ -176,7 +176,7 @@ function Tools() {
 
     // @ Functions
 
-    const OpenLink = (url: string, OpenMethod?: ILinkOpenTypes) => {
+    const OpenLink = (url: string, e?: any, OpenMethod?: ILinkOpenTypes) => {
         if (!OpenMethod) {
             OpenMethod = State.Preferences.OpenMethod;
         }
@@ -188,7 +188,8 @@ function Tools() {
         } else if (OpenMethod === ILinkOpenTypes.NEW_WINDOW) {
             window.open(url, "_blank", `width=${window.innerWidth},height=${window.innerHeight},resizable=0`);
         } else if (OpenMethod === ILinkOpenTypes.FULL_SCREEN) {
-            window.open(url, "_blank", `width=${window.screen.width},height=${window.screen.height}`);
+            launchFullScreen(e);
+            // window.open(url, "_self");
         }
     }
 
@@ -318,6 +319,7 @@ function Tools() {
                 if (SuggestionsState.Index > 0 && SuggestionsState.Suggestions.length > 0) {
                     OpenLink(SearchEngineLinkBuilder(SuggestionsState.Suggestions[SuggestionsState.Index - 1].Query));
                 } else if (State.FilterBookmarks.length > 0) {
+                    log("Bookmark Clicked By State Empty", State.FilterBookmarks[0]);
                     handleBookmarkClick(State.FilterBookmarks[0]);
                 } else {
                     OpenLink(SearchEngineLinkBuilder(State.Query));
@@ -639,6 +641,16 @@ function Tools() {
             State.Preferences.priorityAndroidapp;
     };
 
+    function launchFullScreen(element: any) {
+        if (element.requestFullScreen) {
+            element.requestFullScreen();
+        } else if (element.mozRequestFullScreen) {
+            element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullScreen) {
+            element.webkitRequestFullScreen();
+        }
+    }
+
     const openAppLink = (appLink: string | undefined, isWindowsApp: boolean = false) => {
         if (!appLink || appLink.trim() === "") return;
 
@@ -655,18 +667,18 @@ function Tools() {
         }
     };
 
-    const handleBookmarkClick = (bookmark: IBookmark) => {
-        if (canOpenWindowsApp(bookmark.Windows)) {
+    const handleBookmarkClick = (bookmark: IBookmark, e?: any) => {
+        if (canOpenWindowsApp(bookmark.Windows) && State.Preferences.PlateformPriority === "desktop") {
             openAppLink(bookmark.Windows, true);
             return;
         }
 
-        if (canOpenAndroidApp(bookmark.Android)) {
+        if (canOpenAndroidApp(bookmark.Android) && State.Preferences.PlateformPriority === "mobile") {
             openAppLink(bookmark.Android);
             return;
         }
 
-        OpenLink(bookmark.WebLink);
+        OpenLink(bookmark.WebLink, e);
     };
 
     // @Updates
@@ -759,6 +771,8 @@ function Tools() {
                 Locale: State.Preferences.Locale,
                 priorityAndroidapp: State.Preferences.priorityAndroidapp,
                 priorityWindowsApp: State.Preferences.priorityWindowsApp,
+                PlateformPriority: State.Preferences.PlateformPriority,
+                ShowLabels: State.Preferences.ShowLabels,
             },
         }));
     }, [
@@ -769,12 +783,15 @@ function Tools() {
         State.Preferences.Locale,
         State.Preferences.priorityAndroidapp,
         State.Preferences.priorityWindowsApp,
+        State.Preferences.PlateformPriority,
+        State.Preferences.ShowLabels,
     ]);
 
     const boxesPerRow = Math.max(Math.floor(windowWidth / 200), 1);
     const rows = Math.ceil(State.FilterBookmarks.length / boxesPerRow);
     const footerHeight = 100;
-    const gridHeight = rows * 150 + footerHeight;
+    const rowHeight = State.Preferences.ShowLabels ? 150 : 100;
+    const gridHeight = rows * rowHeight + footerHeight;
 
     // @Component
     return (
@@ -987,19 +1004,23 @@ function Tools() {
             <GridContextProvider onChange={onGridChange}>
                 <GridDropZone
                     id="items"
+                    // className="BookmarkList"
                     boxesPerRow={boxesPerRow}
-                    rowHeight={150}
+                    rowHeight={rowHeight}
                     style={{
                         height: `${gridHeight}px`,
-                        overflow: 'visible',
+                        overflow: 'visible'
                     }}
                 >
                     {State.FilterBookmarks.map((item, index) => (
-                        <GridItem key={item.BookmarkID} style={{
-                            zIndex: 0,
-                        }}>
+                        <GridItem
+                            // className="ListItem"
+                            key={item.BookmarkID}
+                            style={{
+                                zIndex: 0,
+                            }}>
                             <div
-                                className="bookmark"
+                                className={`${State.Preferences.ShowLabels ? "Bookmark" : "BookmarkNoLabel"}`}
                                 onMouseDown={(e: React.MouseEvent<HTMLDivElement>) => {
                                     if (isMobileDevice()) return;
 
@@ -1026,7 +1047,7 @@ function Tools() {
                                     );
 
                                     if (dragDistance < 5) {
-                                        handleBookmarkClick(item);
+                                        handleBookmarkClick(item, e);
                                     }
 
                                     e.currentTarget.style.cursor = "pointer";
@@ -1056,7 +1077,7 @@ function Tools() {
 
                                     setLongPressTimer(timer);
                                 }}
-                                onTouchEnd={() => {
+                                onTouchEnd={(e: any) => {
                                     if (!isMobileDevice()) return;
 
                                     if (longPressTimer) {
@@ -1065,7 +1086,7 @@ function Tools() {
                                     }
 
                                     if (!ContextMenu) {
-                                        handleBookmarkClick(item);
+                                        handleBookmarkClick(item, e);
                                     }
                                 }}
                                 onTouchMove={() => {
@@ -1081,17 +1102,28 @@ function Tools() {
                                     <div className="Icon">
                                         {
                                             item.isSVG && (
-                                                <SvgComponent
-                                                    _class="SVGComponent"
-                                                    svgString={item.Icon}
+
+                                                <div
+                                                    className="SVGComponent"
                                                     style={{
-                                                        borderRadius: "15px",
-                                                        userSelect: "none",
-                                                        MozWindowDragging: "no-drag",
                                                         width: "64px",
                                                         height: "64px",
-                                                        color: item.fillColor ?? "black",
-                                                    }} />
+                                                        display: "flex",
+                                                        justifyContent: "center",
+                                                        alignItems: "center",
+                                                        color: item.fillColor || '#000000'
+                                                    }}
+                                                >
+                                                    <SvgComponent
+                                                        svgString={item.Icon}
+                                                        style={{
+                                                            width: "100%", 
+                                                            height: "100%",
+                                                            fill: item.fillColor || '#000000',
+                                                            color: item.fillColor || '#000000'
+                                                        }}
+                                                    />
+                                                </div>
                                             )
                                         }
                                         {
@@ -1111,7 +1143,11 @@ function Tools() {
                                         }
                                     </div>
                                 )}
-                                <h2 className="bookmarkTitle">{item.Name}</h2>
+                                {
+                                    State.Preferences.ShowLabels && (
+                                        <h2 className="bookmarkTitle">{item.Name}</h2>
+                                    )
+                                }
                                 {
                                     item.isCloudSync && (
                                         <div className="ServerIcon">
@@ -1140,6 +1176,11 @@ function Tools() {
                 open={ContextMenu !== null}
                 onClose={() => setContextMenu(null)}
                 anchorReference="anchorPosition"
+                onContextMenu={(e) => {
+                    e.preventDefault();
+                    setContextMenu(null);
+                    return false;
+                }}
                 anchorPosition={
                     ContextMenu !== null
                         ? { top: ContextMenu.mouseY, left: ContextMenu.mouseX }
@@ -1151,7 +1192,7 @@ function Tools() {
                         const bookmark = State.Bookmarks.find((b) => b.BookmarkID === ContextMenu?.ItemID);
                         return (
                             <div>
-                                {bookmark?.Windows && bookmark.Windows.trim() !== "" && navigator.userAgent.indexOf("Windows") !== -1 && (
+                                {bookmark?.Windows && bookmark.Windows.trim() !== "" && navigator.userAgent.indexOf("Windows") !== -1 && State.Preferences.priorityWindowsApp === true && (
                                     <MenuItem
                                         onClick={() => {
                                             openAppLink(bookmark.Windows || "", true);
@@ -1172,7 +1213,7 @@ function Tools() {
                                     </MenuItem>
                                 )}
 
-                                {bookmark?.Android && bookmark.Android.trim() !== "" && /Android/i.test(navigator.userAgent) && (
+                                {bookmark?.Android && bookmark.Android.trim() !== "" && /Android/i.test(navigator.userAgent) && State.Preferences.priorityAndroidapp === true && (
                                     <MenuItem
                                         onClick={() => {
                                             openAppLink(bookmark.Android || "");

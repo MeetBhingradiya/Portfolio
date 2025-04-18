@@ -174,6 +174,7 @@ interface IPreferences {
     priorityWindowsApp: boolean
     priorityAndroidapp: boolean
     NotifyYourRequestUpdated: boolean
+    ShowLabels: boolean
 }
 
 const DefualtPreferences: IPreferences = {
@@ -186,6 +187,7 @@ const DefualtPreferences: IPreferences = {
     NotifyYourRequestUpdated: false,
     priorityWindowsApp: false,
     priorityAndroidapp: false,
+    ShowLabels: true,
 }
 
 interface IToolsState {

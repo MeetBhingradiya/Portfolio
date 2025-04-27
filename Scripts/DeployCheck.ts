@@ -29,6 +29,7 @@ async function isDeployBlockedByRepository(): Promise<boolean> {
     console.log(`📝 Commit Message: "${commitMessage}"`);
 
     if (commitMessage.includes("NO_DEPLOY")) {
+        console.log("🚫 Deployment blocked by commit message.");
         process.exit(0);
     }
 

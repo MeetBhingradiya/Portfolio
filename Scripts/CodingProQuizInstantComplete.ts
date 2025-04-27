@@ -1,18 +1,19 @@
 import Axios from "axios";
 
 // ? Fill Details Here
-const CourseDetials = {
+const CourseDetails = {
     class: 477,
     // subject: 478 // 478 is for "Advance Full Stack"
     // subject: 482 // 484 is for "Advance Game Development (Unity)"
-    subject: 484 // 484 is for "Python"
+    // subject: 484 // 484 is for "Python"
     // subject: 485 // 484 is for "Basic Full Stack"
-    // subject: 486 // 484 is for "Web Development"
+    subject: 486 // 484 is for "Web Development"
 }
 
+// ? Meet Credentials
 // ? Fill Cookie & Authorization Here
-const Cookie = "<Your Cookie>";
-const Authorization = "<Your Authorization Token>";
+// const Cookie = "<Your Cookie>";
+// const Authorization = "<Your Authorization Token>";
 
 // ? Script Start Here
 interface Lesson {
@@ -164,7 +165,7 @@ const Headers = {
 
 // ? Functions that Required to Run Again & Again
 async function getCourse(): Promise<CourseResponse> {
-    const url = APIs.getCourse.replace("@class", CourseDetials.class.toString()).replace("@subject", CourseDetials.subject.toString());
+    const url = APIs.getCourse.replace("@class", CourseDetails.class.toString()).replace("@subject", CourseDetails.subject.toString());
     const response = await Axios.get<CourseResponse>(url, { headers: Headers });
     return response.data;
 }

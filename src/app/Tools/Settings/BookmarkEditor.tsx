@@ -428,8 +428,16 @@ function BookmarkEditor({
 
     // ? Sync Bookmark to Perent Component for Add/Remove to Device/Cloud
     React.useEffect(() => {
+        // For new bookmarks, ensure isCloudSync is enabled if global CloudSync preference is on
+        // if (isCreateMode && State?.Preferences?.CloudSync) {
+        //     setEditedBookmark(prev => ({
+        //         ...prev,
+        //         isCloudSync: true
+        //     }));
+        // }
+        
         setBookmark(editedBookmark);
-    }, [editedBookmark]);
+    }, [editedBookmark, isCreateMode, setBookmark]);
 
     return (
         <div className="Editor w-full mx-auto p-4 gap-6">

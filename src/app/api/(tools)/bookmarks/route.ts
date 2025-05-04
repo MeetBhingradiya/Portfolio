@@ -37,7 +37,7 @@ import { Bookmarks_Model } from "@Models/Bookmarks";
 // ? Enables Cache 
 export const revalidate = 60
 
-async function verifyAdminToken(token: string): Promise<boolean> {
+export async function verifyAdminToken(token: string): Promise<boolean> {
     try {
         if (!token) return false;
 
@@ -87,25 +87,105 @@ export async function POST(req: NextRequest) {
             
         await dbConnect();
 
-        let Bookmarks = await Bookmarks_Model.find({
-            isDeleted: false,
-            BookmarkID: { $nin: excludeIds },
+        // ? Sort By Pipeline (First Attempt)
+        const sortPriority: Record<string, 1 | -1> = {
+            // ? Sponsored Bookmarks have highest priority
+            isSponsored: -1,
+            // ? Exact match in Name field
+            ...(query ? { 'exactNameMatch': -1 } : {}),
+            // ? Starts with query in Name field
+            ...(query ? { 'startsWithMatch': -1 } : {}),
+            // ? Keyword match
+            ...(query ? { 'keywordMatch': -1 } : {}),
+            // ? WebLink match
+            ...(query ? { 'urlMatch': -1 } : {}),
+            // ? Finally sort by name alphabetically
+            Name: 1
+        };
 
-            // ? Only Admins Can See Unpublished Bookmarks
-            isPublished: isAdmin ? { $ne: false } : true,
+        // ? Pipeline for advanced search and sorting
+        let pipeline = [];
+        
+        // ? Match stage for basic filtering
+        pipeline.push({
+            $match: {
+                isDeleted: false,
+                BookmarkID: { $nin: excludeIds },
+                isPublished: isAdmin ? { $ne: false } : true,
+                isAdminOnly: isAdmin ? { $ne: false } : false,
+            }
+        });
 
-            // ? Only Admins Can See Admin Only Bookmarks
-            isAdminOnly: isAdmin ? { $ne: false } : false,
+        // ? If query is provided, add text search logic
+        if (query && query.trim().length > 0) {
+            const queryRegex = new RegExp(query, 'i');
+            
+            pipeline.push({
+                $match: {
+                    $or: [
+                        { Name: queryRegex },
+                        { Description: queryRegex },
+                        { Keywords: queryRegex },
+                        { WebLink: queryRegex },
+                        { Windows: queryRegex },
+                        { Android: queryRegex }
+                    ]
+                }
+            });
 
-            // ? Filter Bookmarks by Name, Description, Keywords
-            $or: [
-                { Name: { $regex: query, $options: 'i' } },
-                { Description: { $regex: query, $options: 'i' } },
-                { Keywords: { $regex: query, $options: 'i' } }
-            ],
+            // ? Add fields for sorting priorities based on match type
+            pipeline.push({
+                $addFields: {
+                    exactNameMatch: {
+                        $cond: {
+                            if: { $eq: [{ $toLower: "$Name" }, query.toLowerCase()] },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                    startsWithMatch: {
+                        $cond: {
+                            if: { $regexMatch: { input: { $toLower: "$Name" }, regex: new RegExp(`^${query.toLowerCase()}`) } },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                    keywordMatch: {
+                        $cond: {
+                            if: { 
+                                $gt: [
+                                    { $size: { $filter: { 
+                                        input: { $ifNull: ["$Keywords", []] }, 
+                                        as: "keyword", 
+                                        cond: { $regexMatch: { input: { $toLower: "$$keyword" }, regex: queryRegex } } 
+                                    }}},
+                                    0
+                                ]
+                            },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                    urlMatch: {
+                        $cond: {
+                            if: { $regexMatch: { input: { $toLower: "$WebLink" }, regex: queryRegex } },
+                            then: 1,
+                            else: 0
+                        }
+                    }
+                }
+            });
+        }
 
-            // ? Sponsored Bookmarks Auto Top Priority on Results
-        }).limit(limit).skip((page - 1) * limit).sort({ createdAt: -1 }).lean().exec();
+        // ? Sort stage
+        pipeline.push({ $sort: sortPriority });
+        
+        // ? Skip and limit for pagination
+        pipeline.push({ $skip: (page - 1) * limit });
+        pipeline.push({ $limit: limit });
+
+        // Explicitly cast pipeline to any to avoid TypeScript errors with complex aggregation pipelines
+        let Bookmarks = await Bookmarks_Model.aggregate(pipeline as any).exec();
         
         if (!Bookmarks || Bookmarks.length === 0) {
             return ControllerResponseMap({
@@ -124,13 +204,6 @@ export async function POST(req: NextRequest) {
                 }
             });
         }
-
-        // ? Sort on First Priority : Sponsored Bookmarks
-        Bookmarks = Bookmarks.sort((a, b) => {
-            if (a.isSponsored && !b.isSponsored) return -1;
-            if (!a.isSponsored && b.isSponsored) return 1;
-            return 0;
-        });
 
         // Pagination
         const totalItems = Bookmarks.length;

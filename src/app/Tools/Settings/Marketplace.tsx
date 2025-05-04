@@ -43,7 +43,7 @@ import {
 } from "@heroui/react";
 import {
     Typography,
-    Grid2 as Grid
+    Grid
 } from "@mui/material";
 import { motion } from "framer-motion";
 import {
@@ -57,6 +57,7 @@ import { Axios } from "@Utils/Axios";
 import { useInView } from "react-intersection-observer";
 import BookmarkItemMarketPlace from "./BookmarkItemMarketPlace";
 import BookmarkItemSkeleton from "./BookmarkItemSkeleton";
+import { log } from "@/Utils";
 interface MarketplaceProps {
     ModalState: IToolsModalData;
     SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>;
@@ -151,11 +152,16 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
 
             const existingIds = State.Bookmarks.map(bookmark => bookmark.BookmarkID);
 
+            log("Admin Signatures from Marketplace", {
+                isAdmin: ModalState.isAdmin,
+                AdminSignature: ModalState.AdminSignature,
+            })
+
             const requestBody = {
                 _page: 1,
                 _limit: '20',
                 excludeID: existingIds,
-                adminSignature: ModalState.isAdmin ? ModalState.AdminSignature : undefined,
+                adminSignature: ModalState.isAdmin ? ModalState.AdminSignature : "undefined",
                 query: query
             };
 

@@ -135,7 +135,7 @@
         "**/*.ts",
         "**/*.tsx",
         ".next/types/**/*.ts"
-    ],
+, "Scripts/TestProxyServer.mjs"    ],
     "exclude": [
         "node_modules"
     ]

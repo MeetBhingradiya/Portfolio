@@ -42,6 +42,7 @@ import { Config } from "@Config";
 // @ Icons Import
 import Link from "next/link";
 import { SocialLinks } from "@Config/SocialLinks";
+import RemoteImageLoader from "@Utils/RemoteImageLoader";
 
 // @ File
 export default function Home() {
@@ -60,6 +61,7 @@ export default function Home() {
                     <div className="CommingSoon">
                         <Link className="Notification" href="/Home">
                             <Image
+                                loader={RemoteImageLoader}
                                 width="30"
                                 height="30"
                                 src="https://img.icons8.com/ios-glyphs/512/error--v1.png" alt="error--v1"
@@ -80,6 +82,7 @@ export default function Home() {
 
                             <div className="CENTER">
                                 <Image
+                                    loader={RemoteImageLoader}
                                     src="/meet.jpg"
                                     alt="Meet Bhingradiya"
                                     width={150}

@@ -64,9 +64,8 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                     <Tooltip content={"Save Changes"} placement="top">
                         <Button
                             isIconOnly
-                            color="primary"
+                            color="success"
                             onPress={() => {
-                                // Validate form before saving
                                 if (!ModalState.bookmark.Name.trim()) {
                                     toast.error("Bookmark name is required");
                                     return;
@@ -83,16 +82,26 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                     return;
                                 }
 
+                                // Prepare updated bookmark
+                                const updatedBookmark = ModalState.bookmark;
+                                
+                                // Handle cloud sync operations if needed
+                                if (updatedBookmark.isCloudSync && State.Preferences.CloudSync) {
+                                    // In a real implementation, this is where you would sync the bookmark with the cloud
+                                    // For example: await syncBookmarkToCloud(updatedBookmark);
+                                    toast.info("Bookmark changes will be synced with cloud on next sync");
+                                }
+
                                 SetState({
                                     ...State,
                                     Bookmarks: [
                                         ...State.Bookmarks.slice(0, index),
-                                        ModalState.bookmark,
+                                        updatedBookmark,
                                         ...State.Bookmarks.slice(index + 1)
                                     ],
                                     FilterBookmarks: [
                                         ...State.FilterBookmarks.slice(0, index),
-                                        ModalState.bookmark,
+                                        updatedBookmark,
                                         ...State.FilterBookmarks.slice(index + 1)
                                     ],
                                     Query: "",
@@ -136,6 +145,13 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                         ? ModalState.bookmark.Keywords
                                         : []
                                 };
+                                
+                                // Handle cloud sync for new bookmark
+                                if (bookmarkToAdd.isCloudSync && State.Preferences.CloudSync) {
+                                    // In a real implementation, you would send the bookmark to your cloud service
+                                    // For example: await addBookmarkToCloud(bookmarkToAdd);
+                                    toast.info("New bookmark will be synced to cloud on next sync");
+                                }
 
                                 SetState({
                                     ...State,

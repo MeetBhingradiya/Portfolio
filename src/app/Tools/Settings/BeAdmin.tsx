@@ -46,7 +46,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
             SetState((State) => {
                 return {
                     ...State,
-                    AdminSignatureToken: response.data.Data.Token,
+                    AdminSignatureToken: response.data.Data,
                     isError: false,
                     Message: "Verified Successfully",
                 }
@@ -55,7 +55,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
                 return {
                     ...ModalState,
                     isAdmin: true,
-                    AdminSignature: response.data.Data.Token,
+                    AdminSignature: response.data.Data,
                     type: IToolsSettingsTabs.Cloud
                 }
             })

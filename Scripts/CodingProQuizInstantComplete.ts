@@ -7,11 +7,13 @@ const CourseDetails = {
     // subject: 482 // 484 is for "Advance Game Development (Unity)"
     // subject: 484 // 484 is for "Python"
     // subject: 485 // 484 is for "Basic Full Stack"
-    subject: 486 // 484 is for "Web Development"
+    // subject: 486 // 484 is for "Web Development"
+    subject: 481
 }
 
-// ? Meet Credentials
 // ? Fill Cookie & Authorization Here
+const Cookie = "session_id=39555802-81f8-4467-87c8-bfdb1d6ad022; token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjYXRlZ29yeV9pZCI6Ils0NzddIiwiZW1haWwiOiIyMklEMDFJVDAwNSIsImV4cCI6MTc0NjA3MDE3MiwiaXNfdW5pdiI6MSwicm9sZV9pZCI6Mywic2Nob29sX2lkIjozMDcyLCJ1c2VyX2lkIjozMjQ0MCwidXNlcl9uYW1lIjoiQmhpbmdyYWRpeWEgTWVldCBQYXJlc2hiaGFpIn0.k7hR9mCURJFGCtcjIq96hRhHqL9IZwbU-uEp7E3s5Do";
+const Authorization = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjYXRlZ29yeV9pZCI6Ils0NzddIiwiZW1haWwiOiIyMklEMDFJVDAwNSIsImV4cCI6MTc0NjA3MDE3MiwiaXNfdW5pdiI6MSwicm9sZV9pZCI6Mywic2Nob29sX2lkIjozMDcyLCJ1c2VyX2lkIjozMjQ0MCwidXNlcl9uYW1lIjoiQmhpbmdyYWRpeWEgTWVldCBQYXJlc2hiaGFpIn0.k7hR9mCURJFGCtcjIq96hRhHqL9IZwbU-uEp7E3s5Do";
 // const Cookie = "<Your Cookie>";
 // const Authorization = "<Your Authorization Token>";
 

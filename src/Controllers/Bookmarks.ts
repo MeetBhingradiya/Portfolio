@@ -94,7 +94,199 @@ async function Controller_GET_Bookmarks(options: {
     return Bookmarks;
 }
 
+/**
+ * Get cloud-synchronized bookmarks for a specific user
+ * @param userId The user ID
+ * @returns Array of bookmarks synced to cloud for the user
+ */
+async function getCloudBookmarks(userId: string) {
+    await dbConnect();
+    
+    try {
+        const query = {
+            userId: userId,
+            isCloudSync: true,
+            isDeleted: false
+        };
+        
+        const bookmarks = await Bookmarks_Model.find(query)
+            .sort({ updatedAt: -1 })
+            .lean()
+            .exec();
+        
+        return {
+            success: true,
+            data: {
+                bookmarks,
+                count: bookmarks.length
+            }
+        };
+    } catch (error:any) {
+        console.error("Error getting cloud bookmarks:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to get cloud bookmarks"
+        };
+    }
+}
+
+/**
+ * Synchronize bookmarks with cloud storage
+ * @param userId The user ID
+ * @param bookmarks Array of bookmarks to sync
+ * @returns Result of the sync operation
+ */
+async function syncCloudBookmarks(userId: string, bookmarks: any[]) {
+    await dbConnect();
+    
+    try {
+        if (!Array.isArray(bookmarks) || bookmarks.length === 0) {
+            return {
+                success: false,
+                error: "No bookmarks provided for syncing"
+            };
+        }
+        
+        // Ensure all bookmarks have required fields
+        const processedBookmarks = bookmarks.map(bookmark => ({
+            ...bookmark,
+            userId: userId,
+            isCloudSync: true,
+            updatedAt: new Date()
+        }));
+        
+        // Prepare bulk operations for upsert
+        const bulkOperations = processedBookmarks.map(bookmark => ({
+            updateOne: {
+                filter: { BookmarkID: bookmark.BookmarkID, userId: userId },
+                update: { $set: bookmark },
+                upsert: true
+            }
+        }));
+        
+        // Execute bulk operation
+        const result = await Bookmarks_Model.bulkWrite(bulkOperations);
+        
+        return {
+            success: true,
+            data: {
+                modified: result.modifiedCount,
+                upserted: result.upsertedCount,
+                total: processedBookmarks.length
+            }
+        };
+    } catch (error:any) {
+        console.error("Error syncing cloud bookmarks:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to sync bookmarks with cloud"
+        };
+    }
+}
+
+/**
+ * Delete bookmarks from cloud storage
+ * @param userId The user ID
+ * @param bookmarkIds Array of bookmark IDs to delete
+ * @returns Result of the delete operation
+ */
+async function deleteCloudBookmarks(userId: string, bookmarkIds: string[]) {
+    await dbConnect();
+    
+    try {
+        if (!Array.isArray(bookmarkIds) || bookmarkIds.length === 0) {
+            return {
+                success: false,
+                error: "No bookmark IDs provided for deletion"
+            };
+        }
+        
+        // Delete bookmarks (set isDeleted flag to true instead of actually deleting)
+        const result = await Bookmarks_Model.updateMany(
+            { 
+                BookmarkID: { $in: bookmarkIds },
+                userId: userId
+            },
+            { 
+                $set: { 
+                    isDeleted: true,
+                    updatedAt: new Date()
+                } 
+            }
+        );
+        
+        return {
+            success: true,
+            data: {
+                deleted: result.modifiedCount
+            }
+        };
+    } catch (error:any) {
+        console.error("Error deleting cloud bookmarks:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to delete bookmarks from cloud"
+        };
+    }
+}
+
+/**
+ * Update a single bookmark in cloud storage
+ * @param userId The user ID
+ * @param bookmark The bookmark data to update
+ * @returns Result of the update operation
+ */
+async function updateCloudBookmark(userId: string, bookmark: any) {
+    await dbConnect();
+    
+    try {
+        if (!bookmark || !bookmark.BookmarkID) {
+            return {
+                success: false,
+                error: "Invalid bookmark data. BookmarkID is required."
+            };
+        }
+        
+        // Prepare bookmark data with required fields
+        const bookmarkData = {
+            ...bookmark,
+            userId: userId,
+            isCloudSync: true,
+            updatedAt: new Date()
+        };
+        
+        // Update or create bookmark
+        const result = await Bookmarks_Model.findOneAndUpdate(
+            { BookmarkID: bookmark.BookmarkID, userId: userId },
+            { $set: bookmarkData },
+            { upsert: true, new: true }
+        );
+        
+        return {
+            success: true,
+            data: {
+                bookmark: result
+            }
+        };
+    } catch (error:any) {
+        console.error("Error updating cloud bookmark:", error);
+        return {
+            success: false,
+            error: error.message || "Failed to update bookmark in cloud"
+        };
+    }
+}
+
+// Create BookmarkController object to export the functions
+const BookmarkController = {
+    getBookmarks: Controller_GET_Bookmarks,
+    getCloudBookmarks,
+    syncCloudBookmarks,
+    deleteCloudBookmarks,
+    updateCloudBookmark
+};
 
 export {
-    Controller_GET_Bookmarks
+    Controller_GET_Bookmarks,
+    BookmarkController
 };

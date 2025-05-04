@@ -145,9 +145,13 @@ function BookmarkItemMarketPlace({
                 </Button>
             </div>
 
-            <div className="px-2  w-full text-xs text-gray-600 dark:text-gray-400 line-clamp-2 flex text-justify items-center justify-start">
-                {Data.isAdminOnly === true && !isAdmin ? "Access Denied" : Data?.Description === "" ? "No Description Provided" : Data.Description}
-            </div>
+            {
+                Data.isAdminOnly && !isAdmin ? (
+                    <div className="px-2 mt-2 w-full text-xs text-gray-600 dark:text-gray-400 line-clamp-2 flex text-justify items-center justify-start">
+                        Access Denied
+                    </div>
+                ) : Data.Description === "" ? null : null
+            }
 
             {
                 Data.Keywords && Data.Keywords.length > 0 && (

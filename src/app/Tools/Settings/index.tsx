@@ -14,6 +14,7 @@ import BeAdmin from "./BeAdmin";
 import BookmarkEditor from "./BookmarkEditor";
 import Preferences from "./Preferences";
 import Marketplace from "./Marketplace";
+import Cloud from "./Cloud";
 import { DefualtBookmark } from "./Types";
 
 interface BodyProps {
@@ -139,6 +140,17 @@ function ModelsBody({
                 {
                     ModalState.type === IToolsSettingsTabs.Marketplace && (
                         <Marketplace
+                            ModalState={ModalState}
+                            SetModalState={SetModalState}
+                            State={State}
+                            Dispatch={Dispatch}
+                        />
+                    )
+                }
+
+                {
+                    ModalState.type === IToolsSettingsTabs.Cloud && (
+                        <Cloud
                             ModalState={ModalState}
                             SetModalState={SetModalState}
                             State={State}

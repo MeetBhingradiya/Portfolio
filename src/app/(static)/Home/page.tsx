@@ -46,6 +46,7 @@ import {
 import Link from "next/link";
 import { SocialLinks } from "@Config/SocialLinks";
 import Header from "@Components/Header";
+import RemoteImageLoader from "@/Utils/RemoteImageLoader";
 
 // @ File
 export default function Home() {
@@ -66,6 +67,7 @@ export default function Home() {
 
                     <div className="CENTER">
                         <Image
+                            loader={RemoteImageLoader}
                             src="/meet.jpg"
                             alt="Meet Bhingradiya"
                             width={150}

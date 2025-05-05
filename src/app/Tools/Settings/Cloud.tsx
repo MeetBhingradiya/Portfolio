@@ -408,7 +408,7 @@ function Cloud({ ModalState, SetModalState, State, Dispatch }: CloudProps) {
                         No Cloud Bookmarks Found
                     </Typography>
                     <Typography variant="body2" className="text-gray-500 mt-1 mb-3">
-                        You don't have any bookmarks configured to sync with the cloud
+                        You don&apos;t have any bookmarks configured to sync with the cloud
                     </Typography>
                     <Button
                         color="primary"

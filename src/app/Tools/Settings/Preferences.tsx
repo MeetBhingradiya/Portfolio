@@ -186,7 +186,7 @@ function Preferences({ State, Dispatch, ModalState }: PreferencesProps) {
                     </div>
                     <p className="text-xs text-gray-500 mb-2">this is an fallback option if bookmark not contains desktop or mobile app links</p>
                     <p className="text-xs text-gray-400 mb-2">
-                        <span className="text-blue-500 font-semibold">Tip:</span> Using "New Window" you can use Websites as Webapps. URL/address bar still visible for your Security
+                        <span className="text-blue-500 font-semibold">Tip:</span> Using &quot;New Window&quot; you can use Websites as Webapps. URL/address bar still visible for your Security
                     </p>    
                 </div>
 

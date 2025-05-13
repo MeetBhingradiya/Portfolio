@@ -1,6 +1,6 @@
 /**
  *  @FileID          Utils/Sitemap.ts
- *  @Description     utility functions for generating sitemaps.
+ *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
  *  -----------------------------------------------------------------------------  
@@ -23,15 +23,10 @@
  *  -----------------------------------------------------------------------------  
  *  Last Updated on Version: 1.1.0
  *  -----------------------------------------------------------------------------  
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ *  @created 13/05/25 12:05 PM IST (Kolkata +5:30 UTC)
+ *  @modified 13/05/25 12:05 PM IST (Kolkata +5:30 UTC)
  */
 
-/**
- * Generates the XML header for the sitemap.
- * @param data - The XML content to wrap.
- * @returns The XML-wrapped string.
- */
 function XMLWrap(data: string): string {
     return `<?xml version="1.0" encoding="UTF-8"?>\n${data}`;
 }

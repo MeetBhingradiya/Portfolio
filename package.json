@@ -8,11 +8,13 @@
         "start": "next start",
         "lint": "next lint",
         "blogs": "bun Scripts/SyncBlogs.ts",
-        "comments": "bun Scripts/Comments.ts",
+        "Comments": "bun Scripts/Comments.ts",
         "SignState": "bun Scripts/SignState.ts",
         "CheckDeploy": "bun Scripts/DeployCheck.ts",
         "publish": "bun Scripts/Publish.ts",
-        "updateState": "bun Scripts/UpdateRemoteSettings.ts"
+        "updateState": "bun Scripts/UpdateRemoteSettings.ts",
+        "CreateSign": "bun Scripts/CreateSignatures.ts",
+        "RemoveComments": "bun Scripts/RemoveComments.ts"
     },
     "dependencies": {
         "@chakra-ui/icons": "^2.2.4",

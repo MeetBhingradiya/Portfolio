@@ -1,5 +1,5 @@
 /**
- *  @FileID          app/api/(tools)/bookmarks/route.ts
+ *  @FileID          app/api/(tools)/bookmarks/[id]/route.ts
  *  @Description     Currently, there is no description available.
  *  @Author          Meet Bhingradiya (@MeetBhingradiya)
  *  
@@ -23,8 +23,8 @@
  *  -----------------------------------------------------------------------------  
  *  Last Updated on Version: 1.1.0
  *  -----------------------------------------------------------------------------  
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 11/04/25 4:27 PM IST (Kolkata +5:30 UTC)
+ *  @created 13/05/25 12:05 PM IST (Kolkata +5:30 UTC)
+ *  @modified 13/05/25 12:05 PM IST (Kolkata +5:30 UTC)
  */
 
 import { NextRequest } from "next/server";

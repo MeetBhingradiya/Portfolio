@@ -32,10 +32,18 @@ import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
 import { ControllerResponseMap } from '@Utils';
 // import { RateLimiter } from '@Utils/RateLimit';
+import { handleEmergencyShutdown } from '@Middleware/EmergencyMiddleware';
 
 const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
+const CURRENT_APPLICATION_ID = Config.Env.APPLICATION_ID || '';
 
 export async function middleware(req: NextRequest) {
+    // Check for emergency shutdown first
+    // const emergencyResponse = await handleEmergencyShutdown(req, CURRENT_APPLICATION_ID);
+    // if (emergencyResponse) {
+    //     return emergencyResponse; // Return early if in emergency shutdown mode
+    // }
+
     const csrfToken = await new SignJWT({})
         .setProtectedHeader({ alg: 'HS256' })
         .setIssuedAt()
@@ -66,7 +74,8 @@ export async function middleware(req: NextRequest) {
             '/api/sitemap',
             '/api/sitemap/*',
             '/api/robots',
-            '/api/bookmarks'
+            '/api/bookmarks',
+            '/api/developer/emergency/disable' // Allow emergency recovery endpoint
         ];
 
         if (excludedRoutes.some(route => req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(route))) {

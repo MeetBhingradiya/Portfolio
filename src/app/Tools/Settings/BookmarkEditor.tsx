@@ -122,7 +122,6 @@ function BookmarkEditor({
     const [keywordSuggestions, setKeywordSuggestions] = React.useState<string[]>([]);
     const [isValidUrl, setIsValidUrl] = React.useState<boolean>(true);
     const [errors, setErrors] = React.useState<{ [key: string]: string }>({});
-    const [iconPreviewUrl, setIconPreviewUrl] = React.useState<string>(bookmark.Icon || "");
 
     function RegenerateUUID() {
         setEditedBookmark({
@@ -437,7 +436,7 @@ function BookmarkEditor({
         // }
         
         setBookmark(editedBookmark);
-    }, [editedBookmark, isCreateMode, setBookmark]);
+    }, [editedBookmark]);
 
     return (
         <div className="Editor w-full mx-auto p-4 gap-6">
@@ -744,6 +743,13 @@ function BookmarkEditor({
                                             Icon: e.target.value
                                         }));
                                     }}
+                                    isClearable
+                                    onClear={() => {
+                                        setEditedBookmark(prev => ({
+                                            ...prev,
+                                            Icon: ""
+                                        }));
+                                    }}
                                     startContent={<Public className="text-default-400" />}
                                 />
 
@@ -814,7 +820,7 @@ function BookmarkEditor({
                             <div className="flex flex-col gap-3 items-center">
                                 <p className="text-sm font-medium">Icon Preview</p>
                                 <div className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden">
-                                    {editedBookmark.Icon ? (
+                                    {editedBookmark.Icon && editedBookmark.Icon !== "" ? (
                                         editedBookmark.isSVG ? (
                                             <SvgComponent
                                                 svgString={editedBookmark.Icon}
@@ -835,7 +841,7 @@ function BookmarkEditor({
                                                 onError={() => {
                                                     setEditedBookmark(prev => ({
                                                         ...prev,
-                                                        Icon: ""
+                                                        Icon: "https://img.icons8.com/fluency/48/bookmark-ribbon.png"
                                                     }));
                                                 }}
                                             />

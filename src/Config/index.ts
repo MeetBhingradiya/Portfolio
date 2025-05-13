@@ -65,6 +65,7 @@ interface IConfig {
         CONTACT_EMAIL?: string
         IPDATA_WEBSITE_KEY?: string
         STATE_SIGNATURE?: string
+        APPLICATION_ID?: string
     };
 }
 

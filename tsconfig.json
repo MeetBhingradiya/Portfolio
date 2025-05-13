@@ -64,6 +64,14 @@
             "@Controllers/*": [
                 "./src/Controllers/*"
             ],
+            
+            "@Middleware": [
+                "./src/Middleware/index.ts"
+            ],
+            "@Middleware/*": [
+                "./src/Middleware/*"
+            ],
+
             "@Data/*": [
                 "./src/Data/*"
             ],

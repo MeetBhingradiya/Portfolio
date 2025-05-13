@@ -96,6 +96,7 @@ import type {
     IToolsState,
     IToolsSuggestion
 } from "./Settings/Types"
+import BookmarkItem from "./Settings/BookmarkItem";
 
 const StyledMenu = styled((props: MenuProps) => (
     <Menu
@@ -545,16 +546,16 @@ function Tools() {
         });
     }
 
-    function CloseModel() {
-        SetModalState({
-            ...ModalState,
-            isOpen: false,
-            type: IToolsSettingsTabs.Preferences,
-            bookmark: DefualtBookmark,
-            adminBookmark: DefualtBookmark,
-            bookmarkRequest: DefualtBookmarkRequest,
-        });
-    }
+    // function CloseModel() {
+    //     SetModalState({
+    //         ...ModalState,
+    //         isOpen: false,
+    //         type: IToolsSettingsTabs.Preferences,
+    //         bookmark: DefualtBookmark,
+    //         adminBookmark: DefualtBookmark,
+    //         bookmarkRequest: DefualtBookmarkRequest,
+    //     });
+    // }
 
     function OpenEditModel(ID: string) {
         const bookmark = State.Bookmarks.find((bookmark) => bookmark.BookmarkID === ID);
@@ -1143,16 +1144,10 @@ function Tools() {
                                         }
                                     </div>
                                 )}
+                                
                                 {
                                     State.Preferences.ShowLabels && (
                                         <h2 className="bookmarkTitle">{item.Name}</h2>
-                                    )
-                                }
-                                {
-                                    item.isCloudSync && (
-                                        <div className="ServerIcon">
-                                            <Cloud />
-                                        </div>
                                     )
                                 }
                             </div>

@@ -97,7 +97,7 @@ export default function Home() {
                         })}
                     </motion.div>
                 </motion.div>
-                <motion.div
+                {/* <motion.div
                     className="ItemRow"
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -132,7 +132,7 @@ export default function Home() {
                         </Link>
                     </motion.div>
 
-                </motion.div>
+                </motion.div> */}
             </div>
         </>
     );

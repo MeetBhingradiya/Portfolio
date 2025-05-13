@@ -1,26 +1,5 @@
-// ? Bookmark Main Page Types
 import { v4 } from 'uuid';
 import { Config } from '@Config';
-import {
-    Edit,
-    Book,
-    Bookmark,
-    LocalMall,
-    SettingsOutlined,
-    LocalMallOutlined,
-    BookOutlined,
-    BookmarkOutlined,
-    RequestPage,
-    AdminPanelSettings,
-    BookmarkAdd,
-    VerifiedUser,
-    VerifiedUserOutlined,
-    EditOutlined,
-    Settings,
-    RequestPageOutlined,
-    BookmarkAddOutlined,
-    AdminPanelSettingsOutlined
-} from '@mui/icons-material';
 
 enum ILinkOpenTypes {
     NEW_TAB = "newTab",
@@ -178,7 +157,7 @@ interface IPreferences {
 }
 
 const DefualtPreferences: IPreferences = {
-    OpenMethod: ILinkOpenTypes.NEW_TAB,
+    OpenMethod: ILinkOpenTypes.CURRENT_TAB,
     PlateformPriority: "web",
     CloudSyncRandomize: false,
     SearchEngine: ISearchEngines.GOOGLE,

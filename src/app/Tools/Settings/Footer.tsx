@@ -187,7 +187,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
 
             {
                 (ModalState.type === IToolsSettingsTabs.Create || ModalState.type === IToolsSettingsTabs.Edit) && (
-                    <Tooltip content="Reset" placement="top">
+                    <Tooltip content="Reset Draft" placement="top">
                         <Button isIconOnly color="secondary" variant="light" onPress={() => {
                             SetModalState({
                                 ...ModalState,

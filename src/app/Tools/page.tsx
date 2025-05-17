@@ -1086,7 +1086,7 @@ function Tools() {
                                                     <SvgComponent
                                                         svgString={item.Icon}
                                                         style={{
-                                                            width: "100%", 
+                                                            width: "100%",
                                                             height: "100%",
                                                             fill: item.fillColor || '#000000',
                                                             color: item.fillColor || '#000000'
@@ -1112,7 +1112,7 @@ function Tools() {
                                         }
                                     </div>
                                 )}
-                                
+
                                 {
                                     State.Preferences.ShowLabels && (
                                         <h2 className="bookmarkTitle">{item.Name}</h2>
@@ -1230,34 +1230,44 @@ function Tools() {
                                     </ListItemText>
                                 </MenuItem>
 
-                                <MenuItem
-                                    onClick={() => {
-                                        setContextMenu(null);
-                                        OpenEditModel(ContextMenu?.ItemID ?? "");
-                                    }}
-                                >
-                                    <ListItemIcon>
-                                        <AutoFixHigh />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                        Edit
-                                    </ListItemText>
-                                </MenuItem>
+                                {!bookmark?.isEditBlock && (
+                                        <MenuItem
+                                            onClick={() => {
+                                                setContextMenu(null);
+                                                if (bookmark?.isEditBlock) {
+                                                    toast.error("This Bookmark is Blocked for Editing");
+                                                    return;
+                                                }
+                                                OpenEditModel(ContextMenu?.ItemID ?? "");
+                                            }}
+                                        >
+                                            <ListItemIcon>
+                                                <AutoFixHigh />
+                                            </ListItemIcon>
+                                            <ListItemText>
+                                                Edit
+                                            </ListItemText>
+                                        </MenuItem>
+                                    )
+                                }
 
-                                <MenuItem
-                                    onClick={() => {
-                                        setContextMenu(null);
-                                        DeleteBookmark(ContextMenu?.ItemID ?? "");
-                                    }}
-                                    style={{ color: "red" }}
-                                >
-                                    <ListItemIcon color='error'>
-                                        <Delete style={{ color: "red" }} />
-                                    </ListItemIcon>
-                                    <ListItemText>
-                                        Delete
-                                    </ListItemText>
-                                </MenuItem>
+                                {
+                                    !bookmark?.isDeleteBlock && (
+                                        <MenuItem
+                                            onClick={() => {
+                                                setContextMenu(null);
+                                                toast.error("This Bookmark is Blocked for Deletion");
+                                            }}
+                                        >
+                                            <ListItemIcon>
+                                                <Delete style={{ color: "red" }} />
+                                            </ListItemIcon>
+                                            <ListItemText>
+                                                Delete
+                                            </ListItemText>
+                                        </MenuItem>
+                                    )
+                                }
                             </div>
                         );
                     })()

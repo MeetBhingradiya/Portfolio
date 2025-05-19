@@ -432,7 +432,6 @@ function BookmarkEditor({
 
             <div className="flex flex-col gap-7 w-full">
                 <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-semibold">Preview</h2>
 
                     <motion.div
                         className="flex flex-row gap-5 justify-center items-center flex-wrap "

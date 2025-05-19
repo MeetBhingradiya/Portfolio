@@ -4,25 +4,10 @@ import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 import * as jose from 'jose';
 import dbConnect from "@Utils/dbConnect";
 import { Bookmarks_Model } from "@Models/Bookmarks";
+import { verifyAdminToken } from "@Utils/verifyAdminToken";
 
 // ? Enables Cache 
 export const revalidate = 60
-
-export async function verifyAdminToken(token: string): Promise<boolean> {
-    try {
-        if (!token) return false;
-
-        const secret = new TextEncoder().encode(Config.Env.ADMIN_SIGNATURE);
-        const verified = await jose.jwtVerify(token, secret);
-
-        if (!verified) {
-            return false;
-        }
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
 
 export async function POST(req: NextRequest) {
     try {

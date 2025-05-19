@@ -544,9 +544,8 @@ function CRXDownload() {
                         >
                             Download ZIP
                         </Button>
-                    </div>
-                    <div className="installation-note">
-                        <p><strong>Note:</strong> Chrome blocks direct installation from non-Chrome Web Store sites. See the "How to Use" section below for installation instructions.</p>
+                    </div>                    <div className="installation-note">
+                        <p><strong>Note:</strong> Chrome blocks direct installation from non-Chrome Web Store sites. See the &quot;How to Use&quot; section below for installation instructions.</p>
                     </div>
                 </div>
             </div>
@@ -689,10 +688,9 @@ function CRXDownload() {
                     <Public />                </div>                <div className="utility-content">
                     <ol className="instructions-list">
                         <li>Find the extension ID from the Chrome Web Store URL</li>
-                        <li>Enter the ID in the input field above</li>
-                        <li>Click "Search" to get extension information</li>
+                        <li>Enter the ID in the input field above</li>                        <li>Click &quot;Search&quot; to get extension information</li>
                         <li>Choose between downloading as CRX (Chrome extension file) or ZIP (for unpacking)</li>
-                        <li>If the extension isn't found in the Web Store, you can still try direct download</li>
+                        <li>If the extension isn&apos;t found in the Web Store, you can still try direct download</li>
                     </ol>
 
                     <div className="installation-steps">
@@ -700,10 +698,9 @@ function CRXDownload() {
                         <div className="install-method">
                             <h5>Method 1: Install CRX File (Developer Mode)</h5>
                             <ol>
-                                <li>Open Chrome and go to <code>chrome://extensions</code></li>
-                                <li>Enable "Developer mode" in the top-right corner</li>
+                                <li>Open Chrome and go to <code>chrome://extensions</code></li>                                <li>Enable &quot;Developer mode&quot; in the top-right corner</li>
                                 <li>Drag and drop the downloaded CRX file into the extensions page</li>
-                                <li>If you see "apps extensions and user scripts cannot be added from this website", follow method 2</li>
+                                <li>If you see &quot;apps extensions and user scripts cannot be added from this website&quot;, follow method 2</li>
                             </ol>
                         </div>
                         <div className="install-method">
@@ -711,16 +708,15 @@ function CRXDownload() {
                             <ol>
                                 <li>Download the extension as ZIP</li>
                                 <li>Extract the ZIP file to a folder on your computer</li>
-                                <li>Open Chrome and go to <code>chrome://extensions</code></li>
-                                <li>Enable "Developer mode" in the top-right corner</li>
-                                <li>Click "Load unpacked" and select the extracted folder</li>
+                                <li>Open Chrome and go to <code>chrome://extensions</code></li>                                <li>Enable &quot;Developer mode&quot; in the top-right corner</li>
+                                <li>Click &quot;Load unpacked&quot; and select the extracted folder</li>
                             </ol>
                         </div>
 
                         <div className="tips-section">
                             <h4>Tips:</h4>
                             <ul>
-                                <li>Chrome's security policy restricts installing extensions from outside the Chrome Web Store</li>
+                                <li>Chrome&apos;s security policy restricts installing extensions from outside the Chrome Web Store</li>
                                 <li>Developer mode lets you bypass this restriction for development and testing</li>
                                 <li>ZIP files are useful for inspecting the extension code</li>
                                 <li>Some extensions might not be available for direct download</li>

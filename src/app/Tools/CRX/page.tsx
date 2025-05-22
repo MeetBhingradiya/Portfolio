@@ -9,7 +9,8 @@ import {
     Error,
     CheckCircle,
     Public,
-    CloudDownload
+    CloudDownload,
+    Close
 } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Tooltip, Input, Select, SelectItem, Button } from '@heroui/react';
@@ -76,6 +77,27 @@ function CRXDownload() {
         };
     }
 
+    // Extract extension ID from Chrome Web Store URL
+    function extractExtensionId(input: string): string {
+        // If the input is already just an ID (alphanumeric string), return it
+        if (/^[a-zA-Z0-9]+$/.test(input)) {
+            return input;
+        }
+
+        // Modern Chrome Web Store URL format: chrome.google.com/webstore/detail/[name]/[id]
+        // or chromewebstore.google.com/detail/[name]/[id]
+        // or chrome.google.com/webstore/detail/[id]
+        // or chromewebstore.google.com/detail/[id]
+        const modernPattern = /(?:chrome\.google\.com\/webstore\/detail|chromewebstore\.google\.com\/detail)(?:\/[^\/]+)?\/([a-zA-Z0-9]+)/i;
+        const modernMatch = input.match(modernPattern);
+
+        if (modernMatch && modernMatch[1]) {
+            return modernMatch[1];
+        }
+
+        return input; // Return the original input if no pattern matches
+    }
+
     // Get processor architecture for extension compatibility
     function getNaclArch() {
         let naclArch = 'arm';
@@ -135,6 +157,9 @@ function CRXDownload() {
             return;
         }
 
+        // Extract the extension ID from URL if needed
+        const extractedId = extractExtensionId(state.id);
+
         // Get Chrome version and architecture information
         const chromeVersion = getChromeVersion();
         const versionString = `${chromeVersion.major}.${chromeVersion.minor}.${chromeVersion.build}.${chromeVersion.patch}`;
@@ -143,7 +168,7 @@ function CRXDownload() {
         // Create the download URL with proper version and architecture parameters
         const url = CRX_URL
             .replace("@PRODVERSION", versionString)
-            .replace("@EXTENSIONID", state.id)
+            .replace("@EXTENSIONID", extractedId)
             .replace("@NACL_ARCH", naclArch);
 
         // Generate a filename based on the extension name or ID
@@ -193,6 +218,9 @@ function CRXDownload() {
             return;
         }
 
+        // Extract the extension ID from URL if needed
+        const extractedId = extractExtensionId(state.id);
+
         // Get Chrome version and architecture information
         const chromeVersion = getChromeVersion();
         const versionString = `${chromeVersion.major}.${chromeVersion.minor}.${chromeVersion.build}.${chromeVersion.patch}`;
@@ -201,7 +229,7 @@ function CRXDownload() {
         // Create the CRX URL that we'll convert to ZIP
         const url = CRX_URL
             .replace("@PRODVERSION", versionString)
-            .replace("@EXTENSIONID", state.id)
+            .replace("@EXTENSIONID", extractedId)
             .replace("@NACL_ARCH", naclArch);
 
         // Set loading state
@@ -278,20 +306,26 @@ function CRXDownload() {
             console.error("Error in direct API call:", error);
             return null;
         }
-    };
-
-    async function fetchExtensionInfo() {
+    }; async function fetchExtensionInfo() {
         if (!state.id) return;
 
-        setState({ ...state, isLoading: true, error: null, extension: null });
+        // Extract the extension ID from URL if a URL was pasted
+        const extractedId = extractExtensionId(state.id);
+
+        // Update state with the extracted ID if it's different
+        if (extractedId !== state.id) {
+            setState({ ...state, id: extractedId, isLoading: true, error: null, extension: null });
+        } else {
+            setState({ ...state, isLoading: true, error: null, extension: null });
+        }
 
         try {
             // Try multiple approaches to get extension data
             // First, attempt to fetch from the Chrome Web Store detail page
-            const extensionUrl = WEBSTORE_URL.replace("@EXTENSIONID", state.id);
+            const extensionUrl = WEBSTORE_URL.replace("@EXTENSIONID", extractedId);
 
             // Also try the Chrome Web Store API endpoint
-            const apiUrl = `https://chrome.google.com/webstore/ajax/detail?id=${state.id}&hl=en&gl=US`;
+            const apiUrl = `https://chrome.google.com/webstore/ajax/detail?id=${extractedId}&hl=en&gl=US`;
 
             // Use our CORS proxy API with Axios instance for the main extension page
             const proxyResponse = await Axios.post('/api/cors', {
@@ -500,7 +534,6 @@ function CRXDownload() {
             <h1 className="title">Chrome Extension Download</h1>
             <p className="description">Download any Chrome extension as CRX or ZIP file directly from the Chrome Web Store</p>
 
-            {/* Main input container */}
             <div className="utility-box glass">
                 <div className="utility-header">
                     <h2>Extension Finder</h2>
@@ -508,25 +541,59 @@ function CRXDownload() {
                 </div>
                 <div className="utility-content">
                     <div className="input-group">
-                        <label>Extension ID</label>
+                        <label>Extension ID or URL</label>
                         <div style={{ display: 'flex', gap: '0.5rem' }}>
                             <Input
-                                placeholder="Enter Extension ID"
+                                placeholder="Enter Extension ID or Chrome Web Store URL"
                                 value={state.id}
                                 onChange={(e) => setState({ ...state, id: e.target.value })}
                                 className="w-full"
                             />
+
+                            {
+                                state.id && (
+                                    <>
+                                        <Tooltip title="Copy URL">
+                                            <Button
+                                                onPress={() => {
+                                                    const url = WEBSTORE_URL.replace("@EXTENSIONID", state.id);
+                                                    navigator.clipboard.writeText(url);
+                                                    alert("Extension URL copied to clipboard: " + url);
+                                                }}
+                                                isIconOnly
+                                                color='primary'
+                                                variant='light'
+                                            >
+                                                <CopyAll />
+                                            </Button>
+                                        </Tooltip>
+                                        <Tooltip title="Clear input">
+                                            <Button
+                                                onPress={() => setState({ ...state, id: "" })}
+                                                isIconOnly
+                                                color='danger'
+                                                variant='light'
+                                            >
+                                                <Close />
+                                            </Button>
+                                        </Tooltip>
+                                    </>
+                                )
+                            }
+
                             <Tooltip title="Find extension info">
                                 <Button
                                     onPress={fetchExtensionInfo}
                                     isIconOnly
+                                    color='primary'
+                                    variant='light'
                                 >
                                     <Search />
                                 </Button>
                             </Tooltip>
                         </div>
                         <div className="helper-text">
-                            Find the ID in the Chrome Web Store URL: chrome.google.com/webstore/detail/[name]/<span className="text-accent font-bold">[extension-id]</span>
+                            Paste the full Chrome Web Store URL or just the extension ID from: chrome.google.com/webstore/detail/[name]/<span className="text-accent font-bold">[extension-id]</span>
                         </div>
                     </div>
                     <div className="action-buttons">
@@ -537,14 +604,15 @@ function CRXDownload() {
                         >
                             Download CRX
                         </Button>
-                        <Button
+                        {/* <Button
                             onPress={downloadZIP}
                             startContent={<CloudDownload />}
                             disabled={!state.extension}
                         >
                             Download ZIP
-                        </Button>
-                    </div>                    <div className="installation-note">
+                        </Button> */}
+                    </div>
+                    <div className="installation-note">
                         <p><strong>Note:</strong> Chrome blocks direct installation from non-Chrome Web Store sites. See the &quot;How to Use&quot; section below for installation instructions.</p>
                     </div>
                 </div>
@@ -577,7 +645,7 @@ function CRXDownload() {
                                         (e.target as HTMLImageElement).src = DEFAULT_ICON;
                                     }}
                                 />
-                                {state.extension.icon !== DEFAULT_ICON && (
+                                {/* {state.extension.icon !== DEFAULT_ICON && (
                                     <button
                                         className="reload-icon"
                                         onClick={() => {
@@ -610,7 +678,7 @@ function CRXDownload() {
                                     >
                                         🔄
                                     </button>
-                                )}
+                                )} */}
                             </div>
                             <div className="extension-details">
                                 <h3 className="extension-name">{state.extension.name}</h3>
@@ -651,11 +719,15 @@ function CRXDownload() {
                         <h2>Extension Not Found</h2>
                         <Error />
                     </div>
-                    <div className="utility-content">
-                        <div className="error-message">
-                            <p>{state.error}</p>
-                            <p className="error-hint">The extension with ID <code>{state.id}</code> was not found in the Chrome Web Store. Please check the ID and try again.</p>
-                        </div>                        <div className="extension-actions">
+                    <div className="utility-content">                        <div className="error-message">
+                        <p>{state.error}</p>
+                        <p className="error-hint">
+                            {state.id.length > 32
+                                ? `The extension from the URL was not found in the Chrome Web Store. Please check the URL and try again.`
+                                : `The extension with ID <code>${state.id}</code> was not found in the Chrome Web Store. Please check the ID and try again.`
+                            }
+                        </p>
+                    </div><div className="extension-actions">
                             <Button
                                 onPress={downloadCRX}
                                 startContent={<Download />}
@@ -687,8 +759,9 @@ function CRXDownload() {
                     <h2>How to Use</h2>
                     <Public />                </div>                <div className="utility-content">
                     <ol className="instructions-list">
-                        <li>Find the extension ID from the Chrome Web Store URL</li>
-                        <li>Enter the ID in the input field above</li>                        <li>Click &quot;Search&quot; to get extension information</li>
+                        <li>Copy the Chrome Web Store URL of the extension you want to download</li>
+                        <li>Paste the URL directly in the input field above (or just enter the extension ID)</li>
+                        <li>Click &quot;Search&quot; to get extension information</li>
                         <li>Choose between downloading as CRX (Chrome extension file) or ZIP (for unpacking)</li>
                         <li>If the extension isn&apos;t found in the Web Store, you can still try direct download</li>
                     </ol>

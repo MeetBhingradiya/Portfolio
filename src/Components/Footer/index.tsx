@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import "@Styles/Footer.sass";
 import { motion } from "framer-motion";
 import { Config } from "@Config";
@@ -15,7 +15,9 @@ import {
     LightMode,
     LinkedIn,
     YouTube,
+    Settings,
 } from "@mui/icons-material";
+import ModelMenu from "@Components/ModelMenu";
 import { SocialLinks } from "@Config/SocialLinks";
 import { useTheme } from "@Hooks/useTheme";
 
@@ -25,6 +27,7 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
 }
 ) {
     const { theme, toggleTheme } = useTheme();
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [State, setState] = React.useState({
         isFooterVisible: false,
         isFirstRender: true,
@@ -101,11 +104,6 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
 
             All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
             <div className="flex items-center">
-                {/* <Tooltip content="Language" placement="top">
-                    <div className="Version">
-                        <Language />
-                    </div>
-                </Tooltip> */}
                 <Tooltip content={theme} placement="top">
                     <div
                         className="Version theme-toggle"
@@ -121,19 +119,22 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
                         )}
                     </div>
                 </Tooltip>
-                <Tooltip content="Version Changelog" placement="top">
-                    <motion.a
-                        href={`https://github.com/MeetBhingradiya/MeetBhingradiya/blob/${Config.visiblebranch}/ChangeLog.md`}
-                        target="_blank"
-                        className="Version"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1, duration: 0.5, ease: "easeInOut" }}
+                <Tooltip content="Site Settings" placement="top">
+                    <div
+                        className="Version settings-toggle"
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{ cursor: "pointer" }}
                     >
-                        {Config.version} | {isFutureDate(new Date(Config.releasedate)) ? "Release" : ""} {getRelativeTime(new Date(Config.releasedate))}
-                    </motion.a>
+                        <Settings />
+                    </div>
                 </Tooltip>
             </div>
+
+            {/* Settings Modal */}
+            <ModelMenu
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
         </motion.div>
     );
 }

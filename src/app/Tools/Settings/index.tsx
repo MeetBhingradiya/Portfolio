@@ -16,6 +16,7 @@ import Preferences from "./Preferences";
 import Marketplace from "./Marketplace";
 import Cloud from "./Cloud";
 import { DefualtBookmark } from "./Types";
+import Contribute from "./Contribute";
 
 interface BodyProps {
     ModalState: IToolsModalData
@@ -126,6 +127,12 @@ function ModelsBody({
                             Dispatch={Dispatch}
                             ModalState={ModalState}
                         />
+                    )
+                }
+
+                {
+                    ModalState.type === IToolsSettingsTabs.Contribute && (
+                        <Contribute/>
                     )
                 }
                 

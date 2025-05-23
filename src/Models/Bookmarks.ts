@@ -1,37 +1,5 @@
-/**
- *  @FileID          Models/Bookmarks.ts
- *  @Description     Currently, there is no description available.
- *  @Author          Meet Bhingradiya (@MeetBhingradiya)
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  @license
- *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
- *  All rights reserved.
- *  
- *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
- *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
- *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
- *  This project is not officially affiliated with, endorsed by, or in any way associated 
- *  with GitHub or Microsoft Corporation.
- *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
- */
-
 import mongoose from 'mongoose';
 import { v4 } from 'uuid';
-import { ILinkOpenTypes } from '@App/Tools/Settings/Types';
 
 const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
     BookmarkID: {
@@ -43,82 +11,103 @@ const Bookmarks_Schema: mongoose.Schema = new mongoose.Schema({
         type: String,
         required: true
     },
-    URL: {
+    Description: {
+        type: String,
+        default: ""
+    },
+    Keywords: {
+        type: [String],
+        default: []
+    },
+    WebLink: {
         type: String,
         required: true
     },
     Android: {
         type: String,
+        default: ""
     },
     Windows: {
         type: String,
+        default: ""
     },
-    Description: {
+    Priority: {
         type: String,
-    },
-    Keywords: {
-        type: [String],
+        default: "web"
     },
     Icon: {
         type: String,
+        default: ""
     },
     isSVG: {
         type: Boolean,
         default: false
     },
-    SVGStyles: {
-        type: Object,
-        default: {
-            fill: "#000000"
-        }
+    fillColor: {
+        type: String,
+        default: ""
     },
-    ClientOptions: {
-        type: Object,
-        default: {
-            OpenLinkPlatformPriority: "web",
-            OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
-            isSearchVisible: true
-        }
+    CORSProxy: {
+        type: Boolean,
+        default: false
+    },
+    isSponsored: {
+        type: Boolean,
+        default: false
     },
     isPublished: {
         type: Boolean,
         default: false
     },
-    isDeleted: {
+    isCloudSync: {
         type: Boolean,
         default: false
     },
-    isServer: {
+    isDefault: {
         type: Boolean,
-        default: true
-    }
+        default: false
+    },
+    isAdminOnly: {
+        type: Boolean,
+        default: false
+    },
+    isDeleteBlock: {
+        type: Boolean,
+        default: false
+    },
+    isEditBlock: {
+        type: Boolean,
+        default: false
+    },
 }, {
-    timestamps: true,
-    versionKey: "v2"
+    timestamps: true
 });
 
 export interface IBookmark extends mongoose.Document {
     BookmarkID: string
     Name: string
-    URL: string
-    Android: string
-    Windows: string
-    Description: string
-    Keywords: string[]
-    Icon: string
-    isSVG: boolean
-    SVGStyles: {
-        fill: string
-    }
-    ClientOptions: {
-        OpenLinkPlatformPriority: "desktop" | "mobile" | "web"
-        OpenLinkMethod: ILinkOpenTypes
-        isSearchVisible: boolean
-    }
+    Description?: string
+
+    Keywords?: string[]
+
+    WebLink: string
+    Android?: string
+    Windows?: string
+    Priority?: "windows" | "android" | "web"
+
+    Icon?: string
+    isSVG?: boolean
+    fillColor?: string
+    CORSProxy?: boolean 
+
+    isSponsored: boolean
     isPublished: boolean
-    isDeleted: boolean
-    isServer: boolean
+    isCloudSync: boolean
+    isDefault: boolean
+    isAdminOnly: boolean
+
+    isDeleteBlock: boolean
+    isEditBlock: boolean
 }
 
-export { ILinkOpenTypes }
 export const Bookmarks_Model: mongoose.Model<IBookmark> = mongoose.models?.Bookmarks || mongoose.model<IBookmark>("Bookmarks", Bookmarks_Schema);

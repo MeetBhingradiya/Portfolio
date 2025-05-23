@@ -1,136 +1,29 @@
-/**
- *  @FileID          app/api/(tools)/bookmarks/route.ts
- *  @Description     Currently, there is no description available.
- *  @Author          Meet Bhingradiya (@MeetBhingradiya)
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  @license
- *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
- *  All rights reserved.
- *  
- *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
- *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
- *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
- *  This project is not officially affiliated with, endorsed by, or in any way associated 
- *  with GitHub or Microsoft Corporation.
- *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
- */
-
-
-import { NextRequest, NextResponse } from "next/server";
-import { Controller_GET_Bookmarks } from "@Controllers/Bookmarks";
+import { NextRequest } from "next/server";
 import { Config } from "@Config";
+import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 import * as jose from 'jose';
+import dbConnect from "@Utils/dbConnect";
+import { Bookmarks_Model } from "@Models/Bookmarks";
+import { verifyAdminToken } from "@Utils/verifyAdminToken";
 
 // ? Enables Cache 
 export const revalidate = 60
-
-// Verify admin signature using jose JWT token
-async function verifyAdminToken(token: string): Promise<boolean> {
-    try {
-        if (!token) return false;
-
-        const secret = new TextEncoder().encode(Config.Env.ADMIN_SIGNATURE);
-        const verified = await jose.jwtVerify(token, secret);
-
-        if (!verified) {
-            return false;
-        }
-        return true;
-    } catch (error) {
-        console.error("Admin token verification error:", error);
-        return false;
-    }
-}
-
-export async function GET(req: NextRequest) {
-    // Get pagination parameters
-    const searchParams = req.nextUrl.searchParams;
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '20');
-    
-    // Get admin signature token
-    const adminToken = searchParams.get('adminSignature');
-    const isAdmin = await verifyAdminToken(adminToken || '');
-    
-    // Get already added bookmark IDs
-    const existingBookmarks = searchParams.get('existingIds');
-    const excludeIds = existingBookmarks ? existingBookmarks.split(',') : [];
-    
-    // Check if we should skip migration
-    const skipMigration = searchParams.get('skipMigration') === 'true';
-    
-    // Get response from controller with options
-    let Response: Array<any> = await Controller_GET_Bookmarks({
-        isAdmin,
-        excludeIds,
-        showUnpublished: isAdmin,
-        migrateOldBookmarks: !skipMigration
-    });
-
-    if (Response.length === 0) {
-        return NextResponse.json({
-            Status: 1,
-            Message: "No bookmarks available",
-            StatusCode: 200,
-            Pagination: {
-                page,
-                limit,
-                totalItems: 0,
-                totalPages: 0,
-                hasMore: false
-            },
-            Data: []
-        }, {
-            status: 200
-        });
-    }
-
-    // Pagination
-    const totalItems = Response.length;
-    const totalPages = Math.ceil(totalItems / limit);
-    const startIndex = (page - 1) * limit;
-    const endIndex = page * limit;
-    const paginatedResults = Response.slice(startIndex, endIndex);
-
-    return NextResponse.json({
-        Status: 1,
-        Message: "Bookmarks Fetched",
-        StatusCode: 200,
-        Pagination: {
-            page,
-            limit,
-            totalItems,
-            totalPages,
-            hasMore: page < totalPages
-        },
-        Data: paginatedResults
-    }, {
-        status: 200
-    });
-}
 
 export async function POST(req: NextRequest) {
     try {
         // Parse request body
         const body = await req.json();
-        
-        // Get pagination parameters from body
-        const page = parseInt(body.page || '1');
-        let limit = parseInt(body.limit || '20');
+
+        const {
+            _page,
+            _limit,
+            excludeID,
+            adminSignature,
+            query,
+        } = body;
+
+        let page = parseInt(_page || '1');
+        let limit = parseInt(_limit || '20');
 
         if (limit > 20) {
             limit = 20;
@@ -140,74 +33,163 @@ export async function POST(req: NextRequest) {
             limit = 5;
         }
         
-        // Get admin signature token from headers
-        const adminToken = req.headers.get('x-admin-signature') || body.adminSignature;
+        const adminToken = req.headers.get('x-admin-signature') || adminSignature;
         const isAdmin = await verifyAdminToken(adminToken || '');
         
         // Get already added bookmark IDs from body
-        const excludeIds = Array.isArray(body.existingIds) 
-            ? body.existingIds 
-            : (body.existingIds ? body.existingIds.split(',') : []);
+        const excludeIds = Array.isArray(excludeID) 
+            ? excludeID 
+            : (excludeID ? excludeID.split(',') : []);
+            
+        await dbConnect();
+
+        // ? Sort By Pipeline (First Attempt)
+        const sortPriority: Record<string, 1 | -1> = {
+            // ? Sponsored Bookmarks have highest priority
+            isSponsored: -1,
+            // ? Exact match in Name field
+            ...(query ? { 'exactNameMatch': -1 } : {}),
+            // ? Starts with query in Name field
+            ...(query ? { 'startsWithMatch': -1 } : {}),
+            // ? Keyword match
+            ...(query ? { 'keywordMatch': -1 } : {}),
+            // ? WebLink match
+            ...(query ? { 'urlMatch': -1 } : {}),
+            // ? Finally sort by name alphabetically
+            Name: 1
+        };
+
+        // ? Pipeline for advanced search and sorting
+        let pipeline = [];
         
-        // Check if we should skip migration
-        const skipMigration = body.skipMigration === true;
-        
-        // Get response from controller with options
-        let Response: Array<any> = await Controller_GET_Bookmarks({
-            isAdmin,
-            excludeIds,
-            showUnpublished: isAdmin,
-            migrateOldBookmarks: !skipMigration
+        // ? Match stage for basic filtering
+        pipeline.push({
+            $match: {
+                isDeleted: false,
+                BookmarkID: { $nin: excludeIds },
+                isPublished: isAdmin ? { $ne: false } : true,
+                isAdminOnly: isAdmin ? { $ne: false } : false,
+            }
         });
 
-        if (Response.length === 0) {
-            return NextResponse.json({
+        // ? If query is provided, add text search logic
+        if (query && query.trim().length > 0) {
+            const queryRegex = new RegExp(query, 'i');
+            
+            pipeline.push({
+                $match: {
+                    $or: [
+                        { Name: queryRegex },
+                        { Description: queryRegex },
+                        { Keywords: queryRegex },
+                        { WebLink: queryRegex },
+                        { Windows: queryRegex },
+                        { Android: queryRegex }
+                    ]
+                }
+            });
+
+            // ? Add fields for sorting priorities based on match type
+            pipeline.push({
+                $addFields: {
+                    exactNameMatch: {
+                        $cond: {
+                            if: { $eq: [{ $toLower: "$Name" }, query.toLowerCase()] },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                    startsWithMatch: {
+                        $cond: {
+                            if: { $regexMatch: { input: { $toLower: "$Name" }, regex: new RegExp(`^${query.toLowerCase()}`) } },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                    keywordMatch: {
+                        $cond: {
+                            if: { 
+                                $gt: [
+                                    { $size: { $filter: { 
+                                        input: { $ifNull: ["$Keywords", []] }, 
+                                        as: "keyword", 
+                                        cond: { $regexMatch: { input: { $toLower: "$$keyword" }, regex: queryRegex } } 
+                                    }}},
+                                    0
+                                ]
+                            },
+                            then: 1,
+                            else: 0
+                        }
+                    },
+                    urlMatch: {
+                        $cond: {
+                            if: { $regexMatch: { input: { $toLower: "$WebLink" }, regex: queryRegex } },
+                            then: 1,
+                            else: 0
+                        }
+                    }
+                }
+            });
+        }
+
+        // ? Sort stage
+        pipeline.push({ $sort: sortPriority });
+        
+        // ? Skip and limit for pagination
+        pipeline.push({ $skip: (page - 1) * limit });
+        pipeline.push({ $limit: limit });
+
+        // Explicitly cast pipeline to any to avoid TypeScript errors with complex aggregation pipelines
+        let Bookmarks = await Bookmarks_Model.aggregate(pipeline as any).exec();
+        
+        if (!Bookmarks || Bookmarks.length === 0) {
+            return ControllerResponseMap({
                 Status: 1,
                 Message: "No bookmarks available",
                 StatusCode: 200,
-                Pagination: {
-                    page,
-                    limit,
-                    totalItems: 0,
-                    totalPages: 0,
-                    hasMore: false
-                },
-                Data: []
-            }, {
-                status: 200
+                Data: {
+                    Bookmarks: [],
+                    Pagination: {
+                        page,
+                        limit,
+                        totalItems: 0,
+                        totalPages: 0,
+                        hasMore: false
+                    }
+                }
             });
         }
 
         // Pagination
-        const totalItems = Response.length;
+        const totalItems = Bookmarks.length;
         const totalPages = Math.ceil(totalItems / limit);
         const startIndex = (page - 1) * limit;
         const endIndex = page * limit;
-        const paginatedResults = Response.slice(startIndex, endIndex);
+        const paginatedResults = Bookmarks.slice(startIndex, endIndex);
 
-        return NextResponse.json({
+        return ControllerResponseMap({
             Status: 1,
-            Message: "Bookmarks Fetched",
+            Message: "Bookmarks Successfully Fetched",
             StatusCode: 200,
-            Pagination: {
-                page,
-                limit,
-                totalItems,
-                totalPages,
-                hasMore: page < totalPages
-            },
-            Data: paginatedResults
-        }, {
-            status: 200
+            Data: {
+                Bookmarks: paginatedResults,
+                Pagination: {
+                    page,
+                    limit,
+                    totalItems,
+                    totalPages,
+                    hasMore: page < totalPages
+                }
+            }
         });
     } catch (error) {
-        console.error("Error fetching bookmarks:", error);
-        return NextResponse.json({
+        return ControllerResponseMap({
             Status: 0,
             Message: "Error processing request",
-            StatusCode: 500
-        }, {
-            status: 500
+            StatusCode: 500,
+            Data: [],
+            Debug: error
         });
     }
 }

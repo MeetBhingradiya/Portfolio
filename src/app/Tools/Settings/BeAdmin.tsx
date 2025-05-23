@@ -33,7 +33,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
         if (State.isBlocked) {
             return;
         }
-        
+
         if (State.TryCount >= 3) {
             blockUser();
             return;
@@ -46,7 +46,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
             SetState((State) => {
                 return {
                     ...State,
-                    AdminSignatureToken: response.data.Data.Token,
+                    AdminSignatureToken: response.data.Data,
                     isError: false,
                     Message: "Verified Successfully",
                 }
@@ -55,7 +55,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
                 return {
                     ...ModalState,
                     isAdmin: true,
-                    AdminSignature: response.data.Data.Token,
+                    AdminSignature: response.data.Data,
                     type: IToolsSettingsTabs.Cloud
                 }
             })
@@ -79,19 +79,19 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
     }
 
     const blockUser = () => {
-        const blockExpiry = Date.now() + (24 * 60 * 60 * 1000); 
-        
+        const blockExpiry = Date.now() + (24 * 60 * 60 * 1000);
+
         localStorage.setItem('adminAccessBlocked', 'true');
         localStorage.setItem('adminAccessBlockExpiry', blockExpiry.toString());
         localStorage.setItem('adminAccessTryCount', State.TryCount.toString());
-        
+
         SetState((State) => {
-            return { 
-                ...State, 
-                isBlocked: true, 
+            return {
+                ...State,
+                isBlocked: true,
                 blockExpiry: blockExpiry,
-                isError: true, 
-                Message: "You have exceeded the maximum number of attempts. You are blocked for 24 hours." 
+                isError: true,
+                Message: "You have exceeded the maximum number of attempts. You are blocked for 24 hours."
             }
         });
     }
@@ -99,11 +99,17 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
     const checkIfBlocked = () => {
         const isBlocked = localStorage.getItem('adminAccessBlocked') === 'true';
         const blockedUntil = localStorage.getItem('adminAccessBlockExpiry');
-        
-        if (isBlocked && blockedUntil) {
+
+        if (isBlocked || blockedUntil) {
+            if (!blockedUntil) {
+                // ? Block Again for 24 Hours
+                blockUser();
+                return true;
+            }
+
             const expiryTime = parseInt(blockedUntil);
             const now = Date.now();
-            
+
             if (now < expiryTime) {
                 SetState((State) => ({
                     ...State,
@@ -125,7 +131,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
         localStorage.removeItem('adminAccessBlocked');
         localStorage.removeItem('adminAccessBlockExpiry');
         localStorage.setItem('adminAccessTryCount', '0');
-        
+
         SetState(state => ({
             ...state,
             isBlocked: false,
@@ -140,23 +146,23 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
     const updateRemainingTime = () => {
         const isBlocked = localStorage.getItem('adminAccessBlocked') === 'true';
         const blockedUntil = localStorage.getItem('adminAccessBlockExpiry');
-        
+
         if (isBlocked && blockedUntil) {
             const expiryTime = parseInt(blockedUntil);
             const now = Date.now();
             const timeLeft = expiryTime - now;
-            
+
             if (timeLeft <= 0) {
                 unblockUser();
                 return;
             }
-            
+
             const hours = Math.floor(timeLeft / (1000 * 60 * 60));
             const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
             const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
-            
+
             const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-            
+
             SetState(state => ({
                 ...state,
                 isBlocked: true,
@@ -169,11 +175,11 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
     React.useEffect(() => {
         checkIfBlocked();
         updateRemainingTime();
-        
+
         const timer = setInterval(() => {
             updateRemainingTime();
         }, 1000);
-        
+
         const savedTryCount = localStorage.getItem('adminAccessTryCount');
         if (savedTryCount && !State.isBlocked) {
             SetState(state => ({
@@ -181,7 +187,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
                 TryCount: parseInt(savedTryCount)
             }));
         }
-        
+
         return () => clearInterval(timer);
     }, []);
 
@@ -197,14 +203,14 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
         <div className="flex flex-col items-center justify-center w-full gap-5 p-6">
             <div className="flex flex-col items-center mb-3">
                 {State.isBlocked ? (
-                    <LockClock sx={{ width: 50, height: 50, color: "#f44336" }} />
+                    <LockClock sx={{ width: 100, height: 100, color: "#f44336" }} />
                 ) : (
-                    <Security sx={{ width: 50, height: 50, color: "#784af4" }} />
+                    <Security sx={{ width: 100, height: 100, color: "#784af4" }} />
                 )}
                 <h2 className="text-xl font-bold mt-2">Administration Access</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                    {State.isBlocked 
-                        ? "Your access has been temporarily blocked" 
+                    {State.isBlocked
+                        ? "Your access has been temporarily blocked"
                         : "Enter your signature to access administration features"}
                 </p>
             </div>
@@ -218,11 +224,11 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
             {State.isBlocked && (
                 <div className="flex flex-col items-center w-full max-w-md">
                     <div className="bg-red-50/90 dark:bg-red-950/50 backdrop-blur-md border border-red-200 dark:border-red-800 text-red-800 dark:text-red-300 p-5 rounded-lg shadow-sm w-full mb-3">
-                        <h3 className="font-bold text-lg mb-2">Access Blocked</h3>
-                        <p className="mb-3 opacity-80">Too many failed attempts. Please try again later.</p>
                         <div className="text-center bg-white/30 dark:bg-black/20 p-3 rounded-md backdrop-blur-sm">
                             <span className="font-mono text-2xl font-semibold tracking-wider">{State.remainingTime}</span>
-                            <p className="text-sm mt-1 opacity-70">Time remaining</p>
+                            <p className="text-sm mt-1 opacity-70">
+                                Time remaining
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -264,7 +270,7 @@ function BeAdmin({ SetModalState }: BeAdminProps) {
                         disabled={State.isFetching}
                         className="w-full max-w-md bg-gradient-to-r from-purple-600 to-indigo-600 dark:from-purple-700 dark:to-indigo-700 text-white shadow-md hover:shadow-lg hover:scale-[1.02] transition-all duration-200"
                     >
-                        Verify Signature
+                        Check Signature
                     </Button>
                 </>
             )}

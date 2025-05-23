@@ -11,11 +11,14 @@ const compat = new FlatCompat({
     allConfig: js.configs.all
 });
 
-export default [...compat.extends("next/core-web-vitals"), {
+const config = [...compat.extends("next/core-web-vitals"), {
     rules: {
         "react-hooks/exhaustive-deps": "off",
         "@next/next/no-img-element": "off",
         "jsx-a11y/alt-text": "off",
         "react-hooks/rules-of-hooks": "off",
+        "@next/next/no-sync-scripts": "off",
     },
 }];
+
+export default config;

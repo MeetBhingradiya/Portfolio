@@ -1,38 +1,6 @@
-/**
- *  @FileID          Components/Footer/index.tsx
- *  @Description     Currently, there is no description available.
- *  @Author          Meet Bhingradiya (@MeetBhingradiya)
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  @license
- *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
- *  All rights reserved.
- *  
- *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
- *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
- *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
- *  This project is not officially affiliated with, endorsed by, or in any way associated 
- *  with GitHub or Microsoft Corporation.
- *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
- */
-
-
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import "@Styles/Footer.sass";
 import { motion } from "framer-motion";
 import { Config } from "@Config";
@@ -47,7 +15,9 @@ import {
     LightMode,
     LinkedIn,
     YouTube,
+    Settings,
 } from "@mui/icons-material";
+import ModelMenu from "@Components/ModelMenu";
 import { SocialLinks } from "@Config/SocialLinks";
 import { useTheme } from "@Hooks/useTheme";
 
@@ -57,6 +27,7 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
 }
 ) {
     const { theme, toggleTheme } = useTheme();
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [State, setState] = React.useState({
         isFooterVisible: false,
         isFirstRender: true,
@@ -133,11 +104,6 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
 
             All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
             <div className="flex items-center">
-                {/* <Tooltip content="Language" placement="top">
-                    <div className="Version">
-                        <Language />
-                    </div>
-                </Tooltip> */}
                 <Tooltip content={theme} placement="top">
                     <div
                         className="Version theme-toggle"
@@ -153,19 +119,22 @@ function Footer({ ShowonFirstRender, isHideSocialLinks }: {
                         )}
                     </div>
                 </Tooltip>
-                <Tooltip content="Version Changelog" placement="top">
-                    <motion.a
-                        href={`https://github.com/MeetBhingradiya/MeetBhingradiya/blob/${Config.visiblebranch}/ChangeLog.md`}
-                        target="_blank"
-                        className="Version"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.1, duration: 0.5, ease: "easeInOut" }}
+                <Tooltip content="Site Settings" placement="top">
+                    <div
+                        className="Version settings-toggle"
+                        onClick={() => setIsSettingsOpen(true)}
+                        style={{ cursor: "pointer" }}
                     >
-                        {Config.version} | {isFutureDate(new Date(Config.releasedate)) ? "Release" : ""} {getRelativeTime(new Date(Config.releasedate))}
-                    </motion.a>
+                        <Settings />
+                    </div>
                 </Tooltip>
             </div>
+
+            {/* Settings Modal */}
+            <ModelMenu
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
         </motion.div>
     );
 }

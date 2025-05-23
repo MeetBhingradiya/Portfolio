@@ -64,6 +64,14 @@
             "@Controllers/*": [
                 "./src/Controllers/*"
             ],
+            
+            "@Middleware": [
+                "./src/Middleware/index.ts"
+            ],
+            "@Middleware/*": [
+                "./src/Middleware/*"
+            ],
+
             "@Data/*": [
                 "./src/Data/*"
             ],
@@ -134,9 +142,8 @@
         "next-env.d.ts",
         "**/*.ts",
         "**/*.tsx",
-        ".next/types/**/*.ts",
-        "Test/test.js"
-    ],
+        ".next/types/**/*.ts"
+, "Scripts/TestProxyServer.mjs"    ],
     "exclude": [
         "node_modules"
     ]

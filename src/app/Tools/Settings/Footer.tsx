@@ -1,13 +1,22 @@
 import React from "react";
-import { ModalFooter, Tooltip, Button } from "@heroui/react"
-import { IToolsSettingsTabs, IToolsModalData, IToolsState, ILinkOpenTypes } from "./Types";
+import { toast } from "react-toastify";
+import { 
+    ModalFooter, 
+    Tooltip, 
+    Button 
+} from "@heroui/react"
+import {
+    IToolsSettingsTabs,
+    IToolsModalData,
+    IToolsState,
+    DefualtBookmark
+} from "./Types";
 import {
     Add,
     Restore,
     Save
 } from "@mui/icons-material";
-import { toast } from "react-hot-toast";
-import { v4 } from "uuid";
+
 interface FooterProps {
     ModalState: IToolsModalData
     SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>
@@ -17,7 +26,6 @@ interface FooterProps {
 }
 
 const StorageKey = "Tools";
-const AdminOptionVisibleKey = "AdminOptionVisible";
 
 const LongSidebarsOn = [
     IToolsSettingsTabs.Preferences,
@@ -56,15 +64,14 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                     <Tooltip content={"Save Changes"} placement="top">
                         <Button
                             isIconOnly
-                            color="primary"
+                            color="success"
                             onPress={() => {
-                                // Validate form before saving
                                 if (!ModalState.bookmark.Name.trim()) {
                                     toast.error("Bookmark name is required");
                                     return;
                                 }
 
-                                if (!isValidUrl(ModalState.bookmark.URL)) {
+                                if (!isValidUrl(ModalState.bookmark.WebLink)) {
                                     toast.error("Please enter a valid URL");
                                     return;
                                 }
@@ -75,16 +82,26 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                     return;
                                 }
 
+                                // Prepare updated bookmark
+                                const updatedBookmark = ModalState.bookmark;
+                                
+                                // Handle cloud sync operations if needed
+                                if (updatedBookmark.isCloudSync && State.Preferences.CloudSync) {
+                                    // In a real implementation, this is where you would sync the bookmark with the cloud
+                                    // For example: await syncBookmarkToCloud(updatedBookmark);
+                                    toast.info("Bookmark changes will be synced with cloud on next sync");
+                                }
+
                                 SetState({
                                     ...State,
                                     Bookmarks: [
                                         ...State.Bookmarks.slice(0, index),
-                                        ModalState.bookmark,
+                                        updatedBookmark,
                                         ...State.Bookmarks.slice(index + 1)
                                     ],
                                     FilterBookmarks: [
                                         ...State.FilterBookmarks.slice(0, index),
-                                        ModalState.bookmark,
+                                        updatedBookmark,
                                         ...State.FilterBookmarks.slice(index + 1)
                                     ],
                                     Query: "",
@@ -116,7 +133,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                     return;
                                 }
 
-                                if (!isValidUrl(ModalState.bookmark.URL)) {
+                                if (!isValidUrl(ModalState.bookmark.WebLink)) {
                                     toast.error("Please enter a valid URL");
                                     return;
                                 }
@@ -128,6 +145,13 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
                                         ? ModalState.bookmark.Keywords
                                         : []
                                 };
+                                
+                                // Handle cloud sync for new bookmark
+                                if (bookmarkToAdd.isCloudSync && State.Preferences.CloudSync) {
+                                    // In a real implementation, you would send the bookmark to your cloud service
+                                    // For example: await addBookmarkToCloud(bookmarkToAdd);
+                                    toast.info("New bookmark will be synced to cloud on next sync");
+                                }
 
                                 SetState({
                                     ...State,
@@ -145,28 +169,7 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
 
                                 SetModalState({
                                     ...ModalState,
-                                    bookmark: {
-                                        BookmarkID: v4(),
-                                        Name: "",
-                                        URL: "",
-                                        Icon: "",
-                                        Android: "",
-                                        Windows: "",
-                                        Description: "",
-                                        Keywords: [],
-                                        SVGStyles: {
-                                            fill: "#000000",
-                                        },
-                                        isSVG: false,
-                                        ClientOptions: {
-                                            OpenLinkPlatformPriority: "web",
-                                            OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
-                                            isSearchVisible: true
-                                        },
-                                        isPublished: true,
-                                        isDeleted: false,
-                                        isServer: false
-                                    }
+                                    bookmark: DefualtBookmark
                                 });
 
                                 SetModalState({
@@ -184,31 +187,11 @@ function Footer({ ModalState, SetModalState, State, SetState }: FooterProps) {
 
             {
                 (ModalState.type === IToolsSettingsTabs.Create || ModalState.type === IToolsSettingsTabs.Edit) && (
-                    <Tooltip content="Reset" placement="top">
+                    <Tooltip content="Reset Draft" placement="top">
                         <Button isIconOnly color="secondary" variant="light" onPress={() => {
                             SetModalState({
                                 ...ModalState,
-                                bookmark: {
-                                    Name: "",
-                                    URL: "",
-                                    Icon: "",
-                                    Android: "",
-                                    Windows: "",
-                                    Description: "",
-                                    Keywords: [],
-                                    SVGStyles: {
-                                        fill: "#000000",
-                                    },
-                                    isSVG: false,
-                                    ClientOptions: {
-                                        OpenLinkPlatformPriority: "web",
-                                        OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
-                                        isSearchVisible: true
-                                    },
-                                    isPublished: true,
-                                    isDeleted: false,
-                                    isServer: false
-                                }
+                                bookmark: DefualtBookmark
                             })
                             return;
                         }}>

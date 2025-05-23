@@ -1,5 +1,5 @@
 {
-    "Signature": "4b7418d539616924b2423455f923215b0c5b79af54bff0552c409afb6f7713ba",
+    "Signature": "67eee79e5cb9b009816226dce02b047c498e7ce339c4002e87edb8328bd73625",
     "File": {
         "DatabaseBydefualt": {
             "Signup_Username_Prefix": "Anonymous_",
@@ -13,7 +13,7 @@
             "outlook.com"
         ],
         "Password_Strength": {
-            "Length": 8,
+            "Length": 12,
             "UpperCase": true,
             "LowerCase": true,
             "Digits": true,
@@ -34,8 +34,12 @@
             ]
         },
         "Analytics_And_Monitization": {
-            "GoogleADS": false,
-            "VercelSpeedInsight": true
+            "GoogleADS": true,
+            "VercelSpeedInsight": true,
+            "ReactScan": false
+        },
+        "CI/CD_Pipeline": {
+            "Release": true
         }
     }
 }

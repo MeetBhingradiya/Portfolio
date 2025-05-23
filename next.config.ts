@@ -5,10 +5,19 @@ import { CSPGenerator, CSPDirectiveOptions } from './src/Utils/CSP';
 import { jsonc } from 'jsonc';
 
 let tsconfig: any = jsonc.parse(fs.readFileSync(path.resolve(__dirname, 'tsconfig.json'), 'utf-8'));
+let Extensions = ['.tsx', '.ts', '.jsx', '.js', '.sass', '.ico', '.svg', '.webp', '.mdx', '.json', '.css', '.png', '.jpg'];
+let Paths = Object.entries(tsconfig.compilerOptions.paths).map(([key, value]: any) => {
+    return {
+        [key.replace('/*', '')]: path.resolve(path.resolve(), value[0].replace('/*', ''))
+    };
+})
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
-    devIndicators: false,
+    devIndicators: {
+        position: 'bottom-right',
+    },
+    // crossOrigin: "anonymous",
     images: {
         loader: 'custom',
         loaderFile: "./src/Utils/RemoteImageLoader.ts",
@@ -77,6 +86,7 @@ const nextConfig: NextConfig = {
                                         'https://ep2.adtrafficquality.google',
                                         'https://va.vercel-scripts.com',
                                         'https://cdn.jsdelivr.net',
+                                        'https://unpkg.com',
                                     ],
                                 }
                             },
@@ -113,25 +123,8 @@ const nextConfig: NextConfig = {
         implementation: 'sass',
         includePaths: [path.join(__dirname, 'src', 'Styles')],
     },
-    experimental: {
-        turbo: {
-            resolveAlias: {
-                ...Object.fromEntries(
-                    Object.entries(tsconfig.compilerOptions.paths).map(([key, value]: any) => [
-                        key.replace('/*', ''),
-                        path.resolve(path.resolve(), value[0].replace('/*', ''))
-                    ])
-                )
-            },
-            // ! Turbo Pack Missing Loader
-            // rules: {
-            //     // ? Image Loader
-            //     'image/*': {
-            //         loader: 'remote',
-            //         asset: "sdfsd",
-            //     },
-            // }
-        }
+    turbopack: {
+        resolveExtensions: Extensions,
     },
     webpack: (config: any, { buildId, dev, isServer, defaultLoaders, webpack }: any) => {
         let Config = {
@@ -148,19 +141,7 @@ const nextConfig: NextConfig = {
                     ...config.resolve.alias,
                 },
                 extensions: [
-                    '.tsx',
-                    '.ts',
-                    '.jsx',
-                    '.js',
-                    '.sass',
-                    '.ico',
-                    '.svg',
-                    '.webp',
-                    '.mdx',
-                    '.json',
-                    '.css',
-                    '.png',
-                    '.jpg',
+                    ...Extensions,
                     ...config.resolve.extensions
                 ],
             },

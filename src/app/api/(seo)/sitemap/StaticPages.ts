@@ -1,35 +1,3 @@
-/**
- *  @FileID          app/api/(seo)/sitemap/StaticPages.ts
- *  @Description     Currently, there is no description available.
- *  @Author          Meet Bhingradiya (@MeetBhingradiya)
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  @license
- *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
- *  All rights reserved.
- *  
- *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
- *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
- *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
- *  This project is not officially affiliated with, endorsed by, or in any way associated 
- *  with GitHub or Microsoft Corporation.
- *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:03 AM IST (Kolkata +5:30 UTC)
- */
-
-
 import {
     mapEndpointsToPriorities
 } from "@Utils/Sitemap";
@@ -49,7 +17,39 @@ export const StaticEndpointsPages: Array<EndpointFrequency> = [
     {
         route: 'Tools/QR',
         frequency: "weekly",
-    }
+    },
+    {
+        route: 'Tools/UUID',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/CRX',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/DateAndTime',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/JSONObject',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/ColourConvert',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/RegExp',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/JWT',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/Password',
+        frequency: "weekly",
+    },
 ];
 
 export const StaticPages = mapEndpointsToPriorities(StaticEndpointsPages);

@@ -1,26 +1,5 @@
-// ? Bookmark Main Page Types
 import { v4 } from 'uuid';
 import { Config } from '@Config';
-import {
-    Edit,
-    Book,
-    Bookmark,
-    LocalMall,
-    SettingsOutlined,
-    LocalMallOutlined,
-    BookOutlined,
-    BookmarkOutlined,
-    RequestPage,
-    AdminPanelSettings,
-    BookmarkAdd,
-    VerifiedUser,
-    VerifiedUserOutlined,
-    EditOutlined,
-    Settings,
-    RequestPageOutlined,
-    BookmarkAddOutlined,
-    AdminPanelSettingsOutlined
-} from '@mui/icons-material';
 
 enum ILinkOpenTypes {
     NEW_TAB = "newTab",
@@ -30,45 +9,43 @@ enum ILinkOpenTypes {
 }
 
 interface IBookmark {
-    BookmarkID?: string
+
+    BookmarkID: string
     Name: string
-    URL: string
+    Description?: string
+
+    Keywords?: string[]
+
+    WebLink: string
     Android?: string
     Windows?: string
-    Description?: string
-    Keywords?: string[]
+    Priority?: "windows" | "android" | "web"
+
     Icon?: string
     isSVG?: boolean
-    SVGStyles?: {
-        fill?: string
-    }
+    fillColor?: string
+    CORSProxy?: boolean
 
-    ClientOptions?: {
-        // ? Priority of Link Open on Bookmark Click
-        OpenLinkPlatformPriority?: "desktop" | "mobile" | "web"
+    isSponsored: boolean
+    isPublished: boolean
+    isCloudSync: boolean
+    isDefault: boolean
+    isAdminOnly: boolean
 
-        // ? Method of Link Open on Bookmark Click if not set then default settings will be used that set in preferences
-        OpenLinkMethod?: ILinkOpenTypes
-
-        // ? Visibility of Search Engine on Bookmark Click if not set then default settings will be used that set in preferences
-        isSearchVisible?: boolean
-    }
-
-    // ? Published or Not
-    isPublished?: boolean
-    isDeleted?: boolean
-    isServer?: boolean
+    isDeleteBlock: boolean
+    isEditBlock: boolean
 }
 
 const DefualtBookmark: IBookmark = {
     // ? Identifier
     BookmarkID: v4(),
-    Name: "",
+    Name: "New Bookmark",
 
     // ? URLs
-    URL: "",
+    WebLink: "https://example.com",
     Android: "",
     Windows: "",
+    Priority: "web",
 
     // ? Search Engine
     Description: "",
@@ -77,21 +54,17 @@ const DefualtBookmark: IBookmark = {
     // ? Icons Related
     Icon: "",
     isSVG: false,
-    SVGStyles: {
-        fill: "#000000"
-    },
-
-    // ? Client Options
-    ClientOptions: {
-        OpenLinkPlatformPriority: "web",
-        OpenLinkMethod: ILinkOpenTypes.NEW_TAB,
-        isSearchVisible: true,
-    },
+    fillColor: "#000000",
+    CORSProxy: false,
 
     // ? Admin Options
     isPublished: false,
-    isDeleted: false,
-    isServer: false,
+    isDeleteBlock: false,
+    isCloudSync: false,
+    isDefault: false,
+    isAdminOnly: false,
+    isSponsored: false,
+    isEditBlock: false
 }
 
 enum ISearchEngines {
@@ -180,10 +153,11 @@ interface IPreferences {
     priorityWindowsApp: boolean
     priorityAndroidapp: boolean
     NotifyYourRequestUpdated: boolean
+    ShowLabels: boolean
 }
 
 const DefualtPreferences: IPreferences = {
-    OpenMethod: ILinkOpenTypes.NEW_TAB,
+    OpenMethod: ILinkOpenTypes.CURRENT_TAB,
     PlateformPriority: "web",
     CloudSyncRandomize: false,
     SearchEngine: ISearchEngines.GOOGLE,
@@ -192,12 +166,14 @@ const DefualtPreferences: IPreferences = {
     NotifyYourRequestUpdated: false,
     priorityWindowsApp: false,
     priorityAndroidapp: false,
+    ShowLabels: true,
 }
 
 interface IToolsState {
     FilterBookmarks: Array<IBookmark>
     Bookmarks: Array<IBookmark>
     Query: string
+    QueryDisplay: string
     isFirstRun: boolean
     Preferences: IPreferences
 }
@@ -206,6 +182,7 @@ const DefualtToolsState: IToolsState = {
     FilterBookmarks: [],
     Bookmarks: [],
     Query: "",
+    QueryDisplay: "",
     isFirstRun: true,
     Preferences: DefualtPreferences,
 }
@@ -232,13 +209,11 @@ interface IToolsSuggestionResponse {
 interface IToolsSuggestionsState {
     Suggestions: Array<IToolsSuggestion>
     Index: number
-    QueryDisplay: "",
 }
 
 const DefualtToolsSuggestionsState: IToolsSuggestionsState = {
     Suggestions: [],
     Index: 0,
-    QueryDisplay: "",
 }
 
 enum IToolsSettingsTabs {

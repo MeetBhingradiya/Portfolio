@@ -1,35 +1,3 @@
-/**
- *  @FileID          Config/index.ts
- *  @Description     configuration settings for the project.
- *  @Author          Meet Bhingradiya (@MeetBhingradiya)
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  @license
- *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
- *  All rights reserved.
- *  
- *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
- *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
- *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
- *  This project is not officially affiliated with, endorsed by, or in any way associated 
- *  with GitHub or Microsoft Corporation.
- *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
- *  @created 13/01/25 11:34 AM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
- */
-
-
 import { Protocols } from "./Protocols";
 
 export * from "./RedirectProtocols";
@@ -47,10 +15,11 @@ interface IConfig {
     isHomeReleased: boolean;
     Environment: "development" | "production" | "test";
     GoogleADS: boolean;
+    VercelSpeedInsight: boolean;
+    ReactScan: boolean;
     WhiteListedDomains: string[];
     WhiteListedPlatforms: Array<"Windows" | "Linux" | "Android" | "iOS" | "MacOS">;
-    WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc">;
-    VercelSpeedInsight: boolean;
+    WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Brave">;
     ThreatIntelligence: Array<"TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon">;
     Cookie_Prefix: string;
     CORS: {
@@ -67,18 +36,25 @@ interface IConfig {
         CONTACT_EMAIL?: string
         IPDATA_WEBSITE_KEY?: string
         STATE_SIGNATURE?: string
-    };
+        APPLICATION_ID?: string
+    }
+    DigitalResume: {
+        ExcludingPhone: string
+        IncludingPhone: string
+    }
 }
 
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
-    version: "v1.1.0",
-    releasedate: "2025-04-01",
-    visiblebranch: "Development",
+    version: "v1.2.0",
+    releasedate: "2025-05-22",
+    visiblebranch: "Release",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
     GoogleADS: false,
+    VercelSpeedInsight: false,
+    ReactScan: false,
     WhiteListedDomains: [
         "meetbhingradiya.tech",
         // "meetbhingradiya.vercel.app",
@@ -97,10 +73,8 @@ const Config: IConfig = {
     WhiteListedBrowsers: [
         "Chrome",
         "Edge",
-        "Firefox",
         "Opera"
     ],
-    VercelSpeedInsight: false,
     ThreatIntelligence: [
         "TOR",
         "VPN",
@@ -128,6 +102,10 @@ const Config: IConfig = {
         CONTACT_EMAIL: process.env.CONTACT_EMAIL,
         IPDATA_WEBSITE_KEY: process.env.IPDATA_WEBSITE_KEY,
         STATE_SIGNATURE: process.env.STATE_SIGNATURE
+    },
+    DigitalResume: {
+        ExcludingPhone: "https://rxresu.me/meetbhingradiya/resume",
+        IncludingPhone: "https://rxresu.me/meetbhingradiya/resumePlus"
     }
 }
 

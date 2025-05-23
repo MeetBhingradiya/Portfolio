@@ -14,7 +14,9 @@ import BeAdmin from "./BeAdmin";
 import BookmarkEditor from "./BookmarkEditor";
 import Preferences from "./Preferences";
 import Marketplace from "./Marketplace";
+import Cloud from "./Cloud";
 import { DefualtBookmark } from "./Types";
+import Contribute from "./Contribute";
 
 interface BodyProps {
     ModalState: IToolsModalData
@@ -39,19 +41,36 @@ function ModelsBody({
         });
     }
 
-    const handleSaveBookmark = (bookmark: IBookmark) => {
-        SetModalState((prevState) => ({
-            ...prevState,
-            bookmark: bookmark
-        }));
-    };
+    const SetBookmark = (bookmark: IBookmark) => {
+        SetModalState((ModalData) => {
+            return {
+                ...ModalData,
+                bookmark: bookmark,
+            }
+        });
+    }
 
-    const handleCancelBookmark = () => {
-        SetModalState((prevState) => ({
-            ...prevState,
-            isOpen: false
-        }));
-    };
+    React.useEffect(() => {
+
+        if (ModalState.type === IToolsSettingsTabs.Create) {
+            SetModalState((ModalData) => {
+                return {
+                    ...ModalData,
+                    bookmark: DefualtBookmark,
+                }
+            });
+        }
+        
+        if (ModalState.type === IToolsSettingsTabs.Edit) {
+            SetModalState((ModalData) => {
+                return {
+                    ...ModalData,
+                    bookmark: DefualtBookmark,
+                }
+            });
+        }
+
+    }, [ModalState.type]);
 
     return (
         <ModalBody
@@ -85,8 +104,18 @@ function ModelsBody({
                             bookmark={DefualtBookmark}
                             isAdmin={ModalState.isAdmin}
                             isCreateMode={true}
-                            onSave={handleSaveBookmark}
-                            onCancel={handleCancelBookmark}
+                            setBookmark={SetBookmark}
+                        />
+                    )
+                }
+
+                {
+                    ModalState.type === IToolsSettingsTabs.Edit && (
+                        <BookmarkEditor
+                            bookmark={ModalState.bookmark}
+                            isAdmin={ModalState.isAdmin}
+                            isCreateMode={false}
+                            setBookmark={SetBookmark}
                         />
                     )
                 }
@@ -98,6 +127,12 @@ function ModelsBody({
                             Dispatch={Dispatch}
                             ModalState={ModalState}
                         />
+                    )
+                }
+
+                {
+                    ModalState.type === IToolsSettingsTabs.Contribute && (
+                        <Contribute/>
                     )
                 }
                 
@@ -112,6 +147,17 @@ function ModelsBody({
                 {
                     ModalState.type === IToolsSettingsTabs.Marketplace && (
                         <Marketplace
+                            ModalState={ModalState}
+                            SetModalState={SetModalState}
+                            State={State}
+                            Dispatch={Dispatch}
+                        />
+                    )
+                }
+
+                {
+                    ModalState.type === IToolsSettingsTabs.Cloud && (
+                        <Cloud
                             ModalState={ModalState}
                             SetModalState={SetModalState}
                             State={State}

@@ -1,35 +1,3 @@
-/**
- *  @FileID          Data/Tools.ts
- *  @Description     Currently, there is no description available.
- *  @Author          Meet Bhingradiya (@MeetBhingradiya)
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  @license
- *  Copyright (c) 2021 - 2025 Meet Bhingradiya.
- *  All rights reserved.
- *  
- *  This file is a proprietary component of Meet Bhingradiya's Portfolio project
- *  and is protected under applicable copyright and intellectual property laws.
- *  Unauthorized use, reproduction, distribution, forks, or modification of this file,
- *  via any medium even in public/private repository, is strictly prohibited without
- *  prior written consent from the author, modifier or the organization.
- *  
- *  -----------------------------------------------------------------------------
- *  
- *  GitHub® is a registered trademark of Microsoft Corporation. This project 
- *  is hosted on GitHub, which is a repository hosting service provided by Microsoft. 
- *  This project is not officially affiliated with, endorsed by, or in any way associated 
- *  with GitHub or Microsoft Corporation.
- *  
- *  -----------------------------------------------------------------------------
- *  Last Updated on Version: 1.0.11
- *  -----------------------------------------------------------------------------
- *  @created 14/01/25 3:22 PM IST (Kolkata +5:30 UTC)
- *  @modified 03/03/25 11:04 AM IST (Kolkata +5:30 UTC)
- */
-
-
 import type {
     IBookmark,
 } from "@App/Tools/Settings/Types";
@@ -54,103 +22,103 @@ import {
 } from '@mui/icons-material';
 
 const BookmarksDB_: Array<IBookmark> = [
-    {
-        Name: "Meet Bhingradiya",
-        URL: "/",
-        Icon: "https://meetbhingradiya.vercel.app/favicon.ico",
-        Keywords: [
-            "Meet",
-            "Bhingradiya",
-            "Portfolio"
-        ]
-    },
-    {
-        Name: "QR Code Generator",
-        URL: "/Tools/QR",
-        Icon: "https://img.icons8.com/fluency/256/qr-code.png",
-        Keywords: [
-            "QR",
-            "Code",
-            "Generator",
-            "tool/qr"
-        ]
-    },
-    {
-        Name: "Bing Querys",
-        URL: "/Tools/BingQuerys",
-        Icon: "https://www.gstatic.com/trends/favicon.ico",
-        Keywords: [
-            "Trends",
-            "Querys",
-            "tools/trends"
-        ]
-    },
-    {
-        Name: "Google",
-        URL: "https://google.com",
-        Icon: "https://www.google.com/favicon.ico",
-        Keywords: [
-            "Search",
-            "Google",
-            "G"
-        ]
-    },
-    {
-        Name: "Accounts",
-        URL: "https://accounts.google.com",
-        Keywords: [
-            "google/account",
-            "Google",
-            "Accounts",
-            "Login"
-        ]
-    },
-    {
-        Name: "Products",
-        URL: "https://about.google/intl/ALL_in/products/",
-        Keywords: [
-            "Google",
-            "Products"
-        ]
-    },
-    {
-        Name: "Play Store",
-        URL: "https://play.google.com",
-        Icon: "https://lh3.googleusercontent.com/aTWbsnyhhmgnwKeD6_8X0cdmN12iq1vC2D6dMfw2B36N5Nh73BN1e1IplijPNtzp4IUgiJRRA-4M5e2SLfTIFOfVW09DeezqPYGnXoEfNBliIP4l=h120",
-        Keywords: [
-            "Play Store",
-            "Apps",
-            "Games",
-            "Google Play",
-            "Google"
-        ]
-    },
-    {
-        Name: "Play Games",
-        URL: "https://play.google.com/games",
-        Keywords: [
-            "Play Games",
-            "Games",
-            "Google Play",
-            "Google"
-        ],
-        Icon: "https://lh3.googleusercontent.com/1bBfkvken8Lqz8NftP9_n8PmC2j6iMPUovX_c-tahFJYXo1tImjmPBU1nv1ATO_XIIh2dHUH6DMp0blUuhL7PZ7JvhZwNQ4QaiYnBsE7sGZcTDP3fLI=h120"
-    },
-    {
-        Name: "Maps",
-        URL: "https://maps.google.com",
-        Keywords: [
-            "Maps",
-            "Google Maps",
-            "Google"
-        ],
-        Icon: "https://lh3.googleusercontent.com/9NuRdiRepVI3n1txfg7Ky2wWzB3DvXkWABXeFMSn2tzDYYkv8T_RMA9R17fWi0ziUDIDTVJx0JruCzOev37c4dkK9Wrgkeyam3pM8lI=h120"
-    },
-    {
-        Name: "Pay",
-        URL: "https://pay.google.com",
-        Icon: "https://lh3.googleusercontent.com/yemTWtzfavZZqaWs0_ijOcSrLtp93cAfiJA4HqGSpJNYBxe13WWQxeqV7xt7Bdf34Nug2nw2z-a4T85pXURHj8tcOPFh1-l7BvYANqrAXd7zHVQ93x0=h120"
-    },
+    // {
+    //     Name: "Meet Bhingradiya",
+    //     WebLink: "https://meetbhingradiya.vercel.app/",
+    //     Icon: "https://meetbhingradiya.vercel.app/favicon.ico",
+    //     Keywords: [
+    //         "Meet",
+    //         "Bhingradiya",
+    //         "Portfolio"
+    //     ]
+    // },
+    // {
+    //     Name: "QR Code Generator",
+    //     WebLink: "/Tools/QR",
+    //     Icon: "https://img.icons8.com/fluency/256/qr-code.png",
+    //     Keywords: [
+    //         "QR",
+    //         "Code",
+    //         "Generator",
+    //         "tool/qr"
+    //     ]
+    // },
+    // {
+    //     Name: "Bing Querys",
+    //     WebLink: "/Tools/BingQuerys",
+    //     Icon: "https://www.gstatic.com/trends/favicon.ico",
+    //     Keywords: [
+    //         "Trends",
+    //         "Querys",
+    //         "tools/trends"
+    //     ]
+    // },
+    // {
+    //     Name: "Google",
+    //     WebLink: "https://google.com",
+    //     Icon: "https://www.google.com/favicon.ico",
+    //     Keywords: [
+    //         "Search",
+    //         "Google",
+    //         "G"
+    //     ]
+    // },
+    // {
+    //     Name: "Accounts",
+    //     WebLink: "https://accounts.google.com",
+    //     Keywords: [
+    //         "google/account",
+    //         "Google",
+    //         "Accounts",
+    //         "Login"
+    //     ]
+    // },
+    // {
+    //     Name: "Products",
+    //     WebLink: "https://about.google/intl/ALL_in/products/",
+    //     Keywords: [
+    //         "Google",
+    //         "Products"
+    //     ]
+    // },
+    // {
+    //     Name: "Play Store",
+    //     WebLink: "https://play.google.com",
+    //     Icon: "https://lh3.googleusercontent.com/aTWbsnyhhmgnwKeD6_8X0cdmN12iq1vC2D6dMfw2B36N5Nh73BN1e1IplijPNtzp4IUgiJRRA-4M5e2SLfTIFOfVW09DeezqPYGnXoEfNBliIP4l=h120",
+    //     Keywords: [
+    //         "Play Store",
+    //         "Apps",
+    //         "Games",
+    //         "Google Play",
+    //         "Google"
+    //     ]
+    // },
+    // {
+    //     Name: "Play Games",
+    //     WebLink: "https://play.google.com/games",
+    //     Keywords: [
+    //         "Play Games",
+    //         "Games",
+    //         "Google Play",
+    //         "Google"
+    //     ],
+    //     Icon: "https://lh3.googleusercontent.com/1bBfkvken8Lqz8NftP9_n8PmC2j6iMPUovX_c-tahFJYXo1tImjmPBU1nv1ATO_XIIh2dHUH6DMp0blUuhL7PZ7JvhZwNQ4QaiYnBsE7sGZcTDP3fLI=h120"
+    // },
+    // {
+    //     Name: "Maps",
+    //     WebLink: "https://maps.google.com",
+    //     Keywords: [
+    //         "Maps",
+    //         "Google Maps",
+    //         "Google"
+    //     ],
+    //     Icon: "https://lh3.googleusercontent.com/9NuRdiRepVI3n1txfg7Ky2wWzB3DvXkWABXeFMSn2tzDYYkv8T_RMA9R17fWi0ziUDIDTVJx0JruCzOev37c4dkK9Wrgkeyam3pM8lI=h120"
+    // },
+    // {
+    //     Name: "Pay",
+    //     WebLink: "https://pay.google.com",
+    //     Icon: "https://lh3.googleusercontent.com/yemTWtzfavZZqaWs0_ijOcSrLtp93cAfiJA4HqGSpJNYBxe13WWQxeqV7xt7Bdf34Nug2nw2z-a4T85pXURHj8tcOPFh1-l7BvYANqrAXd7zHVQ93x0=h120"
+    // },
     // {
     //     name: "GMail",
     //     url: "https://mail.google.com/",
@@ -1145,7 +1113,7 @@ const BookmarksDB_: Array<IBookmark> = [
 export function ResolveIcon(link: IBookmark) {
     const iconUrl = link.Icon
         ? link.Icon
-        : `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${link.URL}&size=128`;
+        : `https://t1.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=${link.WebLink}&size=128`;
 
     return iconUrl;
 }

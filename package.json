@@ -55,7 +55,7 @@
         "monaco-editor": "^0.52.2",
         "mongoose": "^8.15.0",
         "mongoose-paginate-v2": "^1.9.0",
-        "motion": "12.12.1",
+        "motion": "12.12.2",
         "next": "~15.3.2",
         "next-cloudinary": "^6.16.0",
         "nodemailer": "^7.0.3",

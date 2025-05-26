@@ -14,7 +14,7 @@ import {
 } from '@mui/icons-material';
 import { CircularProgress } from '@mui/material';
 import { Tooltip, Input, Select, SelectItem, Button } from '@heroui/react';
-import { Axios } from '@Utils';
+import { Axios } from "@Utils/Axios";
 import "@Styles/Tools-CRX.sass"
 
 // Extension download URL format (CRX v3 format)

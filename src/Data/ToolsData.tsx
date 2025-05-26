@@ -13,19 +13,21 @@ import {
     LinkOutlined,
     Code,
     Password,
-    CalendarMonth,
-    Key
+    CalendarMonth,    Key,
+    Compress,
+    Image,
+    Tag
 } from '@mui/icons-material';
 
 // Tool definitions
 export const Tools = [
-    {
-        Query: "BingQuerys",
-        Title: "Bing Queries",
-        Icon: <Search sx={{ width: 32, height: 32 }} />,
-        Description: "Generate and manage Bing search queries",
-        Category: 'utility'
-    },
+    // {
+    //     Query: "BingQuerys",
+    //     Title: "Bing Queries",
+    //     Icon: <Search sx={{ width: 32, height: 32 }} />,
+    //     Description: "Generate and manage Bing search queries",
+    //     Category: 'utility'
+    // },
     {
         Query: "UUID",
         Title: "UUID Generator",
@@ -47,20 +49,27 @@ export const Tools = [
         Description: "Convert between JSON and JavaScript objects",
         Category: 'data'
     },
+    // {
+    //     Query: "ColourPalette",
+    //     Title: "Colour Picker",
+    //     Icon: <Colorize sx={{ width: 32, height: 32 }} />,
+    //     Description: "Pick and manage colors",
+    //     Category: 'color'
+    // },
     {
-        Query: "ColourPalette",
+        Query: "Colour Picker & Converter",
         Title: "Colour Picker",
         Icon: <Colorize sx={{ width: 32, height: 32 }} />,
         Description: "Pick and manage colors",
         Category: 'color'
     },
-    {
-        Query: "ColourConvert",
-        Title: "Colour Converter",
-        Icon: <Palette sx={{ width: 32, height: 32 }} />,
-        Description: "Convert between color formats (HEX, RGB, HSL)",
-        Category: 'color'
-    },
+    // {
+    //     Query: "ColourConvert",
+    //     Title: "Colour Converter",
+    //     Icon: <Palette sx={{ width: 32, height: 32 }} />,
+    //     Description: "Convert between color formats (HEX, RGB, HSL)",
+    //     Category: 'color'
+    // },
     {
         Query: "Case",
         Title: "Case Changer",
@@ -116,12 +125,24 @@ export const Tools = [
         Icon: <CalendarMonth sx={{ width: 32, height: 32 }} />,
         Description: "Date and time utilities",
         Category: 'utility'
-    },
-    {
+    },    {
         Query: "EncryptAndDecrypt",
         Title: "Encrypt & Decrypt",
         Icon: <Key sx={{ width: 32, height: 32 }} />,
         Description: "Encrypt and decrypt text",
+        Category: 'security'
+    },    {
+        Query: "ImageCompress",
+        Title: "Image Compress",
+        Icon: <Compress sx={{ width: 32, height: 32 }} />,
+        Description: "Compress images with batch processing (max 10 files)",
+        Category: 'image'
+    },
+    {
+        Query: "Hash",
+        Title: "Hash Generator",
+        Icon: <Tag sx={{ width: 32, height: 32 }} />,
+        Description: "Generate hash values for text using various algorithms",
         Category: 'security'
     }
 ];
@@ -147,5 +168,8 @@ export const Categories = {
     security: {
         label: "Security Tools",
         icon: <Security sx={{ width: 20, height: 20 }} />
+    },    image: {
+        label: "Image Tools",
+        icon: <Image sx={{ width: 20, height: 20 }} />
     }
 }; 

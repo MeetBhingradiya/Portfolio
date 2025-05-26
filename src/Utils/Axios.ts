@@ -4,9 +4,6 @@ import { RedirectProtocolExecuter , getCSRFToken } from '@Utils';
 
 const Axios: AxiosInstance = axios.create({
     timeout: 8000,
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
 let csrfToken: any = null;

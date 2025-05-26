@@ -1,4 +1,3 @@
-export * from "./Axios";
 export * from "./CaseChnage";
 export * from "./ExtensionsDetector";
 export * from "./getEnvs";

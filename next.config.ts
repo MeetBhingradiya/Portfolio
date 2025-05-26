@@ -139,6 +139,7 @@ const nextConfig: NextConfig = {
                         ])
                     ),
                     ...config.resolve.alias,
+                    canvas: false,
                 },
                 extensions: [
                     ...Extensions,
@@ -151,7 +152,10 @@ const nextConfig: NextConfig = {
             },
         };
         return Config;
-    }
+    },
+    serverExternalPackages: [
+        'sharp',
+    ]
 };
 
 export default nextConfig;

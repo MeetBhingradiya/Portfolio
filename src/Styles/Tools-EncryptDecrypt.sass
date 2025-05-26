@@ -1,0 +1,266 @@
+// Encrypt & Decrypt Tool Styles
+.EncryptAndDecrypt
+    display: flex
+    flex-direction: column
+    align-items: center
+    width: 100%
+    max-width: 1200px
+    margin: 0 auto
+    padding: 2rem 1rem
+    min-height: max-content
+
+    .title
+        font-size: 2rem
+        font-weight: 700
+        margin-bottom: 0.5rem
+        text-align: center
+        color: var(--font-color)
+
+    .description
+        font-size: 1rem
+        color: var(--description-font-color)
+        margin-bottom: 2rem
+        text-align: center
+
+    .crypto-container
+        display: flex
+        flex-direction: column
+        gap: 2rem
+        width: 100%
+        min-height: 400px
+
+        // Glass effect for all sections
+        .glass
+            background: rgba(255, 255, 255, 0.1)
+            backdrop-filter: blur(10px)
+            border: 1px solid rgba(255, 255, 255, 0.2)
+            border-radius: 8px
+            transition: all 0.3s ease
+
+            &:hover
+                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.47)
+                border: 1px solid rgba(255, 255, 255, 0.3)
+
+        // Controls Section
+        .controls-section
+            padding: 1.5rem
+            display: flex
+            flex-direction: column
+            gap: 1.5rem
+
+            @media (min-width: 768px)
+                flex-direction: row
+                justify-content: space-between
+                align-items: center
+
+            .mode-toggle
+                display: flex
+                border-radius: 8px
+                overflow: hidden
+                background: rgba(0, 0, 0, 0.2)
+
+                .mode-btn
+                    padding: 0.75rem 1.5rem
+                    border: none
+                    background: transparent
+                    color: var(--description-font-color)
+                    cursor: pointer
+                    transition: all 0.3s ease
+                    display: flex
+                    align-items: center
+                    gap: 0.5rem
+                    font-weight: 500
+
+                    &:hover
+                        background: rgba(255, 255, 255, 0.1)
+
+                    &.active
+                        background: rgba(72, 149, 239, 0.8)
+                        color: white
+
+            .algorithm-selector
+                display: flex
+                flex-direction: column
+                gap: 0.5rem
+
+                @media (min-width: 768px)
+                    flex-direction: row
+                    align-items: center
+
+                label
+                    font-weight: 500
+                    color: var(--font-color)
+                    white-space: nowrap
+
+                select
+                    padding: 0.75rem 1rem
+                    border-radius: 4px
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+                    background: rgba(255, 255, 255, 0.1)
+                    color: var(--font-color)
+                    outline: none
+                    transition: all 0.3s ease
+                    min-width: 250px
+
+                    &:focus
+                        border-color: rgba(72, 149, 239, 0.8)
+                        box-shadow: 0 0 0 2px rgba(72, 149, 239, 0.2)
+
+        // Input Section
+        .input-section, .key-section, .result-section
+            display: flex
+            flex-direction: column
+
+            .section-header
+                display: flex
+                justify-content: space-between
+                align-items: center
+                padding: 1rem 1.5rem
+                background: rgba(255, 255, 255, 0.05)
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1)
+
+                h2
+                    font-size: 1.25rem
+                    font-weight: 600
+                    margin: 0
+                    color: var(--font-color)
+
+                .key-actions
+                    display: flex
+                    gap: 0.5rem
+
+            textarea, input
+                padding: 1rem 1.5rem
+                border: none
+                background: rgba(255, 255, 255, 0.05)
+                color: var(--font-color)
+                outline: none
+                resize: vertical
+                font-family: monospace
+                font-size: 0.875rem
+                line-height: 1.5
+
+                &::placeholder
+                    color: var(--description-font-color)
+
+                &:focus
+                    background: rgba(255, 255, 255, 0.1)
+
+        // Key Section Specific
+        .key-section
+            .key-input-container
+                padding: 0 1.5rem
+
+                input
+                    width: 100%
+                    padding: 0.75rem 1rem
+                    border-radius: 4px
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+                    background: rgba(255, 255, 255, 0.1)
+
+                    &:focus
+                        border-color: rgba(72, 149, 239, 0.8)
+                        box-shadow: 0 0 0 2px rgba(72, 149, 239, 0.2)
+
+            .key-info
+                padding: 1rem 1.5rem
+                background: rgba(0, 0, 0, 0.1)
+                display: flex
+                justify-content: space-between
+                font-size: 0.875rem
+                color: var(--description-font-color)
+
+                @media (max-width: 768px)
+                    flex-direction: column
+                    gap: 0.25rem
+
+        // Result Section Specific
+        .result-section
+            .result-textarea
+                background: rgba(0, 0, 0, 0.2)
+                border: 1px solid rgba(255, 255, 255, 0.1)
+
+            .result-info
+                padding: 1rem 1.5rem
+                background: rgba(0, 0, 0, 0.1)
+                display: flex
+                justify-content: space-between
+                font-size: 0.875rem
+                color: var(--description-font-color)
+
+                @media (max-width: 768px)
+                    flex-direction: column
+                    gap: 0.25rem
+
+        // Action Buttons
+        .action-buttons
+            display: flex
+            gap: 1rem
+            justify-content: center
+            flex-wrap: wrap
+
+            @media (max-width: 768px)
+                flex-direction: column
+                align-items: stretch
+
+        // Information Section
+        .info-section
+            padding: 1.5rem
+
+            h3
+                font-size: 1.5rem
+                font-weight: 600
+                margin-bottom: 1rem
+                color: var(--font-color)
+
+            .algorithm-info
+                h4
+                    font-size: 1.25rem
+                    font-weight: 600
+                    margin-bottom: 0.5rem
+                    color: var(--font-color)
+
+                p
+                    margin-bottom: 1rem
+                    color: var(--description-font-color)
+                    line-height: 1.6
+
+                ul
+                    list-style: disc
+                    margin-left: 1.5rem
+                    margin-bottom: 1rem
+
+                    li
+                        margin-bottom: 0.5rem
+                        color: var(--description-font-color)
+                        line-height: 1.5
+
+// Dark mode styles
+html.dark
+    .EncryptAndDecrypt
+        .crypto-container
+            .glass
+                background: rgba(0, 0, 0, 0.2)
+                border: 1px solid rgba(255, 255, 255, 0.1)
+
+                &:hover
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+
+            .controls-section
+                .mode-toggle
+                    background: rgba(0, 0, 0, 0.3)
+
+            .section-header
+                background: rgba(0, 0, 0, 0.3)
+
+            textarea, input
+                background: rgba(0, 0, 0, 0.2)
+
+                &:focus
+                    background: rgba(0, 0, 0, 0.3)
+
+            .key-info, .result-info
+                background: rgba(0, 0, 0, 0.2)
+
+            .result-textarea
+                background: rgba(0, 0, 0, 0.3)

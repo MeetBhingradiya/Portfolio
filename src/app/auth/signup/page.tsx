@@ -9,7 +9,7 @@ import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
 import { StepIconProps } from '@mui/material/StepIcon';
-import { Axios } from "@Utils";
+import { Axios } from "@Utils/Axios";
 import { IGender } from "@Types";
 import { Config } from "@Config";
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';

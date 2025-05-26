@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Axios } from "@Utils";
-import { Input, Button } from "@heroui/react"
+import { Axios } from "@Utils/Axios";
+import { Input, Button } from "@heroui/react";
 import { IToolsModalData, IToolsSettingsTabs } from "./Types";
 
 import { IconButton } from "@mui/material";

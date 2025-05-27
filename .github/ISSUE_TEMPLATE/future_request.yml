@@ -1,13 +1,7 @@
 name: Feature request
-description: Suggest an idea for this project
+description: Suggest an idea for this project or Short and descriptive title for the feature request
 labels: ["✨ Type: Feature Request"]
 body:
-  - type: input
-    id: title
-    attributes:
-      label: Title
-      placeholder: Short and descriptive title for the feature request
-
   - type: textarea
     id: description
     attributes:

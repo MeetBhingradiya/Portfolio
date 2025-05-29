@@ -1,5 +1,5 @@
 {
-    "Signature": "67eee79e5cb9b009816226dce02b047c498e7ce339c4002e87edb8328bd73625",
+    "Signature": "832fb7d1a167314555d5ea6819f4bd159073c3f50274d7546281be91a61b8d5a",
     "File": {
         "DatabaseBydefualt": {
             "Signup_Username_Prefix": "Anonymous_",
@@ -39,7 +39,7 @@
             "ReactScan": false
         },
         "CI/CD_Pipeline": {
-            "Release": true
+            "Release": false
         }
     }
 }

@@ -6,9 +6,6 @@ import "@Styles/Tools-Navigation.sass";
 import { Tools, Categories } from '@Data/ToolsData';
 import { Menu, Close, ChevronLeft, Search, Home, Star } from '@mui/icons-material';
 import ToolContextMenu from './ToolContextMenu';
-import Image from 'next/image';
-import { Tooltip } from '@heroui/react';
-import SvgComponent from './SVGComponent';
 
 // MUI Icons
 import {

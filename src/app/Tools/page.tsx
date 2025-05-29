@@ -1230,7 +1230,7 @@ function Tools() {
                                     </ListItemText>
                                 </MenuItem>
 
-                                {!bookmark?.isEditBlock && (
+                                {bookmark?.isEditBlock && (
                                         <MenuItem
                                             onClick={() => {
                                                 setContextMenu(null);
@@ -1252,7 +1252,7 @@ function Tools() {
                                 }
 
                                 {
-                                    !bookmark?.isDeleteBlock && (
+                                    bookmark?.isDeleteBlock && (
                                         <MenuItem
                                             onClick={() => {
                                                 setContextMenu(null);

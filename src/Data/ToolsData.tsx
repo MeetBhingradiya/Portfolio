@@ -13,21 +13,16 @@ import {
     LinkOutlined,
     Code,
     Password,
-    CalendarMonth,    Key,
+    CalendarMonth,
+    Key,
     Compress,
     Image,
-    Tag
+    Tag,
+    PictureAsPdf
 } from '@mui/icons-material';
 
 // Tool definitions
 export const Tools = [
-    // {
-    //     Query: "BingQuerys",
-    //     Title: "Bing Queries",
-    //     Icon: <Search sx={{ width: 32, height: 32 }} />,
-    //     Description: "Generate and manage Bing search queries",
-    //     Category: 'utility'
-    // },
     {
         Query: "UUID",
         Title: "UUID Generator",
@@ -57,19 +52,12 @@ export const Tools = [
     //     Category: 'color'
     // },
     {
-        Query: "Colour Picker & Converter",
+        Query: "Colour",
         Title: "Colour Picker",
         Icon: <Colorize sx={{ width: 32, height: 32 }} />,
         Description: "Pick and manage colors",
         Category: 'color'
     },
-    // {
-    //     Query: "ColourConvert",
-    //     Title: "Colour Converter",
-    //     Icon: <Palette sx={{ width: 32, height: 32 }} />,
-    //     Description: "Convert between color formats (HEX, RGB, HSL)",
-    //     Category: 'color'
-    // },
     {
         Query: "Case",
         Title: "Case Changer",
@@ -139,6 +127,13 @@ export const Tools = [
         Category: 'image'
     },
     {
+        Query: "ImageToPDF",
+        Title: "Image to PDF",
+        Icon: <PictureAsPdf sx={{ width: 32, height: 32 }} />,
+        Description: "Convert images to PDF with customizable settings (max 20 files)",
+        Category: 'image'
+    },
+    {
         Query: "Hash",
         Title: "Hash Generator",
         Icon: <Tag sx={{ width: 32, height: 32 }} />,
@@ -147,7 +142,6 @@ export const Tools = [
     }
 ];
 
-// Category labels and icons
 export const Categories = {
     data: {
         label: "Data Tools",

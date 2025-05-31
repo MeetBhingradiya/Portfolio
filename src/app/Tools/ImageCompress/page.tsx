@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import "@Styles/Tools-ImageCompress.sass";
 import {
     CloudUpload,
@@ -9,21 +9,31 @@ import {
     Image as ImageIcon,
     Compress,
     PhotoSizeSelectLarge,
-    Refresh
+    Refresh,
+    GridView,
+    ViewList,
+    Visibility
 } from '@mui/icons-material';
+import {
+    Select,
+    SelectItem
+} from '@heroui/react';
 import JSZip from 'jszip';
 import { Axios } from '@Utils/Axios';
 import { Controller_Response } from '@Types';
+import { fetchWithCSRF } from '@Utils/FetchWithCSRF';
 
 interface CompressedImage {
     id: string;
     originalFile: File;
     compressedBlob?: Blob;
+    compressedPreview?: string; // Data URL (base64) for compressed image preview
     originalSize: number;
     compressedSize?: number;
     compressionRatio?: number;
     status: 'pending' | 'compressing' | 'completed' | 'error';
     error?: string;
+    originalPreview?: string; // Base64 preview of original image
 }
 
 const MAX_FILES = 10;
@@ -45,34 +55,64 @@ const SUPPORTED_FORMATS = [
 
 export default function ImageCompress() {
     const [images, setImages] = useState<CompressedImage[]>([]);
-    const [isCompressing, setIsCompressing] = useState(false); const [compressionSettings, setCompressionSettings] = useState({
+    const [isCompressing, setIsCompressing] = useState(false);
+    const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+    const [previewMode, setPreviewMode] = useState<'original' | 'compressed' | 'comparison'>('comparison');
+    const [compressionSettings, setCompressionSettings] = useState({
         quality: 80,
-        format: 'jpeg' as 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff',
+        format: 'jpeg' as 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' | 'jpg',
         width: 0, // 0 means keep original
         height: 0, // 0 means keep original
         progressive: true
     });
     const [isDragOver, setIsDragOver] = useState(false);
-    const fileInputRef = useRef<HTMLInputElement>(null);
-
-    const formatBytes = (bytes: number): string => {
+    const fileInputRef = useRef<HTMLInputElement>(null); const formatBytes = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }; const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target.files;
-        if (!files) return;
-        processFiles(Array.from(files));
     };
 
-    const processFiles = (fileArray: File[]) => {
+    const generateImagePreview = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }; const generateBlobPreview = (blob: Blob): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    };
+
+    const cleanupBlobUrls = (urls: string[]) => {
+        urls.forEach(url => {
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        });
+    };    // Cleanup when component unmounts
+    React.useEffect(() => {
+        return () => {
+            // No cleanup needed for data URLs - they're just strings
+        };
+    }, [images]); const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files) return;
+        await processFiles(Array.from(files));
+    }; const processFiles = async (fileArray: File[]) => {
         // Check file limit
         if (images.length + fileArray.length > MAX_FILES) {
             alert(`You can only compress up to ${MAX_FILES} images at once. Please remove some images or select fewer files.`);
             return;
-        }        // Filter supported formats
+        }
+
+        // Filter supported formats
         const supportedFiles = fileArray.filter(file => {
             if (!SUPPORTED_FORMATS.includes(file.type)) {
                 alert(`File "${file.name}" is not supported. Please upload JPEG, JPG, PNG, WebP, TIFF, AVIF, BMP, ICO, HEIC, HEIF, or SVG images.`);
@@ -83,12 +123,25 @@ export default function ImageCompress() {
 
         if (supportedFiles.length === 0) return;
 
-        const newImages: CompressedImage[] = supportedFiles.map(file => ({
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-            originalFile: file,
-            originalSize: file.size,
-            status: 'pending'
-        }));
+        // Generate previews for supported files
+        const newImages: CompressedImage[] = await Promise.all(
+            supportedFiles.map(async (file) => {
+                let originalPreview: string | undefined;
+                try {
+                    originalPreview = await generateImagePreview(file);
+                } catch (error) {
+                    console.warn(`Failed to generate preview for ${file.name}:`, error);
+                }
+
+                return {
+                    id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                    originalFile: file,
+                    originalSize: file.size,
+                    status: 'pending' as const,
+                    originalPreview
+                };
+            })
+        );
 
         setImages(prev => [...prev, ...newImages]);
 
@@ -106,17 +159,19 @@ export default function ImageCompress() {
     const handleDragLeave = (event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragOver(false);
-    };
-
-    const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    }; const handleDrop = async (event: React.DragEvent<HTMLDivElement>) => {
         event.preventDefault();
         setIsDragOver(false);
 
         const files = Array.from(event.dataTransfer.files);
-        processFiles(files);
-    };
+        await processFiles(files);
+    }; const removeImage = (id: string) => {
+        // Cleanup blob URL before removing
+        const imageToRemove = images.find(img => img.id === id);
+        if (imageToRemove?.compressedPreview) {
+            URL.revokeObjectURL(imageToRemove.compressedPreview);
+        }
 
-    const removeImage = (id: string) => {
         setImages(prev => prev.filter(img => img.id !== id));
     }; const compressImages = async () => {
         const pendingImages = images.filter(img => img.status === 'pending');
@@ -137,7 +192,7 @@ export default function ImageCompress() {
 
         setIsCompressing(false);
     };
-    
+
     const compressImagesBatch = async (imageIds: string[]) => {
         const imagesToCompress = images.filter(img => imageIds.includes(img.id));
 
@@ -151,68 +206,85 @@ export default function ImageCompress() {
             // Add files
             imagesToCompress.forEach((image, index) => {
                 formData.append(`file_${index}`, image.originalFile);
+            });            // Make API request using FormData with custom fetch
+            const response = await fetchWithCSRF('/api/compress-images', {
+                method: 'POST',
+                body: formData,
             });
 
-            // Make API request using FormData
-            const response = await Axios.post('/api/compress-images', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            // Handle multipart response
+            if (response.isMultipart && response.metadata && response.files) {
+                const result: Controller_Response = response.metadata;
 
-            const result: Controller_Response = response.data;
+                // Check if the response status indicates success
+                if (result.Status !== 1) {
+                    throw new Error(result.Message || 'Compression failed');
+                }                // Update images with compressed data
+                const updatedImages = [...images];
 
-            // Check if the response status indicates success
-            if (result.Status !== 1) {
-                throw new Error(result.Message || 'Compression failed');
-            }
+                // Map files to their corresponding images by original name - use Promise.all for async operations
+                const updatePromises = result.Data?.images?.map(async (compressedImageMeta: any, index: number) => {
+                    const imageIndex = updatedImages.findIndex(
+                        img => img.originalFile.name === compressedImageMeta.originalName &&
+                            imageIds.includes(img.id)
+                    );
 
-            // Update images with compressed data
-            const updatedImages = [...images];
+                    if (imageIndex !== -1) {
+                        if (compressedImageMeta.error) {
+                            updatedImages[imageIndex] = {
+                                ...updatedImages[imageIndex],
+                                status: 'error',
+                                error: compressedImageMeta.error
+                            };
+                        } else {
+                            // Find corresponding file from the FormData response
+                            const correspondingFile = response.files?.find((file, fileIndex) => {
+                                // Match by index or filename pattern
+                                return fileIndex === index ||
+                                    file.filename.includes(compressedImageMeta.originalName.split('.')[0]);
+                            });
 
-            result.Data?.images?.forEach((compressedImage: any) => {
-                const imageIndex = updatedImages.findIndex(
-                    img => img.originalFile.name === compressedImage.originalName &&
-                        imageIds.includes(img.id)
-                );
-
-                if (imageIndex !== -1) {
-                    if (compressedImage.error) {
-                        updatedImages[imageIndex] = {
-                            ...updatedImages[imageIndex],
-                            status: 'error',
-                            error: compressedImage.error
-                        };
-                    } else {
-                        // Convert base64 back to blob
-                        const binaryString = atob(compressedImage.data);
-                        const bytes = new Uint8Array(binaryString.length);
-                        for (let i = 0; i < binaryString.length; i++) {
-                            bytes[i] = binaryString.charCodeAt(i);
+                            if (correspondingFile) {
+                                const compressedPreview = await generateBlobPreview(correspondingFile.blob);
+                                updatedImages[imageIndex] = {
+                                    ...updatedImages[imageIndex],
+                                    compressedBlob: correspondingFile.blob,
+                                    compressedPreview: compressedPreview,
+                                    compressedSize: compressedImageMeta.compressedSize,
+                                    compressionRatio: compressedImageMeta.compressionRatio,
+                                    status: 'completed'
+                                };
+                            } else {
+                                updatedImages[imageIndex] = {
+                                    ...updatedImages[imageIndex],
+                                    status: 'error',
+                                    error: 'Compressed file not found in response'
+                                };
+                            }
                         }
-                        const compressedBlob = new Blob([bytes], { type: compressedImage.mimeType });
-
-                        updatedImages[imageIndex] = {
-                            ...updatedImages[imageIndex],
-                            compressedBlob,
-                            compressedSize: compressedImage.compressedSize,
-                            compressionRatio: compressedImage.compressionRatio,
-                            status: 'completed'
-                        };
                     }
+                }) || [];
+
+                // Wait for all async operations to complete
+                await Promise.all(updatePromises);
+                setImages(updatedImages);
+            } else {
+                // Handle JSON response (fallback for errors)
+                const result: Controller_Response = response.data;
+
+                if (result.Status !== 1) {
+                    throw new Error(result.Message || 'Compression failed');
                 }
-            });
 
-            setImages(updatedImages);
-
+                // This shouldn't happen for successful compressions, but handle gracefully
+                throw new Error('Expected multipart response but received JSON');
+            }
         } catch (error: any) {
             console.error('Compression error:', error);
 
-            // Handle Controller_Response error format
+            // Handle error format from custom fetch or standard error
             let errorMessage = 'Failed to compress images';
-            if (error?.response?.data?.Message) {
-                errorMessage = error.response.data.Message;
-            } else if (error?.message) {
+            if (error?.message) {
                 errorMessage = error.message;
             }
 
@@ -352,7 +424,8 @@ export default function ImageCompress() {
                             onChange={handleFileUpload}
                         />
                     </div>
-                </div>            {/* Compression Settings */}
+                </div>
+                {/* Compression Settings */}
                 {images.length > 0 && (
                     <div className="settings-container glass">
                         <h3 className="settings-header">Compression Settings</h3>
@@ -371,23 +444,25 @@ export default function ImageCompress() {
                                 </div>
                             </div>
                             <div className="setting-group">
-                                <label className="setting-label">Output Format</label>                            <select
-                                    value={compressionSettings.format}
-                                    onChange={(e) => setCompressionSettings(prev => ({ ...prev, format: e.target.value as 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' }))}
-                                    style={{
-                                        padding: '0.5rem',
-                                        borderRadius: '4px',
-                                        border: '1px solid rgba(255, 255, 255, 0.2)',
-                                        background: 'rgba(255, 255, 255, 0.1)',
-                                        color: 'var(--font-color)'
+                                <label className="setting-label">Output Format</label>
+                                <Select
+                                    selectedKeys={[compressionSettings.format]}
+                                    onSelectionChange={(keys) => {
+                                        const selectedKey = Array.from(keys)[0] as string;
+                                        setCompressionSettings(prev => ({ ...prev, format: selectedKey as 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' | 'jpg' }));
+                                    }}
+                                    variant="bordered"
+                                    classNames={{
+                                        trigger: "bg-white/10 border-white/20 text-[var(--font-color)]"
                                     }}
                                 >
-                                    <option value="jpeg">JPEG</option>
-                                    <option value="png">PNG</option>
-                                    <option value="webp">WebP</option>
-                                    <option value="avif">AVIF</option>
-                                    <option value="tiff">TIFF</option>
-                                </select>
+                                    <SelectItem key="jpg">JPG</SelectItem>
+                                    <SelectItem key="jpeg">JPEG</SelectItem>
+                                    <SelectItem key="png">PNG</SelectItem>
+                                    <SelectItem key="webp">WebP</SelectItem>
+                                    <SelectItem key="avif">AVIF</SelectItem>
+                                    <SelectItem key="tiff">TIFF</SelectItem>
+                                </Select>
                             </div>
                             <div className="setting-group">
                                 <label className="setting-label">Width: {compressionSettings.width}px (0 = keep original)</label>
@@ -417,12 +492,55 @@ export default function ImageCompress() {
                             </div>
                         </div>
                     </div>
-                )}            {/* Images List */}
+                )}  
+
                 {images.length > 0 && (
                     <div className="images-container glass">
                         <div className="images-header">
                             <h3 className="images-title">Images ({images.length}/{MAX_FILES})</h3>
-                            <div className="action-buttons">                            <button
+
+                            <div className="view-controls">
+                                <div className="view-mode-toggle">
+                                    <button
+                                        className={`view-toggle ${viewMode === 'list' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('list')}
+                                        title="List view"
+                                    >
+                                        <ViewList style={{ fontSize: '1rem' }} />
+                                    </button>
+                                    <button
+                                        className={`view-toggle ${viewMode === 'grid' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('grid')}
+                                        title="Grid view"
+                                    >
+                                        <GridView style={{ fontSize: '1rem' }} />
+                                    </button>
+                                </div>
+                                <div className="preview-mode-select">
+                                    <Select
+                                        selectedKeys={[previewMode]}
+                                        onSelectionChange={(keys) => {
+                                            const selectedKey = Array.from(keys)[0] as string;
+                                            setPreviewMode(selectedKey as 'original' | 'compressed' | 'comparison');
+                                        }}
+                                        variant="bordered"
+                                        size='sm'
+                                        classNames={{
+                                            trigger: "bg-white/10 border-white/20 text-[var(--font-color)]"
+                                        }}
+                                        style={{
+                                            width: '150px',
+                                            marginLeft: '10px'
+                                        }}
+                                    >
+                                        <SelectItem key="original">Original</SelectItem>
+                                        <SelectItem key="compressed">Compressed</SelectItem>
+                                        <SelectItem key="comparison">Comparison</SelectItem>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="action-buttons"><button
                                 className={`action-button primary ${isCompressing ? 'loading' : ''}`}
                                 onClick={compressImages}
                                 disabled={isCompressing || !images.some(img => img.status === 'pending')}
@@ -446,28 +564,207 @@ export default function ImageCompress() {
                                     Clear All
                                 </button>
                             </div>
-                        </div>
-
-                        {/* Overall Stats */}
+                        </div>                        {/* Overall Stats */}
                         {totalOriginalSize > 0 && (
                             <div className="stats-container">
-                                <div className="stats-row">
-                                    <span className="stats-label">Original Size: <span className="stats-value">{formatBytes(totalOriginalSize)}</span></span>
-                                    <span className="stats-label">Compressed Size: <span className="stats-value">{formatBytes(totalCompressedSize)}</span></span>
-                                    <span className="stats-savings">Saved: {overallCompressionRatio.toFixed(1)}%</span>
+                                <div className="stats-header">
+                                    <h4>Compression Overview</h4>
+                                    <span className="stats-savings-badge">
+                                        -{overallCompressionRatio.toFixed(1)}% saved
+                                    </span>
+                                </div>
+                                
+                                <div className="stats-visual">
+                                    <div className="stats-bar">
+                                        <div className="stats-segment original" 
+                                             style={{ width: `${((totalOriginalSize - totalCompressedSize) / totalOriginalSize) * 100}%` }}>
+                                            <span className="segment-label">Saved: {formatBytes(totalOriginalSize - totalCompressedSize)}</span>
+                                        </div>
+                                        <div className="stats-segment compressed" 
+                                             style={{ width: `${(totalCompressedSize / totalOriginalSize) * 100}%` }}>
+                                            <span className="segment-label">Final: {formatBytes(totalCompressedSize)}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="stats-labels">
+                                        <div className="stats-item">
+                                            <div className="stats-dot original"></div>
+                                            <span>Original: {formatBytes(totalOriginalSize)}</span>
+                                        </div>
+                                        <div className="stats-item">
+                                            <div className="stats-dot compressed"></div>
+                                            <span>Compressed: {formatBytes(totalCompressedSize)}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        <div className="images-list">
-                            {images.map((image) => (
-                                <div key={image.id} className="image-item">
-                                    <div className="image-row">
-                                        <div className="image-info">
-                                            <ImageIcon className="image-icon" />
-                                            <div className="image-details">
-                                                <p className="image-name">{image.originalFile.name}</p>
-                                                <div className="image-stats">
+                        <div className={`images-display ${viewMode}`}>
+                            {viewMode === 'list' ? (
+                                // List View
+                                <div className="images-list">
+                                    {images.map((image) => (
+                                        <div key={image.id} className="image-item">
+                                            <div className="image-row">
+                                                <div className="image-info">
+                                                    {previewMode === 'comparison' && image.originalPreview && image.compressedPreview ? (
+                                                        <div className="image-comparison">
+                                                            <div className="comparison-side">
+                                                                <img
+                                                                    src={image.originalPreview}
+                                                                    alt="Original"
+                                                                    className="preview-image original"
+                                                                />
+                                                                <span className="comparison-label">Original</span>
+                                                            </div>
+                                                            <div className="comparison-divider"></div>
+                                                            <div className="comparison-side">
+                                                                <img
+                                                                    src={image.compressedPreview}
+                                                                    alt="Compressed"
+                                                                    className="preview-image compressed"
+                                                                />
+                                                                <span className="comparison-label">Compressed</span>
+                                                            </div>
+                                                        </div>
+                                                    ) : previewMode === 'original' && image.originalPreview ? (
+                                                        <img
+                                                            src={image.originalPreview}
+                                                            alt="Original"
+                                                            className="preview-image single"
+                                                        />
+                                                    ) : previewMode === 'compressed' && image.compressedPreview ? (
+                                                        <img
+                                                            src={image.compressedPreview}
+                                                            alt="Compressed"
+                                                            className="preview-image single"
+                                                        />
+                                                    ) : (
+                                                        <ImageIcon className="image-icon" />
+                                                    )}
+
+                                                    <div className="image-details">
+                                                        <p className="image-name">{image.originalFile.name}</p>
+                                                        <div className="image-stats">
+                                                            <span className="stat-item">Original: {formatBytes(image.originalSize)}</span>
+                                                            {image.compressedSize && (
+                                                                <>
+                                                                    <span className="stat-item">Compressed: {formatBytes(image.compressedSize)}</span>
+                                                                    <span className="stat-item savings">
+                                                                        -{image.compressionRatio?.toFixed(1)}%
+                                                                    </span>
+                                                                </>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="image-actions">
+                                                    <span className={`status-chip ${image.status}`}>
+                                                        {image.status}
+                                                    </span>
+                                                    {image.status === 'pending' && (
+                                                        <button
+                                                            className="icon-button compress"
+                                                            onClick={() => compressSingle(image.id)}
+                                                            title="Compress this image"
+                                                        >
+                                                            <Compress style={{ fontSize: '1rem' }} />
+                                                        </button>
+                                                    )}
+                                                    {image.status === 'error' && (
+                                                        <button
+                                                            className="icon-button retry"
+                                                            onClick={() => retryCompression(image.id)}
+                                                            title="Retry compression"
+                                                        >
+                                                            <Refresh style={{ fontSize: '1rem' }} />
+                                                        </button>
+                                                    )}
+                                                    {image.status === 'completed' && (
+                                                        <button
+                                                            className="icon-button"
+                                                            onClick={() => downloadSingle(image)}
+                                                            title="Download compressed image"
+                                                        >
+                                                            <Download style={{ fontSize: '1rem' }} />
+                                                        </button>
+                                                    )}
+                                                    <button
+                                                        className="icon-button"
+                                                        onClick={() => removeImage(image.id)}
+                                                        disabled={image.status === 'compressing'}
+                                                        title="Remove image"
+                                                    >
+                                                        <Delete style={{ fontSize: '1rem' }} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            {image.status === 'compressing' && (
+                                                <div className="progress-bar">
+                                                    <div className="progress-fill"></div>
+                                                </div>
+                                            )}
+                                            {image.status === 'error' && (
+                                                <p className="error-message">{image.error}</p>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                // Grid View
+                                <div className="images-grid">
+                                    {images.map((image) => (
+                                        <div key={image.id} className="image-card">
+                                            <div className="card-preview">
+                                                {previewMode === 'comparison' && image.originalPreview && image.compressedPreview ? (
+                                                    <div className="grid-comparison">
+                                                        <div className="grid-comparison-side">
+                                                            <img
+                                                                src={image.originalPreview}
+                                                                alt="Original"
+                                                                className="grid-preview-image"
+                                                            />
+                                                            <span className="grid-comparison-label">Original</span>
+                                                        </div>
+                                                        <div className="grid-comparison-side">
+                                                            <img
+                                                                src={image.compressedPreview}
+                                                                alt="Compressed"
+                                                                className="grid-preview-image"
+                                                            />
+                                                            <span className="grid-comparison-label">Compressed</span>
+                                                        </div>
+                                                    </div>
+                                                ) : previewMode === 'original' && image.originalPreview ? (
+                                                    <img
+                                                        src={image.originalPreview}
+                                                        alt="Original"
+                                                        className="grid-preview-image single"
+                                                    />
+                                                ) : previewMode === 'compressed' && image.compressedPreview ? (
+                                                    <img
+                                                        src={image.compressedPreview}
+                                                        alt="Compressed"
+                                                        className="grid-preview-image single"
+                                                    />
+                                                ) : (
+                                                    <div className="grid-placeholder">
+                                                        <ImageIcon style={{ fontSize: '3rem', color: 'rgba(255, 255, 255, 0.3)' }} />
+                                                    </div>
+                                                )}
+
+                                                <div className="card-overlay">
+                                                    <span className={`status-chip ${image.status}`}>
+                                                        {image.status}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="card-info">
+                                                <p className="card-title">{image.originalFile.name}</p>
+                                                <div className="card-stats">
                                                     <span className="stat-item">Original: {formatBytes(image.originalSize)}</span>
                                                     {image.compressedSize && (
                                                         <>
@@ -479,57 +776,59 @@ export default function ImageCompress() {
                                                     )}
                                                 </div>
                                             </div>
-                                        </div>                                    <div className="image-actions">
-                                            <span className={`status-chip ${image.status}`}>
-                                                {image.status}
-                                            </span>
-                                            {image.status === 'pending' && (
+
+                                            <div className="card-actions">
+                                                {image.status === 'pending' && (
+                                                    <button
+                                                        className="card-button compress"
+                                                        onClick={() => compressSingle(image.id)}
+                                                        title="Compress this image"
+                                                    >
+                                                        <Compress style={{ fontSize: '1rem' }} />
+                                                    </button>
+                                                )}
+                                                {image.status === 'error' && (
+                                                    <button
+                                                        className="card-button retry"
+                                                        onClick={() => retryCompression(image.id)}
+                                                        title="Retry compression"
+                                                    >
+                                                        <Refresh style={{ fontSize: '1rem' }} />
+                                                    </button>
+                                                )}
+                                                {image.status === 'completed' && (
+                                                    <button
+                                                        className="card-button download"
+                                                        onClick={() => downloadSingle(image)}
+                                                        title="Download compressed image"
+                                                    >
+                                                        <Download style={{ fontSize: '1rem' }} />
+                                                    </button>
+                                                )}
                                                 <button
-                                                    className="icon-button compress"
-                                                    onClick={() => compressSingle(image.id)}
-                                                    title="Compress this image"
+                                                    className="card-button delete"
+                                                    onClick={() => removeImage(image.id)}
+                                                    disabled={image.status === 'compressing'}
+                                                    title="Remove image"
                                                 >
-                                                    <Compress style={{ fontSize: '1rem' }} />
+                                                    <Delete style={{ fontSize: '1rem' }} />
                                                 </button>
+                                            </div>
+
+                                            {image.status === 'compressing' && (
+                                                <div className="card-progress">
+                                                    <div className="progress-bar">
+                                                        <div className="progress-fill"></div>
+                                                    </div>
+                                                </div>
                                             )}
                                             {image.status === 'error' && (
-                                                <button
-                                                    className="icon-button retry"
-                                                    onClick={() => retryCompression(image.id)}
-                                                    title="Retry compression"
-                                                >
-                                                    <Refresh style={{ fontSize: '1rem' }} />
-                                                </button>
+                                                <p className="card-error">{image.error}</p>
                                             )}
-                                            {image.status === 'completed' && (
-                                                <button
-                                                    className="icon-button"
-                                                    onClick={() => downloadSingle(image)}
-                                                    title="Download compressed image"
-                                                >
-                                                    <Download style={{ fontSize: '1rem' }} />
-                                                </button>
-                                            )}
-                                            <button
-                                                className="icon-button"
-                                                onClick={() => removeImage(image.id)}
-                                                disabled={image.status === 'compressing'}
-                                                title="Remove image"
-                                            >
-                                                <Delete style={{ fontSize: '1rem' }} />
-                                            </button>
                                         </div>
-                                    </div>
-                                    {image.status === 'compressing' && (
-                                        <div className="progress-bar">
-                                            <div className="progress-fill"></div>
-                                        </div>
-                                    )}
-                                    {image.status === 'error' && (
-                                        <p className="error-message">{image.error}</p>
-                                    )}
+                                    ))}
                                 </div>
-                            ))}
+                            )}
                         </div>
                     </div>
                 )}

@@ -3,7 +3,7 @@ import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 
 import { RedirectProtocolExecuter , getCSRFToken } from '@Utils';
 
 const Axios: AxiosInstance = axios.create({
-    timeout: 8000,
+    timeout: 10000,
 });
 
 let csrfToken: any = null;

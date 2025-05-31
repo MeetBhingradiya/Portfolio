@@ -22,6 +22,18 @@
         margin-bottom: 2rem
         text-align: center
 
+    .glass
+        background: rgba(0, 0, 0, 0.1)
+        backdrop-filter: blur(10px)
+        border: 1px solid rgba(255, 255, 255, 0.2)
+        border-radius: 8px
+        padding: 1.5rem
+        transition: all 0.3s ease
+
+        &:hover
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)
+            border: 1px solid rgba(255, 255, 255, 0.3)
+
     .upload-container
         display: flex
         flex-direction: column
@@ -30,17 +42,17 @@
         max-width: 800px
 
         // Glass effect
-        &.glass
-            background: rgba(255, 255, 255, 0.1)
-            backdrop-filter: blur(10px)
-            border: 1px solid rgba(255, 255, 255, 0.2)
-            border-radius: 8px
-            padding: 1.5rem
-            transition: all 0.3s ease
+        // &.glass
+        //     background: rgba(255, 255, 255, 0.1)
+        //     backdrop-filter: blur(10px)
+        //     border: 1px solid rgba(255, 255, 255, 0.2)
+        //     border-radius: 8px
+        //     padding: 1.5rem
+        //     transition: all 0.3s ease
 
-            &:hover
-                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)
-                border: 1px solid rgba(255, 255, 255, 0.3)
+        //     &:hover
+        //         box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)
+        //         border: 1px solid rgba(255, 255, 255, 0.3)
 
         .upload-dropzone
             border: 2px dashed rgba(255, 255, 255, 0.3)
@@ -95,19 +107,6 @@
         width: 100%
         max-width: 800px
 
-        // Glass effect
-        &.glass
-            background: rgba(255, 255, 255, 0.1)
-            backdrop-filter: blur(10px)
-            border: 1px solid rgba(255, 255, 255, 0.2)
-            border-radius: 8px
-            padding: 1.5rem
-            transition: all 0.3s ease
-
-            &:hover
-                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)
-                border: 1px solid rgba(255, 255, 255, 0.3)
-
         .settings-header
             font-size: 1.25rem
             font-weight: 600
@@ -140,205 +139,531 @@
         width: 100%
         max-width: 800px
 
-        // Glass effect
-        &.glass
-            background: rgba(255, 255, 255, 0.1)
-            backdrop-filter: blur(10px)
-            border: 1px solid rgba(255, 255, 255, 0.2)
-            border-radius: 8px
-            padding: 1.5rem
-            transition: all 0.3s ease
-
-            &:hover
-                box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37)
-                border: 1px solid rgba(255, 255, 255, 0.3)
-
         .images-header
             display: flex
             justify-content: space-between
             align-items: center
             margin-bottom: 1rem
+            flex-wrap: wrap
+            gap: 1rem
 
-            .images-title
-                font-size: 1.25rem
+        .images-title
+            font-size: 1.25rem
+            font-weight: 600
+            color: var(--font-color)
+
+        .view-controls
+            display: flex
+            align-items: center
+            gap: 1rem
+
+            .view-mode-toggle
+                display: flex
+                border: 1px solid rgba(255, 255, 255, 0.2)
+                border-radius: 4px
+                overflow: hidden
+
+                .view-toggle
+                    padding: 0.5rem
+                    background: rgba(255, 255, 255, 0.1)
+                    border: none
+                    color: var(--description-font-color)
+                    cursor: pointer
+                    transition: all 0.3s ease
+                    display: flex
+                    align-items: center
+                    justify-content: center
+
+                    &:hover
+                        background: rgba(255, 255, 255, 0.2)
+                        color: var(--font-color)
+
+                    &.active
+                        background: var(--accent-color)
+                        color: white
+
+            .preview-mode-select
+                select
+                    border: none
+                    outline: none
+
+        .action-buttons
+            display: flex
+            gap: 0.5rem
+            flex-wrap: wrap
+
+            .action-button
+                padding: 0.5rem 1rem
+                border-radius: 4px
+                border: 1px solid rgba(255, 255, 255, 0.2)
+                background: rgba(255, 255, 255, 0.1)
+                color: var(--font-color)
+                cursor: pointer
+                transition: all 0.3s ease
+                display: inline-flex
+                align-items: center
+                gap: 0.5rem
+                font-size: 0.875rem
+
+                &:hover:not(:disabled)
+                    background: rgba(255, 255, 255, 0.2)
+                    border-color: rgba(255, 255, 255, 0.3)
+
+                &:disabled
+                    opacity: 0.5
+                    cursor: not-allowed
+
+                &.primary
+                    background: var(--accent-color)
+                    border-color: var(--accent-color)
+                    color: white
+
+                    &:hover:not(:disabled)
+                        background: var(--accent-color-hover)
+
+                &.success
+                    background: rgba(34, 197, 94, 0.8)
+                    border-color: rgba(34, 197, 94, 0.8)
+                    color: white
+
+                &.danger
+                    background: rgba(239, 68, 68, 0.8)
+                    border-color: rgba(239, 68, 68, 0.8)
+                    color: white
+
+        .stats-container
+            background: rgba(255, 255, 255, 0.05)
+            border-radius: 12px
+            padding: 1.5rem
+            margin-bottom: 1.5rem
+            border: 1px solid rgba(255, 255, 255, 0.1)
+
+            .stats-header
+                display: flex
+                justify-content: space-between
+                align-items: center
+                margin-bottom: 1rem
+
+            h4
+                margin: 0
+                font-size: 1.1rem
                 font-weight: 600
                 color: var(--font-color)
 
-            .action-buttons
-                display: flex
-                gap: 0.5rem
-                flex-wrap: wrap
+            .stats-savings-badge
+                background: linear-gradient(135deg, #22c55e, #16a34a)
+                color: white
+                padding: 0.25rem 0.75rem
+                border-radius: 20px
+                font-size: 0.875rem
+                font-weight: 600
+                box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3)
 
-                .action-button
-                    padding: 0.5rem 1rem
-                    border-radius: 4px
-                    border: 1px solid rgba(255, 255, 255, 0.2)
-                    background: rgba(255, 255, 255, 0.1)
-                    color: var(--font-color)
-                    cursor: pointer
+        .stats-visual
+            .stats-bar
+                display: flex
+                width: 100%
+                height: 40px
+                border-radius: 20px
+                overflow: hidden
+                background: rgba(255, 255, 255, 0.1)
+                border: 1px solid rgba(255, 255, 255, 0.2)
+                margin-bottom: 1rem
+
+                .stats-segment
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    position: relative
                     transition: all 0.3s ease
-                    display: inline-flex
+                    
+                    &.original
+                        background: linear-gradient(90deg, #ef4444, #dc2626)
+                        
+                    &.compressed
+                        background: linear-gradient(90deg, #22c55e, #16a34a)
+
+                    .segment-label
+                        color: white
+                        font-size: 0.75rem
+                        font-weight: 600
+                        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3)
+                        white-space: nowrap
+                        overflow: hidden
+                        text-overflow: ellipsis
+
+            .stats-labels
+                display: flex
+                justify-content: space-around
+                gap: 1rem
+
+                .stats-item
+                    display: flex
                     align-items: center
                     gap: 0.5rem
                     font-size: 0.875rem
+                    color: var(--description-font-color)
+
+                    .stats-dot
+                        width: 12px
+                        height: 12px
+                        border-radius: 50%
+                        
+                        &.original
+                            background: #ef4444
+                            
+                        &.compressed
+                            background: #22c55e// Images Display Modes
+    .images-display
+        &.list
+            .images-list
+                display: flex
+                flex-direction: column
+                gap: 0.75rem
+
+        &.grid
+            .images-grid
+                display: grid
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+                gap: 1rem
+
+    // List View Styles
+    .images-list
+        display: flex
+        flex-direction: column
+        gap: 0.75rem
+
+        .image-item
+            border: 1px solid rgba(255, 255, 255, 0.1)
+            border-radius: 8px
+            padding: 1rem
+            background: rgba(255, 255, 255, 0.05)
+            transition: all 0.3s ease
+
+            &:hover
+                background: rgba(255, 255, 255, 0.08)
+
+            .image-row
+                display: flex
+                align-items: center
+                justify-content: space-between
+                .image-info
+                    display: flex
+                    align-items: center
+                    gap: 0.75rem
+                    flex: 1
+
+                    .image-icon
+                        color: var(--description-font-color)
+
+                    // Image Preview Styles
+                    .image-comparison
+                        display: flex
+                        align-items: center
+                        gap: 0.5rem
+                        margin-right: 0.75rem
+
+                        .comparison-side
+                            display: flex
+                            flex-direction: column
+                            align-items: center
+                            gap: 0.25rem
+
+                            .preview-image
+                                width: 60px
+                                height: 60px
+                                object-fit: cover
+                                border-radius: 4px
+                                border: 1px solid rgba(255, 255, 255, 0.2)
+
+                            .comparison-label
+                                font-size: 0.7rem
+                                color: var(--description-font-color)
+
+                        .comparison-divider
+                            width: 1px
+                            height: 40px
+                            background: rgba(255, 255, 255, 0.2)
+
+                    .preview-image
+                        &.single
+                            width: 60px
+                            height: 60px
+                            object-fit: cover
+                            border-radius: 4px
+                            border: 1px solid rgba(255, 255, 255, 0.2)
+                            margin-right: 0.75rem
+
+                    .image-details
+                        .image-name
+                            font-size: 0.875rem
+                            font-weight: 500
+                            color: var(--font-color)
+                            margin-bottom: 0.25rem
+
+                        .image-stats
+                            display: flex
+                            gap: 1rem
+                            font-size: 0.75rem
+                            color: var(--description-font-color)
+
+                            .stat-item
+                                &.savings
+                                    color: #22c55e
+                                    font-weight: 500
+
+                .image-actions
+                    display: flex
+                    align-items: center
+                    gap: 0.5rem
+
+                    .status-chip
+                        padding: 0.25rem 0.5rem
+                        border-radius: 4px
+                        font-size: 0.75rem
+                        font-weight: 500
+
+                        &.pending
+                            background: rgba(156, 163, 175, 0.2)
+                            color: #9ca3af
+
+                        &.compressing
+                            background: rgba(251, 191, 36, 0.2)
+                            color: #fbbf24
+
+                        &.completed
+                            background: rgba(34, 197, 94, 0.2)
+                            color: #22c55e
+
+                        &.error
+                            background: rgba(239, 68, 68, 0.2)
+                            color: #ef4444
+
+                        .icon-button
+                            padding: 0.5rem
+                            border: none
+                            background: rgba(255, 255, 255, 0.1)
+                            border-radius: 4px
+                            color: var(--font-color)
+                            cursor: pointer
+                            transition: all 0.3s ease
+                            display: flex
+                            align-items: center
+                            justify-content: center
+
+                        &:hover:not(:disabled)
+                            background: rgba(255, 255, 255, 0.2)
+
+                        &:disabled
+                            opacity: 0.5
+                            cursor: not-allowed
+
+                        &.compress
+                            background: rgba(59, 130, 246, 0.2)
+                            color: #3b82f6
+
+                            &:hover:not(:disabled)
+                                background: rgba(59, 130, 246, 0.3)
+
+                        &.retry
+                            background: rgba(245, 158, 11, 0.2)
+                            color: #f59e0b
+
+                            &:hover:not(:disabled)
+                                background: rgba(245, 158, 11, 0.3)
+
+            .progress-bar
+                margin-top: 0.5rem
+                height: 4px
+                background: rgba(255, 255, 255, 0.1)
+                border-radius: 2px
+                overflow: hidden
+
+                .progress-fill
+                    height: 100%
+                    background: var(--accent-color)
+                    animation: indeterminate 2s infinite linear
+
+            .error-message
+                margin-top: 0.5rem
+                color: #ef4444
+                font-size: 0.75rem
+
+    // Grid View Styles
+    .images-grid
+        display: grid
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr))
+        gap: 1rem
+
+        .image-card
+            border: 1px solid rgba(255, 255, 255, 0.1)
+            border-radius: 8px
+            background: rgba(255, 255, 255, 0.05)
+            transition: all 0.3s ease
+            overflow: hidden
+            display: flex
+            flex-direction: column
+
+            &:hover
+                background: rgba(255, 255, 255, 0.08)
+                border-color: rgba(255, 255, 255, 0.2)
+
+            .card-preview
+                position: relative
+                // height: 180px
+                overflow: hidden
+
+                .grid-comparison
+                    display: flex
+                    height: 100%
+
+                    .grid-comparison-side
+                        flex: 1
+                        display: flex
+                        flex-direction: column
+                        position: relative
+
+                        .grid-preview-image
+                            width: 100%
+                            height: 140px
+                            object-fit: cover
+
+                        .grid-comparison-label
+                            bottom: 0
+                            left: 0
+                            right: 0
+                            background: rgba(0, 0, 0, 0.3)
+                            color: white
+                            font-size: 0.7rem
+                            padding: 0.25rem
+                            text-align: center
+
+                .grid-preview-image
+                    &.single
+                        width: 100%
+                        height: 100%
+                        object-fit: cover
+
+                .grid-placeholder
+                    width: 100%
+                    height: 100%
+                    display: flex
+                    align-items: center
+                    justify-content: center
+                    background: rgba(255, 255, 255, 0.05)
+
+                .card-overlay
+                    position: absolute
+                    top: 0.5rem
+                    right: 0.5rem
+
+                    .status-chip
+                        padding: 0.25rem 0.5rem
+                        border-radius: 4px
+                        font-size: 0.7rem
+                        font-weight: 500
+                        backdrop-filter: blur(4px)
+
+                        &.pending
+                            background: rgba(156, 163, 175, 0.8)
+                            color: white
+
+                        &.compressing
+                            background: rgba(251, 191, 36, 0.8)
+                            color: white
+
+                        &.completed
+                            background: rgba(34, 197, 94, 0.8)
+                            color: white
+
+                        &.error
+                            background: rgba(239, 68, 68, 0.8)
+                            color: white
+
+            .card-info
+                padding: 1rem
+                flex: 1
+
+                .card-title
+                    font-size: 0.875rem
+                    font-weight: 500
+                    color: var(--font-color)
+                    margin-bottom: 0.5rem
+                    line-height: 1.2
+                    overflow: hidden
+                    text-overflow: ellipsis
+                    white-space: nowrap
+
+                .card-stats
+                    display: flex
+                    flex-direction: column
+                    gap: 0.25rem
+                    font-size: 0.75rem
+                    color: var(--description-font-color)
+
+                    .stat-item
+                        &.savings
+                            color: #22c55e
+                            font-weight: 500
+
+            .card-actions
+                display: flex
+                justify-content: center
+                gap: 0.5rem
+                padding: 0.75rem
+                border-top: 1px solid rgba(255, 255, 255, 0.1)
+
+                .card-button
+                    padding: 0.5rem
+                    border: 1px solid rgba(255, 255, 255, 0.2)
+                    background: rgba(255, 255, 255, 0.1)
+                    border-radius: 4px
+                    color: var(--font-color)
+                    cursor: pointer
+                    transition: all 0.3s ease
+                    display: flex
+                    align-items: center
+                    justify-content: center
 
                     &:hover:not(:disabled)
                         background: rgba(255, 255, 255, 0.2)
-                        border-color: rgba(255, 255, 255, 0.3)
 
                     &:disabled
                         opacity: 0.5
                         cursor: not-allowed
 
-                    &.primary
-                        background: var(--accent-color)
-                        border-color: var(--accent-color)
-                        color: white
+                    &.compress
+                        background: rgba(59, 130, 246, 0.2)
+                        color: #3b82f6
 
                         &:hover:not(:disabled)
-                            background: var(--accent-color-hover)
+                            background: rgba(59, 130, 246, 0.3)
 
-                    &.success
-                        background: rgba(34, 197, 94, 0.8)
-                        border-color: rgba(34, 197, 94, 0.8)
-                        color: white
+                    &.retry
+                        background: rgba(245, 158, 11, 0.2)
+                        color: #f59e0b
 
-                    &.danger
-                        background: rgba(239, 68, 68, 0.8)
-                        border-color: rgba(239, 68, 68, 0.8)
-                        color: white
+                        &:hover:not(:disabled)
+                            background: rgba(245, 158, 11, 0.3)
 
-        .stats-container
-            background: rgba(255, 255, 255, 0.05)
-            border-radius: 8px
-            padding: 1rem
-            margin-bottom: 1rem
+                    &.download
+                        background: rgba(34, 197, 94, 0.2)
+                        color: #22c55e
 
-            .stats-row
-                display: flex
-                justify-content: space-between
-                align-items: center
-                font-size: 0.875rem
+                        &:hover:not(:disabled)
+                            background: rgba(34, 197, 94, 0.3)
 
-                .stats-label
-                    color: var(--description-font-color)
+                    &.delete
+                        background: rgba(239, 68, 68, 0.2)
+                        color: #ef4444
 
-                .stats-value
-                    color: var(--font-color)
+                        &:hover:not(:disabled)
+                            background: rgba(239, 68, 68, 0.3)
 
-                .stats-savings
-                    color: #22c55e
-                    font-weight: 600
-
-        .images-list
-            display: flex
-            flex-direction: column
-            gap: 0.75rem
-
-            .image-item
-                border: 1px solid rgba(255, 255, 255, 0.1)
-                border-radius: 8px
-                padding: 1rem
-                background: rgba(255, 255, 255, 0.05)
-                transition: all 0.3s ease
-
-                &:hover
-                    background: rgba(255, 255, 255, 0.08)
-
-                .image-row
-                    display: flex
-                    align-items: center
-                    justify-content: space-between
-
-                    .image-info
-                        display: flex
-                        align-items: center
-                        gap: 0.75rem
-                        flex: 1
-
-                        .image-icon
-                            color: var(--description-font-color)
-
-                        .image-details
-                            .image-name
-                                font-size: 0.875rem
-                                font-weight: 500
-                                color: var(--font-color)
-                                margin-bottom: 0.25rem
-
-                            .image-stats
-                                display: flex
-                                gap: 1rem
-                                font-size: 0.75rem
-                                color: var(--description-font-color)
-
-                                .stat-item
-                                    &.savings
-                                        color: #22c55e
-                                        font-weight: 500
-
-                    .image-actions
-                        display: flex
-                        align-items: center
-                        gap: 0.5rem
-
-                        .status-chip
-                            padding: 0.25rem 0.5rem
-                            border-radius: 4px
-                            font-size: 0.75rem
-                            font-weight: 500
-
-                            &.pending
-                                background: rgba(156, 163, 175, 0.2)
-                                color: #9ca3af
-
-                            &.compressing
-                                background: rgba(251, 191, 36, 0.2)
-                                color: #fbbf24
-
-                            &.completed
-                                background: rgba(34, 197, 94, 0.2)
-                                color: #22c55e
-
-                            &.error
-                                background: rgba(239, 68, 68, 0.2)
-                                color: #ef4444
-
-                            .icon-button
-                                padding: 0.5rem
-                                border: none
-                                background: rgba(255, 255, 255, 0.1)
-                                border-radius: 4px
-                                color: var(--font-color)
-                                cursor: pointer
-                                transition: all 0.3s ease
-                                display: flex
-                                align-items: center
-                                justify-content: center
-
-                            &:hover:not(:disabled)
-                                background: rgba(255, 255, 255, 0.2)
-
-                            &:disabled
-                                opacity: 0.5
-                                cursor: not-allowed
-
-                            &.compress
-                                background: rgba(59, 130, 246, 0.2)
-                                color: #3b82f6
-
-                                &:hover:not(:disabled)
-                                    background: rgba(59, 130, 246, 0.3)
-
-                            &.retry
-                                background: rgba(245, 158, 11, 0.2)
-                                color: #f59e0b
-
-                                &:hover:not(:disabled)
-                                    background: rgba(245, 158, 11, 0.3)
+            .card-progress
+                padding: 0 0.75rem 0.75rem
 
                 .progress-bar
-                    margin-top: 0.5rem
                     height: 4px
                     background: rgba(255, 255, 255, 0.1)
                     border-radius: 2px
@@ -349,16 +674,11 @@
                         background: var(--accent-color)
                         animation: indeterminate 2s infinite linear
 
-                .error-message
-                    margin-top: 0.5rem
-                    color: #ef4444
-                    font-size: 0.75rem
-
-@keyframes indeterminate
-    0%
-        transform: translateX(-100%)
-    100%
-        transform: translateX(100%)
+            .card-error
+                padding: 0 0.75rem 0.75rem
+                color: #ef4444
+                font-size: 0.75rem
+                text-align: center
 
 // Responsive design
 @media (max-width: 768px)
@@ -387,3 +707,35 @@
             flex-direction: column
             gap: 0.5rem
             text-align: center
+
+        .images-header
+            flex-direction: column
+            align-items: stretch
+            gap: 0.75rem
+
+            .view-controls
+                justify-content: center
+
+        .images-grid
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr))
+            gap: 0.75rem
+
+        .image-comparison
+            .comparison-side
+                .preview-image
+                    width: 40px !important
+                    height: 40px !important
+
+        .preview-image.single
+            width: 40px !important
+            height: 40px !important
+
+@media (max-width: 480px)
+    .ImageCompress
+        .images-grid
+            grid-template-columns: 1fr
+            gap: 0.5rem
+
+        .view-controls
+            flex-direction: column
+            gap: 0.5rem

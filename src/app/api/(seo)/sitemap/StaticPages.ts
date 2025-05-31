@@ -35,7 +35,7 @@ export const StaticEndpointsPages: Array<EndpointFrequency> = [
         frequency: "weekly",
     },
     {
-        route: 'Tools/ColourConvert',
+        route: 'Tools/Colour',
         frequency: "weekly",
     },
     {
@@ -48,6 +48,30 @@ export const StaticEndpointsPages: Array<EndpointFrequency> = [
     },
     {
         route: 'Tools/Password',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/Hash',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/ImageToPDF',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/ImageCompress',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/EncryptAndDecrypt',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/DateAndTime',
+        frequency: "weekly",
+    },
+    {
+        route: 'Tools/Markdown',
         frequency: "weekly",
     },
 ];

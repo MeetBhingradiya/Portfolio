@@ -275,7 +275,7 @@ function ToolNavigation() {
                         <div className="brand-icon">
                             <Home />
                         </div>
-                        <h1 className="brand-title">Meet&apos;s Tools</h1>
+                        <h1 className="brand-title">Tools</h1>
                     </Link>
 
                     {/* Collapse Toggle Button - Only on desktop */}

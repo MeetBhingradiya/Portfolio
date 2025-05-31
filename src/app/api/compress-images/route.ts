@@ -1,31 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import sharp from 'sharp';
+import { ControllerResponseMap } from '@Utils/ControllerResponseMap';
+import { Controller_Response } from '@Types';
 
 interface CompressionSettings {
     quality: number;
-    format: 'jpeg' | 'png' | 'webp';
+    format: 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' | 'jpg';
     width?: number;
     height?: number;
     progressive?: boolean;
 }
 
-interface FileData {
-    name: string;
-    data: string; // base64
-    type: string;
-    size: number;
-}
-
 export async function POST(request: NextRequest) {
     try {
-        const { files, settings }: { files: FileData[], settings: CompressionSettings } = await request.json();
+        const formData = await request.formData();
         
-        if (!files || files.length === 0) {
-            return NextResponse.json({ error: 'No files provided' }, { status: 400 });
+        // Extract compression settings
+        const settingsData = formData.get('settings') as string;
+        if (!settingsData) {
+            const response: Controller_Response = {
+                Status: 0,
+                Message: 'Compression settings not provided',
+                StatusCode: 400
+            };
+            return ControllerResponseMap(response);
+        }
+        
+        const settings: CompressionSettings = JSON.parse(settingsData);
+        
+        // Extract files
+        const files: File[] = [];
+        for (const [key, value] of formData.entries()) {
+            if (key.startsWith('file_') && value && typeof value === 'object' && 'name' in value && 'type' in value) {
+                files.push(value as File);
+            }
+        }
+        
+        if (files.length === 0) {
+            const response: Controller_Response = {
+                Status: 0,
+                Message: 'No files provided',
+                StatusCode: 400
+            };
+            return ControllerResponseMap(response);
         }
 
         if (files.length > 10) {
-            return NextResponse.json({ error: 'Maximum 10 files allowed' }, { status: 400 });
+            const response: Controller_Response = {
+                Status: 0,
+                Message: 'Maximum 10 files allowed',
+                StatusCode: 400
+            };
+            return ControllerResponseMap(response);
         }
 
         const compressedImages = [];
@@ -41,8 +67,9 @@ export async function POST(request: NextRequest) {
                     continue;
                 }
 
-                // Convert base64 to buffer
-                const buffer = Buffer.from(file.data, 'base64');
+                // Convert file to buffer
+                const arrayBuffer = await file.arrayBuffer();
+                const buffer = Buffer.from(arrayBuffer);
 
                 // Setup Sharp instance
                 let sharpInstance = sharp(buffer);
@@ -64,9 +91,7 @@ export async function POST(request: NextRequest) {
 
                 // Apply format and quality settings
                 let outputBuffer: Buffer;
-                let mimeType: string;
-
-                switch (settings.format) {
+                let mimeType: string;                switch (settings.format) {
                     case 'jpeg':
                         outputBuffer = await sharpInstance
                             .jpeg({ 
@@ -92,6 +117,22 @@ export async function POST(request: NextRequest) {
                             })
                             .toBuffer();
                         mimeType = 'image/webp';
+                        break;
+                    case 'avif':
+                        outputBuffer = await sharpInstance
+                            .avif({ 
+                                quality: settings.quality
+                            })
+                            .toBuffer();
+                        mimeType = 'image/avif';
+                        break;
+                    case 'tiff':
+                        outputBuffer = await sharpInstance
+                            .tiff({ 
+                                quality: settings.quality
+                            })
+                            .toBuffer();
+                        mimeType = 'image/tiff';
                         break;
                     default:
                         outputBuffer = await sharpInstance.toBuffer();
@@ -126,28 +167,39 @@ export async function POST(request: NextRequest) {
             }
         }
 
-        return NextResponse.json({ 
-            success: true,
-            images: compressedImages 
-        });
+        const response: Controller_Response = {
+            Status: 1,
+            Message: 'Images compressed successfully',
+            StatusCode: 200,
+            Data: {
+                images: compressedImages
+            }
+        };
+
+        return ControllerResponseMap(response);
 
     } catch (error) {
         console.error('API Error:', error);
-        return NextResponse.json(
-            { error: 'Internal server error' }, 
-            { status: 500 }
-        );
+        
+        const response: Controller_Response = {
+            Status: 0,
+            Message: 'Internal server error',
+            StatusCode: 500,
+            Debug: error instanceof Error ? error.message : 'Unknown error'
+        };
+        
+        return ControllerResponseMap(response);
     }
 }
 
 // Add OPTIONS handler for CORS if needed
-export async function OPTIONS() {
-    return new NextResponse(null, {
-        status: 200,
-        headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, x-csrf',
-        },
-    });
-}
+// export async function OPTIONS() {
+//     return new NextResponse(null, {
+//         status: 200,
+//         headers: {
+//             'Access-Control-Allow-Origin': '*',
+//             'Access-Control-Allow-Methods': 'POST, OPTIONS',
+//             'Access-Control-Allow-Headers': 'Content-Type, x-csrf',
+//         },
+//     });
+// }

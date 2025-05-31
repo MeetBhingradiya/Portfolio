@@ -304,17 +304,17 @@
                                 background: rgba(239, 68, 68, 0.2)
                                 color: #ef4444
 
-                        .icon-button
-                            padding: 0.5rem
-                            border: none
-                            background: rgba(255, 255, 255, 0.1)
-                            border-radius: 4px
-                            color: var(--font-color)
-                            cursor: pointer
-                            transition: all 0.3s ease
-                            display: flex
-                            align-items: center
-                            justify-content: center
+                            .icon-button
+                                padding: 0.5rem
+                                border: none
+                                background: rgba(255, 255, 255, 0.1)
+                                border-radius: 4px
+                                color: var(--font-color)
+                                cursor: pointer
+                                transition: all 0.3s ease
+                                display: flex
+                                align-items: center
+                                justify-content: center
 
                             &:hover:not(:disabled)
                                 background: rgba(255, 255, 255, 0.2)
@@ -322,6 +322,20 @@
                             &:disabled
                                 opacity: 0.5
                                 cursor: not-allowed
+
+                            &.compress
+                                background: rgba(59, 130, 246, 0.2)
+                                color: #3b82f6
+
+                                &:hover:not(:disabled)
+                                    background: rgba(59, 130, 246, 0.3)
+
+                            &.retry
+                                background: rgba(245, 158, 11, 0.2)
+                                color: #f59e0b
+
+                                &:hover:not(:disabled)
+                                    background: rgba(245, 158, 11, 0.3)
 
                 .progress-bar
                     margin-top: 0.5rem

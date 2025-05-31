@@ -8,10 +8,12 @@ import {
     Delete,
     Image as ImageIcon,
     Compress,
-    PhotoSizeSelectLarge
+    PhotoSizeSelectLarge,
+    Refresh
 } from '@mui/icons-material';
 import JSZip from 'jszip';
 import { Axios } from '@Utils/Axios';
+import { Controller_Response } from '@Types';
 
 interface CompressedImage {
     id: string;
@@ -25,14 +27,27 @@ interface CompressedImage {
 }
 
 const MAX_FILES = 10;
-const SUPPORTED_FORMATS = ['image/jpeg', 'image/png', 'image/webp', 'image/tiff'];
+const SUPPORTED_FORMATS = [
+    'image/jpeg', 
+    'image/jpg', 
+    'image/png', 
+    'image/webp', 
+    'image/tiff', 
+    'image/tif',
+    'image/avif',
+    'image/bmp',
+    'image/ico',
+    'image/x-icon',
+    'image/heic',
+    'image/heif',
+    'image/svg+xml'
+];
 
 export default function ImageCompress() {
     const [images, setImages] = useState<CompressedImage[]>([]);
-    const [isCompressing, setIsCompressing] = useState(false);
-    const [compressionSettings, setCompressionSettings] = useState({
+    const [isCompressing, setIsCompressing] = useState(false);    const [compressionSettings, setCompressionSettings] = useState({
         quality: 80,
-        format: 'jpeg' as 'jpeg' | 'png' | 'webp',
+        format: 'jpeg' as 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff',
         width: 0, // 0 means keep original
         height: 0, // 0 means keep original
         progressive: true
@@ -57,12 +72,10 @@ export default function ImageCompress() {
         if (images.length + fileArray.length > MAX_FILES) {
             alert(`You can only compress up to ${MAX_FILES} images at once. Please remove some images or select fewer files.`);
             return;
-        }
-
-        // Filter supported formats
+        }        // Filter supported formats
         const supportedFiles = fileArray.filter(file => {
             if (!SUPPORTED_FORMATS.includes(file.type)) {
-                alert(`File "${file.name}" is not supported. Please upload JPEG, PNG, WebP, or TIFF images.`);
+                alert(`File "${file.name}" is not supported. Please upload JPEG, JPG, PNG, WebP, TIFF, AVIF, BMP, ICO, HEIC, HEIF, or SVG images.`);
                 return false;
             }
             return true;
@@ -106,51 +119,59 @@ export default function ImageCompress() {
     const removeImage = (id: string) => {
         setImages(prev => prev.filter(img => img.id !== id));
     };    const compressImages = async () => {
-        if (images.length === 0) return;
+        const pendingImages = images.filter(img => img.status === 'pending');
+        if (pendingImages.length === 0) return;
 
         setIsCompressing(true);
 
+        // Update status to compressing for pending images
+        setImages(prev => prev.map(img => 
+            img.status === 'pending' ? { ...img, status: 'compressing' } : img
+        ));
+
         try {
-            // Convert files to base64 for JSON API
-            const filePromises = images
-                .filter(image => image.status === 'pending')
-                .map(async (image) => {
-                    return new Promise<{ name: string; data: string; type: string; size: number }>((resolve, reject) => {
-                        const reader = new FileReader();
-                        reader.onload = () => {
-                            const base64 = (reader.result as string).split(',')[1]; // Remove data:image/...;base64, prefix
-                            resolve({
-                                name: image.originalFile.name,
-                                data: base64,
-                                type: image.originalFile.type,
-                                size: image.originalFile.size
-                            });
-                        };
-                        reader.onerror = reject;
-                        reader.readAsDataURL(image.originalFile);
-                    });
-                });
+            await compressImagesBatch(pendingImages.map(img => img.id));
+        } catch (error) {
+            console.error('Batch compression error:', error);
+        }
 
-            const files = await Promise.all(filePromises);
-
-            // Make API request using your Axios instance (JSON endpoint)
-            const response = await Axios.post('/api/compress-images', {
-                files,
-                settings: compressionSettings
+        setIsCompressing(false);
+    };    const compressImagesBatch = async (imageIds: string[]) => {
+        const imagesToCompress = images.filter(img => imageIds.includes(img.id));
+        
+        try {
+            // Create FormData
+            const formData = new FormData();
+            
+            // Add compression settings
+            formData.append('settings', JSON.stringify(compressionSettings));
+            
+            // Add files
+            imagesToCompress.forEach((image, index) => {
+                formData.append(`file_${index}`, image.originalFile);
             });
 
-            const result = response.data;
+            // Make API request using FormData
+            const response = await Axios.post('/api/compress-images', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
 
-            if (!result.success) {
-                throw new Error('Compression failed');
+            const result: Controller_Response = response.data;
+
+            // Check if the response status indicates success
+            if (result.Status !== 1) {
+                throw new Error(result.Message || 'Compression failed');
             }
 
             // Update images with compressed data
             const updatedImages = [...images];
 
-            result.images.forEach((compressedImage: any, index: number) => {
+            result.Data?.images?.forEach((compressedImage: any) => {
                 const imageIndex = updatedImages.findIndex(
-                    img => img.originalFile.name === compressedImage.originalName && img.status === 'pending'
+                    img => img.originalFile.name === compressedImage.originalName && 
+                           imageIds.includes(img.id)
                 );
 
                 if (imageIndex !== -1) {
@@ -180,26 +201,54 @@ export default function ImageCompress() {
                 }
             });
 
-            setImages(updatedImages);        } catch (error: any) {
+            setImages(updatedImages);
+
+        } catch (error: any) {
             console.error('Compression error:', error);
             
-            // Handle Axios error response format
+            // Handle Controller_Response error format
             let errorMessage = 'Failed to compress images';
-            if (error?.response?.data?.error) {
-                errorMessage = error.response.data.error;
+            if (error?.response?.data?.Message) {
+                errorMessage = error.response.data.Message;
             } else if (error?.message) {
                 errorMessage = error.message;
             }
-            
-            alert(errorMessage);
 
-            // Update all pending images to error state
+            // Update specific images to error state
             setImages(prev => prev.map(img =>
-                img.status === 'pending' ? { ...img, status: 'error', error: errorMessage } : img
+                imageIds.includes(img.id) && img.status === 'compressing' 
+                    ? { ...img, status: 'error', error: errorMessage } 
+                    : img
             ));
-        }
 
-        setIsCompressing(false);
+            throw error;
+        }
+    };
+
+    const compressSingle = async (imageId: string) => {
+        // Update status to compressing
+        setImages(prev => prev.map(img => 
+            img.id === imageId ? { ...img, status: 'compressing' } : img
+        ));
+
+        try {
+            await compressImagesBatch([imageId]);
+        } catch (error) {
+            // Error handling is done in compressImagesBatch
+            console.error('Single compression error:', error);
+        }
+    };
+
+    const retryCompression = async (imageId: string) => {
+        // Reset status to pending and then compress
+        setImages(prev => prev.map(img => 
+            img.id === imageId ? { ...img, status: 'pending', error: undefined } : img
+        ));
+        
+        // Small delay to ensure state update
+        setTimeout(() => {
+            compressSingle(imageId);
+        }, 100);
     };
 
     const downloadSingle = (image: CompressedImage) => {
@@ -286,18 +335,16 @@ export default function ImageCompress() {
                     <CloudUpload className="upload-icon" />
                     <p className="upload-text">
                         {isDragOver ? 'Drop images here' : 'Drop images here or click to upload'}
-                    </p>
-                    <p className="upload-description">
-                        Supports JPEG, PNG, WebP, TIFF • Max {MAX_FILES} files
+                    </p>                    <p className="upload-description">
+                        Supports JPG, PNG, WebP, TIFF, AVIF, BMP, ICO, HEIC, HEIF, SVG • Max {MAX_FILES} files
                     </p>
                     <button className="select-button">
                         <PhotoSizeSelectLarge style={{ fontSize: '1rem' }} />
                         Select Images
-                    </button>
-                    <input
+                    </button>                    <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/jpeg,image/png,image/webp,image/tiff"
+                        accept="image/jpeg,image/jpg,image/png,image/webp,image/tiff,image/tif,image/avif,image/bmp,image/ico,image/x-icon,image/heic,image/heif,image/svg+xml"
                         multiple
                         style={{ display: 'none' }}
                         onChange={handleFileUpload}
@@ -322,10 +369,9 @@ export default function ImageCompress() {
                             </div>
                         </div>
                         <div className="setting-group">
-                            <label className="setting-label">Output Format</label>
-                            <select
+                            <label className="setting-label">Output Format</label>                            <select
                                 value={compressionSettings.format}
-                                onChange={(e) => setCompressionSettings(prev => ({ ...prev, format: e.target.value as 'jpeg' | 'png' | 'webp' }))}
+                                onChange={(e) => setCompressionSettings(prev => ({ ...prev, format: e.target.value as 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' }))}
                                 style={{
                                     padding: '0.5rem',
                                     borderRadius: '4px',
@@ -337,6 +383,8 @@ export default function ImageCompress() {
                                 <option value="jpeg">JPEG</option>
                                 <option value="png">PNG</option>
                                 <option value="webp">WebP</option>
+                                <option value="avif">AVIF</option>
+                                <option value="tiff">TIFF</option>
                             </select>
                         </div>
                         <div className="setting-group">
@@ -372,14 +420,13 @@ export default function ImageCompress() {
                 <div className="images-container glass">
                     <div className="images-header">
                         <h3 className="images-title">Images ({images.length}/{MAX_FILES})</h3>
-                        <div className="action-buttons">
-                            <button
+                        <div className="action-buttons">                            <button
                                 className={`action-button primary ${isCompressing ? 'loading' : ''}`}
                                 onClick={compressImages}
-                                disabled={isCompressing || images.every(img => img.status === 'completed')}
+                                disabled={isCompressing || !images.some(img => img.status === 'pending')}
                             >
                                 <Compress style={{ fontSize: '1rem' }} />
-                                {isCompressing ? 'Compressing...' : 'Compress All'}
+                                {isCompressing ? 'Compressing...' : `Compress Pending (${images.filter(img => img.status === 'pending').length})`}
                             </button>
                             <button
                                 className="action-button success"
@@ -430,11 +477,28 @@ export default function ImageCompress() {
                                                 )}
                                             </div>
                                         </div>
-                                    </div>
-                                    <div className="image-actions">
+                                    </div>                                    <div className="image-actions">
                                         <span className={`status-chip ${image.status}`}>
                                             {image.status}
                                         </span>
+                                        {image.status === 'pending' && (
+                                            <button
+                                                className="icon-button compress"
+                                                onClick={() => compressSingle(image.id)}
+                                                title="Compress this image"
+                                            >
+                                                <Compress style={{ fontSize: '1rem' }} />
+                                            </button>
+                                        )}
+                                        {image.status === 'error' && (
+                                            <button
+                                                className="icon-button retry"
+                                                onClick={() => retryCompression(image.id)}
+                                                title="Retry compression"
+                                            >
+                                                <Refresh style={{ fontSize: '1rem' }} />
+                                            </button>
+                                        )}
                                         {image.status === 'completed' && (
                                             <button
                                                 className="icon-button"

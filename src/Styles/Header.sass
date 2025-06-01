@@ -10,40 +10,280 @@
     align-items: center
     font-size: 0.8rem
     user-select: none
+    z-index: 1000
+    transition: all 0.3s ease
+
+    &.scrolled
+        backdrop-filter: blur(20px)
+        
+        .Warp
+            background: rgba(15, 23, 42, 0.8)
+            border: 1px solid rgba(148, 163, 184, 0.2)
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1)
 
     .Warp
-        z-index: 1
-        background: rgba(88, 88, 88, 0.35)
-        border: 1px solid rgba(125, 125, 125, 0.25)
-        // box-shadow: 0px 2px 3px 0px rgba(4, 1, 1, 0.25)
-        backdrop-filter: blur(2px)
+        z-index: 1001
+        background: rgba(15, 23, 42, 0.7)
+        border: 1px solid rgba(148, 163, 184, 0.2)
+        backdrop-filter: blur(10px)
         display: flex
         flex-direction: row
         justify-content: space-between
         align-items: center
-        gap: 1rem
-        border-radius: 20px
-        padding: 0.5rem 1rem
+        gap: 1.5rem
+        border-radius: 24px
+        padding: 0.75rem 1.5rem
+        transition: all 0.3s ease
+        max-width: 1200px
+        width: 100%
+
         .Brand
+            display: flex
+            flex-direction: row
+            justify-content: flex-start
+            align-items: center
+            min-width: fit-content
+
+            .brand-link
+                display: flex
+                align-items: center
+                gap: 0.75rem
+                text-decoration: none
+                color: white
+                transition: all 0.3s ease
+
+                &:hover
+                    color: rgb(59, 130, 246)
+
+            .Icon
+                width: 2.5rem
+                height: 2.5rem
+                position: relative
+                overflow: hidden
+                border-radius: 50%
+                
+                img
+                    width: 100%
+                    height: 100%
+                    object-fit: cover
+                    border-radius: 50%
+                    transition: transform 0.3s ease
+
+                &:hover img
+                    transform: scale(1.1)
+
+            .brand-text
+                font-size: 1.25rem
+                font-weight: 700
+                background: linear-gradient(135deg, rgb(59, 130, 246), rgb(147, 51, 234))
+                background-clip: text
+                -webkit-background-clip: text
+                -webkit-text-fill-color: transparent
+                display: none
+
+                @media (min-width: 640px)
+                    display: block
+
+        .QuickLinks
             display: flex
             flex-direction: row
             justify-content: center
             align-items: center
-            width: 100%
-            .Icon
-                width: 2.5rem
-                height: 2.5rem
-                margin-right: 0.5rem
-                img
-                    width: 100%
-                    height: 100%
-                    border-radius: 50%
-        .QuickLinks
-            width: 100%
-            display: flex
-            flex-direction: row
-            justify-content: space-around
-            align-items: center
-            gap: 1rem
-            .SimpleLink
+            gap: 0.5rem
+            flex: 1
+
+            &.desktop-nav
+                @media (max-width: 768px)
+                    display: none
+
+        .nav-item
+            position: relative
+
+            .nav-link
+                display: flex
+                align-items: center
+                gap: 0.5rem
+                padding: 0.75rem 1rem
+                border-radius: 16px
+                text-decoration: none
+                color: rgba(255, 255, 255, 0.8)
+                font-weight: 500
+                font-size: 0.875rem
+                transition: all 0.3s ease
                 position: relative
+
+                &:hover
+                    color: white
+                    background: rgba(255, 255, 255, 0.1)
+                    transform: translateY(-1px)
+
+            &.active .nav-link
+                color: white
+                background: rgba(59, 130, 246, 0.2)
+                border: 1px solid rgba(59, 130, 246, 0.3)
+
+            .nav-icon
+                display: flex
+                align-items: center
+                font-size: 1.1rem
+
+            .nav-label
+                @media (max-width: 1024px)
+                    display: none
+
+            .active-indicator
+                position: absolute
+                bottom: -2px
+                left: 50%
+                transform: translateX(-50%)
+                width: 20px
+                height: 2px
+                background: linear-gradient(90deg, rgb(59, 130, 246), rgb(147, 51, 234))
+                border-radius: 2px
+
+        .theme-toggle
+            display: flex
+            align-items: center
+            justify-content: center
+            width: 2.5rem
+            height: 2.5rem
+            border: none
+            background: rgba(255, 255, 255, 0.1)
+            color: rgba(255, 255, 255, 0.8)
+            border-radius: 12px
+            cursor: pointer
+            transition: all 0.3s ease
+            font-size: 1.1rem
+
+            &:hover
+                background: rgba(255, 255, 255, 0.2)
+                color: white
+                transform: scale(1.05)
+
+            @media (max-width: 768px)
+                display: none
+
+        .mobile-menu-toggle
+            display: none
+            align-items: center
+            justify-content: center
+            width: 2.5rem
+            height: 2.5rem
+            border: none
+            background: rgba(255, 255, 255, 0.1)
+            color: rgba(255, 255, 255, 0.8)
+            border-radius: 12px
+            cursor: pointer
+            transition: all 0.3s ease
+
+            &:hover
+                background: rgba(255, 255, 255, 0.2)
+                color: white
+
+            @media (max-width: 768px)
+                display: flex
+
+        .mobile-nav
+            position: absolute
+            top: calc(100% + 0.5rem)
+            right: 0
+            min-width: 280px
+            background: rgba(15, 23, 42, 0.95)
+            backdrop-filter: blur(20px)
+            border: 1px solid rgba(148, 163, 184, 0.2)
+            border-radius: 20px
+            overflow: hidden
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3)
+
+            .mobile-nav-content
+                padding: 1rem
+
+            .mobile-nav-item, .mobile-theme-toggle
+                margin-bottom: 0.5rem
+
+                &:last-child
+                    margin-bottom: 0
+
+            .mobile-nav-link, .mobile-theme-toggle
+                display: flex
+                align-items: center
+                gap: 1rem
+                padding: 1rem
+                border-radius: 16px
+                text-decoration: none
+                color: rgba(255, 255, 255, 0.8)
+                font-weight: 500
+                transition: all 0.3s ease
+                border: none
+                background: transparent
+                width: 100%
+                cursor: pointer
+
+                &:hover
+                    background: rgba(255, 255, 255, 0.1)
+                    color: white
+                    transform: translateX(4px)
+
+            .mobile-nav-item.active .mobile-nav-link
+                background: rgba(59, 130, 246, 0.2)
+                color: white
+                border: 1px solid rgba(59, 130, 246, 0.3)
+
+            .mobile-nav-icon
+                display: flex
+                align-items: center
+                font-size: 1.25rem
+                min-width: 1.5rem
+
+            .mobile-nav-label
+                font-size: 0.95rem
+
+    .mobile-menu-backdrop
+        position: fixed
+        top: 0
+        left: 0
+        right: 0
+        bottom: 0
+        background: rgba(0, 0, 0, 0.5)
+        z-index: 999
+
+    // Responsive adjustments
+    @media (max-width: 480px)
+        padding: 0.75rem
+
+        .Warp
+            padding: 0.5rem 1rem
+            gap: 1rem
+
+        .mobile-nav
+            left: 0.75rem
+            right: 0.75rem
+            min-width: auto
+
+    // Dark mode support
+    @media (prefers-color-scheme: dark)
+        .Warp
+            background: rgba(15, 23, 42, 0.8)
+            border-color: rgba(148, 163, 184, 0.2)
+
+        &.scrolled .Warp
+            background: rgba(15, 23, 42, 0.9)
+
+    // Light mode support  
+    @media (prefers-color-scheme: light)
+        .Warp
+            background: rgba(255, 255, 255, 0.8)
+            border-color: rgba(148, 163, 184, 0.3)
+
+        &.scrolled .Warp
+            background: rgba(255, 255, 255, 0.9)
+
+        .brand-link, .nav-link, .mobile-nav-link, .theme-toggle, .mobile-menu-toggle
+            color: rgba(15, 23, 42, 0.8)
+
+            &:hover
+                color: rgb(15, 23, 42)
+
+        .mobile-nav
+            background: rgba(255, 255, 255, 0.95)
+            border-color: rgba(148, 163, 184, 0.3)

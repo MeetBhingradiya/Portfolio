@@ -47,8 +47,8 @@ interface IConfig {
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
-    version: "v1.2.0",
-    releasedate: "2025-05-22",
+    version: "v1.3.0",
+    releasedate: "2025-06-01",
     visiblebranch: "Release",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -56,6 +56,7 @@ const Config: IConfig = {
     VercelSpeedInsight: false,
     ReactScan: false,
     WhiteListedDomains: [
+        "meetbhingradiya.shop",
         "meetbhingradiya.tech",
         // "meetbhingradiya.vercel.app",
         // "admin.meetbhingradiya.tech",

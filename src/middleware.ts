@@ -37,15 +37,16 @@ export async function middleware(req: NextRequest) {
         // }
 
         const csrfTokenFromHeader = req.headers.get('x-csrf');
-        const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
-
-        const excludedRoutes = [
+        const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);        const excludedRoutes = [
             // '/api/ip',
             '/api/trace',
             '/api/sitemap',
             '/api/sitemap/*',
             '/api/robots',
             '/api/bookmarks',
+            '/api/contact', // Allow contact form submissions
+            '/api/tickets', // Allow ticket system access
+            '/api/admin/tickets', // Allow admin ticket management (auth handled in route)
             '/api/developer/emergency/disable' // Allow emergency recovery endpoint
         ];
 

@@ -1,10 +1,23 @@
 "use client";
 
-import React from 'react'
+import React, { useState } from 'react'
 import "@Styles/LandingFooter.sass"
 import { SocialLinks } from '@Config/SocialLinks'
 import { useTheme } from "@Hooks/useTheme";
 import { Tooltip } from '@heroui/react';
+import { motion } from 'framer-motion';
+import {
+    ArrowUpward,
+    Favorite,
+    Email,
+    LocationOn,
+    Code,
+    Coffee,
+    GitHub,
+    LinkedIn,
+    Lightbulb
+} from '@mui/icons-material';
+import Image from 'next/image';
 
 
 interface Link {
@@ -23,58 +36,72 @@ interface Group {
 
 function LandingFooter() {
     const { theme, toggleTheme } = useTheme();
+    const [showScrollTop, setShowScrollTop] = useState(false);
+
+    // Scroll to top functionality
+    const scrollToTop = () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    // Show/hide scroll to top button based on scroll position
+    React.useEffect(() => {
+        const handleScroll = () => {
+            setShowScrollTop(window.scrollY > 400);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     const Links: Group[] = [
-        {
-            title: "About",
-            links: [
-                {
-                    label: "About Me",
-                    endpoint: "/about"
-                },
-                {
-                    label: "Experience",
-                    endpoint: "/Experience"
-                },
-                {
-                    label: "Education",
-                    endpoint: "/Education",
-                    isEnable: false
-                },
-                {
-                    label: "Skills",
-                    endpoint: "/Skills"
-                },
-                {
-                    label: "Resume",
-                    endpoint: "/Resume",
-                    tooltip: "Generate PDF Resume (Short Version of CV)"
-                },
-                {
-                    label: "CV",
-                    endpoint: "/CurriculumVitae",
-                    tooltip: "Generate PDF CV"
-                },
-            ]
-        },
-        {
-            title: "Explore",
-            isEnable: true,
-            links: [
-                {
-                    label: "Blogs",
-                    endpoint: "/blogs"
-                },
-                {
-                    label: "Showcase",
-                    endpoint: "/Showcase"
-                },
-                {
-                    label: "Timeline",
-                    endpoint: "/Showcase"
-                },
-            ]
-        },
+        // {
+        //     title: "About",
+        //     links: [{
+        //         label: "About Me",
+        //         endpoint: "/about"
+        //     },
+        //     {
+        //         label: "Experience",
+        //         endpoint: "/Experience"
+        //     },
+        //     {
+        //         label: "Education",
+        //         endpoint: "/Education",
+        //         isEnable: false
+        //     },
+        //     {
+        //         label: "Skills",
+        //         endpoint: "/Skills"
+        //     },
+        //     {
+        //         label: "Resume",
+        //         endpoint: "/Resume",
+        //         tooltip: "Generate PDF Resume (Short Version of CV)"
+        //     },
+        //     {
+        //         label: "CV",
+        //         endpoint: "/CurriculumVitae",
+        //         tooltip: "Generate PDF CV"
+        //     },
+        //     ]
+        // },
+        // {
+        //     title: "Explore",
+        //     isEnable: true,
+        //     links: [
+        //         {
+        //             label: "Blogs",
+        //             endpoint: "/blogs"
+        //         },
+        //         {
+        //             label: "Showcase",
+        //             endpoint: "/Showcase"
+        //         },
+        //         {
+        //             label: "Timeline",
+        //             endpoint: "/Showcase"
+        //         },
+        //     ]
+        // },
         {
             title: "Projects",
             isEnable: true,
@@ -147,22 +174,29 @@ function LandingFooter() {
             ]
         },
         {
-            title: "Social",
+            title: "Connect",
+            isEnable: true,
             links: [
-                ...SocialLinks.map((item, index) => {
-                    if (item.isEnable) {
-                        return {
-                            label: item.Label,
-                            endpoint: item?.URL || "/",
-                        }
-                    } else {
-                        return null
-                    }
-                }).filter((item) => item !== null) as Link[],
                 {
-                    label: "Contact Me",
-                    endpoint: "/contact"
+                    label: "GitHub Projects",
+                    endpoint: "https://github.com/itzDeepansu",
+                    tooltip: "Explore my open source projects"
                 },
+                {
+                    label: "LinkedIn Profile",
+                    endpoint: "https://linkedin.com/in/deepansu",
+                    tooltip: "Connect professionally"
+                },
+                {
+                    label: "Email Me",
+                    endpoint: "mailto:deepansu@example.com",
+                    tooltip: "Get in touch directly"
+                },
+                // {
+                //     label: "Location",
+                //     endpoint: "#",
+                //     tooltip: "India 🇮🇳"
+                // }
             ]
         },
         {
@@ -199,61 +233,206 @@ function LandingFooter() {
                 }
             ]
         },
-    ]
+    ];
 
     return (<>
-        <div className="LandingFooter">
+        <footer className="relative bg-gradient-to-b from-slate-800 to-slate-900 text-white">
+            {/* Scroll to Top Button */}
+            {showScrollTop && (
+                <motion.button
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0 }}
+                    onClick={scrollToTop}
+                    className="fixed bottom-8 right-8 z-50 bg-gradient-to-r from-blue-500 to-purple-600 text-white p-3 rounded-full shadow-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-110"
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.95 }}
+                >
+                    <ArrowUpward className="text-xl" />
+                </motion.button>
+            )}
 
-            {/* Brand Icon with Name */}
-            <div className="Brand flex flex-col gap-2">
-                <div className='Icon'>
-                    <img src="/favicon.ico" />
+            {/* Newsletter/CTA Section */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="bg-gradient-to-r from-blue-600 to-purple-700 py-12"
+            >
+                <div className="max-w-6xl mx-auto px-4 text-center">
+                    <h2 className="text-3xl font-bold mb-4">Let&apos;s Build Something Amazing Together</h2>
+                    <p className="text-xl mb-8 text-blue-100">
+                        Interested in collaborating? I&apos;m always open to discussing new opportunities.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <motion.a
+                            href="/contact"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            Get In Touch
+                        </motion.a>
+                        <motion.a
+                            href="https://github.com/MeetBhingradiya"
+                            target="_blank"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-8 py-3 border-2 border-white text-white font-semibold rounded-full hover:bg-white hover:text-blue-600 transition-colors"
+                        >
+                            View GitHub
+                        </motion.a>
+                    </div>
                 </div>
-                <div className='text'>
-                    <h1 className="text-2xl">Meet Bhingradiya</h1>
-                </div>
-                {/* <p className="text-gray-400"></p> */}
-            </div>
+            </motion.div>
 
-            {/* Render Links with Group on Side */}
-            <div className="Links flex flex-row justify-between">
-                {Links.map((group, index) => {
-                    if (group.isEnable === false) return null
-                    return (
-                        <div key={index} className="Group flex flex-col gap-2">
-                            <h3 className="Title text-lg font-bold">{group.title}</h3>
-                            {group.links.map((link, index) => {
-                                if (link.isEnable === false) return null
-                                if (link.function) {
-                                    return (
-                                        <a key={index} onClick={link.function} className="Link text-gray-400 hover:text-gray-500 cursor-pointer select-none">{link.label}</a>
-                                    )
-                                }
-
-                                if (link.tooltip) {
-                                    return (
-                                        <Tooltip key={index} content={link.tooltip} placement="top">
-
-                                            {
-                                                link.function ? (
-                                                    <a key={index} onClick={link.function} className="Link text-gray-400 hover:text-gray-500 cursor-pointer select-none">{link.label}</a>
-                                                ) : (
-                                                    <a key={index} href={link.endpoint} className="Link text-gray-400 hover:text-gray-500">{link.label}</a>
-                                                )
-                                            }
-                                        </Tooltip>
-                                    )
-                                }
-
-                                return (
-                                    <a key={index} href={link.endpoint} className="Link text-gray-400 hover:text-gray-500">{link.label}</a>
-                                )
-                            })}
+            {/* Main Footer Content */}
+            <div className="max-w-6xl mx-auto px-4 py-12">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {/* Brand Section */}
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="lg:col-span-1"
+                    >
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                                <Code className="text-white text-xl" />
+                                {/* <Image
+                                    src="http://localhost:3000/favicon.ico"
+                                    alt="Meet Bhingradiya Logo"
+                                    width={48}
+                                    height={48}
+                                    className="rounded-lg"
+                                /> */}
+                            </div>
+                            <h2 className="text-2xl font-bold">Meet Bhingradiya</h2>
                         </div>
-                    )
-                })}
+                        <p className="text-gray-300 mb-6 leading-relaxed">
+                            Self-taught developer passionate about creating innovative solutions and contributing to open source. Currently pursuing Diploma in IT and exploring the tech industry.
+                        </p>
+
+                        {/* Quick Stats */}
+                        <div className="grid grid-cols-2 gap-4 mb-6">
+                            <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-lg">
+                                <div className="text-2xl font-bold text-blue-400">30+</div>
+                                <div className="text-sm text-gray-400">Projects</div>
+                            </div>
+                            <div className="text-center p-3 bg-white/10 backdrop-blur-sm rounded-lg">
+                                <div className="text-2xl font-bold text-purple-400">2025</div>
+                                <div className="text-sm text-gray-400">Goals</div>
+                            </div>
+                        </div>
+
+                        {/* Social Links */}
+                        {/* <div className="flex space-x-4">
+                            {SocialLinks.filter(link => link.isEnable).map((social, index) => (
+                                <motion.a
+                                    key={social.Label}
+                                    href={social.URL}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    whileHover={{ scale: 1.2, rotate: 5 }}
+                                    whileTap={{ scale: 0.9 }}
+                                    className="text-gray-400 hover:text-white transition-colors duration-300 text-2xl"
+                                >
+                                    {social.Component}
+                                </motion.a>
+                            ))}
+                        </div> */}
+                    </motion.div>
+
+                    {/* Links Sections */}
+                    {Links.filter(group => group.isEnable !== false).map((group, groupIndex) => (
+                        <motion.div
+                            key={groupIndex}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.6, delay: groupIndex * 0.1 }}
+                            className="space-y-4"
+                        >
+                            <h3 className="text-lg font-semibold text-white mb-4">{group.title}</h3>
+                            <div className="space-y-3">
+                                {group.links.filter(link => link.isEnable !== false).map((link, linkIndex) => (
+                                    <div key={linkIndex}>
+                                        {link.tooltip ? (
+                                            <Tooltip content={link.tooltip} placement="top">
+                                                {link.function ? (
+                                                    <button
+                                                        onClick={link.function}
+                                                        className="text-gray-400 hover:text-white transition-colors duration-300 cursor-pointer block text-left"
+                                                    >
+                                                        {link.label}
+                                                    </button>
+                                                ) : (
+                                                    <a
+                                                        href={link.endpoint}
+                                                        target={link.endpoint?.startsWith('http') ? '_blank' : '_self'}
+                                                        rel={link.endpoint?.startsWith('http') ? 'noopener noreferrer' : ''}
+                                                        className="text-gray-400 hover:text-white transition-colors duration-300 block"
+                                                    >
+                                                        {link.label}
+                                                    </a>
+                                                )}
+                                            </Tooltip>
+                                        ) : (
+                                            link.function ? (
+                                                <button
+                                                    onClick={link.function}
+                                                    className="text-gray-400 hover:text-white transition-colors duration-300 cursor-pointer block text-left"
+                                                >
+                                                    {link.label}
+                                                </button>
+                                            ) : (
+                                                <a
+                                                    href={link.endpoint}
+                                                    target={link.endpoint?.startsWith('http') ? '_blank' : '_self'}
+                                                    rel={link.endpoint?.startsWith('http') ? 'noopener noreferrer' : ''}
+                                                    className="text-gray-400 hover:text-white transition-colors duration-300 block"
+                                                >
+                                                    {link.label}
+                                                </a>
+                                            )
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Bottom Section */}
+                {/* <motion.div 
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                    className="border-t border-gray-700 mt-12 pt-8"
+                >
+                    <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                        <div className="text-gray-400 text-sm">
+                            © 2025 Deepansu. Built with{' '}
+                            <Favorite className="inline text-red-500 text-sm mx-1" />
+                            using Next.js, Tailwind CSS & Framer Motion
+                        </div>
+                        <div className="flex items-center space-x-4 text-gray-400 text-sm">
+                            <span className="flex items-center">
+                                <Coffee className="mr-1 text-sm" />
+                                Fueled by coffee
+                            </span>
+                            <span className="flex items-center">
+                                <Lightbulb className="mr-1 text-sm" />
+                                Always learning
+                            </span>
+                            <span className="flex items-center">
+                                <LocationOn className="mr-1 text-sm" />
+                                India 🇮🇳
+                            </span>
+                        </div>
+                    </div>
+                </motion.div> */}
             </div>
-        </div>
+        </footer>
     </>)
 }
 

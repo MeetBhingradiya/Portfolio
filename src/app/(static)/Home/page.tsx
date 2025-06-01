@@ -97,8 +97,8 @@ export default function HomePage() {
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-spin-slow"></div>
                         <div className="absolute inset-2 bg-slate-900 rounded-full"></div>
                         <Image
-                            src="http://localhost:3000/favicon.ico"
-                            alt="Deepansu Profile"
+                            src="/favicon.ico"
+                            alt="Meet Bhingradiya's Profile"
                             className="absolute inset-3 rounded-full object-cover"
                             width={180}
                             height={180}

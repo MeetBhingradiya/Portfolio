@@ -1,31 +1,24 @@
-// import nodemailer from 'nodemailer';
+import nodemailer from 'nodemailer';
 
-/**
- * Send Email using Nodemailer
- * @param {string} to Email Address to send email
- * @param {string} subject Email Subject
- * @param {string} html Email Body
- * @returns {Promise<boolean>} Email Sent Status
- */
-// async function SendEmail(to: string, subject: string, html: string): Promise<boolean> {
-//     const transporter = nodemailer.createTransport({
-//         host: process.env.EMAIL_HOST,
-//         port: 465,
-//         secure: true,
-//         auth: {
-//             user: process.env.EMAIL_USER,
-//             pass: process.env.EMAIL_PASS
-//         }
-//     });
+function createEmailTransport() {
+    if (!process.env.SMTP_HOST || !process.env.SMTP_EMAIL || !process.env.SMTP_APP_PASS) {
+        throw new Error('SMTP configuration is incomplete');
+    }
 
-//     const info = await transporter.sendMail({
-//         from: process.env.EMAIL_FROM,
-//         to,
-//         subject,
-//         html
-//     });
+    return nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: 587,
+        secure: false,
+        auth: {
+            user: process.env.SMTP_EMAIL,
+            pass: process.env.SMTP_APP_PASS,
+        },
+        tls: {
+            rejectUnauthorized: false
+        }
+    });
+}
 
-//     return info.accepted.length > 0;
-// }
-
-// export { SendEmail };
+export {
+    createEmailTransport
+}

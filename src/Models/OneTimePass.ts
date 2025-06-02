@@ -2,9 +2,14 @@ import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 
 export enum OTPs {
+    // ? Used to Verify Emails
     Email = "email",
-    SMS = "sms",
-    Notification = "notification"
+
+    // ? Used to Verify Phone Numbers
+    Phone = "phone",
+
+    // ? Used to Forgot Passwords
+    PasswordReset = "password_reset"
 }
 
 const OTP_Schema: mongoose.Schema = new mongoose.Schema({
@@ -18,10 +23,16 @@ const OTP_Schema: mongoose.Schema = new mongoose.Schema({
         type: String,
         enum: [
             OTPs.Email,
-            OTPs.SMS,
-            OTPs.Notification
+            OTPs.Phone,
+            OTPs.PasswordReset
         ],
-        required: true
+        required: true,
+        index: true
+    },
+    UserID: {
+        type: String,
+        required: true,
+        index: true
     },
     Data: {
         type: String,
@@ -35,8 +46,8 @@ const OTP_Schema: mongoose.Schema = new mongoose.Schema({
     timestamps: true,
     versionKey: "v1",
 
-    // ? ByDefault 15 Minutes
-    // expireAfterSeconds: 15 * 60
+    // ? ByDefault Saved for 24 Hours to Lock Account as Anti-Brute Force
+    expireAfterSeconds: 60 * 60 * 24
 });
 
 export interface IOTP extends mongoose.Document {

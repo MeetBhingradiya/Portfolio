@@ -5,71 +5,88 @@ const Sessions_Schema: mongoose.Schema = new mongoose.Schema({
     SessionID: {
         type: String,
         default: v4,
-        unique: true
+        unique: true,
+        required: true,
+        index: true
     },
+
     UserID: {
         type: String,
         required: true,
         index: true
     },
-    LocalStorage_RSAKeyID: {
-        type: String,
-        required: true
+
+    isRevoked: {
+        type: Boolean,
+        default: false
     },
-    Cookie_RSAKeyID: {
-        type: String,
-        required: true
-    },
+    
+    // ? Decrypted Token from Local Storage & Cookies
     AccessToken: {
         type: String,
         required: true
     },
+
     UserAgent: {
         type: String,
         required: true
     },
-    UnknownRequestHeaders: {
-        type: [Object]
-    },
-    DetectedExtensions: {
-        type: [String]
-    },
+
+    // ? Extracted from User Agent
     Platform: {
         type: String
     },
     Browser: {
         type: String
     },
+    Model: {
+        type: String
+    },
+    
+    // ? Track Hackers or Debuggers
+    UnknownRequestHeaders: {
+        type: [Object]
+    },
+    DetectedExtensions: {
+        type: [String]
+    },
+    
+    // ? IP & Location Info By IPData.com
     IPDataMappedResponse: {
         type: Object
+    },
+
+    // ? Session Expiration
+    ExpiresAt: {
+        type: Date,
+        required: true,
+        default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     }
 }, {
     timestamps: true,
-    versionKey: "v1"
+    versionKey: "v1",
+
+    // ? ByDefault Saved for 60 Days to Track Sessions
+    expireAfterSeconds: 60 * 60 * 24 * 60
 });
 
 export interface ISessions extends Document {
     SessionID: string
-
     UserID: string
 
-    // ? Linked Local Storage & Cookies Encryption
+    AccessToken: string
 
-    // ? Used to Access Identiy on Local Storage or Cookie as Non Trackable Key
-    LocalStorage_RSAKeyID: string
-    Cookie_RSAKeyID: string
-    AccessToken: string // ? Send Encrypted Using 2 Different RSA Keys (Local & Cookie)
-
-    // ? NEW Properties
     UserAgent: string
-    
+    Platform: "Windows" | "Linux" | "Android" | "iOS" | "MacOS"
+    Browser: "Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Unknown"
+    Model: string
+
+    isRevoked: boolean
+
     UnknownRequestHeaders: Array<{
         [key: string]: string
     }>
-    
     DetectedExtensions: string[]
-    Platform: "Windows" | "Linux" | "Android" | "iOS" | "MacOS"
-    Browser: "Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Unknown"
 
     IPDataMappedResponse: {
         IP: string
@@ -98,11 +115,14 @@ export interface ISessions extends Document {
             current_time: string
             is_daylight_saving: boolean
         }
-
+        
         // ? Maplocation
         Latitude: number
         Longitude: number
     }
+
+    // ? Expiry
+    ExpiresAt: Date
 }
 
 export const Sessions_Model: mongoose.Model<ISessions> = mongoose.models?.Sessions || mongoose.model<ISessions>("Sessions", Sessions_Schema);

@@ -22,6 +22,7 @@ import {
 import Header from "@Components/Header";
 import { Aurora } from "@Lib/reactbits/Backgrounds";
 import { SocialLinks } from "@Config/SocialLinks";
+import { Axios } from "@Utils/Axios";
 import LandingFooter from "@Components/Footer/LandingFooter";
 
 interface ContactFormData {
@@ -110,15 +111,9 @@ function ContactPage() {
             setStatus({ type: 'loading', message: 'Sending message...' });
 
             try {
-                const emailResponse = await fetch('/api/contact', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
-                });
+                const emailResponse = await Axios.post('/api/contact', formData);
 
-                const emailData = await emailResponse.json();
+                const emailData = emailResponse.data;
 
                 if (emailData.success) {
                     setStatus({
@@ -155,15 +150,9 @@ function ContactPage() {
             setStatus({ type: 'loading', message: 'Creating support ticket...' });
 
             try {
-                const ticketResponse = await fetch('/api/tickets', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(formData),
-                });
+                const ticketResponse = await Axios.post('/api/tickets', formData);
 
-                const ticketData = await ticketResponse.json();
+                const ticketData = ticketResponse.data;
 
                 if (ticketData.success) {
                     setStatus({
@@ -542,7 +531,8 @@ function ContactPage() {
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 1.7 }}
-                                    >                                        <motion.button
+                                    >
+                                        <motion.button
                                         type="submit"
                                         disabled={status.type === 'loading'}
                                         whileHover={{ scale: 1.02 }}

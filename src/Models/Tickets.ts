@@ -4,8 +4,8 @@ import { v4 } from 'uuid';
 const TicketResponse_Schema = new mongoose.Schema({
     id: {
         type: String,
-        default: v4
-        // Removed unique constraint for subdocuments to avoid potential conflicts
+        default: () => v4(),
+        required: true
     },
     message: {
         type: String,
@@ -26,6 +26,12 @@ const Ticket_Schema = new mongoose.Schema({
         type: String,
         unique: true,
         required: true
+    },
+    // User Association - can be null for anonymous tickets
+    userID: {
+        type: String,
+        default: null,
+        index: true
     },
     name: {
         type: String,
@@ -65,6 +71,11 @@ const Ticket_Schema = new mongoose.Schema({
     clientIP: {
         type: String
     },
+    // Allow anonymous users to view their tickets
+    isAnonymous: {
+        type: Boolean,
+        default: true
+    },
     responses: [TicketResponse_Schema]
 }, {
     timestamps: true,
@@ -80,6 +91,7 @@ Ticket_Schema.index({ createdAt: -1 });
 
 export interface ITicket extends mongoose.Document {
     id: string;
+    userID?: string;
     name: string;
     email: string;
     subject: string;
@@ -88,6 +100,7 @@ export interface ITicket extends mongoose.Document {
     status: 'open' | 'in-progress' | 'resolved' | 'closed';
     priority: 'low' | 'medium' | 'high';
     clientIP?: string;
+    isAnonymous: boolean;
     responses: Array<{
         id: string;
         message: string;

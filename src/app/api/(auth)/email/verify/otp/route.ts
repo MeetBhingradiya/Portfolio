@@ -200,7 +200,6 @@ export async function PUT(req: NextRequest) {
             });
         }
 
-        // Find valid OTP
         const otpRecord = await OTPs_Model.findOne({
             Type: OTPs.Email,
             ExpiresAt: { $gt: new Date() }
@@ -232,7 +231,7 @@ export async function PUT(req: NextRequest) {
 
         await Users_Model.updateOne(
             { 
-                UserID: otpRecord.UserID,
+                UserID: User.UserID,
                 'Emails.Email': Request.email.toLowerCase()
             },
             { 

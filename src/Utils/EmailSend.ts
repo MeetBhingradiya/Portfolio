@@ -8,8 +8,8 @@ function createEmailTransport() {
 
     return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: 587,
-        secure: Config.Environment === 'production',
+        port: Config.Environment === 'production' ? 465 : 587,
+        secure: Config.Environment === 'production' ? true : false, // true for 465, false for other ports
         auth: {
             user: process.env.SMTP_EMAIL,
             pass: process.env.SMTP_APP_PASS,

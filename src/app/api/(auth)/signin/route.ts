@@ -2,11 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { Users_Model } from "@Models/Users";
 import { Sessions_Model } from "@Models/Sessions";
-import { RSAKeys_Model, RSAKeyPermissions } from "@Models/RSAKeys"
 import { Passkeys_Model } from "@Models/Passkeys";
-import { Encrypt, Decrypt } from "@Utils/Crypto";
+import { Decrypt } from "@Utils/Crypto";
 import { RSA } from "@Utils/RSA";
-import { getRelativeTime } from "@Utils/Relativetime";
 import { log } from "@Utils";
 import { dbConnect } from "@Utils/dbConnect";
 import crypto from "crypto";
@@ -122,13 +120,13 @@ async function createUserSession(user: any, req: NextRequest) {
         const cookieRSAKey = RSA.CreateRSAKeys();
 
         // Create RSA key records in database for tracking permissions
-        const localStorageRSARecord = await RSAKeys_Model.create({
-            Permissions: [RSAKeyPermissions.Local]
-        });
+        // const localStorageRSARecord = await RSAKeys_Model.create({
+        //     Permissions: [RSAKeyPermissions.Local]
+        // });
 
-        const cookieRSARecord = await RSAKeys_Model.create({
-            Permissions: [RSAKeyPermissions.Cookies]
-        });
+        // const cookieRSARecord = await RSAKeys_Model.create({
+        //     Permissions: [RSAKeyPermissions.Cookies]
+        // });
 
         // Generate access token
         const accessToken = crypto.randomBytes(64).toString('hex');
@@ -144,8 +142,8 @@ async function createUserSession(user: any, req: NextRequest) {
         
         const session = await Sessions_Model.create({
             UserID: user.UserID,
-            LocalStorage_RSAKeyID: localStorageRSARecord.KeyID,
-            Cookie_RSAKeyID: cookieRSARecord.KeyID,
+            LocalStorage_RSAKeyID: "null",
+            Cookie_RSAKeyID: "null",
             AccessToken: accessToken,
             UserAgent: userAgent,
             UnknownRequestHeaders: unknownHeaders,

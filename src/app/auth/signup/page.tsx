@@ -705,7 +705,7 @@ export default function SignUp() {
                                 }
                                 <div className="text-center mb-4">
                                     <h3 className="text-lg font-semibold">Verify Your Email</h3>
-                                    <p className="text-sm text-gray-600">We've sent a verification code to {State.Email}</p>
+                                    <p className="text-sm text-gray-600">We&apos;ve sent a verification code to {State.Email}</p>
                                 </div>                                <InputOtp 
                                     length={6} 
                                     size="lg" 

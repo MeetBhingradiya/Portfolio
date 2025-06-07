@@ -10,16 +10,9 @@ import { useState, useEffect } from "react";
 // @ Icons Import
 import {
     Bookmark,
-    QrCode2,
-    Code,
-    DataObject,
     Analytics,
-    Storage,
-    CloudUpload,
     GitHub,
     LinkedIn,
-    Star,
-    ForkRight,
 } from '@mui/icons-material';
 import Link from "next/link";
 import { SocialLinks } from "@Config/SocialLinks";
@@ -28,6 +21,7 @@ import RemoteImageLoader from "@/Utils/RemoteImageLoader";
 import TechnologyGrid from "@Components/TechnologyIcons";
 import { Aurora } from "@Lib/reactbits/Backgrounds";
 import LandingFooter from "@Components/Footer/LandingFooter";
+import GitHubStatsComponent from "@Components/GitHubStats";
 
 // @ Technology Icons (Using emojis for now, can be replaced with actual icons)
 const technologies = [
@@ -203,38 +197,10 @@ export default function HomePage() {
                 >
                     <TechnologyGrid />
                 </motion.div>
-
                 {/* GitHub Stats Section */}
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 2 }}
-                    className="mt-20 w-full max-w-4xl"
-                >
-                    <h2 className="text-3xl font-bold text-white text-center mb-12">
-                        GitHub Activity
-                    </h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 text-center">
-                            <Code className="text-4xl text-blue-400 mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-white">50+</h3>
-                            <p className="text-gray-300">Repositories</p>
-                        </div>
-
-                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 text-center">
-                            <Star className="text-4xl text-yellow-400 mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-white">100+</h3>
-                            <p className="text-gray-300">Stars Earned</p>
-                        </div>
-
-                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 text-center">
-                            <ForkRight className="text-4xl text-green-400 mx-auto mb-4" />
-                            <h3 className="text-2xl font-bold text-white">20+</h3>
-                            <p className="text-gray-300">Forks</p>
-                        </div>
-                    </div>
-                </motion.div>
+                <div className="mt-20">
+                    <GitHubStatsComponent showExtended={true} />
+                </div>
 
                 {/* Current Goals Section */}
                 <motion.div
@@ -263,7 +229,39 @@ export default function HomePage() {
                 </motion.div>
             </div>
         </div>
-        <LandingFooter />
+
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="bg-gradient-to-r from-blue-600 to-purple-700 py-12"
+        >
+            <div className="max-w-6xl mx-auto px-4 text-center">
+                <h2 className="text-3xl font-bold mb-4">Let&apos;s Build Something Amazing Together</h2>
+                <p className="text-xl mb-8 text-blue-100">
+                    Interested in collaborating? I&apos;m always open to discussing new opportunities.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <motion.a
+                        href="/contact"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-full hover:bg-gray-100 transition-colors"
+                    >
+                        Get In Touch
+                    </motion.a>
+                    <motion.a
+                        href="https://github.com/MeetBhingradiya"
+                        target="_blank"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="px-8 py-3 border-2 border-white text-white font-semibold rounded-full hover:bg-white hover:text-blue-600 transition-colors"
+                    >
+                        View GitHub
+                    </motion.a>
+                </div>
+            </div>
+        </motion.div>
     </>
     );
 }

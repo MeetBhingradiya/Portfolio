@@ -3,3 +3,5 @@ selenium
 webdriver-manager
 func-timeout
 rich
+nodriver
+opencv-python

@@ -2,11 +2,10 @@ import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
 import { ControllerResponseMap } from '@Utils';
-// import { RateLimiter } from '@Utils/RateLimit';
+import { RateLimiter } from '@Utils/RateLimit';
 import { handleEmergencyShutdown } from '@Middleware/EmergencyMiddleware';
 
-const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
-const CURRENT_APPLICATION_ID = Config.Env.APPLICATION_ID || '';
+const CSRF_KEY = Config.Env.TRACE_SIGNATURE || "CSRF_KEY_PLACEHOLDER";
 
 export async function middleware(req: NextRequest) {
     // Check for emergency shutdown first
@@ -30,24 +29,20 @@ export async function middleware(req: NextRequest) {
     });
 
     if (req.nextUrl.pathname.startsWith('/api')) {
-        // const rateLimit:any = await RateLimiter(req);
+        const rateLimit: any = await RateLimiter(req);
 
-        // if (rateLimit instanceof NextResponse) {
-        //     return rateLimit;
-        // }
+        if (rateLimit instanceof NextResponse) {
+            return rateLimit;
+        }
 
         const csrfTokenFromHeader = req.headers.get('x-csrf');
-        const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);        const excludedRoutes = [
+        const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
+        const excludedRoutes = [
             // '/api/ip',
             '/api/trace',
             '/api/sitemap',
             '/api/sitemap/*',
-            '/api/robots',
-            '/api/bookmarks',
-            '/api/contact', // Allow contact form submissions
-            '/api/tickets', // Allow ticket system access
-            '/api/admin/tickets', // Allow admin ticket management (auth handled in route)
-            '/api/developer/emergency/disable' // Allow emergency recovery endpoint
+            '/api/robots'
         ];
 
         if (excludedRoutes.some(route => req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(route))) {
@@ -61,7 +56,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromHeader) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization by HEADER',
+                Message: 'Invalid Authorization',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });
@@ -70,7 +65,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromCookie) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization by COOKIE',
+                Message: 'Invalid Authorization',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });
@@ -79,21 +74,23 @@ export async function middleware(req: NextRequest) {
         if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization by TOKEN',
+                Message: 'Invalid Authorization',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });
         }
 
         try {
-            const verified = await jwtVerify(csrfTokenFromCookie?.value ?? "", await importJWK({ kty: 'oct', k: CSRF_KEY }), {
+            const verified = await jwtVerify(
+                csrfTokenFromCookie?.value ?? "",
+                await importJWK({ kty: 'oct', k: CSRF_KEY }), {
                 algorithms: ['HS256'],
             });
 
             if (!verified) {
                 return ControllerResponseMap({
                     Status: 0,
-                    Message: 'Invalid Authorization by VERIFY',
+                    Message: 'Invalid Authorization',
                     StatusCode: 'INVALID_AUTHORIZATION',
                     StatusNumber: 403
                 });
@@ -101,7 +98,7 @@ export async function middleware(req: NextRequest) {
         } catch (error) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization by 500 VERIFY',
+                Message: 'Invalid Authorization',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });

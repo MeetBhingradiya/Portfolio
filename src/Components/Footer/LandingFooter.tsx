@@ -15,9 +15,14 @@ import {
     Coffee,
     GitHub,
     LinkedIn,
-    Lightbulb
+    Lightbulb,
+    Settings,
+    Contrast,
+    DarkMode,
+    LightMode
 } from '@mui/icons-material';
 import Image from 'next/image';
+import ModelMenu from "@Components/ModelMenu";
 
 
 interface Link {
@@ -37,6 +42,7 @@ interface Group {
 function LandingFooter() {
     const { theme, toggleTheme } = useTheme();
     const [showScrollTop, setShowScrollTop] = useState(false);
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
     // Scroll to top functionality
     const scrollToTop = () => {
@@ -179,24 +185,24 @@ function LandingFooter() {
             links: [
                 {
                     label: "GitHub Projects",
-                    endpoint: "https://github.com/itzDeepansu",
+                    endpoint: "https://github.com/MeetBhingradiya",
                     tooltip: "Explore my open source projects"
                 },
                 {
                     label: "LinkedIn Profile",
-                    endpoint: "https://linkedin.com/in/deepansu",
+                    endpoint: "https://linkedin.com/in/meetbhingradiya",
                     tooltip: "Connect professionally"
                 },
                 {
                     label: "Email Me",
-                    endpoint: "mailto:deepansu@example.com",
+                    endpoint: "/contact",
                     tooltip: "Get in touch directly"
                 },
-                // {
-                //     label: "Location",
-                //     endpoint: "#",
-                //     tooltip: "India 🇮🇳"
-                // }
+                {
+                    label: "Location",
+                    endpoint: "#",
+                    tooltip: "Surat, Gujarat, India",
+                }
             ]
         },
         {
@@ -216,20 +222,13 @@ function LandingFooter() {
                     endpoint: "/terms"
                 },
                 {
-                    label: "Cookie",
-                    endpoint: "/cookie"
-                },
-                {
-                    label: "Feedback",
-                    endpoint: "/feedback"
-                },
-                {
                     label: "Sitemap",
                     endpoint: "/api/sitemap"
                 },
                 {
-                    label: "Changelog",
-                    endpoint: "/changelog"
+                    label: "Contact Support",
+                    endpoint: "/contact",
+                    tooltip: "Get help and support"
                 }
             ]
         },
@@ -251,40 +250,6 @@ function LandingFooter() {
                     <ArrowUpward className="text-xl" />
                 </motion.button>
             )}
-
-            {/* Newsletter/CTA Section */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="bg-gradient-to-r from-blue-600 to-purple-700 py-12"
-            >
-                <div className="max-w-6xl mx-auto px-4 text-center">
-                    <h2 className="text-3xl font-bold mb-4">Let&apos;s Build Something Amazing Together</h2>
-                    <p className="text-xl mb-8 text-blue-100">
-                        Interested in collaborating? I&apos;m always open to discussing new opportunities.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <motion.a
-                            href="/contact"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-full hover:bg-gray-100 transition-colors"
-                        >
-                            Get In Touch
-                        </motion.a>
-                        <motion.a
-                            href="https://github.com/MeetBhingradiya"
-                            target="_blank"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            className="px-8 py-3 border-2 border-white text-white font-semibold rounded-full hover:bg-white hover:text-blue-600 transition-colors"
-                        >
-                            View GitHub
-                        </motion.a>
-                    </div>
-                </div>
-            </motion.div>
 
             {/* Main Footer Content */}
             <div className="max-w-6xl mx-auto px-4 py-12">
@@ -326,7 +291,7 @@ function LandingFooter() {
                         </div>
 
                         {/* Social Links */}
-                        {/* <div className="flex space-x-4">
+                        <div className="flex space-x-4">
                             {SocialLinks.filter(link => link.isEnable).map((social, index) => (
                                 <motion.a
                                     key={social.Label}
@@ -340,7 +305,7 @@ function LandingFooter() {
                                     {social.Component}
                                 </motion.a>
                             ))}
-                        </div> */}
+                        </div>
                     </motion.div>
 
                     {/* Links Sections */}
@@ -401,37 +366,67 @@ function LandingFooter() {
                         </motion.div>
                     ))}
                 </div>
-
                 {/* Bottom Section */}
-                {/* <motion.div 
+                <motion.div
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     transition={{ duration: 0.6, delay: 0.4 }}
                     className="border-t border-gray-700 mt-12 pt-8"
-                >
-                    <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                >                    <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
                         <div className="text-gray-400 text-sm">
-                            © 2025 Deepansu. Built with{' '}
-                            <Favorite className="inline text-red-500 text-sm mx-1" />
-                            using Next.js, Tailwind CSS & Framer Motion
+                            All rights reserved. Meet Bhingradiya © 2021 - {new Date().getFullYear()}
                         </div>
                         <div className="flex items-center space-x-4 text-gray-400 text-sm">
-                            <span className="flex items-center">
-                                <Coffee className="mr-1 text-sm" />
-                                Fueled by coffee
-                            </span>
-                            <span className="flex items-center">
-                                <Lightbulb className="mr-1 text-sm" />
-                                Always learning
-                            </span>
-                            <span className="flex items-center">
-                                <LocationOn className="mr-1 text-sm" />
-                                India 🇮🇳
-                            </span>
+                            {/* Sosical Links with Icons only */}
+                            {
+                                SocialLinks.filter(link => link.isEnable).map((social, index) => (
+                                    <Tooltip key={index} content={social.Label} placement="top">
+                                        <a
+                                            href={social.URL}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-gray-400 hover:text-white transition-colors duration-300 text-lg"
+                                        >
+                                            {social.Component}
+                                        </a>
+                                    </Tooltip>
+                                ))
+                            }
+
+                            {/* Theme Toggle */}
+                            <Tooltip content={`Switch to ${theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'} mode`} placement="top">
+                                <div
+                                    className="cursor-pointer hover:text-white"
+                                    onClick={toggleTheme}
+                                >
+                                    {theme === "system" ? (
+                                        <Contrast className="text-lg" />
+                                    ) : theme === "light" ? (
+                                        <LightMode className="text-lg" />
+                                    ) : (
+                                        <DarkMode className="text-lg" />
+                                    )}
+                                </div>
+                            </Tooltip>
+
+                            <Tooltip content="Site Settings" placement="top">
+                                <div
+                                    className="cursor-pointer hover:text-white"
+                                    onClick={() => setIsSettingsOpen(true)}
+                                >
+                                    <Settings className="text-lg" />
+                                </div>
+                            </Tooltip>
                         </div>
                     </div>
-                </motion.div> */}
+                </motion.div>
             </div>
+
+            {/* Settings Modal */}
+            <ModelMenu
+                isOpen={isSettingsOpen}
+                onClose={() => setIsSettingsOpen(false)}
+            />
         </footer>
     </>)
 }

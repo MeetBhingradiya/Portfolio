@@ -419,20 +419,92 @@ export default function SignUp() {
             setState({ ...State, S3_isERROR: true, S3_Message: error?.response?.data?.Message || "Server Error" });
             return false;
         }
-    }
-
-    async function Valdate_Step_4(): Promise<boolean> {
+    }    async function Valdate_Step_4(): Promise<boolean> {
         if (inProgress) return false;
         setInProgress(true);
 
-        return false;
-    }
+        // Validate OTP input
+        if (State.Otp === "") {
+            setState({ ...State, S4_isERROR: true, S4_Message: "Verification code is required" });
+            return false;
+        }
 
-    async function Valdate_Step_5(): Promise<boolean> {
+        if (State.Otp.length !== 6) {
+            setState({ ...State, S4_isERROR: true, S4_Message: "Verification code must be 6 digits" });
+            return false;
+        }
+
+        // Verify OTP with server
+        try {
+            const Response = await Axios.put("/api/email/verify/otp", {
+                email: State.Email,
+                otp: State.Otp
+            });
+
+            if (Response.data.Status === 1) {
+                setState({ ...State, S4_isERROR: false, S4_Message: "" });
+                return true;
+            }
+
+            setState({ ...State, S4_isERROR: true, S4_Message: Response.data.Message });
+            return false;
+        } catch (error: any) {
+            setState({ 
+                ...State, 
+                S4_isERROR: true, 
+                S4_Message: error?.response?.data?.Message || "Failed to verify code. Please try again." 
+            });
+            return false;
+        }
+    }    async function Valdate_Step_5(): Promise<boolean> {
         if (inProgress) return false;
         setInProgress(true);
 
-        return false;
+        // Validate username input
+        if (State.Username === "") {
+            setState({ ...State, S5_isERROR: true, S5_Message: "Username is required" });
+            return false;
+        }
+
+        if (State.Username.length < 3) {
+            setState({ ...State, S5_isERROR: true, S5_Message: "Username must be at least 3 characters long" });
+            return false;
+        }
+
+        if (State.Username.length > 20) {
+            setState({ ...State, S5_isERROR: true, S5_Message: "Username must be less than 20 characters" });
+            return false;
+        }
+
+        if (!State.Username.match(/^[a-zA-Z0-9_]+$/)) {
+            setState({ ...State, S5_isERROR: true, S5_Message: "Username can only contain letters, numbers, and underscores" });
+            return false;
+        }
+
+        // Create username with server
+        try {
+            const Response = await Axios.post("/api/username", {
+                email: State.Email,
+                username: State.Username
+            });
+
+            if (Response.data.Status === 1) {
+                setState({ ...State, S5_isERROR: false, S5_Message: "" });
+                // Account creation successful - redirect to success page or signin
+                router.push("/auth/signin?message=Account created successfully! Please sign in.");
+                return true;
+            }
+
+            setState({ ...State, S5_isERROR: true, S5_Message: Response.data.Message });
+            return false;
+        } catch (error: any) {
+            setState({ 
+                ...State, 
+                S5_isERROR: true, 
+                S5_Message: error?.response?.data?.Message || "Failed to create username. Please try again." 
+            });
+            return false;
+        }
     }
 
 
@@ -620,14 +692,8 @@ export default function SignUp() {
                                     </div>
                                 </div>
                             )
-                        }
-                        {
+                        }                        {
                             ActiveStep === 3 && (<div className="flex flex-col gap-5 p-10 items-center">
-                                <InputOtp length={6} size="lg" />
-                            </div>)
-                        }
-                        {
-                            ActiveStep === 4 && (<div className="flex flex-col gap-5 p-10">
                                 {
                                     State.S4_isERROR && (
                                         <Alert
@@ -637,9 +703,34 @@ export default function SignUp() {
                                         />
                                     )
                                 }
+                                <div className="text-center mb-4">
+                                    <h3 className="text-lg font-semibold">Verify Your Email</h3>
+                                    <p className="text-sm text-gray-600">We've sent a verification code to {State.Email}</p>
+                                </div>                                <InputOtp 
+                                    length={6} 
+                                    size="lg" 
+                                    value={State.Otp}
+                                    onValueChange={(value) => setState({ ...State, Otp: value })}
+                                />
+                            </div>)
+                        }                        {
+                            ActiveStep === 4 && (<div className="flex flex-col gap-5 p-10">
+                                {
+                                    State.S5_isERROR && (
+                                        <Alert
+                                            description={`${State.S5_Message}`}
+                                            title={`ERROR`}
+                                            color="danger"
+                                        />
+                                    )
+                                }
+                                <div className="text-center mb-4">
+                                    <h3 className="text-lg font-semibold">Choose Your Username</h3>
+                                    <p className="text-sm text-gray-600">Pick a unique username for your account</p>
+                                </div>
                                 <div className="flex flex-row gap-3 items-center justify-center">
                                     <Input
-                                        label="Password"
+                                        label="Username"
                                         type="text"
                                         startContent={<AlternateEmail />}
                                         value={State.Username}
@@ -660,44 +751,20 @@ export default function SignUp() {
                                     SignIn
                                 </Button>
                             )
-                        } */}
-                        {
-                            (ActiveStep === 4 && !inProgress) && (
-                                <Button
-                                    onPress={() => {
-                                        router.push("/auth/signin");
-                                    }}
-                                >
-                                    SignIn
-                                </Button>
-                            )
-                        }
-                        {
-                            (ActiveStep > 0 && ActiveStep < 3 && !inProgress) && (
+                        } */}                        {/* Removed duplicate SignIn button - account creation flow should complete first */}{
+                            (ActiveStep > 0 && ActiveStep < 5 && !inProgress) && (
                                 <Button
                                     onPress={() => setActiveStep(ActiveStep - 1)}
                                 >
                                     Previous
                                 </Button>
                             )
-                        }
-
-                        {
-                            (ActiveStep < 4 && !inProgress) && (
+                        }{
+                            (ActiveStep < 5 && !inProgress) && (
                                 <Button
                                     onPress={ValidateStep}
                                 >
-                                    Next
-                                </Button>
-                            )
-                        }
-
-                        {
-                            (ActiveStep >= 4 && !inProgress) && (
-                                <Button
-                                    onPress={() => { }}
-                                >
-                                    Finish
+                                    {ActiveStep === 4 ? "Create Account" : "Next"}
                                 </Button>
                             )
                         }

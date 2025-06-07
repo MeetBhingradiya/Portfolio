@@ -1,47 +1,157 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-    is_email_already_exists,
-    is_email_Verified,
-    is_username_created,
-    is_username_already_exists
-} from "@Controllers";
+import { Users_Model } from "@Models/Users";
 import { useEmptyFields } from "@Hooks";
 import { Config } from "@Config";
 import { dbConnect } from "@Utils/dbConnect";
 import { log } from "@Utils";
 
+// POST - Create/update username after email verification
 export async function POST(req: NextRequest) {
     try {
-
-        // ? Validate Authenticated User
-
-        // ? Validate Request
-        let Request = await req.json();
+        const Request = await req.json();
         
         if (useEmptyFields({
             targetObject: Request,
-            ReqiuredFields: [
-                "username",
-            ]
+            ReqiuredFields: ["email", "username"]
         }).isMissing) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Missing required fields',
+                Message: 'Email and username are required',
                 StatusCode: 400
-            }, {
-                status: 400
-            });
+            }, { status: 400 });
         }
 
         await dbConnect();
-    } catch (error:any) {
-        log(error?.message);
+
+        // Find user by email and check if email is verified
+        const user = await Users_Model.findOne({
+            'Emails.Email': Request.email.toLowerCase(),
+            'Emails.isVerified': true,
+            isDeleted: false
+        });
+
+        if (!user) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'User not found or email not verified',
+                StatusCode: 404
+            }, { status: 404 });
+        }
+
+        // Check if username is already taken
+        const existingUsername = await Users_Model.findOne({
+            Username: Request.username,
+            UserID: { $ne: user.UserID }, // Exclude current user
+            isDeleted: false
+        });
+
+        if (existingUsername) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Username is already taken',
+                StatusCode: 409
+            }, { status: 409 });
+        }
+
+        // Validate username format
+        const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+        if (!usernameRegex.test(Request.username)) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Username must be 3-20 characters long and contain only letters, numbers, underscores, and hyphens',
+                StatusCode: 400
+            }, { status: 400 });
+        }
+
+        // Update username
+        await Users_Model.updateOne(
+            { UserID: user.UserID },
+            { 
+                $set: { 
+                    Username: Request.username,
+                    UsernameCreatedAt: new Date()
+                }
+            }
+        );
+
+        log(`User ${user.UserID} created username: ${Request.username}`);
+
+        return NextResponse.json({
+            Status: 1,
+            Message: 'Username created successfully',
+            StatusCode: 200,
+            Data: {
+                UserID: user.UserID,
+                Username: Request.username,
+                Email: Request.email
+            }
+        }, { status: 200 });
+
+    } catch (error: any) {
+        log(`Username creation error: ${error?.message}`);
         return NextResponse.json({
             Status: 0,
             Message: 'Internal server error',
             StatusCode: 500
-        }, {
-            status: 500
+        }, { status: 500 });
+    }
+}
+
+// GET - Check username availability
+export async function GET(req: NextRequest) {
+    try {
+        const url = new URL(req.url);
+        const username = url.searchParams.get('username');
+
+        if (!username) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Username parameter is required',
+                StatusCode: 400
+            }, { status: 400 });
+        }
+
+        // Validate username format
+        const usernameRegex = /^[a-zA-Z0-9_-]{3,20}$/;
+        if (!usernameRegex.test(username)) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Invalid username format',
+                StatusCode: 400,
+                Data: {
+                    available: false,
+                    reason: 'Username must be 3-20 characters long and contain only letters, numbers, underscores, and hyphens'
+                }
+            }, { status: 400 });
+        }
+
+        await dbConnect();
+
+        // Check if username exists
+        const existingUser = await Users_Model.findOne({
+            Username: username,
+            isDeleted: false
         });
+
+        const isAvailable = !existingUser;
+
+        return NextResponse.json({
+            Status: 1,
+            Message: isAvailable ? 'Username is available' : 'Username is already taken',
+            StatusCode: 200,
+            Data: {
+                username,
+                available: isAvailable,
+                reason: isAvailable ? null : 'Username is already taken'
+            }
+        }, { status: 200 });
+
+    } catch (error: any) {
+        log(`Username availability check error: ${error?.message}`);
+        return NextResponse.json({
+            Status: 0,
+            Message: 'Internal server error',
+            StatusCode: 500
+        }, { status: 500 });
     }
 }

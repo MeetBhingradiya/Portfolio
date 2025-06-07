@@ -3,7 +3,6 @@ import { SpeedInsights } from "@vercel/speed-insights/next"
 import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
-import Footer from "@Components/Footer";
 import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
 import LandingFooter from "@Components/Footer/LandingFooter";
@@ -120,8 +119,7 @@ export default function RootLayout({
                         {children}
                     </Providers>
 
-                    <Footer ShowonFirstRender />
-                    {/* <LandingFooter /> */}
+                    <LandingFooter />
                 </ThemeProvider>
             </body>
         </html>

@@ -1,5 +1,6 @@
-import { GitHub, Instagram, LinkedIn, YouTube } from "@mui/icons-material";
+import { GitHub, Instagram, LinkedIn, YouTube, Email } from "@mui/icons-material";
 import { Config } from ".";
+import "@Styles/Footer.sass"
 
 const SocialLinks: Array<{
     Label: string;
@@ -39,7 +40,7 @@ const SocialLinks: Array<{
                     <path d="M15.725 0l-1.72 1.277 6.39 8.588 1.716-1.277L15.725 0zm-3.94 3.418l-1.369 1.644 8.225 6.85 1.369-1.644-8.225-6.85zm-3.15 4.465l-.905 1.94 9.702 4.517.904-1.94-9.701-4.517zm-1.85 4.86l-.44 2.093 10.473 2.201.44-2.092-10.473-2.203zM1.89 15.47V24h19.19v-8.53h-2.133v6.397H4.021v-6.396H1.89zm4.265 2.133v2.13h10.66v-2.13H6.154Z" />
                 </svg>
             ),
-            isEnable: true,
+            isEnable: false,
         },
         {
             Label: "SM Network",
@@ -64,11 +65,7 @@ const SocialLinks: Array<{
         {
             Label: "Mail",
             URL: `mailto:${Config.Env?.CONTACT_EMAIL}`,
-            Component: (
-                <svg xmlns="http://www.w3.org/2000/svg" className="stackoverflowsvg" width="32" height="32" role="img" viewBox="0 0 24 24">
-                    <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" />
-                </svg>
-            ),
+            Component: <Email />,
             isEnable: false,
         }
     ];

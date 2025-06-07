@@ -78,13 +78,23 @@
             "@Emails/*": [
                 "./src/Emails/*"
             ],
-
+            
             // ? Hooks Aliases
             "@Hooks": [
                 "./src/Hooks/index.ts"
             ],
             "@Hooks/*": [
                 "./src/Hooks/*"
+            ],
+
+            // ? Contexts Aliases
+            "@contexts/*": [
+                "./src/contexts/*"
+            ],
+
+            // ? Custom Hooks Aliases
+            "@hooks/*": [
+                "./src/hooks/*"
             ],
 
             // ? Models Aliases

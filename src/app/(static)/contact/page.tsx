@@ -2,12 +2,12 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Email, 
-    Phone, 
-    LocationOn, 
-    GitHub, 
-    LinkedIn, 
+import {
+    Email,
+    Phone,
+    LocationOn,
+    GitHub,
+    LinkedIn,
     Send,
     CheckCircle,
     Error,
@@ -47,7 +47,7 @@ function ContactPage() {
         message: '',
         projectType: 'general'
     });
-    
+
     const [status, setStatus] = useState<FormStatus>({
         type: 'idle',
         message: ''
@@ -103,9 +103,9 @@ function ContactPage() {
             ...prev,
             [name]: value
         }));
-    };    const handleSubmit = async (e: React.FormEvent) => {
+    }; const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (submissionMode === 'email') {
             setStatus({ type: 'loading', message: 'Sending message...' });
 
@@ -121,9 +121,9 @@ function ContactPage() {
                 const emailData = await emailResponse.json();
 
                 if (emailData.success) {
-                    setStatus({ 
-                        type: 'success', 
-                        message: 'Message sent successfully! I\'ll get back to you soon. An auto-reply has been sent to your email.' 
+                    setStatus({
+                        type: 'success',
+                        message: 'Message sent successfully! I\'ll get back to you soon. An auto-reply has been sent to your email.'
                     });
                     setFormData({
                         name: '',
@@ -133,21 +133,21 @@ function ContactPage() {
                         projectType: 'general'
                     });
                 } else if (emailData.rateLimited) {
-                    setStatus({ 
-                        type: 'error', 
-                        message: 'Rate limit reached for direct email. Please try using the ticket system instead or wait before sending another message.' 
+                    setStatus({
+                        type: 'error',
+                        message: 'Rate limit reached for direct email. Please try using the ticket system instead or wait before sending another message.'
                     });
                 } else {
-                    setStatus({ 
-                        type: 'error', 
-                        message: emailData.error || 'Failed to send message. Please try the ticket system or contact me directly via email.' 
+                    setStatus({
+                        type: 'error',
+                        message: emailData.error || 'Failed to send message. Please try the ticket system or contact me directly via email.'
                     });
                 }
             } catch (error) {
                 console.error('Contact form error:', error);
-                setStatus({ 
-                    type: 'error', 
-                    message: 'Failed to send message. Please try the ticket system or contact me directly via email.' 
+                setStatus({
+                    type: 'error',
+                    message: 'Failed to send message. Please try the ticket system or contact me directly via email.'
                 });
             }
         } else {
@@ -166,9 +166,9 @@ function ContactPage() {
                 const ticketData = await ticketResponse.json();
 
                 if (ticketData.success) {
-                    setStatus({ 
-                        type: 'success', 
-                        message: `Support ticket ${ticketData.ticket.id} created successfully! You can track your ticket status at /tickets` 
+                    setStatus({
+                        type: 'success',
+                        message: `Support ticket ${ticketData.ticket.id} created successfully! You can track your ticket status at /tickets`
                     });
                     setFormData({
                         name: '',
@@ -178,21 +178,21 @@ function ContactPage() {
                         projectType: 'general'
                     });
                 } else {
-                    setStatus({ 
-                        type: 'error', 
-                        message: ticketData.error || 'Failed to create ticket. Please try again or contact me directly via email.' 
+                    setStatus({
+                        type: 'error',
+                        message: ticketData.error || 'Failed to create ticket. Please try again or contact me directly via email.'
                     });
                 }
             } catch (error) {
                 console.error('Ticket creation error:', error);
-                setStatus({ 
-                    type: 'error', 
-                    message: 'Failed to create ticket. Please try again later or contact me directly via email.' 
+                setStatus({
+                    type: 'error',
+                    message: 'Failed to create ticket. Please try again later or contact me directly via email.'
                 });
             }
         }
     };
-    
+
     return (
         <>
             <Header />
@@ -229,14 +229,14 @@ function ContactPage() {
                             >
                                 Let&apos;s <span className="bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">Connect</span>
                             </motion.h1>
-                            
+
                             <motion.p
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.4 }}
                                 className="text-xl sm:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed"
                             >
-                                Have a project in mind? Want to collaborate? Or just want to say hi? 
+                                Have a project in mind? Want to collaborate? Or just want to say hi?
                                 I&apos;d love to hear from you!
                             </motion.p>
 
@@ -276,8 +276,8 @@ function ContactPage() {
                                         Get In Touch
                                     </h2>
                                     <p className="text-gray-300 mb-8 text-lg leading-relaxed">
-                                        I&apos;m always excited to work on new projects and collaborate with fellow developers. 
-                                        Whether you have a question, a project proposal, or just want to connect, 
+                                        I&apos;m always excited to work on new projects and collaborate with fellow developers.
+                                        Whether you have a question, a project proposal, or just want to connect,
                                         feel free to reach out!
                                     </p>
 
@@ -382,11 +382,10 @@ function ContactPage() {
                                             onClick={() => setSubmissionMode('email')}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-300 ${
-                                                submissionMode === 'email'
+                                            className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-300 ${submissionMode === 'email'
                                                     ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg'
                                                     : 'text-gray-400 hover:text-white hover:bg-white/10'
-                                            }`}
+                                                }`}
                                         >
                                             <Email className="mr-2 text-sm" />
                                             <span className="font-medium">Direct Email</span>
@@ -396,17 +395,16 @@ function ContactPage() {
                                             onClick={() => setSubmissionMode('ticket')}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-300 ${
-                                                submissionMode === 'ticket'
+                                            className={`flex-1 flex items-center justify-center px-4 py-3 rounded-lg transition-all duration-300 ${submissionMode === 'ticket'
                                                     ? 'bg-gradient-to-r from-green-500 to-blue-600 text-white shadow-lg'
                                                     : 'text-gray-400 hover:text-white hover:bg-white/10'
-                                            }`}
+                                                }`}
                                         >
                                             <ConfirmationNumber className="mr-2 text-sm" />
                                             <span className="font-medium">Create Ticket</span>
                                         </motion.button>
                                     </div>
-                                    
+
                                     {/* Mode Description */}
                                     <div className="mt-3 text-sm text-gray-400 text-center">
                                         {submissionMode === 'email' ? (
@@ -437,9 +435,8 @@ function ContactPage() {
                                                 onFocus={() => setFocusedField('name')}
                                                 onBlur={() => setFocusedField('')}
                                                 required
-                                                className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                    focusedField === 'name' ? 'border-blue-500 bg-white/10' : 'border-white/20'
-                                                }`}
+                                                className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${focusedField === 'name' ? 'border-blue-500 bg-white/10' : 'border-white/20'
+                                                    }`}
                                                 placeholder="Your name"
                                             />
                                         </motion.div>
@@ -461,9 +458,8 @@ function ContactPage() {
                                                 onFocus={() => setFocusedField('email')}
                                                 onBlur={() => setFocusedField('')}
                                                 required
-                                                className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                    focusedField === 'email' ? 'border-blue-500 bg-white/10' : 'border-white/20'
-                                                }`}
+                                                className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${focusedField === 'email' ? 'border-blue-500 bg-white/10' : 'border-white/20'
+                                                    }`}
                                                 placeholder="your@email.com"
                                             />
                                         </motion.div>
@@ -511,9 +507,8 @@ function ContactPage() {
                                             onFocus={() => setFocusedField('subject')}
                                             onBlur={() => setFocusedField('')}
                                             required
-                                            className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                                                focusedField === 'subject' ? 'border-blue-500 bg-white/10' : 'border-white/20'
-                                            }`}
+                                            className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${focusedField === 'subject' ? 'border-blue-500 bg-white/10' : 'border-white/20'
+                                                }`}
                                             placeholder="What's this about?"
                                         />
                                     </motion.div>
@@ -536,9 +531,8 @@ function ContactPage() {
                                             onBlur={() => setFocusedField('')}
                                             required
                                             rows={6}
-                                            className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
-                                                focusedField === 'message' ? 'border-blue-500 bg-white/10' : 'border-white/20'
-                                            }`}
+                                            className={`w-full px-4 py-3 bg-white/5 border rounded-xl text-white placeholder-gray-400 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${focusedField === 'message' ? 'border-blue-500 bg-white/10' : 'border-white/20'
+                                                }`}
                                             placeholder="Tell me about your project or just say hello..."
                                         />
                                     </motion.div>
@@ -549,20 +543,18 @@ function ContactPage() {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: 1.7 }}
                                     >                                        <motion.button
-                                            type="submit"
-                                            disabled={status.type === 'loading'}
-                                            whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                            className={`w-full px-8 py-4 bg-gradient-to-r ${
-                                                submissionMode === 'email'
-                                                    ? 'from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
-                                                    : 'from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700'
-                                            } text-white font-semibold rounded-xl transition-all duration-300 transform ${
-                                                status.type === 'loading' 
-                                                    ? 'opacity-70 cursor-not-allowed' 
-                                                    : 'hover:shadow-lg hover:shadow-purple-500/25'
+                                        type="submit"
+                                        disabled={status.type === 'loading'}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        className={`w-full px-8 py-4 bg-gradient-to-r ${submissionMode === 'email'
+                                                ? 'from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700'
+                                                : 'from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700'
+                                            } text-white font-semibold rounded-xl transition-all duration-300 transform ${status.type === 'loading'
+                                                ? 'opacity-70 cursor-not-allowed'
+                                                : 'hover:shadow-lg hover:shadow-purple-500/25'
                                             }`}
-                                        >
+                                    >
                                             {status.type === 'loading' ? (
                                                 <div className="flex items-center justify-center">
                                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -593,13 +585,12 @@ function ContactPage() {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, y: -10 }}
-                                                className={`p-4 rounded-xl flex items-center ${
-                                                    status.type === 'success' 
-                                                        ? 'bg-green-500/20 border border-green-500/30 text-green-400' 
+                                                className={`p-4 rounded-xl flex items-center ${status.type === 'success'
+                                                        ? 'bg-green-500/20 border border-green-500/30 text-green-400'
                                                         : status.type === 'error'
-                                                        ? 'bg-red-500/20 border border-red-500/30 text-red-400'
-                                                        : 'bg-blue-500/20 border border-blue-500/30 text-blue-400'
-                                                }`}
+                                                            ? 'bg-red-500/20 border border-red-500/30 text-red-400'
+                                                            : 'bg-blue-500/20 border border-blue-500/30 text-blue-400'
+                                                    }`}
                                             >
                                                 {status.type === 'success' && <CheckCircle className="mr-2" />}
                                                 {status.type === 'error' && <Error className="mr-2" />}
@@ -662,7 +653,39 @@ function ContactPage() {
                     </div>
                 </div>
             </div>
-            <LandingFooter />
+
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="bg-gradient-to-r from-blue-600 to-purple-700 py-12"
+            >
+                <div className="max-w-6xl mx-auto px-4 text-center">
+                    <h2 className="text-3xl font-bold mb-4">Let&apos;s Build Something Amazing Together</h2>
+                    <p className="text-xl mb-8 text-blue-100">
+                        Interested in collaborating? I&apos;m always open to discussing new opportunities.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <motion.a
+                            href="/contact"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-full hover:bg-gray-100 transition-colors"
+                        >
+                            Get In Touch
+                        </motion.a>
+                        <motion.a
+                            href="https://github.com/MeetBhingradiya"
+                            target="_blank"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="px-8 py-3 border-2 border-white text-white font-semibold rounded-full hover:bg-white hover:text-blue-600 transition-colors"
+                        >
+                            View GitHub
+                        </motion.a>
+                    </div>
+                </div>
+            </motion.div>
         </>
     );
 };

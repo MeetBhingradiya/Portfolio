@@ -44,6 +44,7 @@
         "commander": "^14.0.0",
         "cors": "^2.8.5",
         "crypto-js": "^4.2.0",
+        "date-fns": "^4.1.0",
         "dayjs": "^1.11.13",
         "dotenv": "^16.5.0",
         "express": "^5.1.0",
@@ -113,6 +114,7 @@
         "eslint-config-next": "15.3.2",
         "jsonc": "^2.0.0",
         "postcss": "^8.5.3",
+        "prettier": "3.5.3",
         "tailwindcss": "^3.4.17",
         "typescript": "^5.8.3"
     }

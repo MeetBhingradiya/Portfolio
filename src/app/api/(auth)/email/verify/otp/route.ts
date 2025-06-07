@@ -6,8 +6,9 @@ import { dbConnect } from "@Utils/dbConnect";
 import { log } from "@Utils";
 import { createEmailTransport } from "@Utils/EmailSend";
 import { OTP } from "@Utils/OTP";
+import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
+import { Decrypt } from "@Utils/Crypto";
 
-// Send OTP email
 async function sendOTPEmail(email: string, otp: string, name: string): Promise<boolean> {
     try {
         const transporter = createEmailTransport();
@@ -87,7 +88,6 @@ export async function POST(req: NextRequest) {
 
         await dbConnect();
 
-        // Check if user exists and is not verified
         const user = await Users_Model.findOne({
             'Emails.Email': Request.email.toLowerCase(),
             'Emails.isVerified': false
@@ -165,14 +165,40 @@ export async function PUT(req: NextRequest) {
             ReqiuredFields: ["email", "otp"],
             targetObject: Request
         }).isMissing) {
-            return NextResponse.json({
+            return ControllerResponseMap({
                 Status: 0,
                 Message: 'Missing required fields',
                 StatusCode: 400
-            }, { status: 400 });
+            })
         }
 
         await dbConnect();
+
+        const User = await Users_Model.findOne({
+            'Emails.Email': Request.email.toLowerCase(),
+            'Emails.isVerified': false
+        });
+
+        if (!User) {
+            return ControllerResponseMap({
+                Status: 0,
+                Message: 'User not found or email already verified',
+                StatusCode: 404
+            });
+        }
+
+        // ? Extract Latest Credentials to Encrypt OTP & Match with OtpRecord.Data
+        const latestCredentials = User.Credentials
+            .filter(cred => cred.isActive)
+            .sort((a, b) => b.Rounds - a.Rounds)[0];
+
+        if (!latestCredentials) {
+            return ControllerResponseMap({
+                Status: 0,
+                Message: 'Please set your password before verifying your email',
+                StatusCode: 404
+            });
+        }
 
         // Find valid OTP
         const otpRecord = await OTPs_Model.findOne({
@@ -181,28 +207,32 @@ export async function PUT(req: NextRequest) {
         });
 
         if (!otpRecord) {
-            return NextResponse.json({
+            return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid or expired verification code',
+                Message: 'Invalid Verification Code',
                 StatusCode: 400
-            }, { status: 400 });
+            });
         }
 
-        // Parse OTP data
-        const otpData = JSON.parse(otpRecord.Data);
-        
-        if (otpData.email !== Request.email.toLowerCase() || otpData.otp !== Request.otp) {
-            return NextResponse.json({
+        const DecryptedOTP = await Decrypt(
+            otpRecord.Data,
+            latestCredentials.Secret,
+            latestCredentials.Rounds
+        );
+
+        const isSameOTP = parseInt(DecryptedOTP) === parseInt(Request.otp)
+
+        if (!isSameOTP) {
+            return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid verification code',
+                Message: 'Invalid Verification Code',
                 StatusCode: 400
-            }, { status: 400 });
+            });
         }
 
-        // Verify user email
         await Users_Model.updateOne(
             { 
-                UserID: otpData.userID,
+                UserID: otpRecord.UserID,
                 'Emails.Email': Request.email.toLowerCase()
             },
             { 
@@ -210,25 +240,24 @@ export async function PUT(req: NextRequest) {
             }
         );
 
-        // Delete used OTP
         await OTPs_Model.deleteOne({ _id: otpRecord._id });
 
-        return NextResponse.json({
+        return ControllerResponseMap({
             Status: 1,
             Message: 'Email verified successfully',
             StatusCode: 200,
             Data: {
-                userID: otpData.userID,
+                userID: otpRecord.UserID,
                 email: Request.email
             }
-        }, { status: 200 });
+        });
 
     } catch (error: any) {
         log(`OTP verification error: ${error?.message}`);
-        return NextResponse.json({
+        return ControllerResponseMap({
             Status: 0,
             Message: 'Internal server error',
             StatusCode: 500
-        }, { status: 500 });
+        });
     }
 }

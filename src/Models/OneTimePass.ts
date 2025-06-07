@@ -53,6 +53,7 @@ const OTP_Schema: mongoose.Schema = new mongoose.Schema({
 export interface IOTP extends mongoose.Document {
     OtpID: string
     Type: OTPs
+    UserID: string
     Data: string
     ExpiresAt: Date
 }

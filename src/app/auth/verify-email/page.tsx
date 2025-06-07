@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
     Container,
     Paper,
@@ -12,7 +12,6 @@ import {
     CircularProgress,
     Card,
     CardContent,
-    Chip
 } from '@mui/material';
 import {
     Email as EmailIcon,
@@ -23,7 +22,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Axios } from '@Utils/Axios';
 
-export default function EmailVerificationPage() {
+function EmailVerificationContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
@@ -229,7 +228,7 @@ export default function EmailVerificationPage() {
 
                         <Box textAlign="center">
                             <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                                Didn't receive the code?
+                                Didn&apos;t receive the code?
                             </Typography>
                             <Button
                                 variant="text"
@@ -264,5 +263,22 @@ export default function EmailVerificationPage() {
                 </Box>
             </Paper>
         </Container>
+    );
+}
+
+export default function EmailVerificationPage() {
+    return (
+        <Suspense fallback={
+            <Container maxWidth="sm" sx={{ mt: 8, mb: 4 }}>
+                <Paper sx={{ p: 4, textAlign: 'center' }}>
+                    <CircularProgress />
+                    <Typography variant="body1" sx={{ mt: 2 }}>
+                        Loading...
+                    </Typography>
+                </Paper>
+            </Container>
+        }>
+            <EmailVerificationContent />
+        </Suspense>
     );
 }

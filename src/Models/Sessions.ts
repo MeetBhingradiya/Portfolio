@@ -54,13 +54,23 @@ const Sessions_Schema: mongoose.Schema = new mongoose.Schema({
     // ? IP & Location Info By IPData.com
     IPDataMappedResponse: {
         type: Object
-    },
-
-    // ? Session Expiration
+    },    // ? Session Expiration
     ExpiresAt: {
         type: Date,
         required: true,
         default: () => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    },
+
+    // ? Last Activity timestamp
+    LastActivity: {
+        type: Date,
+        default: Date.now
+    },
+
+    // ? Is Active flag
+    isActive: {
+        type: Boolean,
+        default: true
     }
 }, {
     timestamps: true,
@@ -70,7 +80,7 @@ const Sessions_Schema: mongoose.Schema = new mongoose.Schema({
     expireAfterSeconds: 60 * 60 * 24 * 60
 });
 
-export interface ISessions extends Document {
+export interface ISessions extends mongoose.Document {
     SessionID: string
     UserID: string
 
@@ -119,10 +129,14 @@ export interface ISessions extends Document {
         // ? Maplocation
         Latitude: number
         Longitude: number
-    }
-
-    // ? Expiry
+    }    // ? Expiry
     ExpiresAt: Date
+
+    // ? Last Activity
+    LastActivity: Date
+
+    // ? Is Active flag  
+    isActive: boolean
 }
 
 export const Sessions_Model: mongoose.Model<ISessions> = mongoose.models?.Sessions || mongoose.model<ISessions>("Sessions", Sessions_Schema);

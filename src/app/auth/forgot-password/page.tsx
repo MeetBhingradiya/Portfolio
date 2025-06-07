@@ -153,7 +153,7 @@ export default function ForgotPasswordPage() {
                             Enter your email address
                         </Typography>
                         <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
-                            We'll send you an OTP to reset your password
+                            We&apos;ll send you an OTP to reset your password
                         </Typography>
                         <TextField
                             fullWidth

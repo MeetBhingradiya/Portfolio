@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import { v4 } from 'uuid';
 import { IGender } from '@Types/Gender';
-import { unique } from 'next/dist/build/utils';
 
 const User_Schema: mongoose.Schema = new mongoose.Schema({
     UserID: {
@@ -27,14 +26,17 @@ const User_Schema: mongoose.Schema = new mongoose.Schema({
             isPrimary: Boolean,
             isVerified: Boolean
         }]
-    },
-    Credentials: {
+    },    Credentials: {
         type: [{
             Salt: String,
             Secret: String,
             Data: String,
             Rounds: Number,
-            isActive: Boolean
+            isActive: Boolean,
+            createdAt: {
+                type: Date,
+                default: Date.now
+            }
         }]
     },
     Icon: {
@@ -75,8 +77,18 @@ const User_Schema: mongoose.Schema = new mongoose.Schema({
     },
     Priority: {
         type: String,
-        enum: ["Passkey", "AuthenticatorApp", "Phone", "Email", "RecoveryCodes"],
+        enum: [
+            "Passkey",
+            "AuthenticatorApp",
+            "Phone",
+            "Email",
+            "RecoveryCodes"
+        ],
         default: "Email"
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
     },
     isLocked: {
         type: Boolean,
@@ -110,9 +122,9 @@ export interface IUser extends mongoose.Document {
     // ? Used for Sessions & Passkey Identification
     UserID: string
 
-    // ? Used for Login, Profile and Account Recovery
+    // ? Used for Login, Profile, Find Account Email
     Username: string
-    
+
     // ? Used for Account Recovery, Login and Verification
     Emails: Array<{
         Email: string
@@ -124,15 +136,14 @@ export interface IUser extends mongoose.Document {
         PhoneNumber: string
         isPrimary: boolean
         isVerified: boolean
-    }>
-
-    // ? Acsess Credentials
+    }>    // ? Access Credentials
     Credentials: Array<{
         Salt: string
         Secret: string
         Data: string
         Rounds: number
         isActive: boolean
+        createdAt: Date
     }>
 
     // ? Personal Information
@@ -152,11 +163,12 @@ export interface IUser extends mongoose.Document {
         isEnabled: boolean
         Secret: string
     }
-
+    
     // ? Priority
     Priority: "Passkey" | "AuthenticatorApp" | "Phone" | "Email" | "RecoveryCodes"
 
     // ? Admins & Security
+    isAdmin: boolean
     isLocked: boolean
     isSuspended: boolean
     isDeleted: boolean

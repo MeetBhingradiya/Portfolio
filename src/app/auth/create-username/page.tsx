@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import {
     Container,
     Paper,
@@ -24,7 +24,7 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Axios } from '@Utils/Axios';
 
-export default function CreateUsernamePage() {
+function CreateUsernameContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [loading, setLoading] = useState(false);
@@ -283,7 +283,23 @@ export default function CreateUsernamePage() {
                         </Button>
                     </Typography>
                 </Box>
-            </Paper>
-        </Container>
+            </Paper>        </Container>
+    );
+}
+
+export default function CreateUsernamePage() {
+    return (
+        <Suspense fallback={
+            <Container maxWidth="sm" sx={{ mt: 8, mb: 4 }}>
+                <Paper sx={{ p: 4, textAlign: 'center' }}>
+                    <CircularProgress />
+                    <Typography variant="body1" sx={{ mt: 2 }}>
+                        Loading...
+                    </Typography>
+                </Paper>
+            </Container>
+        }>
+            <CreateUsernameContent />
+        </Suspense>
     );
 }

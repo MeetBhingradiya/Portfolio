@@ -133,16 +133,43 @@ const Applications_Schema: mongoose.Schema = new mongoose.Schema({
         },
         DueDate: { type: Date },
         OverdueDays: { type: Number, default: 0 }
-    }],
-
-    PaymentMethods: [{
+    }],    PaymentMethods: [{
         Method: { 
             type: String, 
             enum: ["UPI", "Card", "NetBanking", "Wallet", "Cash", "Cheque", "BankTransfer"],
             required: true 
         },
         Details: { type: mongoose.Schema.Types.Mixed }
-    }]
+    }],
+
+    // ? Developer Access & Security
+    DeveloperAccess: {
+        Enabled: { type: Boolean, default: false },
+        SecretKey: { type: String },
+        ExpiryDate: { type: Date },
+        LastLogin: { type: Date },
+        Permissions: { type: mongoose.Schema.Types.Mixed },
+        EmergencyToken: { type: String },
+        IPWhitelist: [{ type: String }],
+        RateLimit: {
+            MaxAttempts: { type: Number, default: 5 },
+            TimeWindowMinutes: { type: Number, default: 15 }
+        },
+        AccessLogs: [{
+            Timestamp: { type: Date, default: Date.now },
+            IP: { type: String },
+            Action: { type: String },
+            Success: { type: Boolean }
+        }]
+    },
+
+    // ? Emergency Controls
+    EmergencyControls: {
+        ShutdownEnabled: { type: Boolean, default: false },
+        ShutdownReason: { type: String },
+        ShutdownDate: { type: Date },
+        RestartKey: { type: String }
+    }
 }, {
     timestamps: true,
     versionKey: "v1"
@@ -216,112 +243,144 @@ Applications_Schema.statics.findOverdueApplications = function() {
 
 export interface IApplications extends mongoose.Document {
     // ? Machine Readable Identifier
-    ApplicationID: string
+    ApplicationID: string;
 
     // ? Human Readable Identifier
-    Icon?: string
-    Name?: string
-    Description?: string
+    Icon?: string;
+    Name?: string;
+    Description?: string;
 
     // ? Client Details
-    Company_Name?: string
-    Company_Logo?: string
-    Company_Description?: string
-    Company_Website?: string
-    Company_Phone?: string
-    Company_Email?: string
-    Company_Location?: string
+    Company_Name?: string;
+    Company_Logo?: string;
+    Company_Description?: string;
+    Company_Website?: string;
+    Company_Phone?: string;
+    Company_Email?: string;
+    Company_Location?: string;
     Company_Social?: {
-        [key: string]: string
-    }
-    Company_GST?: string
-    Company_Owner_Name?: string
-    Company_Owner_PAN?: string
-    Company_Owner_Addhar?: string
+        [key: string]: string;
+    };
+    Company_GST?: string;
+    Company_Owner_Name?: string;
+    Company_Owner_PAN?: string;
+    Company_Owner_Addhar?: string;
 
     // ? Server & Client Signatures
     Services?: Array<{
-        ClientType: "Client" | "Server" | "Database"
-        Signature: string
-        enabled: boolean
-        Note?: string
-
-
+        ClientType: "Client" | "Server" | "Database";
+        Signature: string;
+        enabled: boolean;
+        Note?: string;
         // ? Suspend & Resume Temporary Access
         Suspend?: {
-            Start: Date
-            End: Date
-        }
+            Start: Date;
+            End: Date;
+        };
         Resume?: {
-            Start: Date
-            End: Date
-        }
-    }>    // ? Billing & Payment Details
-    Amount: number
-    Currency: "INR" | "USD" | "EUR" | "GBP" | "AUD" | "CAD" | "JPY" | "CNY"
-    BillingCycle: "OneTime" | "Monthly" | "Yearly"
+            Start: Date;
+            End: Date;
+        };
+    }>;
+
+    // ? Billing & Payment Details
+    Amount: number;
+    Currency: "INR" | "USD" | "EUR" | "GBP" | "AUD" | "CAD" | "JPY" | "CNY";
+    BillingCycle: "OneTime" | "Monthly" | "Yearly";
     
     // ? Payment Due & Overdue Management
-    PaymentDueDate?: Date
-    LastPaymentDate?: Date
-    IsOverdue?: boolean
-    OverdueGracePeriodDays?: number // Default 45 days
+    PaymentDueDate?: Date;
+    LastPaymentDate?: Date;
+    IsOverdue?: boolean;
+    OverdueGracePeriodDays?: number; // Default 45 days
     OverdueActions?: {
         Android?: {
-            enabled: boolean
-            action: "crash" | "redirect" | "disable"
-            redirectUrl?: string
-            errorMessage?: string
-        }
+            enabled: boolean;
+            action: "crash" | "redirect" | "disable";
+            redirectUrl?: string;
+            errorMessage?: string;
+        };
         Backend?: {
-            enabled: boolean
-            action: "error" | "disable" | "limited_access"
-            errorMessage?: string
-            allowedEndpoints?: string[]
-        }
+            enabled: boolean;
+            action: "error" | "disable" | "limited_access";
+            errorMessage?: string;
+            allowedEndpoints?: string[];
+        };
         Frontend?: {
-            enabled: boolean
-            action: "redirect" | "disable" | "overlay"
-            redirectUrl?: string
-            errorMessage?: string
-        }
-    }
+            enabled: boolean;
+            action: "redirect" | "disable" | "overlay";
+            redirectUrl?: string;
+            errorMessage?: string;
+        };
+    };
     
     PaymentHistory?: Array<{
-        Date: Date
-        Amount: number
-        Currency: "INR" | "USD" | "EUR" | "GBP" | "AUD" | "CAD" | "JPY" | "CNY"
-        PaymentType: "OneTime" | "Monthly" | "Yearly"
-        PaymentMethod: "UPI" | "Card" | "NetBanking" | "Wallet" | "Cash" | "Cheque" | "BankTransfer"
-        Status: "Pending" | "Completed" | "Failed"
-        DueDate?: Date
-        OverdueDays?: number
-    }>
+        Date: Date;
+        Amount: number;
+        Currency: "INR" | "USD" | "EUR" | "GBP" | "AUD" | "CAD" | "JPY" | "CNY";
+        PaymentType: "OneTime" | "Monthly" | "Yearly";
+        PaymentMethod: "UPI" | "Card" | "NetBanking" | "Wallet" | "Cash" | "Cheque" | "BankTransfer";
+        Status: "Pending" | "Completed" | "Failed";
+        DueDate?: Date;
+        OverdueDays?: number;
+    }>;
+
     PaymentMethods?: Array<{
-        Method: "UPI" | "Card" | "NetBanking" | "Wallet" | "Cash" | "Cheque" | "BankTransfer"
+        Method: "UPI" | "Card" | "NetBanking" | "Wallet" | "Cash" | "Cheque" | "BankTransfer";
         Details: {
-            UPI?: string
+            UPI?: string;
             Card?: {
-                Number: string
-                Expiry: string
-                CVV: string
-            }
+                Number: string;
+                Expiry: string;
+                CVV: string;
+            };
             NetBanking?: {
-                BankName: string
-                AccountNumber: string
-            }
-            Wallet?: string
-            Cash?: boolean
+                BankName: string;
+                AccountNumber: string;
+            };
+            Wa0oooollet?: string;
+            Cash?: boolean;
             Cheque?: {
-                Number: string
-                BankName: string
-            }
+                Number: string;
+                BankName: string;
+            };
             BankTransfer?: {
-                AccountNumber: string
-                IFSC: string
-            }
-        }
-    }>
+                AccountNumber: string;
+                IFSC: string;
+            };
+        };
+    }>;
+
+    // ? Developer Access & Security
+    DeveloperAccess?: {
+        Enabled: boolean;
+        SecretKey?: string;
+        ExpiryDate?: Date;
+        LastLogin?: Date;
+        Permissions?: {
+            [key: string]: any;
+        };
+        EmergencyToken?: string;
+        IPWhitelist?: string[];
+        RateLimit?: {
+            MaxAttempts: number;
+            TimeWindowMinutes: number;
+        };
+        AccessLogs?: Array<{
+            Timestamp: Date;
+            IP: string;
+            Action: string;
+            Success: boolean;
+        }>;
+    };
+
+    // ? Emergency Controls
+    EmergencyControls?: {
+        ShutdownEnabled: boolean;
+        ShutdownReason?: string;
+        ShutdownDate?: Date;
+        RestartKey?: string;
+    };
 }
 
 export const Applications_Model: mongoose.Model<IApplications> = mongoose.models?.Applications || mongoose.model<IApplications>("Applications", Applications_Schema);

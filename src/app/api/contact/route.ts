@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import nodemailer from 'nodemailer';
 import { requestIp } from "@Lib"
+import { createEmailTransport } from "@Utils/EmailSend";
 
 // Rate limiting store (in production, use Redis or database)
 const rateLimitStore = new Map<string, number>();
@@ -83,25 +83,6 @@ function validateInput(data: ContactFormData): { valid: boolean; errors: string[
     return { valid: errors.length === 0, errors };
 }
 
-function createEmailTransporter() {
-    if (!process.env.SMTP_HOST || !process.env.SMTP_EMAIL || !process.env.SMTP_APP_PASS) {
-        throw new Error('SMTP configuration is incomplete');
-    }
-
-    return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: 587,
-        secure: false, // Use TLS
-        auth: {
-            user: process.env.SMTP_EMAIL,
-            pass: process.env.SMTP_APP_PASS,
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-}
-
 function formatTimeRemaining(milliseconds: number): string {
     const hours = Math.floor(milliseconds / (1000 * 60 * 60));
     const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
@@ -149,7 +130,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Create email transporter
-        const transporter = createEmailTransporter();
+        const transporter = createEmailTransport();
 
         // Verify SMTP connection
         await transporter.verify();

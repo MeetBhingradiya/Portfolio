@@ -10,397 +10,322 @@ import {
     Button,
     useDisclosure,
     Input,
-    InputOtp,
-    Alert
+    Alert,
+    Chip,
+    Divider
 } from "@heroui/react";
-import { styled } from '@mui/material/styles';
-import Stack from '@mui/material/Stack';
-import Stepper from '@mui/material/Stepper';
-import Step from '@mui/material/Step';
-import StepLabel from '@mui/material/StepLabel';
 import {
-    Check,
-    Settings,
-    GroupAdd,
-    VideoLabel,
     PersonAdd,
-    Person,
     AlternateEmail,
     Visibility,
     VisibilityOff,
-    Password,
-    Verified,
-    Fingerprint,
-    Shield,
-    Warning
-} from "@mui/icons-material"
-import StepConnector, { stepConnectorClasses } from '@mui/material/StepConnector';
-import { StepIconProps } from '@mui/material/StepIcon';
+    Lock,
+    Security,
+    Login,
+    ErrorOutline,
+    CheckCircle
+} from "@mui/icons-material";
+import { Axios } from "@Utils/Axios";
+import { RSA } from "@Utils/RSA";
+import { useRouter } from "next/navigation";
+import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
+import { AccountSwitcher } from "@Components/AccountSwitcher";
 
-// ? MUI Step Utils
-const QontoConnector = styled(StepConnector)(({ theme }) => ({
-    [`&.${stepConnectorClasses.alternativeLabel}`]: {
-        top: 10,
-        left: 'calc(-50% + 16px)',
-        right: 'calc(50% + 16px)',
-    },
-    [`&.${stepConnectorClasses.active}`]: {
-        [`& .${stepConnectorClasses.line}`]: {
-            borderColor: '#784af4',
-        },
-    },
-    [`&.${stepConnectorClasses.completed}`]: {
-        [`& .${stepConnectorClasses.line}`]: {
-            borderColor: '#784af4',
-        },
-    },
-    [`& .${stepConnectorClasses.line}`]: {
-        borderColor: '#eaeaf0',
-        borderTopWidth: 3,
-        borderRadius: 1,
-        ...theme.applyStyles('dark', {
-            borderColor: theme.palette.grey[800],
-        }),
-    },
-}));
-
-const QontoStepIconRoot = styled('div')<{ ownerState: { active?: boolean } }>(
-    ({ theme }) => ({
-        color: '#eaeaf0',
-        display: 'flex',
-        height: 22,
-        alignItems: 'center',
-        '& .QontoStepIcon-completedIcon': {
-            color: '#784af4',
-            zIndex: 1,
-            fontSize: 18,
-        },
-        '& .QontoStepIcon-circle': {
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            backgroundColor: 'currentColor',
-        },
-        ...theme.applyStyles('dark', {
-            color: theme.palette.grey[700],
-        }),
-        variants: [
-            {
-                props: ({ ownerState }) => ownerState.active,
-                style: {
-                    color: '#784af4',
-                },
-            },
-        ],
-    }),
-);
-
-function QontoStepIcon(props: StepIconProps) {
-    const { active, completed, className } = props;
-
-    return (
-        <QontoStepIconRoot ownerState={{ active }} className={className}>
-            {completed ? (
-                <Check className="QontoStepIcon-completedIcon" />
-            ) : (
-                <div className="QontoStepIcon-circle" />
-            )}
-        </QontoStepIconRoot>
-    );
+interface SigninState {
+    username: string;
+    password: string;
+    isLoading: boolean;
+    showPassword: boolean;
+    error: string;
+    success: string;
 }
 
-const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
-    [`&.${stepConnectorClasses.alternativeLabel}`]: {
-        top: 22,
-    },
-    [`&.${stepConnectorClasses.active}`]: {
-        [`& .${stepConnectorClasses.line}`]: {
-            backgroundImage:
-                // 'linear-gradient( 95deg,rgb(242,113,33) 0%,rgb(233,64,87) 50%,rgb(138,35,135) 100%)',
-                'var(--background-solid)',
-        },
-    },
-    [`&.${stepConnectorClasses.completed}`]: {
-        [`& .${stepConnectorClasses.line}`]: {
-            backgroundImage:
-                // 'linear-gradient( 95deg,rgb(242,113,33) 0%,rgb(233,64,87) 50%,rgb(138,35,135) 100%)',
-                'var(--background-solid)',
-        },
-    },
-    [`& .${stepConnectorClasses.line}`]: {
-        height: 3,
-        border: 0,
-        backgroundColor: '#eaeaf0',
-        borderRadius: 1,
-        ...theme.applyStyles('dark', {
-            backgroundColor: theme.palette.grey[800],
-        }),
-    },
-}));
-
-const ColorlibStepIconRoot = styled('div')<{
-    ownerState: { completed?: boolean; active?: boolean };
-}>(({ theme }) => ({
-    backgroundColor: '#ccc',
-    zIndex: 1,
-    color: '#fff',
-    width: 50,
-    height: 50,
-    display: 'flex',
-    borderRadius: '50%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    ...theme.applyStyles('dark', {
-        backgroundColor: theme.palette.grey[700],
-    }),
-    variants: [
-        {
-            props: ({ ownerState }) => ownerState.active,
-            style: {
-                backgroundImage:
-                    'var(--background-solid)',
-                // backgroundImage:
-                //     'linear-gradient( 136deg, rgb(242,113,33) 0%, rgb(233,64,87) 50%, rgb(138,35,135) 100%)',
-                boxShadow: '0 4px 10px 0 rgba(0,0,0,.25)',
-            },
-        },
-        {
-            props: ({ ownerState }) => ownerState.completed,
-            style: {
-                backgroundImage:
-                    'var(--background-solid)',
-                // 'linear-gradient( 136deg, rgb(242,113,33) 0%, rgb(233,64,87) 50%, rgb(138,35,135) 100%)',
-            },
-        },
-    ],
-}));
-
-// ? Staps Data
-function ColorlibStepIcon(props: StepIconProps) {
-    const { active, completed, className } = props;
-
-    const icons: { [index: string]: React.ReactElement<unknown> } = {
-        1: <Person />,
-        2: <AlternateEmail />,
-        3: <Shield />,
-        4: <Verified />,
-        5: <Fingerprint />,
-    };
-
-    return (
-        <ColorlibStepIconRoot ownerState={{ completed, active }} className={className}>
-            {icons[String(props.icon)]}
-        </ColorlibStepIconRoot>
-    );
-}
-
-const steps = [
-    'Basic Info',
-    'Email',
-    'Security',
-    'Activate Account',
-    'Username'
-];
-
-interface IState {
-    // ? Step 1 : Basic Info
-    Fname: string;
-    Lname: string;
-    Gender: string;
-
-    // ? Step 2 : Email
-    Email: string;
-    S2_isERROR: boolean
-    S2_Message: string
-
-    // ? Step 3 : Create Password
-    Password: string;
-    S3_isERROR: boolean
-    S3_Message: string
-
-    // ? Step 4 : Verify Email
-    Otp: string;
-    OtpTrys: number
-    S4_isERROR: boolean
-    S4_Message: string
-
-    // ? Step 5 : Create Username
-    Username: string
-    S5_isERROR: boolean
-    S5_Message: string
-}
-
-export default function SignUp() {
+export default function SignIn() {
     const { isOpen, onOpen } = useDisclosure();
-    const [State, setState] = React.useState<IState>({
-        Fname: "",
-        Lname: "",
-        Gender: "Female",
-
-        Email: "",
-        S2_isERROR: true,
-        S2_Message: "Invalid Email",
-
-        Password: "",
-        S3_isERROR: false,
-        S3_Message: "Invalid Password",
-
-        Otp: "",
-        OtpTrys: 0,
-        S4_isERROR: false,
-        S4_Message: "Invalid One Time Password",
-
-        Username: "",
-        S5_isERROR: false,
-        S5_Message: "Invalid Username",
+    const router = useRouter();
+    const { addAccount, accounts, hasAccount } = useAccountSwitcher();
+    const [state, setState] = React.useState<SigninState>({
+        username: "",
+        password: "",
+        isLoading: false,
+        showPassword: false,
+        error: "",
+        success: ""
     });
-    const [ActiveStep, setActiveStep] = React.useState(0);
 
     React.useEffect(() => {
         onOpen();
-    }, [])
+    }, []);
 
-    function getEmailErrors() {
-        // ? Not be Empty
-        if (State.Email === "") {
-            setState({ ...State, S2_isERROR: true, S2_Message: "Email is Required" });
-            return;
+    const handleInputChange = (field: keyof SigninState, value: string) => {
+        setState(prev => ({
+            ...prev,
+            [field]: value,
+            error: "", // Clear error when user types
+            success: ""
+        }));
+    };
+
+    const validateForm = (): boolean => {
+        if (!state.username.trim()) {
+            setState(prev => ({ ...prev, error: "Username is required" }));
+            return false;
+        }
+        
+        if (!state.password.trim()) {
+            setState(prev => ({ ...prev, error: "Password is required" }));
+            return false;
         }
 
-        // ? Whitelisted Domain
-        // ? Gmail & Outlook & Yahoo
-        const Domain = State.Email.split("@")[1];
-        if (Domain !== "gmail.com" && Domain !== "outlook.com" && Domain !== "yahoo.com") {
-            setState({ ...State, S2_isERROR: true, S2_Message: "Invalid Domain" });
-            return;
+        if (state.password.length < 6) {
+            setState(prev => ({ ...prev, error: "Password must be at least 6 characters" }));
+            return false;
         }
 
-        // ? Not be Already Registered
-        // Todo: DB Check with API
-    }
+        return true;
+    };
+
+    const handleSignin = async () => {
+        if (!validateForm()) return;
+
+        setState(prev => ({ ...prev, isLoading: true, error: "", success: "" }));
+
+        try {
+            // Get RSA public key for password encryption
+            const publicKeyResponse = await Axios.get('/api/auth/public-key');
+            
+            if (publicKeyResponse.data.Status !== 1) {
+                throw new Error("Failed to get encryption key");
+            }
+
+            const publicKey = publicKeyResponse.data.Data.publicKey;
+
+            // Encrypt password with RSA public key
+            const encryptedPassword = RSA.EncryptRSAData(state.password, publicKey);
+
+            // Prepare signin request
+            const signinData = {
+                username: state.username.trim(),
+                password: encryptedPassword
+            };
+
+            // Send signin request
+            const response = await Axios.post('/api/signin', signinData);            if (response.data.Status === 1) {
+                // Success - store the encrypted token
+                const encryptedToken = response.data.Data.AuthorisedToken;
+                
+                // Store token in localStorage and cookies
+                localStorage.setItem('auth-token', encryptedToken);
+                document.cookie = `auth-token=${encryptedToken}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=strict`;
+
+                // Get user data for account switcher
+                try {
+                    const dashboardResponse = await Axios.get('/api/dashboard', {
+                        headers: {
+                            'Authorization': `Bearer ${encryptedToken}`
+                        }
+                    });
+
+                    if (dashboardResponse.data.Status === 1) {
+                        const userData = dashboardResponse.data.Data.user;
+                        
+                        // Add account to account switcher
+                        await addAccount({
+                            userID: userData.UserID,
+                            username: userData.Username,
+                            firstName: userData.FirstName,
+                            lastName: userData.LastName,
+                            email: userData.Emails?.find((email: any) => email.isPrimary)?.Email || userData.Emails?.[0]?.Email || '',
+                            encryptedToken: encryptedToken,
+                            profileData: {
+                                isAdmin: userData.isAdmin || false,
+                                isEmailVerified: userData.isEmailVerified || false
+                            }
+                        });
+                    }
+                } catch (accountError) {
+                    console.warn('Failed to add account to switcher:', accountError);
+                    // Continue with signin even if account switcher fails
+                }
+
+                setState(prev => ({ 
+                    ...prev, 
+                    success: "Signin successful! Redirecting to dashboard...",
+                    isLoading: false 
+                }));
+
+                // Redirect to dashboard after a short delay
+                setTimeout(() => {
+                    router.push('/dashboard');
+                }, 1500);
+
+            } else {
+                setState(prev => ({ 
+                    ...prev, 
+                    error: response.data.Message || "Signin failed",
+                    isLoading: false 
+                }));
+            }
+
+        } catch (error: any) {
+            console.error('Signin error:', error);
+            
+            let errorMessage = "An unexpected error occurred";
+            
+            if (error.response?.data?.Message) {
+                errorMessage = error.response.data.Message;
+            } else if (error.message) {
+                errorMessage = error.message;
+            }
+
+            setState(prev => ({ 
+                ...prev, 
+                error: errorMessage,
+                isLoading: false 
+            }));
+        }
+    };
+
+    const handleKeyPress = (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter' && !state.isLoading) {
+            handleSignin();
+        }
+    };
 
     return (
         <div className="Page CENTER">
             <Modal
                 isOpen={isOpen}
-                size={"2xl"}
-                onClose={() => { }}
+                size={"md"}
+                onClose={() => {}}
                 isDismissable={false}
                 isKeyboardDismissDisabled={false}
                 closeButton={false}
             >
                 <ModalContent>
                     <ModalHeader className="flex flex-row items-center gap-4 justify-center">
-                        <PersonAdd />
-                        Login Account
+                        <Login />
+                        Sign In to Your Account
                     </ModalHeader>
-                    <ModalBody className="flex flex-col gap-5">
-                        <Stack sx={{ width: '100%' }} spacing={4}>
-                            <Stepper alternativeLabel activeStep={ActiveStep} connector={<ColorlibConnector />}>
-                                {steps.map((label) => (
-                                    <Step key={label}>
-                                        <StepLabel StepIconComponent={ColorlibStepIcon}>{label}</StepLabel>
-                                    </Step>
-                                ))}
-                            </Stepper>
-                        </Stack>
-                        {
-                            ActiveStep === 0 && (<div className="flex flex-col gap-5 p-10">
-                                <div className="flex flex-row gap-3 items-center justify-center">
-                                    <Input
-                                        label="First Name"
-                                        startContent={<Person />}
-                                        value={State.Fname}
-                                        onChange={(e) => setState({ ...State, Fname: e.target.value })}
-                                    />
-                                    <Input
-                                        label="Last Name"
-                                        startContent={<Person />}
-                                        value={State.Lname}
-                                        onChange={(e) => setState({ ...State, Lname: e.target.value })}
+                    
+                    <ModalBody className="flex flex-col gap-5 p-6">
+                        {/* Error Alert */}
+                        {state.error && (
+                            <Alert 
+                                description={state.error}
+                                title="Error" 
+                                color="danger"
+                                variant="flat"
+                                startContent={<ErrorOutline />}
+                            />
+                        )}
+
+                        {/* Success Alert */}
+                        {state.success && (
+                            <Alert 
+                                description={state.success}
+                                title="Success" 
+                                color="success"
+                                variant="flat"
+                                startContent={<CheckCircle />}
+                            />
+                        )}
+
+                        {/* Account Switcher */}
+                        {accounts.length > 0 && (
+                            <div className="flex flex-col gap-2">
+                                <div className="text-small text-default-500 text-center">
+                                    Or switch to an existing account:
+                                </div>                                <div className="flex justify-center">
+                                    <AccountSwitcher 
+                                        variant="compact"
+                                        showAddAccount={false}
+                                        onAccountChange={(account) => {
+                                            router.push('/dashboard');
+                                        }}
                                     />
                                 </div>
-                                <div className="flex flex-row gap-3 items-center justify-center">
-                                    <Input
-                                        label="Gender"
-                                        startContent={<Person />}
-                                        value={State.Fname}
-                                        onChange={(e) => setState({ ...State, Fname: e.target.value })}
-                                    />
-                                </div>
-                            </div>)
-                        }
-                        {
-                            ActiveStep === 1 && (
-                                <div className="flex flex-col gap-5 p-10">
-                                    {
-                                        State.S2_isERROR && (
-                                            <Alert 
-                                            description={`${State.S2_Message}`} 
-                                            title={`ERROR`} 
-                                            color="danger" 
-                                            />
-                                        )
-                                    }
-                                    <div className="flex flex-row gap-3 items-center justify-center">
-                                        <Input
-                                            label="Email"
-                                            startContent={<AlternateEmail />}
-                                            value={State.Email}
-                                            onChange={(e) => setState({ ...State, Email: e.target.value })}
-                                        />
-                                    </div>
-                                    {/* Email Checker Labels After Lab Checks */}
-                                    {/* 
-                                    
-                                        * Not be Empty
-                                        * spefic Whitelisted Domain
-                                        * Not be Already Registered
-                                     */}
-                                    
-                                </div>
-                            )
-                        }
-                        {
-                            ActiveStep === 2 && (<div>Step 3</div>)
-                        }
-                        {
-                            ActiveStep === 3 && (<div>Step 4</div>)
-                        }
-                        {
-                            ActiveStep === 4 && (<div>Step 5</div>)
-                        }
+                                <Divider />
+                            </div>
+                        )}
+
+                        {/* Username Input */}
+                        <Input
+                            label="Username"
+                            placeholder="Enter your username"
+                            startContent={<AlternateEmail />}
+                            value={state.username}
+                            onChange={(e) => handleInputChange('username', e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            isDisabled={state.isLoading}
+                            variant="bordered"
+                            size="lg"
+                        />
+
+                        {/* Password Input */}
+                        <Input
+                            label="Password"
+                            placeholder="Enter your password"
+                            type={state.showPassword ? "text" : "password"}
+                            startContent={<Lock />}
+                            endContent={
+                                <button
+                                    className="focus:outline-none"
+                                    type="button"
+                                    onClick={() => setState(prev => ({ 
+                                        ...prev, 
+                                        showPassword: !prev.showPassword 
+                                    }))}
+                                    disabled={state.isLoading}
+                                >
+                                    {state.showPassword ? (
+                                        <VisibilityOff className="text-2xl text-default-400 pointer-events-none" />
+                                    ) : (
+                                        <Visibility className="text-2xl text-default-400 pointer-events-none" />
+                                    )}
+                                </button>
+                            }
+                            value={state.password}
+                            onChange={(e) => handleInputChange('password', e.target.value)}
+                            onKeyPress={handleKeyPress}
+                            isDisabled={state.isLoading}
+                            variant="bordered"
+                            size="lg"
+                        />
+
+                        {/* Security Notice */}
+                        <div className="flex items-center gap-2 text-small text-default-500">
+                            <Security className="text-lg" />
+                            <span>Your password is encrypted before transmission</span>
+                        </div>
+
+                        {/* Sign Up Link */}
+                        <div className="text-center text-small">
+                            <span className="text-default-500">Don&apos;t have an account? </span>
+                            <Button
+                                variant="light"
+                                color="primary"
+                                size="sm"
+                                onPress={() => router.push('/auth/signup')}
+                                isDisabled={state.isLoading}
+                            >
+                                Sign Up
+                            </Button>
+                        </div>
                     </ModalBody>
-                    <ModalFooter>
-                        {
-                            ActiveStep > 0 && (
-                                <Button
-                                    onPress={() => setActiveStep(ActiveStep - 1)}
-                                >
-                                    Previous
-                                </Button>
-                            )
-                        }
 
-                        {
-                            ActiveStep < 4 && (
-                                <Button
-                                    onPress={() => setActiveStep(ActiveStep + 1)}
-                                >
-                                    Next
-                                </Button>
-                            )
-                        }
-
-                        {
-                            ActiveStep >= 4 && (
-                                <Button
-                                    onPress={() => { }}
-                                >
-                                    Go Dashbord
-                                </Button>
-                            )
-                        }
+                    <ModalFooter className="flex justify-center">
+                        <Button
+                            color="primary"
+                            size="lg"
+                            onPress={handleSignin}
+                            isLoading={state.isLoading}
+                            isDisabled={state.isLoading || !state.username.trim() || !state.password.trim()}
+                            className="w-full"
+                            startContent={!state.isLoading && <PersonAdd />}
+                        >
+                            {state.isLoading ? "Signing In..." : "Sign In"}
+                        </Button>
                     </ModalFooter>
                 </ModalContent>
             </Modal>

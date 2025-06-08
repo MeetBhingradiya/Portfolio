@@ -13,6 +13,7 @@ Prompts
 # ^ Environment
 .env
 .env.*
+keys
 
 Test
 

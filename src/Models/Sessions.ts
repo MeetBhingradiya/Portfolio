@@ -65,12 +65,16 @@ const Sessions_Schema: mongoose.Schema = new mongoose.Schema({
     LastActivity: {
         type: Date,
         default: Date.now
-    },
-
-    // ? Is Active flag
+    },    // ? Is Active flag
     isActive: {
         type: Boolean,
         default: true
+    },
+
+    // ? Activity count for tracking usage frequency
+    ActivityCount: {
+        type: Number,
+        default: 0
     }
 }, {
     timestamps: true,
@@ -133,10 +137,11 @@ export interface ISessions extends mongoose.Document {
     ExpiresAt: Date
 
     // ? Last Activity
-    LastActivity: Date
-
-    // ? Is Active flag  
+    LastActivity: Date    // ? Is Active flag  
     isActive: boolean
+
+    // ? Activity count for tracking usage frequency
+    ActivityCount: number
 }
 
 export const Sessions_Model: mongoose.Model<ISessions> = mongoose.models?.Sessions || mongoose.model<ISessions>("Sessions", Sessions_Schema);

@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { Users_Model } from "@Models/Users";
 import { Sessions_Model } from "@Models/Sessions";
-import { Passkeys_Model } from "@Models/Passkeys";
 import { Decrypt } from "@Utils/Crypto";
 import { RSA } from "@Utils/RSA";
 import { log } from "@Utils";
 import { dbConnect } from "@Utils/dbConnect";
+import { generateAuthToken } from "@Utils/JWT";
+import { Config } from "@Config";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
         let Request = await req.json();
         if (useEmptyFields({
             ReqiuredFields: [
-                "email",
+                "username", // Changed from email to username per documentation
                 "password"
             ],
             targetObject: Request
@@ -28,9 +29,12 @@ export async function POST(req: NextRequest) {
 
         await dbConnect();
 
-        // Find user by email
+        // Find user by username or email (flexible lookup)
         const user = await Users_Model.findOne({
-            'Emails.Email': Request.email.toLowerCase(),
+            $or: [
+                { Username: Request.username },
+                { 'Emails.Email': Request.username.toLowerCase() }
+            ],
             'Emails.isVerified': true,
             isDeleted: false,
             isLocked: false,
@@ -40,39 +44,79 @@ export async function POST(req: NextRequest) {
         if (!user) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid email or password',
+                Message: 'Invalid username or password',
                 StatusCode: 401
             }, { status: 401 });
         }
+        
+        // Decrypt the provided password using RSA private key (as per documentation)
+        let plainPassword: string;
+        try {
+            if (Config.Env.RSA_PRIVATE_KEY) {
+                plainPassword = RSA.DecryptRSAData(Request.password, Config.Env.RSA_PRIVATE_KEY);
+            } else {
+                // Fallback for development when RSA keys aren't configured
+                plainPassword = Request.password;
+                log('Warning: RSA private key not configured, using plain password');
+            }
+        } catch (error) {
+            log(`Password decryption error: ${error}`);
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Invalid password format',
+                StatusCode: 400
+            }, { status: 400 });
+        }
 
-        // Verify password (you'll need to implement password verification)
-        // For now, I'll create a basic implementation
-        const isValidPassword = await verifyUserPassword(user, Request.password);
+        // Verify password
+        const isValidPassword = await verifyUserPassword(user, plainPassword);
         
         if (!isValidPassword) {
             return NextResponse.json({
                 Status: 0,
-                Message: 'Invalid email or password',
+                Message: 'Invalid username or password',
                 StatusCode: 401
             }, { status: 401 });
         }
 
-        // Create session
+        // Create session for tracking
         const sessionData = await createUserSession(user, req);
+        if (!sessionData) {
+            return NextResponse.json({
+                Status: 0,
+                Message: 'Failed to create session',
+                StatusCode: 500
+            }, { status: 500 });
+        }
+        // Generate JWT token as per documentation
+        const jwtToken = await generateAuthToken({
+            userID: user.UserID,
+            email: user.Emails.find(e => e.isPrimary)?.Email || user.Emails[0]?.Email,
+            username: user.Username,
+            sessionID: sessionData.sessionID
+        }, '30d'); // Valid for 1 month as per documentation
+
+        // Encrypt the JWT token with RSA public key (as per documentation)
+        let encryptedToken: string;
+        try {
+            if (Config.Env.RSA_PUBLIC_KEY) {
+                encryptedToken = RSA.EncryptRSAData(jwtToken, Config.Env.RSA_PUBLIC_KEY);
+            } else {
+                // Fallback for development when RSA keys aren't configured
+                encryptedToken = jwtToken;
+                log('Warning: RSA public key not configured, returning plain JWT token');
+            }
+        } catch (error) {
+            encryptedToken = jwtToken;
+            log(`Token encryption error: ${error}`);
+        }
 
         return NextResponse.json({
             Status: 1,
-            Message: 'Login successful',
+            Message: 'Sign in successful',
             StatusCode: 200,
             Data: {
-                user: {
-                    UserID: user.UserID,
-                    Username: user.Username,
-                    FirstName: user.FirstName,
-                    LastName: user.LastName,
-                    Email: user.Emails.find(e => e.isPrimary)?.Email
-                },
-                session: sessionData
+                AuthorisedToken: encryptedToken // JWT Token encrypted with Public Key
             }
         }, { status: 200 });
 
@@ -115,7 +159,8 @@ async function verifyUserPassword(user: any, password: string): Promise<boolean>
 
 // Helper function to create user session
 async function createUserSession(user: any, req: NextRequest) {
-    try {        // Generate RSA key pairs for session encryption
+    try {
+        // Generate RSA key pairs for session encryption
         const localStorageRSAKey = RSA.CreateRSAKeys();
         const cookieRSAKey = RSA.CreateRSAKeys();
 

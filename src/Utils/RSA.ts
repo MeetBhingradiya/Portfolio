@@ -33,12 +33,3 @@ export const RSA = {
     EncryptRSAData,
     DecryptRSAData
 }
-
-// Usage example
-// const plaintext = 'Hello, World!';
-// const encrypted = encrypt(plaintext, publicKey);
-// const decrypted = decrypt(encrypted, privateKey);
-
-// console.log('Plaintext:', plaintext);
-// console.log('Encrypted:', encrypted);
-// console.log('Decrypted:', decrypted);

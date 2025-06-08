@@ -21,34 +21,35 @@ interface IConfig {
     WhiteListedPlatforms: Array<"Windows" | "Linux" | "Android" | "iOS" | "MacOS">;
     WhiteListedBrowsers: Array<"Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Brave">;
     ThreatIntelligence: Array<"TOR" | "VPN" | "ICloud-Relay" | "Proxy" | "Datacenter" | "Anonymous" | "KnownAttacker" | "KnownAbuser" | "Threat" | "Bogon">;
-    Cookie_Prefix: string;
-    CORS: {
+    Cookie_Prefix: string;    CORS: {
         Useragent: string;
-    }
+    };
     DatabaseBydefualt: {
         SignupUsername: string
-    }
-    StatusCodes: typeof Protocols
+    };
+    StatusCodes: typeof Protocols;
     Env: {
-        ADMIN_SIGNATURE?: string
-        TRACE_SIGNATURE?: string
-        NODE_ENV?: "development" | "production" | "test"
-        CONTACT_EMAIL?: string
-        IPDATA_WEBSITE_KEY?: string
-        STATE_SIGNATURE?: string
-        APPLICATION_ID?: string
-    }
-    DigitalResume: {
-        ExcludingPhone: string
-        IncludingPhone: string
-    }
+        ADMIN_SIGNATURE?: string;
+        TRACE_SIGNATURE?: string;
+        JWT_SECRET?: string;
+        RSA_PUBLIC_KEY?: string;
+        RSA_PRIVATE_KEY?: string;
+        NODE_ENV?: "development" | "production" | "test";
+        CONTACT_EMAIL?: string;
+        IPDATA_WEBSITE_KEY?: string;
+        STATE_SIGNATURE?: string;
+        APPLICATION_ID?: string;
+    };    DigitalResume: {
+        ExcludingPhone: string;
+        IncludingPhone: string;
+    };
 }
 
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
-    version: "v1.3.0",
-    releasedate: "2025-06-01",
+    version: "v1.4.0",
+    releasedate: "2025-10-01",
     visiblebranch: "Release",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,
@@ -95,10 +96,12 @@ const Config: IConfig = {
     DatabaseBydefualt: {
         SignupUsername: "Anonymous"
     },
-    StatusCodes: Protocols,
-    Env: {
+    StatusCodes: Protocols,    Env: {
         ADMIN_SIGNATURE: process.env.ADMIN_SIGNATURE,
         TRACE_SIGNATURE: process.env.TRACE_SIGNATURE,
+        JWT_SECRET: process.env.JWT_SECRET,
+        RSA_PUBLIC_KEY: process.env.RSA_PUBLIC_KEY,
+        RSA_PRIVATE_KEY: process.env.RSA_PRIVATE_KEY,
         NODE_ENV: process.env.NODE_ENV as "development" | "production" | "test",
         CONTACT_EMAIL: process.env.CONTACT_EMAIL,
         IPDATA_WEBSITE_KEY: process.env.IPDATA_WEBSITE_KEY,

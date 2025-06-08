@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { withAuth, AuthenticatedRequest } from "@Utils/Auth";
+import { withJWTAuth, AuthenticatedRequest } from "@Utils/JWTAuth";
 import { Users_Model } from "@Models/Users";
 import { Sessions_Model } from "@Models/Sessions";
 import { dbConnect } from "@Utils/dbConnect";
@@ -180,7 +180,7 @@ async function deactivateOtherSessions(req: AuthenticatedRequest): Promise<NextR
     }
 }
 
-// Export protected endpoints using the withAuth middleware
-export const GET = withAuth(getUserDashboard);
-export const PUT = withAuth(updateUserProfile);
-export const DELETE = withAuth(deactivateOtherSessions);
+// Export protected endpoints using the withJWTAuth middleware
+export const GET = withJWTAuth(getUserDashboard);
+export const PUT = withJWTAuth(updateUserProfile);
+export const DELETE = withJWTAuth(deactivateOtherSessions);

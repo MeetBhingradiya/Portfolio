@@ -1,6 +1,6 @@
 {
     "name": "meetbhingradiya",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "scripts": {
         "dev": "next dev",
         "fast": "next dev --turbo",
@@ -14,13 +14,15 @@
         "publish": "bun Scripts/Publish.ts",
         "updateState": "bun Scripts/UpdateRemoteSettings.ts",
         "CreateSign": "bun Scripts/CreateSignatures.ts",
-        "RemoveComments": "bun Scripts/RemoveComments.ts"
+        "RemoveComments": "bun Scripts/RemoveComments.ts",
+        "RSAKeys": "bun Scripts/GenerateRSAKeys.ts"
     },
     "dependencies": {
         "@chakra-ui/icons": "^2.2.4",
         "@chakra-ui/react": "^3.19.1",
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.0",
+        "@heroicons/react": "^2.2.0",
         "@heroui/react": "2.8.0-beta.7",
         "@heroui/system": "2.4.17-beta.0",
         "@heroui/theme": "2.4.17-beta.0",

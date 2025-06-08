@@ -1,4 +1,4 @@
-import { ControllerResponseMap } from "@Utils";
+import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 import { NextRequest, NextResponse } from "next/server";
 import { Sessions_Model } from "@Models/Sessions";
 import { Users_Model } from "@Models/Users";

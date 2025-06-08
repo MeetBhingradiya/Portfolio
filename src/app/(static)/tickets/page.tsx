@@ -14,7 +14,7 @@ import {
     Star
 } from '@mui/icons-material';
 import Header from "@Components/Header";
-import { Aurora } from "@Lib/reactbits/Backgrounds";
+import Aurora from "@Lib/Backgrounds/Aurora/Aurora";
 import LandingFooter from "@Components/Footer/LandingFooter";
 
 interface Ticket {

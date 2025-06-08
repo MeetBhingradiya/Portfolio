@@ -13,7 +13,7 @@ import {
     GitHub
 } from '@mui/icons-material';
 import { GitHubAPI, GitHubStats } from '@Utils/GitHubAPI';
-import { CountUp } from '@Lib/reactbits/TextAnimations';
+import CountUp from "@Lib/TextAnimations/CountUp/CountUp";
 
 interface GitHubStatsComponentProps {
     showExtended?: boolean;

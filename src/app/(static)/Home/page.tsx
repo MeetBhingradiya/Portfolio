@@ -19,7 +19,7 @@ import { SocialLinks } from "@Config/SocialLinks";
 import Header from "@Components/Header";
 import RemoteImageLoader from "@/Utils/RemoteImageLoader";
 import TechnologyGrid from "@Components/TechnologyIcons";
-import { Aurora } from "@Lib/reactbits/Backgrounds";
+import Aurora from "@Lib/Backgrounds/Aurora/Aurora";
 import LandingFooter from "@Components/Footer/LandingFooter";
 import GitHubStatsComponent from "@Components/GitHubStats";
 
@@ -96,6 +96,7 @@ export default function HomePage() {
                             className="absolute inset-3 rounded-full object-cover"
                             width={180}
                             height={180}
+                            loader={RemoteImageLoader}
                         />
                     </motion.div>
 

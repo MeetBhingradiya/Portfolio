@@ -20,7 +20,7 @@ import {
     ConfirmationNumber
 } from '@mui/icons-material';
 import Header from "@Components/Header";
-import { Aurora } from "@Lib/reactbits/Backgrounds";
+import Aurora from "@Lib/Backgrounds/Aurora/Aurora";
 import { SocialLinks } from "@Config/SocialLinks";
 import { Axios } from "@Utils/Axios";
 import LandingFooter from "@Components/Footer/LandingFooter";

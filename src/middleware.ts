@@ -1,7 +1,7 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
-import { ControllerResponseMap } from '@Utils';
+import { ControllerResponseMap } from '@Utils/ControllerResponseMap';
 import { RateLimiter } from '@Utils/RateLimit';
 import { handleEmergencyShutdown } from '@Middleware/EmergencyMiddleware';
 

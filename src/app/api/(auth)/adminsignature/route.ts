@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { useEmptyFields } from "@Hooks";
 import { Config } from "@Config";
-import { ControllerResponseMap } from "@Utils";
+import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 import { createHash } from "crypto";
 import * as jose from 'jose';
 

@@ -1,4 +1,5 @@
-import Libraries from "@Lib";
+import Particles from "@Lib/Backgrounds/Particles/Particles";
+import Aurora from "@Lib/Backgrounds/Aurora/Aurora";
 import "@Styles/Auth.sass";
 
 // @ File
@@ -10,13 +11,13 @@ export default function AuthLayout({
 
     return (
         <>
-            <Libraries.reactbits.Backgrounds.Aurora
+            <Aurora
                 colorStops={["#3A29FF", "#FF94B4", "#FF3232"]}
                 blend={0.5}
                 amplitude={1.0}
                 speed={0.5}
             />
-            <Libraries.reactbits.Backgrounds.Particles
+            <Particles
                 className="custom-particles"
                 particleColors={['#ffffff', '#ffffff']}
                 particleCount={200}

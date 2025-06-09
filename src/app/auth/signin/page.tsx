@@ -30,6 +30,7 @@ import { RSA } from "@Utils/RSA";
 import { useRouter } from "next/navigation";
 import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
 import { AccountSwitcher } from "@Components/AccountSwitcher";
+import { Config } from "@Config";
 
 interface SigninState {
     username: string;
@@ -91,17 +92,8 @@ export default function SignIn() {
         setState(prev => ({ ...prev, isLoading: true, error: "", success: "" }));
 
         try {
-            // Get RSA public key for password encryption
-            const publicKeyResponse = await Axios.get('/api/auth/public-key');
-            
-            if (publicKeyResponse.data.Status !== 1) {
-                throw new Error("Failed to get encryption key");
-            }
-
-            const publicKey = publicKeyResponse.data.Data.publicKey;
-
             // Encrypt password with RSA public key
-            const encryptedPassword = RSA.EncryptRSAData(state.password, publicKey);
+            const encryptedPassword = RSA.EncryptRSAData(state.password, Config.Env.RSA_PUBLIC_KEY || "");
 
             // Prepare signin request
             const signinData = {
@@ -110,7 +102,8 @@ export default function SignIn() {
             };
 
             // Send signin request
-            const response = await Axios.post('/api/signin', signinData);            if (response.data.Status === 1) {
+            const response = await Axios.post('/api/signin', signinData);
+            if (response.data.Status === 1) {
                 // Success - store the encrypted token
                 const encryptedToken = response.data.Data.AuthorisedToken;
                 

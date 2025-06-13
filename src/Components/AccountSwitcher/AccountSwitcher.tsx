@@ -988,7 +988,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
 								No accounts found
 							</h3>
 							<p className="text-default-500 max-w-md mx-auto mb-8 text-sm">
-								You haven't added any accounts yet. Add an
+								You haven&apos;t added any accounts yet. Add an
 								account to get started with the full experience.
 							</p>
 							{showAddAccount && (
@@ -1032,7 +1032,7 @@ const AccountSwitcher: React.FC<AccountSwitcherProps> = ({
 								Add New Account
 							</Button>
 							<p className="text-xs text-default-400 text-center mt-2">
-								You'll be redirected to the sign-in page to add
+								You&apos;ll be redirected to the sign-in page to add
 								a new account
 							</p>
 						</motion.div>

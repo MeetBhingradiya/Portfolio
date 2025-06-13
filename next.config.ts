@@ -119,7 +119,7 @@ const nextConfig: NextConfig = {
 					// ? Allow Origins From Config.WhiteListedDomains
 					{
 						key: "Access-Control-Allow-Origin",
-						value: "meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech",
+						value: "meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech, meetbhingradiya.shop",
 					},
 					{
 						key: "Access-Control-Allow-Methods",

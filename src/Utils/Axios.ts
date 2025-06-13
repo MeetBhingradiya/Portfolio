@@ -1,6 +1,5 @@
-import { Config } from '@Config';
 import axios, { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
-import { RedirectProtocolExecuter , getCSRFToken } from '@Utils';
+import { RedirectProtocolExecuter, getCSRFToken } from '@Utils';
 
 const Axios: AxiosInstance = axios.create({
     timeout: 10000,
@@ -21,17 +20,14 @@ Axios.interceptors.request.use(
             if (csrfToken?.Status === 1) {
                 localStorage.setItem('trace', JSON.stringify(csrfToken));
             } else {
-
-                // ? Redirect Protocols
                 RedirectProtocolExecuter(csrfToken?.StatusCode);
-                
                 csrfToken = null;
                 return Promise.reject({ message: 'CSRF token retrieval failed' });
             }
             CSRF_UnderProgress = false;
         }
 
-        config.headers['x-csrf'] = csrfToken.data;
+        config.headers['x-csrf'] = csrfToken.Data.token;
         config.withCredentials = true;
         return config;
     },
@@ -41,21 +37,37 @@ Axios.interceptors.request.use(
 Axios.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: any) => {
-        if (error.response?.data?.StatusCode === "INVALID_AUTHORIZATION") {
+        const statusCode = error.response?.data?.StatusCode;
+        const status = error.response?.status;
+        
+        if (status === 429) {
+            console.warn('Rate limit exceeded:', error.response?.data);
+            return Promise.reject(error);
+        }
+        
+        if (statusCode === "INVALID_AUTHORIZATION") {
             localStorage.removeItem('trace');
             csrfToken = null;
 
             if (!csrfRetryAttempted) {
                 csrfRetryAttempted = true;
-                csrfToken = await getCSRFToken().catch(() => null);
-                if (csrfToken?.Status === 1) {
-                    localStorage.setItem('trace', JSON.stringify(csrfToken));
-                    return Axios.request(error.config);
+                try {
+                    csrfToken = await getCSRFToken().catch(() => null);
+                    if (csrfToken?.Status === 1) {
+                        localStorage.setItem('trace', JSON.stringify(csrfToken));
+                        csrfRetryAttempted = false;
+                        return Axios.request(error.config);
+                    }
+                } catch (tokenError) {
+                    console.error('Failed to refresh CSRF token:', tokenError);
                 }
+                csrfRetryAttempted = false;
             }
         }
 
-        RedirectProtocolExecuter(error.response?.data?.StatusCode);
+        if (statusCode) {
+            RedirectProtocolExecuter(statusCode);
+        }
 
         return Promise.reject(error);
     }

@@ -96,10 +96,11 @@ const Config: IConfig = {
     DatabaseBydefualt: {
         SignupUsername: "Anonymous"
     },
-    StatusCodes: Protocols,    Env: {
+    StatusCodes: Protocols,
+    Env: {
         ADMIN_SIGNATURE: process.env.ADMIN_SIGNATURE,
         TRACE_SIGNATURE: process.env.TRACE_SIGNATURE,
-        JWT_SECRET: process.env.JWT_SECRET,
+        JWT_SECRET: process.env.STATE_SIGNATURE,
         RSA_PUBLIC_KEY: process.env.RSA_PUBLIC_KEY,
         RSA_PRIVATE_KEY: process.env.RSA_PRIVATE_KEY,
         NODE_ENV: process.env.NODE_ENV as "development" | "production" | "test",

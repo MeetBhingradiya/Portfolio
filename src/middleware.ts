@@ -2,61 +2,60 @@ import { NextResponse, NextRequest } from 'next/server';
 import { SignJWT, importJWK, jwtVerify } from 'jose';
 import { Config } from '@Config';
 import { ControllerResponseMap } from '@Utils/ControllerResponseMap';
-import { RateLimiter } from '@Utils/RateLimit';
-import { handleEmergencyShutdown } from '@Middleware/EmergencyMiddleware';
+import { 
+    rateLimitMiddleware, 
+    defaultLimiter, 
+    strictLimiter, 
+    publicLimiter, 
+    contactLimiter 
+} from '@Library/rate-limit';
 
 const CSRF_KEY = Config.Env.TRACE_SIGNATURE || "CSRF_KEY_PLACEHOLDER";
 
+const RATE_LIMIT_ROUTES = {
+    '/api/contact': contactLimiter,
+    '/api/auth': strictLimiter,
+    '/api/admin': strictLimiter,
+    '/api/trace': publicLimiter,
+    '/api/sitemap': publicLimiter,
+    '/api/robots': publicLimiter,
+} as const;
+
 export async function middleware(req: NextRequest) {
-    // Check for emergency shutdown first
-    // const emergencyResponse = await handleEmergencyShutdown(req, CURRENT_APPLICATION_ID);
-    // if (emergencyResponse) {
-    //     return emergencyResponse; // Return early if in emergency shutdown mode
-    // }
-
-    const csrfToken = await new SignJWT({})
-        .setProtectedHeader({ alg: 'HS256' })
-        .setIssuedAt()
-        .setExpirationTime('20m')
-        .sign(await importJWK({ kty: 'oct', k: CSRF_KEY }));
-
     const ModifiedHeaders = new Headers(req.headers);
     ModifiedHeaders.set('x-url', req.url);
-    const response = NextResponse.next({
-        request: {
-            headers: ModifiedHeaders
-        }
-    });
-
+    
     if (req.nextUrl.pathname.startsWith('/api')) {
-        const rateLimit: any = await RateLimiter(req);
+        const limiter = Object.entries(RATE_LIMIT_ROUTES).find(([route]) => 
+            req.nextUrl.pathname.startsWith(route)
+        )?.[1] || defaultLimiter;
 
-        if (rateLimit instanceof NextResponse) {
-            return rateLimit;
+        const rateLimitResponse = await rateLimitMiddleware(req, limiter);
+        if (rateLimitResponse) {
+            return rateLimitResponse;
+        }
+
+        const csrfExcludedRoutes = [
+            '/api/trace',
+            '/api/sitemap',
+            '/api/robots'
+        ];
+
+        if (csrfExcludedRoutes.some(route => 
+            req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(route)
+        )) {
+            return NextResponse.next({
+                request: { headers: ModifiedHeaders }
+            });
         }
 
         const csrfTokenFromHeader = req.headers.get('x-csrf');
         const csrfTokenFromCookie = req.cookies.get(`${Config.Cookie_Prefix}csrf`);
-        const excludedRoutes = [
-            // '/api/ip',
-            '/api/trace',
-            '/api/sitemap',
-            '/api/sitemap/*',
-            '/api/robots'
-        ];
-
-        if (excludedRoutes.some(route => req.nextUrl.pathname === route || req.nextUrl.pathname.startsWith(route))) {
-            return NextResponse.next({
-                request: {
-                    headers: ModifiedHeaders
-                }
-            });
-        }
 
         if (!csrfTokenFromHeader) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'CSRF token missing from headers',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });
@@ -65,7 +64,7 @@ export async function middleware(req: NextRequest) {
         if (!csrfTokenFromCookie) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'CSRF token missing from cookies',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });
@@ -74,7 +73,7 @@ export async function middleware(req: NextRequest) {
         if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'CSRF token mismatch',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });
@@ -90,7 +89,7 @@ export async function middleware(req: NextRequest) {
             if (!verified) {
                 return ControllerResponseMap({
                     Status: 0,
-                    Message: 'Invalid Authorization',
+                    Message: 'Invalid CSRF token signature',
                     StatusCode: 'INVALID_AUTHORIZATION',
                     StatusNumber: 403
                 });
@@ -98,14 +97,16 @@ export async function middleware(req: NextRequest) {
         } catch (error) {
             return ControllerResponseMap({
                 Status: 0,
-                Message: 'Invalid Authorization',
+                Message: 'CSRF token verification failed',
                 StatusCode: "INVALID_AUTHORIZATION",
                 StatusNumber: 403
             });
         }
     }
 
-    return response;
+    return NextResponse.next({
+        request: { headers: ModifiedHeaders }
+    });
 }
 
 export const config = {

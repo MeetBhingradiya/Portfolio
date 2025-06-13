@@ -46,7 +46,9 @@ async function getUserDashboard(req: AuthenticatedRequest): Promise<NextResponse
                     DateOfBirth: userProfile.DateOfBirth,
                     Gender: userProfile.Gender,
                     Emails: userProfile.Emails,
-                    isEmailVerified: userProfile.Emails.some(email => email.isVerified),                    MFA: {
+                    isAdmin: userProfile.isAdmin || false,
+                    isEmailVerified: userProfile.Emails.some(email => email.isVerified),
+                    MFA: {
                         isEnabled: userProfile.isMFA || false,
                         methods: userProfile.AuthenticatorApp?.isEnabled ? ['authenticatorApp'] : []
                     },

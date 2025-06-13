@@ -3,7 +3,6 @@ import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { Users_Model } from "@Models/Users";
 import { Sessions_Model } from "@Models/Sessions";
 import { Decrypt } from "@Utils/Crypto";
-import { RSA } from "@Utils/RSA";
 import { log } from "@Utils";
 import { dbConnect } from "@Utils/dbConnect";
 import { generateAuthToken } from "@Utils/JWT";
@@ -48,28 +47,9 @@ export async function POST(req: NextRequest) {
                 StatusCode: 401
             }, { status: 401 });
         }
-        
-        // Decrypt the provided password using RSA private key (as per documentation)
-        let plainPassword: string;
-        try {
-            if (Config.Env.RSA_PRIVATE_KEY) {
-                plainPassword = RSA.DecryptRSAData(Request.password, Config.Env.RSA_PRIVATE_KEY);
-            } else {
-                // Fallback for development when RSA keys aren't configured
-                plainPassword = Request.password;
-                log('Warning: RSA private key not configured, using plain password');
-            }
-        } catch (error) {
-            log(`Password decryption error: ${error}`);
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Invalid password format',
-                StatusCode: 400
-            }, { status: 400 });
-        }
 
         // Verify password
-        const isValidPassword = await verifyUserPassword(user, plainPassword);
+        const isValidPassword = await verifyUserPassword(user, Request.password);
         
         if (!isValidPassword) {
             return NextResponse.json({
@@ -88,35 +68,21 @@ export async function POST(req: NextRequest) {
                 StatusCode: 500
             }, { status: 500 });
         }
+
         // Generate JWT token as per documentation
         const jwtToken = await generateAuthToken({
             userID: user.UserID,
             email: user.Emails.find(e => e.isPrimary)?.Email || user.Emails[0]?.Email,
             username: user.Username,
             sessionID: sessionData.sessionID
-        }, '30d'); // Valid for 1 month as per documentation
-
-        // Encrypt the JWT token with RSA public key (as per documentation)
-        let encryptedToken: string;
-        try {
-            if (Config.Env.RSA_PUBLIC_KEY) {
-                encryptedToken = RSA.EncryptRSAData(jwtToken, Config.Env.RSA_PUBLIC_KEY);
-            } else {
-                // Fallback for development when RSA keys aren't configured
-                encryptedToken = jwtToken;
-                log('Warning: RSA public key not configured, returning plain JWT token');
-            }
-        } catch (error) {
-            encryptedToken = jwtToken;
-            log(`Token encryption error: ${error}`);
-        }
+        }, '30d');
 
         return NextResponse.json({
             Status: 1,
             Message: 'Sign in successful',
             StatusCode: 200,
             Data: {
-                AuthorisedToken: encryptedToken // JWT Token encrypted with Public Key
+                AuthorisedToken: jwtToken 
             }
         }, { status: 200 });
 
@@ -161,8 +127,8 @@ async function verifyUserPassword(user: any, password: string): Promise<boolean>
 async function createUserSession(user: any, req: NextRequest) {
     try {
         // Generate RSA key pairs for session encryption
-        const localStorageRSAKey = RSA.CreateRSAKeys();
-        const cookieRSAKey = RSA.CreateRSAKeys();
+        // const localStorageRSAKey = RSA.CreateRSAKeys();
+        // const cookieRSAKey = RSA.CreateRSAKeys();
 
         // Create RSA key records in database for tracking permissions
         // const localStorageRSARecord = await RSAKeys_Model.create({
@@ -203,11 +169,12 @@ async function createUserSession(user: any, req: NextRequest) {
                 Country: 'Unknown'
             },
             ExpiresAt: expiresAt
-        });        return {
+        });
+        return {
             sessionID: session.SessionID,
             accessToken: accessToken,
-            localStorageKey: localStorageRSAKey.publicKey,
-            cookieKey: cookieRSAKey.publicKey,
+            localStorageKey: "",
+            cookieKey: "",
             expiresAt: expiresAt
         };
     } catch (error) {

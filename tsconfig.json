@@ -113,6 +113,13 @@
                 "./src/Lib/*"
             ],
 
+            "@Library": [
+                "./src/Library/index.ts"
+            ],
+            "@Library/*": [
+                "./src/Library/*"
+            ],
+
             // ? Styles Aliases
             "@Styles/*": [
                 "./src/Styles/*"

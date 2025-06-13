@@ -26,12 +26,20 @@ const config: Config = {
 				textLight: "#1A202C",
 				textLightSecondary: "#718096",
 			},
+			boxShadow: {
+				admin: "0 10px 25px -5px rgba(243, 18, 96, 0.25)",
+			},
 			animation: {
 				"spin-slow": "spin 3s linear infinite",
 				"pulse-slow": "pulse 3s ease-in-out infinite",
 				"bounce-slow": "bounce 2s infinite",
 				float: "float 6s ease-in-out infinite",
 				glow: "glow 2s ease-in-out infinite alternate",
+				"admin-pulse": "adminPulse 2.5s ease-in-out infinite",
+				"admin-glow": "adminGlow 2.5s ease-in-out infinite",
+				"admin-shimmer": "adminShimmer 3s ease-in-out infinite",
+				"admin-badge-pulse": "adminBadgePulse 2s ease-in-out infinite",
+				"slow-spin": "spin 20s linear infinite",
 			},
 			keyframes: {
 				float: {
@@ -46,6 +54,50 @@ const config: Config = {
 					"100%": {
 						boxShadow:
 							"0 0 10px theme(colors.purple.400), 0 0 20px theme(colors.purple.400), 0 0 30px theme(colors.purple.400)",
+					},
+				},
+				adminPulse: {
+					"0%": {
+						opacity: "0.3",
+						transform: "scale(1)",
+					},
+					"50%": {
+						opacity: "0.6",
+						transform: "scale(1.05)",
+					},
+					"100%": {
+						opacity: "0.3",
+						transform: "scale(1)",
+					},
+				},
+				adminGlow: {
+					"0%": {
+						filter: "drop-shadow(0 0 10px rgba(243, 18, 96, 0.3))",
+					},
+					"50%": {
+						filter: "drop-shadow(0 0 20px rgba(243, 18, 96, 0.5))",
+					},
+					"100%": {
+						filter: "drop-shadow(0 0 10px rgba(243, 18, 96, 0.3))",
+					},
+				},
+				adminShimmer: {
+					"0%": {
+						backgroundPosition: "-100% 0",
+					},
+					"100%": {
+						backgroundPosition: "200% 0",
+					},
+				},
+				adminBadgePulse: {
+					"0%": {
+						transform: "scale(1)",
+					},
+					"50%": {
+						transform: "scale(1.15)",
+					},
+					"100%": {
+						transform: "scale(1)",
 					},
 				},
 			},

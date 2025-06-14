@@ -53,12 +53,12 @@ function BookmarkItem({
                             }}
                         >
                             <SvgComponent
-                                svgString={Data.Icon}
+                                svgString={Data.Icon as string}
                             />
                         </div>
                     ) : (
                         <Image
-                            src={Data.Icon}
+                            src={Data.Icon as string}
                             alt={Data.Name}
                             width={48}
                             height={48}

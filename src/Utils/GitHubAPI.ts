@@ -56,7 +56,7 @@ export class GitHubAPI {
         }
     }
 
-    static async fetchGitHubStats(): Promise<GitHubStats> {
+    static async fetchGitHubStats(): Promise<GitHubStats |  null> {
         try {
             const [userData, repositories] = await Promise.all([
                 this.fetchUserData(),
@@ -79,14 +79,7 @@ export class GitHubAPI {
             };
         } catch (error) {
             console.error('Error fetching GitHub stats:', error);
-            // Return fallback data if API fails
-            return {
-                publicRepos: 50,
-                totalStars: 100,
-                totalForks: 20,
-                followers: 25,
-                following: 30,
-            };
+            return null;
         }
     }
 

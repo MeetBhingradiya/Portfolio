@@ -587,7 +587,8 @@ export default function ModelMenu({ isOpen, onClose }: { isOpen: boolean; onClos
             isOpen={isOpen}
             onClose={onClose}
             size="lg"
-            scrollBehavior="inside"
+            scrollBehavior="outside"
+            className="pt-30"
             motionProps={{
                 variants: {
                     enter: {

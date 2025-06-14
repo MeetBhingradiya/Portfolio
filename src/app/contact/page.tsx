@@ -19,11 +19,9 @@ import {
     Language,
     ConfirmationNumber
 } from '@mui/icons-material';
-import Header from "@Components/Header";
 import Aurora from "@Lib/Backgrounds/Aurora/Aurora";
 import { SocialLinks } from "@Config/SocialLinks";
 import { Axios } from "@Utils/Axios";
-import LandingFooter from "@Components/Footer/LandingFooter";
 
 interface ContactFormData {
     name: string;
@@ -184,7 +182,6 @@ function ContactPage() {
 
     return (
         <>
-            <Header />
             <div className="relative min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 overflow-hidden">
                 {/* ReactBits Aurora Background */}
                 <div className="absolute inset-0 opacity-30">

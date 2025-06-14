@@ -6,7 +6,7 @@ interface IConfig {
     Name: string;
 
     // ? vX.X.X Stage | Beta
-    version: `v${number}.${number}.${number}${" Stage" | " Beta" | ""}`;
+    version: `v${number}.${number}.${number}${" Stage" | " Beta" | "" | " Alpha"}`;
 
     // ? YYYY-MM-DD
     releasedate: `${number}-${number}-${number}`;
@@ -48,8 +48,8 @@ interface IConfig {
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
-    version: "v1.4.0",
-    releasedate: "2025-10-01",
+    version: "v0.0.1 Alpha",
+    releasedate: "2025-14-01",
     visiblebranch: "Release",
     isHomeReleased: true,
     Environment: process.env.NODE_ENV,

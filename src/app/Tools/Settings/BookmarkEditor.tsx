@@ -713,7 +713,7 @@ function BookmarkEditor({
                                 id="icon-url-input"
                                 name="Icon"
                                 placeholder="Enter icon URL (image or SVG)"
-                                value={editedBookmark.Icon || ""}
+                                value={editedBookmark.Icon as string || "" as string}
                                 onChange={(e) => setEditedBookmark(prev => ({ ...prev, Icon: e.target.value }))}
                                 isClearable
                                 onClear={() => setEditedBookmark(prev => ({ ...prev, Icon: "" }))}
@@ -785,7 +785,7 @@ function BookmarkEditor({
                         <div className="flex flex-col gap-4 items-center">
                             <p className="text-sm font-medium">Icon Preview</p>
                             <div className="w-32 h-32 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center overflow-hidden shadow-inner">
-                                {editedBookmark.Icon && editedBookmark.Icon !== "" ? (
+                                {editedBookmark.Icon && editedBookmark.Icon !== "" && typeof editedBookmark.Icon === "string" ? (
                                     editedBookmark.isSVG ? (
                                         <SvgComponent
                                             svgString={editedBookmark.Icon}

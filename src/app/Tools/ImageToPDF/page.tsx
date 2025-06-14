@@ -250,7 +250,9 @@ export default function ImageToPDF() {
             setIsProcessing(false);
         }
     }; return (
-        <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-6 min-h-max pb-16">
+        <div className="flex flex-col items-center w-full max-w-5xl mx-auto px-4 py-6 pt-45
+        
+        min-h-max pb-16">
             <div className="text-3xl font-bold mb-2 text-center text-white">
                 Image to PDF Converter
             </div>

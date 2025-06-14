@@ -15,8 +15,8 @@ const TechnologyIcon = ({ name, icon, category, index }: {
             initial={{ opacity: 0, scale: 0, rotateY: 180 }}
             animate={{ opacity: 1, scale: 1, rotateY: 0 }}
             transition={{ 
-                delay: index * 0.1,
-                duration: 0.6,
+                delay: 0.1,
+                duration: 0.3,
                 type: "spring",
                 stiffness: 100
             }}
@@ -82,7 +82,7 @@ export const technologies = [
     // Github Copilot other Ai Tools
     { name: "Github Copilot Pro", icon: "🤖", category: "AI", color: "#F9D000" },
     { name: "ChatGPT", icon: "💬", category: "AI", color: "#10A37F" },
-    { name: "Google Gemini", icon: "🔍", category: "AI", color: "#4285F4" },
+    // { name: "Google Gemini", icon: "🔍", category: "AI", color: "#4285F4" },
 ];
 
 // Technology Grid Component

@@ -11,8 +11,6 @@ import {
 	useDisclosure,
 	Input,
 	Alert,
-	Chip,
-	Divider,
 } from "@heroui/react";
 import {
 	PersonAdd,
@@ -25,10 +23,10 @@ import {
 	ErrorOutline,
 	CheckCircle,
 } from "@mui/icons-material";
-import { Axios } from "@Utils/Axios";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
-import { AccountSwitcher } from "@Components/AccountSwitcher";
+// import { Axios } from "@Utils/Axios";
+// import { useRouter, useSearchParams } from "next/navigation";
+// import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
+// import { AccountSwitcher } from "@Components/AccountSwitcher";
 
 interface SigninState {
 	username: string;
@@ -39,11 +37,12 @@ interface SigninState {
 	success: string;
 }
 
+
 export default function SignIn() {
 	const { isOpen, onOpen } = useDisclosure();
-	const router = useRouter();
-	const searchParams = useSearchParams();
-	const { addAccount, accounts } = useAccountSwitcher();
+	// const router = useRouter();
+	// const searchParams = useSearchParams();
+	// const { addAccount, accounts } = useAccountSwitcher();
 	const [state, setState] = React.useState<SigninState>({
 		username: "",
 		password: "",
@@ -54,10 +53,10 @@ export default function SignIn() {
 	});
 
 	// Check if AccountSwitcher should be shown
-	const shouldShowAccountSwitcher = React.useMemo(() => {
-		const acsParam = searchParams.get("acs");
-		return acsParam === "1" && accounts.length > 0;
-	}, [searchParams, accounts.length]);
+	// const shouldShowAccountSwitcher = React.useMemo(() => {
+	// 	const acsParam = searchParams.get("acs");
+	// 	return acsParam === "1" && accounts.length > 0;
+	// }, [searchParams, accounts.length]);
 
 	React.useEffect(() => {
 		onOpen();
@@ -112,53 +111,53 @@ export default function SignIn() {
 			};
 
 			// Send signin request
-			const response = await Axios.post("/api/signin", signinData);
+			// const response = await Axios.post("/api/signin", signinData);
 
-			if (response.data.Status === 1) {
+			// if (response.data.Status === 1) {
 				// Success - store the encrypted token
-				const encryptedToken = response.data.Data.AuthorisedToken;
+				// const encryptedToken = response.data.Data.AuthorisedToken;
 
 				// Store token in localStorage and cookies
-				localStorage.setItem("auth-token", encryptedToken);
-				document.cookie = `auth-token=${encryptedToken}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=strict`;
+				// localStorage.setItem("auth-token", encryptedToken);
+				// document.cookie = `auth-token=${encryptedToken}; path=/; max-age=${30 * 24 * 60 * 60}; secure; samesite=strict`;
 
 				// Get user data for account switcher
 				try {
-					const dashboardResponse = await Axios.get(
-						"/api/dashboard",
-						{
-							headers: {
-								Authorization: `Bearer ${encryptedToken}`,
-							},
-						}
-					);
+					// const dashboardResponse = await Axios.get(
+					// 	"/api/dashboard",
+					// 	{
+					// 		headers: {
+					// 			Authorization: `Bearer ${encryptedToken}`,
+					// 		},
+					// 	}
+					// );
 
-					if (dashboardResponse.data.Status === 1) {
-						const userData = dashboardResponse.data.Data.user;
+					// if (dashboardResponse.data.Status === 1) {
+					// 	const userData = dashboardResponse.data.Data.user;
 
 						// Add account to account switcher
-						await addAccount({
-							userID: userData.UserID,
-							username: userData.Username,
-							firstName: userData.FirstName,
-							lastName: userData.LastName,
-							email:
-								userData.Emails?.find(
-									(email: any) => email.isPrimary
-								)?.Email ||
-								userData.Emails?.[0]?.Email ||
-								"",
-							encryptedToken: encryptedToken,
-							profileData: {
-								isAdmin:
-									userData.isAdmin ||
-									userData.Username === "nidhibhingradiya" ||
-									false,
-								isEmailVerified:
-									userData.isEmailVerified || false,
-							},
-						});
-					}
+						// await addAccount({
+						// 	userID: userData.UserID,
+						// 	username: userData.Username,
+						// 	firstName: userData.FirstName,
+						// 	lastName: userData.LastName,
+						// 	email:
+						// 		userData.Emails?.find(
+						// 			(email: any) => email.isPrimary
+						// 		)?.Email ||
+						// 		userData.Emails?.[0]?.Email ||
+						// 		"",
+						// 	encryptedToken: encryptedToken,
+						// 	profileData: {
+						// 		isAdmin:
+						// 			userData.isAdmin ||
+						// 			userData.Username === "nidhibhingradiya" ||
+						// 			false,
+						// 		isEmailVerified:
+						// 			userData.isEmailVerified || false,
+						// 	},
+						// });
+					// }
 				} catch (accountError) {
 					console.warn(
 						"Failed to add account to switcher:",
@@ -174,16 +173,16 @@ export default function SignIn() {
 				}));
 
 				// Redirect to dashboard after a short delay
-				setTimeout(() => {
-					router.push("/dashboard");
-				}, 1500);
-			} else {
-				setState((prev) => ({
-					...prev,
-					error: response.data.Message || "Signin failed",
-					isLoading: false,
-				}));
-			}
+				// setTimeout(() => {
+				// 	router.push("/dashboard");
+				// }, 1500);
+			// } else {
+			// 	setState((prev) => ({
+			// 		...prev,
+			// 		error: response.data.Message || "Signin failed",
+			// 		isLoading: false,
+			// 	}));
+			// }
 		} catch (error: any) {
 			console.error("Signin error:", error);
 
@@ -247,7 +246,7 @@ export default function SignIn() {
 							/>
 						)}{" "}
 						{/* Account Switcher */}
-						{shouldShowAccountSwitcher && (
+						{/* {shouldShowAccountSwitcher && (
 							<div className="flex flex-col gap-2">
 								<div className="text-small text-default-500 text-center">
 									Or switch to an existing account:
@@ -263,7 +262,7 @@ export default function SignIn() {
 								</div>
 								<Divider />
 							</div>
-						)}
+						)} */}
 						{/* Username Input */}
 						<Input
 							label="Username"
@@ -328,7 +327,7 @@ export default function SignIn() {
 								variant="light"
 								color="primary"
 								size="sm"
-								onPress={() => router.push("/auth/signup")}
+								// onPress={() => router.push("/auth/signup")}
 								isDisabled={state.isLoading}
 							>
 								Sign Up

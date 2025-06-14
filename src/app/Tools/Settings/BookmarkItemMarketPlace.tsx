@@ -61,7 +61,7 @@ function BookmarkItemMarketPlace({
                 {/* ? Icon */}
                 <div className="flex items-center gap-2 justify-start">
                     <div className="w-10 h-10 flex items-center justify-center rounded-md overflow-hidden">
-                        {Data.Icon && Data.isSVG ? (
+                        {Data.Icon && Data.isSVG && typeof Data.Icon === "string" ? (
                             <div
                                 className="w-6 h-6"
                                 style={{
@@ -76,7 +76,7 @@ function BookmarkItemMarketPlace({
                             
                         ) : Data.Icon ? (
                             <img
-                                src={Data.Icon}
+                                src={Data.Icon as string}
                                 alt={Data.Name}
                                 className="w-6 h-6 object-contain"
                                 onError={(e) => {

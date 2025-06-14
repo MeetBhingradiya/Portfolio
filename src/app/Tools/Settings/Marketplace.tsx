@@ -253,7 +253,7 @@ function Marketplace({ ModalState, SetModalState, State, Dispatch }: Marketplace
                     <LocalMall fontSize="inherit" />
                 </Typography>
                 <Typography variant="h4" className="font-bold text-lg">
-                    Bookmark Marketplace
+                    Marketplace
                 </Typography>
                 <Typography variant="body1" className="text-gray-500 text-sm">
                     Discover and add new bookmarks to your collection from our curated marketplace.

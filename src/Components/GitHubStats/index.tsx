@@ -29,7 +29,7 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
         setError(null);
         try {
             const githubStats = await GitHubAPI.fetchGitHubStats();
-            setStats(githubStats);
+            setStats(githubStats as GitHubStats);
         } catch (err) {
             setError('Failed to fetch GitHub data');
             console.error('Error fetching GitHub stats:', err);

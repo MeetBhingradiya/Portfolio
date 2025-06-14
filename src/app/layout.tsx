@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
 import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
+import Header from "@Components/Header";
 import LandingFooter from "@Components/Footer/LandingFooter";
 import { ToastContainer } from "react-toastify";
 
@@ -115,6 +116,8 @@ export default function RootLayout({
                     stacked
                 />
                 <ThemeProvider>
+                    <Header />
+
                     <Providers>
                         {children}
                     </Providers>

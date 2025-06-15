@@ -142,6 +142,9 @@ export interface ISessions extends mongoose.Document {
 
     // ? Activity count for tracking usage frequency
     ActivityCount: number
+
+    createdAt: Date
+    updatedAt: Date
 }
 
 export const Sessions_Model: mongoose.Model<ISessions> = mongoose.models?.Sessions || mongoose.model<ISessions>("Sessions", Sessions_Schema);

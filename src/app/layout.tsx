@@ -116,13 +116,13 @@ export default function RootLayout({
                     stacked
                 />
                 <ThemeProvider>
-                    <Header />
+                    {/* <Header /> */}
 
                     <Providers>
                         {children}
                     </Providers>
 
-                    <LandingFooter />
+                    {/* <LandingFooter /> */}
                 </ThemeProvider>
             </body>
         </html>

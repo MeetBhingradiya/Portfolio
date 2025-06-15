@@ -1,133 +1,126 @@
-import mongoose from 'mongoose';
-import mongoosePaginate from 'mongoose-paginate-v2';
-import { v4 } from 'uuid';
+import mongoose, { Schema, Document } from "mongoose";
 
 export enum BlogVisibility {
-    Public = 'public',
-    Private = 'private',
-    Unlisted = 'unlisted'
+	Public = "public",
+	Private = "private",
+	Unlisted = "unlisted",
 }
 
-export enum BlogPermission {
-    Visitor = 'visitor',
-    Editor = 'editor'
+export interface IBlog extends Document {
+	BlogID: string;
+	ContentID: string;
+	AuthorID: string;
+	Title: string;
+	Slug: string; // Add this field
+	Description?: string;
+	Tags: string[];
+	BannerImage?: string;
+	Visiblity: BlogVisibility;
+	isPublished: boolean;
+	PublishDate?: Date;
+	CreateDate: Date;
+	Views: number;
+	Likes: number;
+	LikedBy: string[];
+	History: string[]; // Array of previous ContentIDs
+	isDeleted: boolean;
+	createdAt: Date;
+	updatedAt: Date;
 }
 
-const Blog_Schema: mongoose.Schema = new mongoose.Schema({
-    BlogID: {
-        type: String,
-        default: v4,
-        unique: true,
-        required: true
-    },
-    ContentID: {
-        type: String,
-        required: true
-    },
-    AuthorID: {
-        type: String,
-        required: true
-    },
-    Title: {
-        type: String,
-        required: true
-    },
-    AccessControl: {
-        type: [
-            {
-                UserID: String,
-                Permission: {
-                    type: String,
-                    enum: [
-                        BlogPermission.Visitor,
-                        BlogPermission.Editor
-                    ]
-                }
-            }
-        ]
-    },
-    BannerImage: {
-        type: String
-    },
-    Description: {
-        type: String
-    },
-    Tags: {
-        type: [String]
-    },
-    Visiblity: {
-        type: String,
-        default: BlogVisibility.Public,
-        enum: [
-            BlogVisibility.Public,
-            BlogVisibility.Private,
-            BlogVisibility.Unlisted
-        ]
-    },
-    Likes: {
-        type: Number
-    },
-    Views: {
-        type: Number
-    },
-    LikedBy: {
-        type: [String]
-    },
-    isPublished: {
-        type: Boolean,
-        default: false
-    },
-    PublishDate: {
-        type: Date
-    },
-    isLocked: {
-        type: Boolean,
-        default: false
-    },
-    CreateDate: {
-        type: Date
-    },
-    History: {
-        type: [String]
-    },
-    isDeleted: {
-        type: Boolean,
-        default: false
-    }
-}, {
-    timestamps: true,
-    versionKey: "v1"
-});
+const BlogSchema = new Schema<IBlog>(
+	{
+		BlogID: {
+			type: String,
+			required: true,
+			unique: true,
+			default: () => require("uuid").v4(),
+		},
+		ContentID: {
+			type: String,
+			required: true,
+			ref: "BlogsContent",
+		},
+		AuthorID: {
+			type: String,
+			required: true,
+			ref: "Users",
+		},
+		Title: {
+			type: String,
+			required: true,
+			maxlength: 200,
+		},
+		Slug: {
+			type: String,
+			required: true,
+			unique: true, // Ensure unique slugs
+			// Removed index: true to avoid duplicate with schema.index() below
+		},
+		Description: {
+			type: String,
+			maxlength: 500,
+		},
+		Tags: [
+			{
+				type: String,
+				maxlength: 50,
+			},
+		],
+		BannerImage: {
+			type: String,
+		},
+		Visiblity: {
+			type: String,
+			enum: Object.values(BlogVisibility),
+			default: BlogVisibility.Public,
+		},
+		isPublished: {
+			type: Boolean,
+			default: false,
+		},
+		PublishDate: {
+			type: Date,
+		},
+		CreateDate: {
+			type: Date,
+			default: Date.now,
+		},
+		Views: {
+			type: Number,
+			default: 0,
+		},
+		Likes: {
+			type: Number,
+			default: 0,
+		},
+		LikedBy: [
+			{
+				type: String,
+				ref: "Users",
+			},
+		],
+		History: [
+			{
+				type: String,
+				ref: "BlogsContent",
+			},
+		],
+		isDeleted: {
+			type: Boolean,
+			default: false,
+		},
+	},
+	{
+		timestamps: true,
+		collection: "Blogs",
+	}
+);
 
-export interface IBlog extends mongoose.Document {
-    // ! Required
-    BlogID: string;
-    ContentID: string;
-    AuthorID: string; // ? UserID of the author
-    Title: string;
+// Create indexes for better performance
+BlogSchema.index({ AuthorID: 1, isDeleted: 1 });
+BlogSchema.index({ isPublished: 1, Visiblity: 1, isDeleted: 1 });
+BlogSchema.index({ Tags: 1 });
+BlogSchema.index({ CreateDate: -1 });
 
-    // ! Optional
-    BannerImage?: string
-    Description?: string
-    Tags?: string[]
-    AccessControl?: Array<{
-        UserID: string
-        Permission: BlogPermission
-    }>
-    Visiblity?: BlogVisibility;
-    Likes?: number; // ? Total Likes by the users
-    Views?: number; // ? Session Store based views
-    LikedBy?: string[]; // ? UserIDs who liked the blog
-    
-    // ? By Default Generated
-    isPublished?: boolean; // ? Default: false
-    PublishDate?: Date; // ? Date when the blog is published
-    isLocked?: boolean; // ? Default: false
-    CreateDate?: Date; // ? Date when the blog is created
-    History?: string[]; // ? ContentID of the previous versions
-    isDeleted?: boolean; // ? Default: false
-}
-
-Blog_Schema.plugin(mongoosePaginate);
-
-export const Blogs_Model: mongoose.Model<IBlog> = mongoose.models?.Blogs || mongoose.model<IBlog>("Blogs", Blog_Schema);
+export const Blogs_Model = mongoose.models?.Blogs || mongoose.model<IBlog>("Blogs", BlogSchema);

@@ -173,18 +173,18 @@ export async function POST(request: NextRequest) {
         const clientIP = await requestIp(request);
 
         // Check rate limit
-        const rateLimitResult = checkRateLimit(clientIP as string);
-        if (!rateLimitResult.allowed) {
-            const timeRemaining = Math.ceil((rateLimitResult.timeRemaining! / (1000 * 60)));
-            return NextResponse.json(
-                { 
-                    success: false, 
-                    error: `Rate limit exceeded. Please wait ${timeRemaining} minutes before creating another ticket.`,
-                    rateLimited: true
-                },
-                { status: 429 }
-            );
-        }
+        // const rateLimitResult = checkRateLimit(clientIP as string);
+        // if (!rateLimitResult.allowed) {
+        //     const timeRemaining = Math.ceil((rateLimitResult.timeRemaining! / (1000 * 60)));
+        //     return NextResponse.json(
+        //         { 
+        //             success: false, 
+        //             error: `Rate limit exceeded. Please wait ${timeRemaining} minutes before creating another ticket.`,
+        //             rateLimited: true
+        //         },
+        //         { status: 429 }
+        //     );
+        // }
 
         const data: CreateTicketData = await request.json();
 

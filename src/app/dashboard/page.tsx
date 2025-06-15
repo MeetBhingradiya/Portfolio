@@ -67,10 +67,9 @@ interface DashboardData {
 
 export default function Dashboard() {
 	const router = useRouter();
-	const { autoSwitchOnLogout, clearCurrentSession } = useAccountSwitcher();
+	const { accounts, currentAccount, switchAccount, removeAccount, clearAllAccounts } = useAccountSwitcher();
 	const [isLoading, setIsLoading] = React.useState(true);
-	const [dashboardData, setDashboardData] =
-		React.useState<DashboardData | null>(null);
+	const [dashboardData, setDashboardData] = React.useState<DashboardData | null>(null);
 	const [error, setError] = React.useState("");
 
 	React.useEffect(() => {
@@ -109,7 +108,6 @@ export default function Dashboard() {
 			setIsLoading(false);
 		}
 	};
-
 	const handleSignOut = async () => {
 		try {
 			const token = localStorage.getItem("auth-token");
@@ -125,16 +123,26 @@ export default function Dashboard() {
 			console.error("Logout error:", error);
 		} finally {
 			// Try to auto-switch to another account first
-			const switched = await autoSwitchOnLogout();
-
-			if (!switched) {
-				// No other accounts available, clear session and redirect to signin
-				clearCurrentSession();
-				router.push("/auth/signin");
-			} else {
-				// Successfully switched to another account, reload dashboard
-				window.location.reload();
+			if (currentAccount) {
+				// Find other available accounts (excluding current one)
+				const otherAccounts = accounts.filter(acc => acc.userID !== currentAccount.userID);
+				
+				if (otherAccounts.length > 0) {
+					// Switch to the most recently used account
+					const mostRecentAccount = otherAccounts.sort((a, b) => 
+						new Date(b.lastUsed || 0).getTime() - new Date(a.lastUsed || 0).getTime()
+					)[0];
+					
+					switchAccount(mostRecentAccount);
+					// Successfully switched to another account, reload dashboard
+					window.location.reload();
+					return;
+				}
 			}
+
+			// No other accounts available, clear session and redirect to signin
+			clearAllAccounts();
+			router.push("/auth/signin");
 		}
 	};
 
@@ -157,7 +165,7 @@ export default function Dashboard() {
 	};
 
 	const getPlatformIcon = (platform: string) => {
-		switch (platform.toLowerCase()) {
+		switch (platform?.toLowerCase()) {
 			case "windows":
 			case "linux":
 			case "macos":
@@ -329,14 +337,14 @@ export default function Dashboard() {
 					<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 						<div className="flex items-center gap-2">
 							{getPlatformIcon(
-								dashboardData.currentSession.Platform
+								dashboardData.currentSession?.Platform
 							)}
 							<div>
 								<p className="text-small text-default-500">
 									Platform
 								</p>
 								<p className="font-medium">
-									{dashboardData.currentSession.Platform}
+									{dashboardData.currentSession?.Platform}
 								</p>
 							</div>
 						</div>
@@ -345,7 +353,7 @@ export default function Dashboard() {
 								Browser
 							</p>
 							<p className="font-medium">
-								{dashboardData.currentSession.Browser}
+								{dashboardData.currentSession?.Browser ?? "Chrome"}
 							</p>
 						</div>
 						<div className="flex items-center gap-2">
@@ -356,7 +364,7 @@ export default function Dashboard() {
 								</p>
 								<p className="font-medium">
 									{new Date(
-										dashboardData.currentSession.ExpiresAt
+										dashboardData.currentSession?.ExpiresAt
 									).toLocaleDateString()}
 								</p>
 							</div>
@@ -366,7 +374,7 @@ export default function Dashboard() {
 			</Card>
 
 			{/* Active Sessions Card */}
-			{dashboardData.activeSessions.length > 0 && (
+			{dashboardData.activeSessions?.length > 0 && (
 				<Card>
 					<CardHeader>
 						<div className="flex justify-between items-center w-full">
@@ -377,7 +385,7 @@ export default function Dashboard() {
 										Other Active Sessions
 									</p>
 									<p className="text-small text-default-500">
-										{dashboardData.activeSessions.length}{" "}
+										{dashboardData.activeSessions?.length}{" "}
 										other session(s)
 									</p>
 								</div>
@@ -448,17 +456,17 @@ export default function Dashboard() {
 								Total Active Sessions
 							</p>
 							<p className="text-2xl font-bold">
-								{dashboardData.security.totalActiveSessions}
+								{dashboardData.security?.totalActiveSessions}
 							</p>
 						</div>
-						{dashboardData.security.lastPasswordChange && (
+						{dashboardData.security?.lastPasswordChange && (
 							<div>
 								<p className="text-small text-default-500 mb-1">
 									Last Password Change
 								</p>
 								<p className="font-medium">
 									{new Date(
-										dashboardData.security.lastPasswordChange
+										dashboardData.security?.lastPasswordChange
 									).toLocaleDateString()}
 								</p>
 							</div>

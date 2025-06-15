@@ -104,7 +104,7 @@ export async function PATCH(request: NextRequest) {
         await dbConnect();
         
         const data = await request.json();
-        const { ticketId, status, response } = data;
+        const { ticketId, status, priority, response } = data;
 
         if (!ticketId) {
             return NextResponse.json(
@@ -127,6 +127,11 @@ export async function PATCH(request: NextRequest) {
             ticket.status = status;
         }
 
+        // Update priority if provided
+        if (priority && ['low', 'medium', 'high'].includes(priority)) {
+            ticket.priority = priority;
+        }
+
         // Add admin response if provided
         if (response && response.trim()) {
             const adminResponse = {
@@ -146,6 +151,7 @@ export async function PATCH(request: NextRequest) {
             ticket: {
                 id: ticket.id,
                 status: ticket.status,
+                priority: ticket.priority,
                 updatedAt: ticket.updatedAt,
                 responsesCount: ticket.responses.length
             }

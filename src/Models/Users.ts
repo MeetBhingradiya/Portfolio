@@ -172,6 +172,10 @@ export interface IUser extends mongoose.Document {
     isLocked: boolean
     isSuspended: boolean
     isDeleted: boolean
+
+    //  ? Timestamps
+    createdAt: Date
+    updatedAt: Date
 }
 
 export const Users_Model: mongoose.Model<IUser> = mongoose.models?.Users || mongoose.model<IUser>("Users", User_Schema);

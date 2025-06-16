@@ -186,7 +186,7 @@ function analyzeRequestFingerprint(req: NextRequest): { suspicious: boolean; rea
     
     // Check for common header order issues (automation tools often send headers in different orders)
     const headerKeys = Array.from(req.headers.keys()).map(h => h.toLowerCase());
-    const expectedOrder = ['accept', 'accept-encoding', 'accept-language', 'cookie', 'user-agent'];
+    const expectedOrder = ['accept', 'accept-encoding', 'accept-language', 'content-length', 'cookie', 'user-agent'];
 
     let orderScore = 0;
     let lastIndex = -1;
@@ -225,16 +225,16 @@ export async function POST(req: NextRequest) {
     }
     
     // **Request Fingerprint Analysis**
-    const fingerprint = analyzeRequestFingerprint(req);
-    if (fingerprint.suspicious) {
-        return ControllerResponseMap({
-            Status: 0,
-            Message: 'Suspicious request pattern',
-            StatusCode: 'SUSPICIOUS_REQUEST',
-            StatusNumber: 403,
-            Debug: Config.Environment === 'development' ? { reason: fingerprint.reason } : undefined
-        });
-    }
+    // const fingerprint = analyzeRequestFingerprint(req);
+    // if (fingerprint.suspicious) {
+    //     return ControllerResponseMap({
+    //         Status: 0,
+    //         Message: 'Suspicious request pattern',
+    //         StatusCode: 'SUSPICIOUS_REQUEST',
+    //         StatusNumber: 403,
+    //         Debug: Config.Environment === 'development' ? { reason: fingerprint.reason } : undefined
+    //     });
+    // }
 
     // **Validation:**
     // 1. Origin & Referer Checks

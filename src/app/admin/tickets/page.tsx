@@ -39,7 +39,6 @@ import {
 	GridActionsCellItem,
 	GridRowParams,
 	GridToolbar,
-	// GridValueGetterParams,
 	GridRowId,
 } from "@mui/x-data-grid-premium";
 import {
@@ -77,6 +76,8 @@ import {
 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Axios } from "@Utils/Axios";
+import { useRouter } from "next/navigation";
+import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
 import {
 	LicenseInfo,
 	generateLicense,
@@ -113,17 +114,6 @@ interface Ticket {
 	}>;
 	createdAt: string;
 	updatedAt: string;
-}
-
-interface AdminState {
-	isAuthenticated: boolean;
-	token: string;
-	signature: string;
-	showPassword: boolean;
-	authError: string;
-	tryCount: number;
-	isBlocked: boolean;
-	blockExpiry: number;
 }
 
 interface TicketState {
@@ -312,16 +302,9 @@ const githubTheme: any = createTheme({
 } as any);
 
 export default function AdminTicketsPortal() {
-	const [adminState, setAdminState] = useState<AdminState>({
-		isAuthenticated: false,
-		token: "",
-		signature: "",
-		showPassword: false,
-		authError: "",
-		tryCount: 0,
-		isBlocked: false,
-		blockExpiry: 0,
-	});
+	const router = useRouter();
+	const { currentAccount } = useAccountSwitcher();
+	const [isInitialLoading, setIsInitialLoading] = useState(true);
 	const [ticketState, setTicketState] = useState<TicketState>({
 		tickets: [],
 		loading: false,
@@ -341,98 +324,33 @@ export default function AdminTicketsPortal() {
 	});
 
 	useEffect(() => {
-		checkIfBlocked();
+		// Set loading to false after initial render to allow account switcher to load
+		const timer = setTimeout(() => {
+			setIsInitialLoading(false);
+		}, 100);
+
+		return () => clearTimeout(timer);
 	}, []);
 
 	useEffect(() => {
-		if (adminState.isAuthenticated) {
-			loadTickets();
-		}
-	}, [adminState.isAuthenticated]);
-
-	const checkIfBlocked = () => {
-		const isBlocked = localStorage.getItem("adminAccessBlocked") === "true";
-		const blockedUntil = localStorage.getItem("adminAccessBlockExpiry");
-		const tryCount = parseInt(
-			localStorage.getItem("adminAccessTryCount") || "0"
-		);
-
-		if (isBlocked && blockedUntil) {
-			const blockExpiry = parseInt(blockedUntil);
-			if (Date.now() < blockExpiry) {
-				setAdminState((prev) => ({
-					...prev,
-					isBlocked: true,
-					blockExpiry,
-					tryCount,
-					authError:
-						"Access blocked for 24 hours due to too many failed attempts.",
-				}));
-				return;
-			} else {
-				localStorage.removeItem("adminAccessBlocked");
-				localStorage.removeItem("adminAccessBlockExpiry");
-				localStorage.removeItem("adminAccessTryCount");
-			}
-		}
-	};
-
-	const handleAdminLogin = async () => {
-		if (adminState.isBlocked) return;
-
-		if (adminState.tryCount >= 3) {
-			blockUser();
+		// Only run authentication checks after initial loading is complete
+		if (isInitialLoading) return;
+		
+		// Check authentication
+		const authToken = localStorage.getItem('auth-token');
+		if (!currentAccount || !authToken) {
+			router.push("/auth/signin");
 			return;
 		}
 
-		try {
-			const response = await Axios.post("/api/adminsignature", {
-				signature: adminState.signature,
-			});
-
-			setAdminState((prev) => ({
-				...prev,
-				isAuthenticated: true,
-				token: response.data.Data,
-				authError: "",
-				tryCount: 0,
-			}));
-
-			localStorage.removeItem("adminAccessBlocked");
-			localStorage.removeItem("adminAccessBlockExpiry");
-			localStorage.removeItem("adminAccessTryCount");
-		} catch (error: any) {
-			const newTryCount = adminState.tryCount + 1;
-			setAdminState((prev) => ({
-				...prev,
-				authError:
-					error?.response?.data?.Message || "Authentication failed",
-				tryCount: newTryCount,
-			}));
-
-			localStorage.setItem("adminAccessTryCount", newTryCount.toString());
-
-			if (newTryCount >= 3) {
-				blockUser();
-			}
+		// Check admin permissions
+		if (!currentAccount.profileData.isAdmin) {
+			router.push("/dashboard");
+			return;
 		}
-	};
 
-	const blockUser = () => {
-		const blockExpiry = Date.now() + 24 * 60 * 60 * 1000;
-
-		localStorage.setItem("adminAccessBlocked", "true");
-		localStorage.setItem("adminAccessBlockExpiry", blockExpiry.toString());
-		localStorage.setItem("adminAccessTryCount", "3");
-
-		setAdminState((prev) => ({
-			...prev,
-			isBlocked: true,
-			blockExpiry,
-			authError:
-				"Maximum attempts exceeded. Access blocked for 24 hours.",
-		}));
-	};
+		loadTickets();
+	}, [currentAccount, router, isInitialLoading]);
 
 	const loadTickets = async () => {
 		setTicketState((prev) => ({ ...prev, loading: true, error: "" }));
@@ -440,7 +358,7 @@ export default function AdminTicketsPortal() {
 		try {
 			const response = await Axios.get("/api/admin/tickets", {
 				headers: {
-					Authorization: `Bearer ${adminState.token}`,
+					Authorization: `Bearer ${currentAccount?.encryptedToken}`,
 				},
 			});
 
@@ -487,7 +405,7 @@ export default function AdminTicketsPortal() {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${adminState.token}`,
+						Authorization: `Bearer ${currentAccount?.encryptedToken}`,
 					},
 				}
 			);
@@ -512,7 +430,7 @@ export default function AdminTicketsPortal() {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${adminState.token}`,
+						Authorization: `Bearer ${currentAccount?.encryptedToken}`,
 					},
 				}
 			);
@@ -540,7 +458,7 @@ export default function AdminTicketsPortal() {
 				},
 				{
 					headers: {
-						Authorization: `Bearer ${adminState.token}`,
+						Authorization: `Bearer ${currentAccount?.encryptedToken}`,
 					},
 				}
 			);
@@ -573,7 +491,7 @@ export default function AdminTicketsPortal() {
 		try {
 			await Axios.delete(`/api/admin/tickets?id=${ticketId}`, {
 				headers: {
-					Authorization: `Bearer ${adminState.token}`,
+					Authorization: `Bearer ${currentAccount?.encryptedToken}`,
 				},
 			});
 
@@ -585,19 +503,6 @@ export default function AdminTicketsPortal() {
 					error?.response?.data?.error || "Failed to delete ticket",
 			}));
 		}
-	};
-
-	const logout = () => {
-		setAdminState({
-			isAuthenticated: false,
-			token: "",
-			signature: "",
-			showPassword: false,
-			authError: "",
-			tryCount: 0,
-			isBlocked: false,
-			blockExpiry: 0,
-		});
 	};
 
 	// DataGrid columns configuration
@@ -1039,265 +944,17 @@ export default function AdminTicketsPortal() {
 		},
 	];
 
-	// Authentication Screen
-	if (!adminState.isAuthenticated) {
+	if (isInitialLoading || !currentAccount) {
 		return (
 			<Box
 				sx={{
-					minHeight: "100vh",
-					background:
-						"linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
 					display: "flex",
-					alignItems: "center",
 					justifyContent: "center",
-					p: 2,
+					alignItems: "center",
+					minHeight: "100vh",
 				}}
 			>
-				<motion.div
-					initial={{ opacity: 0, y: 20 }}
-					animate={{ opacity: 1, y: 0 }}
-					transition={{ duration: 0.6 }}
-				>
-					<Paper
-						elevation={10}
-						sx={{
-							p: 4,
-							maxWidth: 420,
-							width: "100%",
-							borderRadius: 3,
-							background: "rgba(255, 255, 255, 0.95)",
-							backdropFilter: "blur(20px)",
-							border: "1px solid rgba(255, 255, 255, 0.3)",
-							boxShadow: "0 8px 32px rgba(0, 0, 0, 0.15)",
-							"& .MuiTypography-root": {
-								color: "#24292f !important",
-							},
-							"& .MuiTypography-h4": {
-								color: "#0969da !important",
-								fontWeight: "bold",
-							},
-							"& .MuiTypography-body1": {
-								color: "#656d76 !important",
-							},
-							"& .MuiTypography-caption": {
-								color: "#656d76 !important",
-							},
-						}}
-					>
-						<Box sx={{ textAlign: "center", mb: 4 }}>
-							<motion.div
-								initial={{ scale: 0 }}
-								animate={{ scale: 1 }}
-								transition={{
-									delay: 0.2,
-									type: "spring",
-									stiffness: 200,
-								}}
-							>
-								<Security
-									sx={{
-										fontSize: 56,
-										color: "#667eea",
-										mb: 2,
-									}}
-								/>
-							</motion.div>
-							<Typography
-								variant="h4"
-								gutterBottom
-								fontWeight="bold"
-								sx={{ color: "#0969da" }}
-							>
-								Admin Portal
-							</Typography>
-							<Typography
-								variant="body1"
-								sx={{ color: "#656d76" }}
-							>
-								Secure Ticket Management System
-							</Typography>
-							<Typography
-								variant="caption"
-								sx={{
-									display: "block",
-									mt: 1,
-									color: "#656d76",
-								}}
-							>
-								Staff Engineer Level Access Control
-							</Typography>
-						</Box>
-						<AnimatePresence>
-							{adminState.authError && (
-								<motion.div
-									initial={{ opacity: 0, y: -10 }}
-									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: -10 }}
-								>
-									<Alert
-										severity="error"
-										sx={{ mb: 3, borderRadius: 2 }}
-									>
-										{adminState.authError}
-									</Alert>
-								</motion.div>
-							)}
-						</AnimatePresence>
-						{adminState.isBlocked && (
-							<Alert
-								severity="warning"
-								sx={{ mb: 3, borderRadius: 2 }}
-							>
-								<Typography
-									variant="body2"
-									fontWeight={500}
-								>
-									Access Blocked
-								</Typography>
-								<Typography variant="caption">
-									Until:
-									{new Date(
-										adminState.blockExpiry
-									).toLocaleString()}
-								</Typography>
-							</Alert>
-						)}
-						<TextField
-							fullWidth
-							label="Admin Signature"
-							type={adminState.showPassword ? "text" : "password"}
-							value={adminState.signature}
-							onChange={(e) =>
-								setAdminState((prev) => ({
-									...prev,
-									signature: e.target.value,
-								}))
-							}
-							disabled={adminState.isBlocked}
-							sx={{
-								mb: 3,
-								"& .MuiInputLabel-root": {
-									color: "#24292f",
-									fontWeight: 500,
-								},
-								"& .MuiInputLabel-root.Mui-focused": {
-									color: "#0969da",
-								},
-								"& .MuiOutlinedInput-root": {
-									backgroundColor: "rgba(255, 255, 255, 0.9)",
-									"& fieldset": {
-										borderColor: "#d1d9e0",
-										borderWidth: 2,
-									},
-									"&:hover fieldset": {
-										borderColor: "#0969da",
-									},
-									"&.Mui-focused fieldset": {
-										borderColor: "#0969da",
-									},
-									"& input": {
-										color: "#24292f",
-										fontWeight: 500,
-									},
-									"& input::placeholder": {
-										color: "#656d76",
-										opacity: 1,
-									},
-								},
-							}}
-							placeholder="Enter your secure admin signature"
-							InputProps={{
-								endAdornment: (
-									<IconButton
-										onClick={() =>
-											setAdminState((prev) => ({
-												...prev,
-												showPassword:
-													!prev.showPassword,
-											}))
-										}
-										edge="end"
-										sx={{
-											color: "#656d76",
-											"&:hover": {
-												color: "#0969da",
-												backgroundColor:
-													"rgba(9, 105, 218, 0.1)",
-											},
-										}}
-									>
-										{adminState.showPassword ? (
-											<VisibilityOff />
-										) : (
-											<Visibility />
-										)}
-									</IconButton>
-								),
-							}}
-						/>
-						<motion.div
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-						>
-							<Button
-								fullWidth
-								variant="contained"
-								onClick={handleAdminLogin}
-								disabled={
-									adminState.isBlocked ||
-									!adminState.signature.trim()
-								}
-								sx={{
-									py: 2,
-									fontSize: "1rem",
-									fontWeight: 600,
-									color: "#ffffff",
-									background:
-										"linear-gradient(135deg, #0969da 0%, #8250df 100%)",
-									boxShadow:
-										"0 4px 15px rgba(9, 105, 218, 0.3)",
-									border: "1px solid rgba(9, 105, 218, 0.2)",
-									"&:hover": {
-										background:
-											"linear-gradient(135deg, #0550ae 0%, #6f42c1 100%)",
-										boxShadow:
-											"0 6px 20px rgba(9, 105, 218, 0.4)",
-										transform: "translateY(-1px)",
-									},
-									"&:disabled": {
-										background: "#d1d9e0",
-										color: "#656d76",
-										boxShadow: "none",
-										border: "1px solid #d1d9e0",
-									},
-									"& .MuiSvgIcon-root": {
-										color: "#ffffff",
-									},
-								}}
-							>
-								<Security sx={{ mr: 1 }} />
-								Access Admin Portal
-							</Button>
-						</motion.div>
-						<Box sx={{ mt: 3, textAlign: "center" }}>
-							<Typography
-								variant="caption"
-								color="text.secondary"
-							>
-								Security Attempts: {adminState.tryCount}/3
-							</Typography>
-							<Typography
-								variant="caption"
-								color="error"
-								sx={{ display: "block", mt: 0.5 }}
-							>
-								{adminState.tryCount >= 2 &&
-									!adminState.isBlocked &&
-									"Final attempt warning"}
-							</Typography>
-						</Box>
-					</Paper>
-				</motion.div>
+				<CircularProgress />
 			</Box>
 		);
 	}
@@ -1354,13 +1011,13 @@ export default function AdminTicketsPortal() {
 						>
 							<Chip
 								icon={<Person sx={{ fontSize: 14 }} />}
-								label="MeetBhingradiya"
+								label={`${currentAccount.firstName} ${currentAccount.lastName}`}
 								size="small"
 								color="primary"
 								variant="outlined"
 							/>
 							<IconButton
-								onClick={logout}
+								onClick={() => router.push("/dashboard")}
 								color="inherit"
 							>
 								<ExitToApp />
@@ -1637,9 +1294,6 @@ export default function AdminTicketsPortal() {
 										showQuickFilter: true,
 										quickFilterProps: {
 											debounceMs: 500,
-											// InputProps: {
-											//     placeholder: 'Search tickets...'
-											// }
 										},
 									},
 								}}
@@ -1700,8 +1354,7 @@ export default function AdminTicketsPortal() {
 										variant="body2"
 										color="text.secondary"
 									>
-										Ticket: {ticketState.selectedTicket.id}•
-										{ticketState.selectedTicket.name}
+										Ticket: {ticketState.selectedTicket.id} • {ticketState.selectedTicket.name}
 									</Typography>
 								)}
 							</Box>
@@ -1731,8 +1384,7 @@ export default function AdminTicketsPortal() {
 										color="text.secondary"
 										sx={{ mb: 2 }}
 									>
-										<strong>Subject:</strong>
-										{ticketState.selectedTicket.subject}
+										<strong>Subject:</strong> {ticketState.selectedTicket.subject}
 									</Typography>
 									<Typography
 										variant="body2"
@@ -1859,8 +1511,7 @@ export default function AdminTicketsPortal() {
 										variant="body2"
 										color="text.secondary"
 									>
-										Ticket: {ticketState.selectedTicket.id}•
-										{ticketState.selectedTicket.name}
+										Ticket: {ticketState.selectedTicket.id} • {ticketState.selectedTicket.name}
 									</Typography>
 								)}
 							</Box>
@@ -1906,19 +1557,13 @@ export default function AdminTicketsPortal() {
 												fontWeight="bold"
 												color="text.primary"
 											>
-												{
-													ticketState.selectedTicket
-														.name
-												}
+												{ticketState.selectedTicket.name}
 											</Typography>
 											<Typography
 												variant="caption"
 												color="text.secondary"
 											>
-												•
-												{new Date(
-													ticketState.selectedTicket.createdAt
-												).toLocaleString()}
+												• {new Date(ticketState.selectedTicket.createdAt).toLocaleString()}
 											</Typography>
 										</Box>
 										<Typography
@@ -1926,8 +1571,7 @@ export default function AdminTicketsPortal() {
 											color="text.secondary"
 											sx={{ mb: 2 }}
 										>
-											<strong>Subject:</strong>
-											{ticketState.selectedTicket.subject}
+											<strong>Subject:</strong> {ticketState.selectedTicket.subject}
 										</Typography>
 										<Typography
 											variant="body2"
@@ -1939,8 +1583,7 @@ export default function AdminTicketsPortal() {
 
 									{/* Responses */}
 									{ticketState.selectedTicket.responses &&
-									ticketState.selectedTicket.responses
-										.length > 0 ? (
+									ticketState.selectedTicket.responses.length > 0 ? (
 										<Box
 											sx={{
 												display: "flex",
@@ -1964,19 +1607,14 @@ export default function AdminTicketsPortal() {
 																	? "primary.200"
 																	: "divider",
 															borderRadius: 2,
-															ml: response.isAdmin
-																? 3
-																: 0,
-															mr: response.isAdmin
-																? 0
-																: 3,
+															ml: response.isAdmin ? 3 : 0,
+															mr: response.isAdmin ? 0 : 3,
 														}}
 													>
 														<Box
 															sx={{
 																display: "flex",
-																alignItems:
-																	"center",
+																alignItems: "center",
 																gap: 1,
 																mb: 2,
 															}}
@@ -2007,27 +1645,20 @@ export default function AdminTicketsPortal() {
 															>
 																{response.isAdmin
 																	? "Admin Support"
-																	: ticketState
-																			.selectedTicket
-																			?.name ||
-																		"Customer"}
+																	: ticketState.selectedTicket?.name || "Customer"}
 															</Typography>
 															<Typography
 																variant="caption"
 																color="text.secondary"
 															>
-																•
-																{new Date(
-																	response.createdAt
-																).toLocaleString()}
+																• {new Date(response.createdAt).toLocaleString()}
 															</Typography>
 														</Box>
 														<Typography
 															variant="body2"
 															color="text.secondary"
 															sx={{
-																whiteSpace:
-																	"pre-wrap",
+																whiteSpace: "pre-wrap",
 															}}
 														>
 															{response.message}
@@ -2050,9 +1681,7 @@ export default function AdminTicketsPortal() {
 												variant="body2"
 												color="text.secondary"
 											>
-												No responses yet. Click
-												&quot;Add Response&quot; to
-												start the conversation.
+												No responses yet. Click "Add Response" to start the conversation.
 											</Typography>
 										</Paper>
 									)}

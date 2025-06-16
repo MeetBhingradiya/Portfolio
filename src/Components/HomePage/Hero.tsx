@@ -30,7 +30,7 @@ const expertiseAreas = [
 const quickStats = [
 	{
 		icon: <Star className="text-lg" />,
-		label: "50+",
+		label: "10+",
 		description: "Projects",
 	},
 	{
@@ -43,11 +43,11 @@ const quickStats = [
 		label: "3+",
 		description: "Years Experience",
 	},
-	{
-		icon: <TrendingUp className="text-lg" />,
-		label: "89.7",
-		description: "Skill Score",
-	},
+	// {
+	// 	icon: <TrendingUp className="text-lg" />,
+	// 	label: "89.7",
+	// 	description: "Skill Score By AI",
+	// },
 ];
 
 function HeroSection() {
@@ -88,7 +88,6 @@ function HeroSection() {
 							<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
 							<span>Available for Staff Engineer positions</span>
 						</motion.div>
-
 						{/* Main Heading */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
@@ -125,30 +124,29 @@ function HeroSection() {
 								</div>
 							</div>
 						</motion.div>
-
-						{/* Description */}
+						
+						{/* Description */}{" "}
 						<motion.p
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.2 }}
 							className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl"
 						>
-							Security-focused software engineer specializing in
+							Security-focused software engineer specializing in{" "}
 							<span className="font-semibold text-blue-600 dark:text-blue-400">
 								enterprise automation
 							</span>
-							,
+							,{" "}
 							<span className="font-semibold text-purple-600 dark:text-purple-400">
 								framework development
 							</span>
-							, and
+							, and{" "}
 							<span className="font-semibold text-pink-600 dark:text-pink-400">
 								AI-enhanced workflows
 							</span>
 							. Building production systems with advanced security
 							and scalability.
 						</motion.p>
-
 						{/* Quick Stats */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
@@ -179,7 +177,6 @@ function HeroSection() {
 								</motion.div>
 							))}
 						</motion.div>
-
 						{/* Action Buttons */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
@@ -226,7 +223,6 @@ function HeroSection() {
 								</Link>
 							</motion.div>
 						</motion.div>
-
 						{/* Location & Social */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}

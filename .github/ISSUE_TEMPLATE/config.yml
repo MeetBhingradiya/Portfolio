@@ -1,0 +1,14 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 GitHub Discussions
+    url: https://github.com/MeetBhingradiya/Portfolio/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 📧 Security Contact
+    url: mailto:security@yourproject.com
+    about: Report security vulnerabilities privately (for critical issues)
+  - name: 📚 Documentation
+    url: https://github.com/MeetBhingradiya/Portfolio/wiki
+    about: Check the project documentation and guides
+  - name: 💡 Feature Discussions
+    url: https://github.com/MeetBhingradiya/Portfolio/discussions/categories/ideas
+    about: Discuss new ideas and proposals with the community

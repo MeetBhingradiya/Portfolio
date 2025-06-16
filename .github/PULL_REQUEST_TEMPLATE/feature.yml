@@ -1,0 +1,248 @@
+name: Feature Pull Request
+description: Submit a new feature or enhancement to the project
+body:
+  - type: textarea
+    id: feature_overview
+    attributes:
+      label: 🎯 Feature Overview
+      description: |
+        Provide a clear and concise description of the new feature.
+        What does this feature do and why is it valuable?
+      placeholder: |
+        This feature adds a dark mode toggle that allows users to switch between light and dark themes,
+        improving accessibility and user experience during low-light usage.
+    validations:
+      required: true
+
+  - type: input
+    id: related_issue
+    attributes:
+      label: 🔗 Related Issue
+      description: Link to the feature request this PR implements
+      placeholder: "Closes #123"
+
+  - type: dropdown
+    id: feature_type
+    attributes:
+      label: ✨ Feature Type
+      description: What type of feature is this?
+      options:
+        - New user-facing functionality
+        - Enhancement to existing feature
+        - Developer experience improvement
+        - Performance optimization
+        - API/Integration feature
+        - Infrastructure improvement
+        - Other
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: feature_complexity
+    attributes:
+      label: 🏗️ Feature Complexity
+      description: How complex is this feature implementation?
+      options:
+        - Simple (minimal changes, low risk)
+        - Moderate (some complexity, medium risk)
+        - Complex (significant changes, higher risk)
+        - Major (architectural changes, high risk)
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: 💡 Motivation
+      description: |
+        Explain why this feature is needed and what problem it solves.
+        What user pain point does this address?
+      placeholder: |
+        Users have been requesting a dark mode option because:
+        - The current light theme can be harsh on the eyes during night usage
+        - Many users prefer dark interfaces for better focus
+        - It improves accessibility for users with light sensitivity
+    validations:
+      required: true
+
+  - type: textarea
+    id: implementation_details
+    attributes:
+      label: 🏗️ Implementation Details
+      description: |
+        Describe how the feature was implemented.
+        Include architectural decisions and key components.
+      placeholder: |
+        ### Key Components:
+        - ThemeContext for managing theme state
+        - ThemeToggle component in the header
+        - CSS custom properties for theme colors
+        - localStorage for persistence
+
+        ### Architecture Changes:
+        - Added theme provider at the app root level
+        - Modified existing components to use theme-aware styling
+        - Created utility functions for theme management
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_stories
+    attributes:
+      label: 📋 User Stories Addressed
+      description: |
+        List the user stories this feature fulfills.
+        Use the format: "As a [user type], I can [action] so that [benefit]"
+      placeholder: |
+        - As a website visitor, I can toggle between light and dark modes so that I can use the site comfortably in different lighting conditions
+        - As a user with light sensitivity, I can use dark mode so that I can browse the site without eye strain
+        - As a returning user, I can have my theme preference remembered so that I don't need to set it every time
+    validations:
+      required: true
+
+  - type: textarea
+    id: ui_ux_changes
+    attributes:
+      label: 🎨 UI/UX Changes
+      description: |
+        Describe the user interface and user experience changes.
+        How will users interact with this feature?
+      placeholder: |
+        - Added a theme toggle button in the top-right corner of the header
+        - Smooth transition animations when switching themes
+        - All components now support both light and dark color schemes
+        - Theme preference is indicated by the toggle state
+
+  - type: checkboxes
+    id: functionality_checklist
+    attributes:
+      label: ✅ Functionality Checklist
+      description: Confirm that the feature works as intended
+      options:
+        - label: Core functionality works as designed
+          required: true
+        - label: Feature integrates well with existing functionality
+          required: true
+        - label: User interface is intuitive and accessible
+          required: true
+        - label: Feature works across different devices/screen sizes
+        - label: Performance impact is acceptable
+        - label: Feature degrades gracefully if JavaScript is disabled
+
+  - type: checkboxes
+    id: testing_checklist
+    attributes:
+      label: 🧪 Testing Checklist
+      description: Confirm comprehensive testing was performed
+      options:
+        - label: Unit tests added for new components/functions
+        - label: Integration tests cover feature workflows
+        - label: Manual testing completed across browsers
+        - label: Mobile/responsive testing completed
+        - label: Accessibility testing performed
+        - label: Performance testing completed
+
+  - type: textarea
+    id: cross_platform_testing
+    attributes:
+      label: 📱 Cross-Platform Testing
+      description: |
+        Document testing performed across different platforms and browsers.
+      placeholder: |
+        ### Desktop Testing:
+        - ✅ Chrome 120+ (Windows, macOS, Linux)
+        - ✅ Firefox 118+ (Windows, macOS, Linux)
+        - ✅ Safari 17+ (macOS)
+        - ✅ Edge 118+ (Windows)
+
+        ### Mobile Testing:
+        - ✅ iOS Safari (iPhone 12+)
+        - ✅ Android Chrome (Samsung Galaxy S21+)
+        - ✅ iPad Safari
+
+  - type: textarea
+    id: performance_impact
+    attributes:
+      label: ⚡ Performance Impact
+      description: |
+        Describe the performance impact of this feature.
+        Include metrics where possible.
+      placeholder: |
+        ### Performance Metrics:
+        - Bundle size increase: +2.3KB gzipped
+        - Initial load time impact: <10ms
+        - Theme switching time: ~150ms
+        - Memory usage impact: Negligible
+
+        ### Optimizations:
+        - CSS custom properties used for efficient theme switching
+        - Minimal JavaScript footprint
+        - No runtime performance degradation
+
+  - type: textarea
+    id: security_considerations
+    attributes:
+      label: 🔒 Security Considerations
+      description: |
+        Describe any security implications and how they were addressed.
+        Leave empty if not applicable.
+      placeholder: |
+        - Theme preference stored in localStorage (no sensitive data)
+        - No external API calls introduced
+        - No user input validation required for theme selection
+        - Feature doesn't affect authentication or authorization
+
+  - type: checkboxes
+    id: documentation_checklist
+    attributes:
+      label: 📚 Documentation Checklist
+      description: Confirm documentation is updated
+      options:
+        - label: README updated with feature information
+        - label: API documentation updated (if applicable)
+        - label: Component documentation added/updated
+        - label: Usage examples provided
+        - label: Configuration documentation updated
+
+  - type: textarea
+    id: backwards_compatibility
+    attributes:
+      label: 🔄 Backwards Compatibility
+      description: |
+        Describe backwards compatibility considerations.
+        Are there any breaking changes?
+      placeholder: |
+        - No breaking changes introduced
+        - Feature is opt-in and doesn't affect existing functionality
+        - Existing themes/styling remain unchanged
+        - Legacy browser support maintained (graceful degradation)
+
+  - type: textarea
+    id: future_considerations
+    attributes:
+      label: 🔮 Future Considerations
+      description: |
+        What future enhancements or related features could build on this work?
+      placeholder: |
+        - Additional color themes (high contrast, sepia, etc.)
+        - System theme preference detection
+        - Per-component theme customization
+        - Theme-based user preferences storage
+
+  - type: textarea
+    id: screenshots_demo
+    attributes:
+      label: 📸 Screenshots/Demo
+      description: |
+        Add screenshots, videos, or GIFs demonstrating the new feature.
+      placeholder: |
+        ### Light Mode:
+        [Screenshot of feature in light mode]
+
+        ### Dark Mode:
+        [Screenshot of feature in dark mode]
+
+        ### Theme Toggle Demo:
+        [GIF showing theme switching in action]

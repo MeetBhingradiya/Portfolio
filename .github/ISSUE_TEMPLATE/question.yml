@@ -1,0 +1,146 @@
+name: Question/Support
+description: Ask a question or request support for using this project
+labels: ["❓ Type: Question"]
+assignees: []
+body:
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before asking a question...
+      options:
+        - label: |
+            I have searched existing issues and discussions for similar questions.
+          required: true
+        - label: |
+            I have read the documentation and README.
+          required: true
+        - label: |
+            This is not a bug report or feature request (use the appropriate templates for those).
+          required: true
+
+  - type: dropdown
+    id: question_type
+    attributes:
+      label: Question Type
+      description: What type of question or support do you need?
+      options:
+        - How to use a feature
+        - Installation/Setup help
+        - Configuration assistance
+        - Best practices guidance
+        - Architecture/Design question
+        - Integration with other tools
+        - Troubleshooting (not a bug)
+        - Performance optimization advice
+        - General project question
+        - Other
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: experience_level
+    attributes:
+      label: Experience Level
+      description: What's your experience level with this project/technology?
+      options:
+        - Beginner (new to this project and similar technologies)
+        - Intermediate (some experience with similar technologies)
+        - Advanced (experienced with similar technologies, new to this project)
+        - Expert (experienced with this project and similar technologies)
+      default: 0
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: |
+        Ask your question clearly and provide context.
+        The more specific you are, the better we can help you.
+      placeholder: |
+        How do I configure the authentication system to work with OAuth2?
+        I'm trying to integrate with Google OAuth but I'm not sure where to start.
+    validations:
+      required: true
+
+  - type: textarea
+    id: what_tried
+    attributes:
+      label: What Have You Tried?
+      description: |
+        Describe what you've already attempted.
+        Include any approaches that didn't work and why.
+      placeholder: |
+        I tried following the authentication docs but got stuck at the OAuth configuration step.
+        I've looked at the example code but it doesn't seem to match my use case.
+
+  - type: textarea
+    id: current_setup
+    attributes:
+      label: Current Setup/Configuration
+      description: |
+        Describe your current setup, configuration, or code.
+        Include relevant configuration files or code snippets.
+      placeholder: |
+        ```javascript
+        // My current configuration
+        const config = {
+          auth: {
+            provider: 'oauth2'
+          }
+        };
+        ```
+        
+        - Node.js version: 18.x
+        - Project version: 1.2.3
+        - Environment: Development
+
+  - type: textarea
+    id: expected_outcome
+    attributes:
+      label: Expected Outcome
+      description: |
+        Describe what you're trying to achieve.
+        What should happen when you're done?
+      placeholder: |
+        I want users to be able to log in using their Google accounts.
+        After successful authentication, they should be redirected to the dashboard.
+
+  - type: textarea
+    id: code_examples
+    attributes:
+      label: Code Examples/Screenshots
+      description: |
+        Include any relevant code, configuration files, or screenshots.
+        Use code blocks for better formatting.
+      placeholder: |
+        ```javascript
+        // Relevant code here
+        ```
+        
+        Or drag and drop screenshots here.
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency
+      description: How urgent is getting an answer to this question?
+      options:
+        - No rush (learning/exploring)
+        - Moderate (working on a project)
+        - High (blocking current work)
+        - Critical (production issue - consider bug report instead)
+      default: 1
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: |
+        Any other information that might be helpful.
+        Include deadlines, constraints, or specific requirements.
+      placeholder: |
+        - Working on a production deployment due next week
+        - Must support mobile devices
+        - Need to integrate with existing user database
+        - Company security requirements: XYZ

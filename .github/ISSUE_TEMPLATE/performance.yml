@@ -1,0 +1,208 @@
+name: Performance Issue
+description: Report performance problems or suggest performance improvements
+labels: ["⚡ Type: Performance"]
+assignees: []
+body:
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before submitting a performance issue...
+      options:
+        - label: |
+            I have searched existing issues and this performance problem hasn't been reported before.
+          required: true
+        - label: |
+            I have tested this on the latest version.
+          required: true
+        - label: |
+            I have tested this in multiple browsers/environments (if applicable).
+          required: true
+
+  - type: dropdown
+    id: performance_type
+    attributes:
+      label: Performance Issue Type
+      description: What type of performance issue is this?
+      options:
+        - Slow page load times
+        - High memory usage
+        - CPU intensive operations
+        - Large bundle size
+        - Slow database queries
+        - Network request issues
+        - Rendering performance
+        - Animation/interaction lag
+        - Other
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Performance Impact
+      description: How severe is this performance issue?
+      options:
+        - Critical (Application unusable/crashes)
+        - High (Significantly impacts user experience)
+        - Medium (Noticeable but doesn't prevent usage)
+        - Low (Minor impact, optimization opportunity)
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Performance Issue Description
+      description: |
+        Describe the performance problem in detail.
+        What specific operation or page is slow?
+      placeholder: |
+        The dashboard page takes 15+ seconds to load when displaying 1000+ items.
+        The page becomes unresponsive during the loading process.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps_to_reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide specific steps to reproduce the performance issue.
+      placeholder: |
+        1. Navigate to dashboard page
+        2. Wait for page to load completely
+        3. Observe loading time and responsiveness
+        4. Try interacting with elements during load
+    validations:
+      required: true
+
+  - type: textarea
+    id: performance_metrics
+    attributes:
+      label: Performance Metrics
+      description: |
+        Provide specific performance measurements if available.
+        Include timing, memory usage, network data, etc.
+      placeholder: |
+        - Page load time: 15.3 seconds
+        - Time to first contentful paint: 8.2 seconds
+        - Memory usage: 250MB+
+        - Bundle size: 2.5MB gzipped
+        - Network requests: 45 total
+
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Browser
+      description: Which browser are you using?
+      options:
+        - Chrome
+        - Firefox
+        - Safari
+        - Edge
+        - Opera
+        - Multiple browsers
+        - Other
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: browser_version
+    attributes:
+      label: Browser Version
+      placeholder: e.g., Chrome 120.0.6099.109
+    validations:
+      required: true
+
+  - type: dropdown
+    id: device_type
+    attributes:
+      label: Device Type
+      description: What type of device are you using?
+      options:
+        - Desktop/Laptop (High-end)
+        - Desktop/Laptop (Mid-range)
+        - Desktop/Laptop (Low-end)
+        - Mobile (High-end)
+        - Mobile (Mid-range)
+        - Mobile (Low-end)
+        - Tablet
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: device_specs
+    attributes:
+      label: Device Specifications
+      description: Provide device specs if relevant to the performance issue
+      placeholder: e.g., MacBook Pro M1, 16GB RAM / iPhone 12 / Samsung Galaxy S21
+
+  - type: dropdown
+    id: network
+    attributes:
+      label: Network Connection
+      description: What type of network connection are you using?
+      options:
+        - Fast broadband (100+ Mbps)
+        - Regular broadband (10-100 Mbps)
+        - Slow broadband (<10 Mbps)
+        - Mobile 5G
+        - Mobile 4G/LTE
+        - Mobile 3G
+        - Slow/unstable connection
+      default: 0
+
+  - type: textarea
+    id: profiling_data
+    attributes:
+      label: Profiling Data
+      description: |
+        If you have profiling data from browser dev tools or other tools, please share it here.
+        Include screenshots of the Performance tab, Network tab, or Memory tab.
+      placeholder: |
+        Attach screenshots of:
+        - Chrome DevTools Performance timeline
+        - Network waterfall
+        - Memory usage graphs
+        - Lighthouse audit results
+
+  - type: textarea
+    id: expected_performance
+    attributes:
+      label: Expected Performance
+      description: |
+        What performance do you expect?
+        Provide specific targets if possible.
+      placeholder: |
+        - Page should load within 3 seconds
+        - Memory usage should stay under 100MB
+        - Interactions should be responsive (<100ms)
+
+  - type: textarea
+    id: suggested_improvements
+    attributes:
+      label: Suggested Improvements
+      description: |
+        If you have ideas for how to improve performance, please share them.
+      placeholder: |
+        - Implement virtual scrolling for large lists
+        - Lazy load images and components
+        - Optimize database queries
+        - Enable code splitting
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: |
+        Any other context about the performance issue.
+        Include data size, user load, or environment details.
+      placeholder: |
+        - Dataset size: 10,000 records
+        - Concurrent users: 50+
+        - Database: PostgreSQL on AWS RDS
+        - CDN: CloudFlare

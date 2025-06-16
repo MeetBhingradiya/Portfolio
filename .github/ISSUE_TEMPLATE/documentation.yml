@@ -1,0 +1,107 @@
+name: Documentation Issue
+description: Report problems with documentation or suggest documentation improvements
+labels: ["📚 Type: Documentation"]
+assignees: []
+body:
+  - type: checkboxes
+    id: prerequisites
+    attributes:
+      label: Before submitting a documentation issue...
+      options:
+        - label: |
+            I have searched existing issues and this documentation problem hasn't been reported before.
+          required: true
+        - label: |
+            I have checked the latest version of the documentation.
+          required: true
+
+  - type: dropdown
+    id: doc_type
+    attributes:
+      label: Documentation Type
+      description: What type of documentation issue is this?
+      options:
+        - README.md
+        - API documentation
+        - Installation guide
+        - Tutorial/Guide
+        - Code comments
+        - Wiki/External docs
+        - Other
+      default: 0
+    validations:
+      required: true
+
+  - type: dropdown
+    id: issue_type
+    attributes:
+      label: Issue Type
+      description: What kind of documentation issue is this?
+      options:
+        - Missing documentation
+        - Incorrect/outdated information
+        - Unclear/confusing content
+        - Broken links
+        - Formatting/display issues
+        - Typos/grammar errors
+        - Documentation improvement suggestion
+      default: 0
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is this documentation located?
+      placeholder: e.g., README.md line 45, /docs/api/authentication.md, or URL
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_content
+    attributes:
+      label: Current Content (if applicable)
+      description: |
+        If reporting incorrect content, paste the current text here.
+        Use triple backticks for code blocks.
+      placeholder: |
+        ```
+        Current documentation text that needs to be fixed...
+        ```
+
+  - type: textarea
+    id: expected_content
+    attributes:
+      label: Expected/Suggested Content
+      description: |
+        What should the documentation say instead?
+        Provide the corrected or improved content.
+      placeholder: |
+        ```
+        Suggested documentation text...
+        ```
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: |
+        Provide any additional context that would help us understand and fix this documentation issue.
+        Include screenshots if it's a formatting/display issue.
+      placeholder: |
+        - What were you trying to accomplish when you found this issue?
+        - How did this confusion/error affect you?
+        - Any related issues or discussions?
+
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact
+      description: |
+        How does this documentation issue affect users?
+        Who would benefit from fixing this?
+      placeholder: |
+        - New users might be confused about installation steps
+        - Developers integrating the API might make errors
+        - Contributors might not understand the coding standards

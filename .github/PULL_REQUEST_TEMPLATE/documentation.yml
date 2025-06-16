@@ -1,0 +1,212 @@
+name: Documentation Pull Request
+description: Submit documentation updates, improvements, or new documentation
+body:
+  - type: checkboxes
+    id: documentation_type
+    attributes:
+      label: 📖 Documentation Type
+      description: What type of documentation change is this?
+      options:
+        - label: 📝 New documentation
+        - label: ✏️ Documentation update/improvement
+        - label: 🔧 Documentation fix/correction
+        - label: 🗑️ Documentation removal
+        - label: 🔄 Documentation restructuring
+        - label: 🌐 Translation/localization
+
+  - type: dropdown
+    id: target_audience
+    attributes:
+      label: 🎯 Target Audience
+      description: Who is this documentation for?
+      options:
+        - End users
+        - Developers/Contributors
+        - System administrators
+        - API users
+        - Project maintainers
+        - Mixed audience
+        - Other
+      default: 1
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 📋 Summary
+      description: |
+        Provide a brief summary of the documentation changes.
+        What documentation was added, updated, or removed?
+      placeholder: |
+        Added comprehensive API documentation for the new authentication endpoints,
+        including code examples and error handling guidelines.
+    validations:
+      required: true
+
+  - type: input
+    id: related_issue
+    attributes:
+      label: 🔗 Related Issue
+      description: Link to related documentation issue or request
+      placeholder: "Addresses #123"
+
+  - type: textarea
+    id: changes_made
+    attributes:
+      label: 📝 Changes Made
+      description: |
+        List the specific documentation changes in detail.
+      placeholder: |
+        ### New Documentation:
+        - Added API reference for /auth endpoints
+        - Created troubleshooting guide for common setup issues
+        - Added code examples for JWT token handling
+
+        ### Updated Documentation:
+        - Refreshed installation instructions for new dependencies
+        - Updated configuration examples with latest options
+        - Improved getting started guide with clearer steps
+
+        ### Removed Documentation:
+        - Removed outdated deployment section
+        - Deleted deprecated API endpoint references
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: content_review
+    attributes:
+      label: 🔍 Content Review Checklist
+      description: Confirm the quality of your documentation
+      options:
+        - label: Spell check completed
+          required: true
+        - label: Grammar and style reviewed
+          required: true
+        - label: Technical accuracy verified
+          required: true
+        - label: Clear and concise language used
+          required: true
+        - label: Consistent with project's documentation style
+          required: true
+
+  - type: checkboxes
+    id: technical_accuracy
+    attributes:
+      label: 🔬 Technical Accuracy Checklist
+      description: Confirm technical details are correct
+      options:
+        - label: Code examples tested and working
+        - label: API endpoints verified
+        - label: Configuration examples validated
+        - label: Links tested and working
+        - label: Screenshots/images are current
+        - label: Version information is accurate
+
+  - type: checkboxes
+    id: completeness_checklist
+    attributes:
+      label: 📚 Completeness Checklist
+      description: Confirm documentation is complete
+      options:
+        - label: All necessary information included
+        - label: Examples provided where helpful
+        - label: Prerequisites clearly stated
+        - label: Common pitfalls addressed
+        - label: Next steps or related topics mentioned
+        - label: Contact information provided where relevant
+
+  - type: textarea
+    id: validation_testing
+    attributes:
+      label: 🧪 Validation Testing
+      description: |
+        Describe how you validated the documentation.
+        What testing or verification was performed?
+      placeholder: |
+        - Followed installation guide step-by-step on clean environment
+        - Tested all code examples in development environment
+        - Verified all external links are accessible
+        - Reviewed documentation with fresh eyes after 24 hours
+        - Asked colleague to follow the guide for clarity check
+
+  - type: checkboxes
+    id: formatting_checklist
+    attributes:
+      label: 🎨 Formatting & Accessibility Checklist
+      description: Confirm proper formatting and accessibility
+      options:
+        - label: Proper Markdown formatting used
+        - label: Headers structured hierarchically
+        - label: Code blocks properly formatted with syntax highlighting
+        - label: Images have alt text
+        - label: Tables are properly formatted
+        - label: Lists are properly structured
+        - label: Documentation is mobile-friendly
+
+  - type: textarea
+    id: visual_changes
+    attributes:
+      label: 📸 Visual Changes
+      description: |
+        If applicable, show before/after screenshots of documentation.
+        Include any new diagrams, images, or visual aids.
+      placeholder: |
+        ### Before:
+        [Screenshots of old documentation or "No documentation existed"]
+
+        ### After:
+        [Screenshots of new/updated documentation]
+
+        ### New Visual Aids:
+        [Any new diagrams, flowcharts, or illustrations added]
+
+  - type: dropdown
+    id: maintenance_impact
+    attributes:
+      label: 🔄 Maintenance Impact
+      description: How will this documentation need to be maintained?
+      options:
+        - Low (rarely needs updates)
+        - Medium (occasional updates needed)
+        - High (frequent updates required)
+        - Version-dependent (updates needed with releases)
+      default: 0
+
+  - type: textarea
+    id: feedback_incorporated
+    attributes:
+      label: 💬 Feedback Incorporated
+      description: |
+        If this addresses previous feedback or suggestions, describe what was incorporated.
+      placeholder: |
+        - Addressed user confusion about configuration options (Issue #45)
+        - Added requested examples for advanced use cases
+        - Simplified language based on community feedback
+        - Added troubleshooting section for common questions
+
+  - type: textarea
+    id: future_improvements
+    attributes:
+      label: 🔮 Future Improvements
+      description: |
+        Are there any follow-up documentation improvements planned?
+      placeholder: |
+        - Add video tutorials for complex setup procedures
+        - Create interactive examples for API endpoints
+        - Translate documentation to additional languages
+        - Add more detailed architecture diagrams
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: 📄 Additional Context
+      description: |
+        Any other context about this documentation update.
+        Include rationale for significant changes or style decisions.
+      placeholder: |
+        - Documentation follows the new style guide adopted in v2.0
+        - Focuses on beginner-friendly explanations per user feedback
+        - Includes accessibility improvements for screen readers
+        - Updated to reflect the latest API version (v3.1)

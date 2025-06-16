@@ -1,0 +1,306 @@
+name: Hotfix Pull Request
+description: Emergency hotfix for critical production issues
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## ⚠️ HOTFIX ALERT
+        
+        This is an **emergency hotfix** for a critical issue. This PR should be reviewed and deployed with high priority.
+
+  - type: dropdown
+    id: urgency_level
+    attributes:
+      label: 🚨 Urgency Level
+      description: How critical is this hotfix?
+      options:
+        - Critical - Production completely down
+        - High - Major functionality broken, affecting all users
+        - Medium - Important feature broken, affecting many users
+        - Low - Minor but important fix needed quickly
+      default: 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: critical_issue
+    attributes:
+      label: 🔥 Critical Issue Description
+      description: |
+        Describe the critical issue this hotfix addresses.
+        What is broken and how is it impacting users/business?
+      placeholder: |
+        The authentication system is failing due to a JWT token expiration bug,
+        preventing all users from logging in. This affects 100% of user sessions
+        and is causing significant business impact.
+    validations:
+      required: true
+
+  - type: input
+    id: related_issue
+    attributes:
+      label: 🔗 Related Issue/Incident
+      description: Link to the incident report or issue
+      placeholder: "Fixes #123 or Incident #INC-2025-001"
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: urgency_justification
+    attributes:
+      label: ⚡ Urgency Justification
+      description: Why does this need immediate deployment?
+      options:
+        - label: Production is completely down
+        - label: Security vulnerability actively being exploited
+        - label: Data loss/corruption occurring
+        - label: Critical business function completely broken
+        - label: Major customer-facing feature non-functional
+        - label: Legal/compliance requirement
+        - label: Other critical business impact
+
+  - type: textarea
+    id: hotfix_description
+    attributes:
+      label: 🎯 Hotfix Description
+      description: |
+        Briefly describe what this hotfix does to resolve the issue.
+        Focus on the specific changes made.
+      placeholder: |
+        Updated JWT token validation to handle edge case where tokens expire
+        during the validation process, causing authentication failures.
+        
+        Changes:
+        - Fixed token expiration race condition in auth middleware
+        - Added proper error handling for expired tokens
+        - Updated token refresh logic
+    validations:
+      required: true
+
+  - type: textarea
+    id: changes_made
+    attributes:
+      label: 🔧 Specific Changes Made
+      description: |
+        List the exact changes made in this hotfix.
+        Be specific about files modified and what was changed.
+      placeholder: |
+        - src/middleware/auth.js: Fixed token expiration check logic
+        - src/utils/jwt.js: Added proper error handling for expired tokens
+        - src/controllers/auth.js: Updated token refresh mechanism
+        - package.json: Updated jwt library version (security patch)
+    validations:
+      required: true
+
+  - type: textarea
+    id: minimal_scope
+    attributes:
+      label: 🎯 Minimal Scope Confirmation
+      description: |
+        Confirm this hotfix contains only the minimal changes needed.
+        No additional features or non-critical improvements should be included.
+      placeholder: |
+        This hotfix contains ONLY the changes necessary to fix the authentication issue:
+        - No new features added
+        - No code cleanup or refactoring
+        - No documentation updates
+        - No test improvements beyond validating the fix
+        
+        Total lines changed: ~15 lines across 3 files
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: quick_testing
+    attributes:
+      label: 🧪 Quick Testing Checklist
+      description: Confirm minimal but sufficient testing was performed
+      options:
+        - label: Fix resolves the critical issue
+          required: true
+        - label: No obvious regressions introduced
+          required: true
+        - label: Basic functionality still works
+          required: true
+        - label: Tested in production-like environment
+        - label: Automated tests still pass
+
+  - type: textarea
+    id: test_environment
+    attributes:
+      label: 🔬 Test Environment & Results
+      description: |
+        Describe the testing performed and results.
+        Include environment details and test duration.
+      placeholder: |
+        ### Environment Tested:
+        - Staging environment (production mirror)
+        - Browser: Chrome 120, Firefox 118
+        - Test duration: 30 minutes intensive testing
+        
+        ### Test Results:
+        - ✅ Users can log in successfully
+        - ✅ Existing sessions remain active
+        - ✅ Token refresh works correctly
+        - ✅ No authentication errors in logs
+        - ✅ All critical user flows functional
+
+  - type: dropdown
+    id: deployment_timing
+    attributes:
+      label: 📅 Deployment Timing
+      description: When should this hotfix be deployed?
+      options:
+        - Immediately (production is down)
+        - Within 1 hour (critical but not completely broken)
+        - Within 4 hours (important but can wait for review)
+        - Next business day (urgent but not emergency)
+      default: 0
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: deployment_plan
+    attributes:
+      label: 📋 Deployment Plan
+      description: Deployment strategy and considerations
+      options:
+        - label: Can be deployed during business hours
+        - label: Requires maintenance window
+        - label: Needs immediate deployment regardless of timing
+        - label: Database migrations required
+        - label: Cache clearing required
+        - label: Service restart required
+        - label: Load balancer updates needed
+
+  - type: textarea
+    id: rollback_strategy
+    attributes:
+      label: 🔄 Rollback Strategy
+      description: |
+        How can this hotfix be rolled back if it causes issues?
+        Include specific steps and timeframe.
+      placeholder: |
+        ### Rollback Plan:
+        1. Revert to previous Git commit: abc123
+        2. Rebuild and redeploy (estimated 5 minutes)
+        3. Clear application cache
+        4. Monitor logs for 10 minutes
+        
+        ### Rollback Triggers:
+        - Authentication failure rate >5%
+        - 500 errors increase significantly
+        - User reports of login issues
+        
+        ### Rollback Time: <10 minutes
+
+  - type: textarea
+    id: risks_assessment
+    attributes:
+      label: ⚠️ Risk Assessment
+      description: |
+        What are the risks of deploying this hotfix?
+        What could go wrong and how likely is it?
+      placeholder: |
+        ### Deployment Risks:
+        - Low risk: Changes are minimal and well-tested
+        - Potential for token refresh to fail in edge cases (5% probability)
+        - Existing user sessions should be unaffected
+        
+        ### Mitigation:
+        - Staged deployment approach (10% -> 50% -> 100%)
+        - Real-time monitoring of error rates
+        - Immediate rollback capability
+
+  - type: textarea
+    id: monitoring_plan
+    attributes:
+      label: 📊 Post-Deployment Monitoring
+      description: |
+        How will the hotfix be monitored after deployment?
+      placeholder: |
+        ### Monitoring Plan:
+        - Watch authentication success/failure rates for 2 hours
+        - Monitor application error logs for JWT-related errors
+        - Track user login metrics vs. baseline
+        - Check server performance metrics
+        
+        ### Success Criteria:
+        - Authentication failure rate <1%
+        - No JWT-related errors in logs
+        - User login volume returns to normal
+
+  - type: textarea
+    id: emergency_contacts
+    attributes:
+      label: 📞 Emergency Contacts
+      description: |
+        Who should be contacted if issues arise during/after deployment?
+      placeholder: |
+        ### Primary Contact:
+        - Name: [Your Name]
+        - Phone: [Phone Number]
+        - Available: [Time Range]
+        
+        ### Secondary Contact:
+        - Name: [Team Lead Name]
+        - Phone: [Phone Number]
+        - Available: [Time Range]
+        
+        ### Escalation:
+        - On-call engineer: [Contact Info]
+        - Engineering manager: [Contact Info]
+
+  - type: checkboxes
+    id: hotfix_checklist
+    attributes:
+      label: ✅ Hotfix Deployment Checklist
+      description: Final checklist before deployment
+      options:
+        - label: Critical issue is completely fixed
+          required: true
+        - label: Minimal code changes made (no scope creep)
+          required: true
+        - label: No unnecessary features or improvements added
+          required: true
+        - label: Quick but thorough testing completed
+          required: true
+        - label: Deployment plan ready and validated
+          required: true
+        - label: Rollback plan ready and tested
+          required: true
+        - label: Key stakeholders notified of hotfix
+          required: true
+        - label: Monitoring plan in place
+          required: true
+
+  - type: textarea
+    id: stakeholder_notification
+    attributes:
+      label: 📢 Stakeholder Notification
+      description: |
+        Who has been notified about this hotfix and the critical issue?
+      placeholder: |
+        ### Notified:
+        - ✅ Engineering team via Slack #incidents
+        - ✅ Product manager: [Name]
+        - ✅ Customer support team
+        - ✅ DevOps/SRE team
+        - ✅ Management: [Names]
+        
+        ### Communication sent:
+        - Status page updated
+        - Internal incident notification
+        - Customer communication prepared (if needed)
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        
+        **⚠️ HOTFIX REVIEW GUIDELINES:**
+        - This PR requires expedited review due to critical nature
+        - Focus on verifying the fix addresses the specific issue
+        - Ensure no additional scope creep or unnecessary changes
+        - Approve only if confident in the minimal, targeted fix
+        - Deployment should proceed immediately upon approval

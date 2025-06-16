@@ -1681,7 +1681,7 @@ export default function AdminTicketsPortal() {
 												variant="body2"
 												color="text.secondary"
 											>
-												No responses yet. Click "Add Response" to start the conversation.
+												No responses yet. Click &quot;Add Response&quot; to start the conversation.
 											</Typography>
 										</Paper>
 									)}

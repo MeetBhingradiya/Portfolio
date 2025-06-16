@@ -4,10 +4,11 @@ import { Sessions_Model } from "@Models/Sessions";
 import { verifyJWT } from "@Utils/JWT";
 import { log } from "@Utils";
 
-export async function DELETE(
-	request: NextRequest,
-	{ params }: { params: { sessionId: string } }
-) {
+interface RouteContext {
+	params: Promise<{ sessionId: string }>;
+}
+
+export async function DELETE(request: NextRequest, context: RouteContext) {
 	try {
 		const authHeader = request.headers.get("authorization");
 		const token =
@@ -37,6 +38,8 @@ export async function DELETE(
 			);
 		}
 
+		// Await the params - THIS IS THE KEY FIX
+		const params = await context.params;
 		const { sessionId } = params;
 
 		if (!sessionId) {

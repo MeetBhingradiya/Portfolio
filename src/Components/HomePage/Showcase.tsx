@@ -296,8 +296,7 @@ function Showcase() {
 							scrollbarWidth: "none",
 							msOverflowStyle: "none",
 						}}
-					>
-						<AnimatePresence mode="wait">
+					>						<AnimatePresence>
 							{filteredItems.map((item, index) => (
 								<motion.div
 									key={item.id}

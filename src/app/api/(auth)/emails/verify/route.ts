@@ -6,10 +6,10 @@ import { verifyJWT } from "@Utils/JWT";
 import { log } from "@Utils";
 import { createEmailTransport } from "@Utils/EmailSend";
 import { OTP } from "@Utils/OTP";
-import { Encrypt } from "@Utils/Crypto";
+import { Encrypt, Decrypt } from "@Utils/Crypto";
+import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 
-// Helper function to send verification email
-async function sendVerificationEmail(
+async function sendOTPEmail(
 	email: string,
 	otp: string,
 	name: string
@@ -63,18 +63,18 @@ async function sendVerificationEmail(
 		await transporter.sendMail({
 			from: `"Meet Bhingradiya" <${process.env.SMTP_EMAIL}>`,
 			to: email,
-			subject: `🔐 Email Verification - Code: ${otp}`,
+			subject: `🔐 Verify Your Email - Verification Code: ${otp}`,
 			html: emailHtml,
 		});
 
 		return true;
 	} catch (error) {
-		log(`Failed to send verification email: ${error}`);
+		log(`Failed to send OTP email: ${error}`);
 		return false;
 	}
 }
 
-// Add email
+// POST - Send OTP for email verification
 export async function POST(request: NextRequest) {
 	try {
 		const authHeader = request.headers.get("authorization");
@@ -120,43 +120,18 @@ export async function POST(request: NextRequest) {
 
 		await dbConnect();
 
-		// Check if email already exists for this user or another user
-		const existingUser = await Users_Model.findOne({
+		// Check if email belongs to the user and is unverified
+		const user = await Users_Model.findOne({
+			UserID: decoded.userID,
 			"Emails.Email": email,
+			"Emails.isVerified": false,
 		});
 
-		if (existingUser) {
+		if (!user) {
 			return NextResponse.json(
 				{
 					Status: 0,
-					Message: "Email address is already registered",
-					StatusCode: 409,
-				},
-				{ status: 409 }
-			);
-		}
-
-		// Add email to user's account
-		const updatedUser = await Users_Model.findOneAndUpdate(
-			{ UserID: decoded.userID },
-			{
-				$push: {
-					Emails: {
-						Email: email,
-						isPrimary: false,
-						isVerified: false,
-						addedAt: new Date(),
-					},
-				},
-				updatedAt: new Date(),
-			},
-			{ new: true }		).select("Emails FirstName Credentials");
-
-		if (!updatedUser) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "User not found",
+					Message: "Email not found or already verified",
 					StatusCode: 404,
 				},
 				{ status: 404 }
@@ -164,283 +139,286 @@ export async function POST(request: NextRequest) {
 		}
 
 		// Get user's latest credentials for encryption
-		const latestCredentials = updatedUser.Credentials
-			?.filter((cred: any) => cred.isActive)
-			?.sort((a: any, b: any) => b.Rounds - a.Rounds)[0];
+		const latestCredentials = user.Credentials?.filter(
+			(cred) => cred.isActive
+		)?.sort((a, b) => b.Rounds - a.Rounds)[0];
+
 		if (!latestCredentials) {
-			log(`User ${decoded.userID} added email: ${email} - no credentials for verification`);
-			return NextResponse.json({
-				Status: 1,
-				Message: "Email added successfully",
-				StatusCode: 200,
-				Data: {
-					email: email,
-					message: "Email added. Please verify manually using the verification option.",
-				},
-			});
-		}
-
-		// Just add the email without automatically sending verification
-		log(`User ${decoded.userID} added email: ${email} - verification can be requested manually`);
-		return NextResponse.json({
-			Status: 1,
-			Message: "Email added successfully",
-			StatusCode: 200,
-			Data: {
-				email: email,
-				message: "Email added successfully. Click verify to send verification code.",
-			},
-		});
-	} catch (error: any) {
-		log(`Add email error: ${error.message}`);
-		return NextResponse.json(
-			{
-				Status: 0,
-				Message: "Failed to add email",
-				StatusCode: 500,
-			},
-			{ status: 500 }
-		);
-	}
-}
-
-// Update email (set primary)
-export async function PATCH(request: NextRequest) {
-	try {
-		const authHeader = request.headers.get("authorization");
-		const token =
-			authHeader?.replace("Bearer ", "") ||
-			request.cookies.get("auth-token")?.value;
-
-		if (!token) {
 			return NextResponse.json(
 				{
 					Status: 0,
-					Message: "Authentication token required",
-					StatusCode: 401,
-				},
-				{ status: 401 }
-			);
-		}
-
-		const decoded = await verifyJWT(token);
-		if (!decoded) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Invalid authentication token",
-					StatusCode: 401,
-				},
-				{ status: 401 }
-			);
-		}
-
-		const { email, setPrimary } = await request.json();
-
-		if (!email) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Email address is required",
-					StatusCode: 400,
-				},
-				{ status: 400 }
-			);
-		}
-
-		await dbConnect();
-		if (setPrimary) {
-			// Check if the email is verified before setting as primary
-			const user = await Users_Model.findOne({
-				UserID: decoded.userID,
-				"Emails.Email": email,
-			});
-
-			if (!user) {
-				return NextResponse.json(
-					{
-						Status: 0,
-						Message: "Email not found",
-						StatusCode: 404,
-					},
-					{ status: 404 }
-				);
-			}
-
-			const emailData = user.Emails.find((e) => e.Email === email);
-			if (!emailData?.isVerified) {
-				return NextResponse.json(
-					{
-						Status: 0,
-						Message: "Cannot set unverified email as primary",
-						StatusCode: 400,
-					},
-					{ status: 400 }
-				);
-			}
-
-			// First, unset all emails as primary
-			await Users_Model.updateOne(
-				{ UserID: decoded.userID },
-				{ $set: { "Emails.$[].isPrimary": false } }
-			);
-
-			// Then set the specified email as primary
-			const result = await Users_Model.updateOne(
-				{
-					UserID: decoded.userID,
-					"Emails.Email": email,
-				},
-				{
-					$set: {
-						"Emails.$.isPrimary": true,
-						updatedAt: new Date(),
-					},
-				}
-			);
-
-			if (result.matchedCount === 0) {
-				return NextResponse.json(
-					{
-						Status: 0,
-						Message: "Email not found",
-						StatusCode: 404,
-					},
-					{ status: 404 }
-				);
-			}
-
-			log(`User ${decoded.userID} set primary email: ${email}`);
-		}
-
-		return NextResponse.json({
-			Status: 1,
-			Message: "Email updated successfully",
-			StatusCode: 200,
-		});
-	} catch (error: any) {
-		log(`Update email error: ${error.message}`);
-		return NextResponse.json(
-			{
-				Status: 0,
-				Message: "Failed to update email",
-				StatusCode: 500,
-			},
-			{ status: 500 }
-		);
-	}
-}
-
-// Remove email
-export async function DELETE(request: NextRequest) {
-	try {
-		const authHeader = request.headers.get("authorization");
-		const token =
-			authHeader?.replace("Bearer ", "") ||
-			request.cookies.get("auth-token")?.value;
-
-		if (!token) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Authentication token required",
-					StatusCode: 401,
-				},
-				{ status: 401 }
-			);
-		}
-
-		const decoded = await verifyJWT(token);
-		if (!decoded) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Invalid authentication token",
-					StatusCode: 401,
-				},
-				{ status: 401 }
-			);
-		}
-
-		const { searchParams } = new URL(request.url);
-		const email = searchParams.get("email");
-
-		if (!email) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Email address is required",
-					StatusCode: 400,
-				},
-				{ status: 400 }
-			);
-		}
-
-		await dbConnect();
-
-		// Get user first to check if they have multiple emails
-		const user = await Users_Model.findOne({
-			UserID: decoded.userID,
-		}).select("Emails");
-
-		if (!user || user.Emails.length <= 1) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Cannot remove the only email address",
-					StatusCode: 400,
-				},
-				{ status: 400 }
-			);
-		}
-
-		// Check if trying to remove primary email
-		const emailToRemove = user.Emails.find((e) => e.Email === email);
-		if (emailToRemove?.isPrimary) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message:
-						"Cannot remove primary email. Set another email as primary first.",
-					StatusCode: 400,
-				},
-				{ status: 400 }
-			);
-		}
-
-		// Remove the email
-		const result = await Users_Model.updateOne(
-			{ UserID: decoded.userID },
-			{
-				$pull: { Emails: { Email: email } },
-				updatedAt: new Date(),
-			}
-		);
-
-		if (result.matchedCount === 0) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Email not found",
+					Message: "User credentials not found",
 					StatusCode: 404,
 				},
 				{ status: 404 }
 			);
 		}
 
-		log(`User ${decoded.userID} removed email: ${email}`);
+		// Generate OTP
+		const otpCode = OTP({
+			Length: 6,
+			Digits: true,
+			Uppercase: false,
+			Lowercase: false,
+			Special: false,
+		});
+
+		// Encrypt OTP
+		const encryptedOTP = await Encrypt({
+			Data: String(otpCode),
+			Secret: latestCredentials.Secret,
+			Salt: latestCredentials.Salt || latestCredentials.Secret,
+			Format: "both",
+			Rounds: latestCredentials.Rounds,
+		});
+
+		// Store OTP in database
+		await OTPs_Model.create({
+			Type: OTPs.Email,
+			Data: encryptedOTP,
+			UserID: decoded.userID,
+			ExpiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+		});
+
+		// Send OTP email
+		const emailSent = await sendOTPEmail(
+			email,
+			otpCode,
+			user.FirstName || "User"
+		);
+
+		if (!emailSent) {
+			return NextResponse.json(
+				{
+					Status: 0,
+					Message: "Failed to send verification email",
+					StatusCode: 500,
+				},
+				{ status: 500 }
+			);
+		}
 
 		return NextResponse.json({
 			Status: 1,
-			Message: "Email removed successfully",
+			Message: "Verification code sent to your email",
 			StatusCode: 200,
+			Data: {
+				email: email,
+				expiresIn: 15 * 60, // 15 minutes in seconds
+			},
 		});
 	} catch (error: any) {
-		log(`Remove email error: ${error.message}`);
+		log(`Send verification OTP error: ${error.message}`);
 		return NextResponse.json(
 			{
 				Status: 0,
-				Message: "Failed to remove email",
+				Message: "Failed to send verification code",
+				StatusCode: 500,
+			},
+			{ status: 500 }
+		);
+	}
+}
+
+// PUT - Verify OTP
+export async function PUT(request: NextRequest) {
+	try {
+		const authHeader = request.headers.get("authorization");
+		const token =
+			authHeader?.replace("Bearer ", "") ||
+			request.cookies.get("auth-token")?.value;
+
+		if (!token) {
+			return NextResponse.json(
+				{
+					Status: 0,
+					Message: "Authentication token required",
+					StatusCode: 401,
+				},
+				{ status: 401 }
+			);
+		}
+
+		const decoded = await verifyJWT(token);
+		if (!decoded) {
+			return NextResponse.json(
+				{
+					Status: 0,
+					Message: "Invalid authentication token",
+					StatusCode: 401,
+				},
+				{ status: 401 }
+			);
+		}
+
+		const { email, otp } = await request.json();
+
+		if (!email || !otp) {
+			return NextResponse.json(
+				{
+					Status: 0,
+					Message: "Email and OTP are required",
+					StatusCode: 400,
+				},
+				{ status: 400 }
+			);
+		}
+
+		await dbConnect();
+
+		// Check if email belongs to the user and is unverified
+		const user = await Users_Model.findOne({
+			UserID: decoded.userID,
+			"Emails.Email": email,
+			"Emails.isVerified": false,
+		});
+
+		if (!user) {
+			return NextResponse.json(
+				{
+					Status: 0,
+					Message: "Email not found or already verified",
+					StatusCode: 404,
+				},
+				{ status: 404 }
+			);
+		}
+
+		// Find valid OTP record
+		const otpRecord = await OTPs_Model.findOne({
+			Type: OTPs.Email,
+			UserID: decoded.userID,
+			ExpiresAt: { $gt: new Date() },
+		});
+
+		if (!otpRecord) {
+			return NextResponse.json(
+				{
+					Status: 0,
+					Message: "Invalid or expired verification code",
+					StatusCode: 400,
+				},
+				{ status: 400 }
+			);
+		}
+
+		const latestCredentials = user.Credentials?.filter(
+			(cred) => cred.isActive
+		)?.sort((a, b) => b.Rounds - a.Rounds)[0];
+
+		if (!otpRecord) {
+			return ControllerResponseMap({
+				Status: 0,
+				Message: "Invalid or expired verification code",
+				StatusCode: 400,
+			});
+		}
+
+		let isOTPValid = false;
+
+		try {
+			// Try to parse as JSON first (plain text format)
+			const jsonData = JSON.parse(otpRecord.Data);
+			if (jsonData.encrypted === false) {
+				// Plain text OTP
+				isOTPValid =
+					jsonData.otp === otp &&
+					jsonData.email === email.toLowerCase() &&
+					jsonData.userID === user.UserID;
+			} else {
+				throw new Error("Not plain text format");
+			}
+		} catch (parseError) {
+			// Must be encrypted format
+			if (!latestCredentials) {
+				return ControllerResponseMap({
+					Status: 0,
+					Message: "Cannot verify encrypted OTP without credentials",
+					StatusCode: 400,
+				});
+			}
+
+			try {
+				const decryptedOTP = await Decrypt(
+					otpRecord.Data,
+					latestCredentials.Secret,
+					latestCredentials.Rounds
+				);
+
+				// Handle both string and object results from decryption
+				let actualOTP: string;
+				if (typeof decryptedOTP === "string") {
+					actualOTP = decryptedOTP;
+				} else if (typeof decryptedOTP === "number") {
+					actualOTP = String(decryptedOTP);
+				} else if (
+					typeof decryptedOTP === "object" &&
+					decryptedOTP?.otp
+				) {
+					actualOTP = decryptedOTP.otp;
+				} else {
+					log(
+						`Unexpected decrypted OTP format: ${JSON.stringify(decryptedOTP)}`
+					);
+					actualOTP = String(decryptedOTP);
+				}
+
+				isOTPValid = actualOTP === otp;
+				log(
+					`Encrypted OTP validation result: ${isOTPValid} (expected: ${otp}, actual: ${actualOTP})`
+				);
+			} catch (decryptError) {
+				log(`OTP decryption error: ${decryptError}`);
+				return ControllerResponseMap({
+					Status: 0,
+					Message: "Invalid verification code format",
+					StatusCode: 400,
+				});
+			}
+		}
+
+		if (!isOTPValid) {
+			return NextResponse.json(
+				{
+					Status: 0,
+					Message: "Invalid verification code",
+					StatusCode: 400,
+				},
+				{ status: 400 }
+			);
+		}
+
+		// Update email as verified
+		await Users_Model.updateOne(
+			{
+				UserID: decoded.userID,
+				"Emails.Email": email,
+			},
+			{
+				$set: {
+					"Emails.$.isVerified": true,
+					updatedAt: new Date(),
+				},
+			}
+		);
+
+		// Delete the used OTP
+		await OTPs_Model.deleteOne({ _id: otpRecord._id });
+
+		return NextResponse.json({
+			Status: 1,
+			Message: "Email verified successfully",
+			StatusCode: 200,
+			Data: {
+				email: email,
+			},
+		});
+	} catch (error: any) {
+		log(`Verify OTP error: ${error.message}`);
+		return NextResponse.json(
+			{
+				Status: 0,
+				Message: "Failed to verify email",
 				StatusCode: 500,
 			},
 			{ status: 500 }

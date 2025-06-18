@@ -1,28 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-    Box,
-    Paper,
-    Typography,
-    TextField,
+    Card,
+    CardBody,
+    CardHeader,
     Button,
-    Chip,
+    Input,
+    Textarea,
     Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Alert,
-    CircularProgress,
-    Stack,
-    AppBar,
-    Toolbar,
-    IconButton,
+    SelectItem,
     Switch,
-    FormControlLabel,
-    Autocomplete,
-} from "@mui/material";
+    Chip,
+    Spinner,
+    Divider,
+    Navbar,
+    NavbarBrand,
+    NavbarContent,
+    NavbarItem,
+} from "@heroui/react";
 import {
     Save,
     Publish,
@@ -34,8 +30,8 @@ import {
     CloudUpload,
     UnpublishedOutlined
 } from "@mui/icons-material";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Axios } from "@Utils/Axios";
+import { getCSRFToken } from "@Utils";
 import { useRouter, useParams } from "next/navigation";
 import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
 import dynamic from 'next/dynamic';
@@ -44,11 +40,6 @@ const MDEditor = dynamic(
     () => import('@uiw/react-md-editor').then((mod) => mod.default),
     { ssr: false }
 );
-
-// Same theme as create page
-const githubTheme = createTheme({
-    // ... same theme configuration as create page
-});
 
 interface BlogForm {
     title: string;
@@ -68,13 +59,8 @@ interface EditBlogState {
     success: string;
     previewMode: boolean;
     blogExists: boolean;
+    isCSRFReady: boolean;
 }
-
-const COMMON_TAGS = [
-    'JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js', 'Python',
-    'Security', 'Automation', 'AI', 'Machine Learning', 'DevOps', 'AWS',
-    // ... rest of tags
-];
 
 export default function EditBlogPage() {
     const router = useRouter();
@@ -98,37 +84,92 @@ export default function EditBlogPage() {
         error: '',
         success: '',
         previewMode: false,
-        blogExists: false
+        blogExists: false,
+        isCSRFReady: false
     });
 
     useEffect(() => {
-        // Allow time for account switcher to load
-        const timer = setTimeout(() => {
-            setIsInitialLoading(false);
-        }, 1000);
-
-        return () => clearTimeout(timer);
+        initializeCSRFAndLoadBlog();
     }, []);
 
-    useEffect(() => {
-        if (isInitialLoading) return;
+    // Initialize CSRF token and then load blog
+    const initializeCSRFAndLoadBlog = async () => {
+        try {
+            setIsInitialLoading(true);
+            setState(prev => ({ ...prev, error: '' }));
 
-        // Check authentication - require both currentAccount and auth-token
-        const authToken = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
-        
-        if (!currentAccount || !authToken) {
-            router.push('/auth/signin');
-            return;
+            // Check if we have an auth token first
+            const authToken = localStorage.getItem("auth-token");
+            if (!authToken) {
+                router.push("/auth/signin");
+                return;
+            }
+
+            // Check admin permissions
+            if (currentAccount && !currentAccount.isAdmin) {
+                router.push("/dashboard");
+                return;
+            }
+
+            // Check if CSRF token is already available
+            const existingCSRF = localStorage.getItem('trace');
+            if (existingCSRF) {
+                try {
+                    const parsedCSRF = JSON.parse(existingCSRF);
+                    if (parsedCSRF?.Status === 1) {
+                        setState(prev => ({ ...prev, isCSRFReady: true }));
+                        await loadBlog();
+                        return;
+                    }
+                } catch (e) {
+                    localStorage.removeItem('trace');
+                }
+            }
+
+            // Get fresh CSRF token with timeout
+            const csrfResponse = await Promise.race([
+                getCSRFToken(),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('CSRF token timeout')), 15000)
+                )
+            ]);
+
+            if (csrfResponse?.Status === 1) {
+                localStorage.setItem('trace', JSON.stringify(csrfResponse));
+                setState(prev => ({ ...prev, isCSRFReady: true }));
+                await loadBlog();
+            } else {
+                setState(prev => ({ ...prev, error: "Failed to initialize security token. Please try again." }));
+            }
+        } catch (error: any) {
+            console.error("CSRF initialization error:", error);
+            if (error.message === 'CSRF token retrieval in progress') {
+                setTimeout(() => {
+                    initializeCSRFAndLoadBlog();
+                }, 2000);
+            } else if (error.message === 'CSRF token timeout') {
+                setState(prev => ({ ...prev, error: "Security token initialization timed out. Please refresh the page." }));
+            } else {
+                setState(prev => ({ ...prev, error: "Failed to initialize. Please try again." }));
+            }
+        } finally {
+            setIsInitialLoading(false);
         }
+    };
 
-        // Check admin permissions
-        if (!currentAccount.profileData.isAdmin) {
-            router.push('/dashboard');
-            return;
+    // Helper function to handle CSRF token errors consistently
+    const handleCSRFError = (error: any, defaultMessage: string): string => {
+        if (error.message === 'CSRF token retrieval in progress') {
+            return "Security token is being prepared. Please try again in a moment.";
         }
-
-        loadBlog();
-    }, [currentAccount, router, blogId, isInitialLoading]);
+        if (error.message === 'CSRF token timeout') {
+            return "Security token initialization timed out. Please refresh the page.";
+        }
+        if (error.message === 'CSRF token retrieval failed') {
+            return "Failed to retrieve security token. Please refresh the page.";
+        }
+        return error?.response?.data?.Message || defaultMessage;
+    };
 
     const loadBlog = async () => {
         if (!blogId) {
@@ -136,10 +177,17 @@ export default function EditBlogPage() {
             return;
         }
 
+        if (!state.isCSRFReady) {
+            setState(prev => ({ ...prev, error: "Security token not ready. Please wait..." }));
+            return;
+        }
+
         try {
+            setState(prev => ({ ...prev, loading: true }));
+
             const response = await Axios.get(`/api/blog/${blogId}`, {
                 headers: {
-                    Authorization: `Bearer ${currentAccount?.encryptedToken}`
+                    Authorization: `Bearer ${localStorage.getItem('auth-token')}`
                 }
             });
 
@@ -169,7 +217,7 @@ export default function EditBlogPage() {
         } catch (error: any) {
             setState(prev => ({
                 ...prev,
-                error: error?.response?.data?.Message || 'Failed to load blog',
+                error: handleCSRFError(error, 'Failed to load blog'),
                 loading: false
             }));
         }
@@ -182,12 +230,6 @@ export default function EditBlogPage() {
             error: '',
             success: ''
         }));
-    };
-
-    const handleTagsChange = (event: any, newValue: string[]) => {
-        if (newValue.length <= 10) {
-            handleInputChange('tags', newValue);
-        }
     };
 
     const validateForm = (): boolean => {
@@ -216,6 +258,10 @@ export default function EditBlogPage() {
 
     const updateBlog = async (publish?: boolean) => {
         if (!validateForm()) return;
+        if (!state.isCSRFReady) {
+            setState(prev => ({ ...prev, error: "Security token not ready. Please wait..." }));
+            return;
+        }
 
         setState(prev => ({ ...prev, saving: true, error: '', success: '' }));
 
@@ -227,7 +273,7 @@ export default function EditBlogPage() {
 
             const response = await Axios.put(`/api/blog/${blogId}`, blogData, {
                 headers: {
-                    Authorization: `Bearer ${currentAccount?.encryptedToken}`
+                    Authorization: `Bearer ${localStorage.getItem('auth-token')}`
                 }
             });
 
@@ -248,7 +294,7 @@ export default function EditBlogPage() {
         } catch (error: any) {
             setState(prev => ({
                 ...prev,
-                error: error?.response?.data?.Message || 'Failed to update blog',
+                error: handleCSRFError(error, 'Failed to update blog'),
                 saving: false
             }));
         }
@@ -257,317 +303,311 @@ export default function EditBlogPage() {
     const togglePublishStatus = async () => {
         const newStatus = !state.form.isPublished;
         await updateBlog(newStatus);
-    };    if (isInitialLoading || !currentAccount) {
+    };
+
+    if (isInitialLoading || !currentAccount) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                <CircularProgress />
-            </Box>
+            <div className="flex items-center justify-center min-h-screen gap-4">
+                <Spinner size="lg" />
+                <div className="text-center">
+                    <p className="text-lg">Loading Edit Blog...</p>
+                    {!state.isCSRFReady && (
+                        <p className="text-sm text-default-500 mt-2">
+                            Initializing security tokens...
+                        </p>
+                    )}
+                </div>
+            </div>
         );
     }
 
     if (state.loading) {
         return (
-            <ThemeProvider theme={githubTheme}>
-                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                    <CircularProgress />
-                    <Typography sx={{ ml: 2 }}>Loading blog...</Typography>
-                </Box>
-            </ThemeProvider>
+            <div className="flex items-center justify-center min-h-screen gap-4">
+                <Spinner size="lg" />
+                <p className="text-lg">Loading blog...</p>
+            </div>
         );
     }
 
-    if (!state.blogExists) {
+    if (!state.blogExists || (state.error && !state.isCSRFReady)) {
         return (
-            <ThemeProvider theme={githubTheme}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                    <Typography variant="h5" gutterBottom>Blog Not Found</Typography>
-                    <Button onClick={() => router.push('/admin/blog')} startIcon={<ArrowBack />}>
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+                <div className="text-center">
+                    <h2 className="text-2xl font-bold mb-2">
+                        {!state.blogExists ? 'Blog Not Found' : 'Error Loading Blog'}
+                    </h2>
+                    {state.error && (
+                        <p className="text-lg text-danger mb-4">{state.error}</p>
+                    )}
+                    {(state.error?.includes("CSRF") || state.error?.includes("Security token")) && (
+                        <p className="text-sm text-default-500 mb-4">
+                            This usually resolves automatically. Please wait or try again.
+                        </p>
+                    )}
+                </div>
+                <div className="flex gap-3">
+                    <Button
+                        variant="bordered"
+                        startContent={<ArrowBack />}
+                        onPress={() => router.push('/admin/blog')}
+                    >
                         Back to Blog List
                     </Button>
-                </Box>
-            </ThemeProvider>
+                    {state.error && state.error.includes("Security token") && (
+                        <Button
+                            color="primary"
+                            onPress={() => initializeCSRFAndLoadBlog()}
+                            isLoading={isInitialLoading}
+                        >
+                            Try Again
+                        </Button>
+                    )}
+                </div>
+            </div>
         );
     }
 
     return (
-        <ThemeProvider theme={githubTheme}>
-            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-                {/* Top App Bar */}
-                <AppBar 
-                    position="static" 
-                    elevation={0}
-                    sx={{ 
-                        bgcolor: 'background.paper', 
-                        borderBottom: '1px solid',
-                        borderColor: 'divider',
-                        color: 'text.primary'
-                    }}
-                >
-                    <Toolbar>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-                            <IconButton
-                                onClick={() => router.push('/admin/blog')}
-                                color="inherit"
-                            >
-                                <ArrowBack />
-                            </IconButton>
-                            <Article sx={{ fontSize: 28, color: 'primary.main' }} />
-                            <Box>
-                                <Typography variant="h6" fontWeight="bold">
-                                    Edit Blog
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    {state.form.title || 'Untitled Blog'}
-                                </Typography>
-                            </Box>
-                        </Box>
-                        
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            {/* Preview Toggle */}
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={state.previewMode}
-                                        onChange={(e) => setState(prev => ({ 
-                                            ...prev, 
-                                            previewMode: e.target.checked 
-                                        }))}
-                                        size="small"
-                                    />
-                                }
-                                label="Preview"
-                                sx={{ fontSize: '0.875rem' }}
-                            />
-
-                            {/* Save Changes */}
-                            <Button
-                                variant="outlined"
-                                startIcon={<Save />}
-                                onClick={() => updateBlog()}
-                                disabled={state.saving}
-                                size="small"
-                            >
-                                Save Changes
-                            </Button>
-
-                            {/* Publish/Unpublish Toggle */}
-                            <Button
-                                variant="contained"
-                                startIcon={state.form.isPublished ? <UnpublishedOutlined /> : <Publish />}
-                                onClick={togglePublishStatus}
-                                disabled={state.saving}
-                                size="small"
-                                color={state.form.isPublished ? "warning" : "primary"}
-                            >
-                                {state.saving 
-                                    ? (state.form.isPublished ? 'Unpublishing...' : 'Publishing...') 
-                                    : (state.form.isPublished ? 'Unpublish' : 'Publish')
-                                }
-                            </Button>
-                        </Box>
-                    </Toolbar>
-                </AppBar>
-
-                <Box sx={{ p: 3 }}>
-                    {/* Success/Error Alerts */}
-                    <AnimatePresence>
-                        {(state.error || state.success) && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                            >
-                                <Alert 
-                                    severity={state.error ? "error" : "success"}
-                                    sx={{ mb: 3, borderRadius: 2 }} 
-                                    onClose={() => setState(prev => ({ ...prev, error: '', success: '' }))}
-                                >
-                                    {state.error || state.success}
-                                </Alert>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Same form layout as create page but with loaded data */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
+        <div className="min-h-screen bg-background">
+            {/* Top Navigation Bar */}
+            <Navbar className="border-b">
+                <NavbarBrand>
+                    <Button
+                        isIconOnly
+                        variant="light"
+                        onPress={() => router.push('/admin/blog')}
                     >
-                        <Box sx={{ display: 'flex', gap: 3, height: 'calc(100vh - 200px)' }}>
-                            {/* Main Content Area */}
-                            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                {/* Blog Metadata */}
-                                <Paper sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        Blog Details
-                                    </Typography>
-                                    
-                                    <Stack spacing={3}>
-                                        {/* Title */}
-                                        <TextField
-                                            fullWidth
-                                            label="Blog Title"
-                                            placeholder="Enter your blog title..."
-                                            value={state.form.title}
-                                            onChange={(e) => handleInputChange('title', e.target.value)}
-                                            helperText={`${state.form.title.length}/200 characters`}
-                                            error={state.form.title.length > 200}
-                                        />
+                        <ArrowBack />
+                    </Button>
+                    <Article className="text-primary" style={{ fontSize: 28 }} />
+                    <div className="ml-3">
+                        <h1 className="text-xl font-bold">Edit Blog</h1>
+                        <p className="text-sm text-default-500">
+                            {state.form.title || 'Untitled Blog'}
+                        </p>
+                    </div>
+                </NavbarBrand>
+                
+                <NavbarContent justify="end">
+                    <NavbarItem>
+                        <Switch
+                            isSelected={state.previewMode}
+                            onValueChange={(checked) => setState(prev => ({ 
+                                ...prev, 
+                                previewMode: checked 
+                            }))}
+                            size="sm"
+                        >
+                            Preview
+                        </Switch>
+                    </NavbarItem>
+                    <NavbarItem>
+                        <Button
+                            variant="bordered"
+                            startContent={<Save />}
+                            onPress={() => updateBlog()}
+                            isDisabled={state.saving}
+                            size="sm"
+                        >
+                            Save Changes
+                        </Button>
+                    </NavbarItem>
+                    <NavbarItem>
+                        <Button
+                            color={state.form.isPublished ? "warning" : "primary"}
+                            startContent={state.form.isPublished ? <UnpublishedOutlined /> : <Publish />}
+                            onPress={togglePublishStatus}
+                            isLoading={state.saving}
+                            size="sm"
+                        >
+                            {state.form.isPublished ? 'Unpublish' : 'Publish'}
+                        </Button>
+                    </NavbarItem>
+                </NavbarContent>
+            </Navbar>
 
-                                        {/* Description */}
-                                        <TextField
-                                            fullWidth
-                                            multiline
-                                            rows={3}
-                                            label="Description (Optional)"
-                                            placeholder="Brief description of your blog post..."
-                                            value={state.form.description}
-                                            onChange={(e) => handleInputChange('description', e.target.value)}
-                                            helperText={`${state.form.description.length}/500 characters`}
-                                            error={state.form.description.length > 500}
-                                        />
+            <div className="p-6">
+                {/* Success/Error Alerts */}
+                {(state.error || state.success) && (
+                    <Card className={`mb-6 ${state.error ? 'border-danger bg-danger-50' : 'border-success bg-success-50'}`}>
+                        <CardBody className="flex flex-row items-center gap-3">
+                            <p className={`${state.error ? 'text-danger' : 'text-success'} font-medium`}>
+                                {state.error || state.success}
+                            </p>
+                            <Button
+                                size="sm"
+                                variant="light"
+                                color={state.error ? "danger" : "success"}
+                                onPress={() => setState(prev => ({ ...prev, error: '', success: '' }))}
+                            >
+                                Dismiss
+                            </Button>
+                        </CardBody>
+                    </Card>
+                )}
 
-                                        {/* Tags */}
-                                        <Autocomplete
-                                            multiple
-                                            options={COMMON_TAGS}
-                                            freeSolo
-                                            value={state.form.tags}
-                                            onChange={handleTagsChange}
-                                            renderTags={(value, getTagProps) =>
-                                                value.map((option, index) => (
-                                                    <Chip
-                                                        variant="outlined"
-                                                        label={option}
-                                                        {...getTagProps({ index })}
-                                                        key={index}
-                                                    />
-                                                ))
-                                            }
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    label="Tags"
-                                                    placeholder="Add tags..."
-                                                    helperText={`${state.form.tags.length}/10 tags`}
-                                                />
-                                            )}
-                                        />
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Main Content Area */}
+                    <div className="lg:col-span-3 space-y-6">
+                        {/* Blog Metadata */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Blog Details</h3>
+                            </CardHeader>
+                            <CardBody className="space-y-4">
+                                {/* Title */}
+                                <Input
+                                    label="Blog Title"
+                                    placeholder="Enter your blog title..."
+                                    value={state.form.title}
+                                    onValueChange={(value) => handleInputChange('title', value)}
+                                    description={`${state.form.title.length}/200 characters`}
+                                    color={state.form.title.length > 200 ? "danger" : "default"}
+                                />
 
-                                        {/* Banner Image */}
-                                        <TextField
-                                            fullWidth
-                                            label="Banner Image URL (Optional)"
-                                            placeholder="https://example.com/image.jpg"
-                                            value={state.form.bannerImage}
-                                            onChange={(e) => handleInputChange('bannerImage', e.target.value)}
-                                        />
-                                    </Stack>
-                                </Paper>
+                                {/* Description */}
+                                <Textarea
+                                    label="Description (Optional)"
+                                    placeholder="Brief description of your blog post..."
+                                    value={state.form.description}
+                                    onValueChange={(value) => handleInputChange('description', value)}
+                                    description={`${state.form.description.length}/500 characters`}
+                                    color={state.form.description.length > 500 ? "danger" : "default"}
+                                    minRows={3}
+                                />
 
-                                {/* Content Editor */}
-                                <Paper sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        Content
-                                    </Typography>
-                                    
-                                    <Box sx={{ flex: 1, minHeight: 400 }}>
-                                        <MDEditor
-                                            value={state.form.content}
-                                            onChange={(val) => handleInputChange('content', val || '')}
-                                            preview={state.previewMode ? 'preview' : 'edit'}
-                                            height={400}
-                                            data-color-mode="light"
-                                        />
-                                    </Box>
-                                    
-                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                                        {state.form.content.length} characters • Supports Markdown
-                                    </Typography>
-                                </Paper>
-                            </Box>
-
-                            {/* Sidebar - Same as create page */}
-                            <Box sx={{ width: 300, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                {/* Publish Settings */}
-                                <Paper sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        Publish Settings
-                                    </Typography>
-                                    
-                                    <Stack spacing={2}>
-                                        {/* Visibility */}
-                                        <FormControl fullWidth>
-                                            <InputLabel>Visibility</InputLabel>
-                                            <Select
-                                                value={state.form.visibility}
-                                                label="Visibility"
-                                                onChange={(e) => handleInputChange('visibility', e.target.value)}
+                                {/* Tags */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Tags</label>
+                                    <div className="flex flex-wrap gap-2 mb-2">
+                                        {state.form.tags.map((tag, index) => (
+                                            <Chip
+                                                key={index}
+                                                onClose={() => {
+                                                    const newTags = state.form.tags.filter((_, i) => i !== index);
+                                                    handleInputChange('tags', newTags);
+                                                }}
+                                                variant="flat"
                                             >
-                                                <MenuItem value="public">
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Public sx={{ fontSize: 16 }} />
-                                                        Public
-                                                    </Box>
-                                                </MenuItem>
-                                                <MenuItem value="unlisted">
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <VisibilityOff sx={{ fontSize: 16 }} />
-                                                        Unlisted
-                                                    </Box>
-                                                </MenuItem>
-                                                <MenuItem value="private">
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Lock sx={{ fontSize: 16 }} />
-                                                        Private
-                                                    </Box>
-                                                </MenuItem>
-                                            </Select>
-                                        </FormControl>
-
-                                        {/* Current Status */}
-                                        <Box sx={{ p: 2, bgcolor: state.form.isPublished ? 'success.light' : 'warning.light', borderRadius: 1 }}>
-                                            <Typography variant="body2" fontWeight="bold">
-                                                Status: {state.form.isPublished ? 'Published' : 'Draft'}
-                                            </Typography>
-                                            <Typography variant="caption">
-                                                {state.form.isPublished 
-                                                    ? 'This blog is live and visible to readers'
-                                                    : 'This blog is saved as a draft'
+                                                {tag}
+                                            </Chip>
+                                        ))}
+                                    </div>
+                                    <Input
+                                        placeholder="Add a tag and press Enter..."
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const input = e.target as HTMLInputElement;
+                                                const newTag = input.value.trim();
+                                                if (newTag && !state.form.tags.includes(newTag) && state.form.tags.length < 10) {
+                                                    handleInputChange('tags', [...state.form.tags, newTag]);
+                                                    input.value = '';
                                                 }
-                                            </Typography>
-                                        </Box>
-                                    </Stack>
-                                </Paper>
+                                            }
+                                        }}
+                                        description={`${state.form.tags.length}/10 tags`}
+                                    />
+                                </div>
 
-                                {/* SEO Preview */}
-                                <Paper sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        SEO Preview
-                                    </Typography>
-                                    
-                                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                                        <Typography 
-                                            variant="body2" 
-                                            color="primary" 
-                                            sx={{ textDecoration: 'underline', mb: 0.5 }}
-                                        >
-                                            {state.form.title || 'Your Blog Title'}
-                                        </Typography>
-                                        <Typography variant="caption" color="success.main">
-                                            meetbhingradiya.vercel.app/blog/{blogId}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                            {state.form.description || 'Blog description will appear here...'}
-                                        </Typography>
-                                    </Box>
-                                </Paper>
-                            </Box>
-                        </Box>
-                    </motion.div>
-                </Box>
-            </Box>
-        </ThemeProvider>
+                                {/* Banner Image */}
+                                <Input
+                                    label="Banner Image URL (Optional)"
+                                    placeholder="https://example.com/image.jpg"
+                                    value={state.form.bannerImage}
+                                    onValueChange={(value) => handleInputChange('bannerImage', value)}
+                                />
+                            </CardBody>
+                        </Card>
+
+                        {/* Content Editor */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Content</h3>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="min-h-[400px]">
+                                    <MDEditor
+                                        value={state.form.content}
+                                        onChange={(val) => handleInputChange('content', val || '')}
+                                        preview={state.previewMode ? 'preview' : 'edit'}
+                                        height={400}
+                                        data-color-mode="light"
+                                    />
+                                </div>
+                                <p className="text-sm text-default-500 mt-2">
+                                    {state.form.content.length} characters • Supports Markdown
+                                </p>
+                            </CardBody>
+                        </Card>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Publish Settings */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Publish Settings</h3>
+                            </CardHeader>
+                            <CardBody className="space-y-4">
+                                {/* Visibility */}
+                                <Select
+                                    label="Visibility"
+                                    selectedKeys={[state.form.visibility]}
+                                    onSelectionChange={(keys) => {
+                                        const value = Array.from(keys)[0] as string;
+                                        handleInputChange('visibility', value);
+                                    }}
+                                >
+                                    <SelectItem key="public" startContent={<Public className="text-sm" />}>
+                                        Public
+                                    </SelectItem>
+                                    <SelectItem key="unlisted" startContent={<VisibilityOff className="text-sm" />}>
+                                        Unlisted
+                                    </SelectItem>
+                                    <SelectItem key="private" startContent={<Lock className="text-sm" />}>
+                                        Private
+                                    </SelectItem>
+                                </Select>
+
+                                {/* Current Status */}
+                                <div className={`p-3 rounded-lg ${state.form.isPublished ? 'bg-success-50 border border-success' : 'bg-warning-50 border border-warning'}`}>
+                                    <p className="font-medium text-sm">
+                                        Status: {state.form.isPublished ? 'Published' : 'Draft'}
+                                    </p>
+                                    <p className="text-xs opacity-70">
+                                        {state.form.isPublished 
+                                            ? 'This blog is live and visible to readers'
+                                            : 'This blog is saved as a draft'
+                                        }
+                                    </p>
+                                </div>
+                            </CardBody>
+                        </Card>
+
+                        {/* SEO Preview */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">SEO Preview</h3>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="p-3 bg-default-100 rounded-lg">
+                                    <p className="text-primary underline text-sm mb-1">
+                                        {state.form.title || 'Your Blog Title'}
+                                    </p>
+                                    <p className="text-success text-xs mb-1">
+                                        meetbhingradiya.vercel.app/blog/{blogId}
+                                    </p>
+                                    <p className="text-default-500 text-xs">
+                                        {state.form.description || 'Blog description will appear here...'}
+                                    </p>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

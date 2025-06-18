@@ -30,7 +30,7 @@
         "@mui/icons-material": "^7.1.0",
         "@mui/material": "^7.1.0",
         "@mui/x-data-grid-premium": "^8.5.2",
-        "@mui/x-date-pickers-pro": "^8.3.1",
+        "@mui/x-date-pickers-pro": "^8.5.2",
         "@mui/x-license": "^8.3.1",
         "@react-spring/web": "^10.0.0",
         "@react-three/drei": "^10.1.2",

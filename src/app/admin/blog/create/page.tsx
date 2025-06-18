@@ -1,54 +1,37 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
-    Box,
-    Paper,
-    Typography,
-    TextField,
-    Button,
-    Chip,
-    Select,
-    MenuItem,
-    FormControl,
-    InputLabel,
-    Alert,
-    CircularProgress,
     Card,
-    CardContent,
-    Stack,
-    AppBar,
-    Toolbar,
-    IconButton,
+    CardBody,
+    CardHeader,
+    Button,
+    Input,
+    Textarea,
+    Select,
+    SelectItem,
     Switch,
-    FormControlLabel,
-    Autocomplete,
-    Divider
-} from "@mui/material";
+    Chip,
+    Spinner,
+    Divider,
+    Navbar,
+    NavbarBrand,
+    NavbarContent,
+    NavbarItem,
+} from "@heroui/react";
 import {
     Save,
     Publish,
-    Preview,
     ArrowBack,
-    Add,
-    Image,
-    Code,
-    FormatBold,
-    FormatItalic,
-    FormatListBulleted,
-    FormatListNumbered,
-    Link as LinkIcon,
     Article,
-    Visibility,
     Public,
     Lock,
     VisibilityOff,
     CloudUpload,
-    Delete
+    Visibility
 } from "@mui/icons-material";
-import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Axios } from "@Utils/Axios";
+import { getCSRFToken } from "@Utils";
 import { useRouter } from "next/navigation";
 import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
 import dynamic from 'next/dynamic';
@@ -58,73 +41,6 @@ const MDEditor = dynamic(
     () => import('@uiw/react-md-editor').then((mod) => mod.default),
     { ssr: false }
 );
-
-// Import the GitHub theme for consistency
-const githubTheme = createTheme({
-    palette: {
-        mode: 'light',
-        primary: {
-            main: '#0969da',
-            light: '#54aeff',
-            dark: '#0550ae',
-        },
-        secondary: {
-            main: '#8250df',
-            light: '#a475f9',
-            dark: '#6f42c1',
-        },
-        success: {
-            main: '#1a7f37',
-            light: '#2da44e',
-            dark: '#0f5132',
-        },
-        warning: {
-            main: '#fb8500',
-            light: '#ffb700',
-            dark: '#e85d00',
-        },
-        error: {
-            main: '#da3633',
-            light: '#ff6b6b',
-            dark: '#b91c1c',
-        },
-        background: {
-            default: '#f6f8fa',
-            paper: '#ffffff',
-        },
-        text: {
-            primary: '#24292f',
-            secondary: '#656d76',
-        },
-        divider: '#d1d9e0',
-    },
-    shape: {
-        borderRadius: 8,
-    },
-    typography: {
-        fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
-    },
-    components: {
-        MuiPaper: {
-            styleOverrides: {
-                root: {
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05)',
-                    border: '1px solid #d1d9e0',
-                    borderRadius: '12px',
-                },
-            },
-        },
-        MuiButton: {
-            styleOverrides: {
-                root: {
-                    borderRadius: '8px',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                },
-            },
-        },
-    },
-});
 
 interface BlogForm {
     title: string;
@@ -143,19 +59,8 @@ interface CreateBlogState {
     error: string;
     success: string;
     previewMode: boolean;
+    isCSRFReady: boolean;
 }
-
-// Common blog tags for suggestions
-const COMMON_TAGS = [
-    'JavaScript', 'TypeScript', 'React', 'Next.js', 'Node.js', 'Python',
-    'Security', 'Automation', 'AI', 'Machine Learning', 'DevOps', 'AWS',
-    'Docker', 'Kubernetes', 'GraphQL', 'REST API', 'Database', 'MongoDB',
-    'PostgreSQL', 'Redis', 'Performance', 'Optimization', 'Testing',
-    'CI/CD', 'Git', 'Open Source', 'Career', 'Learning', 'Tutorial',
-    'Best Practices', 'Architecture', 'Microservices', 'Serverless',
-    'Frontend', 'Backend', 'Full Stack', 'Web Development', 'Mobile',
-    'iOS', 'Android', 'Flutter', 'React Native', 'UI/UX', 'Design'
-];
 
 export default function CreateBlogPage() {
     const router = useRouter();
@@ -175,36 +80,91 @@ export default function CreateBlogPage() {
         saving: false,
         error: '',
         success: '',
-        previewMode: false
+        previewMode: false,
+        isCSRFReady: false
     });
 
     useEffect(() => {
-        // Set initial loading to false after a brief delay to allow account switcher to load
-        const timer = setTimeout(() => {
-            setIsInitialLoading(false);
-        }, 100);
-
-        return () => clearTimeout(timer);
+        initializeCSRFAndLoadPage();
     }, []);
 
-    useEffect(() => {
-        // Don't check authentication until initial loading is complete
-        if (isInitialLoading) return;
+    // Initialize CSRF token before allowing any operations
+    const initializeCSRFAndLoadPage = async () => {
+        try {
+            setIsInitialLoading(true);
+            setState(prev => ({ ...prev, error: '' }));
 
-        // Check if user is authenticated (both account and token must exist)
-        const authToken = typeof window !== 'undefined' ? localStorage.getItem('auth-token') : null;
-        
-        if (!currentAccount || !authToken) {
-            router.push('/auth/signin');
-            return;
-        }
+            // Check if we have an auth token first
+            const authToken = localStorage.getItem("auth-token");
+            if (!authToken) {
+                router.push("/auth/signin");
+                return;
+            }
 
-        // Check admin permissions
-        if (!currentAccount.profileData.isAdmin) {
-            router.push('/dashboard');
-            return;
+            // Check admin permissions
+            if (currentAccount && !currentAccount.isAdmin) {
+                router.push("/dashboard");
+                return;
+            }
+
+            // Check if CSRF token is already available
+            const existingCSRF = localStorage.getItem('trace');
+            if (existingCSRF) {
+                try {
+                    const parsedCSRF = JSON.parse(existingCSRF);
+                    if (parsedCSRF?.Status === 1) {
+                        setState(prev => ({ ...prev, isCSRFReady: true }));
+                        setIsInitialLoading(false);
+                        return;
+                    }
+                } catch (e) {
+                    localStorage.removeItem('trace');
+                }
+            }
+
+            // Get fresh CSRF token with timeout
+            const csrfResponse = await Promise.race([
+                getCSRFToken(),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error('CSRF token timeout')), 15000)
+                )
+            ]);
+
+            if (csrfResponse?.Status === 1) {
+                localStorage.setItem('trace', JSON.stringify(csrfResponse));
+                setState(prev => ({ ...prev, isCSRFReady: true }));
+            } else {
+                setState(prev => ({ ...prev, error: "Failed to initialize security token. Please try again." }));
+            }
+        } catch (error: any) {
+            console.error("CSRF initialization error:", error);
+            if (error.message === 'CSRF token retrieval in progress') {
+                setTimeout(() => {
+                    initializeCSRFAndLoadPage();
+                }, 2000);
+            } else if (error.message === 'CSRF token timeout') {
+                setState(prev => ({ ...prev, error: "Security token initialization timed out. Please refresh the page." }));
+            } else {
+                setState(prev => ({ ...prev, error: "Failed to initialize. Please try again." }));
+            }
+        } finally {
+            setIsInitialLoading(false);
         }
-    }, [currentAccount, router, isInitialLoading]);
+    };
+
+    // Helper function to handle CSRF token errors consistently
+    const handleCSRFError = (error: any, defaultMessage: string): string => {
+        if (error.message === 'CSRF token retrieval in progress') {
+            return "Security token is being prepared. Please try again in a moment.";
+        }
+        if (error.message === 'CSRF token timeout') {
+            return "Security token initialization timed out. Please refresh the page.";
+        }
+        if (error.message === 'CSRF token retrieval failed') {
+            return "Failed to retrieve security token. Please refresh the page.";
+        }
+        return error?.response?.data?.Message || defaultMessage;
+    };
 
     const handleInputChange = (field: keyof BlogForm, value: any) => {
         setState(prev => ({
@@ -213,13 +173,6 @@ export default function CreateBlogPage() {
             error: '',
             success: ''
         }));
-    };
-
-    const handleTagsChange = (event: any, newValue: string[]) => {
-        // Limit to 10 tags
-        if (newValue.length <= 10) {
-            handleInputChange('tags', newValue);
-        }
     };
 
     const validateForm = (): boolean => {
@@ -253,6 +206,10 @@ export default function CreateBlogPage() {
 
     const saveBlog = async (publish: boolean = false) => {
         if (!validateForm()) return;
+        if (!state.isCSRFReady) {
+            setState(prev => ({ ...prev, error: "Security token not ready. Please wait..." }));
+            return;
+        }
 
         setState(prev => ({ ...prev, saving: true, error: '', success: '' }));
 
@@ -264,7 +221,7 @@ export default function CreateBlogPage() {
 
             const response = await Axios.post('/api/blog', blogData, {
                 headers: {
-                    Authorization: `Bearer ${currentAccount?.encryptedToken}`
+                    Authorization: `Bearer ${localStorage.getItem('auth-token')}`
                 }
             });
 
@@ -291,340 +248,308 @@ export default function CreateBlogPage() {
         } catch (error: any) {
             setState(prev => ({
                 ...prev,
-                error: error?.response?.data?.Message || 'Failed to save blog',
+                error: handleCSRFError(error, 'Failed to save blog'),
                 saving: false
             }));
         }
     };
 
-    const handleImageUpload = async (file: File) => {
-        // This would integrate with your image upload service (Cloudinary, AWS S3, etc.)
-        // For now, we'll show a placeholder
-        const imageUrl = `https://via.placeholder.com/800x400?text=${encodeURIComponent(file.name)}`;
-        
-        // Insert image markdown into content
-        const imageMarkdown = `\n![${file.name}](${imageUrl})\n`;
-        const newContent = state.form.content + imageMarkdown;
-        handleInputChange('content', newContent);
-    };
-
-    if (!currentAccount) {
+    if (isInitialLoading || !currentAccount) {
         return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-                <CircularProgress />
-            </Box>
+            <div className="flex items-center justify-center min-h-screen gap-4">
+                <Spinner size="lg" />
+                <div className="text-center">
+                    <p className="text-lg">Loading Create Blog...</p>
+                    {!state.isCSRFReady && (
+                        <p className="text-sm text-default-500 mt-2">
+                            Initializing security tokens...
+                        </p>
+                    )}
+                </div>
+            </div>
+        );
+    }
+
+    if (state.error && !state.isCSRFReady) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+                <div className="text-center">
+                    <p className="text-lg text-danger">{state.error}</p>
+                    {(state.error.includes("CSRF") || state.error.includes("Security token")) && (
+                        <p className="text-sm text-default-500 mt-2">
+                            This usually resolves automatically. Please wait or try again.
+                        </p>
+                    )}
+                </div>
+                <Button
+                    color="primary"
+                    onPress={() => initializeCSRFAndLoadPage()}
+                    isLoading={isInitialLoading}
+                >
+                    Try Again
+                </Button>
+            </div>
         );
     }
 
     return (
-        <ThemeProvider theme={githubTheme}>
-            <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-                {/* Top App Bar */}
-                <AppBar 
-                    position="static" 
-                    elevation={0}
-                    sx={{ 
-                        bgcolor: 'background.paper', 
-                        borderBottom: '1px solid',
-                        borderColor: 'divider',
-                        color: 'text.primary'
-                    }}
-                >
-                    <Toolbar>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexGrow: 1 }}>
-                            <IconButton
-                                onClick={() => router.push('/admin/blog')}
-                                color="inherit"
-                            >
-                                <ArrowBack />
-                            </IconButton>
-                            <Article sx={{ fontSize: 28, color: 'primary.main' }} />
-                            <Box>
-                                <Typography variant="h6" fontWeight="bold">
-                                    Create New Blog
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Write and publish your content
-                                </Typography>
-                            </Box>
-                        </Box>
-                        
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                            {/* Preview Toggle */}
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={state.previewMode}
-                                        onChange={(e) => setState(prev => ({ 
-                                            ...prev, 
-                                            previewMode: e.target.checked 
-                                        }))}
-                                        size="small"
-                                    />
-                                }
-                                label="Preview"
-                                sx={{ fontSize: '0.875rem' }}
-                            />
-
-                            {/* Save Draft */}
-                            <Button
-                                variant="outlined"
-                                startIcon={<Save />}
-                                onClick={() => saveBlog(false)}
-                                disabled={state.saving}
-                                size="small"
-                            >
-                                Save Draft
-                            </Button>
-
-                            {/* Publish */}
-                            <Button
-                                variant="contained"
-                                startIcon={<Publish />}
-                                onClick={() => saveBlog(true)}
-                                disabled={state.saving}
-                                size="small"
-                            >
-                                {state.saving ? 'Publishing...' : 'Publish'}
-                            </Button>
-                        </Box>
-                    </Toolbar>
-                </AppBar>
-
-                <Box sx={{ p: 3 }}>
-                    {/* Success/Error Alerts */}
-                    <AnimatePresence>
-                        {(state.error || state.success) && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                            >
-                                <Alert 
-                                    severity={state.error ? "error" : "success"}
-                                    sx={{ mb: 3, borderRadius: 2 }} 
-                                    onClose={() => setState(prev => ({ ...prev, error: '', success: '' }))}
-                                >
-                                    {state.error || state.success}
-                                </Alert>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.6 }}
+        <div className="min-h-screen bg-background">
+            {/* Top Navigation Bar */}
+            <Navbar className="border-b">
+                <NavbarBrand>
+                    <Button
+                        isIconOnly
+                        variant="light"
+                        onPress={() => router.push('/admin/blog')}
                     >
-                        <Box sx={{ display: 'flex', gap: 3, height: 'calc(100vh - 200px)' }}>
-                            {/* Main Content Area */}
-                            <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                {/* Blog Metadata */}
-                                <Paper sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        Blog Details
-                                    </Typography>
-                                    
-                                    <Stack spacing={3}>
-                                        {/* Title */}
-                                        <TextField
-                                            fullWidth
-                                            label="Blog Title"
-                                            placeholder="Enter your blog title..."
-                                            value={state.form.title}
-                                            onChange={(e) => handleInputChange('title', e.target.value)}
-                                            helperText={`${state.form.title.length}/200 characters`}
-                                            error={state.form.title.length > 200}
-                                        />
+                        <ArrowBack />
+                    </Button>
+                    <Article className="text-primary" style={{ fontSize: 28 }} />
+                    <div className="ml-3">
+                        <h1 className="text-xl font-bold">Create New Blog</h1>
+                        <p className="text-sm text-default-500">Write and publish your content</p>
+                    </div>
+                </NavbarBrand>
+                
+                <NavbarContent justify="end">
+                    <NavbarItem>
+                        <Switch
+                            isSelected={state.previewMode}
+                            onValueChange={(checked) => setState(prev => ({ 
+                                ...prev, 
+                                previewMode: checked 
+                            }))}
+                            size="sm"
+                        >
+                            Preview
+                        </Switch>
+                    </NavbarItem>
+                    <NavbarItem>
+                        <Button
+                            variant="bordered"
+                            startContent={<Save />}
+                            onPress={() => saveBlog(false)}
+                            isDisabled={state.saving}
+                            size="sm"
+                        >
+                            Save Draft
+                        </Button>
+                    </NavbarItem>
+                    <NavbarItem>
+                        <Button
+                            color="primary"
+                            startContent={<Publish />}
+                            onPress={() => saveBlog(true)}
+                            isLoading={state.saving}
+                            size="sm"
+                        >
+                            Publish
+                        </Button>
+                    </NavbarItem>
+                </NavbarContent>
+            </Navbar>
 
-                                        {/* Description */}
-                                        <TextField
-                                            fullWidth
-                                            multiline
-                                            rows={3}
-                                            label="Description (Optional)"
-                                            placeholder="Brief description of your blog post..."
-                                            value={state.form.description}
-                                            onChange={(e) => handleInputChange('description', e.target.value)}
-                                            helperText={`${state.form.description.length}/500 characters`}
-                                            error={state.form.description.length > 500}
-                                        />
+            <div className="p-6">
+                {/* Success/Error Alerts */}
+                {(state.error || state.success) && (
+                    <Card className={`mb-6 ${state.error ? 'border-danger bg-danger-50' : 'border-success bg-success-50'}`}>
+                        <CardBody className="flex flex-row items-center gap-3">
+                            <p className={`${state.error ? 'text-danger' : 'text-success'} font-medium`}>
+                                {state.error || state.success}
+                            </p>
+                            <Button
+                                size="sm"
+                                variant="light"
+                                color={state.error ? "danger" : "success"}
+                                onPress={() => setState(prev => ({ ...prev, error: '', success: '' }))}
+                            >
+                                Dismiss
+                            </Button>
+                        </CardBody>
+                    </Card>
+                )}
 
-                                        {/* Tags */}
-                                        <Autocomplete
-                                            multiple
-                                            options={COMMON_TAGS}
-                                            freeSolo
-                                            value={state.form.tags}
-                                            onChange={handleTagsChange}
-                                            renderTags={(value, getTagProps) =>
-                                                value.map((option, index) => (
-                                                    <Chip
-                                                        variant="outlined"
-                                                        label={option}
-                                                        {...getTagProps({ index })}
-                                                        key={index}
-                                                    />
-                                                ))
-                                            }
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    label="Tags"
-                                                    placeholder="Add tags..."
-                                                    helperText={`${state.form.tags.length}/10 tags`}
-                                                />
-                                            )}
-                                        />
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                    {/* Main Content Area */}
+                    <div className="lg:col-span-3 space-y-6">
+                        {/* Blog Metadata */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Blog Details</h3>
+                            </CardHeader>
+                            <CardBody className="space-y-4">
+                                {/* Title */}
+                                <Input
+                                    label="Blog Title"
+                                    placeholder="Enter your blog title..."
+                                    value={state.form.title}
+                                    onValueChange={(value) => handleInputChange('title', value)}
+                                    description={`${state.form.title.length}/200 characters`}
+                                    color={state.form.title.length > 200 ? "danger" : "default"}
+                                />
 
-                                        {/* Banner Image */}
-                                        <TextField
-                                            fullWidth
-                                            label="Banner Image URL (Optional)"
-                                            placeholder="https://example.com/image.jpg"
-                                            value={state.form.bannerImage}
-                                            onChange={(e) => handleInputChange('bannerImage', e.target.value)}
-                                            InputProps={{
-                                                endAdornment: (
-                                                    <Button
-                                                        variant="outlined"
-                                                        size="small"
-                                                        startIcon={<CloudUpload />}
-                                                        sx={{ ml: 1 }}
-                                                    >
-                                                        Upload
-                                                    </Button>
-                                                )
-                                            }}
-                                        />
-                                    </Stack>
-                                </Paper>
+                                {/* Description */}
+                                <Textarea
+                                    label="Description (Optional)"
+                                    placeholder="Brief description of your blog post..."
+                                    value={state.form.description}
+                                    onValueChange={(value) => handleInputChange('description', value)}
+                                    description={`${state.form.description.length}/500 characters`}
+                                    color={state.form.description.length > 500 ? "danger" : "default"}
+                                    minRows={3}
+                                />
 
-                                {/* Content Editor */}
-                                <Paper sx={{ p: 3, flex: 1, display: 'flex', flexDirection: 'column' }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        Content
-                                    </Typography>
-                                    
-                                    <Box sx={{ flex: 1, minHeight: 400 }}>
-                                        <MDEditor
-                                            value={state.form.content}
-                                            onChange={(val) => handleInputChange('content', val || '')}
-                                            preview={state.previewMode ? 'preview' : 'edit'}
-                                            height={400}
-                                            data-color-mode="light"
-                                        />
-                                    </Box>
-                                    
-                                    <Typography variant="caption" color="text.secondary" sx={{ mt: 1 }}>
-                                        {state.form.content.length} characters • Supports Markdown
-                                    </Typography>
-                                </Paper>
-                            </Box>
-
-                            {/* Sidebar */}
-                            <Box sx={{ width: 300, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                {/* Publish Settings */}
-                                <Paper sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        Publish Settings
-                                    </Typography>
-                                    
-                                    <Stack spacing={2}>
-                                        {/* Visibility */}
-                                        <FormControl fullWidth>
-                                            <InputLabel>Visibility</InputLabel>
-                                            <Select
-                                                value={state.form.visibility}
-                                                label="Visibility"
-                                                onChange={(e) => handleInputChange('visibility', e.target.value)}
+                                {/* Tags */}
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Tags</label>
+                                    <div className="flex flex-wrap gap-2 mb-2">
+                                        {state.form.tags.map((tag, index) => (
+                                            <Chip
+                                                key={index}
+                                                onClose={() => {
+                                                    const newTags = state.form.tags.filter((_, i) => i !== index);
+                                                    handleInputChange('tags', newTags);
+                                                }}
+                                                variant="flat"
                                             >
-                                                <MenuItem value="public">
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Public sx={{ fontSize: 16 }} />
-                                                        Public
-                                                    </Box>
-                                                </MenuItem>
-                                                <MenuItem value="unlisted">
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <VisibilityOff sx={{ fontSize: 16 }} />
-                                                        Unlisted
-                                                    </Box>
-                                                </MenuItem>
-                                                <MenuItem value="private">
-                                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                                        <Lock sx={{ fontSize: 16 }} />
-                                                        Private
-                                                    </Box>
-                                                </MenuItem>
-                                            </Select>
-                                        </FormControl>
-
-                                        {/* Publish Status */}
-                                        <FormControlLabel
-                                            control={
-                                                <Switch
-                                                    checked={state.form.isPublished}
-                                                    onChange={(e) => handleInputChange('isPublished', e.target.checked)}
-                                                />
+                                                {tag}
+                                            </Chip>
+                                        ))}
+                                    </div>
+                                    <Input
+                                        placeholder="Add a tag and press Enter..."
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const input = e.target as HTMLInputElement;
+                                                const newTag = input.value.trim();
+                                                if (newTag && !state.form.tags.includes(newTag) && state.form.tags.length < 10) {
+                                                    handleInputChange('tags', [...state.form.tags, newTag]);
+                                                    input.value = '';
+                                                }
                                             }
-                                            label="Publish immediately"
-                                        />
-                                    </Stack>
-                                </Paper>
+                                        }}
+                                        description={`${state.form.tags.length}/10 tags`}
+                                    />
+                                </div>
 
-                                {/* Writing Tips */}
-                                <Paper sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        Writing Tips
-                                    </Typography>
-                                    
-                                    <Stack spacing={1}>
-                                        <Typography variant="body2" color="text.secondary">
-                                            • Use clear, descriptive headings
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            • Include code examples where relevant
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            • Add images to break up text
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            • Use bullet points for readability
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                            • Keep paragraphs concise
-                                        </Typography>
-                                    </Stack>
-                                </Paper>
-
-                                {/* SEO Preview */}
-                                <Paper sx={{ p: 3 }}>
-                                    <Typography variant="h6" gutterBottom fontWeight="bold">
-                                        SEO Preview
-                                    </Typography>
-                                    
-                                    <Box sx={{ p: 2, bgcolor: 'grey.50', borderRadius: 1 }}>
-                                        <Typography 
-                                            variant="body2" 
-                                            color="primary" 
-                                            sx={{ textDecoration: 'underline', mb: 0.5 }}
+                                {/* Banner Image */}
+                                <Input
+                                    label="Banner Image URL (Optional)"
+                                    placeholder="https://example.com/image.jpg"
+                                    value={state.form.bannerImage}
+                                    onValueChange={(value) => handleInputChange('bannerImage', value)}
+                                    endContent={
+                                        <Button
+                                            variant="bordered"
+                                            size="sm"
+                                            startContent={<CloudUpload />}
                                         >
-                                            {state.form.title || 'Your Blog Title'}
-                                        </Typography>
-                                        <Typography variant="caption" color="success.main">
-                                            meetbhingradiya.vercel.app/blog/...
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-                                            {state.form.description || 'Blog description will appear here...'}
-                                        </Typography>
-                                    </Box>
-                                </Paper>
-                            </Box>
-                        </Box>
-                    </motion.div>
-                </Box>
-            </Box>
-        </ThemeProvider>
+                                            Upload
+                                        </Button>
+                                    }
+                                />
+                            </CardBody>
+                        </Card>
+
+                        {/* Content Editor */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Content</h3>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="min-h-[400px]">
+                                    <MDEditor
+                                        value={state.form.content}
+                                        onChange={(val) => handleInputChange('content', val || '')}
+                                        preview={state.previewMode ? 'preview' : 'edit'}
+                                        height={400}
+                                        data-color-mode="light"
+                                    />
+                                </div>
+                                <p className="text-sm text-default-500 mt-2">
+                                    {state.form.content.length} characters • Supports Markdown
+                                </p>
+                            </CardBody>
+                        </Card>
+                    </div>
+
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Publish Settings */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Publish Settings</h3>
+                            </CardHeader>
+                            <CardBody className="space-y-4">
+                                {/* Visibility */}
+                                <Select
+                                    label="Visibility"
+                                    selectedKeys={[state.form.visibility]}
+                                    onSelectionChange={(keys) => {
+                                        const value = Array.from(keys)[0] as string;
+                                        handleInputChange('visibility', value);
+                                    }}
+                                >
+                                    <SelectItem key="public" startContent={<Public className="text-sm" />}>
+                                        Public
+                                    </SelectItem>
+                                    <SelectItem key="unlisted" startContent={<VisibilityOff className="text-sm" />}>
+                                        Unlisted
+                                    </SelectItem>
+                                    <SelectItem key="private" startContent={<Lock className="text-sm" />}>
+                                        Private
+                                    </SelectItem>
+                                </Select>
+
+                                {/* Publish Status */}
+                                <Switch
+                                    isSelected={state.form.isPublished}
+                                    onValueChange={(checked) => handleInputChange('isPublished', checked)}
+                                >
+                                    Publish immediately
+                                </Switch>
+                            </CardBody>
+                        </Card>
+
+                        {/* Writing Tips */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">Writing Tips</h3>
+                            </CardHeader>
+                            <CardBody>
+                                <ul className="space-y-2 text-sm text-default-600">
+                                    <li>• Use clear, descriptive headings</li>
+                                    <li>• Include code examples where relevant</li>
+                                    <li>• Add images to break up text</li>
+                                    <li>• Use bullet points for readability</li>
+                                    <li>• Keep paragraphs concise</li>
+                                </ul>
+                            </CardBody>
+                        </Card>
+
+                        {/* SEO Preview */}
+                        <Card>
+                            <CardHeader>
+                                <h3 className="text-lg font-semibold">SEO Preview</h3>
+                            </CardHeader>
+                            <CardBody>
+                                <div className="p-3 bg-default-100 rounded-lg">
+                                    <p className="text-primary underline text-sm mb-1">
+                                        {state.form.title || 'Your Blog Title'}
+                                    </p>
+                                    <p className="text-success text-xs mb-1">
+                                        meetbhingradiya.vercel.app/blog/...
+                                    </p>
+                                    <p className="text-default-500 text-xs">
+                                        {state.form.description || 'Blog description will appear here...'}
+                                    </p>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }

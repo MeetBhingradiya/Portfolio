@@ -3,33 +3,16 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-	Box,
-	Paper,
-	Typography,
-	TextField,
+	Card,
+	CardBody,
 	Button,
 	Chip,
-	Select,
-	MenuItem,
-	FormControl,
-	InputLabel,
-	Dialog,
-	DialogTitle,
-	DialogContent,
-	DialogActions,
-	IconButton,
-	Alert,
-	CircularProgress,
-	Card,
-	CardContent,
-	Divider,
-    GridLegacy,
 	Tooltip,
 	Badge,
-	Stack,
-	AppBar,
-	Toolbar,
-} from "@mui/material";
+	Alert,
+	CircularProgress,
+	Spinner,
+} from "@heroui/react";
 import {
 	DataGridPremium,
 	GridColDef,
@@ -47,29 +30,23 @@ import {
 	Publish,
 	UnpublishedOutlined,
 	Refresh,
-	Analytics,
 	TrendingUp,
-	Schedule,
 	CheckCircle,
-	Error,
-	Warning,
-	Info,
 	Article,
 	Drafts,
 	Public,
 	Lock,
-	CalendarToday,
 	Person,
-	Tag,
-	Search,
-	FilterList,
-	ExitToApp,
+	ThumbUp,
 } from "@mui/icons-material";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { Axios } from "@Utils/Axios";
+import { getCSRFToken } from "@Utils";
 import { useRouter } from "next/navigation";
 import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
-import { LicenseInfo, generateLicense, muiXTelemetrySettings  } from "@mui/x-license";
+import { LicenseInfo, generateLicense, muiXTelemetrySettings } from "@mui/x-license";
+import AdminLayout from "@Components/Admin/Layout/AdminLayout";
+import StatsGrid from "@Components/Admin/Widgets/StatsGrid";
 
 muiXTelemetrySettings.disableTelemetry();
 LicenseInfo.setLicenseKey(
@@ -120,61 +97,61 @@ interface BlogState {
 	};
 }
 
-// GitHub-style theme (same as ticket admin)
-const githubTheme: any = createTheme({
+// HeroUI-compatible theme for MUI-X DataGrid
+const heroUIDataGridTheme: any = createTheme({
 	palette: {
 		mode: "light",
 		primary: {
-			main: "#0969da",
-			light: "#54aeff",
-			dark: "#0550ae",
+			main: "#006FEE", // HeroUI primary blue
+			light: "#338EFF",
+			dark: "#0052CC",
 		},
 		secondary: {
-			main: "#8250df",
-			light: "#a475f9",
-			dark: "#6f42c1",
+			main: "#7C3AED", // HeroUI secondary purple
+			light: "#A855F7",
+			dark: "#5B21B6",
 		},
 		success: {
-			main: "#1a7f37",
-			light: "#2da44e",
-			dark: "#0f5132",
+			main: "#17C964", // HeroUI success green
+			light: "#45D483",
+			dark: "#12A150",
 		},
 		warning: {
-			main: "#fb8500",
-			light: "#ffb700",
-			dark: "#e85d00",
+			main: "#F5A524", // HeroUI warning orange
+			light: "#F7B955",
+			dark: "#D97706",
 		},
 		error: {
-			main: "#da3633",
-			light: "#ff6b6b",
-			dark: "#b91c1c",
+			main: "#F31260", // HeroUI danger red
+			light: "#F54180",
+			dark: "#C20E4D",
 		},
 		background: {
-			default: "#f6f8fa",
-			paper: "#ffffff",
+			default: "#FAFAFA", // HeroUI background
+			paper: "#FFFFFF",
 		},
 		text: {
-			primary: "#24292f",
-			secondary: "#656d76",
+			primary: "#11181C", // HeroUI foreground
+			secondary: "#687076", // HeroUI foreground-500
 		},
-		divider: "#d1d9e0",
+		divider: "#E4E4E7", // HeroUI divider
 	},
 	shape: {
-		borderRadius: 8,
+		borderRadius: 12, // HeroUI border radius
 	},
 	typography: {
-		fontFamily: '"Inter", "Segoe UI", "Roboto", sans-serif',
+		fontFamily: '"Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
 		h4: {
 			fontWeight: 700,
-			fontSize: "1.5rem",
+			fontSize: "1.75rem",
 		},
 		h5: {
 			fontWeight: 600,
-			fontSize: "1.25rem",
+			fontSize: "1.5rem",
 		},
 		h6: {
 			fontWeight: 600,
-			fontSize: "1.125rem",
+			fontSize: "1.25rem",
 		},
 		body1: {
 			fontSize: "0.875rem",
@@ -187,37 +164,51 @@ const githubTheme: any = createTheme({
 		MuiDataGrid: {
 			styleOverrides: {
 				root: {
-					border: "1px solid #d1d9e0",
-					borderRadius: "12px",
-					backgroundColor: "#ffffff",
+					border: "2px solid #F4F4F5", // HeroUI border
+					borderRadius: "16px",
+					backgroundColor: "#FFFFFF",
+					fontFamily: 'inherit',
 					"& .MuiDataGrid-cell": {
-						borderColor: "#f6f8fa",
+						borderColor: "#F4F4F5",
 						fontSize: "0.875rem",
+						padding: "12px 16px",
 					},
 					"& .MuiDataGrid-columnHeaders": {
-						backgroundColor: "#f6f8fa",
-						borderBottom: "1px solid #d1d9e0",
-						borderRadius: "12px 12px 0 0",
+						backgroundColor: "#FAFAFA",
+						borderBottom: "2px solid #F4F4F5",
+						borderRadius: "16px 16px 0 0",
 						"& .MuiDataGrid-columnHeader": {
 							fontWeight: 600,
 							fontSize: "0.875rem",
-							color: "#24292f",
+							color: "#11181C",
+							padding: "16px",
 						},
 					},
 					"& .MuiDataGrid-row": {
 						"&:hover": {
-							backgroundColor: "#f6f8fa",
+							backgroundColor: "#F4F4F5",
 						},
 						"&.Mui-selected": {
-							backgroundColor: "#dbeafe",
+							backgroundColor: "#E6F1FE",
 							"&:hover": {
-								backgroundColor: "#bfdbfe",
+								backgroundColor: "#CCE7FD",
 							},
 						},
 					},
 					"& .MuiDataGrid-footerContainer": {
-						borderTop: "1px solid #d1d9e0",
-						backgroundColor: "#f6f8fa",
+						borderTop: "2px solid #F4F4F5",
+						backgroundColor: "#FAFAFA",
+						borderRadius: "0 0 16px 16px",
+					},
+					"& .MuiDataGrid-toolbarContainer": {
+						padding: "16px 24px",
+						borderBottom: "2px solid #F4F4F5",
+						backgroundColor: "#FAFAFA",
+						"& .MuiButton-root": {
+							borderRadius: "8px",
+							textTransform: "none",
+							fontWeight: 500,
+						},
 					},
 				},
 			},
@@ -225,43 +216,9 @@ const githubTheme: any = createTheme({
 		MuiPaper: {
 			styleOverrides: {
 				root: {
-					boxShadow:
-						"0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05)",
-					border: "1px solid #d1d9e0",
-					borderRadius: "12px",
-				},
-			},
-		},
-		MuiCard: {
-			styleOverrides: {
-				root: {
-					boxShadow:
-						"0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.05)",
-					border: "1px solid #d1d9e0",
-					borderRadius: "12px",
-					transition: "all 0.2s ease-in-out",
-					"&:hover": {
-						boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
-						transform: "translateY(-2px)",
-					},
-				},
-			},
-		},
-		MuiChip: {
-			styleOverrides: {
-				root: {
-					fontWeight: 500,
-					fontSize: "0.75rem",
-					borderRadius: "6px",
-				},
-			},
-		},
-		MuiButton: {
-			styleOverrides: {
-				root: {
-					borderRadius: "8px",
-					textTransform: "none",
-					fontWeight: 500,
+					boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+					border: "2px solid #F4F4F5",
+					borderRadius: "16px",
 				},
 			},
 		},
@@ -272,6 +229,7 @@ export default function BlogAdminPage() {
 	const router = useRouter();
 	const { currentAccount } = useAccountSwitcher();
 	const [isInitialLoading, setIsInitialLoading] = useState(true);
+	const [isCSRFReady, setIsCSRFReady] = useState(false);
 	const [blogState, setBlogState] = useState<BlogState>({
 		blogs: [],
 		loading: false,
@@ -306,24 +264,86 @@ export default function BlogAdminPage() {
 		}
 
 		// Check admin permissions
-		if (!currentAccount.profileData.isAdmin) {
+		if (!currentAccount.isAdmin) {
 			router.push("/dashboard");
 			return;
 		}
 
-		loadBlogs();
-		loadStats();
+		initializeCSRFAndFetchData();
 	}, [currentAccount, router, isInitialLoading]);
 
+	// Initialize CSRF token and then fetch blog data
+	const initializeCSRFAndFetchData = async () => {
+		setBlogState((prev) => ({ ...prev, loading: true, error: "" }));
+		
+		try {
+			// Check if CSRF token is already available
+			const existingCSRF = localStorage.getItem('trace');
+			if (existingCSRF) {
+				try {
+					const parsedCSRF = JSON.parse(existingCSRF);
+					if (parsedCSRF?.Status === 1) {
+						setIsCSRFReady(true);
+						await loadBlogs();
+						await loadStats();
+						return;
+					}
+					// Invalid stored CSRF, continue to fetch new one
+					localStorage.removeItem('trace');
+				} catch (e) {
+					localStorage.removeItem('trace');
+				}
+			}
+
+			// Get fresh CSRF token with timeout
+			const csrfResponse = await Promise.race([
+				getCSRFToken(),
+				new Promise((_, reject) => 
+					setTimeout(() => reject(new Error('CSRF token timeout')), 15000)
+				)
+			]);
+
+			if (csrfResponse?.Status === 1) {
+				localStorage.setItem('trace', JSON.stringify(csrfResponse));
+				setIsCSRFReady(true);
+				await loadBlogs();
+				await loadStats();
+			} else {
+				throw new Error('CSRF token retrieval failed');
+			}
+		} catch (error: any) {
+			setBlogState((prev) => ({
+				...prev,
+				error: handleCSRFError(error, "Failed to initialize security token"),
+				loading: false,
+			}));
+		}
+	};
+
+	// Helper function to handle CSRF token errors consistently
+	const handleCSRFError = (error: any, defaultMessage: string): string => {
+		if (error.message === 'CSRF token retrieval in progress') {
+			return "Security token is being prepared. Please try again in a moment.";
+		}
+		if (error.message === 'CSRF token timeout') {
+			return "Security token initialization timed out. Please refresh the page.";
+		}
+		if (error.message === 'CSRF token retrieval failed') {
+			return "Failed to retrieve security token. Please refresh the page.";
+		}
+		return error?.response?.data?.Message || defaultMessage;
+	};
+
 	const loadBlogs = async () => {
+		if (!isCSRFReady) {
+			console.warn("CSRF token not ready, skipping loadBlogs");
+			return;
+		}
+
 		setBlogState((prev) => ({ ...prev, loading: true, error: "" }));
 
 		try {
-			const response = await Axios.get("/api/blog", {
-				headers: {
-					Authorization: `Bearer ${currentAccount?.encryptedToken}`,
-				},
-			});
+			const response = await Axios.get("/api/blog");
 
 			if (response.data.Status === 1) {
 				setBlogState((prev) => ({
@@ -341,17 +361,21 @@ export default function BlogAdminPage() {
 		} catch (error: any) {
 			setBlogState((prev) => ({
 				...prev,
-				error: error?.response?.data?.Message || "Failed to load blogs",
+				error: handleCSRFError(error, "Failed to load blogs"),
 				loading: false,
 			}));
 		}
 	};
-
 	const loadStats = async () => {
+		if (!isCSRFReady) {
+			console.warn("CSRF token not ready, skipping loadStats");
+			return;
+		}
+
 		try {
 			const response = await Axios.get("/api/blog/analytics", {
 				headers: {
-					Authorization: `Bearer ${currentAccount?.encryptedToken}`,
+					Authorization: `Bearer ${currentAccount?.Session.Token}`,
 				},
 			});
 
@@ -365,21 +389,23 @@ export default function BlogAdminPage() {
 			console.warn("Failed to load blog analytics");
 		}
 	};
-
 	const togglePublishStatus = async (
 		blogID: string,
 		currentStatus: boolean
 	) => {
+		if (!isCSRFReady) {
+			setBlogState((prev) => ({
+				...prev,
+				error: "Security token not ready. Please wait a moment and try again.",
+			}));
+			return;
+		}
+
 		try {
 			const action = currentStatus ? "unpublish" : "publish";
 			await Axios.post(
 				`/api/blog/${blogID}/publish`,
-				{ action },
-				{
-					headers: {
-						Authorization: `Bearer ${currentAccount?.encryptedToken}`,
-					},
-				}
+				{ action }
 			);
 
 			loadBlogs();
@@ -387,14 +413,19 @@ export default function BlogAdminPage() {
 		} catch (error: any) {
 			setBlogState((prev) => ({
 				...prev,
-				error:
-					error?.response?.data?.Message ||
-					"Failed to update publish status",
+				error: handleCSRFError(error, "Failed to update publish status"),
 			}));
 		}
 	};
-
 	const deleteBlog = async (blogID: string) => {
+		if (!isCSRFReady) {
+			setBlogState((prev) => ({
+				...prev,
+				error: "Security token not ready. Please wait a moment and try again.",
+			}));
+			return;
+		}
+
 		if (
 			!confirm(
 				"Are you sure you want to delete this blog? This action cannot be undone."
@@ -404,23 +435,17 @@ export default function BlogAdminPage() {
 		}
 
 		try {
-			await Axios.delete(`/api/blog/${blogID}`, {
-				headers: {
-					Authorization: `Bearer ${currentAccount?.encryptedToken}`,
-				},
-			});
+			await Axios.delete(`/api/blog/${blogID}`);
 
 			loadBlogs();
 			loadStats();
 		} catch (error: any) {
 			setBlogState((prev) => ({
 				...prev,
-				error:
-					error?.response?.data?.Message || "Failed to delete blog",
+				error: handleCSRFError(error, "Failed to delete blog"),
 			}));
 		}
 	};
-
 	// DataGrid columns configuration
 	const columns: GridColDef[] = [
 		{
@@ -428,20 +453,14 @@ export default function BlogAdminPage() {
 			headerName: "Title",
 			width: 300,
 			renderCell: (params: GridRenderCellParams) => (
-				<Box>
-					<Typography
-						variant="body2"
-						sx={{ fontWeight: 600, mb: 0.5 }}
-					>
+				<div className="py-2">
+					<p className="font-semibold text-foreground text-sm mb-1">
 						{params.value}
-					</Typography>
-					<Typography
-						variant="caption"
-						color="text.secondary"
-					>
+					</p>
+					<p className="text-xs text-foreground-500">
 						ID: {params.row.BlogID}
-					</Typography>
-				</Box>
+					</p>
+				</div>
 			),
 		},
 		{
@@ -449,12 +468,12 @@ export default function BlogAdminPage() {
 			headerName: "Author",
 			width: 150,
 			renderCell: (params: GridRenderCellParams) => (
-				<Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-					<Person sx={{ fontSize: 16, color: "text.secondary" }} />
-					<Typography variant="body2">
+				<div className="flex items-center gap-2">
+					<Person className="text-sm text-foreground-400" />
+					<span className="text-sm text-foreground">
 						{params.value?.name || "Unknown"}
-					</Typography>
-				</Box>
+					</span>
+				</div>
 			),
 		},
 		{
@@ -465,19 +484,19 @@ export default function BlogAdminPage() {
 				const isPublished = params.value;
 				return (
 					<Chip
-						label={isPublished ? "Published" : "Draft"}
+						size="sm"
 						color={isPublished ? "success" : "warning"}
-						size="small"
-						icon={
+						variant="flat"
+						startContent={
 							isPublished ? (
-								<CheckCircle sx={{ fontSize: 14 }} />
+								<CheckCircle className="text-xs" />
 							) : (
-								<Drafts sx={{ fontSize: 14 }} />
+								<Drafts className="text-xs" />
 							)
 						}
-						variant="outlined"
-						sx={{ fontWeight: 500 }}
-					/>
+					>
+						{isPublished ? "Published" : "Draft"}
+					</Chip>
 				);
 			},
 		},
@@ -490,26 +509,26 @@ export default function BlogAdminPage() {
 					switch (visibility) {
 						case "public":
 							return {
-								icon: <Public sx={{ fontSize: 14 }} />,
-								color: "primary",
+								icon: <Public className="text-xs" />,
+								color: "primary" as const,
 								label: "Public",
 							};
 						case "private":
 							return {
-								icon: <Lock sx={{ fontSize: 14 }} />,
-								color: "error",
+								icon: <Lock className="text-xs" />,
+								color: "danger" as const,
 								label: "Private",
 							};
 						case "unlisted":
 							return {
-								icon: <VisibilityOff sx={{ fontSize: 14 }} />,
-								color: "warning",
+								icon: <VisibilityOff className="text-xs" />,
+								color: "warning" as const,
 								label: "Unlisted",
 							};
 						default:
 							return {
-								icon: <Info sx={{ fontSize: 14 }} />,
-								color: "default",
+								icon: <Article className="text-xs" />,
+								color: "default" as const,
 								label: visibility,
 							};
 					}
@@ -518,13 +537,13 @@ export default function BlogAdminPage() {
 				const config = getVisibilityConfig(params.value);
 				return (
 					<Chip
-						label={config.label}
-						color={config.color as any}
-						size="small"
-						icon={config.icon}
-						variant="outlined"
-						sx={{ fontWeight: 500 }}
-					/>
+						size="sm"
+						color={config.color}
+						variant="flat"
+						startContent={config.icon}
+					>
+						{config.label}
+					</Chip>
 				);
 			},
 		},
@@ -533,27 +552,29 @@ export default function BlogAdminPage() {
 			headerName: "Tags",
 			width: 200,
 			renderCell: (params: GridRenderCellParams) => (
-				<Box sx={{ display: "flex", gap: 0.5, flexWrap: "wrap" }}>
+				<div className="flex gap-1 flex-wrap py-1">
 					{params.value
 						?.slice(0, 2)
 						.map((tag: string, index: number) => (
 							<Chip
 								key={index}
-								label={tag}
-								size="small"
-								variant="outlined"
-								sx={{ fontSize: "0.7rem", height: 20 }}
-							/>
+								size="sm"
+								variant="bordered"
+								className="text-xs h-5"
+							>
+								{tag}
+							</Chip>
 						))}
 					{params.value?.length > 2 && (
 						<Chip
-							label={`+${params.value.length - 2}`}
-							size="small"
-							variant="outlined"
-							sx={{ fontSize: "0.7rem", height: 20 }}
-						/>
+							size="sm"
+							variant="bordered"
+							className="text-xs h-5"
+						>
+							+{params.value.length - 2}
+						</Chip>
 					)}
-				</Box>
+				</div>
 			),
 		},
 		{
@@ -563,19 +584,12 @@ export default function BlogAdminPage() {
 			align: "center",
 			renderCell: (params: GridRenderCellParams) => (
 				<Badge
-					badgeContent={params.value}
+					content={params.value}
 					color="primary"
-					sx={{
-						"& .MuiBadge-badge": {
-							fontSize: "0.6rem",
-							height: 16,
-							minWidth: 16,
-						},
-					}}
+					size="sm"
+					showOutline={false}
 				>
-					<Visibility
-						sx={{ fontSize: 16, color: "text.secondary" }}
-					/>
+					<Visibility className="text-sm text-foreground-400" />
 				</Badge>
 			),
 		},
@@ -586,19 +600,12 @@ export default function BlogAdminPage() {
 			align: "center",
 			renderCell: (params: GridRenderCellParams) => (
 				<Badge
-					badgeContent={params.value}
-					color="error"
-					sx={{
-						"& .MuiBadge-badge": {
-							fontSize: "0.6rem",
-							height: 16,
-							minWidth: 16,
-						},
-					}}
+					content={params.value}
+					color="danger"
+					size="sm"
+					showOutline={false}
 				>
-					<TrendingUp
-						sx={{ fontSize: 16, color: "text.secondary" }}
-					/>
+					<ThumbUp className="text-sm text-foreground-400" />
 				</Badge>
 			),
 		},
@@ -608,10 +615,7 @@ export default function BlogAdminPage() {
 			width: 120,
 			valueGetter: (params: any) => new Date(params.row.createdAt),
 			renderCell: (params: any) => (
-				<Typography
-					variant="caption"
-					color="text.secondary"
-				>
+				<span className="text-xs text-foreground-500">
 					{new Date(params.row.createdAt).toLocaleDateString(
 						"en-US",
 						{
@@ -620,17 +624,18 @@ export default function BlogAdminPage() {
 							year: "numeric",
 						}
 					)}
-				</Typography>
+				</span>
 			),
 		},
 		{
 			field: "actions",
 			type: "actions",
 			headerName: "Actions",
-			width: 150,			getActions: (params: GridRowParams) => [
+			width: 150,
+			getActions: (params: GridRowParams) => [
 				<GridActionsCellItem
 					key="edit"
-					icon={<Edit sx={{ fontSize: 18, color: "primary.main" }} />}
+					icon={<Edit className="text-sm text-primary" />}
 					label="Edit Blog"
 					onClick={() =>
 						router.push(`/admin/blog/edit/${params.row.BlogID}`)
@@ -641,9 +646,9 @@ export default function BlogAdminPage() {
 					key="publish"
 					icon={
 						params.row.isPublished ? (
-							<UnpublishedOutlined sx={{ fontSize: 18, color: "warning.main" }} />
+							<UnpublishedOutlined className="text-sm text-warning" />
 						) : (
-							<Publish sx={{ fontSize: 18, color: "success.main" }} />
+							<Publish className="text-sm text-success" />
 						)
 					}
 					label={params.row.isPublished ? "Unpublish" : "Publish"}
@@ -657,356 +662,244 @@ export default function BlogAdminPage() {
 				/>,
 				<GridActionsCellItem
 					key="delete"
-					icon={<Delete sx={{ fontSize: 18, color: "error.main" }} />}
+					icon={<Delete className="text-sm text-danger" />}
 					label="Delete Blog"
 					onClick={() => deleteBlog(params.row.BlogID)}
 					showInMenu
 				/>,
 			],
 		},
-	];
-	if (isInitialLoading || !currentAccount) {
+	];	if (isInitialLoading || !currentAccount) {
 		return (
-			<Box
-				sx={{
-					display: "flex",
-					justifyContent: "center",
-					alignItems: "center",
-					minHeight: "100vh",
-				}}
-			>
-				<CircularProgress />
-			</Box>
+			<div className="flex justify-center items-center min-h-screen">
+				<Spinner size="lg" />
+			</div>
 		);
 	}
 
+	// Stats data for the dashboard
+	const statsData = [
+		{
+			title: "Total Blogs",
+			value: blogState.stats.total,
+			icon: <Article className="text-xl" />,
+			color: "primary" as const,
+			change: {
+				value: "+12%",
+				type: "increase" as const,
+				period: "last month",
+			},
+		},
+		{
+			title: "Published",
+			value: blogState.stats.published,
+			icon: <CheckCircle className="text-xl" />,
+			color: "success" as const,
+			change: {
+				value: "+8%",
+				type: "increase" as const,
+				period: "last month",
+			},
+		},
+		{
+			title: "Drafts",
+			value: blogState.stats.draft,
+			icon: <Drafts className="text-xl" />,
+			color: "warning" as const,
+		},
+		{
+			title: "Total Views",
+			value: blogState.stats.totalViews,
+			icon: <Visibility className="text-xl" />,
+			color: "secondary" as const,
+			change: {
+				value: "+25%",
+				type: "increase" as const,
+				period: "last month",
+			},
+		},
+		{
+			title: "Total Likes",
+			value: blogState.stats.totalLikes,
+			icon: <TrendingUp className="text-xl" />,
+			color: "danger" as const,
+			change: {
+				value: "+15%",
+				type: "increase" as const,
+				period: "last month",
+			},
+		},
+	];
+
 	return (
-		<ThemeProvider theme={githubTheme}>
-			<Box sx={{ minHeight: "100vh", bgcolor: "background.default" }}>
-				{/* Top App Bar */}
-				<AppBar
-					position="static"
-					elevation={0}
-					sx={{
-						bgcolor: "background.paper",
-						borderBottom: "1px solid",
-						borderColor: "divider",
-						color: "text.primary",
-					}}
+		<AdminLayout
+			currentAccount={currentAccount}
+			pageTitle="Blog Management"
+			pageDescription="Create, edit, and manage your blog content"
+			breadcrumbs={[
+				{ label: "Admin", href: "/admin" },
+				{ label: "Blog Management" },
+			]}			onRefresh={() => {
+				if (isCSRFReady) {
+					loadBlogs();
+					loadStats();
+				} else {
+					setBlogState((prev) => ({
+						...prev,
+						error: "Security token not ready. Please wait a moment and try again.",
+					}));
+				}
+			}}
+			isLoading={blogState.loading}
+		>
+			<div className="p-6 space-y-6">
+				{/* Header Section */}
+				<motion.div
+					initial={{ opacity: 0, y: -20 }}
+					animate={{ opacity: 1, y: 0 }}
+					transition={{ duration: 0.6 }}
+					className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
 				>
-					<Toolbar>
-						<Box
-							sx={{
-								display: "flex",
-								alignItems: "center",
-								gap: 2,
-								flexGrow: 1,
-							}}
-						>
-							<Article
-								sx={{ fontSize: 28, color: "primary.main" }}
-							/>
-							<Box>
-								<Typography
-									variant="h6"
-									fontWeight="bold"
-								>
-									Blog Admin
-								</Typography>
-								<Typography
-									variant="caption"
-									color="text.secondary"
-								>
-									Content Management System
-								</Typography>
-							</Box>
-						</Box>
+					<div>
+						<h1 className="text-2xl font-bold text-foreground">
+							Blog Management
+						</h1>
+						<p className="text-foreground-500 mt-1">
+							Create, edit, and manage your blog content with modern interface
+						</p>
+					</div>
 
-						<Box
-							sx={{
-								display: "flex",
-								alignItems: "center",
-								gap: 1,
+					<div className="flex gap-3">						<Button
+							variant="bordered"
+							startContent={<Refresh />}
+							onClick={() => {
+								if (isCSRFReady) {
+									loadBlogs();
+									loadStats();
+								} else {
+									setBlogState((prev) => ({
+										...prev,
+										error: "Security token not ready. Please wait a moment and try again.",
+									}));
+								}
 							}}
+							isLoading={blogState.loading}
+							isDisabled={!isCSRFReady}
 						>
-							<Chip
-								icon={<Person sx={{ fontSize: 14 }} />}
-								label={`${currentAccount.firstName} ${currentAccount.lastName}`}
-								size="small"
-								color="primary"
-								variant="outlined"
-							/>
-							<IconButton
-								onClick={() => router.push("/dashboard")}
-								color="inherit"
-							>
-								<ExitToApp />
-							</IconButton>
-						</Box>
-					</Toolbar>
-				</AppBar>
+							{blogState.loading ? "Refreshing..." : "Refresh"}
+						</Button>
 
-				<Box sx={{ p: 3 }}>
-					{/* Header Section */}
+						<Button
+							color="primary"
+							startContent={<Add />}
+							onClick={() => router.push("/admin/blog/create")}
+						>
+							Create Blog
+						</Button>
+					</div>
+				</motion.div>				{/* Stats Dashboard */}
+				{isCSRFReady && (
 					<motion.div
-						initial={{ opacity: 0, y: -20 }}
+						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
-						transition={{ duration: 0.6 }}
+						transition={{ duration: 0.6, delay: 0.1 }}
 					>
-						<Box
-							sx={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-								mb: 3,
-							}}
-						>
-							<Box>
-								<Typography
-									variant="h4"
-									fontWeight="bold"
-									color="text.primary"
-									gutterBottom
-								>
-									Blog Management
-								</Typography>
-								<Typography
-									variant="body1"
-									color="text.secondary"
-								>
-									Create, edit, and manage your blog content
-									with GitHub-style interface
-								</Typography>
-							</Box>
-
-							<Stack
-								direction="row"
-								spacing={2}
-							>
-								<motion.div
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.95 }}
-								>
-									<Button
-										variant="outlined"
-										startIcon={<Refresh />}
-										onClick={() => {
-											loadBlogs();
-											loadStats();
-										}}
-										disabled={blogState.loading}
-										sx={{ borderRadius: 2 }}
-									>
-										{blogState.loading ? (
-											<CircularProgress size={16} />
-										) : (
-											"Refresh"
-										)}
-									</Button>
-								</motion.div>
-
-								<motion.div
-									whileHover={{ scale: 1.05 }}
-									whileTap={{ scale: 0.95 }}
-								>
-									<Button
-										variant="contained"
-										startIcon={<Add />}
-										onClick={() =>
-											router.push("/admin/blog/create")
-										}
-										sx={{ borderRadius: 2 }}
-									>
-										Create Blog
-									</Button>
-								</motion.div>
-							</Stack>
-						</Box>						{/* Stats Dashboard */}
-						<GridLegacy
-							container
-							spacing={3}
-							sx={{ mb: 4 }}
-						>
-							{[
-								{
-									title: "Total Blogs",
-									value: blogState.stats.total,
-									icon: <Article sx={{ fontSize: 24 }} />,
-									color: "primary.main",
-									bgColor: "primary.main",
-								},
-								{
-									title: "Published",
-									value: blogState.stats.published,
-									icon: <CheckCircle sx={{ fontSize: 24 }} />,
-									color: "success.main",
-									bgColor: "success.main",
-								},
-								{
-									title: "Drafts",
-									value: blogState.stats.draft,
-									icon: <Drafts sx={{ fontSize: 24 }} />,
-									color: "warning.main",
-									bgColor: "warning.main",
-								},
-								{
-									title: "Total Views",
-									value: blogState.stats.totalViews,
-									icon: <Visibility sx={{ fontSize: 24 }} />,
-									color: "info.main",
-									bgColor: "info.main",
-								},
-								{
-									title: "Total Likes",
-									value: blogState.stats.totalLikes,
-									icon: <TrendingUp sx={{ fontSize: 24 }} />,
-									color: "error.main",
-									bgColor: "error.main",
-								},
-							].map((stat, index) => (
-								<GridLegacy
-									xs={12}
-									sm={6}
-									md={2.4}
-									key={stat.title}
-								>
-									<motion.div
-										initial={{ opacity: 0, y: 20 }}
-										animate={{ opacity: 1, y: 0 }}
-										transition={{
-											duration: 0.6,
-											delay: index * 0.1,
-										}}
-										whileHover={{ y: -4 }}
-									>
-										<Card
-											sx={{
-												height: "100%",
-												position: "relative",
-												overflow: "visible",
-											}}
-										>
-											<CardContent
-												sx={{
-													textAlign: "center",
-													py: 3,
-												}}
-											>
-												<Box
-													sx={{
-														p: 2,
-														borderRadius: 3,
-														bgcolor: `${stat.bgColor}15`,
-														display: "inline-flex",
-														mb: 2,
-													}}
-												>
-													{React.cloneElement(
-														stat.icon,
-														{
-															sx: {
-																fontSize: 24,
-																color: stat.color,
-															},
-														}
-													)}
-												</Box>
-												<Typography
-													variant="h4"
-													fontWeight="bold"
-													color="text.primary"
-												>
-													{stat.value}
-												</Typography>
-												<Typography
-													variant="body2"
-													color="text.secondary"
-												>
-													{stat.title}
-												</Typography>
-											</CardContent>
-										</Card>
-									</motion.div>
-								</GridLegacy>
-							))}
-						</GridLegacy>
+						<StatsGrid stats={statsData} columns={5} />
 					</motion.div>
+				)}{/* CSRF Loading State */}
+				<AnimatePresence>
+					{!isCSRFReady && blogState.loading && !blogState.error && (
+						<motion.div
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -10 }}
+						>
+							<Card className="p-6">
+								<div className="flex items-center justify-center gap-3">
+									<Spinner size="sm" color="primary" />
+									<p className="text-foreground-500">
+										Initializing security token and loading blog data...
+									</p>
+								</div>
+							</Card>
+						</motion.div>
+					)}
+				</AnimatePresence>
 
-					{/* Error Alert */}
-					<AnimatePresence>
-						{blogState.error && (
-							<motion.div
-								initial={{ opacity: 0, y: -10 }}
-								animate={{ opacity: 1, y: 0 }}
-								exit={{ opacity: 0, y: -10 }}
-							>
-								<Alert
-									severity="error"
-									sx={{ mb: 3, borderRadius: 2 }}
-									onClose={() =>
-										setBlogState((prev) => ({
-											...prev,
-											error: "",
-										}))
-									}
-								>
-									{blogState.error}
-								</Alert>
-							</motion.div>
-						)}
-					</AnimatePresence>
-
-					{/* DataGrid */}
+				{/* Error Alert */}
+				<AnimatePresence>
+					{blogState.error && (
+						<motion.div
+							initial={{ opacity: 0, y: -10 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -10 }}
+						>
+							<Alert
+								color="danger"
+								variant="bordered"
+								description={blogState.error}
+								isClosable
+								onClose={() =>
+									setBlogState((prev) => ({
+										...prev,
+										error: "",
+									}))
+								}
+							/>
+						</motion.div>
+					)}
+				</AnimatePresence>				{/* DataGrid */}
+				{isCSRFReady && (
 					<motion.div
 						initial={{ opacity: 0, y: 20 }}
 						animate={{ opacity: 1, y: 0 }}
 						transition={{ duration: 0.6, delay: 0.3 }}
 					>
-						<Paper
-							elevation={0}
-							sx={{ height: 650, width: "100%", p: 0 }}
-						>
-							<DataGridPremium
-								rows={blogState.blogs}
-								columns={columns}
-								loading={blogState.loading}
-								pagination
-								pageSizeOptions={[10, 25, 50, 100]}
-								initialState={{
-									pagination: {
-										paginationModel: { pageSize: 25 },
-									},
-								}}
-								slots={{
-									toolbar: GridToolbar,
-								}}
-								slotProps={{
-									toolbar: {
-										showQuickFilter: true,
-										quickFilterProps: {
-											debounceMs: 500,
-											// placeholder: "Search blogs...",
-										},
-									},
-								}}
-								disableRowSelectionOnClick
-								sx={{
-									border: "none",
-									"& .MuiDataGrid-toolbarContainer": {
-										borderBottom: "1px solid",
-										borderColor: "divider",
-										p: 2,
-										bgcolor: "background.paper",
-									},
-									"& .MuiDataGrid-main": {
-										bgcolor: "background.paper",
-									},
-								}}
-							/>
-						</Paper>
-					</motion.div>
-				</Box>
-			</Box>
-		</ThemeProvider>
+						<Card className="p-0 overflow-hidden">
+							<CardBody className="p-0">
+								<ThemeProvider theme={heroUIDataGridTheme}>
+									<div style={{ height: 650, width: "100%" }}>
+										<DataGridPremium
+											rows={blogState.blogs}
+											columns={columns}
+											loading={blogState.loading}
+											pagination
+											pageSizeOptions={[10, 25, 50, 100]}
+											initialState={{
+												pagination: {
+													paginationModel: { pageSize: 25 },
+												},
+											}}
+											slots={{
+												toolbar: GridToolbar,
+												loadingOverlay: () => (
+													<div className="flex items-center justify-center h-full">
+														<Spinner size="lg" />
+													</div>
+												),
+											}}
+											slotProps={{
+												toolbar: {
+													showQuickFilter: true,
+													quickFilterProps: {
+														debounceMs: 500,
+													},
+												},
+										}}
+										disableRowSelectionOnClick
+										sx={{
+											border: "none",
+											"& .MuiDataGrid-main": {
+												backgroundColor: "transparent",
+											},
+										}}
+									/>
+								</div>							</ThemeProvider>
+						</CardBody>
+					</Card>
+				</motion.div>
+				)}
+			</div>
+		</AdminLayout>
 	);
 }

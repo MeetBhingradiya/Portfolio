@@ -57,7 +57,7 @@ import {
 import { useRouter } from "next/navigation";
 import { Axios } from "@Utils/Axios";
 import { AccountSwitcher } from "@Components/AccountSwitcher";
-import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
+import { useAccount } from "@contexts/AccountContext";
 
 interface User {
 	UserID: string;
@@ -117,55 +117,56 @@ interface NewEmailData {
 	email: string;
 }
 
+interface EmailVerificationData {
+	email: string;
+	otp: string;
+	verificationLoading: boolean;
+}
+
 export default function Dashboard() {
 	const router = useRouter();
 	const {
 		accounts,
-		currentAccount,
+		activeAccount,
+		isLoading: accountSwitcherLoading,
 		switchAccount,
 		removeAccount,
-		clearAllAccounts,
-	} = useAccountSwitcher();
-
-	// State management
-	const [isLoading, setIsLoading] = React.useState(true);
-	const [dashboardData, setDashboardData] =
-		React.useState<DashboardData | null>(null);
-	const [error, setError] = React.useState("");
-	const [activeTab, setActiveTab] = React.useState("overview");
-
-	// Edit profile state
-	const [editProfileData, setEditProfileData] =
-		React.useState<EditProfileData>({
+	} = useAccount();
+	const [State, setState] = React.useState({
+		isLoading: true,
+		DashboardData: null as DashboardData | null,
+		error: "",
+		activeTab: "overview",
+		editProfileData: {
 			FirstName: "",
 			LastName: "",
 			Username: "",
-		});
-	const [isEditingProfile, setIsEditingProfile] = React.useState(false);
-	const [profileSaveLoading, setProfileSaveLoading] = React.useState(false);
-
-	// Password change state
-	const [passwordData, setPasswordData] = React.useState<PasswordChangeData>({
-		currentPassword: "",
-		newPassword: "",
-		confirmPassword: "",
+		} as EditProfileData,
+		isEditingProfile: false,
+		profileSaveLoading: false,
+		signOutLoading: false,
+		passwordData: {
+			currentPassword: "",
+			newPassword: "",
+			confirmPassword: "",
+		} as PasswordChangeData,
+		showPasswords: {
+			current: false,
+			new: false,
+			confirm: false,
+		},
+		passwordChangeLoading: false,
+		newEmailData: {
+			email: "",
+		} as NewEmailData,
+		emailActionLoading: "",
+		emailVerificationData: {
+			email: "",
+			otp: "",
+			verificationLoading: false,
+		} as EmailVerificationData,
+		sessionActionLoading: "",
 	});
-	const [showPasswords, setShowPasswords] = React.useState({
-		current: false,
-		new: false,
-		confirm: false,
-	});
-	const [passwordChangeLoading, setPasswordChangeLoading] =
-		React.useState(false);
-
-	// Email management state
-	const [newEmailData, setNewEmailData] = React.useState<NewEmailData>({
-		email: "",
-	});
-	const [emailActionLoading, setEmailActionLoading] = React.useState("");
-
-	// Session management state
-	const [sessionActionLoading, setSessionActionLoading] = React.useState("");
 
 	// Modals
 	const {
@@ -173,314 +174,483 @@ export default function Dashboard() {
 		onOpen: onPasswordModalOpen,
 		onClose: onPasswordModalClose,
 	} = useDisclosure();
+
 	const {
 		isOpen: isEmailModalOpen,
 		onOpen: onEmailModalOpen,
 		onClose: onEmailModalClose,
 	} = useDisclosure();
+
 	const {
 		isOpen: isDeleteAccountModalOpen,
 		onOpen: onDeleteAccountModalOpen,
 		onClose: onDeleteAccountModalClose,
 	} = useDisclosure();
 
-	React.useEffect(() => {
-		fetchDashboardData();
-	}, []);
+	const {
+		isOpen: isEmailVerificationModalOpen,
+		onOpen: onEmailVerificationModalOpen,
+		onClose: onEmailVerificationModalClose,
+	} = useDisclosure();
+	// Memoize fetchDashboardData to prevent unnecessary re-renders
+	const fetchDashboardData = React.useCallback(async () => {
+		console.log(
+			"fetchDashboardData called for account:",
+			activeAccount?.UserID
+		);
 
-	React.useEffect(() => {
-		if (dashboardData?.user) {
-			setEditProfileData({
-				FirstName: dashboardData.user.FirstName,
-				LastName: dashboardData.user.LastName,
-				Username: dashboardData.user.Username,
-			});
-		}
-	}, [dashboardData]);
-
-	const fetchDashboardData = async () => {
 		try {
-			const token = localStorage.getItem("auth-token");
-			if (!token) {
-				router.push("/auth/signin");
-				return;
-			}
+			setState((prev) => ({ ...prev, isLoading: true, error: "" }));
 
-			const response = await Axios.get("/api/dashboard", {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+			const response = await Axios.get("/api/dashboard");
+			console.log("Dashboard API response:", response.data);
 
 			if (response.data.Status === 1) {
-				setDashboardData(response.data.Data);
+				setState((prev) => ({
+					...prev,
+					DashboardData: response.data.Data,
+					error: "",
+				}));
 			} else {
-				setError(response.data.Message || "Failed to load dashboard");
+				setState((prev) => ({
+					...prev,
+					error: response.data.Message || "Failed to load dashboard",
+				}));
 			}
 		} catch (error: any) {
 			console.error("Dashboard fetch error:", error);
 			if (error.response?.status === 401) {
-				localStorage.removeItem("auth-token");
+				// Session expired, remove current account and redirect
+				if (activeAccount) {
+					console.log(
+						"Session expired, removing account:",
+						activeAccount.UserID
+					);
+					removeAccount(activeAccount.UserID);
+				}
 				router.push("/auth/signin");
 			} else {
-				setError("Failed to load dashboard data");
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to load dashboard data",
+				}));
 			}
 		} finally {
-			setIsLoading(false);
+			setState((prev) => ({ ...prev, isLoading: false }));
 		}
-	};
+	}, [activeAccount, removeAccount, router]); // Handle initial load and account changes
+	React.useEffect(() => {
+		console.log("Dashboard useEffect triggered:", {
+			accountSwitcherLoading,
+			ActiveAccount: activeAccount?.UserID,
+			accounts: accounts.length,
+		});
 
-	const handleSignOut = async () => {
+		// Wait for account switcher to finish loading
+		if (accountSwitcherLoading) {
+			console.log("Account switcher still loading, waiting...");
+			return;
+		}
+
+		if (!activeAccount) {
+			console.log("No active account found, redirecting to signin");
+			router.push("/auth/signin");
+			return;
+		}
+
+		console.log(
+			"Fetching dashboard data for account:",
+			activeAccount.UserID
+		);
+		fetchDashboardData();
+	}, [
+		activeAccount?.UserID,
+		accountSwitcherLoading,
+		fetchDashboardData,
+		router,
+	]);
+	// Update edit profile data when dashboard data changes
+	React.useEffect(() => {
+		if (State.DashboardData?.user) {
+			setState((prev) => ({
+				...prev,
+				editProfileData: {
+					FirstName: State.DashboardData!.user.FirstName,
+					LastName: State.DashboardData!.user.LastName,
+					Username: State.DashboardData!.user.Username,
+				},
+			}));
+		}
+	}, [State.DashboardData?.user]);
+		const handleSignOut = React.useCallback(async () => {
+		setState((prev) => ({ ...prev, signOutLoading: true }));
+
 		try {
-			const token = localStorage.getItem("auth-token");
-			if (token) {
-				await Axios.delete("/api/session", {
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				});
+			console.log("Starting sign out process...");
+			
+			// Get the current auth token to verify it exists
+			const currentToken = localStorage.getItem("auth-token");
+			if (!currentToken) {
+				console.warn("No auth token found, proceeding with local cleanup");
+			} else {
+				console.log("Found auth token, attempting server session deletion");
+				
+				try {
+					// Delete the session on the server with explicit headers
+					const response = await Axios.delete("/api/session", {
+						headers: {
+							Authorization: `Bearer ${currentToken}`,
+						},
+					});
+					
+					console.log("Session deletion response:", response.data);
+					
+					if (response.data.Status === 1) {
+						console.log("Server session deleted successfully");
+					} else {
+						console.warn("Server session deletion failed:", response.data.Message);
+					}
+				} catch (sessionError: any) {
+					console.error("Failed to delete session on server:", {
+						status: sessionError.response?.status,
+						statusText: sessionError.response?.statusText,
+						message: sessionError.response?.data?.Message || sessionError.message,
+						data: sessionError.response?.data
+					});
+					
+					// If it's a 401, the session is already invalid
+					if (sessionError.response?.status === 401) {
+						console.log("Session already invalid (401), proceeding with cleanup");
+					}
+				}
 			}
 		} catch (error) {
-			console.error("Logout error:", error);
-		} finally {
-			if (currentAccount) {
+			console.error("Unexpected error during session deletion:", error);
+		}
+
+		try {
+			if (activeAccount) {
+				console.log("Processing account cleanup for:", activeAccount.UserID);
+				
+				// Check if there are other accounts available
 				const otherAccounts = accounts.filter(
-					(acc) => acc.userID !== currentAccount.userID
+					(acc) => acc.UserID !== activeAccount.UserID
 				);
 
 				if (otherAccounts.length > 0) {
+					console.log(`Found ${otherAccounts.length} other accounts, switching to most recent`);
+					
+					// Switch to the most recently used account
 					const mostRecentAccount = otherAccounts.sort(
 						(a, b) =>
-							new Date(b.lastUsed || 0).getTime() -
-							new Date(a.lastUsed || 0).getTime()
+							new Date(b.LastUsed || 0).getTime() -
+							new Date(a.LastUsed || 0).getTime()
 					)[0];
 
-					switchAccount(mostRecentAccount);
+					console.log("Switching to account:", mostRecentAccount.UserID);
+
+					// Remove current account and switch to the most recent one
+					await removeAccount(activeAccount.UserID);
+					await switchAccount(mostRecentAccount.UserID);
+
+					// Reload to refresh the dashboard with new account data
+					console.log("Reloading page with new account");
 					window.location.reload();
 					return;
+				} else {
+					console.log("No other accounts found, removing current account");
+					// No other accounts, remove current account and redirect to signin
+					await removeAccount(activeAccount.UserID);
 				}
 			}
 
-			clearAllAccounts();
+			console.log("Clearing auth tokens and redirecting to signin");
+			
+			// Clear any remaining auth tokens
+			localStorage.removeItem("auth-token");
+			document.cookie =
+				"auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+
+			// Redirect to signin page
 			router.push("/auth/signin");
+		} catch (error) {
+			console.error("Error during account cleanup:", error);
+			// Force redirect to signin even if cleanup fails
+			router.push("/auth/signin");
+		} finally {
+			setState((prev) => ({ ...prev, signOutLoading: false }));
 		}
-	};
+	}, [activeAccount, accounts, switchAccount, removeAccount, router]);
 
 	const handleUpdateProfile = async () => {
-		setProfileSaveLoading(true);
+		setState((prev) => ({ ...prev, profileSaveLoading: true }));
 		try {
-			const token = localStorage.getItem("auth-token");
 			const response = await Axios.patch(
 				"/api/profile",
-				editProfileData,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
+				State.editProfileData
 			);
 
 			if (response.data.Status === 1) {
-				setIsEditingProfile(false);
+				setState((prev) => ({ ...prev, isEditingProfile: false }));
 				fetchDashboardData(); // Refresh data
 			} else {
-				setError(response.data.Message || "Failed to update profile");
+				setState((prev) => ({
+					...prev,
+					error: response.data.Message || "Failed to update profile",
+				}));
 			}
 		} catch (error: any) {
-			setError(
-				error?.response?.data?.Message || "Failed to update profile"
-			);
+			if (error.response?.status === 401) {
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to update profile",
+				}));
+			}
 		} finally {
-			setProfileSaveLoading(false);
+			setState((prev) => ({ ...prev, profileSaveLoading: false }));
 		}
 	};
-
 	const handleChangePassword = async () => {
-		if (passwordData.newPassword !== passwordData.confirmPassword) {
-			setError("New passwords don't match");
+		if (
+			State.passwordData.newPassword !==
+			State.passwordData.confirmPassword
+		) {
+			setState((prev) => ({
+				...prev,
+				error: "New passwords don't match",
+			}));
 			return;
 		}
 
-		if (passwordData.newPassword.length < 8) {
-			setError("Password must be at least 8 characters long");
+		if (State.passwordData.newPassword.length < 8) {
+			setState((prev) => ({
+				...prev,
+				error: "Password must be at least 8 characters long",
+			}));
 			return;
 		}
 
-		setPasswordChangeLoading(true);
+		setState((prev) => ({ ...prev, passwordChangeLoading: true }));
 		try {
-			const token = localStorage.getItem("auth-token");
-			const response = await Axios.patch(
-				"/api/password",
-				{
-					currentPassword: passwordData.currentPassword,
-					newPassword: passwordData.newPassword,
-				},
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
+			const response = await Axios.patch("/api/password", {
+				currentPassword: State.passwordData.currentPassword,
+				newPassword: State.passwordData.newPassword,
+			});
 
 			if (response.data.Status === 1) {
-				setPasswordData({
-					currentPassword: "",
-					newPassword: "",
-					confirmPassword: "",
-				});
+				setState((prev) => ({
+					...prev,
+					passwordData: {
+						currentPassword: "",
+						newPassword: "",
+						confirmPassword: "",
+					},
+				}));
 				onPasswordModalClose();
 				// Show success message or refresh data
 			} else {
-				setError(response.data.Message || "Failed to change password");
+				setState((prev) => ({
+					...prev,
+					error: response.data.Message || "Failed to change password",
+				}));
 			}
 		} catch (error: any) {
-			setError(
-				error?.response?.data?.Message || "Failed to change password"
-			);
+			if (error.response?.status === 401) {
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to change password",
+				}));
+			}
 		} finally {
-			setPasswordChangeLoading(false);
+			setState((prev) => ({ ...prev, passwordChangeLoading: false }));
 		}
 	};
-
 	const handleAddEmail = async () => {
-		setEmailActionLoading("add");
+		setState((prev) => ({ ...prev, emailActionLoading: "add" }));
 		try {
-			const token = localStorage.getItem("auth-token");
-			const response = await Axios.post(
-				"/api/emails",
-				{
-					email: newEmailData.email,
-				},
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
+			const response = await Axios.post("/api/emails", {
+				email: State.newEmailData.email,
+			});
 
 			if (response.data.Status === 1) {
-				setNewEmailData({ email: "" });
+				setState((prev) => ({
+					...prev,
+					newEmailData: { email: "" },
+				}));
 				onEmailModalClose();
 				fetchDashboardData();
 			} else {
-				setError(response.data.Message || "Failed to add email");
+				setState((prev) => ({
+					...prev,
+					error: response.data.Message || "Failed to add email",
+				}));
 			}
 		} catch (error: any) {
-			setError(error?.response?.data?.Message || "Failed to add email");
+			if (error.response?.status === 401) {
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message || "Failed to add email",
+				}));
+			}
 		} finally {
-			setEmailActionLoading("");
+			setState((prev) => ({ ...prev, emailActionLoading: "" }));
 		}
 	};
-
 	const handleRemoveEmail = async (email: string) => {
-		setEmailActionLoading(email);
+		setState((prev) => ({ ...prev, emailActionLoading: email }));
 		try {
-			const token = localStorage.getItem("auth-token");
 			const response = await Axios.delete(
-				`/api/emails?email=${encodeURIComponent(email)}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
+				`/api/emails?email=${encodeURIComponent(email)}`
 			);
 
 			if (response.data.Status === 1) {
 				fetchDashboardData();
 			} else {
-				setError(response.data.Message || "Failed to remove email");
+				setState((prev) => ({
+					...prev,
+					error: response.data.Message || "Failed to remove email",
+				}));
 			}
 		} catch (error: any) {
-			setError(
-				error?.response?.data?.Message || "Failed to remove email"
-			);
+			if (error.response?.status === 401) {
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to remove email",
+				}));
+			}
 		} finally {
-			setEmailActionLoading("");
+			setState((prev) => ({ ...prev, emailActionLoading: "" }));
 		}
 	};
-
 	const handleSetPrimaryEmail = async (email: string) => {
-		setEmailActionLoading(email);
+		setState((prev) => ({ ...prev, emailActionLoading: email }));
 		try {
-			const token = localStorage.getItem("auth-token");
-			const response = await Axios.patch(
-				"/api/emails",
-				{
-					email,
-					setPrimary: true,
-				},
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
+			const response = await Axios.patch("/api/emails", {
+				email,
+				setPrimary: true,
+			});
+
+			if (response.data.Status === 1) {
+				fetchDashboardData();
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						response.data.Message || "Failed to set primary email",
+				}));
+			}
+		} catch (error: any) {
+			if (error.response?.status === 401) {
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
 				}
-			);
-
-			if (response.data.Status === 1) {
-				fetchDashboardData();
+				router.push("/auth/signin");
 			} else {
-				setError(
-					response.data.Message || "Failed to set primary email"
-				);
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to set primary email",
+				}));
 			}
-		} catch (error: any) {
-			setError(
-				error?.response?.data?.Message || "Failed to set primary email"
-			);
 		} finally {
-			setEmailActionLoading("");
+			setState((prev) => ({ ...prev, emailActionLoading: "" }));
 		}
 	};
-
 	const handleTerminateSession = async (sessionID: string) => {
-		setSessionActionLoading(sessionID);
+		setState((prev) => ({ ...prev, sessionActionLoading: sessionID }));
 		try {
-			const token = localStorage.getItem("auth-token");
-			const response = await Axios.delete(`/api/session/${sessionID}`, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
+			const response = await Axios.delete(`/api/session/${sessionID}`);
 
 			if (response.data.Status === 1) {
 				fetchDashboardData();
 			} else {
-				setError(
-					response.data.Message || "Failed to terminate session"
-				);
+				setState((prev) => ({
+					...prev,
+					error:
+						response.data.Message || "Failed to terminate session",
+				}));
 			}
 		} catch (error: any) {
-			setError(
-				error?.response?.data?.Message || "Failed to terminate session"
-			);
+			// If session termination fails due to auth error, the session might already be invalid
+			if (error?.response?.status === 401) {
+				// Session is already invalid, clean up locally
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to terminate session",
+				}));
+			}
 		} finally {
-			setSessionActionLoading("");
+			setState((prev) => ({ ...prev, sessionActionLoading: "" }));
 		}
 	};
-
 	const handleTerminateAllSessions = async () => {
-		setSessionActionLoading("all");
+		setState((prev) => ({ ...prev, sessionActionLoading: "all" }));
 		try {
-			const token = localStorage.getItem("auth-token");
-			const response = await Axios.delete("/api/session", {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
+			const response = await Axios.delete("/api/session");
 			if (response.data.Status === 1) {
 				fetchDashboardData();
 			} else {
-				setError(
-					response.data.Message || "Failed to terminate sessions"
-				);
+				setState((prev) => ({
+					...prev,
+					error:
+						response.data.Message || "Failed to terminate sessions",
+				}));
 			}
 		} catch (error: any) {
-			setError(
-				error?.response?.data?.Message || "Failed to terminate sessions"
-			);
+			// If termination fails due to auth error, sessions might already be invalid
+			if (error?.response?.status === 401) {
+				// Sessions are already invalid, clean up locally
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to terminate sessions",
+				}));
+			}
 		} finally {
-			setSessionActionLoading("");
+			setState((prev) => ({ ...prev, sessionActionLoading: "" }));
 		}
 	};
 
@@ -516,23 +686,135 @@ export default function Dashboard() {
 			color: getColor(),
 		};
 	};
-
-	if (isLoading) {
+	const handleSendVerificationOTP = async (email: string) => {
+		setState((prev) => ({ ...prev, emailActionLoading: email }));
+		try {
+			const response = await Axios.post("/api/emails/verify", {
+				email: email,
+			});
+			if (response.data.Status === 1) {
+				setState((prev) => ({
+					...prev,
+					emailVerificationData: {
+						email,
+						otp: "",
+						verificationLoading: false,
+					},
+				}));
+				onEmailVerificationModalOpen();
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						response.data.Message ||
+						"Failed to send verification code",
+				}));
+			}
+		} catch (error: any) {
+			if (error.response?.status === 401) {
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to send verification code",
+				}));
+			}
+		} finally {
+			setState((prev) => ({ ...prev, emailActionLoading: "" }));
+		}
+	};
+	const handleVerifyEmail = async () => {
+		setState((prev) => ({
+			...prev,
+			emailVerificationData: {
+				...prev.emailVerificationData,
+				verificationLoading: true,
+			},
+		}));
+		try {
+			const response = await Axios.put("/api/emails/verify", {
+				email: State.emailVerificationData.email,
+				otp: State.emailVerificationData.otp,
+			});
+			if (response.data.Status === 1) {
+				setState((prev) => ({
+					...prev,
+					emailVerificationData: {
+						email: "",
+						otp: "",
+						verificationLoading: false,
+					},
+				}));
+				onEmailVerificationModalClose();
+				fetchDashboardData(); // Refresh data
+			} else {
+				setState((prev) => ({
+					...prev,
+					error: response.data.Message || "Failed to verify email",
+				}));
+			}
+		} catch (error: any) {
+			if (error.response?.status === 401) {
+				if (activeAccount) {
+					await removeAccount(activeAccount.UserID);
+				}
+				router.push("/auth/signin");
+			} else {
+				setState((prev) => ({
+					...prev,
+					error:
+						error.response?.data?.Message ||
+						"Failed to verify email",
+				}));
+			}
+		} finally {
+			setState((prev) => ({
+				...prev,
+				emailVerificationData: {
+					...prev.emailVerificationData,
+					verificationLoading: false,
+				},
+			}));
+		}
+	};
+	if (accountSwitcherLoading) {
 		return (
-			<div className="flex items-center justify-center min-h-screen">
+			<div className="flex flex-col items-center justify-center min-h-screen gap-4">
 				<Spinner size="lg" />
+				<div className="text-center">
+					<p className="text-lg">Loading Account...</p>
+				</div>
 			</div>
 		);
 	}
 
-	if (error) {
+	if (State.isLoading) {
+		return (
+			<div className="flex flex-col items-center justify-center min-h-screen gap-4">
+				<Spinner size="lg" />
+				<div className="text-center">
+					<p className="text-lg">Loading Dashboard...</p>
+				</div>
+			</div>
+		);
+	}
+
+	if (State.error) {
 		return (
 			<div className="flex flex-col items-center justify-center min-h-screen gap-4">
 				<Warning className="text-6xl text-danger" />
-				<p className="text-lg text-danger">{error}</p>
+				<div className="text-center">
+					<p className="text-lg text-danger">{State.error}</p>
+				</div>
 				<Button
 					color="primary"
 					onPress={() => fetchDashboardData()}
+					isLoading={State.isLoading}
 				>
 					Try Again
 				</Button>
@@ -540,7 +822,7 @@ export default function Dashboard() {
 		);
 	}
 
-	if (!dashboardData) {
+	if (!State.DashboardData) {
 		return (
 			<div className="flex items-center justify-center min-h-screen">
 				<p>No data available</p>
@@ -548,7 +830,9 @@ export default function Dashboard() {
 		);
 	}
 
-	const passwordStrength = getPasswordStrength(passwordData.newPassword);
+	const passwordStrength = getPasswordStrength(
+		State.passwordData.newPassword
+	);
 
 	return (
 		<div className="container mx-auto p-6 space-y-6">
@@ -557,9 +841,9 @@ export default function Dashboard() {
 				<div className="flex items-center gap-4">
 					<DashboardIcon sx={{ fontSize: "2rem" }} />
 					<div>
-						<h1 className="text-3xl font-bold">Dashboard</h1>
+						<h1 className="text-3xl font-bold">Dashboard</h1>{" "}
 						<p className="text-default-500">
-							Welcome back, {dashboardData.user.FirstName}!
+							Welcome back, {State.DashboardData.user.FirstName}!
 						</p>
 					</div>
 				</div>
@@ -571,52 +855,59 @@ export default function Dashboard() {
 							window.location.reload();
 						}}
 					/>
-					{dashboardData.user.isAdmin && (
+					{State.DashboardData.user.isAdmin && (
 						<Tooltip content="Admin Panel">
 							<Button
 								color="secondary"
 								variant="flat"
 								isIconOnly
-								onPress={() => router.push("/admin/tickets")}
+								onPress={() => router.push("/admin")}
 							>
 								<AdminPanelSettings />
 							</Button>
 						</Tooltip>
-					)}
+					)}{" "}
 					<Button
 						color="danger"
 						variant="flat"
 						startContent={<ExitToApp />}
 						onPress={handleSignOut}
+						isLoading={State.signOutLoading}
+						isDisabled={State.signOutLoading}
 					>
-						Sign Out
+						{State.signOutLoading ? "Signing Out..." : "Sign Out"}
 					</Button>
 				</div>
-			</div>
-
+			</div>{" "}
 			{/* Error Alert */}
-			{error && (
+			{State.error && (
 				<Card className="border-danger bg-danger-50">
 					<CardBody className="flex flex-row items-center gap-3">
 						<ErrorIcon className="text-danger" />
-						<p className="text-danger font-medium">{error}</p>
+						<p className="text-danger font-medium">{State.error}</p>
 						<Button
 							size="sm"
 							variant="light"
 							color="danger"
-							onPress={() => setError("")}
+							onPress={() =>
+								setState((prev) => ({ ...prev, error: "" }))
+							}
 						>
 							Dismiss
 						</Button>
 					</CardBody>
 				</Card>
 			)}
-
 			{/* Main Content Tabs */}
 			<div className="w-full">
 				<Tabs
-					selectedKey={activeTab}
-					onSelectionChange={(key) => setActiveTab(key.toString())}
+					selectedKey={State.activeTab}
+					onSelectionChange={(key) =>
+						setState((prev) => ({
+							...prev,
+							activeTab: key.toString(),
+						}))
+					}
 					aria-label="Dashboard sections"
 					variant="bordered"
 					className="w-full"
@@ -635,24 +926,26 @@ export default function Dashboard() {
 											base: "bg-gradient-to-br from-indigo-500 to-pink-500",
 											icon: "text-white/80",
 										}}
-									/>
+									/>{" "}
 									<div className="flex flex-col flex-grow">
-										{isEditingProfile ? (
+										{State.isEditingProfile ? (
 											<div className="flex gap-2 flex-wrap">
 												<Input
 													size="sm"
 													value={
-														editProfileData.FirstName
+														State.editProfileData
+															.FirstName
 													}
 													onChange={(e) =>
-														setEditProfileData(
-															(prev) => ({
-																...prev,
+														setState((prev) => ({
+															...prev,
+															editProfileData: {
+																...prev.editProfileData,
 																FirstName:
 																	e.target
 																		.value,
-															})
-														)
+															},
+														}))
 													}
 													placeholder="First Name"
 													className="max-w-32"
@@ -660,17 +953,19 @@ export default function Dashboard() {
 												<Input
 													size="sm"
 													value={
-														editProfileData.LastName
+														State.editProfileData
+															.LastName
 													}
 													onChange={(e) =>
-														setEditProfileData(
-															(prev) => ({
-																...prev,
+														setState((prev) => ({
+															...prev,
+															editProfileData: {
+																...prev.editProfileData,
 																LastName:
 																	e.target
 																		.value,
-															})
-														)
+															},
+														}))
 													}
 													placeholder="Last Name"
 													className="max-w-32"
@@ -678,17 +973,19 @@ export default function Dashboard() {
 												<Input
 													size="sm"
 													value={
-														editProfileData.Username
+														State.editProfileData
+															.Username
 													}
 													onChange={(e) =>
-														setEditProfileData(
-															(prev) => ({
-																...prev,
+														setState((prev) => ({
+															...prev,
+															editProfileData: {
+																...prev.editProfileData,
 																Username:
 																	e.target
 																		.value,
-															})
-														)
+															},
+														}))
 													}
 													placeholder="Username"
 													startContent="@"
@@ -699,26 +996,26 @@ export default function Dashboard() {
 											<>
 												<p className="text-md font-semibold">
 													{
-														dashboardData.user
+														State.DashboardData.user
 															.FirstName
 													}{" "}
 													{
-														dashboardData.user
+														State.DashboardData.user
 															.LastName
 													}
 												</p>
 												<p className="text-small text-default-500">
 													@
 													{
-														dashboardData.user
+														State.DashboardData.user
 															.Username
 													}
 												</p>
 											</>
 										)}
-									</div>
+									</div>{" "}
 									<div className="flex gap-2 items-center">
-										{dashboardData.user.isAdmin && (
+										{State.DashboardData.user.isAdmin && (
 											<Chip
 												color="warning"
 												variant="flat"
@@ -727,7 +1024,8 @@ export default function Dashboard() {
 												Admin
 											</Chip>
 										)}
-										{dashboardData.user.isEmailVerified ? (
+										{State.DashboardData.user
+											.isEmailVerified ? (
 											<Chip
 												color="success"
 												variant="flat"
@@ -744,8 +1042,8 @@ export default function Dashboard() {
 											>
 												Unverified
 											</Chip>
-										)}
-										{isEditingProfile ? (
+										)}{" "}
+										{State.isEditingProfile ? (
 											<div className="flex gap-1">
 												<Button
 													size="sm"
@@ -756,7 +1054,7 @@ export default function Dashboard() {
 														handleUpdateProfile
 													}
 													isLoading={
-														profileSaveLoading
+														State.profileSaveLoading
 													}
 												>
 													<Save />
@@ -767,23 +1065,28 @@ export default function Dashboard() {
 													variant="flat"
 													isIconOnly
 													onPress={() => {
-														setIsEditingProfile(
-															false
-														);
-														setEditProfileData({
-															FirstName:
-																dashboardData
-																	.user
-																	.FirstName,
-															LastName:
-																dashboardData
-																	.user
-																	.LastName,
-															Username:
-																dashboardData
-																	.user
-																	.Username,
-														});
+														setState((prev) => ({
+															...prev,
+															isEditingProfile:
+																false,
+															editProfileData: {
+																FirstName:
+																	State
+																		.DashboardData!
+																		.user
+																		.FirstName,
+																LastName:
+																	State
+																		.DashboardData!
+																		.user
+																		.LastName,
+																Username:
+																	State
+																		.DashboardData!
+																		.user
+																		.Username,
+															},
+														}));
 													}}
 												>
 													<Cancel />
@@ -796,7 +1099,10 @@ export default function Dashboard() {
 												variant="flat"
 												isIconOnly
 												onPress={() =>
-													setIsEditingProfile(true)
+													setState((prev) => ({
+														...prev,
+														isEditingProfile: true,
+													}))
 												}
 											>
 												<Edit />
@@ -810,22 +1116,25 @@ export default function Dashboard() {
 										<div>
 											<p className="text-small text-default-500 mb-1">
 												Primary Email
-											</p>
+											</p>{" "}
 											<p className="font-medium">
-												{dashboardData.user.Emails.find(
+												{State.DashboardData.user.Emails.find(
 													(email) => email.isPrimary
 												)?.Email ||
-													dashboardData.user.Emails[0]
-														?.Email ||
+													State.DashboardData.user
+														.Emails[0]?.Email ||
 													"No email"}
 											</p>
 										</div>
 										<div>
 											<p className="text-small text-default-500 mb-1">
 												User ID
-											</p>
+											</p>{" "}
 											<p className="font-mono text-small">
-												{dashboardData.user.UserID}
+												{
+													State.DashboardData.user
+														.UserID
+												}
 											</p>
 										</div>
 										<div>
@@ -834,7 +1143,7 @@ export default function Dashboard() {
 											</p>
 											<p className="font-medium">
 												{new Date(
-													dashboardData.user.createdAt
+													State.DashboardData.user.createdAt
 												).toLocaleDateString()}
 											</p>
 										</div>
@@ -848,10 +1157,10 @@ export default function Dashboard() {
 									<CardBody className="text-center">
 										<div className="flex items-center justify-center mb-2">
 											<Security className="text-primary text-2xl" />
-										</div>
+										</div>{" "}
 										<p className="text-2xl font-bold">
 											{
-												dashboardData.security
+												State.DashboardData.security
 													.totalActiveSessions
 											}
 										</p>
@@ -866,7 +1175,10 @@ export default function Dashboard() {
 											<Email className="text-success text-2xl" />
 										</div>
 										<p className="text-2xl font-bold">
-											{dashboardData.user.Emails.length}
+											{
+												State.DashboardData.user.Emails
+													.length
+											}
 										</p>
 										<p className="text-small text-default-500">
 											Email Addresses
@@ -880,7 +1192,7 @@ export default function Dashboard() {
 										</div>
 										<p className="text-small font-bold">
 											{new Date(
-												dashboardData.user.lastLoginAt
+												State.DashboardData.user.lastLoginAt
 											).toLocaleDateString()}
 										</p>
 										<p className="text-small text-default-500">
@@ -892,11 +1204,11 @@ export default function Dashboard() {
 									<CardBody className="text-center">
 										<div className="flex items-center justify-center mb-2">
 											<VpnKey
-												className={`text-2xl ${dashboardData.user.isMFA ? "text-success" : "text-danger"}`}
+												className={`text-2xl ${State.DashboardData.user.isMFA ? "text-success" : "text-danger"}`}
 											/>
 										</div>
 										<p className="text-small font-bold">
-											{dashboardData.user.isMFA
+											{State.DashboardData.user.isMFA
 												? "Enabled"
 												: "Disabled"}
 										</p>
@@ -931,10 +1243,9 @@ export default function Dashboard() {
 								>
 									Add Email
 								</Button>
-							</div>
-
+							</div>{" "}
 							<div className="space-y-3">
-								{dashboardData.user.Emails.map(
+								{State.DashboardData.user.Emails.map(
 									(email, index) => (
 										<Card key={index}>
 											<CardBody className="flex flex-row items-center justify-between">
@@ -953,7 +1264,7 @@ export default function Dashboard() {
 																>
 																	Primary
 																</Chip>
-															)}
+															)}{" "}
 															{email.isVerified ? (
 																<Chip
 																	size="sm"
@@ -978,26 +1289,45 @@ export default function Dashboard() {
 													</div>
 												</div>
 												<div className="flex gap-2">
-													{!email.isPrimary && (
+													{!email.isVerified && (
 														<Button
 															size="sm"
 															variant="flat"
-															color="primary"
+															color="success"
 															onPress={() =>
-																handleSetPrimaryEmail(
+																handleSendVerificationOTP(
 																	email.Email
 																)
 															}
 															isLoading={
-																emailActionLoading ===
+																State.emailActionLoading ===
 																email.Email
 															}
 														>
-															Set Primary
+															Verify
 														</Button>
-													)}
-													{dashboardData.user.Emails
-														.length > 1 && (
+													)}{" "}
+													{!email.isPrimary &&
+														email.isVerified && (
+															<Button
+																size="sm"
+																variant="flat"
+																color="primary"
+																onPress={() =>
+																	handleSetPrimaryEmail(
+																		email.Email
+																	)
+																}
+																isLoading={
+																	State.emailActionLoading ===
+																	email.Email
+																}
+															>
+																Set Primary
+															</Button>
+														)}{" "}
+													{State.DashboardData!.user
+														.Emails.length > 1 && (
 														<Button
 															size="sm"
 															variant="flat"
@@ -1009,7 +1339,7 @@ export default function Dashboard() {
 																)
 															}
 															isLoading={
-																emailActionLoading ===
+																State.emailActionLoading ===
 																email.Email
 															}
 														>
@@ -1079,10 +1409,11 @@ export default function Dashboard() {
 								<Divider />
 								<CardBody>
 									<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+										{" "}
 										<div className="flex items-center gap-2">
 											{getPlatformIcon(
-												dashboardData.currentSession
-													?.Platform
+												State.DashboardData
+													.currentSession?.Platform
 											)}
 											<div>
 												<p className="text-small text-default-500">
@@ -1090,7 +1421,7 @@ export default function Dashboard() {
 												</p>
 												<p className="font-medium">
 													{
-														dashboardData
+														State.DashboardData
 															.currentSession
 															?.Platform
 													}
@@ -1102,8 +1433,9 @@ export default function Dashboard() {
 												Browser
 											</p>
 											<p className="font-medium">
-												{dashboardData.currentSession
-													?.Browser || "Chrome"}
+												{State.DashboardData
+													.currentSession?.Browser ||
+													"Chrome"}
 											</p>
 										</div>
 										<div className="flex items-center gap-2">
@@ -1113,7 +1445,7 @@ export default function Dashboard() {
 													Location
 												</p>
 												<p className="font-medium">
-													{dashboardData
+													{State.DashboardData
 														.currentSession
 														?.IPDataMappedResponse
 														?.city || "Unknown"}
@@ -1128,7 +1460,7 @@ export default function Dashboard() {
 												</p>
 												<p className="font-medium">
 													{new Date(
-														dashboardData.currentSession?.ExpiresAt
+														State.DashboardData.currentSession?.ExpiresAt
 													).toLocaleDateString()}
 												</p>
 											</div>
@@ -1138,7 +1470,7 @@ export default function Dashboard() {
 							</Card>
 
 							{/* Other Active Sessions */}
-							{dashboardData.activeSessions?.length > 0 && (
+							{State.DashboardData.activeSessions?.length > 0 && (
 								<Card>
 									<CardHeader>
 										<div className="flex justify-between items-center w-full">
@@ -1147,17 +1479,17 @@ export default function Dashboard() {
 												<div>
 													<p className="text-md font-semibold">
 														Other Active Sessions
-													</p>
+													</p>{" "}
 													<p className="text-small text-default-500">
 														{
-															dashboardData
+															State.DashboardData
 																.activeSessions
 																?.length
 														}{" "}
 														other session(s)
 													</p>
 												</div>
-											</div>
+											</div>{" "}
 											<Button
 												color="danger"
 												variant="flat"
@@ -1165,7 +1497,7 @@ export default function Dashboard() {
 													handleTerminateAllSessions
 												}
 												isLoading={
-													sessionActionLoading ===
+													State.sessionActionLoading ===
 													"all"
 												}
 											>
@@ -1176,7 +1508,7 @@ export default function Dashboard() {
 									<Divider />
 									<CardBody>
 										<div className="space-y-3">
-											{dashboardData.activeSessions.map(
+											{State.DashboardData.activeSessions.map(
 												(session, index) => (
 													<div
 														key={session.SessionID}
@@ -1209,7 +1541,7 @@ export default function Dashboard() {
 																	).toLocaleString()}
 																</p>
 															</div>
-														</div>
+														</div>{" "}
 														<Button
 															size="sm"
 															color="danger"
@@ -1223,7 +1555,7 @@ export default function Dashboard() {
 																)
 															}
 															isLoading={
-																sessionActionLoading ===
+																State.sessionActionLoading ===
 																session.SessionID
 															}
 														>
@@ -1261,7 +1593,7 @@ export default function Dashboard() {
 								</CardHeader>
 								<Divider />
 								<CardBody>
-									<div className="bg-danger-50 p-4 rounded-lg mb-4">
+									<div className="p-4 rounded-lg mb-4">
 										<p className="text-danger font-medium mb-2">
 											⚠️ Warning
 										</p>
@@ -1286,7 +1618,6 @@ export default function Dashboard() {
 					</Tab>
 				</Tabs>
 			</div>
-
 			{/* Password Change Modal */}
 			<Modal
 				isOpen={isPasswordModalOpen}
@@ -1302,28 +1633,39 @@ export default function Dashboard() {
 					</ModalHeader>
 					<ModalBody>
 						<div className="space-y-4">
+							{" "}
 							<Input
 								label="Current Password"
 								type={
-									showPasswords.current ? "text" : "password"
+									State.showPasswords.current
+										? "text"
+										: "password"
 								}
-								value={passwordData.currentPassword}
+								value={State.passwordData.currentPassword}
 								onChange={(e) =>
-									setPasswordData((prev) => ({
+									setState((prev) => ({
 										...prev,
-										currentPassword: e.target.value,
+										passwordData: {
+											...prev.passwordData,
+											currentPassword: e.target.value,
+										},
 									}))
 								}
 								endContent={
 									<button
 										onClick={() =>
-											setShowPasswords((prev) => ({
+											setState((prev) => ({
 												...prev,
-												current: !prev.current,
+												showPasswords: {
+													...prev.showPasswords,
+													current:
+														!prev.showPasswords
+															.current,
+												},
 											}))
 										}
 									>
-										{showPasswords.current ? (
+										{State.showPasswords.current ? (
 											<VisibilityOff />
 										) : (
 											<Visibility />
@@ -1333,24 +1675,35 @@ export default function Dashboard() {
 							/>
 							<Input
 								label="New Password"
-								type={showPasswords.new ? "text" : "password"}
-								value={passwordData.newPassword}
+								type={
+									State.showPasswords.new
+										? "text"
+										: "password"
+								}
+								value={State.passwordData.newPassword}
 								onChange={(e) =>
-									setPasswordData((prev) => ({
+									setState((prev) => ({
 										...prev,
-										newPassword: e.target.value,
+										passwordData: {
+											...prev.passwordData,
+											newPassword: e.target.value,
+										},
 									}))
 								}
 								endContent={
 									<button
 										onClick={() =>
-											setShowPasswords((prev) => ({
+											setState((prev) => ({
 												...prev,
-												new: !prev.new,
+												showPasswords: {
+													...prev.showPasswords,
+													new: !prev.showPasswords
+														.new,
+												},
 											}))
 										}
 									>
-										{showPasswords.new ? (
+										{State.showPasswords.new ? (
 											<VisibilityOff />
 										) : (
 											<Visibility />
@@ -1358,7 +1711,7 @@ export default function Dashboard() {
 									</button>
 								}
 							/>
-							{passwordData.newPassword && (
+							{State.passwordData.newPassword && (
 								<div className="space-y-2">
 									<div className="flex justify-between items-center">
 										<span className="text-small">
@@ -1384,29 +1737,39 @@ export default function Dashboard() {
 										size="sm"
 									/>
 								</div>
-							)}
+							)}{" "}
 							<Input
 								label="Confirm New Password"
 								type={
-									showPasswords.confirm ? "text" : "password"
+									State.showPasswords.confirm
+										? "text"
+										: "password"
 								}
-								value={passwordData.confirmPassword}
+								value={State.passwordData.confirmPassword}
 								onChange={(e) =>
-									setPasswordData((prev) => ({
+									setState((prev) => ({
 										...prev,
-										confirmPassword: e.target.value,
+										passwordData: {
+											...prev.passwordData,
+											confirmPassword: e.target.value,
+										},
 									}))
 								}
 								endContent={
 									<button
 										onClick={() =>
-											setShowPasswords((prev) => ({
+											setState((prev) => ({
 												...prev,
-												confirm: !prev.confirm,
+												showPasswords: {
+													...prev.showPasswords,
+													confirm:
+														!prev.showPasswords
+															.confirm,
+												},
 											}))
 										}
 									>
-										{showPasswords.confirm ? (
+										{State.showPasswords.confirm ? (
 											<VisibilityOff />
 										) : (
 											<Visibility />
@@ -1414,16 +1777,16 @@ export default function Dashboard() {
 									</button>
 								}
 								color={
-									passwordData.confirmPassword &&
-									passwordData.newPassword !==
-										passwordData.confirmPassword
+									State.passwordData.confirmPassword &&
+									State.passwordData.newPassword !==
+										State.passwordData.confirmPassword
 										? "danger"
 										: "default"
 								}
 								errorMessage={
-									passwordData.confirmPassword &&
-									passwordData.newPassword !==
-										passwordData.confirmPassword
+									State.passwordData.confirmPassword &&
+									State.passwordData.newPassword !==
+										State.passwordData.confirmPassword
 										? "Passwords don't match"
 										: ""
 								}
@@ -1436,17 +1799,17 @@ export default function Dashboard() {
 							onPress={onPasswordModalClose}
 						>
 							Cancel
-						</Button>
+						</Button>{" "}
 						<Button
 							color="warning"
 							onPress={handleChangePassword}
-							isLoading={passwordChangeLoading}
+							isLoading={State.passwordChangeLoading}
 							isDisabled={
-								!passwordData.currentPassword ||
-								!passwordData.newPassword ||
-								passwordData.newPassword !==
-									passwordData.confirmPassword ||
-								passwordData.newPassword.length < 8
+								!State.passwordData.currentPassword ||
+								!State.passwordData.newPassword ||
+								State.passwordData.newPassword !==
+									State.passwordData.confirmPassword ||
+								State.passwordData.newPassword.length < 8
 							}
 						>
 							Change Password
@@ -1454,7 +1817,6 @@ export default function Dashboard() {
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
-
 			{/* Add Email Modal */}
 			<Modal
 				isOpen={isEmailModalOpen}
@@ -1468,12 +1830,16 @@ export default function Dashboard() {
 						</div>
 					</ModalHeader>
 					<ModalBody>
+						{" "}
 						<Input
 							label="Email Address"
 							type="email"
-							value={newEmailData.email}
+							value={State.newEmailData.email}
 							onChange={(e) =>
-								setNewEmailData({ email: e.target.value })
+								setState((prev) => ({
+									...prev,
+									newEmailData: { email: e.target.value },
+								}))
 							}
 							placeholder="Enter new email address"
 						/>
@@ -1484,15 +1850,15 @@ export default function Dashboard() {
 							onPress={onEmailModalClose}
 						>
 							Cancel
-						</Button>
+						</Button>{" "}
 						<Button
 							color="primary"
 							onPress={handleAddEmail}
-							isLoading={emailActionLoading === "add"}
+							isLoading={State.emailActionLoading === "add"}
 							isDisabled={
-								!newEmailData.email ||
+								!State.newEmailData.email ||
 								!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-									newEmailData.email
+									State.newEmailData.email
 								)
 							}
 						>
@@ -1501,7 +1867,6 @@ export default function Dashboard() {
 					</ModalFooter>
 				</ModalContent>
 			</Modal>
-
 			{/* Delete Account Modal */}
 			<Modal
 				isOpen={isDeleteAccountModalOpen}
@@ -1553,6 +1918,69 @@ export default function Dashboard() {
 							variant="solid"
 						>
 							Delete Account
+						</Button>
+					</ModalFooter>
+				</ModalContent>
+			</Modal>
+			{/* Email Verification Modal */}
+			<Modal
+				isOpen={isEmailVerificationModalOpen}
+				onClose={onEmailVerificationModalClose}
+				size="lg"
+			>
+				<ModalContent>
+					<ModalHeader className="flex flex-col gap-1">
+						<div className="flex items-center gap-2">
+							<Verified className="text-success" />
+							Email Verification
+						</div>
+					</ModalHeader>
+					<ModalBody>
+						<div className="space-y-4">
+							{" "}
+							<p className="text-default-500">
+								A verification code has been sent to{" "}
+								<span className="font-medium">
+									{State.emailVerificationData.email}
+								</span>
+								. Please enter the code below to verify your
+								email address.
+							</p>
+							<Input
+								label="Verification Code"
+								value={State.emailVerificationData.otp}
+								onChange={(e) =>
+									setState((prev) => ({
+										...prev,
+										emailVerificationData: {
+											...prev.emailVerificationData,
+											otp: e.target.value,
+										},
+									}))
+								}
+								placeholder="Enter the verification code"
+							/>
+						</div>
+					</ModalBody>
+					<ModalFooter>
+						<Button
+							variant="light"
+							onPress={onEmailVerificationModalClose}
+						>
+							Cancel
+						</Button>{" "}
+						<Button
+							color="success"
+							onPress={handleVerifyEmail}
+							isLoading={
+								State.emailVerificationData.verificationLoading
+							}
+							isDisabled={
+								!State.emailVerificationData.otp ||
+								State.emailVerificationData.otp.length !== 6
+							}
+						>
+							Verify Email
 						</Button>
 					</ModalFooter>
 				</ModalContent>

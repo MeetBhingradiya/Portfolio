@@ -61,13 +61,10 @@ function EmailVerificationContent() {
         }
 
         setLoading(true);
-        setError('');
-
-        try {
-            const response = await Axios.post('/api/email/verify/otp', {
+        setError('');        try {
+            const response = await Axios.put('/api/email/verify/otp', {
                 email: email.toLowerCase().trim(),
-                otp: otp.trim(),
-                type: 'EmailVerification'
+                otp: otp.trim()
             });
 
             if (response.data.Status === 1) {

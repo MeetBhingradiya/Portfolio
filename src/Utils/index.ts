@@ -14,3 +14,4 @@ export * from "./Sleep";
 export * from "./UserAgent";
 export * from "./windowcheck";
 export * from "./RedirectProtocolExecuter";
+export * from "./SessionManager";

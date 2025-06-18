@@ -11,6 +11,10 @@ export const StaticEndpointsPages: Array<EndpointFrequency> = [
         frequency: "daily",
     },
     {
+        route: 'contact',
+        frequency: "weekly",
+    },
+    {
         route: 'Tools',
         frequency: "weekly",
     },

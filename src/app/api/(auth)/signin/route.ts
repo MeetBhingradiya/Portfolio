@@ -3,7 +3,7 @@ import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { Users_Model } from "@Models/Users";
 import { Sessions_Model } from "@Models/Sessions";
 import { Decrypt } from "@Utils/Crypto";
-import { log } from "@Utils";
+import { IPData, log } from "@Utils";
 import { dbConnect } from "@Utils/dbConnect";
 import { generateAuthToken } from "@Utils/JWT";
 import { Config } from "@Config";
@@ -82,7 +82,8 @@ export async function POST(req: NextRequest) {
             Message: 'Sign in successful',
             StatusCode: 200,
             Data: {
-                AuthorisedToken: jwtToken 
+                AuthorisedToken: jwtToken,
+                SessionID: sessionData.sessionID,
             }
         }, { status: 200 });
 
@@ -150,6 +151,7 @@ async function createUserSession(user: any, req: NextRequest) {
         const platform = detectPlatform(userAgent);
         const browser = detectBrowser(userAgent);        // Create session with expiration
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+        const IP_Data = await IPData(getClientIP(req));
         
         const session = await Sessions_Model.create({
             UserID: user.UserID,
@@ -161,13 +163,7 @@ async function createUserSession(user: any, req: NextRequest) {
             DetectedExtensions: [],
             Platform: platform,
             Browser: browser,
-            IPDataMappedResponse: {
-                IP: getClientIP(req),
-                City: 'Unknown',
-                Region: 'Unknown',
-                RegionCode: 'Unknown',
-                Country: 'Unknown'
-            },
+            IPDataMappedResponse: IP_Data,
             ExpiresAt: expiresAt
         });
         return {

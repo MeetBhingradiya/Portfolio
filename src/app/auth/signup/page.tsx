@@ -1,21 +1,6 @@
 "use client";
 
-import React from "react";
-import { useRouter } from "next/navigation";
-import { styled } from "@mui/material/styles";
-import Stack from "@mui/material/Stack";
-import Stepper from "@mui/material/Stepper";
-import Step from "@mui/material/Step";
-import StepLabel from "@mui/material/StepLabel";
-import StepConnector, {
-	stepConnectorClasses,
-} from "@mui/material/StepConnector";
-import { StepIconProps } from "@mui/material/StepIcon";
-import { Axios } from "@Utils/Axios";
-import { IGender } from "@Types";
-import { Config } from "@Config";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { DateTime } from "luxon";
+import React, { Suspense, useState, useEffect } from "react";
 import {
 	Modal,
 	ModalContent,
@@ -25,231 +10,193 @@ import {
 	Button,
 	useDisclosure,
 	Input,
-	InputOtp,
 	Alert,
+	Divider,
+	Progress,
+	RadioGroup,
+	Radio,
+	InputOtp,
 	CircularProgress,
-	Select,
-	SelectItem,
-	Chip,
 } from "@heroui/react";
 import {
-	Check,
-	Settings,
-	GroupAdd,
-	VideoLabel,
 	PersonAdd,
+	Email,
 	Person,
+	Shield,
+	Verified,
 	AlternateEmail,
 	Visibility,
 	VisibilityOff,
-	Password,
-	Verified,
-	Fingerprint,
-	Shield,
-	Warning,
-	Email,
 	Male,
 	Female,
 	Transgender,
+	ArrowBack,
+	ArrowForward,
+	CheckCircle,
+	ErrorOutline,
+	Security,
+	Send,
+	Check,
+	Password,
+	Fingerprint,
 } from "@mui/icons-material";
+import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
+import { AdapterLuxon } from "@mui/x-date-pickers-pro/AdapterLuxon";
+import { motion, AnimatePresence } from "framer-motion";
+import { Axios } from "@Utils/Axios";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
+import { AccountSwitcher } from "@Components/AccountSwitcher";
+import { IGender } from "@Types/Gender";
+import { Config } from "@Config/index";
+import { DateTime } from "luxon";
 
-// ? MUI Step Utils
-const QontoConnector = styled(StepConnector)(({ theme }) => ({
-	[`&.${stepConnectorClasses.alternativeLabel}`]: {
-		top: 10,
-		left: "calc(-50% + 16px)",
-		right: "calc(50% + 16px)",
-	},
-	[`&.${stepConnectorClasses.active}`]: {
-		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: "#784af4",
+// Animation variants for framer-motion
+const containerVariants = {
+	hidden: { opacity: 0, y: 50 },
+	visible: {
+		opacity: 1,
+		y: 0,
+		transition: {
+			duration: 0.6,
+			ease: "easeOut",
+			staggerChildren: 0.1,
 		},
 	},
-	[`&.${stepConnectorClasses.completed}`]: {
-		[`& .${stepConnectorClasses.line}`]: {
-			borderColor: "#784af4",
-		},
+	exit: {
+		opacity: 0,
+		y: -50,
+		transition: { duration: 0.3 },
 	},
-	[`& .${stepConnectorClasses.line}`]: {
-		borderColor: "#eaeaf0",
-		borderTopWidth: 3,
-		borderRadius: 1,
-		...theme.applyStyles("dark", {
-			borderColor: theme.palette.grey[800],
-		}),
-	},
-}));
+};
 
-const QontoStepIconRoot = styled("div")<{ ownerState: { active?: boolean } }>(
-	({ theme }) => ({
-		color: "#eaeaf0",
-		display: "flex",
-		height: 22,
-		alignItems: "center",
-		"& .QontoStepIcon-completedIcon": {
-			color: "#784af4",
-			zIndex: 1,
-			fontSize: 18,
-		},
-		"& .QontoStepIcon-circle": {
-			width: 8,
-			height: 8,
-			borderRadius: "50%",
-			backgroundColor: "currentColor",
-		},
-		...theme.applyStyles("dark", {
-			color: theme.palette.grey[700],
-		}),
-		variants: [
-			{
-				props: ({ ownerState }) => ownerState.active,
-				style: {
-					color: "#784af4",
-				},
-			},
-		],
-	})
-);
+const itemVariants = {
+	hidden: { opacity: 0, x: -20 },
+	visible: {
+		opacity: 1,
+		x: 0,
+		transition: { duration: 0.4 },
+	},
+};
 
-function QontoStepIcon(props: StepIconProps) {
-	const { active, completed, className } = props;
+const stepVariants = {
+	enter: {
+		x: 300,
+		opacity: 0,
+	},
+	center: {
+		zIndex: 1,
+		x: 0,
+		opacity: 1,
+	},
+	exit: {
+		zIndex: 0,
+		x: -300,
+		opacity: 0,
+	},
+};
+
+// Step progress component
+const StepProgress = ({
+	currentStep,
+	totalSteps,
+}: {
+	currentStep: number;
+	totalSteps: number;
+}) => {
+	const progress = ((currentStep + 1) / totalSteps) * 100;
 
 	return (
-		<QontoStepIconRoot
-			ownerState={{ active }}
-			className={className}
-		>
-			{completed ? (
-				<Check className="QontoStepIcon-completedIcon" />
-			) : (
-				<div className="QontoStepIcon-circle" />
-			)}
-		</QontoStepIconRoot>
+		<div className="w-full mb-6">
+			<div className="flex justify-between items-center mb-2">
+				<span className="text-sm font-medium text-default-600">
+					Step {currentStep + 1} of {totalSteps}
+				</span>
+				<span className="text-sm font-medium text-primary">
+					{Math.round(progress)}%
+				</span>
+			</div>
+			<Progress
+				value={progress}
+				className="h-2"
+				color="primary"
+				classNames={{
+					track: "bg-default-200/50 backdrop-blur-sm",
+					indicator: "bg-gradient-to-r from-primary to-secondary",
+				}}
+			/>
+		</div>
 	);
-}
+};
 
-const ColorlibConnector = styled(StepConnector)(({ theme }) => ({
-	[`&.${stepConnectorClasses.alternativeLabel}`]: {
-		top: 22,
-	},
-	[`&.${stepConnectorClasses.active}`]: {
-		[`& .${stepConnectorClasses.line}`]: {
-			backgroundImage:
-				// 'linear-gradient( 95deg,rgb(242,113,33) 0%,rgb(233,64,87) 50%,rgb(138,35,135) 100%)',
-				"var(--background-solid)",
-		},
-	},
-	[`&.${stepConnectorClasses.completed}`]: {
-		[`& .${stepConnectorClasses.line}`]: {
-			backgroundImage:
-				// 'linear-gradient( 95deg,rgb(242,113,33) 0%,rgb(233,64,87) 50%,rgb(138,35,135) 100%)',
-				"var(--background-solid)",
-		},
-	},
-	[`& .${stepConnectorClasses.line}`]: {
-		height: 3,
-		border: 0,
-		backgroundColor: "#eaeaf0",
-		borderRadius: 1,
-		...theme.applyStyles("dark", {
-			backgroundColor: theme.palette.grey[800],
-		}),
-	},
-}));
-
-const ColorlibStepIconRoot = styled("div")<{
-	ownerState: { completed?: boolean; active?: boolean };
-}>(({ theme }) => ({
-	backgroundColor: "#ccc",
-	zIndex: 1,
-	color: "#fff",
-	width: 50,
-	height: 50,
-	display: "flex",
-	borderRadius: "50%",
-	justifyContent: "center",
-	alignItems: "center",
-	...theme.applyStyles("dark", {
-		backgroundColor: theme.palette.grey[700],
-	}),
-	variants: [
-		{
-			props: ({ ownerState }) => ownerState.active,
-			style: {
-				backgroundImage: "var(--background-solid)",
-				// backgroundImage:
-				//     'linear-gradient( 136deg, rgb(242,113,33) 0%, rgb(233,64,87) 50%, rgb(138,35,135) 100%)',
-				boxShadow: "0 4px 10px 0 rgba(0,0,0,.25)",
-			},
-		},
-		{
-			props: ({ ownerState }) => ownerState.completed,
-			style: {
-				backgroundImage: "var(--background-solid)",
-				// 'linear-gradient( 136deg, rgb(242,113,33) 0%, rgb(233,64,87) 50%, rgb(138,35,135) 100%)',
-			},
-		},
-	],
-}));
-
-// ? Staps Data
-function ColorlibStepIcon(props: StepIconProps) {
-	const { active, completed, className } = props;
-
-	const icons: { [index: string]: React.ReactElement<unknown> } = {
-		1: <Email />,
-		2: <Person />,
-		3: <Shield />,
-		4: <Verified />,
-		5: <AlternateEmail />,
-	};
-
-	return (
-		<ColorlibStepIconRoot
-			ownerState={{ completed, active }}
-			className={className}
-		>
-			{icons[String(props.icon)]}
-		</ColorlibStepIconRoot>
-	);
-}
-
+// Steps configuration
 const steps = [
-	"Email",
-	"Basic Info",
-	"Authentication",
-	"Activate Account",
-	"Username",
+	{
+		key: "email",
+		title: "Email Verification",
+		description: "Enter your email address",
+		icon: <Email />,
+	},
+	{
+		key: "basic",
+		title: "Basic Information",
+		description: "Tell us about yourself",
+		icon: <Person />,
+	},
+	{
+		key: "auth",
+		title: "Security Setup",
+		description: "Create your password",
+		icon: <Shield />,
+	},
+	{
+		key: "verify",
+		title: "Email Verification",
+		description: "Verify your email address",
+		icon: <Verified />,
+	},
+	{
+		key: "username",
+		title: "Choose Username",
+		description: "Pick your unique username",
+		icon: <AlternateEmail />,
+	},
 ];
 
 interface IState {
-	// ? Step 1 : Email
+	// Step 1: Email
 	Email: string;
 	S2_isERROR: boolean;
 	S2_Message: string;
 
-	// ? Step 2 : Basic Info
+	// Step 2: Basic Info
 	Fname: string;
 	Lname: string;
 	Gender: IGender;
-	DOB: any;
+	DOB: DateTime | null;
 
-	// ? Step 3 : Create Password
+	// Step 3: Create Password
 	Password: string;
 	Visible: boolean;
 	S3_isERROR: boolean;
 	S3_Message: string;
 
-	// ? Step 4 : Verify Email
+	// Step 4: Verify Email
 	Otp: string;
 	OtpTrys: number;
 	S4_isERROR: boolean;
 	S4_Message: string;
 
-	// ? Step 5 : Create Username
+	// Step 5: Create Username
 	Username: string;
 	S5_isERROR: boolean;
 	S5_Message: string;
+
+	// Additional states for enhanced features
+	isPasskeySupported: boolean;
+	usePasskey: boolean;
+	isLoading: boolean;
+	successMessage: string;
 }
 
 const Genders = [
@@ -258,11 +205,16 @@ const Genders = [
 	{ key: IGender.TRANSGENDER, label: "Transgender", icon: <Transgender /> },
 ];
 
-export default function SignUp() {
+function SignUpForm() {
 	const router = useRouter();
-	const { isOpen, onOpen } = useDisclosure();
-	const [inProgress, setInProgress] = React.useState(false);
-	const [State, setState] = React.useState<IState>({
+	const searchParams = useSearchParams();
+	const { Accounts } = useAccountSwitcher();
+	const { isOpen, onOpen, onOpenChange } = useDisclosure();
+	const [inProgress, setInProgress] = useState(false);
+	const [currentStep, setCurrentStep] = useState(0);
+	const [completedSteps, setCompletedSteps] = useState<number[]>([]);
+
+	const [State, setState] = useState<IState>({
 		Fname: "",
 		Lname: "",
 		Gender: IGender.FEMALE,
@@ -285,677 +237,1141 @@ export default function SignUp() {
 		Username: "",
 		S5_isERROR: false,
 		S5_Message: "",
-	});
-	const [ActiveStep, setActiveStep] = React.useState(0);
 
-	React.useEffect(() => {
-		onOpen();
+		isPasskeySupported: false,
+		usePasskey: false,
+		isLoading: false,
+		successMessage: "",
+	});
+
+	// Check for passkey support
+	useEffect(() => {
+		if (typeof window !== "undefined" && window.PublicKeyCredential) {
+			setState((prev) => ({ ...prev, isPasskeySupported: true }));
+		}
 	}, []);
 
-	async function PasswordVisibility() {
-		setState({ ...State, Visible: !State.Visible });
-	}
+	useEffect(() => {
+		onOpen();
+	}, [onOpen]);
 
-	async function Valdate_Step_1(): Promise<boolean> {
+	// Utility functions
+	const togglePasswordVisibility = () => {
+		setState((prev) => ({ ...prev, Visible: !prev.Visible }));
+	};
+
+	const clearErrors = () => {
+		setState((prev) => ({
+			...prev,
+			S2_isERROR: false,
+			S2_Message: "",
+			S3_isERROR: false,
+			S3_Message: "",
+			S4_isERROR: false,
+			S4_Message: "",
+			S5_isERROR: false,
+			S5_Message: "",
+		}));
+	};
+
+	const updateField = (field: string, value: any) => {
+		setState((prev) => ({ ...prev, [field]: value }));
+		clearErrors();
+	};
+
+	// Enhanced validation functions
+	const validateStep1 = async (): Promise<boolean> => {
 		if (inProgress) return false;
 		setInProgress(true);
+		clearErrors();
 
-		// ? Bla bla Email Validation
-		if (State.Email === "") {
-			setState({
-				...State,
+		// Email validation
+		if (!State.Email.trim()) {
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: "Email is Required",
-			});
+				S2_Message: "Email is required",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		// ? Check for Whitelisted Domain
-		const Domain = State.Email.split("@")[1];
-		if (
-			Domain !== "gmail.com" &&
-			Domain !== "outlook.com" &&
-			Domain !== "yahoo.com"
-		) {
-			setState({
-				...State,
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		if (!emailRegex.test(State.Email)) {
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: "Invalid Domain",
-			});
+				S2_Message: "Please enter a valid email address",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		// ? Check on Server for Email Availability
+		// Check for whitelisted domains
+		const domain = State.Email.split("@")[1].toLowerCase();
+		const allowedDomains = [
+			"gmail.com",
+			"outlook.com",
+			"yahoo.com",
+			"hotmail.com",
+		];
+		if (!allowedDomains.includes(domain)) {
+			setState((prev) => ({
+				...prev,
+				S2_isERROR: true,
+				S2_Message:
+					"Please use a supported email provider (Gmail, Outlook, Yahoo)",
+			}));
+			setInProgress(false);
+			return false;
+		}
+
+		// Check email availability with server
 		try {
-			const Response = await Axios.post("/api/email", {
+			const response = await Axios.post("/api/email", {
 				email: State.Email,
 			});
 
-			if (
-				Response.data.Status === 1 &&
-				Response.data.StatusCode === Config.StatusCodes.UsernameRequired
-			) {
-				setActiveStep(4);
-				setState({
-					...State,
-					S2_isERROR: true,
-					S2_Message: Response.data.Message,
-				});
-				return false;
-			}
+			if (response.data.Status === 1) {
+				if (
+					response.data.StatusCode ===
+					Config.StatusCodes.UsernameRequired
+				) {
+					setCurrentStep(4);
+					setState((prev) => ({
+						...prev,
+						S2_isERROR: true,
+						S2_Message: response.data.Message,
+					}));
+					setInProgress(false);
+					return false;
+				}
 
-			if (
-				Response.data.Status === 1 &&
-				Response.data.StatusCode ===
+				if (
+					response.data.StatusCode ===
 					Config.StatusCodes.VerificationRequired
-			) {
-				setState({
-					...State,
-					S2_isERROR: true,
-					S2_Message: Response.data.Message,
-				});
-				setActiveStep(3);
-				return false;
+				) {
+					setCurrentStep(3);
+					setState((prev) => ({
+						...prev,
+						S2_isERROR: true,
+						S2_Message: response.data.Message,
+					}));
+					setInProgress(false);
+					return false;
+				}
+
+				if (response.data.StatusCode === 200) {
+					setInProgress(false);
+					return true;
+				}
 			}
 
-			if (
-				Response.data.Status === 1 &&
-				Response.data.StatusCode === 200
-			) {
-				setState({
-					...State,
-					S2_isERROR: true,
-					S2_Message: Response.data.Message,
-				});
-				return true;
-			}
-
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: Response.data.Message,
-			});
+				S2_Message: response.data.Message || "Email validation failed",
+			}));
+			setInProgress(false);
 			return false;
 		} catch (error: any) {
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: error?.response?.data?.Message || "Server Error",
-			});
+				S2_Message:
+					error?.response?.data?.Message || "Server error occurred",
+			}));
+			setInProgress(false);
 			return false;
 		}
-	}
+	};
 
-	async function Valdate_Step_2(): Promise<boolean> {
+	const validateStep2 = async (): Promise<boolean> => {
 		if (inProgress) return false;
 		setInProgress(true);
+		clearErrors();
 
-		if (State.Fname === "") {
-			setState({
-				...State,
+		if (!State.Fname.trim()) {
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: "First Name is Required",
-			});
+				S2_Message: "First name is required",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		if (State.Lname === "") {
-			setState({
-				...State,
+		if (!State.Lname.trim()) {
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: "Last Name is Required",
-			});
+				S2_Message: "Last name is required",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
 		if (State.Gender === IGender.UNSPECIFIED) {
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: "Gender is Required",
-			});
+				S2_Message: "Please select your gender",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		if (State.DOB === "") {
-			setState({
-				...State,
+		if (!State.DOB) {
+			setState((prev) => ({
+				...prev,
 				S2_isERROR: true,
-				S2_Message: "Date of Birth is Required",
-			});
+				S2_Message: "Date of birth is required",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
+		// Check if user is at least 13 years old
+		const age = Math.floor(DateTime.now().diff(State.DOB!, "years").years);
+		if (age < 13) {
+			setState((prev) => ({
+				...prev,
+				S2_isERROR: true,
+				S2_Message:
+					"You must be at least 13 years old to create an account",
+			}));
+			setInProgress(false);
+			return false;
+		}
+
+		setInProgress(false);
 		return true;
-	}
+	};
 
-	async function Valdate_Step_3(): Promise<boolean> {
+	const validateStep3 = async (): Promise<boolean> => {
 		if (inProgress) return false;
 		setInProgress(true);
+		clearErrors();
 
-		if (State.Password === "") {
-			setState({
-				...State,
+		if (!State.Password) {
+			setState((prev) => ({
+				...prev,
 				S3_isERROR: true,
-				S3_Message: "Password is Required",
-			});
+				S3_Message: "Password is required",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		if (State.Password.length < 8) {
-			setState({
-				...State,
-				S3_isERROR: true,
-				S3_Message: "Password must be 8 characters long",
-			});
-			return false;
+		// Password strength validation
+		const passwordChecks = [
+			{
+				test: State.Password.length >= 8,
+				message: "at least 8 characters",
+			},
+			{
+				test: /[a-z]/.test(State.Password),
+				message: "a lowercase letter",
+			},
+			{
+				test: /[A-Z]/.test(State.Password),
+				message: "an uppercase letter",
+			},
+			{ test: /[0-9]/.test(State.Password), message: "a number" },
+			{
+				test: /[!@#$%^&*(),.?":{}|<>]/.test(State.Password),
+				message: "a special character",
+			},
+		];
+
+		for (const check of passwordChecks) {
+			if (!check.test) {
+				setState((prev) => ({
+					...prev,
+					S3_isERROR: true,
+					S3_Message: `Password must contain ${check.message}`,
+				}));
+				setInProgress(false);
+				return false;
+			}
 		}
 
-		if (!State.Password.match(/[a-z]/)) {
-			setState({
-				...State,
-				S3_isERROR: true,
-				S3_Message: "Password must contain a lowercase letter",
-			});
-			return false;
-		}
-
-		if (!State.Password.match(/[A-Z]/)) {
-			setState({
-				...State,
-				S3_isERROR: true,
-				S3_Message: "Password must contain a uppercase letter",
-			});
-			return false;
-		}
-
-		if (!State.Password.match(/[0-9]/)) {
-			setState({
-				...State,
-				S3_isERROR: true,
-				S3_Message: "Password must contain a digit",
-			});
-			return false;
-		}
-
-		if (!State.Password.match(/[!@#$%^&*]/)) {
-			setState({
-				...State,
-				S3_isERROR: true,
-				S3_Message: "Password must contain a special character",
-			});
-			return false;
-		}
-
+		// Create account on server
 		try {
-			const Response = await Axios.post("/api/signup", {
+			const response = await Axios.post("/api/signup", {
 				email: State.Email,
 				password: State.Password,
 				firstname: State.Fname,
 				lastname: State.Lname,
-				dateofbirth: State.DOB,
+				dateofbirth: State.DOB?.toFormat("yyyy-MM-dd"),
 				gender: State.Gender,
 			});
 
-			if (Response.data.Status === 1) {
+			if (response.data.Status === 1) {
+				setState((prev) => ({
+					...prev,
+					successMessage:
+						"Account created successfully! Please verify your email.",
+				}));
+				setInProgress(false);
 				return true;
 			}
 
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S3_isERROR: true,
-				S3_Message: Response.data.Message,
-			});
+				S3_Message: response.data.Message || "Failed to create account",
+			}));
+			setInProgress(false);
 			return false;
 		} catch (error: any) {
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S3_isERROR: true,
-				S3_Message: error?.response?.data?.Message || "Server Error",
-			});
+				S3_Message:
+					error?.response?.data?.Message ||
+					"Failed to create account",
+			}));
+			setInProgress(false);
 			return false;
 		}
-	}
-	async function Valdate_Step_4(): Promise<boolean> {
+	};
+
+	const validateStep4 = async (): Promise<boolean> => {
 		if (inProgress) return false;
 		setInProgress(true);
+		clearErrors();
 
-		// Validate OTP input
-		if (State.Otp === "") {
-			setState({
-				...State,
+		if (!State.Otp || State.Otp.length !== 6) {
+			setState((prev) => ({
+				...prev,
 				S4_isERROR: true,
-				S4_Message: "Verification code is required",
-			});
+				S4_Message: "Please enter the 6-digit verification code",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		if (State.Otp.length !== 6) {
-			setState({
-				...State,
-				S4_isERROR: true,
-				S4_Message: "Verification code must be 6 digits",
-			});
-			return false;
-		}
-
-		// Verify OTP with server
 		try {
-			const Response = await Axios.put("/api/email/verify/otp", {
+			const response = await Axios.put("/api/email/verify/otp", {
 				email: State.Email,
 				otp: State.Otp,
 			});
 
-			if (Response.data.Status === 1) {
-				setState({ ...State, S4_isERROR: false, S4_Message: "" });
+			if (response.data.Status === 1) {
+				setState((prev) => ({
+					...prev,
+					successMessage: "Email verified successfully!",
+				}));
+				setInProgress(false);
 				return true;
 			}
 
-			setState({
-				...State,
-				S4_isERROR: true,
-				S4_Message: Response.data.Message,
-			});
-			return false;
-		} catch (error: any) {
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S4_isERROR: true,
 				S4_Message:
-					error?.response?.data?.Message ||
-					"Failed to verify code. Please try again.",
-			});
+					response.data.Message || "Invalid verification code",
+				OtpTrys: prev.OtpTrys + 1,
+			}));
+			setInProgress(false);
+			return false;
+		} catch (error: any) {
+			setState((prev) => ({
+				...prev,
+				S4_isERROR: true,
+				S4_Message:
+					error?.response?.data?.Message || "Verification failed",
+				OtpTrys: prev.OtpTrys + 1,
+			}));
+			setInProgress(false);
 			return false;
 		}
-	}
-	async function Valdate_Step_5(): Promise<boolean> {
+	};
+
+	const validateStep5 = async (): Promise<boolean> => {
 		if (inProgress) return false;
 		setInProgress(true);
+		clearErrors();
 
-		// Validate username input
-		if (State.Username === "") {
-			setState({
-				...State,
+		if (!State.Username.trim()) {
+			setState((prev) => ({
+				...prev,
 				S5_isERROR: true,
 				S5_Message: "Username is required",
-			});
+			}));
+			setInProgress(false);
 			return false;
 		}
 
 		if (State.Username.length < 3) {
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S5_isERROR: true,
-				S5_Message: "Username must be at least 3 characters long",
-			});
+				S5_Message: "Username must be at least 3 characters",
+			}));
+			setInProgress(false);
 			return false;
 		}
 
 		if (State.Username.length > 20) {
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S5_isERROR: true,
 				S5_Message: "Username must be less than 20 characters",
-			});
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		if (!State.Username.match(/^[a-zA-Z0-9_]+$/)) {
-			setState({
-				...State,
+		if (!/^[a-zA-Z0-9_]+$/.test(State.Username)) {
+			setState((prev) => ({
+				...prev,
 				S5_isERROR: true,
 				S5_Message:
 					"Username can only contain letters, numbers, and underscores",
-			});
+			}));
+			setInProgress(false);
 			return false;
 		}
 
-		// Create username with server
 		try {
-			const Response = await Axios.post("/api/username", {
+			const response = await Axios.post("/api/username", {
 				email: State.Email,
 				username: State.Username,
 			});
 
-			if (Response.data.Status === 1) {
-				setState({ ...State, S5_isERROR: false, S5_Message: "" });
-				// Account creation successful - redirect to success page or signin
-				router.push(
-					"/auth/signin?message=Account created successfully! Please sign in."
-				);
+			if (response.data.Status === 1) {
+				setState((prev) => ({
+					...prev,
+					successMessage: "Account created successfully!",
+				}));
+
+				// Redirect to signin page with success message
+				setTimeout(() => {
+					router.push(
+						"/auth/signin?message=Account created successfully! Please sign in."
+					);
+				}, 1500);
+
+				setInProgress(false);
 				return true;
 			}
 
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S5_isERROR: true,
-				S5_Message: Response.data.Message,
-			});
+				S5_Message:
+					response.data.Message || "Username is not available",
+			}));
+			setInProgress(false);
 			return false;
 		} catch (error: any) {
-			setState({
-				...State,
+			setState((prev) => ({
+				...prev,
 				S5_isERROR: true,
 				S5_Message:
 					error?.response?.data?.Message ||
-					"Failed to create username. Please try again.",
-			});
+					"Failed to create username",
+			}));
+			setInProgress(false);
 			return false;
 		}
-	}
+	};
 
-	async function ValidateStep(): Promise<void> {
-		switch (ActiveStep) {
+	const handleNextStep = async () => {
+		setState((prev) => ({ ...prev, isLoading: true }));
+
+		let isValid = false;
+		switch (currentStep) {
 			case 0:
-				console.log("Validating Step 1");
-				let Res = await Valdate_Step_1();
-				if (Res) {
-					setActiveStep(ActiveStep + 1);
-				}
-				setInProgress(false);
+				isValid = await validateStep1();
 				break;
 			case 1:
-				console.log("Validating Step 2");
-				if (await Valdate_Step_2()) {
-					setActiveStep(ActiveStep + 1);
-				}
-				setInProgress(false);
+				isValid = await validateStep2();
 				break;
 			case 2:
-				console.log("Validating Step 3");
-				if (await Valdate_Step_3()) {
-					setActiveStep(ActiveStep + 1);
-				}
-				setInProgress(false);
+				isValid = await validateStep3();
 				break;
 			case 3:
-				console.log("Validating Step 4");
-				if (await Valdate_Step_4()) {
-					setActiveStep(ActiveStep + 1);
-				}
-				setInProgress(false);
+				isValid = await validateStep4();
 				break;
 			case 4:
-				console.log("Validating Step 5");
-				await Valdate_Step_5();
-				setInProgress(false);
+				isValid = await validateStep5();
 				break;
 		}
-	}
 
-	return (
-		<div className="Page CENTER">
-			<Modal
-				isOpen={isOpen}
-				size={"2xl"}
-				onClose={() => {}}
-				isDismissable={false}
-				isKeyboardDismissDisabled={false}
-				hideCloseButton={true}
-			>
-				<ModalContent>
-					<ModalHeader className="flex flex-row items-center gap-4 justify-center">
-						<PersonAdd />
-						Create New Account
-					</ModalHeader>
-					<ModalBody className="flex flex-col gap-5">
-						<Stack
-							sx={{ width: "100%" }}
-							spacing={4}
+		if (isValid && currentStep < steps.length - 1) {
+			setCompletedSteps((prev) => [...prev, currentStep]);
+			setCurrentStep((prev) => prev + 1);
+		}
+
+		setState((prev) => ({ ...prev, isLoading: false }));
+	};
+
+	const handlePreviousStep = () => {
+		if (currentStep > 0) {
+			setCurrentStep((prev) => prev - 1);
+			clearErrors();
+		}
+	};
+
+	const redirectUrl = React.useMemo(() => {
+		const ref = searchParams.get("ref");
+		return ref ? decodeURIComponent(ref) : "/dashboard";
+	}, [searchParams]);
+
+	const shouldShowAccountSwitcher = React.useMemo(() => {
+		const acsParam = searchParams.get("acs");
+		return acsParam === "1" || Accounts.length > 0;
+	}, [searchParams, Accounts.length]);
+
+	// Render step content
+	const renderStepContent = () => {
+		const currentStepData = steps[currentStep];
+		const hasError =
+			State.S2_isERROR ||
+			State.S3_isERROR ||
+			State.S4_isERROR ||
+			State.S5_isERROR;
+		const errorMessage =
+			State.S2_Message ||
+			State.S3_Message ||
+			State.S4_Message ||
+			State.S5_Message;
+
+		return (
+			<AnimatePresence mode="wait">
+				<motion.div
+					key={currentStep}
+					variants={stepVariants}
+					initial="enter"
+					animate="center"
+					exit="exit"
+					transition={{
+						x: { type: "spring", stiffness: 300, damping: 30 },
+						opacity: { duration: 0.2 },
+					}}
+					className="w-full"
+				>
+					<div className="text-center mb-6">
+						<motion.div
+							initial={{ scale: 0 }}
+							animate={{ scale: 1 }}
+							transition={{ delay: 0.2, type: "spring" }}
+							className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-secondary rounded-full flex items-center justify-center mb-4 shadow-lg"
 						>
-							<Stepper
-								alternativeLabel
-								activeStep={ActiveStep}
-								connector={<ColorlibConnector />}
-							>
-								{steps.map((label) => (
-									<Step key={label}>
-										<StepLabel
-											StepIconComponent={ColorlibStepIcon}
-										>
-											{label}
-										</StepLabel>
-									</Step>
-								))}
-							</Stepper>
-						</Stack>
-						{ActiveStep === 0 && (
-							<div className="flex flex-col gap-5 p-10">
-								{State.S2_isERROR && (
-									<Alert
-										description={`${State.S2_Message}`}
-										title={`ERROR`}
-										color="danger"
-									/>
+							{currentStepData.icon}
+						</motion.div>
+						<motion.h3
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.3 }}
+							className="text-xl font-semibold text-foreground mb-2"
+						>
+							{currentStepData.title}
+						</motion.h3>
+						<motion.p
+							initial={{ opacity: 0, y: 20 }}
+							animate={{ opacity: 1, y: 0 }}
+							transition={{ delay: 0.4 }}
+							className="text-default-500"
+						>
+							{currentStepData.description}
+						</motion.p>
+					</div>
+
+					{/* Error Message */}
+					{hasError && (
+						<motion.div
+							initial={{ opacity: 0, y: -20 }}
+							animate={{ opacity: 1, y: 0 }}
+							className="mb-4"
+						>
+							<Alert
+								title="Error"
+								description={errorMessage}
+								color="danger"
+								variant="flat"
+								startContent={<ErrorOutline />}
+							/>
+						</motion.div>
+					)}
+
+					{/* Success Message */}
+					{State.successMessage && (
+						<motion.div
+							initial={{ opacity: 0, y: -20 }}
+							animate={{ opacity: 1, y: 0 }}
+							className="mb-4"
+						>
+							<Alert
+								title="Success"
+								description={State.successMessage}
+								color="success"
+								variant="flat"
+								startContent={<CheckCircle />}
+							/>
+						</motion.div>
+					)}
+
+					{/* Step Content */}
+					<motion.div
+						initial={{ opacity: 0, y: 20 }}
+						animate={{ opacity: 1, y: 0 }}
+						transition={{ delay: 0.5 }}
+						className="space-y-4"
+					>
+						{currentStep === 0 && (
+							<>
+								{shouldShowAccountSwitcher && (
+									<div className="flex flex-col gap-2 mb-4">
+										<div className="text-small text-default-500 text-center">
+											Or use an existing account:
+										</div>
+										<div className="flex justify-center">
+											<AccountSwitcher
+												variant="compact"
+												showAddAccount={false}
+												onAccountChange={(account) => {
+													router.push(redirectUrl);
+												}}
+											/>
+										</div>
+										<Divider />
+									</div>
 								)}
-								<div className="flex flex-row gap-3 items-center justify-center">
-									<Input
-										label="Email"
-										type="email"
-										startContent={<Email />}
-										value={State.Email}
-										onChange={(e) =>
-											setState({
-												...State,
-												Email: e.target.value,
-											})
-										}
-									/>
+
+								<Input
+									label="Email Address"
+									type="email"
+									placeholder="Enter your email address"
+									startContent={<Email />}
+									value={State.Email}
+									onChange={(e) =>
+										updateField("Email", e.target.value)
+									}
+									variant="bordered"
+									size="lg"
+									isDisabled={State.isLoading}
+									autoComplete="email"
+									classNames={{
+										input: "bg-transparent",
+										inputWrapper:
+											"backdrop-blur-sm bg-white/20 border-white/20",
+									}}
+								/>
+
+								<div className="text-xs text-default-500 mt-2">
+									We support Gmail, Outlook, and Yahoo email
+									addresses
 								</div>
-								{/* Email Checker Labels After Lab Checks */}
-								{/* 
-                                    
-                                        * Not be Empty
-                                        * spefic Whitelisted Domain
-                                        * Not be Already Registered
-                                     */}
-							</div>
+							</>
 						)}
-						{ActiveStep === 1 && (
-							<div className="flex flex-col gap-5 p-10">
-								<div className="flex flex-row gap-3 items-center justify-center">
+
+						{currentStep === 1 && (
+							<>
+								<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 									<Input
-										required
 										label="First Name"
+										placeholder="Enter your first name"
+										startContent={<Person />}
 										value={State.Fname}
 										onChange={(e) =>
-											setState({
-												...State,
-												Fname: e.target.value,
-											})
+											updateField("Fname", e.target.value)
 										}
+										variant="bordered"
+										size="lg"
+										isDisabled={State.isLoading}
+										autoComplete="given-name"
+										classNames={{
+											input: "bg-transparent",
+											inputWrapper:
+												"backdrop-blur-sm bg-white/20 border-white/20",
+										}}
 									/>
+
 									<Input
-										required
 										label="Last Name"
+										placeholder="Enter your last name"
+										startContent={<Person />}
 										value={State.Lname}
 										onChange={(e) =>
-											setState({
-												...State,
-												Lname: e.target.value,
-											})
+											updateField("Lname", e.target.value)
 										}
+										variant="bordered"
+										size="lg"
+										isDisabled={State.isLoading}
+										autoComplete="family-name"
+										classNames={{
+											input: "bg-transparent",
+											inputWrapper:
+												"backdrop-blur-sm bg-white/20 border-white/20",
+										}}
 									/>
 								</div>
-								<div className="flex flex-row gap-3 items-center justify-center">
-									{/* <Input
-                                        label="Gender"
-                                        startContent={<Person />}
-                                        value={State.Fname}
-                                        onChange={(e) => setState({ ...State, Fname: e.target.value })}
-                                    /> */}
-									<Select
-										required
-										className="max-w-xs"
-										label="Gender"
-										placeholder="Gender"
-										onChange={(e) =>
-											setState({
-												...State,
-												Gender: e.target
-													.value as IGender,
-											})
-										}
-										value={State.Gender}
-										// renderValue={(items) => {
-										//     return (
-										//         <div className="flex flex-wrap gap-2">
-										//             {items.map((item) => (
-										//                 <div className="flex flex-row gap-1">
-										//                     {
-										//                         Genders.find({ key: item.key })?.icon
-										//                     }
-										//                     <Chip
-										//                         label={ item.label }
-										//                     />
-										//                 </div>
-										//             ))}
-										//         </div>
-										//     );
-										// }}
-									>
-										{Genders.map((gender) => (
-											<SelectItem
-												key={gender.key}
-												textValue={gender.label}
-											>
+
+								<RadioGroup
+									label="Gender"
+									value={State.Gender}
+									onValueChange={(value) =>
+										updateField("Gender", value as IGender)
+									}
+									orientation="horizontal"
+									className="flex justify-center"
+									isDisabled={State.isLoading}
+								>
+									{Genders.map((gender) => (
+										<Radio
+											key={gender.key}
+											value={gender.key}
+											className="mr-4"
+										>
+											<div className="flex items-center gap-2">
 												{gender.icon}
 												{gender.label}
-											</SelectItem>
-										))}
-									</Select>
+											</div>
+										</Radio>
+									))}
+								</RadioGroup>
 
-									{/* DOB */}
+								<LocalizationProvider
+									dateAdapter={AdapterLuxon}
+								>
 									<DatePicker
 										label="Date of Birth"
 										value={State.DOB}
-										onChange={(e) =>
-											setState({
-												...State,
-												DOB: e as any,
-											})
+										onChange={(newValue: DateTime | null) =>
+											updateField("DOB", newValue)
 										}
+										disabled={State.isLoading}
+										slotProps={{
+											textField: {
+												variant: "outlined",
+												fullWidth: true,
+												size: "medium",
+												autoComplete: "bday",
+											},
+										}}
+										maxDate={DateTime.now().minus({
+											years: 13,
+										})}
 									/>
-								</div>
-							</div>
+								</LocalizationProvider>
+							</>
 						)}
-						{ActiveStep === 2 && (
-							<div className="flex flex-col gap-5 p-10">
-								{State.S3_isERROR && (
-									<Alert
-										description={`${State.S3_Message}`}
-										title={`ERROR`}
-										color="danger"
-									/>
-								)}
-								<div className="flex flex-row gap-3 items-center justify-center">
-									<Input
-										label="Password"
-										type={
-											State.Visible ? "text" : "password"
-										}
-										startContent={<Shield />}
-										endContent={
-											State.Visible ? (
-												<VisibilityOff
-													onClick={PasswordVisibility}
-												/>
+
+						{currentStep === 2 && (
+							<>
+								<Input
+									label="Password"
+									type={State.Visible ? "text" : "password"}
+									placeholder="Create a strong password"
+									startContent={<Shield />}
+									endContent={
+										<button
+											className="focus:outline-none"
+											type="button"
+											onClick={togglePasswordVisibility}
+											disabled={State.isLoading}
+										>
+											{State.Visible ? (
+												<VisibilityOff className="text-2xl text-default-400 pointer-events-none" />
 											) : (
-												<Visibility
-													onClick={PasswordVisibility}
-												/>
-											)
-										}
-										value={State.Password}
-										onChange={(e) =>
-											setState({
-												...State,
-												Password: e.target.value,
-											})
-										}
-									/>
-								</div>
-							</div>
-						)}
-						{ActiveStep === 3 && (
-							<div className="flex flex-col gap-5 p-10 items-center">
-								{State.S4_isERROR && (
-									<Alert
-										description={`${State.S4_Message}`}
-										title={`ERROR`}
-										color="danger"
-									/>
-								)}
-								<div className="text-center mb-4">
-									<h3 className="text-lg font-semibold">
-										Verify Your Email
-									</h3>
-									<p className="text-sm text-gray-600">
-										We&apos;ve sent a verification code to{" "}
-										{State.Email}
-									</p>
-								</div>{" "}
-								<InputOtp
-									length={6}
-									size="lg"
-									value={State.Otp}
-									onValueChange={(value) =>
-										setState({ ...State, Otp: value })
+												<Visibility className="text-2xl text-default-400 pointer-events-none" />
+											)}
+										</button>
 									}
+									value={State.Password}
+									onChange={(e) =>
+										updateField("Password", e.target.value)
+									}
+									variant="bordered"
+									size="lg"
+									isDisabled={State.isLoading}
+									autoComplete="new-password"
+									classNames={{
+										input: "bg-transparent",
+										inputWrapper:
+											"backdrop-blur-sm bg-white/20 border-white/20",
+									}}
 								/>
-							</div>
-						)}{" "}
-						{ActiveStep === 4 && (
-							<div className="flex flex-col gap-5 p-10">
-								{State.S5_isERROR && (
-									<Alert
-										description={`${State.S5_Message}`}
-										title={`ERROR`}
-										color="danger"
-									/>
+
+								{State.isPasskeySupported && (
+									<div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg border border-primary/20">
+										<Fingerprint className="text-primary" />
+										<div className="flex-1 text-sm">
+											<div className="font-medium">
+												Passkey Available
+											</div>
+											<div className="text-default-500">
+												You can set up a passkey after
+												creating your account
+											</div>
+										</div>
+									</div>
 								)}
-								<div className="text-center mb-4">
-									<h3 className="text-lg font-semibold">
-										Choose Your Username
-									</h3>
-									<p className="text-sm text-gray-600">
-										Pick a unique username for your account
+
+								<div className="text-xs text-default-500 space-y-1">
+									<div>Password requirements:</div>
+									<ul className="list-disc list-inside space-y-1 ml-2">
+										<li>At least 8 characters long</li>
+										<li>
+											Contains uppercase and lowercase
+											letters
+										</li>
+										<li>Contains at least one number</li>
+										<li>
+											Contains at least one special
+											character
+										</li>
+									</ul>
+								</div>
+							</>
+						)}
+
+						{currentStep === 3 && (
+							<>
+								<div className="text-center mb-6">
+									<motion.div
+										initial={{ scale: 0 }}
+										animate={{ scale: 1 }}
+										transition={{
+											delay: 0.3,
+											type: "spring",
+										}}
+										className="mx-auto w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4"
+									>
+										<Send className="text-primary" />
+									</motion.div>
+									<p className="text-default-600">
+										We&apos;ve sent a verification code to{" "}
+										<strong>{State.Email}</strong>
+									</p>
+									<p className="text-sm text-default-500 mt-2">
+										Please check your email and enter the
+										6-digit code below
 									</p>
 								</div>
-								<div className="flex flex-row gap-3 items-center justify-center">
-									<Input
-										label="Username"
-										type="text"
-										startContent={<AlternateEmail />}
-										value={State.Username}
-										onChange={(e) =>
-											setState({
-												...State,
-												Username: e.target.value,
-											})
+
+								<div className="flex justify-center">
+									<InputOtp
+										length={6}
+										size="lg"
+										value={State.Otp}
+										onValueChange={(value) =>
+											updateField("Otp", value)
 										}
+										className="w-full max-w-md"
+										isDisabled={State.isLoading}
 									/>
 								</div>
-							</div>
+
+								{State.OtpTrys > 0 && (
+									<div className="text-center text-sm text-warning">
+										{State.OtpTrys >= 3
+											? "Too many attempts. Please try again later."
+											: `Attempt ${State.OtpTrys} of 3`}
+									</div>
+								)}
+
+								<div className="text-center">
+									<Button
+										variant="light"
+										size="sm"
+										onPress={() => {
+											// Resend OTP logic here
+											console.log("Resend OTP");
+										}}
+										isDisabled={
+											State.isLoading ||
+											State.OtpTrys >= 3
+										}
+									>
+										Didn&apos;t receive the code? Resend
+									</Button>
+								</div>
+							</>
 						)}
-					</ModalBody>
-					<ModalFooter>
-						{ActiveStep > 0 && ActiveStep < 5 && !inProgress && (
-							<Button
-								onPress={() => setActiveStep(ActiveStep - 1)}
-							>
-								Previous
-							</Button>
+
+						{currentStep === 4 && (
+							<>
+								<Input
+									label="Username"
+									placeholder="Choose your unique username"
+									startContent={<AlternateEmail />}
+									value={State.Username}
+									onChange={(e) =>
+										updateField("Username", e.target.value)
+									}
+									variant="bordered"
+									size="lg"
+									isDisabled={State.isLoading}
+									autoComplete="username"
+									classNames={{
+										input: "bg-transparent",
+										inputWrapper:
+											"backdrop-blur-sm bg-white/20 border-white/20",
+									}}
+								/>
+
+								<div className="text-xs text-default-500 space-y-1">
+									<div>Username requirements:</div>
+									<ul className="list-disc list-inside space-y-1 ml-2">
+										<li>3-20 characters long</li>
+										<li>
+											Letters, numbers, and underscores
+											only
+										</li>
+										<li>Must be unique</li>
+									</ul>
+								</div>
+							</>
 						)}
-						{ActiveStep < 5 && !inProgress && (
-							<Button onPress={ValidateStep}>
-								{ActiveStep === 4 ? "Create Account" : "Next"}
-							</Button>
+					</motion.div>
+				</motion.div>
+			</AnimatePresence>
+		);
+	};
+
+	return (
+		<div
+			className="Page CENTER"
+			style={{
+				background: `
+					radial-gradient(ellipse at top, rgba(120, 119, 198, 0.3), transparent 50%),
+					radial-gradient(ellipse at bottom, rgba(255, 45, 83, 0.3), transparent 50%),
+					radial-gradient(ellipse at left, rgba(74, 222, 128, 0.3), transparent 50%),
+					radial-gradient(ellipse at right, rgba(251, 191, 36, 0.3), transparent 50%),
+					linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%)
+				`,
+				minHeight: "100vh",
+			}}
+		>
+			<motion.div
+				initial={{ opacity: 0, scale: 0.9 }}
+				animate={{ opacity: 1, scale: 1 }}
+				transition={{ duration: 0.5 }}
+				className="w-full max-w-md"
+			>
+				<Modal
+					isOpen={isOpen}
+					onOpenChange={onOpenChange}
+					size="2xl"
+					scrollBehavior="inside"
+					classNames={{
+						base: "bg-transparent",
+						wrapper: "bg-transparent",
+						backdrop: "bg-black/50 backdrop-blur-sm",
+					}}
+					isDismissable={false}
+					isKeyboardDismissDisabled={false}
+					hideCloseButton={true}
+				>
+					<ModalContent className="bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
+						{(onClose) => (
+							<>
+								<ModalHeader className="flex flex-col gap-1 items-center text-center">
+									<motion.div
+										initial={{ opacity: 0, y: -20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.2 }}
+										className="flex items-center gap-3"
+									>
+										<PersonAdd className="text-2xl text-primary" />
+										<span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+											Create New Account
+										</span>
+									</motion.div>
+
+									{/* Step Progress */}
+									<motion.div
+										initial={{ opacity: 0, y: 20 }}
+										animate={{ opacity: 1, y: 0 }}
+										transition={{ delay: 0.3 }}
+										className="w-full mt-4"
+									>
+										<StepProgress
+											currentStep={currentStep}
+											totalSteps={steps.length}
+										/>
+									</motion.div>
+								</ModalHeader>
+
+								<ModalBody className="px-6 py-4">
+									{renderStepContent()}
+								</ModalBody>
+
+								<ModalFooter className="flex justify-between px-6 py-4">
+									<motion.div
+										initial={{ opacity: 0, x: -20 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: 0.6 }}
+									>
+										{currentStep > 0 && (
+											<Button
+												variant="light"
+												onPress={handlePreviousStep}
+												isDisabled={State.isLoading}
+												startContent={<ArrowBack />}
+											>
+												Previous
+											</Button>
+										)}
+									</motion.div>
+
+									<motion.div
+										initial={{ opacity: 0, x: 20 }}
+										animate={{ opacity: 1, x: 0 }}
+										transition={{ delay: 0.6 }}
+									>
+										{currentStep < steps.length - 1 ? (
+											<Button
+												color="primary"
+												onPress={handleNextStep}
+												isLoading={State.isLoading}
+												isDisabled={State.isLoading}
+												endContent={
+													!State.isLoading && (
+														<ArrowForward />
+													)
+												}
+												className="bg-gradient-to-r from-primary to-secondary"
+											>
+												{State.isLoading
+													? "Processing..."
+													: "Next"}
+											</Button>
+										) : (
+											<Button
+												color="success"
+												onPress={handleNextStep}
+												isLoading={State.isLoading}
+												isDisabled={State.isLoading}
+												endContent={
+													!State.isLoading && (
+														<Check />
+													)
+												}
+												className="bg-gradient-to-r from-success to-success-600"
+											>
+												{State.isLoading
+													? "Creating Account..."
+													: "Create Account"}
+											</Button>
+										)}
+									</motion.div>
+								</ModalFooter>
+
+								{/* Sign In Link */}
+								<div className="text-center pb-4 px-6">
+									<motion.div
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										transition={{ delay: 0.7 }}
+									>
+										<span className="text-sm text-default-500">
+											Already have an account?{" "}
+										</span>
+										<Button
+											variant="light"
+											color="primary"
+											size="sm"
+											onPress={() => {
+												const signinUrl = new URL(
+													"/auth/signin",
+													window.location.origin
+												);
+												if (searchParams.get("ref")) {
+													signinUrl.searchParams.set(
+														"ref",
+														searchParams.get("ref")!
+													);
+												}
+												router.push(
+													signinUrl.toString()
+												);
+											}}
+											isDisabled={State.isLoading}
+											className="text-primary hover:text-primary-600"
+										>
+											Sign In
+										</Button>
+									</motion.div>
+								</div>
+							</>
 						)}
-						{inProgress && <CircularProgress size="sm" />}
-					</ModalFooter>
-				</ModalContent>
-			</Modal>
+					</ModalContent>
+				</Modal>
+			</motion.div>
 		</div>
+	);
+}
+
+// Loading component for Suspense fallback
+function SignUpLoading() {
+	return (
+		<div
+			className="Page CENTER"
+			style={{
+				background: `
+					radial-gradient(ellipse at top, rgba(120, 119, 198, 0.3), transparent 50%),
+					radial-gradient(ellipse at bottom, rgba(255, 45, 83, 0.3), transparent 50%),
+					radial-gradient(ellipse at left, rgba(74, 222, 128, 0.3), transparent 50%),
+					radial-gradient(ellipse at right, rgba(251, 191, 36, 0.3), transparent 50%),
+					linear-gradient(135deg, rgba(0, 0, 0, 0.8) 0%, rgba(0, 0, 0, 0.9) 100%)
+				`,
+				minHeight: "100vh",
+			}}
+		>
+			<motion.div
+				initial={{ opacity: 0, scale: 0.9 }}
+				animate={{ opacity: 1, scale: 1 }}
+				transition={{ duration: 0.5 }}
+			>
+				<Modal
+					isOpen={true}
+					size="2xl"
+					classNames={{
+						base: "bg-transparent",
+						backdrop: "bg-black/50 backdrop-blur-sm",
+					}}
+					isDismissable={false}
+				>
+					<ModalContent className="bg-white/10 backdrop-blur-md border border-white/20 shadow-2xl">
+						<ModalHeader className="flex flex-col gap-1 items-center text-center">
+							<div className="flex items-center gap-3">
+								<PersonAdd className="text-2xl text-primary" />
+								<span className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+									Create New Account
+								</span>
+							</div>
+						</ModalHeader>
+						<ModalBody className="flex justify-center items-center py-12">
+							<div className="flex flex-col items-center gap-4">
+								<CircularProgress
+									size="lg"
+									color="primary"
+									classNames={{
+										svg: "w-16 h-16",
+									}}
+								/>
+								<p className="text-default-500">
+									Loading signup form...
+								</p>
+							</div>
+						</ModalBody>
+					</ModalContent>
+				</Modal>
+			</motion.div>
+		</div>
+	);
+}
+
+export default function SignUp() {
+	return (
+		<Suspense fallback={<SignUpLoading />}>
+			<SignUpForm />
+		</Suspense>
 	);
 }

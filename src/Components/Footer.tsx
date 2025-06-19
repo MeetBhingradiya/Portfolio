@@ -24,9 +24,11 @@ import {
 	Support,
 	RssFeed,
 	Analytics,
+	Settings,
 } from "@mui/icons-material";
 import Link from "next/link";
 import Image from "next/image";
+import ModelMenu from "@Components/ModelMenu";
 
 interface FooterLink {
 	label: string;
@@ -72,7 +74,10 @@ const footerSections: FooterSection[] = [
 		links: [
 			{ label: "Technical Blog", href: "/blog" },
 			{ label: "Case Studies", href: "/case-studies" },
-			{ label: "Documentation", href: "https://notes.meetbhingradiya.tech" },
+			{
+				label: "Documentation",
+				href: "https://notes.meetbhingradiya.tech",
+			},
 			// {
 			// 	label: "RSS Feed",
 			// 	href: "/rss.xml",
@@ -99,12 +104,15 @@ const footerSections: FooterSection[] = [
 				href: "https://github.com/MeetBhingradiya",
 				external: true,
 			},
-			// {
-			// 	label: "Schedule Meeting",
-			// 	href: "https://calendly.com/meetbhingradiya",
-			// 	external: true,
-			// },
-			{ label: "Contact", href: "#contact" },
+			{
+				label: "Schedule Meeting",
+				href: "https://calendly.com/meetbhingradiya",
+				external: true,
+			},
+			{
+				label: "Contact",
+				href: "/contact",
+			},
 		],
 	},
 	{
@@ -122,34 +130,50 @@ const footerSections: FooterSection[] = [
 			},
 			{
 				label: "Support",
-				href: "/support",
+				// href: "/support",
+				href: "/contact",
 				icon: <Support className="text-xs" />,
+			},
+			{
+				label: "Settings",
+				href: "#settings",
+				icon: <Settings className="text-xs" />,
+			},
+			{
+				label: "Edit Page",
+				href: "/auth/signin",
+				icon: <Code className="text-xs" />,
+				external: true,
 			},
 		],
 	},
 ];
 
-const achievements = [
-	{
-		icon: <Security className="text-lg" />,
-		label: "Security Expert",
-		value: "96%",
-	},
-	{
-		icon: <Build className="text-lg" />,
-		label: "Automation",
-		value: "98%",
-	},
-	{
-		icon: <Public className="text-lg" />,
-		label: "Open Source",
-		value: "Active",
-	},
-	{
-		icon: <Star className="text-lg" />,
-		label: "Skill Score",
-		value: "89.7/100",
-	},
+const achievements: Array<{
+	icon: React.ReactNode;
+	label: string;
+	value: string;
+}> = [
+	// {
+	// 	icon: <Security className="text-lg" />,
+	// 	label: "Security Expert",
+	// 	value: "95%",
+	// },
+	// {
+	// 	icon: <Build className="text-lg" />,
+	// 	label: "Automation",
+	// 	value: "98%",
+	// },
+	// {
+	// 	icon: <Public className="text-lg" />,
+	// 	label: "Open Source",
+	// 	value: "Active",
+	// },
+	// {
+	// 	icon: <Star className="text-lg" />,
+	// 	label: "Skill Score",
+	// 	value: "89.7/100",
+	// },
 ];
 
 const technologies = [
@@ -170,6 +194,7 @@ const technologies = [
 function Footer() {
 	const [showScrollTop, setShowScrollTop] = useState(false);
 	const [hoveredTech, setHoveredTech] = useState<string | null>(null);
+	const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
 
 	React.useEffect(() => {
 		const handleScroll = () => {
@@ -251,34 +276,40 @@ function Footer() {
 									scalable software systems.
 								</p>
 
-								{/* Quick Stats */}
-								{/* <div className="grid grid-cols-2 gap-4">
-									{achievements.map((achievement, index) => (
-										<motion.div
-											key={achievement.label}
-											initial={{ opacity: 0, scale: 0.8 }}
-											whileInView={{
-												opacity: 1,
-												scale: 1,
-											}}
-											transition={{
-												duration: 0.6,
-												delay: index * 0.1,
-											}}
-											className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center hover:bg-white/20 transition-colors duration-300"
-										>
-											<div className="text-blue-400 mb-1 flex justify-center">
-												{achievement.icon}
-											</div>
-											<div className="text-lg font-bold">
-												{achievement.value}
-											</div>
-											<div className="text-xs text-gray-400">
-												{achievement.label}
-											</div>
-										</motion.div>
-									))}
-								</div> */}
+								{achievements.length > 0 && (
+									<div className="grid grid-cols-2 gap-4">
+										{achievements.map(
+											(achievement, index) => (
+												<motion.div
+													key={achievement.label}
+													initial={{
+														opacity: 0,
+														scale: 0.8,
+													}}
+													whileInView={{
+														opacity: 1,
+														scale: 1,
+													}}
+													transition={{
+														duration: 0.6,
+														delay: index * 0.1,
+													}}
+													className="bg-white/10 backdrop-blur-sm rounded-lg p-3 text-center hover:bg-white/20 transition-colors duration-300"
+												>
+													<div className="text-blue-400 mb-1 flex justify-center">
+														{achievement.icon}
+													</div>
+													<div className="text-lg font-bold">
+														{achievement.value}
+													</div>
+													<div className="text-xs text-gray-400">
+														{achievement.label}
+													</div>
+												</motion.div>
+											)
+										)}
+									</div>
+								)}
 
 								{/* Social Links */}
 								<div className="flex space-x-4">
@@ -303,7 +334,7 @@ function Footer() {
 										<LinkedIn className="text-xl" />
 									</motion.a>
 									<motion.a
-										href="mailto:meetbhingradiya@outlook.com"
+										href="/contact"
 										whileHover={{ scale: 1.2, y: -2 }}
 										whileTap={{ scale: 0.9 }}
 										className="p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors duration-300"
@@ -334,10 +365,10 @@ function Footer() {
 												(link, linkIndex) => (
 													<motion.div
 														key={link.label}
-														initial={{
-															opacity: 0,
-															x: -10,
-														}}
+														// initial={{
+														// 	opacity: 0,
+														// 	x: -10,
+														// }}
 														whileInView={{
 															opacity: 1,
 															x: 0,
@@ -349,29 +380,54 @@ function Footer() {
 																0.05,
 														}}
 													>
-														<Link
-															href={link.href}
-															target={
-																link.external
-																	? "_blank"
-																	: "_self"
-															}
-															rel={
-																link.external
-																	? "noopener noreferrer"
-																	: ""
-															}
-															className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 text-sm group"
-														>
-															{link.icon && (
-																<span className="text-gray-400 group-hover:text-white">
-																	{link.icon}
+														{link.href ===
+														"#settings" ? (
+															<button
+																onClick={() =>
+																	setIsModelMenuOpen(
+																		true
+																	)
+																}
+																className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 text-sm group cursor-pointer"
+															>
+																{link.icon && (
+																	<span className="text-gray-400 group-hover:text-white">
+																		{
+																			link.icon
+																		}
+																	</span>
+																)}
+																<span className="group-hover:translate-x-1 transition-transform duration-200">
+																	{link.label}
 																</span>
-															)}
-															<span className="group-hover:translate-x-1 transition-transform duration-200">
-																{link.label}
-															</span>
-														</Link>
+															</button>
+														) : (
+															<Link
+																href={link.href}
+																target={
+																	link.external
+																		? "_blank"
+																		: "_self"
+																}
+																rel={
+																	link.external
+																		? "noopener noreferrer"
+																		: ""
+																}
+																className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 text-sm group"
+															>
+																{link.icon && (
+																	<span className="text-gray-400 group-hover:text-white">
+																		{
+																			link.icon
+																		}
+																	</span>
+																)}
+																<span className="group-hover:translate-x-1 transition-transform duration-200">
+																	{link.label}
+																</span>
+															</Link>
+														)}
 													</motion.div>
 												)
 											)}
@@ -420,7 +476,7 @@ function Footer() {
 
 						{/* Current Status */}
 						<motion.div
-							initial={{ opacity: 0, y: 20 }}
+							// initial={{ opacity: 0, y: 20 }}
 							whileInView={{ opacity: 1, y: 0 }}
 							transition={{ duration: 0.6, delay: 0.5 }}
 							className="bg-gradient-to-r from-blue-500/20 to-purple-600/20 backdrop-blur-sm rounded-xl p-6 mb-4 border border-white/10"
@@ -429,8 +485,8 @@ function Footer() {
 								<div className="flex items-center space-x-3">
 									<div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
 									<span className="font-semibold">
-										Currently Available for Staff Engineer
-										Positions
+										Currently Available for Full Stack
+										Developer Positions
 									</span>
 								</div>
 								<div className="flex items-center space-x-6 text-sm text-gray-300">
@@ -444,7 +500,13 @@ function Footer() {
 									</div>
 									<div className="flex items-center space-x-1">
 										<Language className="text-sm" />
-										<span>Remote Friendly</span>
+										<span>
+											Available for Remote & OnSite
+										</span>
+									</div>
+									<div className="flex items-center space-x-1">
+										<Build className="text-sm" />
+										<span>Full Time</span>
 									</div>
 								</div>
 							</div>
@@ -468,20 +530,35 @@ function Footer() {
 							<div className="flex items-center space-x-6 text-sm text-gray-400">
 								<div className="flex items-center space-x-1">
 									<Analytics className="text-sm" />
-									<span>Built with Next.js & TypeScript</span>
+									<span>
+										Built with Next.js, Github Copilot &
+										TypeScript
+									</span>
 								</div>
 								<div className="flex items-center space-x-1">
 									<Security className="text-sm" />
-									<span>Secured & Optimized</span>
+									<span>Secured with best practices</span>
 								</div>
-								{/* <div className="flex items-center space-x-1">
-									<Coffee className="text-sm" />
-									<span>Powered by dedication</span>
-								</div> */}
+								<div className="flex items-center space-x-1">
+									<span>Powered by</span>
+									<Image
+										src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg"
+										alt="Vercel Logo"
+										width={24}
+										height={16}
+										className="dark:invert"
+									/>
+								</div>
 							</div>
-						</div>
+						</div>{" "}
 					</motion.div>
 				</div>
+
+				{/* ModelMenu */}
+				<ModelMenu
+					isOpen={isModelMenuOpen}
+					onClose={() => setIsModelMenuOpen(false)}
+				/>
 			</footer>
 		</>
 	);

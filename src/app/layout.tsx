@@ -6,22 +6,21 @@ import { Providers } from "@Components/Providers";
 import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
 import Header from "@Components/Header";
-import LandingFooter from "@Components/Footer/LandingFooter";
+import Footer from "@Components/Footer";
 import { ToastContainer } from "react-toastify";
 import { muiXTelemetrySettings } from "@mui/x-license";
 import { generateLicense, LicenseInfo } from "@mui/x-license";
 
 muiXTelemetrySettings.disableTelemetry();
 LicenseInfo.setLicenseKey(
-    generateLicense({
-        expiryDate: new Date(`${new Date().getFullYear() + 1}-12-31`),
-        orderNumber: "MUI-123",
-        planScope: "premium",
-        licenseModel: "subscription",
-        planVersion: "initial",
-    })
+	generateLicense({
+		expiryDate: new Date(`${new Date().getFullYear() + 1}-12-31`),
+		orderNumber: "MUI-123",
+		planScope: "premium",
+		licenseModel: "subscription",
+		planVersion: "initial",
+	})
 );
-
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -137,7 +136,7 @@ export default function RootLayout({
 
 					<Providers>{children}</Providers>
 
-					{/* <LandingFooter /> */}
+					<Footer />
 				</ThemeProvider>
 			</body>
 		</html>

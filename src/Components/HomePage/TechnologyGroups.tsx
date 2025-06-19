@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 import {
 	Code,
 	Security,
@@ -17,7 +18,15 @@ import {
 
 interface Technology {
 	name: string;
-	icon: string;
+	icon:
+		| string
+		| React.ReactNode
+		| {
+				type: "image" | "svg" | "component";
+				src?: string;
+				component?: React.ComponentType;
+				alt?: string;
+		  };
 	color: string;
 	proficiency: number;
 	yearsOfExperience: number;
@@ -34,6 +43,79 @@ interface TechnologyGroup {
 	featured: boolean;
 }
 
+// Helper function to render technology icons
+const renderTechIcon = (
+	icon:
+		| string
+		| React.ReactNode
+		| {
+				type: "image" | "svg" | "component";
+				src?: string;
+				component?: React.ComponentType;
+				alt?: string;
+		  },
+	size: "sm" | "lg" = "lg"
+) => {
+	const baseClass = size === "lg" ? "text-3xl mb-2" : "text-base";
+	const imageSize = size === "lg" ? 32 : 20;
+
+	// If it's a string (emoji) or ReactNode, render directly
+	if (typeof icon === "string" || React.isValidElement(icon)) {
+		return <div className={baseClass}>{icon}</div>;
+	}
+
+	// If it's an object with type specification
+	if (typeof icon === "object" && icon !== null && "type" in icon) {
+		switch (icon.type) {
+			case "image":
+				return (
+					<div className={baseClass}>
+						<Image
+							src={icon.src || ""}
+							alt={icon.alt || "Technology icon"}
+							width={imageSize}
+							height={imageSize}
+							className="object-contain mx-auto"
+						/>
+					</div>
+				);
+			case "svg":
+				// Check if the icon should be inverted in dark mode (for black/dark icons)
+				// Use alt attribute to identify which icons need inversion
+				const shouldInvertInDark =
+					icon.alt?.includes("Next.js") ||
+					icon.alt?.includes("Express") ||
+					icon.alt?.includes("GitHub") ||
+					icon.alt?.includes("Vercel") ||
+					icon.alt?.includes("Prisma");
+
+				return (
+					<div className="flex items-center justify-center mb-2">
+						<img
+							src={icon.src || ""}
+							alt={icon.alt || "Technology icon"}
+							className={`object-contain ${size === "lg" ? "w-8 h-8" : "w-5 h-5"} ${shouldInvertInDark ? "dark:invert" : ""}`}
+						/>
+					</div>
+				);
+			case "component":
+				const Component = icon.component;
+				return Component ? (
+					<div className={baseClass}>
+						<Component />
+					</div>
+				) : (
+					<div className={baseClass}>🔧</div>
+				);
+			default:
+				return <div className={baseClass}>🔧</div>;
+		}
+	}
+
+	// Fallback
+	return <div className={baseClass}>🔧</div>;
+};
+
 const technologyGroups: TechnologyGroup[] = [
 	{
 		id: "frontend",
@@ -46,7 +128,11 @@ const technologyGroups: TechnologyGroup[] = [
 		technologies: [
 			{
 				name: "React",
-				icon: "⚛️",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/react/react-original.svg",
+					alt: "React logo",
+				},
 				color: "#61DAFB",
 				proficiency: 90,
 				yearsOfExperience: 3,
@@ -54,7 +140,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Next.js",
-				icon: "▲",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nextjs/nextjs-original.svg",
+					alt: "Next.js logo",
+				},
 				color: "#000000",
 				proficiency: 95,
 				yearsOfExperience: 2.5,
@@ -62,7 +152,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "TypeScript",
-				icon: "📘",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/typescript/typescript-original.svg",
+					alt: "TypeScript logo",
+				},
 				color: "#3178C6",
 				proficiency: 94,
 				yearsOfExperience: 2,
@@ -70,7 +164,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Tailwind CSS",
-				icon: "🎨",
+				icon: {
+					type: "svg" as const,
+					src: "https://raw.githubusercontent.com/devicons/devicon/refs/tags/v2.16.0/icons/tailwindcss/tailwindcss-original.svg",
+					alt: "Tailwind CSS logo",
+				},
 				color: "#06B6D4",
 				proficiency: 88,
 				yearsOfExperience: 2,
@@ -78,7 +176,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Framer Motion",
-				icon: "🎭",
+				icon: {
+					type: "component" as const,
+					component: () => <AutoFixHigh className="text-current" />,
+				},
 				color: "#FF0055",
 				proficiency: 85,
 				yearsOfExperience: 1.5,
@@ -86,7 +187,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Sass/SCSS",
-				icon: "💅",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/sass/sass-original.svg",
+					alt: "Sass logo",
+				},
 				color: "#CC6699",
 				proficiency: 87,
 				yearsOfExperience: 3,
@@ -105,7 +210,11 @@ const technologyGroups: TechnologyGroup[] = [
 		technologies: [
 			{
 				name: "Node.js",
-				icon: "🟢",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nodejs/nodejs-original.svg",
+					alt: "Node.js logo",
+				},
 				color: "#339933",
 				proficiency: 92,
 				yearsOfExperience: 3,
@@ -113,7 +222,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Express.js",
-				icon: "🚂",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/express/express-original.svg",
+					alt: "Express.js logo",
+				},
 				color: "#000000",
 				proficiency: 95,
 				yearsOfExperience: 3,
@@ -121,23 +234,34 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "MongoDB",
-				icon: "🍃",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/mongodb/mongodb-original.svg",
+					alt: "MongoDB logo",
+				},
 				color: "#47A248",
 				proficiency: 88,
 				yearsOfExperience: 2.5,
 				projects: 18,
 			},
 			{
-				name: "Mongoose",
-				icon: "🐻",
-				color: "#880000",
-				proficiency: 90,
-				yearsOfExperience: 2.5,
-				projects: 16,
+				name: "Prisma",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/prisma/prisma-original.svg",
+					alt: "Prisma logo",
+				},
+				color: "#2D3748",
+				proficiency: 80,
+				yearsOfExperience: 1.5,
+				projects: 1,
 			},
 			{
 				name: "REST APIs",
-				icon: "🔗",
+				icon: {
+					type: "component" as const,
+					component: () => <Api className="text-current" />,
+				},
 				color: "#FF6B6B",
 				proficiency: 93,
 				yearsOfExperience: 3,
@@ -145,7 +269,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "JWT",
-				icon: "🔐",
+				icon: {
+					type: "component" as const,
+					component: () => <Security className="text-current" />,
+				},
 				color: "#000000",
 				proficiency: 89,
 				yearsOfExperience: 2,
@@ -164,7 +291,10 @@ const technologyGroups: TechnologyGroup[] = [
 		technologies: [
 			{
 				name: "Threat Intelligence",
-				icon: "🛡️",
+				icon: {
+					type: "component" as const,
+					component: () => <Security className="text-current" />,
+				},
 				color: "#DC2626",
 				proficiency: 96,
 				yearsOfExperience: 2,
@@ -172,7 +302,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Rate Limiting",
-				icon: "⏱️",
+				icon: {
+					type: "component" as const,
+					component: () => <Speed className="text-current" />,
+				},
 				color: "#7C3AED",
 				proficiency: 94,
 				yearsOfExperience: 2.5,
@@ -180,7 +313,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "CSRF Protection",
-				icon: "🔒",
+				icon: {
+					type: "component" as const,
+					component: () => <Security className="text-current" />,
+				},
 				color: "#059669",
 				proficiency: 92,
 				yearsOfExperience: 2,
@@ -188,7 +324,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Bot Detection",
-				icon: "🤖",
+				icon: {
+					type: "component" as const,
+					component: () => <Psychology className="text-current" />,
+				},
 				color: "#DC2626",
 				proficiency: 98,
 				yearsOfExperience: 2,
@@ -196,7 +335,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Session Management",
-				icon: "👤",
+				icon: {
+					type: "component" as const,
+					component: () => <Devices className="text-current" />,
+				},
 				color: "#7C2D12",
 				proficiency: 91,
 				yearsOfExperience: 2,
@@ -204,7 +346,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Encryption",
-				icon: "🔐",
+				icon: {
+					type: "component" as const,
+					component: () => <Security className="text-current" />,
+				},
 				color: "#1F2937",
 				proficiency: 87,
 				yearsOfExperience: 1.5,
@@ -223,7 +368,11 @@ const technologyGroups: TechnologyGroup[] = [
 		technologies: [
 			{
 				name: "Vercel",
-				icon: "▲",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg",
+					alt: "Vercel logo",
+				},
 				color: "#000000",
 				proficiency: 93,
 				yearsOfExperience: 2,
@@ -231,7 +380,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "GitHub Actions",
-				icon: "⚡",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
+					alt: "GitHub Actions logo",
+				},
 				color: "#2088FF",
 				proficiency: 89,
 				yearsOfExperience: 1.5,
@@ -239,7 +392,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Docker",
-				icon: "🐳",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/docker/docker-original.svg",
+					alt: "Docker logo",
+				},
 				color: "#2496ED",
 				proficiency: 82,
 				yearsOfExperience: 1,
@@ -247,7 +404,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Nginx",
-				icon: "🔧",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/nginx/nginx-original.svg",
+					alt: "Nginx logo",
+				},
 				color: "#009639",
 				proficiency: 78,
 				yearsOfExperience: 1,
@@ -255,7 +416,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Git",
-				icon: "📚",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/git/git-original.svg",
+					alt: "Git logo",
+				},
 				color: "#F05032",
 				proficiency: 94,
 				yearsOfExperience: 3,
@@ -263,7 +428,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Linux",
-				icon: "🐧",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/linux/linux-original.svg",
+					alt: "Linux logo",
+				},
 				color: "#FCC624",
 				proficiency: 85,
 				yearsOfExperience: 2,
@@ -282,7 +451,11 @@ const technologyGroups: TechnologyGroup[] = [
 		technologies: [
 			{
 				name: "Python",
-				icon: "🐍",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/python/python-original.svg",
+					alt: "Python logo",
+				},
 				color: "#3776AB",
 				proficiency: 94,
 				yearsOfExperience: 3,
@@ -290,7 +463,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Selenium",
-				icon: "🌐",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/selenium/selenium-original.svg",
+					alt: "Selenium logo",
+				},
 				color: "#43B02A",
 				proficiency: 96,
 				yearsOfExperience: 2.5,
@@ -298,7 +475,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Multi-threading",
-				icon: "🧵",
+				icon: {
+					type: "component" as const,
+					component: () => <Build className="text-current" />,
+				},
 				color: "#FF6B6B",
 				proficiency: 93,
 				yearsOfExperience: 2,
@@ -306,7 +486,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Browser Automation",
-				icon: "🤖",
+				icon: {
+					type: "component" as const,
+					component: () => <Devices className="text-current" />,
+				},
 				color: "#4285F4",
 				proficiency: 98,
 				yearsOfExperience: 2.5,
@@ -314,7 +497,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Task Scheduling",
-				icon: "⏰",
+				icon: {
+					type: "component" as const,
+					component: () => <Speed className="text-current" />,
+				},
 				color: "#8B5CF6",
 				proficiency: 88,
 				yearsOfExperience: 2,
@@ -322,7 +508,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Process Management",
-				icon: "⚙️",
+				icon: {
+					type: "component" as const,
+					component: () => <Build className="text-current" />,
+				},
 				color: "#059669",
 				proficiency: 91,
 				yearsOfExperience: 2,
@@ -341,7 +530,11 @@ const technologyGroups: TechnologyGroup[] = [
 		technologies: [
 			{
 				name: "GitHub Copilot",
-				icon: "🤖",
+				icon: {
+					type: "svg" as const,
+					src: "https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg",
+					alt: "GitHub Copilot logo",
+				},
 				color: "#2088FF",
 				proficiency: 95,
 				yearsOfExperience: 2,
@@ -349,7 +542,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Cursor AI",
-				icon: "✨",
+				icon: {
+					type: "svg" as const,
+					src: "https://www.cursor.com/brand/icon.svg",
+					alt: "Cursor AI logo",
+				},
 				color: "#FF6B6B",
 				proficiency: 88,
 				yearsOfExperience: 0.5,
@@ -357,7 +554,11 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "ChatGPT",
-				icon: "🧠",
+				icon: {
+					type: "svg" as const,
+					src: "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
+					alt: "ChatGPT logo",
+				},
 				color: "#00A67E",
 				proficiency: 90,
 				yearsOfExperience: 1,
@@ -365,7 +566,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Code Generation",
-				icon: "⚡",
+				icon: {
+					type: "component" as const,
+					component: () => <AutoFixHigh className="text-current" />,
+				},
 				color: "#7C3AED",
 				proficiency: 92,
 				yearsOfExperience: 2,
@@ -373,7 +577,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "AI Debugging",
-				icon: "🐛",
+				icon: {
+					type: "component" as const,
+					component: () => <Build className="text-current" />,
+				},
 				color: "#DC2626",
 				proficiency: 87,
 				yearsOfExperience: 1,
@@ -381,7 +588,10 @@ const technologyGroups: TechnologyGroup[] = [
 			},
 			{
 				name: "Productivity Tools",
-				icon: "🚀",
+				icon: {
+					type: "component" as const,
+					component: () => <Speed className="text-current" />,
+				},
 				color: "#059669",
 				proficiency: 94,
 				yearsOfExperience: 3,
@@ -419,7 +629,7 @@ function TechnologyGroups() {
 				{/* Section Header */}
 				<motion.div
 					initial={{ opacity: 0, y: 20 }}
-					whileInView={{ opacity: 1, y: 0 }}
+					animate={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.6 }}
 					className="text-center mb-16"
 				>
@@ -442,7 +652,7 @@ function TechnologyGroups() {
 						<motion.div
 							key={group.id}
 							initial={{ opacity: 0, y: 40 }}
-							whileInView={{ opacity: 1, y: 0 }}
+							animate={{ opacity: 1, y: 0 }}
 							transition={{
 								duration: 0.8,
 								delay: groupIndex * 0.1,
@@ -454,7 +664,7 @@ function TechnologyGroups() {
 								<motion.div
 									className="grid grid-cols-2 md:grid-cols-3 gap-6"
 									initial={{ opacity: 0, scale: 0.8 }}
-									whileInView={{ opacity: 1, scale: 1 }}
+									animate={{ opacity: 1, scale: 1 }}
 									transition={{ duration: 0.6, delay: 0.2 }}
 								>
 									{group.technologies.map(
@@ -462,7 +672,7 @@ function TechnologyGroups() {
 											<motion.div
 												key={tech.name}
 												initial={{ opacity: 0, y: 20 }}
-												whileInView={{
+												animate={{
 													opacity: 1,
 													y: 0,
 												}}
@@ -484,9 +694,10 @@ function TechnologyGroups() {
 												}
 											>
 												<div className="text-center space-y-3">
-													<div className="text-3xl mb-2">
-														{tech.icon}
-													</div>
+													{renderTechIcon(
+														tech.icon,
+														"lg"
+													)}
 													<h4 className="font-semibold text-gray-900 dark:text-white text-sm">
 														{tech.name}
 													</h4>
@@ -504,7 +715,7 @@ function TechnologyGroups() {
 															initial={{
 																width: 0,
 															}}
-															whileInView={{
+															animate={{
 																width: `${tech.proficiency}%`,
 															}}
 															transition={{
@@ -569,7 +780,7 @@ function TechnologyGroups() {
 										opacity: 0,
 										x: groupIndex % 2 === 0 ? 20 : -20,
 									}}
-									whileInView={{ opacity: 1, x: 0 }}
+									animate={{ opacity: 1, x: 0 }}
 									transition={{ duration: 0.6, delay: 0.3 }}
 									className="space-y-4"
 								>
@@ -687,11 +898,19 @@ function TechnologyGroups() {
 															}}
 															className="space-y-2"
 														>
+															{" "}
 															<div className="flex justify-between items-center">
-																<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-																	{tech.icon}{" "}
-																	{tech.name}
-																</span>
+																<div className="flex items-center space-x-2">
+																	{renderTechIcon(
+																		tech.icon,
+																		"sm"
+																	)}
+																	<span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+																		{
+																			tech.name
+																		}
+																	</span>
+																</div>
 																<span
 																	className={`text-sm font-medium ${getProficiencyColor(tech.proficiency)}`}
 																>

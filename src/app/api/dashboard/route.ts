@@ -95,12 +95,14 @@ export async function GET(request: NextRequest) {
 		const totalActiveSessions = allActiveSessions.length;
 		// Get last password change (check the most recent active credential)
 		// If no credentials exist, fall back to account creation date
-		const lastPasswordChange = user.Credentials && user.Credentials.length > 0
-			? user.Credentials
-				.filter((cred: any) => cred.isActive)
-				.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0]?.createdAt || user.createdAt
-			: user.createdAt;
-
+		const lastPasswordChange =
+			user.Credentials && user.Credentials.length > 0
+				? user.Credentials.filter((cred: any) => cred.isActive).sort(
+						(a: any, b: any) =>
+							new Date(b.createdAt).getTime() -
+							new Date(a.createdAt).getTime()
+					)[0]?.createdAt || user.createdAt
+				: user.createdAt;
 		// Prepare comprehensive user data
 		const userData = {
 			UserID: user.UserID,
@@ -119,6 +121,7 @@ export async function GET(request: NextRequest) {
 			createdAt: user.createdAt,
 			lastLoginAt: currentSession.createdAt,
 			profileCompleteness: calculateProfileCompleteness(user),
+			thirdPartyConnections: user.thirdPartyConnections || [],
 		};
 
 		// Prepare current session data

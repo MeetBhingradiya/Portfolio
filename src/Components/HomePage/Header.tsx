@@ -39,12 +39,12 @@ function Header() {
 			icon: <Work className="text-lg" />,
 		},
 		{
-			href: "#blogs",
+			href: "/blogs",
 			label: "Blogs",
 			icon: <Article className="text-lg" />,
 		},
 		{
-			href: "#contact",
+			href: "/contact",
 			label: "Contact",
 			icon: <ContactMail className="text-lg" />,
 		},
@@ -87,8 +87,7 @@ function Header() {
 								href="/"
 								className="flex items-center space-x-3"
 							>
-								<div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center p-1">
-									{/* <Code className="text-white text-lg" /> */}
+								<div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center p-[1px]">
 									<Image
 										src="/favicon.ico"
 										alt="Meet Bhingradiya Logo"

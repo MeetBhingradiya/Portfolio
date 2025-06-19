@@ -64,7 +64,6 @@ function HeroSection() {
 
 	return (
 		<section className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 relative overflow-hidden">
-			{/* Background Pattern */}
 			<div className="absolute inset-0 opacity-5 dark:opacity-10">
 				<div
 					className="absolute inset-0"
@@ -76,9 +75,7 @@ function HeroSection() {
 
 			<div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
 				<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center min-h-[80vh]">
-					{/* Left Content */}
 					<div className="lg:col-span-8 space-y-8">
-						{/* Status Badge */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -86,9 +83,10 @@ function HeroSection() {
 							className="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-4 py-2 rounded-full text-sm font-medium border border-green-200 dark:border-green-800"
 						>
 							<div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-							<span>Available for Staff Engineer positions</span>
+							<span>
+								Available for Full Stack Developer positions
+							</span>
 						</motion.div>
-						{/* Main Heading */}
 						<motion.div
 							initial={{ opacity: 0, y: 20 }}
 							animate={{ opacity: 1, y: 0 }}
@@ -124,7 +122,6 @@ function HeroSection() {
 								</div>
 							</div>
 						</motion.div>
-						
 						{/* Description */}{" "}
 						<motion.p
 							initial={{ opacity: 0, y: 20 }}

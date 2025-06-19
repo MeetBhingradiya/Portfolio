@@ -7,31 +7,27 @@ import HorizontalShowcase from "@Components/HomePage/Showcase";
 import BlogsSection from "@Components/HomePage/Blog";
 import TechnologyGroups from "@Components/HomePage/TechnologyGroups";
 import ContactSection from "@Components/HomePage/Contact";
-import GitHubStyleFooter from "@Components/HomePage/Footer";
 
 export default function HomePage() {
-    return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
-            {/* Header */}
-            <GitHubStyleHeader />
-            
-            {/* Hero Section */}
-            <GitHubStyleHero />
-            
-            {/* Horizontal Showcase */}
-            <HorizontalShowcase />
-            
-            {/* Blogs Section */}
-            <BlogsSection />
-            
-            {/* Technology Groups */}
-            <TechnologyGroups />
-            
-            {/* Contact Section */}
-            <ContactSection />
-            
-            {/* Footer */}
-            <GitHubStyleFooter />
-        </div>
-    );
+	return (
+		<div className="min-h-screen bg-white dark:bg-gray-900">
+			{/* Header */}
+			<GitHubStyleHeader />
+
+			{/* Hero Section */}
+			<GitHubStyleHero />
+
+			{/* Horizontal Showcase */}
+			<HorizontalShowcase />
+
+			{/* Blogs Section */}
+			<BlogsSection />
+
+			{/* Technology Groups */}
+			<TechnologyGroups />
+
+			{/* Contact Section */}
+			<ContactSection />
+		</div>
+	);
 }

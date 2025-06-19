@@ -111,6 +111,47 @@ const User_Schema: mongoose.Schema = new mongoose.Schema(
 			type: Boolean,
 			default: false,
 		},
+		thirdPartyConnections: [
+			{
+				provider: {
+					type: String,
+					required: true,
+					enum: [
+						"google",
+						"github",
+						"microsoft",
+						"linkedin",
+						"facebook",
+						"instagram",
+						"discord",
+					],
+				},
+				providerId: {
+					type: String,
+					required: true,
+				},
+				email: {
+					type: String,
+				},
+				username: {
+					type: String,
+				},
+				accessToken: {
+					type: String,
+					required: true,
+				},
+				refreshToken: {
+					type: String,
+				},
+				connectedAt: {
+					type: Date,
+					default: Date.now,
+				},
+				lastUsed: {
+					type: Date,
+				},
+			},
+		],
 		createdAt: {
 			type: Date,
 			default: Date.now,
@@ -181,12 +222,30 @@ export interface IUser extends mongoose.Document {
 		| "Phone"
 		| "Email"
 		| "RecoveryCodes";
-
 	// ? Admins & Security
 	isAdmin: boolean;
 	isLocked: boolean;
 	isSuspended: boolean;
 	isDeleted: boolean;
+
+	// ? Third-party OAuth connections
+	thirdPartyConnections?: Array<{
+		provider:
+			| "google"
+			| "github"
+			| "microsoft"
+			| "linkedin"
+			| "facebook"
+			| "instagram"
+			| "discord";
+		providerId: string;
+		email?: string;
+		username?: string;
+		accessToken: string;
+		refreshToken?: string;
+		connectedAt: Date;
+		lastUsed?: Date;
+	}>;
 
 	//  ? Timestamps
 	createdAt: Date;

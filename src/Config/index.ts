@@ -80,8 +80,8 @@ const Config: IConfig = {
 	visiblebranch: "Release",
 	isHomeReleased: true,
 	Environment: process.env.NODE_ENV,
-	GoogleADS: false,
-	VercelSpeedInsight: false,
+	GoogleADS: process.env.NODE_ENV === "production",
+	VercelSpeedInsight: process.env.NODE_ENV === "production",
 	ReactScan: false,
 	WhiteListedDomains: [
 		"meetbhingradiya.shop",

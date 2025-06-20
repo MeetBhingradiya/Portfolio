@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+    useCallback
+} from "react";
 
 const ThemeContext = createContext<{
     theme: "light" | "dark" | "system";
@@ -10,21 +16,23 @@ const ThemeContext = createContext<{
 }>({
     theme: "system",
     effectiveMode: "light",
-    toggleTheme: () => { },
-    setTheme: () => { },
+    toggleTheme: () => {},
+    setTheme: () => {}
 });
 
 function initializeStorage(storageType: "session" | "local") {
     const set = (key: string, value: any) => {
         if (typeof window !== "undefined") {
-            const storage = storageType === "session" ? sessionStorage : localStorage;
+            const storage =
+                storageType === "session" ? sessionStorage : localStorage;
             storage.setItem(key, JSON.stringify(value));
         }
     };
 
     const get = (key: string) => {
         if (typeof window !== "undefined") {
-            const storage = storageType === "session" ? sessionStorage : localStorage;
+            const storage =
+                storageType === "session" ? sessionStorage : localStorage;
             const item = storage.getItem(key);
             return item ? item : null;
         }
@@ -39,12 +47,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const storage = React.useMemo(() => initializeStorage("local"), []);
     const { set, get } = storage;
     const [theme, setTheme] = useState<"light" | "dark" | "system">("system");
-    const [effectiveMode, setEffectiveMode] = useState<"light" | "dark">("light");
+    const [effectiveMode, setEffectiveMode] = useState<"light" | "dark">(
+        "light"
+    );
 
     useEffect(() => {
         const storedTheme = get(storageKey);
         if (storedTheme && storedTheme !== theme) {
-            setTheme(storedTheme.replace(/"/g, "") as "light" | "dark" | "system");
+            setTheme(
+                storedTheme.replace(/"/g, "") as "light" | "dark" | "system"
+            );
         } else if (!storedTheme) {
             set(storageKey, theme);
         }
@@ -54,7 +66,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         const root = document.documentElement;
 
         if (theme === "system") {
-            const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
+            const systemTheme = window.matchMedia(
+                "(prefers-color-scheme: dark)"
+            ).matches
                 ? "dark"
                 : "light";
             setEffectiveMode(systemTheme);
@@ -75,7 +89,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
                 document.documentElement.classList.remove("light", "dark");
                 document.documentElement.classList.add(systemTheme);
             };
-            const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+            const mediaQuery = window.matchMedia(
+                "(prefers-color-scheme: dark)"
+            );
             mediaQuery.addEventListener("change", listener);
 
             return () => mediaQuery.removeEventListener("change", listener);
@@ -83,7 +99,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }, [theme]);
 
     const toggleTheme = useCallback(() => {
-        const newTheme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
+        const newTheme =
+            theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
         setTheme(newTheme);
         set(storageKey, newTheme);
     }, [theme, set, storageKey]);
@@ -91,7 +108,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const contextValue = React.useMemo(
         () => ({ theme, effectiveMode, toggleTheme, setTheme }),
         [theme, effectiveMode, toggleTheme]
-    ); return (
+    );
+    return (
         <ThemeContext.Provider value={contextValue}>
             {children}
         </ThemeContext.Provider>

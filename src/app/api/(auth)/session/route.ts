@@ -10,7 +10,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
         // Get token from Authorization header or cookies
         const authHeader = req.headers.get("authorization");
-        const token = authHeader?.replace("Bearer ", "") || req.cookies.get("auth-token")?.value;
+        const token =
+            authHeader?.replace("Bearer ", "") ||
+            req.cookies.get("auth-token")?.value;
 
         if (!token) {
             return ControllerResponseMap({
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         const currentSession = await Sessions_Model.findOne({
             SessionID: decoded.sessionID,
             UserID: decoded.userID,
-            ExpiresAt: { $gt: new Date() },
+            ExpiresAt: { $gt: new Date() }
         });
 
         if (!currentSession) {
@@ -52,8 +54,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
             UserID: decoded.userID,
             isDeleted: false,
             isLocked: false,
-            isSuspended: false,
-        }).select("-Credentials").lean();
+            isSuspended: false
+        })
+            .select("-Credentials")
+            .lean();
 
         if (!user) {
             return ControllerResponseMap({
@@ -74,7 +78,11 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                     Username: user.Username,
                     FirstName: user.FirstName,
                     LastName: user.LastName,
-                    Email: user.Emails?.find((email: any) => email.isPrimary)?.Email || user.Emails?.[0]?.Email || '',
+                    Email:
+                        user.Emails?.find((email: any) => email.isPrimary)
+                            ?.Email ||
+                        user.Emails?.[0]?.Email ||
+                        "",
                     isAdmin: user.isAdmin
                 },
                 session: {
@@ -85,7 +93,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
                 }
             }
         });
-
     } catch (error: any) {
         log(`Session validation error: ${error?.message}`);
         return ControllerResponseMap({
@@ -100,7 +107,9 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
     try {
         // Get token from Authorization header or cookies
         const authHeader = req.headers.get("authorization");
-        const token = authHeader?.replace("Bearer ", "") || req.cookies.get("auth-token")?.value;
+        const token =
+            authHeader?.replace("Bearer ", "") ||
+            req.cookies.get("auth-token")?.value;
 
         if (!token) {
             return ControllerResponseMap({
@@ -126,7 +135,7 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
         const currentSession = await Sessions_Model.findOne({
             SessionID: decoded.sessionID,
             UserID: decoded.userID,
-            ExpiresAt: { $gt: new Date() },
+            ExpiresAt: { $gt: new Date() }
         });
 
         if (!currentSession) {
@@ -140,13 +149,15 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
         // Delete the authenticated user's session (logout)
         await Sessions_Model.updateOne(
             { SessionID: decoded.sessionID },
-            { 
+            {
                 isActive: false,
                 LoggedOutAt: new Date()
             }
         );
 
-        log(`User ${decoded.userID} logged out successfully from session ${decoded.sessionID}`);
+        log(
+            `User ${decoded.userID} logged out successfully from session ${decoded.sessionID}`
+        );
 
         return ControllerResponseMap({
             Status: 1,
@@ -158,7 +169,6 @@ export async function DELETE(req: NextRequest): Promise<NextResponse> {
                 loggedOutAt: new Date()
             }
         });
-
     } catch (error: any) {
         log(`Logout error: ${error?.message}`);
         return ControllerResponseMap({

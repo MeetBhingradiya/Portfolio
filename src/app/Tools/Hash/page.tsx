@@ -11,9 +11,15 @@ import {
     Speed
 } from "@mui/icons-material";
 import { Button } from "@heroui/react";
-import CryptoJS from 'crypto-js';
+import CryptoJS from "crypto-js";
 
-type HashAlgorithm = "MD5" | "SHA1" | "SHA256" | "SHA512" | "SHA3" | "RIPEMD160";
+type HashAlgorithm =
+    | "MD5"
+    | "SHA1"
+    | "SHA256"
+    | "SHA512"
+    | "SHA3"
+    | "RIPEMD160";
 
 interface HashResult {
     algorithm: HashAlgorithm;
@@ -36,80 +42,92 @@ export default function HashGenerator() {
         copied: null
     });
 
-    const algorithms: { value: HashAlgorithm; label: string; description: string; security: 'Low' | 'Medium' | 'High'; speed: 'Fast' | 'Medium' | 'Slow' }[] = [
+    const algorithms: {
+        value: HashAlgorithm;
+        label: string;
+        description: string;
+        security: "Low" | "Medium" | "High";
+        speed: "Fast" | "Medium" | "Slow";
+    }[] = [
         {
             value: "MD5",
             label: "MD5",
-            description: "128-bit hash function, widely used but cryptographically broken",
-            security: 'Low',
-            speed: 'Fast'
+            description:
+                "128-bit hash function, widely used but cryptographically broken",
+            security: "Low",
+            speed: "Fast"
         },
         {
             value: "SHA1",
             label: "SHA-1",
-            description: "160-bit hash function, deprecated for cryptographic use",
-            security: 'Low',
-            speed: 'Fast'
+            description:
+                "160-bit hash function, deprecated for cryptographic use",
+            security: "Low",
+            speed: "Fast"
         },
         {
             value: "SHA256",
             label: "SHA-256",
-            description: "256-bit hash function, part of SHA-2 family, widely used and secure",
-            security: 'High',
-            speed: 'Medium'
+            description:
+                "256-bit hash function, part of SHA-2 family, widely used and secure",
+            security: "High",
+            speed: "Medium"
         },
         {
             value: "SHA512",
             label: "SHA-512",
-            description: "512-bit hash function, part of SHA-2 family, very secure",
-            security: 'High',
-            speed: 'Medium'
+            description:
+                "512-bit hash function, part of SHA-2 family, very secure",
+            security: "High",
+            speed: "Medium"
         },
         {
             value: "SHA3",
             label: "SHA-3",
             description: "Latest SHA standard, 256-bit output, highly secure",
-            security: 'High',
-            speed: 'Slow'
+            security: "High",
+            speed: "Slow"
         },
         {
             value: "RIPEMD160",
             label: "RIPEMD-160",
             description: "160-bit hash function, used in Bitcoin addresses",
-            security: 'Medium',
-            speed: 'Medium'
+            security: "Medium",
+            speed: "Medium"
         }
     ];
 
     const generateHashes = () => {
         if (!state.text.trim()) {
-            alert('Please enter text to hash');
+            alert("Please enter text to hash");
             return;
         }
 
         const results: HashResult[] = [];
 
-        state.selectedAlgorithms.forEach(algorithm => {
+        state.selectedAlgorithms.forEach((algorithm) => {
             try {
-                let hash = '';
-                
+                let hash = "";
+
                 switch (algorithm) {
-                    case 'MD5':
+                    case "MD5":
                         hash = CryptoJS.MD5(state.text).toString();
                         break;
-                    case 'SHA1':
+                    case "SHA1":
                         hash = CryptoJS.SHA1(state.text).toString();
                         break;
-                    case 'SHA256':
+                    case "SHA256":
                         hash = CryptoJS.SHA256(state.text).toString();
                         break;
-                    case 'SHA512':
+                    case "SHA512":
                         hash = CryptoJS.SHA512(state.text).toString();
                         break;
-                    case 'SHA3':
-                        hash = CryptoJS.SHA3(state.text, { outputLength: 256 }).toString();
+                    case "SHA3":
+                        hash = CryptoJS.SHA3(state.text, {
+                            outputLength: 256
+                        }).toString();
                         break;
-                    case 'RIPEMD160':
+                    case "RIPEMD160":
                         hash = CryptoJS.RIPEMD160(state.text).toString();
                         break;
                 }
@@ -130,23 +148,26 @@ export default function HashGenerator() {
     const copyToClipboard = (text: string, algorithm: string) => {
         navigator.clipboard.writeText(text).then(() => {
             setState({ ...state, copied: algorithm });
-            
+
             setTimeout(() => {
-                setState(prevState => ({ ...prevState, copied: null }));
+                setState((prevState) => ({ ...prevState, copied: null }));
             }, 2000);
         });
     };
 
     const toggleAlgorithm = (algorithm: HashAlgorithm) => {
         const newSelected = state.selectedAlgorithms.includes(algorithm)
-            ? state.selectedAlgorithms.filter(a => a !== algorithm)
+            ? state.selectedAlgorithms.filter((a) => a !== algorithm)
             : [...state.selectedAlgorithms, algorithm];
-        
+
         setState({ ...state, selectedAlgorithms: newSelected });
     };
 
     const selectAllAlgorithms = () => {
-        setState({ ...state, selectedAlgorithms: algorithms.map(a => a.value) });
+        setState({
+            ...state,
+            selectedAlgorithms: algorithms.map((a) => a.value)
+        });
     };
 
     const deselectAllAlgorithms = () => {
@@ -163,26 +184,37 @@ export default function HashGenerator() {
 
     const getSecurityIcon = (security: string) => {
         switch (security) {
-            case 'High': return <Security style={{ color: '#22c55e' }} />;
-            case 'Medium': return <Security style={{ color: '#f59e0b' }} />;
-            case 'Low': return <Security style={{ color: '#ef4444' }} />;
-            default: return <Security />;
+            case "High":
+                return <Security style={{ color: "#22c55e" }} />;
+            case "Medium":
+                return <Security style={{ color: "#f59e0b" }} />;
+            case "Low":
+                return <Security style={{ color: "#ef4444" }} />;
+            default:
+                return <Security />;
         }
     };
 
     const getSpeedIcon = (speed: string) => {
         switch (speed) {
-            case 'Fast': return <Speed style={{ color: '#22c55e' }} />;
-            case 'Medium': return <Speed style={{ color: '#f59e0b' }} />;
-            case 'Slow': return <Speed style={{ color: '#ef4444' }} />;
-            default: return <Speed />;
+            case "Fast":
+                return <Speed style={{ color: "#22c55e" }} />;
+            case "Medium":
+                return <Speed style={{ color: "#f59e0b" }} />;
+            case "Slow":
+                return <Speed style={{ color: "#ef4444" }} />;
+            default:
+                return <Speed />;
         }
     };
 
     return (
         <div className="Page HashGenerator">
             <h1 className="title">Hash Generator</h1>
-            <p className="description">Generate hash values for text using various cryptographic algorithms</p>
+            <p className="description">
+                Generate hash values for text using various cryptographic
+                algorithms
+            </p>
 
             <div className="hash-container">
                 {/* Input Section */}
@@ -195,7 +227,9 @@ export default function HashGenerator() {
                     </div>
                     <textarea
                         value={state.text}
-                        onChange={(e) => setState({ ...state, text: e.target.value })}
+                        onChange={(e) =>
+                            setState({ ...state, text: e.target.value })
+                        }
                         placeholder="Enter the text you want to hash..."
                         rows={6}
                     />
@@ -209,33 +243,34 @@ export default function HashGenerator() {
                             <Button
                                 onPress={selectAllAlgorithms}
                                 variant="light"
-                                size="sm"
-                            >
+                                size="sm">
                                 Select All
                             </Button>
                             <Button
                                 onPress={deselectAllAlgorithms}
                                 variant="light"
-                                size="sm"
-                            >
+                                size="sm">
                                 Deselect All
                             </Button>
                         </div>
                     </div>
-                    
+
                     <div className="algorithms-grid">
-                        {algorithms.map(algo => (
-                            <div 
+                        {algorithms.map((algo) => (
+                            <div
                                 key={algo.value}
-                                className={`algorithm-card ${state.selectedAlgorithms.includes(algo.value) ? 'selected' : ''}`}
-                                onClick={() => toggleAlgorithm(algo.value)}
-                            >
+                                className={`algorithm-card ${state.selectedAlgorithms.includes(algo.value) ? "selected" : ""}`}
+                                onClick={() => toggleAlgorithm(algo.value)}>
                                 <div className="algorithm-header">
                                     <div className="algorithm-name">
                                         <input
                                             type="checkbox"
-                                            checked={state.selectedAlgorithms.includes(algo.value)}
-                                            onChange={() => toggleAlgorithm(algo.value)}
+                                            checked={state.selectedAlgorithms.includes(
+                                                algo.value
+                                            )}
+                                            onChange={() =>
+                                                toggleAlgorithm(algo.value)
+                                            }
                                         />
                                         <span>{algo.label}</span>
                                     </div>
@@ -248,10 +283,12 @@ export default function HashGenerator() {
                                     {algo.description}
                                 </div>
                                 <div className="algorithm-stats">
-                                    <span className={`security-level ${algo.security.toLowerCase()}`}>
+                                    <span
+                                        className={`security-level ${algo.security.toLowerCase()}`}>
                                         Security: {algo.security}
                                     </span>
-                                    <span className={`speed-level ${algo.speed.toLowerCase()}`}>
+                                    <span
+                                        className={`speed-level ${algo.speed.toLowerCase()}`}>
                                         Speed: {algo.speed}
                                     </span>
                                 </div>
@@ -267,16 +304,14 @@ export default function HashGenerator() {
                         color="primary"
                         size="lg"
                         startContent={<Calculate />}
-                        isDisabled={state.selectedAlgorithms.length === 0}
-                    >
+                        isDisabled={state.selectedAlgorithms.length === 0}>
                         Generate Hashes
                     </Button>
                     <Button
                         onPress={clearAll}
                         variant="light"
                         size="lg"
-                        color="danger"
-                    >
+                        color="danger">
                         Clear All
                     </Button>
                 </div>
@@ -287,26 +322,46 @@ export default function HashGenerator() {
                         <div className="section-header">
                             <h2>Hash Results</h2>
                             <div className="results-info">
-                                {state.results.length} hash{state.results.length !== 1 ? 'es' : ''} generated
+                                {state.results.length} hash
+                                {state.results.length !== 1 ? "es" : ""}{" "}
+                                generated
                             </div>
                         </div>
-                        
+
                         <div className="results-grid">
                             {state.results.map((result, index) => (
-                                <div key={index} className="result-card">
+                                <div
+                                    key={index}
+                                    className="result-card">
                                     <div className="result-header">
                                         <div className="algorithm-info">
                                             <Tag />
-                                            <span className="algorithm-name">{result.algorithm}</span>
+                                            <span className="algorithm-name">
+                                                {result.algorithm}
+                                            </span>
                                         </div>
                                         <Button
-                                            onPress={() => copyToClipboard(result.hash, result.algorithm)}
-                                            title={state.copied === result.algorithm ? "Copied!" : "Copy to clipboard"}
+                                            onPress={() =>
+                                                copyToClipboard(
+                                                    result.hash,
+                                                    result.algorithm
+                                                )
+                                            }
+                                            title={
+                                                state.copied ===
+                                                result.algorithm
+                                                    ? "Copied!"
+                                                    : "Copy to clipboard"
+                                            }
                                             variant="ghost"
                                             isIconOnly
                                             size="sm"
-                                            color={state.copied === result.algorithm ? "success" : "default"}
-                                        >
+                                            color={
+                                                state.copied ===
+                                                result.algorithm
+                                                    ? "success"
+                                                    : "default"
+                                            }>
                                             <ContentCopy />
                                         </Button>
                                     </div>
@@ -314,7 +369,9 @@ export default function HashGenerator() {
                                         <code>{result.hash}</code>
                                     </div>
                                     <div className="hash-info">
-                                        <span>Length: {result.length} characters</span>
+                                        <span>
+                                            Length: {result.length} characters
+                                        </span>
                                         <span>Hex format</span>
                                     </div>
                                 </div>
@@ -330,12 +387,15 @@ export default function HashGenerator() {
                         <div className="info-block">
                             <h4>What are Hash Functions?</h4>
                             <p>
-                                Hash functions are mathematical algorithms that take input data of any size and produce 
-                                a fixed-size string of characters, which is typically a hexadecimal number. The output 
-                                is called a hash value, hash code, digest, or simply hash.
+                                Hash functions are mathematical algorithms that
+                                take input data of any size and produce a
+                                fixed-size string of characters, which is
+                                typically a hexadecimal number. The output is
+                                called a hash value, hash code, digest, or
+                                simply hash.
                             </p>
                         </div>
-                        
+
                         <div className="info-block">
                             <h4>Common Uses</h4>
                             <ul>
@@ -347,25 +407,50 @@ export default function HashGenerator() {
                                 <li>Checksums for error detection</li>
                             </ul>
                         </div>
-                        
+
                         <div className="info-block">
                             <h4>Security Considerations</h4>
                             <ul>
-                                <li><strong>MD5 & SHA-1:</strong> Cryptographically broken, avoid for security purposes</li>
-                                <li><strong>SHA-256 & SHA-512:</strong> Currently secure and widely used</li>
-                                <li><strong>SHA-3:</strong> Latest standard, designed to be quantum-resistant</li>
-                                <li><strong>RIPEMD-160:</strong> Less common but still considered secure</li>
+                                <li>
+                                    <strong>MD5 & SHA-1:</strong>{" "}
+                                    Cryptographically broken, avoid for security
+                                    purposes
+                                </li>
+                                <li>
+                                    <strong>SHA-256 & SHA-512:</strong>{" "}
+                                    Currently secure and widely used
+                                </li>
+                                <li>
+                                    <strong>SHA-3:</strong> Latest standard,
+                                    designed to be quantum-resistant
+                                </li>
+                                <li>
+                                    <strong>RIPEMD-160:</strong> Less common but
+                                    still considered secure
+                                </li>
                             </ul>
                         </div>
-                        
+
                         <div className="info-block">
                             <h4>Properties of Good Hash Functions</h4>
                             <ul>
-                                <li>Deterministic: Same input always produces same output</li>
+                                <li>
+                                    Deterministic: Same input always produces
+                                    same output
+                                </li>
                                 <li>Fast computation: Quick to calculate</li>
-                                <li>Avalanche effect: Small input changes cause large output changes</li>
-                                <li>Pre-image resistance: Hard to reverse the hash</li>
-                                <li>Collision resistance: Hard to find two inputs with same hash</li>
+                                <li>
+                                    Avalanche effect: Small input changes cause
+                                    large output changes
+                                </li>
+                                <li>
+                                    Pre-image resistance: Hard to reverse the
+                                    hash
+                                </li>
+                                <li>
+                                    Collision resistance: Hard to find two
+                                    inputs with same hash
+                                </li>
                             </ul>
                         </div>
                     </div>

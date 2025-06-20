@@ -2,7 +2,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Markdown Preview - Meet Bhingradiya",
-    description: "Preview and edit Markdown files with live rendering, syntax highlighting, and export options",
+    description:
+        "Preview and edit Markdown files with live rendering, syntax highlighting, and export options",
     icons: "/favicon.ico",
     keywords: [
         "Markdown",
@@ -15,12 +16,12 @@ export const metadata: Metadata = {
         "Tools",
         "Meet Bhingradiya"
     ]
-}
+};
 
 export default function MarkdownLayout({
-    children,
+    children
 }: {
-    children: React.ReactNode
+    children: React.ReactNode;
 }) {
     return children;
 }

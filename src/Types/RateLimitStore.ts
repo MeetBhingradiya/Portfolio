@@ -1,35 +1,35 @@
 export type ClientRateLimitInfo = {
-	totalHits: number
-	resetTime: Date | undefined
-}
+    totalHits: number;
+    resetTime: Date | undefined;
+};
 
-export type IncrementResponse = ClientRateLimitInfo
+export type IncrementResponse = ClientRateLimitInfo;
 
 export type Store = {
-	init?: (options: Options) => void
+    init?: (options: Options) => void;
 
-	get?: (
-		key: string,
-	) =>
-		| Promise<ClientRateLimitInfo | undefined>
-		| ClientRateLimitInfo
-		| undefined
+    get?: (
+        key: string
+    ) =>
+        | Promise<ClientRateLimitInfo | undefined>
+        | ClientRateLimitInfo
+        | undefined;
 
-	increment: (key: string) => Promise<IncrementResponse> | IncrementResponse
+    increment: (key: string) => Promise<IncrementResponse> | IncrementResponse;
 
-	decrement: (key: string) => Promise<void> | void
+    decrement: (key: string) => Promise<void> | void;
 
-	resetKey: (key: string) => Promise<void> | void
+    resetKey: (key: string) => Promise<void> | void;
 
-	resetAll?: () => Promise<void> | void
+    resetAll?: () => Promise<void> | void;
 
-	shutdown?: () => Promise<void> | void
+    shutdown?: () => Promise<void> | void;
 
-	localKeys?: boolean
+    localKeys?: boolean;
 
-	prefix?: string
-}
+    prefix?: string;
+};
 
 export type Options = {
-	windowMs: number
-}
+    windowMs: number;
+};

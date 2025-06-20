@@ -2,7 +2,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "RegExp Builder & Tester - Meet Bhingradiya",
-    description: "Create, test, and manage regular expressions with instant string manipulation tools.",
+    description:
+        "Create, test, and manage regular expressions with instant string manipulation tools.",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
@@ -17,13 +18,13 @@ export const metadata: Metadata = {
         "RegExp Builder",
         "RegExp Tester"
     ]
-}
+};
 
 // @ File
 export default function Layout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

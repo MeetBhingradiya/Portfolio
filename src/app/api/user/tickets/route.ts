@@ -1,22 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { dbConnect } from '@Utils/dbConnect';
-import { Tickets_Model } from '@Models/Tickets';
-import { Users_Model } from '@Models/Users';
-import { Sessions_Model } from '@Models/Sessions';
+import { NextRequest, NextResponse } from "next/server";
+import { dbConnect } from "@Utils/dbConnect";
+import { Tickets_Model } from "@Models/Tickets";
+import { Users_Model } from "@Models/Users";
+import { Sessions_Model } from "@Models/Sessions";
 
 async function getUserFromSession(sessionID: string) {
     if (!sessionID) return null;
-    
+
     const session = await Sessions_Model.findOne({ SessionID: sessionID });
     if (!session) return null;
-    
-    const user = await Users_Model.findOne({ 
+
+    const user = await Users_Model.findOne({
         UserID: session.UserID,
         isDeleted: false,
         isLocked: false,
         isSuspended: false
     });
-    
+
     return user;
 }
 
@@ -24,16 +24,17 @@ async function getUserFromSession(sessionID: string) {
 export async function GET(request: NextRequest) {
     try {
         await dbConnect();
-        
+
         // Get session from authorization header or cookie
-        const authHeader = request.headers.get('authorization');
-        const sessionID = authHeader?.replace('Bearer ', '') || 
-                         request.cookies.get('sessionID')?.value ||
-                         request.nextUrl.searchParams.get('sessionID');
+        const authHeader = request.headers.get("authorization");
+        const sessionID =
+            authHeader?.replace("Bearer ", "") ||
+            request.cookies.get("sessionID")?.value ||
+            request.nextUrl.searchParams.get("sessionID");
 
         if (!sessionID) {
             return NextResponse.json(
-                { success: false, error: 'Authentication required' },
+                { success: false, error: "Authentication required" },
                 { status: 401 }
             );
         }
@@ -42,16 +43,16 @@ export async function GET(request: NextRequest) {
         const user = await getUserFromSession(sessionID);
         if (!user) {
             return NextResponse.json(
-                { success: false, error: 'Invalid session' },
+                { success: false, error: "Invalid session" },
                 { status: 401 }
             );
         }
 
         // Get user's primary email
-        const primaryEmail = user.Emails.find(e => e.isPrimary)?.Email;
+        const primaryEmail = user.Emails.find((e) => e.isPrimary)?.Email;
         if (!primaryEmail) {
             return NextResponse.json(
-                { success: false, error: 'User email not found' },
+                { success: false, error: "User email not found" },
                 { status: 400 }
             );
         }
@@ -65,7 +66,7 @@ export async function GET(request: NextRequest) {
         }).sort({ createdAt: -1 });
 
         // Return safe ticket data
-        const safeTickets = tickets.map(ticket => ({
+        const safeTickets = tickets.map((ticket) => ({
             id: ticket.id,
             subject: ticket.subject,
             message: ticket.message,
@@ -86,13 +87,12 @@ export async function GET(request: NextRequest) {
             success: true,
             tickets: safeTickets
         });
-
     } catch (error) {
-        console.error('Get user tickets error:', error);
+        console.error("Get user tickets error:", error);
         return NextResponse.json(
             {
                 success: false,
-                error: 'Failed to retrieve tickets'
+                error: "Failed to retrieve tickets"
             },
             { status: 500 }
         );

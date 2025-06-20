@@ -31,32 +31,36 @@ export interface GitHubRepo {
 }
 
 export class GitHubAPI {
-    private static readonly BASE_URL = 'https://api.github.com';
-    private static readonly USERNAME = 'MeetBhingradiya'; // Update with your GitHub username
+    private static readonly BASE_URL = "https://api.github.com";
+    private static readonly USERNAME = "MeetBhingradiya"; // Update with your GitHub username
 
     static async fetchUserData(): Promise<GitHubUser | null> {
         try {
-            const response = await fetch(`${this.BASE_URL}/users/${this.USERNAME}`);
-            if (!response.ok) throw new Error('Failed to fetch user data');
+            const response = await fetch(
+                `${this.BASE_URL}/users/${this.USERNAME}`
+            );
+            if (!response.ok) throw new Error("Failed to fetch user data");
             return await response.json();
         } catch (error) {
-            console.error('Error fetching GitHub user data:', error);
+            console.error("Error fetching GitHub user data:", error);
             return null;
         }
     }
 
     static async fetchRepositories(): Promise<GitHubRepo[]> {
         try {
-            const response = await fetch(`${this.BASE_URL}/users/${this.USERNAME}/repos?sort=updated&per_page=100`);
-            if (!response.ok) throw new Error('Failed to fetch repositories');
+            const response = await fetch(
+                `${this.BASE_URL}/users/${this.USERNAME}/repos?sort=updated&per_page=100`
+            );
+            if (!response.ok) throw new Error("Failed to fetch repositories");
             return await response.json();
         } catch (error) {
-            console.error('Error fetching GitHub repositories:', error);
+            console.error("Error fetching GitHub repositories:", error);
             return [];
         }
     }
 
-    static async fetchGitHubStats(): Promise<GitHubStats |  null> {
+    static async fetchGitHubStats(): Promise<GitHubStats | null> {
         try {
             const [userData, repositories] = await Promise.all([
                 this.fetchUserData(),
@@ -64,21 +68,27 @@ export class GitHubAPI {
             ]);
 
             if (!userData) {
-                throw new Error('Failed to fetch user data');
+                throw new Error("Failed to fetch user data");
             }
 
-            const totalStars = repositories.reduce((sum, repo) => sum + repo.stargazers_count, 0);
-            const totalForks = repositories.reduce((sum, repo) => sum + repo.forks_count, 0);
+            const totalStars = repositories.reduce(
+                (sum, repo) => sum + repo.stargazers_count,
+                0
+            );
+            const totalForks = repositories.reduce(
+                (sum, repo) => sum + repo.forks_count,
+                0
+            );
 
             return {
                 publicRepos: userData.public_repos,
                 totalStars,
                 totalForks,
                 followers: userData.followers,
-                following: userData.following,
+                following: userData.following
             };
         } catch (error) {
-            console.error('Error fetching GitHub stats:', error);
+            console.error("Error fetching GitHub stats:", error);
             return null;
         }
     }
@@ -87,16 +97,16 @@ export class GitHubAPI {
         try {
             return 365;
         } catch (error) {
-            console.error('Error fetching contribution data:', error);
+            console.error("Error fetching contribution data:", error);
             return 0;
         }
     }
 
     static formatNumber(num: number): string {
         if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
+            return (num / 1000000).toFixed(1) + "M";
         } else if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
+            return (num / 1000).toFixed(1) + "K";
         }
         return num.toString();
     }

@@ -29,7 +29,7 @@ async function getUserFromToken(request: NextRequest) {
         const session = await Sessions_Model.findOne({
             SessionID: decoded.sessionID,
             UserID: decoded.userID,
-            ExpiresAt: { $gt: new Date() },
+            ExpiresAt: { $gt: new Date() }
         });
 
         if (!session) return null;
@@ -38,7 +38,7 @@ async function getUserFromToken(request: NextRequest) {
             UserID: decoded.userID,
             isDeleted: false,
             isLocked: false,
-            isSuspended: false,
+            isSuspended: false
         });
 
         return user;
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
             query.$or = [
                 { Title: { $regex: search, $options: "i" } },
                 { Description: { $regex: search, $options: "i" } },
-                { Tags: { $in: [new RegExp(search, "i")] } },
+                { Tags: { $in: [new RegExp(search, "i")] } }
             ];
         }
 
@@ -105,7 +105,7 @@ export async function GET(request: NextRequest) {
         const blogsWithAuthors = await Promise.all(
             blogs.map(async (blog) => {
                 const author = await Users_Model.findOne({
-                    UserID: blog.AuthorID,
+                    UserID: blog.AuthorID
                 })
                     .select("UserID Username FirstName LastName")
                     .lean();
@@ -114,13 +114,13 @@ export async function GET(request: NextRequest) {
                     ...blog,
                     author: author
                         ? {
-                                userID: author.UserID,
-                                username: author.Username,
-                                name: `${author.FirstName} ${author.LastName}`.trim(),
-                            }
+                              userID: author.UserID,
+                              username: author.Username,
+                              name: `${author.FirstName} ${author.LastName}`.trim()
+                          }
                         : null,
                     // Don't include content in list view for performance
-                    content: undefined,
+                    content: undefined
                 };
             })
         );
@@ -137,16 +137,16 @@ export async function GET(request: NextRequest) {
                     total,
                     pages: Math.ceil(total / limit),
                     hasNext: page < Math.ceil(total / limit),
-                    hasPrev: page > 1,
+                    hasPrev: page > 1
                 },
                 filters: {
                     status,
                     author,
                     tags,
                     search,
-                    visibility,
-                },
-            },
+                    visibility
+                }
+            }
         });
     } catch (error: any) {
         log(`Blog list error: ${error.message}`);
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
             {
                 Status: 0,
                 Message: "Failed to retrieve blogs",
-                StatusCode: 500,
+                StatusCode: 500
             },
             { status: 500 }
         );
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest) {
                 {
                     Status: 0,
                     Message: "Authentication required",
-                    StatusCode: 401,
+                    StatusCode: 401
                 },
                 { status: 401 }
             );
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
                 {
                     Status: 0,
                     Message: "Insufficient permissions to create blogs",
-                    StatusCode: 403,
+                    StatusCode: 403
                 },
                 { status: 403 }
             );
@@ -195,14 +195,14 @@ export async function POST(request: NextRequest) {
         if (
             useEmptyFields({
                 ReqiuredFields: ["title", "content"],
-                targetObject: body,
+                targetObject: body
             }).isMissing
         ) {
             return NextResponse.json(
                 {
                     Status: 0,
                     Message: "Missing required fields: title and content",
-                    StatusCode: 400,
+                    StatusCode: 400
                 },
                 { status: 400 }
             );
@@ -211,9 +211,9 @@ export async function POST(request: NextRequest) {
         await dbConnect();
 
         // Generate unique slug for the blog
-        const existingSlugs = await Blogs_Model.find({ 
-            isDeleted: false 
-        }).distinct('Slug');
+        const existingSlugs = await Blogs_Model.find({
+            isDeleted: false
+        }).distinct("Slug");
 
         const blogSlug = generateUniqueSlug(body.title, existingSlugs);
 
@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
         const contentID = v4();
         await BlogsContents_Model.create({
             ContentID: contentID,
-            Data: body.content,
+            Data: body.content
         });
 
         // Create blog entry
@@ -240,7 +240,7 @@ export async function POST(request: NextRequest) {
             Likes: 0,
             Views: 0,
             LikedBy: [],
-            History: [], // Initialize history array
+            History: [] // Initialize history array
         };
 
         const blog = await Blogs_Model.create(blogData);
@@ -259,9 +259,9 @@ export async function POST(request: NextRequest) {
                         title: blog.Title,
                         isPublished: blog.isPublished,
                         visibility: blog.Visiblity,
-                        createdAt: blog.CreateDate,
-                    },
-                },
+                        createdAt: blog.CreateDate
+                    }
+                }
             },
             { status: 201 }
         );
@@ -271,7 +271,7 @@ export async function POST(request: NextRequest) {
             {
                 Status: 0,
                 Message: "Failed to create blog",
-                StatusCode: 500,
+                StatusCode: 500
             },
             { status: 500 }
         );

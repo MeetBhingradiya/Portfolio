@@ -1,11 +1,11 @@
-import fs from 'fs';
-import path from 'path';
-import crypto from 'crypto';
-import { execSync } from 'child_process';
-import dotenv from 'dotenv';
+import fs from "fs";
+import path from "path";
+import crypto from "crypto";
+import { execSync } from "child_process";
+import dotenv from "dotenv";
 
 dotenv.config({
-    path: "./.env.production",
+    path: "./.env.production"
 });
 
 const SECRET_KEY = process.env.STATE_SIGN || "SECRET_KEY";
@@ -20,11 +20,13 @@ function generateHMACSignature(jsonData: any) {
 // Function to fetch remote state
 async function fetchRemoteState() {
     try {
-        const response = await fetch('https://raw.githubusercontent.com/MeetBhingradiya/Portfolio-RemoteState/refs/heads/Release/State.json');
-        if (!response.ok) throw new Error('Failed to fetch remote state');
+        const response = await fetch(
+            "https://raw.githubusercontent.com/MeetBhingradiya/Portfolio-RemoteState/refs/heads/Release/State.json"
+        );
+        if (!response.ok) throw new Error("Failed to fetch remote state");
         return await response.json();
     } catch (error) {
-        console.error('❌ Error fetching remote state:', error);
+        console.error("❌ Error fetching remote state:", error);
         process.exit(1);
     }
 }
@@ -38,34 +40,46 @@ function compareFileProperties(localState: any, remoteState: any) {
 
 // Function to clone repo and update state
 async function updateRemoteState() {
-    const tempDir = path.join(process.cwd(), 'temp');
-    
+    const tempDir = path.join(process.cwd(), "temp");
+
     try {
         // Clone the repo
-        execSync(`git clone https://github.com/MeetBhingradiya/Portfolio-RemoteState.git ${tempDir}`, { stdio: 'inherit' });
-        
+        execSync(
+            `git clone https://github.com/MeetBhingradiya/Portfolio-RemoteState.git ${tempDir}`,
+            {
+                stdio: "inherit"
+            }
+        );
+
         // Checkout release branch
         process.chdir(tempDir);
-        execSync('git checkout Release', { stdio: 'inherit' });
-        
+        execSync("git checkout Release", { stdio: "inherit" });
+
         // Read local state
-        const localState = JSON.parse(fs.readFileSync(path.join(process.cwd(), '..', 'State.json'), 'utf-8'));
-        
+        const localState = JSON.parse(
+            fs.readFileSync(
+                path.join(process.cwd(), "..", "State.json"),
+                "utf-8"
+            )
+        );
+
         // Update state file in temp repo
-        fs.writeFileSync('State.json', JSON.stringify(localState, null, 4));
-        
+        fs.writeFileSync("State.json", JSON.stringify(localState, null, 4));
+
         // Commit and push changes
-        execSync('git add State.json', { stdio: 'inherit' });
-        execSync('git commit -m "Updated StateFile By CI/CD Pipeline"', { stdio: 'inherit' });
-        execSync('git push', { stdio: 'inherit' });
-        
+        execSync("git add State.json", { stdio: "inherit" });
+        execSync('git commit -m "Updated StateFile By CI/CD Pipeline"', {
+            stdio: "inherit"
+        });
+        execSync("git push", { stdio: "inherit" });
+
         // Clean up
-        process.chdir('..');
+        process.chdir("..");
         fs.rmSync(tempDir, { recursive: true, force: true });
-        
-        console.log('✅ Successfully updated remote state');
+
+        console.log("✅ Successfully updated remote state");
     } catch (error) {
-        console.error('❌ Error updating remote state:', error);
+        console.error("❌ Error updating remote state:", error);
         process.exit(1);
     }
 }
@@ -73,28 +87,30 @@ async function updateRemoteState() {
 async function main() {
     try {
         // Read local state
-        const localState = JSON.parse(fs.readFileSync('./State.json', 'utf-8'));
-        
+        const localState = JSON.parse(fs.readFileSync("./State.json", "utf-8"));
+
         // Fetch remote state
         const remoteState = await fetchRemoteState();
-        
+
         // Compare file properties
-        const hasNoChanges = compareFileProperties(localState?.File, remoteState?.File);
-        
+        const hasNoChanges = compareFileProperties(
+            localState?.File,
+            remoteState?.File
+        );
+
         if (hasNoChanges) {
-            console.log('✅ State File is Up to Date');
+            console.log("✅ State File is Up to Date");
             return;
         }
-        
+
         // Update local file signature
         localState.Signature = generateHMACSignature(localState.File);
-        fs.writeFileSync('./State.json', JSON.stringify(localState, null, 4));
-        
+        fs.writeFileSync("./State.json", JSON.stringify(localState, null, 4));
+
         // Update remote state
         await updateRemoteState();
-        
     } catch (error) {
-        console.error('❌ Error in main process:', error);
+        console.error("❌ Error in main process:", error);
         process.exit(1);
     }
 }

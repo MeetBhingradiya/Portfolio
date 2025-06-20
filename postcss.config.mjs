@@ -2,10 +2,10 @@
 const config = {
     plugins: {
         "@tailwindcss/postcss": {
-            optimize: true,
+            optimize: true
         },
-        autoprefixer: {}
-    },
+        "autoprefixer": {}
+    }
 };
 
 export default config;

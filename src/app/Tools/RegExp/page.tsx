@@ -30,7 +30,8 @@ const REGEX_PRESETS = {
     "Phone Number": {
         pattern: String.raw`^\+?[1-9]\d{1,14}$`,
         flags: "g",
-        description: "Match phone numbers with optional country code (E.164 format)"
+        description:
+            "Match phone numbers with optional country code (E.164 format)"
     },
     "URL": {
         pattern: String.raw`^(https?:\/\/)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#()?&//=]*)$`,
@@ -60,12 +61,14 @@ const REGEX_PRESETS = {
     "Strong Password": {
         pattern: String.raw`^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$`,
         flags: "g",
-        description: "Match passwords with at least 8 characters, one uppercase, one lowercase, one number and one special character"
+        description:
+            "Match passwords with at least 8 characters, one uppercase, one lowercase, one number and one special character"
     },
     "Complex Password": {
         pattern: String.raw`^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{12,}$`,
         flags: "g",
-        description: "Match passwords with at least 12 characters, one uppercase, one lowercase, one number and one special character"
+        description:
+            "Match passwords with at least 12 characters, one uppercase, one lowercase, one number and one special character"
     },
     "IP Address": {
         pattern: String.raw`^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$`,
@@ -106,13 +109,13 @@ const REGEX_PRESETS = {
 
 // Available flags description
 const FLAGS_DESC = {
-    "g": "Global - Find all matches rather than stopping after the first match",
-    "i": "Ignore case - Case-insensitive matching",
-    "m": "Multiline - ^ and $ match the beginning and end of each line",
-    "s": "Dotall - Dot (.) matches newline characters",
-    "y": "Sticky - Match only from the index indicated by lastIndex",
-    "u": "Unicode - Treat pattern as a sequence of Unicode code points",
-    "d": "Indices - Generate indices for substring matches"
+    g: "Global - Find all matches rather than stopping after the first match",
+    i: "Ignore case - Case-insensitive matching",
+    m: "Multiline - ^ and $ match the beginning and end of each line",
+    s: "Dotall - Dot (.) matches newline characters",
+    y: "Sticky - Match only from the index indicated by lastIndex",
+    u: "Unicode - Treat pattern as a sequence of Unicode code points",
+    d: "Indices - Generate indices for substring matches"
 };
 
 interface Match {
@@ -177,7 +180,7 @@ export default function RegExpBuilder() {
             state.flags.dotAll ? "s" : "",
             state.flags.sticky ? "y" : "",
             state.flags.unicode ? "u" : "",
-            state.flags.hasIndices ? "d" : "",
+            state.flags.hasIndices ? "d" : ""
         ].join("");
 
         try {
@@ -193,7 +196,7 @@ export default function RegExpBuilder() {
     // Test the RegExp against the input string
     const testRegExp = () => {
         setState({ ...state, matches: [], error: "" });
-        
+
         if (!state.pattern || !state.testString) {
             return;
         }
@@ -223,10 +226,12 @@ export default function RegExpBuilder() {
                         index: match.index + currentIndex,
                         groups: match.slice(1)
                     });
-                    
+
                     currentIndex += match.index + match[0].length;
-                    tempString = tempString.slice(match.index + match[0].length);
-                    
+                    tempString = tempString.slice(
+                        match.index + match[0].length
+                    );
+
                     // Avoid infinite loops
                     if (match[0] === "") break;
                 }
@@ -239,7 +244,7 @@ export default function RegExpBuilder() {
                         index: match.index,
                         groups: match.slice(1)
                     });
-                    
+
                     // Avoid infinite loops
                     if (match[0] === "") break;
                 }
@@ -271,7 +276,7 @@ export default function RegExpBuilder() {
             dotAll: preset.flags.includes("s"),
             sticky: preset.flags.includes("y"),
             unicode: preset.flags.includes("u"),
-            hasIndices: preset.flags.includes("d"),
+            hasIndices: preset.flags.includes("d")
         };
 
         setState({
@@ -284,7 +289,10 @@ export default function RegExpBuilder() {
     };
 
     // Update flag values
-    const handleFlagChange = (flag: keyof RegExpState["flags"], value: boolean) => {
+    const handleFlagChange = (
+        flag: keyof RegExpState["flags"],
+        value: boolean
+    ) => {
         setState({
             ...state,
             flags: {
@@ -303,17 +311,17 @@ export default function RegExpBuilder() {
             state.flags.dotAll ? "s" : "",
             state.flags.sticky ? "y" : "",
             state.flags.unicode ? "u" : "",
-            state.flags.hasIndices ? "d" : "",
+            state.flags.hasIndices ? "d" : ""
         ].join("");
 
         // Create the RegExp string representation
         const regExpString = `/${state.pattern}/${flagsString}`;
-        
+
         navigator.clipboard.writeText(regExpString).then(() => {
             setState({ ...state, copied: true });
-            
+
             setTimeout(() => {
-                setState(prevState => ({ ...prevState, copied: false }));
+                setState((prevState) => ({ ...prevState, copied: false }));
             }, 2000);
         });
     };
@@ -341,85 +349,96 @@ export default function RegExpBuilder() {
     // String manipulation tools
     const transformText = (transformation: string) => {
         if (!state.testString) return;
-        
+
         let result = state.testString;
-        
+
         switch (transformation) {
-            case 'uppercase':
+            case "uppercase":
                 result = state.testString.toUpperCase();
                 break;
-            case 'lowercase':
+            case "lowercase":
                 result = state.testString.toLowerCase();
                 break;
-            case 'capitalize':
+            case "capitalize":
                 result = state.testString
-                    .split(' ')
-                    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-                    .join(' ');
+                    .split(" ")
+                    .map(
+                        (word) =>
+                            word.charAt(0).toUpperCase() +
+                            word.slice(1).toLowerCase()
+                    )
+                    .join(" ");
                 break;
-            case 'trim':
+            case "trim":
                 result = state.testString.trim();
                 break;
-            case 'trimLeft':
+            case "trimLeft":
                 result = state.testString.trimStart();
                 break;
-            case 'trimRight':
+            case "trimRight":
                 result = state.testString.trimEnd();
                 break;
-            case 'removeExtraSpaces':
-                result = state.testString.replace(/\s+/g, ' ').trim();
+            case "removeExtraSpaces":
+                result = state.testString.replace(/\s+/g, " ").trim();
                 break;
-            case 'reverseText':
-                result = state.testString.split('').reverse().join('');
+            case "reverseText":
+                result = state.testString.split("").reverse().join("");
                 break;
-            case 'camelCase':
+            case "camelCase":
                 result = state.testString
                     .toLowerCase()
-                    .replace(/[^a-zA-Z0-9]+(.)/g, (_, char) => char.toUpperCase());
+                    .replace(/[^a-zA-Z0-9]+(.)/g, (_, char) =>
+                        char.toUpperCase()
+                    );
                 break;
-            case 'kebabCase':
+            case "kebabCase":
                 result = state.testString
                     .toLowerCase()
-                    .replace(/\s+/g, '-')
-                    .replace(/[^a-zA-Z0-9-]/g, '');
+                    .replace(/\s+/g, "-")
+                    .replace(/[^a-zA-Z0-9-]/g, "");
                 break;
-            case 'snakeCase':
+            case "snakeCase":
                 result = state.testString
                     .toLowerCase()
-                    .replace(/\s+/g, '_')
-                    .replace(/[^a-zA-Z0-9_]/g, '');
+                    .replace(/\s+/g, "_")
+                    .replace(/[^a-zA-Z0-9_]/g, "");
                 break;
-            case 'countChars':
+            case "countChars":
                 result = `${state.testString.length} characters`;
                 break;
-            case 'countWords':
-                const wordCount = state.testString.trim() ? state.testString.trim().split(/\s+/).length : 0;
+            case "countWords":
+                const wordCount = state.testString.trim()
+                    ? state.testString.trim().split(/\s+/).length
+                    : 0;
                 result = `${wordCount} words`;
                 break;
             default:
                 break;
         }
-        
+
         setState({ ...state, testString: result });
     };
 
     // Find and replace in text
     const findAndReplace = () => {
         if (!state.testString || !stringTools.findText) return;
-        
+
         try {
             let result;
             if (stringTools.useRegExp) {
                 // Using RegExp for find and replace
                 const regExp = new RegExp(stringTools.findText, "g");
-                result = state.testString.replace(regExp, stringTools.replaceText);
+                result = state.testString.replace(
+                    regExp,
+                    stringTools.replaceText
+                );
             } else {
                 // Simple string replacement
                 const findText = stringTools.findText;
                 const replaceText = stringTools.replaceText;
                 result = state.testString.split(findText).join(replaceText);
             }
-            
+
             setState({ ...state, testString: result });
         } catch (error: any) {
             setState({
@@ -432,7 +451,10 @@ export default function RegExpBuilder() {
     return (
         <div className="Page RegExpBuilder">
             <h1 className="title">RegExp Builder & Tester</h1>
-            <p className="description">Build, test, and debug regular expressions with instant string manipulation tools</p>
+            <p className="description">
+                Build, test, and debug regular expressions with instant string
+                manipulation tools
+            </p>
 
             <div className="regexp-container">
                 {/* RegExp Builder */}
@@ -445,8 +467,7 @@ export default function RegExpBuilder() {
                                 disabled={!state.pattern}
                                 title={state.copied ? "Copied!" : "Copy RegExp"}
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <ContentCopy />
                             </Button>
                             <Button
@@ -454,54 +475,76 @@ export default function RegExpBuilder() {
                                 disabled={!state.pattern && !state.testString}
                                 title="Clear all fields"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <Clear />
                             </Button>
                         </div>
                     </div>
-                    
+
                     <div className="regexp-input">
                         <div className="regexp-field">
                             <div className="regexp-label">
                                 <span>Pattern</span>
-                                <span className="regexp-badge">/pattern/flags</span>
+                                <span className="regexp-badge">
+                                    /pattern/flags
+                                </span>
                             </div>
                             <input
                                 type="text"
                                 value={state.pattern}
-                                onChange={(e) => setState({ ...state, pattern: e.target.value, error: "" })}
+                                onChange={(e) =>
+                                    setState({
+                                        ...state,
+                                        pattern: e.target.value,
+                                        error: ""
+                                    })
+                                }
                                 placeholder="Enter your regular expression pattern here"
                             />
                         </div>
-                        
+
                         <div className="regexp-flags">
-                            {Object.entries(FLAGS_DESC).map(([flag, description]) => (
-                                <div className="flag-checkbox" key={flag}>
-                                    <input
-                                        type="checkbox"
-                                        id={`flag-${flag}`}
-                                        checked={state.flags[flag as keyof RegExpState["flags"]]}
-                                        onChange={(e) => {
-                                            const flagKey = {
-                                                'g': 'global',
-                                                'i': 'ignoreCase',
-                                                'm': 'multiline',
-                                                's': 'dotAll',
-                                                'y': 'sticky',
-                                                'u': 'unicode',
-                                                'd': 'hasIndices'
-                                            }[flag] as keyof RegExpState["flags"];
-                                            
-                                            handleFlagChange(flagKey, e.target.checked);
-                                        }}
-                                    />
-                                    <label htmlFor={`flag-${flag}`}>
-                                        {flag}
-                                        <span className="flag-description">{description}</span>
-                                    </label>
-                                </div>
-                            ))}
+                            {Object.entries(FLAGS_DESC).map(
+                                ([flag, description]) => (
+                                    <div
+                                        className="flag-checkbox"
+                                        key={flag}>
+                                        <input
+                                            type="checkbox"
+                                            id={`flag-${flag}`}
+                                            checked={
+                                                state.flags[
+                                                    flag as keyof RegExpState["flags"]
+                                                ]
+                                            }
+                                            onChange={(e) => {
+                                                const flagKey = {
+                                                    g: "global",
+                                                    i: "ignoreCase",
+                                                    m: "multiline",
+                                                    s: "dotAll",
+                                                    y: "sticky",
+                                                    u: "unicode",
+                                                    d: "hasIndices"
+                                                }[
+                                                    flag
+                                                ] as keyof RegExpState["flags"];
+
+                                                handleFlagChange(
+                                                    flagKey,
+                                                    e.target.checked
+                                                );
+                                            }}
+                                        />
+                                        <label htmlFor={`flag-${flag}`}>
+                                            {flag}
+                                            <span className="flag-description">
+                                                {description}
+                                            </span>
+                                        </label>
+                                    </div>
+                                )
+                            )}
                         </div>
                     </div>
                 </div>
@@ -518,12 +561,15 @@ export default function RegExpBuilder() {
                     </div>
                     <div className="presets-list">
                         {Object.keys(REGEX_PRESETS).map((presetName) => (
-                            <button 
+                            <button
                                 key={presetName}
                                 className="preset-button"
                                 onClick={() => applyPreset(presetName)}
-                                title={REGEX_PRESETS[presetName as keyof typeof REGEX_PRESETS].description}
-                            >
+                                title={
+                                    REGEX_PRESETS[
+                                        presetName as keyof typeof REGEX_PRESETS
+                                    ].description
+                                }>
                                 {presetName}
                             </button>
                         ))}
@@ -539,42 +585,69 @@ export default function RegExpBuilder() {
                                 onPress={testRegExp}
                                 disabled={!state.pattern || !state.testString}
                                 title="Test RegExp"
-                                variant="ghost"
-                            >
+                                variant="ghost">
                                 Test
                             </Button>
                         </div>
                     </div>
-                    
+
                     <div className="test-input-area">
-                        <div className="test-input-label">Enter text to test against your regular expression:</div>
+                        <div className="test-input-label">
+                            Enter text to test against your regular expression:
+                        </div>
                         <textarea
                             className="test-input"
                             value={state.testString}
-                            onChange={(e) => setState({ ...state, testString: e.target.value })}
+                            onChange={(e) =>
+                                setState({
+                                    ...state,
+                                    testString: e.target.value
+                                })
+                            }
                             placeholder="Enter text to test your regular expression..."
                         />
                     </div>
-                    
+
                     <div className="test-results">
                         {state.matches.length > 0 ? (
                             <>
                                 <div className="matches-count">
-                                    Found {state.matches.length} match{state.matches.length !== 1 ? 'es' : ''}
+                                    Found {state.matches.length} match
+                                    {state.matches.length !== 1 ? "es" : ""}
                                 </div>
                                 <div className="matches-list">
                                     {state.matches.map((match, index) => (
-                                        <div className="match-item" key={index}>
-                                            <div className="match-content">{match.value}</div>
+                                        <div
+                                            className="match-item"
+                                            key={index}>
+                                            <div className="match-content">
+                                                {match.value}
+                                            </div>
                                             <div className="match-info">
-                                                <span>Position: {match.index}</span>
+                                                <span>
+                                                    Position: {match.index}
+                                                </span>
                                                 {match.groups.length > 0 && (
                                                     <div className="match-groups">
-                                                        {match.groups.map((group, groupIndex) => (
-                                                            <span className="group-item" key={groupIndex}>
-                                                                Group {groupIndex + 1}: {group || "(empty)"}
-                                                            </span>
-                                                        ))}
+                                                        {match.groups.map(
+                                                            (
+                                                                group,
+                                                                groupIndex
+                                                            ) => (
+                                                                <span
+                                                                    className="group-item"
+                                                                    key={
+                                                                        groupIndex
+                                                                    }>
+                                                                    Group{" "}
+                                                                    {groupIndex +
+                                                                        1}
+                                                                    :{" "}
+                                                                    {group ||
+                                                                        "(empty)"}
+                                                                </span>
+                                                            )
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -583,7 +656,11 @@ export default function RegExpBuilder() {
                                 </div>
                             </>
                         ) : (
-                            state.testString && <div className="no-matches">No matches found</div>
+                            state.testString && (
+                                <div className="no-matches">
+                                    No matches found
+                                </div>
+                            )
                         )}
                     </div>
                 </div>
@@ -593,78 +670,94 @@ export default function RegExpBuilder() {
                     <div className="tools-header">
                         <h2>String Tools</h2>
                     </div>
-                    
+
                     <div className="tools-content">
                         <div className="tools-section">
                             <h3>Case Transformation</h3>
                             <div className="tools-group">
-                                <button onClick={() => transformText('uppercase')}>
+                                <button
+                                    onClick={() => transformText("uppercase")}>
                                     <TextFields className="icon" />
                                     UPPERCASE
                                 </button>
-                                <button onClick={() => transformText('lowercase')}>
+                                <button
+                                    onClick={() => transformText("lowercase")}>
                                     <TextFields className="icon" />
                                     lowercase
                                 </button>
-                                <button onClick={() => transformText('capitalize')}>
+                                <button
+                                    onClick={() => transformText("capitalize")}>
                                     <TextFormat className="icon" />
                                     Capitalize Words
                                 </button>
-                                <button onClick={() => transformText('camelCase')}>
+                                <button
+                                    onClick={() => transformText("camelCase")}>
                                     <TextFormatOutlined className="icon" />
                                     camelCase
                                 </button>
-                                <button onClick={() => transformText('kebabCase')}>
+                                <button
+                                    onClick={() => transformText("kebabCase")}>
                                     <RemoveCircleOutline className="icon" />
                                     kebab-case
                                 </button>
-                                <button onClick={() => transformText('snakeCase')}>
+                                <button
+                                    onClick={() => transformText("snakeCase")}>
                                     <ArrowDropDown className="icon" />
                                     snake_case
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div className="tools-section">
                             <h3>Whitespace</h3>
                             <div className="tools-group">
-                                <button onClick={() => transformText('trim')}>
+                                <button onClick={() => transformText("trim")}>
                                     <FormatClear className="icon" />
                                     Trim All
                                 </button>
-                                <button onClick={() => transformText('trimLeft')}>
+                                <button
+                                    onClick={() => transformText("trimLeft")}>
                                     <FormatClear className="icon" />
                                     Trim Left
                                 </button>
-                                <button onClick={() => transformText('trimRight')}>
+                                <button
+                                    onClick={() => transformText("trimRight")}>
                                     <FormatClear className="icon" />
                                     Trim Right
                                 </button>
-                                <button onClick={() => transformText('removeExtraSpaces')}>
+                                <button
+                                    onClick={() =>
+                                        transformText("removeExtraSpaces")
+                                    }>
                                     <FormatAlignLeft className="icon" />
                                     Remove Extra Spaces
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div className="tools-section">
                             <h3>Special Operations</h3>
                             <div className="tools-group">
-                                <button onClick={() => transformText('reverseText')}>
+                                <button
+                                    onClick={() =>
+                                        transformText("reverseText")
+                                    }>
                                     <NotesOutlined className="icon" />
                                     Reverse Text
                                 </button>
-                                <button onClick={() => transformText('countChars')}>
+                                <button
+                                    onClick={() => transformText("countChars")}>
                                     <LooksOne className="icon" />
                                     Count Characters
                                 </button>
-                                <button onClick={() => transformText('countWords')}>
+                                <button
+                                    onClick={() => transformText("countWords")}>
                                     <FormatListNumbered className="icon" />
                                     Count Words
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div className="tools-section">
                             <h3>Find & Replace</h3>
                             <div className="find-replace">
@@ -674,39 +767,60 @@ export default function RegExpBuilder() {
                                         type="text"
                                         id="find-text"
                                         value={stringTools.findText}
-                                        onChange={(e) => setStringTools({ ...stringTools, findText: e.target.value })}
+                                        onChange={(e) =>
+                                            setStringTools({
+                                                ...stringTools,
+                                                findText: e.target.value
+                                            })
+                                        }
                                         placeholder="Text to find..."
                                     />
                                 </div>
-                                
+
                                 <div className="input-group">
-                                    <label htmlFor="replace-text">Replace with:</label>
+                                    <label htmlFor="replace-text">
+                                        Replace with:
+                                    </label>
                                     <input
                                         type="text"
                                         id="replace-text"
                                         value={stringTools.replaceText}
-                                        onChange={(e) => setStringTools({ ...stringTools, replaceText: e.target.value })}
+                                        onChange={(e) =>
+                                            setStringTools({
+                                                ...stringTools,
+                                                replaceText: e.target.value
+                                            })
+                                        }
                                         placeholder="Replacement text..."
                                     />
                                 </div>
-                                
+
                                 <div className="action-buttons">
                                     <div className="checkbox-option">
                                         <input
                                             type="checkbox"
                                             id="use-regexp"
                                             checked={stringTools.useRegExp}
-                                            onChange={(e) => setStringTools({ ...stringTools, useRegExp: e.target.checked })}
+                                            onChange={(e) =>
+                                                setStringTools({
+                                                    ...stringTools,
+                                                    useRegExp: e.target.checked
+                                                })
+                                            }
                                         />
-                                        <label htmlFor="use-regexp">Use RegExp</label>
+                                        <label htmlFor="use-regexp">
+                                            Use RegExp
+                                        </label>
                                     </div>
-                                    
+
                                     <Button
                                         onPress={findAndReplace}
-                                        disabled={!stringTools.findText || !state.testString}
+                                        disabled={
+                                            !stringTools.findText ||
+                                            !state.testString
+                                        }
                                         variant="ghost"
-                                        size="sm"
-                                    >
+                                        size="sm">
                                         <SearchOutlined />
                                         Replace
                                     </Button>

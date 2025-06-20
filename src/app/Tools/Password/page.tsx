@@ -2,24 +2,91 @@
 
 import React from "react";
 import "@Styles/Tools-Password.sass";
-import {
-    ContentCopy,
-    Key,
-    Refresh,
-    Abc
-} from "@mui/icons-material";
+import { ContentCopy, Key, Refresh, Abc } from "@mui/icons-material";
 import { Button } from "@heroui/react";
 
 // Words for passphrase generation
 const COMMON_WORDS = [
-    "apple", "ball", "cat", "dog", "eagle", "flower", "guitar", "house", "island", "jacket",
-    "kite", "lemon", "mountain", "notebook", "orange", "piano", "queen", "river", "sunset", "tiger",
-    "umbrella", "violin", "window", "xylophone", "yellow", "zebra", "anchor", "book", "cloud", "diamond",
-    "elephant", "forest", "garden", "highway", "igloo", "journal", "kingdom", "lighthouse", "moon", "ocean",
-    "planet", "quilt", "rainbow", "star", "tree", "universe", "village", "waterfall", "box", "yard",
-    "acorn", "bridge", "castle", "desert", "earth", "fire", "globe", "harbor", "ice", "jungle",
-    "key", "lake", "marble", "needle", "owl", "pearl", "quartz", "rose", "ship", "torch",
-    "unicorn", "valley", "wolf", "fox", "yarn", "zeppelin", "art", "bird", "compass", "door"
+    "apple",
+    "ball",
+    "cat",
+    "dog",
+    "eagle",
+    "flower",
+    "guitar",
+    "house",
+    "island",
+    "jacket",
+    "kite",
+    "lemon",
+    "mountain",
+    "notebook",
+    "orange",
+    "piano",
+    "queen",
+    "river",
+    "sunset",
+    "tiger",
+    "umbrella",
+    "violin",
+    "window",
+    "xylophone",
+    "yellow",
+    "zebra",
+    "anchor",
+    "book",
+    "cloud",
+    "diamond",
+    "elephant",
+    "forest",
+    "garden",
+    "highway",
+    "igloo",
+    "journal",
+    "kingdom",
+    "lighthouse",
+    "moon",
+    "ocean",
+    "planet",
+    "quilt",
+    "rainbow",
+    "star",
+    "tree",
+    "universe",
+    "village",
+    "waterfall",
+    "box",
+    "yard",
+    "acorn",
+    "bridge",
+    "castle",
+    "desert",
+    "earth",
+    "fire",
+    "globe",
+    "harbor",
+    "ice",
+    "jungle",
+    "key",
+    "lake",
+    "marble",
+    "needle",
+    "owl",
+    "pearl",
+    "quartz",
+    "rose",
+    "ship",
+    "torch",
+    "unicorn",
+    "valley",
+    "wolf",
+    "fox",
+    "yarn",
+    "zeppelin",
+    "art",
+    "bird",
+    "compass",
+    "door"
 ];
 
 type PasswordType = "password" | "passphrase";
@@ -112,22 +179,30 @@ export default function PasswordGenerator() {
         let finalPassword = password;
         if (includeUppercase && !containsAny(password, uppercaseChars)) {
             const pos = Math.floor(Math.random() * password.length);
-            const char = uppercaseChars[Math.floor(Math.random() * uppercaseChars.length)];
+            const char =
+                uppercaseChars[
+                    Math.floor(Math.random() * uppercaseChars.length)
+                ];
             finalPassword = replaceAt(finalPassword, pos, char);
         }
         if (includeLowercase && !containsAny(password, lowercaseChars)) {
             const pos = Math.floor(Math.random() * password.length);
-            const char = lowercaseChars[Math.floor(Math.random() * lowercaseChars.length)];
+            const char =
+                lowercaseChars[
+                    Math.floor(Math.random() * lowercaseChars.length)
+                ];
             finalPassword = replaceAt(finalPassword, pos, char);
         }
         if (includeNumbers && !containsAny(password, numberChars)) {
             const pos = Math.floor(Math.random() * password.length);
-            const char = numberChars[Math.floor(Math.random() * numberChars.length)];
+            const char =
+                numberChars[Math.floor(Math.random() * numberChars.length)];
             finalPassword = replaceAt(finalPassword, pos, char);
         }
         if (includeSymbols && !containsAny(password, symbolChars)) {
             const pos = Math.floor(Math.random() * password.length);
-            const char = symbolChars[Math.floor(Math.random() * symbolChars.length)];
+            const char =
+                symbolChars[Math.floor(Math.random() * symbolChars.length)];
             finalPassword = replaceAt(finalPassword, pos, char);
         }
 
@@ -135,44 +210,45 @@ export default function PasswordGenerator() {
     };
 
     const generatePassphrase = (
-        wordCount: number, 
-        includeNumbers: boolean, 
+        wordCount: number,
+        includeNumbers: boolean,
         includeSymbols: boolean
     ) => {
         const words = [];
         const usedIndexes = new Set<number>();
-        
+
         // Select random words
         for (let i = 0; i < wordCount; i++) {
             let randomIndex;
             do {
                 randomIndex = Math.floor(Math.random() * COMMON_WORDS.length);
             } while (usedIndexes.has(randomIndex));
-            
+
             usedIndexes.add(randomIndex);
             let word = COMMON_WORDS[randomIndex];
-            
+
             // Capitalize first letter (50% chance)
             if (Math.random() > 0.5) {
                 word = word.charAt(0).toUpperCase() + word.slice(1);
             }
-            
+
             words.push(word);
         }
-        
+
         // Add a number if requested
         if (includeNumbers) {
             const randomNum = Math.floor(Math.random() * 100);
             words.push(randomNum.toString());
         }
-        
+
         // Add a symbol if requested
         if (includeSymbols) {
             const symbols = "!@#$%^&*";
-            const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+            const randomSymbol =
+                symbols[Math.floor(Math.random() * symbols.length)];
             words.push(randomSymbol);
         }
-        
+
         // Shuffle the words
         return shuffleArray(words).join("");
     };
@@ -209,15 +285,18 @@ export default function PasswordGenerator() {
     const copyToClipboard = () => {
         navigator.clipboard.writeText(state.password).then(() => {
             setState({ ...state, copied: true });
-            
+
             // Reset copied state after 2 seconds
             setTimeout(() => {
-                setState(prevState => ({ ...prevState, copied: false }));
+                setState((prevState) => ({ ...prevState, copied: false }));
             }, 2000);
         });
     };
 
-    const handleOptionChange = (option: keyof IState["options"], value: boolean | number) => {
+    const handleOptionChange = (
+        option: keyof IState["options"],
+        value: boolean | number
+    ) => {
         setState({
             ...state,
             options: {
@@ -237,50 +316,58 @@ export default function PasswordGenerator() {
     return (
         <div className="Page PasswordGenerator">
             <h1 className="title">Password Generator</h1>
-            <p className="description">Generate secure passwords and passphrases with customizable options</p>
+            <p className="description">
+                Generate secure passwords and passphrases with customizable
+                options
+            </p>
 
             <div className="generator-container">
                 <div className="password-display glass">
                     <div className="password-header">
-                        <h2>{state.type === "password" ? "Password" : "Passphrase"}</h2>
+                        <h2>
+                            {state.type === "password"
+                                ? "Password"
+                                : "Passphrase"}
+                        </h2>
                         <div className="password-actions">
                             <Button
                                 onPress={generatePassword}
                                 title="Generate new"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <Refresh />
                             </Button>
                             <Button
                                 onPress={copyToClipboard}
                                 disabled={!state.password}
-                                title={state.copied ? "Copied!" : "Copy to clipboard"}
+                                title={
+                                    state.copied
+                                        ? "Copied!"
+                                        : "Copy to clipboard"
+                                }
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <ContentCopy />
                             </Button>
                         </div>
                     </div>
                     <div className="password-content">
-                        {state.password || "Click 'Generate' to create a password"}
+                        {state.password ||
+                            "Click 'Generate' to create a password"}
                     </div>
                 </div>
 
                 <div className="options-container glass">
                     <div className="option-group type-selector">
-                        <div 
+                        <div
                             className={`type-option ${state.type === "password" ? "active" : ""}`}
-                            onClick={() => handleTypeChange("password")}
-                        >
+                            onClick={() => handleTypeChange("password")}>
                             <Key className="icon" />
                             <span className="label">Password</span>
                         </div>
-                        <div 
+                        <div
                             className={`type-option ${state.type === "passphrase" ? "active" : ""}`}
-                            onClick={() => handleTypeChange("passphrase")}
-                        >
+                            onClick={() => handleTypeChange("passphrase")}>
                             <Abc className="icon" />
                             <span className="label">Passphrase</span>
                         </div>
@@ -296,7 +383,12 @@ export default function PasswordGenerator() {
                                             type="checkbox"
                                             id="uppercase"
                                             checked={state.options.uppercase}
-                                            onChange={(e) => handleOptionChange("uppercase", e.target.checked)}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "uppercase",
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
                                         <label htmlFor="uppercase">A-Z</label>
                                     </div>
@@ -305,7 +397,12 @@ export default function PasswordGenerator() {
                                             type="checkbox"
                                             id="lowercase"
                                             checked={state.options.lowercase}
-                                            onChange={(e) => handleOptionChange("lowercase", e.target.checked)}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "lowercase",
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
                                         <label htmlFor="lowercase">a-z</label>
                                     </div>
@@ -314,7 +411,12 @@ export default function PasswordGenerator() {
                                             type="checkbox"
                                             id="numbers"
                                             checked={state.options.numbers}
-                                            onChange={(e) => handleOptionChange("numbers", e.target.checked)}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "numbers",
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
                                         <label htmlFor="numbers">0-9</label>
                                     </div>
@@ -323,9 +425,16 @@ export default function PasswordGenerator() {
                                             type="checkbox"
                                             id="symbols"
                                             checked={state.options.symbols}
-                                            onChange={(e) => handleOptionChange("symbols", e.target.checked)}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "symbols",
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
-                                        <label htmlFor="symbols">!@#$%^&*</label>
+                                        <label htmlFor="symbols">
+                                            !@#$%^&*
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -338,14 +447,24 @@ export default function PasswordGenerator() {
                                             min="5"
                                             max="128"
                                             value={state.options.length}
-                                            onChange={(e) => handleOptionChange("length", parseInt(e.target.value))}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "length",
+                                                    parseInt(e.target.value)
+                                                )
+                                            }
                                         />
                                         <input
                                             type="number"
                                             min="5"
                                             max="128"
                                             value={state.options.length}
-                                            onChange={(e) => handleOptionChange("length", parseInt(e.target.value))}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "length",
+                                                    parseInt(e.target.value)
+                                                )
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -361,18 +480,32 @@ export default function PasswordGenerator() {
                                             type="checkbox"
                                             id="numbers-phrase"
                                             checked={state.options.numbers}
-                                            onChange={(e) => handleOptionChange("numbers", e.target.checked)}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "numbers",
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
-                                        <label htmlFor="numbers-phrase">Numbers</label>
+                                        <label htmlFor="numbers-phrase">
+                                            Numbers
+                                        </label>
                                     </div>
                                     <div className="checkbox-option">
                                         <input
                                             type="checkbox"
                                             id="symbols-phrase"
                                             checked={state.options.symbols}
-                                            onChange={(e) => handleOptionChange("symbols", e.target.checked)}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "symbols",
+                                                    e.target.checked
+                                                )
+                                            }
                                         />
-                                        <label htmlFor="symbols-phrase">Symbols</label>
+                                        <label htmlFor="symbols-phrase">
+                                            Symbols
+                                        </label>
                                     </div>
                                 </div>
                             </div>
@@ -385,14 +518,24 @@ export default function PasswordGenerator() {
                                             min="1"
                                             max="10"
                                             value={state.options.words}
-                                            onChange={(e) => handleOptionChange("words", parseInt(e.target.value))}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "words",
+                                                    parseInt(e.target.value)
+                                                )
+                                            }
                                         />
                                         <input
                                             type="number"
                                             min="1"
                                             max="10"
                                             value={state.options.words}
-                                            onChange={(e) => handleOptionChange("words", parseInt(e.target.value))}
+                                            onChange={(e) =>
+                                                handleOptionChange(
+                                                    "words",
+                                                    parseInt(e.target.value)
+                                                )
+                                            }
                                         />
                                     </div>
                                 </div>
@@ -400,8 +543,11 @@ export default function PasswordGenerator() {
                         </>
                     )}
 
-                    <Button className="generate-button" onPress={generatePassword}>
-                        Generate {state.type === "password" ? "Password" : "Passphrase"}
+                    <Button
+                        className="generate-button"
+                        onPress={generatePassword}>
+                        Generate{" "}
+                        {state.type === "password" ? "Password" : "Passphrase"}
                     </Button>
                 </div>
             </div>

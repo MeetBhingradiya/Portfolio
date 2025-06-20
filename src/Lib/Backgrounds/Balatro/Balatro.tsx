@@ -6,38 +6,38 @@ import { Renderer, Program, Mesh, Triangle } from "ogl";
 import { useEffect, useRef } from "react";
 
 interface BalatroProps {
-	spinRotation?: number;
-	spinSpeed?: number;
-	offset?: [number, number];
-	color1?: string; // HEX e.g., "#DE443B"
-	color2?: string; // HEX e.g., "#006BB4"
-	color3?: string; // HEX e.g., "#162325"
-	contrast?: number;
-	lighting?: number;
-	spinAmount?: number;
-	pixelFilter?: number;
-	spinEase?: number;
-	isRotate?: boolean;
-	mouseInteraction?: boolean;
+    spinRotation?: number;
+    spinSpeed?: number;
+    offset?: [number, number];
+    color1?: string; // HEX e.g., "#DE443B"
+    color2?: string; // HEX e.g., "#006BB4"
+    color3?: string; // HEX e.g., "#162325"
+    contrast?: number;
+    lighting?: number;
+    spinAmount?: number;
+    pixelFilter?: number;
+    spinEase?: number;
+    isRotate?: boolean;
+    mouseInteraction?: boolean;
 }
 
 function hexToVec4(hex: string): [number, number, number, number] {
-	let hexStr = hex.replace("#", "");
-	let r = 0,
-		g = 0,
-		b = 0,
-		a = 1;
-	if (hexStr.length === 6) {
-		r = parseInt(hexStr.slice(0, 2), 16) / 255;
-		g = parseInt(hexStr.slice(2, 4), 16) / 255;
-		b = parseInt(hexStr.slice(4, 6), 16) / 255;
-	} else if (hexStr.length === 8) {
-		r = parseInt(hexStr.slice(0, 2), 16) / 255;
-		g = parseInt(hexStr.slice(2, 4), 16) / 255;
-		b = parseInt(hexStr.slice(4, 6), 16) / 255;
-		a = parseInt(hexStr.slice(6, 8), 16) / 255;
-	}
-	return [r, g, b, a];
+    let hexStr = hex.replace("#", "");
+    let r = 0,
+        g = 0,
+        b = 0,
+        a = 1;
+    if (hexStr.length === 6) {
+        r = parseInt(hexStr.slice(0, 2), 16) / 255;
+        g = parseInt(hexStr.slice(2, 4), 16) / 255;
+        b = parseInt(hexStr.slice(4, 6), 16) / 255;
+    } else if (hexStr.length === 8) {
+        r = parseInt(hexStr.slice(0, 2), 16) / 255;
+        g = parseInt(hexStr.slice(2, 4), 16) / 255;
+        b = parseInt(hexStr.slice(4, 6), 16) / 255;
+        a = parseInt(hexStr.slice(6, 8), 16) / 255;
+    }
+    return [r, g, b, a];
 }
 
 const vertexShader = `
@@ -125,120 +125,120 @@ void main() {
 `;
 
 export default function Balatro({
-	spinRotation = -2.0,
-	spinSpeed = 7.0,
-	offset = [0.0, 0.0],
-	color1 = "#DE443B",
-	color2 = "#006BB4",
-	color3 = "#162325",
-	contrast = 3.5,
-	lighting = 0.4,
-	spinAmount = 0.25,
-	pixelFilter = 745.0,
-	spinEase = 1.0,
-	isRotate = false,
-	mouseInteraction = true,
+    spinRotation = -2.0,
+    spinSpeed = 7.0,
+    offset = [0.0, 0.0],
+    color1 = "#DE443B",
+    color2 = "#006BB4",
+    color3 = "#162325",
+    contrast = 3.5,
+    lighting = 0.4,
+    spinAmount = 0.25,
+    pixelFilter = 745.0,
+    spinEase = 1.0,
+    isRotate = false,
+    mouseInteraction = true
 }: BalatroProps) {
-	const containerRef = useRef<HTMLDivElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
 
-	useEffect(() => {
-		if (!containerRef.current) return;
-		const container = containerRef.current;
-		const renderer = new Renderer();
-		const gl = renderer.gl;
-		gl.clearColor(0, 0, 0, 1);
+    useEffect(() => {
+        if (!containerRef.current) return;
+        const container = containerRef.current;
+        const renderer = new Renderer();
+        const gl = renderer.gl;
+        gl.clearColor(0, 0, 0, 1);
 
-		let program: Program;
+        let program: Program;
 
-		function resize() {
-			renderer.setSize(container.offsetWidth, container.offsetHeight);
-			if (program) {
-				program.uniforms.iResolution.value = [
-					gl.canvas.width,
-					gl.canvas.height,
-					gl.canvas.width / gl.canvas.height,
-				];
-			}
-		}
-		window.addEventListener("resize", resize);
-		resize();
+        function resize() {
+            renderer.setSize(container.offsetWidth, container.offsetHeight);
+            if (program) {
+                program.uniforms.iResolution.value = [
+                    gl.canvas.width,
+                    gl.canvas.height,
+                    gl.canvas.width / gl.canvas.height
+                ];
+            }
+        }
+        window.addEventListener("resize", resize);
+        resize();
 
-		const geometry = new Triangle(gl);
-		program = new Program(gl, {
-			vertex: vertexShader,
-			fragment: fragmentShader,
-			uniforms: {
-				iTime: { value: 0 },
-				iResolution: {
-					value: [
-						gl.canvas.width,
-						gl.canvas.height,
-						gl.canvas.width / gl.canvas.height,
-					],
-				},
-				uSpinRotation: { value: spinRotation },
-				uSpinSpeed: { value: spinSpeed },
-				uOffset: { value: offset },
-				uColor1: { value: hexToVec4(color1) },
-				uColor2: { value: hexToVec4(color2) },
-				uColor3: { value: hexToVec4(color3) },
-				uContrast: { value: contrast },
-				uLighting: { value: lighting },
-				uSpinAmount: { value: spinAmount },
-				uPixelFilter: { value: pixelFilter },
-				uSpinEase: { value: spinEase },
-				uIsRotate: { value: isRotate },
-				uMouse: { value: [0.5, 0.5] },
-			},
-		});
+        const geometry = new Triangle(gl);
+        program = new Program(gl, {
+            vertex: vertexShader,
+            fragment: fragmentShader,
+            uniforms: {
+                iTime: { value: 0 },
+                iResolution: {
+                    value: [
+                        gl.canvas.width,
+                        gl.canvas.height,
+                        gl.canvas.width / gl.canvas.height
+                    ]
+                },
+                uSpinRotation: { value: spinRotation },
+                uSpinSpeed: { value: spinSpeed },
+                uOffset: { value: offset },
+                uColor1: { value: hexToVec4(color1) },
+                uColor2: { value: hexToVec4(color2) },
+                uColor3: { value: hexToVec4(color3) },
+                uContrast: { value: contrast },
+                uLighting: { value: lighting },
+                uSpinAmount: { value: spinAmount },
+                uPixelFilter: { value: pixelFilter },
+                uSpinEase: { value: spinEase },
+                uIsRotate: { value: isRotate },
+                uMouse: { value: [0.5, 0.5] }
+            }
+        });
 
-		const mesh = new Mesh(gl, { geometry, program });
-		let animationFrameId: number;
+        const mesh = new Mesh(gl, { geometry, program });
+        let animationFrameId: number;
 
-		function update(time: number) {
-			animationFrameId = requestAnimationFrame(update);
-			program.uniforms.iTime.value = time * 0.001;
-			renderer.render({ scene: mesh });
-		}
-		animationFrameId = requestAnimationFrame(update);
-		container.appendChild(gl.canvas);
+        function update(time: number) {
+            animationFrameId = requestAnimationFrame(update);
+            program.uniforms.iTime.value = time * 0.001;
+            renderer.render({ scene: mesh });
+        }
+        animationFrameId = requestAnimationFrame(update);
+        container.appendChild(gl.canvas);
 
-		function handleMouseMove(e: MouseEvent) {
-			if (!mouseInteraction) return;
-			const rect = container.getBoundingClientRect();
-			const x = (e.clientX - rect.left) / rect.width;
-			const y = 1.0 - (e.clientY - rect.top) / rect.height;
-			program.uniforms.uMouse.value = [x, y];
-		}
-		container.addEventListener("mousemove", handleMouseMove);
+        function handleMouseMove(e: MouseEvent) {
+            if (!mouseInteraction) return;
+            const rect = container.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / rect.width;
+            const y = 1.0 - (e.clientY - rect.top) / rect.height;
+            program.uniforms.uMouse.value = [x, y];
+        }
+        container.addEventListener("mousemove", handleMouseMove);
 
-		return () => {
-			cancelAnimationFrame(animationFrameId);
-			window.removeEventListener("resize", resize);
-			container.removeEventListener("mousemove", handleMouseMove);
-			container.removeChild(gl.canvas);
-			gl.getExtension("WEBGL_lose_context")?.loseContext();
-		};
-	}, [
-		spinRotation,
-		spinSpeed,
-		offset,
-		color1,
-		color2,
-		color3,
-		contrast,
-		lighting,
-		spinAmount,
-		pixelFilter,
-		spinEase,
-		isRotate,
-		mouseInteraction,
-	]);
+        return () => {
+            cancelAnimationFrame(animationFrameId);
+            window.removeEventListener("resize", resize);
+            container.removeEventListener("mousemove", handleMouseMove);
+            container.removeChild(gl.canvas);
+            gl.getExtension("WEBGL_lose_context")?.loseContext();
+        };
+    }, [
+        spinRotation,
+        spinSpeed,
+        offset,
+        color1,
+        color2,
+        color3,
+        contrast,
+        lighting,
+        spinAmount,
+        pixelFilter,
+        spinEase,
+        isRotate,
+        mouseInteraction
+    ]);
 
-	return (
-		<div
-			ref={containerRef}
-			className="w-full h-full"
-		/>
-	);
+    return (
+        <div
+            ref={containerRef}
+            className="w-full h-full"
+        />
+    );
 }

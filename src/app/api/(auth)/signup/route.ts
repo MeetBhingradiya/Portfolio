@@ -4,10 +4,10 @@ import { OTPs_Model, IOTP, OTPs } from "@Models/OneTimePass";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { Config } from "@Config";
 import {
-	Encrypt,
-	generateSalt,
-	generateRounds,
-	generateSecret,
+    Encrypt,
+    generateSalt,
+    generateRounds,
+    generateSecret
 } from "@Utils/Crypto";
 import { dbConnect } from "@Utils/dbConnect";
 import { log } from "@Utils";
@@ -15,15 +15,15 @@ import { OTP } from "@Utils/OTP";
 import { createEmailTransport } from "@Utils/EmailSend";
 
 async function sendOTPEmail(
-	email: string,
-	otp: string,
-	name: string
+    email: string,
+    otp: string,
+    name: string
 ): Promise<boolean> {
-	try {
-		const transporter = createEmailTransport();
-		await transporter.verify();
+    try {
+        const transporter = createEmailTransport();
+        await transporter.verify();
 
-		const emailHtml = `
+        const emailHtml = `
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
                 <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
                     <h1 style="color: white; margin: 0;">🎉 Welcome to Our Platform!</h1>
@@ -73,184 +73,184 @@ async function sendOTPEmail(
             </div>
         `;
 
-		await transporter.sendMail({
-			from: `"Meet Bhingradiya" <${process.env.SMTP_EMAIL}>`,
-			to: email,
-			subject: `🎉 Welcome! Verify Your Email - Verification Code: ${otp}`,
-			html: emailHtml,
-		});
+        await transporter.sendMail({
+            from: `"Meet Bhingradiya" <${process.env.SMTP_EMAIL}>`,
+            to: email,
+            subject: `🎉 Welcome! Verify Your Email - Verification Code: ${otp}`,
+            html: emailHtml
+        });
 
-		return true;
-	} catch (error) {
-		log(`Failed to send OTP email: ${error}`);
-		return false;
-	}
+        return true;
+    } catch (error) {
+        log(`Failed to send OTP email: ${error}`);
+        return false;
+    }
 }
 
 export async function POST(req: NextRequest) {
-	const rawBody = await req.json();
-	const Body = {
-		email: String(rawBody.email || ""),
-		password: String(rawBody.password || ""),
-		username: String(rawBody.username || ""),
-		firstname: String(rawBody.firstname || ""),
-		lastname: String(rawBody.lastname || ""),
-		dateofbirth: String(rawBody.dateofbirth || ""),
-		gender: String(rawBody.gender || ""),
-	};
+    const rawBody = await req.json();
+    const Body = {
+        email: String(rawBody.email || ""),
+        password: String(rawBody.password || ""),
+        username: String(rawBody.username || ""),
+        firstname: String(rawBody.firstname || ""),
+        lastname: String(rawBody.lastname || ""),
+        dateofbirth: String(rawBody.dateofbirth || ""),
+        gender: String(rawBody.gender || "")
+    };
 
-	// ? Check if required fields are missing
-	if (
-		useEmptyFields({
-			ReqiuredFields: [
-				"email",
-				"password",
-				"firstname",
-				"lastname",
-				"gender",
-				"dateofbirth",
-			],
-			targetObject: Body,
-		}).isMissing
-	) {
-		return NextResponse.json(
-			{
-				Status: 0,
-				Message: "Missing required fields",
-				StatusCode: 400,
-			},
-			{ status: 400 }
-		);
-	}
+    // ? Check if required fields are missing
+    if (
+        useEmptyFields({
+            ReqiuredFields: [
+                "email",
+                "password",
+                "firstname",
+                "lastname",
+                "gender",
+                "dateofbirth"
+            ],
+            targetObject: Body
+        }).isMissing
+    ) {
+        return NextResponse.json(
+            {
+                Status: 0,
+                Message: "Missing required fields",
+                StatusCode: 400
+            },
+            { status: 400 }
+        );
+    }
 
-	// ^ TODO:  Validations
-	// ? Email Regex & Domain Whitelist on State Collection
-	// ? Email on Users Collection
-	// ? Password Decrypt & Validate (Length, Special Characters, Uppercase, Lowercase, Digits)
-	// ? Username Regex & Users Collection
-	// ? Minimum Age Check on State Collection
+    // ^ TODO:  Validations
+    // ? Email Regex & Domain Whitelist on State Collection
+    // ? Email on Users Collection
+    // ? Password Decrypt & Validate (Length, Special Characters, Uppercase, Lowercase, Digits)
+    // ? Username Regex & Users Collection
+    // ? Minimum Age Check on State Collection
 
-	try {
-		await dbConnect();
+    try {
+        await dbConnect();
 
-		// ? Check if email is already registered
-		const FindUser = await Users_Model.findOne({
-			"Emails.Email": Body.email.toLowerCase(),
-		});
+        // ? Check if email is already registered
+        const FindUser = await Users_Model.findOne({
+            "Emails.Email": Body.email.toLowerCase()
+        });
 
-		if (FindUser) {
-			return NextResponse.json(
-				{
-					Status: 0,
-					Message: "Account already exists with this email",
-					StatusCode: 400,
-				},
-				{ status: 400 }
-			);
-		}
+        if (FindUser) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Account already exists with this email",
+                    StatusCode: 400
+                },
+                { status: 400 }
+            );
+        }
 
-		// ? Encrypt Password using the crypto system
-		const salt = generateSalt();
-		const rounds = generateRounds();
-		const secret = generateSecret();
+        // ? Encrypt Password using the crypto system
+        const salt = generateSalt();
+        const rounds = generateRounds();
+        const secret = generateSecret();
 
-		const encryptedPassword = await Encrypt({
-			Data: Body.password,
-			Secret: secret,
-			Salt: salt,
-			Format: "both",
-			Rounds: rounds,
-		});
+        const encryptedPassword = await Encrypt({
+            Data: Body.password,
+            Secret: secret,
+            Salt: salt,
+            Format: "both",
+            Rounds: rounds
+        });
 
-		// ? Create new user
-		const newUser = await Users_Model.create({
-			Emails: [
-				{
-					Email: Body.email.toLowerCase(),
-					isPrimary: true,
-					isVerified: false,
-				},
-			],
-			Credentials: [
-				{
-					Salt: salt,
-					Secret: secret,
-					Data: encryptedPassword,
-					Rounds: rounds,
-					isActive: true,
-				},
-			],
-			Username: Body.username || Config.DatabaseBydefualt.SignupUsername,
-			FirstName: Body.firstname,
-			LastName: Body.lastname,
-			DateOfBirth: new Date(Body.dateofbirth),
-			Gender: Body.gender,
-			isLocked: false,
-			isSuspended: false,
-			isDeleted: false,
-		});
-        
+        // ? Create new user
+        const newUser = await Users_Model.create({
+            Emails: [
+                {
+                    Email: Body.email.toLowerCase(),
+                    isPrimary: true,
+                    isVerified: false
+                }
+            ],
+            Credentials: [
+                {
+                    Salt: salt,
+                    Secret: secret,
+                    Data: encryptedPassword,
+                    Rounds: rounds,
+                    isActive: true
+                }
+            ],
+            Username: Body.username || Config.DatabaseBydefualt.SignupUsername,
+            FirstName: Body.firstname,
+            LastName: Body.lastname,
+            DateOfBirth: new Date(Body.dateofbirth),
+            Gender: Body.gender,
+            isLocked: false,
+            isSuspended: false,
+            isDeleted: false
+        });
+
         // ? Generate OTP for Email Verification
-		const otpCode = OTP({
-			Length: 6,
-			Digits: true,
-			Uppercase: false,
-			Lowercase: false,
-			Special: false,
-		});
+        const otpCode = OTP({
+            Length: 6,
+            Digits: true,
+            Uppercase: false,
+            Lowercase: false,
+            Special: false
+        });
 
-		const encryptedOTP = await Encrypt({
-			Data: otpCode,
-			Secret: secret,
-			Salt: salt,
-			Format: "both",
-			Rounds: rounds,
-		});
+        const encryptedOTP = await Encrypt({
+            Data: otpCode,
+            Secret: secret,
+            Salt: salt,
+            Format: "both",
+            Rounds: rounds
+        });
 
-		await OTPs_Model.create({
-			Type: OTPs.Email,
+        await OTPs_Model.create({
+            Type: OTPs.Email,
             Data: encryptedOTP, // ? This will Unlocked only with Latest Users Credentials
             UserID: newUser.UserID,
-			ExpiresAt: new Date(Date.now() + 10 * 60 * 1000), // ? 10 minutes
-		});
+            ExpiresAt: new Date(Date.now() + 10 * 60 * 1000) // ? 10 minutes
+        });
 
-		const emailSent = await sendOTPEmail(
-			Body.email,
-			otpCode,
-			Body.firstname
-		);
+        const emailSent = await sendOTPEmail(
+            Body.email,
+            otpCode,
+            Body.firstname
+        );
 
-		if (!emailSent) {
-			log(
-				`Failed to send verification email to ${Body.email} for user ${newUser.UserID}`
-			);
-		}
+        if (!emailSent) {
+            log(
+                `Failed to send verification email to ${Body.email} for user ${newUser.UserID}`
+            );
+        }
 
-		return NextResponse.json(
-			{
-				Status: 1,
-				Message: emailSent
-					? "Account created successfully! Please check your email for verification code."
-					: "Account created successfully! Verification email failed to send - please request a new one.",
-				StatusCode: 200,
-				Data: {
-					UserID: newUser.UserID,
-					Email: Body.email,
-					EmailSent: emailSent,
-					OTPExpiresIn: 15 * 60, // 15 minutes in seconds
-				},
-			},
-			{ status: 200 }
-		);
-	} catch (error: any) {
-		console.error("Signup error:", error);
-		return NextResponse.json(
-			{
-				Status: 0,
-				Message: "Internal server error",
-				StatusCode: 500,
-			},
-			{ status: 500 }
-		);
-	}
+        return NextResponse.json(
+            {
+                Status: 1,
+                Message: emailSent
+                    ? "Account created successfully! Please check your email for verification code."
+                    : "Account created successfully! Verification email failed to send - please request a new one.",
+                StatusCode: 200,
+                Data: {
+                    UserID: newUser.UserID,
+                    Email: Body.email,
+                    EmailSent: emailSent,
+                    OTPExpiresIn: 15 * 60 // 15 minutes in seconds
+                }
+            },
+            { status: 200 }
+        );
+    } catch (error: any) {
+        console.error("Signup error:", error);
+        return NextResponse.json(
+            {
+                Status: 0,
+                Message: "Internal server error",
+                StatusCode: 500
+            },
+            { status: 500 }
+        );
+    }
 }

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useWindowCheck } from '@Hooks/useWindowCheck';
+import { useState, useEffect } from "react";
+import { useWindowCheck } from "@Hooks/useWindowCheck";
 
 function useStore(storageKey: string, storageType: "session" | "local") {
     const [data, setData] = useState<any>({});
@@ -41,13 +41,17 @@ function useStore(storageKey: string, storageType: "session" | "local") {
                 if (sessionStorage.getItem(storageKey) !== null) {
                     sessionStorage.setItem(storageKey, JSON.stringify(data));
                 } else {
-                    throw new Error("Session Storage is Empty or not available in this browser");
+                    throw new Error(
+                        "Session Storage is Empty or not available in this browser"
+                    );
                 }
             } else {
                 if (localStorage.getItem(storageKey) !== null) {
                     localStorage.setItem(storageKey, JSON.stringify(data));
                 } else {
-                    throw new Error("Local Storage is Empty or not available in this browser");
+                    throw new Error(
+                        "Local Storage is Empty or not available in this browser"
+                    );
                 }
             }
         }
@@ -60,6 +64,6 @@ function useStore(storageKey: string, storageType: "session" | "local") {
         remove,
         update: set
     };
-};
+}
 
 export { useStore };

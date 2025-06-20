@@ -17,7 +17,6 @@ function RemoveDublicateLines(FileData: string) {
     return FilteredLines.join("\n");
 }
 
-
 function RemoveEmptyLines(FileData: string) {
     const Lines = FileData.split("\n");
     const FilteredLines = Lines.filter((Line) => Line.trim() !== "");
@@ -32,7 +31,10 @@ function RemoveLinesWithSpecificWords(FileData: string, Words: string[]) {
     return FilteredLines.join("\n");
 }
 
-function RemoveLinesWithSpecificPatterns(FileData: string, Patterns: (RegExp | string)[]): string {
+function RemoveLinesWithSpecificPatterns(
+    FileData: string,
+    Patterns: (RegExp | string)[]
+): string {
     if (Patterns.length === 0) return FileData;
 
     // Convert string patterns to RegExp
@@ -59,12 +61,18 @@ function RemoveLinesWithSpecificPatterns(FileData: string, Patterns: (RegExp | s
 
     // Remove lines with specific words
     const WordsToRemove = ["cls"];
-    const NoSpecificWords = RemoveLinesWithSpecificWords(NoEmptyLines, WordsToRemove);
+    const NoSpecificWords = RemoveLinesWithSpecificWords(
+        NoEmptyLines,
+        WordsToRemove
+    );
 
     // Remove lines with specific patterns
     const PatternsToRemove = [/^\s*$/, "neeta"]; // Example regex pattern to remove empty lines
-    const CleanedData = RemoveLinesWithSpecificPatterns(NoSpecificWords, PatternsToRemove);
+    const CleanedData = RemoveLinesWithSpecificPatterns(
+        NoSpecificWords,
+        PatternsToRemove
+    );
 
     // Write the cleaned data back to the file
     fs.writeFileSync(FileAt, CleanedData, "utf-8");
-})()
+})();

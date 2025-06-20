@@ -3,11 +3,9 @@ import { MemoryStore } from "./memory-store";
 
 const Libraries = {
     requestIp: getClientIp,
-    MemoryStore,
+    MemoryStore
 };
 
 export default Libraries;
 
-export {
-    getClientIp as requestIp,
-}
+export { getClientIp as requestIp };

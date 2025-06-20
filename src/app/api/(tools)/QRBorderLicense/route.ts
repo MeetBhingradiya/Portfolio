@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import * as crypto from 'crypto';
-import axios from 'axios';
+import { NextRequest, NextResponse } from "next/server";
+import * as crypto from "crypto";
+import axios from "axios";
 
 enum LicensingModel {
     Perpetual = "perpetual",
@@ -24,12 +24,13 @@ function generateLicenseKey(
 }
 
 export async function GET() {
-
-    return NextResponse.json(generateLicenseKey(
-        "qr-code-styling",
-        LicensingModel.Perpetual,
-        "organization",
-        1,
-        "*.vercel.app"
-    ));
+    return NextResponse.json(
+        generateLicenseKey(
+            "qr-code-styling",
+            LicensingModel.Perpetual,
+            "organization",
+            1,
+            "*.vercel.app"
+        )
+    );
 }

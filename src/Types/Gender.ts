@@ -6,6 +6,4 @@ enum IGender {
     UNSPECIFIED = "unspecified"
 }
 
-export {
-    IGender
-}
+export { IGender };

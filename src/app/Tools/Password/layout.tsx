@@ -2,7 +2,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Password Generator - Meet Bhingradiya",
-    description: "Generate secure passwords and passphrases with customizable options.",
+    description:
+        "Generate secure passwords and passphrases with customizable options.",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
@@ -15,13 +16,13 @@ export const metadata: Metadata = {
         "Passphrase Generator",
         "Secure Password"
     ]
-}
+};
 
 // @ File
 export default function Layout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

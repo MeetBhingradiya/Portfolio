@@ -9,13 +9,10 @@ interface ITemplate {
         QROptions: Options;
         QRBorderOptionsEnabled: false | boolean;
         QRBorderOptions?: ExtensionOptions;
-    }
+    };
 }
 
-const Templates: ITemplate[] = [
-
-];
-
+const Templates: ITemplate[] = [];
 
 export type { ITemplate };
 export { Templates };

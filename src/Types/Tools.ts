@@ -1,36 +1,36 @@
 interface IBookmark {
     // ? Unique identifier for the bookmark
-    id?: string
+    id?: string;
 
     // ? Site Name if given by the user otherwise fetched from Site URL
-    name: string
+    name: string;
 
     // ? Site URL
-    url: string
+    url: string;
 
     // ? Site Icon
-    icon?: string
+    icon?: string;
 
     // ? Site Icon as SVG
-    isSVGSrc?: boolean
+    isSVGSrc?: boolean;
     SVGStyles?: {
-        fill?: string
-    }
+        fill?: string;
+    };
 
     // ? Site Description if given by the user or fetched from meta tags of the site
-    description?: string
+    description?: string;
 
     // ? Site Keywords if given by the user or fetched from meta tags of the site
-    keywords?: Array<string>
+    keywords?: Array<string>;
 
     // ? Defualt Icon Size
-    size?: "128" | "64" | "32" | "16"
+    size?: "128" | "64" | "32" | "16";
 
-    isServer?: boolean
+    isServer?: boolean;
 
     // ? Advanced Data
-    windowsapp?: string
-    androidapp?: string
+    windowsapp?: string;
+    androidapp?: string;
 }
 
 enum ILocale {
@@ -102,49 +102,49 @@ enum ISearchEngine {
     DUCKDUCKGO = "duckduckgo",
     BRAVE = "brave",
     QWANT = "qwant",
-    YAHOO = "yahoo",
+    YAHOO = "yahoo"
 }
 
 interface ISuggestionPrams {
-    q: string
-    l: ILocale
-    with: ISearchEngine
+    q: string;
+    l: ILocale;
+    with: ISearchEngine;
 }
 
 interface ISuggestionResponse {
-    text: string
-    desc?: string
-    image?: string
+    text: string;
+    desc?: string;
+    image?: string;
 }
 
 interface ISuggestion {
-    Query: string
-    Thumbnail?: string
-    Keywords?: Array<string>
-    Description?: string
+    Query: string;
+    Thumbnail?: string;
+    Keywords?: Array<string>;
+    Description?: string;
 }
 
 interface IState {
-    FilterBookmarks: Array<IBookmark>
-    Bookmarks: Array<IBookmark>
-    Query: string
-    QueryDisplay: string
+    FilterBookmarks: Array<IBookmark>;
+    Bookmarks: Array<IBookmark>;
+    Query: string;
+    QueryDisplay: string;
     Settings: {
-        isFirstRun: boolean
-        isNewTab: boolean
-        SearchEngine: ISearchEngine
-        Locale: string
-        CloudSync: boolean
+        isFirstRun: boolean;
+        isNewTab: boolean;
+        SearchEngine: ISearchEngine;
+        Locale: string;
+        CloudSync: boolean;
 
-        isNewWindow?: boolean
-        priorityWindowsApp?: boolean
-        priorityAndroidapp?: boolean
-        CloudSyncRandomize?: boolean
-    }
+        isNewWindow?: boolean;
+        priorityWindowsApp?: boolean;
+        priorityAndroidapp?: boolean;
+        CloudSyncRandomize?: boolean;
+    };
 }
 
 enum ModelType {
-    // ? Not Dismisable 
+    // ? Not Dismisable
     Edit = "edit",
     Create = "create",
 
@@ -167,15 +167,15 @@ enum ModelType {
 }
 
 interface SettingsProps {
-    isOpen: boolean
-    onClose: () => void
-    type: ModelType
-    SwitchModelType: (type: ModelType) => void
+    isOpen: boolean;
+    onClose: () => void;
+    type: ModelType;
+    SwitchModelType: (type: ModelType) => void;
 
-    State: IState
-    Dispatch: React.Dispatch<React.SetStateAction<IState>>
+    State: IState;
+    Dispatch: React.Dispatch<React.SetStateAction<IState>>;
 
-    EditBookmarkData?: IBookmark
+    EditBookmarkData?: IBookmark;
 }
 
 interface SettingsState {
@@ -202,11 +202,7 @@ interface SettingsState {
     };
 }
 
-export {
-    ISearchEngine,
-    ILocale,
-    ModelType
-}
+export { ISearchEngine, ILocale, ModelType };
 
 export type {
     IBookmark,
@@ -216,4 +212,4 @@ export type {
     IState,
     SettingsProps,
     SettingsState
-}
+};

@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import crypto from "crypto";
 
 /**
  * Generates a cryptographically secure random token of specified length
@@ -6,7 +6,7 @@ import crypto from 'crypto';
  * @returns Secure random token string
  */
 export function generateSecureToken(length: number = 32): string {
-  return crypto.randomBytes(length).toString('hex');
+    return crypto.randomBytes(length).toString("hex");
 }
 
 /**
@@ -15,7 +15,7 @@ export function generateSecureToken(length: number = 32): string {
  * @returns Hashed string
  */
 export function hashString(input: string): string {
-  return crypto.createHash('sha256').update(input).digest('hex');
+    return crypto.createHash("sha256").update(input).digest("hex");
 }
 
 /**
@@ -25,17 +25,17 @@ export function hashString(input: string): string {
  * @returns Encrypted data as base64 string
  */
 export function encryptData(data: string, key: string): string {
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv(
-    'aes-256-cbc',
-    crypto.createHash('sha256').update(key).digest('base64').substr(0, 32),
-    iv
-  );
-  
-  let encrypted = cipher.update(data, 'utf8', 'base64');
-  encrypted += cipher.final('base64');
-  
-  return iv.toString('hex') + ':' + encrypted;
+    const iv = crypto.randomBytes(16);
+    const cipher = crypto.createCipheriv(
+        "aes-256-cbc",
+        crypto.createHash("sha256").update(key).digest("base64").substr(0, 32),
+        iv
+    );
+
+    let encrypted = cipher.update(data, "utf8", "base64");
+    encrypted += cipher.final("base64");
+
+    return iv.toString("hex") + ":" + encrypted;
 }
 
 /**
@@ -45,18 +45,18 @@ export function encryptData(data: string, key: string): string {
  * @returns Decrypted data as string
  */
 export function decryptData(encryptedData: string, key: string): string {
-  const parts = encryptedData.split(':');
-  const iv = Buffer.from(parts[0], 'hex');
-  const decipher = crypto.createDecipheriv(
-    'aes-256-cbc',
-    crypto.createHash('sha256').update(key).digest('base64').substr(0, 32),
-    iv
-  );
-  
-  let decrypted = decipher.update(parts[1], 'base64', 'utf8');
-  decrypted += decipher.final('utf8');
-  
-  return decrypted;
+    const parts = encryptedData.split(":");
+    const iv = Buffer.from(parts[0], "hex");
+    const decipher = crypto.createDecipheriv(
+        "aes-256-cbc",
+        crypto.createHash("sha256").update(key).digest("base64").substr(0, 32),
+        iv
+    );
+
+    let decrypted = decipher.update(parts[1], "base64", "utf8");
+    decrypted += decipher.final("utf8");
+
+    return decrypted;
 }
 
 /**
@@ -66,7 +66,7 @@ export function decryptData(encryptedData: string, key: string): string {
  * @returns Boolean indicating if token is valid
  */
 export function verifyToken(plainToken: string, hashedToken: string): boolean {
-  return hashString(plainToken) === hashedToken;
+    return hashString(plainToken) === hashedToken;
 }
 
 /**
@@ -77,17 +77,17 @@ export function verifyToken(plainToken: string, hashedToken: string): boolean {
  * @returns Signed token string
  */
 export function generateTimedAccessToken(
-  payload: Record<string, any>,
-  expiryMinutes: number = 60,
-  secretKey: string
+    payload: Record<string, any>,
+    expiryMinutes: number = 60,
+    secretKey: string
 ): string {
-  const expiryTime = Date.now() + expiryMinutes * 60 * 1000;
-  const data = JSON.stringify({
-    ...payload,
-    exp: expiryTime
-  });
-  
-  return encryptData(data, secretKey);
+    const expiryTime = Date.now() + expiryMinutes * 60 * 1000;
+    const data = JSON.stringify({
+        ...payload,
+        exp: expiryTime
+    });
+
+    return encryptData(data, secretKey);
 }
 
 /**
@@ -97,20 +97,20 @@ export function generateTimedAccessToken(
  * @returns Decoded payload if valid, null if invalid or expired
  */
 export function validateTimedAccessToken(
-  token: string,
-  secretKey: string
+    token: string,
+    secretKey: string
 ): Record<string, any> | null {
-  try {
-    const decrypted = decryptData(token, secretKey);
-    const payload = JSON.parse(decrypted);
-    
-    // Check if token is expired
-    if (payload.exp && payload.exp < Date.now()) {
-      return null; // Token expired
+    try {
+        const decrypted = decryptData(token, secretKey);
+        const payload = JSON.parse(decrypted);
+
+        // Check if token is expired
+        if (payload.exp && payload.exp < Date.now()) {
+            return null; // Token expired
+        }
+
+        return payload;
+    } catch (error) {
+        return null; // Invalid token
     }
-    
-    return payload;
-  } catch (error) {
-    return null; // Invalid token
-  }
 }

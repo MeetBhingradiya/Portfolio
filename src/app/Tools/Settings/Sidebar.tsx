@@ -17,23 +17,21 @@ import {
     AdminPanelSettings,
     AdminPanelSettingsOutlined,
     EditOutlined
-} from '@mui/icons-material';
-import {
-    useWindowCheck
-} from "@Hooks"
+} from "@mui/icons-material";
+import { useWindowCheck } from "@Hooks";
 import { log } from "@Utils";
 
 interface SidebarProps {
-    ModalState: IToolsModalData
-    SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>
+    ModalState: IToolsModalData;
+    SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>;
 }
 
 const LongSidebarsOn = [
     IToolsSettingsTabs.Preferences,
     IToolsSettingsTabs.Contribute,
     IToolsSettingsTabs.BeAdmin,
-    IToolsSettingsTabs.Cloud,
-]
+    IToolsSettingsTabs.Cloud
+];
 
 function Sidebar({ ModalState, SetModalState }: SidebarProps) {
     const isClient = useWindowCheck();
@@ -46,7 +44,7 @@ function Sidebar({ ModalState, SetModalState }: SidebarProps) {
                 SetModalState({
                     ...ModalState,
                     isAdminOptionVisible: true
-                })
+                });
             }
         }
     }
@@ -55,7 +53,7 @@ function Sidebar({ ModalState, SetModalState }: SidebarProps) {
         SetModalState({
             ...ModalState,
             type: type
-        })
+        });
     }
 
     React.useEffect(() => {
@@ -63,69 +61,90 @@ function Sidebar({ ModalState, SetModalState }: SidebarProps) {
     }, [isClient]);
 
     return (
-        <div className={`flex flex-col gap-6 pl-2 pr-4 py-4 top-0 mt-12 ${LongSidebarsOn.includes(ModalState.type) ? "mb-[-2rem]" : "mb-10"}`} style={{ borderRight: `1px solid var(--bookmark-border)` }}>
-
+        <div
+            className={`flex flex-col gap-6 pl-2 pr-4 py-4 top-0 mt-12 ${LongSidebarsOn.includes(ModalState.type) ? "mb-[-2rem]" : "mb-10"}`}
+            style={{ borderRight: `1px solid var(--bookmark-border)` }}>
             <div
                 key={IToolsSettingsTabs.Create}
                 className="flex flex-row gap-2 leading-6 cursor-pointer"
                 onClick={() => SwitchTab(IToolsSettingsTabs.Create)}
                 style={{
-                    color: ModalState.type === IToolsSettingsTabs.Create ? "var(--font-color)" : "var(--description-font-color)"
-                }}
-            >
-                {
-                    ModalState.type === IToolsSettingsTabs.Create ? <Book /> : <BookOutlined sx={{ color: "var(--description-font-color)" }} />
-                }
+                    color:
+                        ModalState.type === IToolsSettingsTabs.Create
+                            ? "var(--font-color)"
+                            : "var(--description-font-color)"
+                }}>
+                {ModalState.type === IToolsSettingsTabs.Create ? (
+                    <Book />
+                ) : (
+                    <BookOutlined
+                        sx={{ color: "var(--description-font-color)" }}
+                    />
+                )}
                 Create
             </div>
 
-            {
-                ModalState.type === IToolsSettingsTabs.Edit && (
-                    <div
-                        key={IToolsSettingsTabs.Edit}
-                        className="flex flex-row gap-2 leading-6 cursor-pointer"
-                        onClick={() => SwitchTab(IToolsSettingsTabs.Edit)}
-                        style={{
-                            color: ModalState.type === IToolsSettingsTabs.Edit ? "var(--font-color)" : "var(--description-font-color)"
-                        }}
-                    >
-                        {
-                            ModalState.type === IToolsSettingsTabs.Edit ? <Edit /> : <EditOutlined sx={{ color: "var(--description-font-color)" }} />
-                        }
-                        Edit
-                    </div>
-                )
-            }
+            {ModalState.type === IToolsSettingsTabs.Edit && (
+                <div
+                    key={IToolsSettingsTabs.Edit}
+                    className="flex flex-row gap-2 leading-6 cursor-pointer"
+                    onClick={() => SwitchTab(IToolsSettingsTabs.Edit)}
+                    style={{
+                        color:
+                            ModalState.type === IToolsSettingsTabs.Edit
+                                ? "var(--font-color)"
+                                : "var(--description-font-color)"
+                    }}>
+                    {ModalState.type === IToolsSettingsTabs.Edit ? (
+                        <Edit />
+                    ) : (
+                        <EditOutlined
+                            sx={{ color: "var(--description-font-color)" }}
+                        />
+                    )}
+                    Edit
+                </div>
+            )}
 
-            {
-                ModalState.type === IToolsSettingsTabs.AdminEdit && (
-                    <div
-                        key={IToolsSettingsTabs.AdminEdit}
-                        className="flex flex-row gap-2 leading-6 cursor-pointer"
-                        onClick={() => SwitchTab(IToolsSettingsTabs.AdminEdit)}
-                        style={{
-                            color: ModalState.type === IToolsSettingsTabs.AdminEdit ? "var(--font-color)" : "var(--description-font-color)"
-                        }}
-                    >
-                        {
-                            ModalState.type === IToolsSettingsTabs.AdminEdit ? <AdminPanelSettings /> : <AdminPanelSettingsOutlined sx={{ color: "var(--description-font-color)" }} />
-                        }
-                        Edit
-                    </div>
-                )
-            }
+            {ModalState.type === IToolsSettingsTabs.AdminEdit && (
+                <div
+                    key={IToolsSettingsTabs.AdminEdit}
+                    className="flex flex-row gap-2 leading-6 cursor-pointer"
+                    onClick={() => SwitchTab(IToolsSettingsTabs.AdminEdit)}
+                    style={{
+                        color:
+                            ModalState.type === IToolsSettingsTabs.AdminEdit
+                                ? "var(--font-color)"
+                                : "var(--description-font-color)"
+                    }}>
+                    {ModalState.type === IToolsSettingsTabs.AdminEdit ? (
+                        <AdminPanelSettings />
+                    ) : (
+                        <AdminPanelSettingsOutlined
+                            sx={{ color: "var(--description-font-color)" }}
+                        />
+                    )}
+                    Edit
+                </div>
+            )}
 
             <div
                 key={IToolsSettingsTabs.Marketplace}
                 className="flex flex-row gap-2 leading-6 cursor-pointer"
                 onClick={() => SwitchTab(IToolsSettingsTabs.Marketplace)}
                 style={{
-                    color: ModalState.type === IToolsSettingsTabs.Marketplace ? "var(--font-color)" : "var(--description-font-color)"
-                }}
-            >
-                {
-                    ModalState.type === IToolsSettingsTabs.Marketplace ? <LocalMall /> : <LocalMallOutlined sx={{ color: "var(--description-font-color)" }} />
-                }
+                    color:
+                        ModalState.type === IToolsSettingsTabs.Marketplace
+                            ? "var(--font-color)"
+                            : "var(--description-font-color)"
+                }}>
+                {ModalState.type === IToolsSettingsTabs.Marketplace ? (
+                    <LocalMall />
+                ) : (
+                    <LocalMallOutlined
+                        sx={{ color: "var(--description-font-color)" }}
+                    />
+                )}
                 Marketplace
             </div>
 
@@ -134,12 +153,18 @@ function Sidebar({ ModalState, SetModalState }: SidebarProps) {
                 className="flex flex-row gap-2 leading-6 cursor-pointer"
                 onClick={() => SwitchTab(IToolsSettingsTabs.Preferences)}
                 style={{
-                    color: ModalState.type === IToolsSettingsTabs.Preferences ? "var(--font-color)" : "var(--description-font-color)"
-                }}
-            >
-                {
-                    ModalState.type === IToolsSettingsTabs.Preferences ? <Settings /> : <SettingsOutlined sx={{ color: "var(--description-font-color)" }} />
-                }
+                    color:
+                        ModalState.type === IToolsSettingsTabs.Preferences
+                            ? "var(--font-color)"
+                            : "var(--description-font-color)"
+                }}>
+                {ModalState.type === IToolsSettingsTabs.Preferences ? (
+                    <Settings />
+                ) : (
+                    <SettingsOutlined
+                        sx={{ color: "var(--description-font-color)" }}
+                    />
+                )}
                 Preferences
             </div>
 
@@ -148,53 +173,66 @@ function Sidebar({ ModalState, SetModalState }: SidebarProps) {
                 className="flex flex-row gap-2 leading-6 cursor-pointer"
                 onClick={() => SwitchTab(IToolsSettingsTabs.Contribute)}
                 style={{
-                    color: ModalState.type === IToolsSettingsTabs.Contribute ? "var(--font-color)" : "var(--description-font-color)"
-                }}
-            >
-                {
-                    ModalState.type === IToolsSettingsTabs.Contribute ? <AutoFixHigh /> : <AutoFixHighOutlined sx={{ color: "var(--description-font-color)" }} />
-                }
+                    color:
+                        ModalState.type === IToolsSettingsTabs.Contribute
+                            ? "var(--font-color)"
+                            : "var(--description-font-color)"
+                }}>
+                {ModalState.type === IToolsSettingsTabs.Contribute ? (
+                    <AutoFixHigh />
+                ) : (
+                    <AutoFixHighOutlined
+                        sx={{ color: "var(--description-font-color)" }}
+                    />
+                )}
                 Contribute
             </div>
 
-            {
-                ModalState.isAdminOptionVisible && !ModalState.isAdmin && (
-                    <div
-                        key={IToolsSettingsTabs.BeAdmin}
-                        className="flex flex-row gap-2 leading-6 cursor-pointer"
-                        onClick={() => SwitchTab(IToolsSettingsTabs.BeAdmin)}
-                        style={{
-                            color: ModalState.type === IToolsSettingsTabs.BeAdmin ? "var(--font-color)" : "var(--description-font-color)"
-                        }}
-                    >
-                        {
-                            ModalState.type === IToolsSettingsTabs.BeAdmin ? <VerifiedUser /> : <VerifiedUserOutlined sx={{ color: "var(--description-font-color)" }} />
-                        }
-                        Administration
-                    </div>
-                )
-            }
+            {ModalState.isAdminOptionVisible && !ModalState.isAdmin && (
+                <div
+                    key={IToolsSettingsTabs.BeAdmin}
+                    className="flex flex-row gap-2 leading-6 cursor-pointer"
+                    onClick={() => SwitchTab(IToolsSettingsTabs.BeAdmin)}
+                    style={{
+                        color:
+                            ModalState.type === IToolsSettingsTabs.BeAdmin
+                                ? "var(--font-color)"
+                                : "var(--description-font-color)"
+                    }}>
+                    {ModalState.type === IToolsSettingsTabs.BeAdmin ? (
+                        <VerifiedUser />
+                    ) : (
+                        <VerifiedUserOutlined
+                            sx={{ color: "var(--description-font-color)" }}
+                        />
+                    )}
+                    Administration
+                </div>
+            )}
 
-            {
-                ModalState.isAdmin && (
-                    <div
-                        key={IToolsSettingsTabs.Cloud}
-                        className="flex flex-row gap-2 leading-6 cursor-pointer"
-                        onClick={() => SwitchTab(IToolsSettingsTabs.Cloud)}
-                        style={{
-                            color: ModalState.type === IToolsSettingsTabs.Cloud ? "var(--font-color)" : "var(--description-font-color)"
-                        }}
-                    >
-                        {
-                            ModalState.type === IToolsSettingsTabs.Cloud ? <Cloud /> : <CloudOutlined sx={{ color: "var(--description-font-color)" }} />
-                        }
-                        Cloud
-                    </div>
-                )
-            }
-
+            {ModalState.isAdmin && (
+                <div
+                    key={IToolsSettingsTabs.Cloud}
+                    className="flex flex-row gap-2 leading-6 cursor-pointer"
+                    onClick={() => SwitchTab(IToolsSettingsTabs.Cloud)}
+                    style={{
+                        color:
+                            ModalState.type === IToolsSettingsTabs.Cloud
+                                ? "var(--font-color)"
+                                : "var(--description-font-color)"
+                    }}>
+                    {ModalState.type === IToolsSettingsTabs.Cloud ? (
+                        <Cloud />
+                    ) : (
+                        <CloudOutlined
+                            sx={{ color: "var(--description-font-color)" }}
+                        />
+                    )}
+                    Cloud
+                </div>
+            )}
         </div>
     );
-};
+}
 
 export default Sidebar;

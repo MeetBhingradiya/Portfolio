@@ -23,7 +23,7 @@ async function getUserFromToken(request: NextRequest) {
         const session = await Sessions_Model.findOne({
             SessionID: decoded.sessionID,
             UserID: decoded.userID,
-            ExpiresAt: { $gt: new Date() },
+            ExpiresAt: { $gt: new Date() }
         });
 
         if (!session) return null;
@@ -32,7 +32,7 @@ async function getUserFromToken(request: NextRequest) {
             UserID: decoded.userID,
             isDeleted: false,
             isLocked: false,
-            isSuspended: false,
+            isSuspended: false
         });
 
         return user;
@@ -46,32 +46,43 @@ async function getUserFromToken(request: NextRequest) {
 export async function GET(request: NextRequest) {
     try {
         const user = await getUserFromToken(request);
-        
+
         if (!user || !user.isAdmin) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Admin access required',
-                StatusCode: 403
-            }, { status: 403 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Admin access required",
+                    StatusCode: 403
+                },
+                { status: 403 }
+            );
         }
 
         await dbConnect();
 
         // Get overall statistics
-        const totalBlogs = await Blogs_Model.countDocuments({ isDeleted: false });
-        const publishedBlogs = await Blogs_Model.countDocuments({ 
-            isDeleted: false, 
-            isPublished: true 
+        const totalBlogs = await Blogs_Model.countDocuments({
+            isDeleted: false
         });
-        const draftBlogs = await Blogs_Model.countDocuments({ 
-            isDeleted: false, 
-            isPublished: false 
+        const publishedBlogs = await Blogs_Model.countDocuments({
+            isDeleted: false,
+            isPublished: true
+        });
+        const draftBlogs = await Blogs_Model.countDocuments({
+            isDeleted: false,
+            isPublished: false
         });
 
         // Get total views and likes
         const viewsResult = await Blogs_Model.aggregate([
             { $match: { isDeleted: false, isPublished: true } },
-            { $group: { _id: null, totalViews: { $sum: "$Views" }, totalLikes: { $sum: "$Likes" } } }
+            {
+                $group: {
+                    _id: null,
+                    totalViews: { $sum: "$Views" },
+                    totalLikes: { $sum: "$Likes" }
+                }
+            }
         ]);
 
         const totalViews = viewsResult[0]?.totalViews || 0;
@@ -82,19 +93,19 @@ export async function GET(request: NextRequest) {
             isDeleted: false,
             isPublished: true
         })
-        .sort({ Views: -1 })
-        .limit(5)
-        .select('BlogID Title Views Likes createdAt')
-        .lean();
+            .sort({ Views: -1 })
+            .limit(5)
+            .select("BlogID Title Views Likes createdAt")
+            .lean();
 
         // Get recent blogs
         const recentBlogs = await Blogs_Model.find({
             isDeleted: false
         })
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .select('BlogID Title isPublished createdAt')
-        .lean();
+            .sort({ createdAt: -1 })
+            .limit(5)
+            .select("BlogID Title isPublished createdAt")
+            .lean();
 
         // Get blogs by month (last 6 months)
         const sixMonthsAgo = new Date();
@@ -124,7 +135,7 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json({
             Status: 1,
-            Message: 'Blog analytics retrieved successfully',
+            Message: "Blog analytics retrieved successfully",
             StatusCode: 200,
             Data: {
                 overview: {
@@ -133,7 +144,10 @@ export async function GET(request: NextRequest) {
                     draftBlogs,
                     totalViews,
                     totalLikes,
-                    avgViewsPerBlog: publishedBlogs > 0 ? Math.round(totalViews / publishedBlogs) : 0
+                    avgViewsPerBlog:
+                        publishedBlogs > 0
+                            ? Math.round(totalViews / publishedBlogs)
+                            : 0
                 },
                 popularBlogs,
                 recentBlogs,
@@ -141,13 +155,15 @@ export async function GET(request: NextRequest) {
                 generatedAt: new Date().toISOString()
             }
         });
-
     } catch (error: any) {
         log(`Blog analytics error: ${error.message}`);
-        return NextResponse.json({
-            Status: 0,
-            Message: 'Failed to retrieve blog analytics',
-            StatusCode: 500
-        }, { status: 500 });
+        return NextResponse.json(
+            {
+                Status: 0,
+                Message: "Failed to retrieve blog analytics",
+                StatusCode: 500
+            },
+            { status: 500 }
+        );
     }
 }

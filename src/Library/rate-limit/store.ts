@@ -27,16 +27,16 @@ export class BufferRateLimitStore {
     private readonly windowMs: number;
     private readonly maxRequests: number;
     private readonly cleanupInterval: number;
-    
+
     // Buffer for storing client data
     private clientsBuffer: Buffer;
     private clientsIndex: Map<string, number>;
     private freeSlots: number[];
-    
+
     // Each client entry: 4 bytes (head) + 4 bytes (count) + (maxRequests * 8) bytes (timestamps)
     private readonly entrySize: number;
     private readonly maxClients: number;
-    
+
     private cleanupTimer?: NodeJS.Timeout;
     private lastCleanup: number;
 
@@ -45,16 +45,16 @@ export class BufferRateLimitStore {
         this.maxRequests = options.maxRequests;
         this.cleanupInterval = options.cleanupInterval || this.windowMs;
         this.maxClients = maxClients;
-        
+
         // Calculate entry size: head(4) + count(4) + timestamps(maxRequests * 8)
-        this.entrySize = 8 + (this.maxRequests * 8);
-        
+        this.entrySize = 8 + this.maxRequests * 8;
+
         // Initialize buffer
         this.clientsBuffer = Buffer.alloc(this.maxClients * this.entrySize);
         this.clientsIndex = new Map();
         this.freeSlots = Array.from({ length: maxClients }, (_, i) => i);
         this.lastCleanup = Date.now();
-        
+
         this.startCleanupTimer();
     }
 
@@ -67,7 +67,7 @@ export class BufferRateLimitStore {
 
         const now = Date.now();
         const validTimestamps = this.getValidTimestamps(entry, now);
-        
+
         return {
             totalHits: validTimestamps,
             resetTime: now + this.windowMs,
@@ -81,14 +81,14 @@ export class BufferRateLimitStore {
     public increment(key: string): RateLimitInfo {
         const now = Date.now();
         let entry = this.getClientEntry(key);
-        
+
         if (!entry) {
             entry = this.createClientEntry(key);
         }
 
         // Clean old timestamps and add new one
         const validCount = this.cleanAndAddTimestamp(entry, now);
-        
+
         return {
             totalHits: validCount,
             resetTime: now + this.windowMs,
@@ -134,13 +134,13 @@ export class BufferRateLimitStore {
     public getStats() {
         const usedSlots = this.maxClients - this.freeSlots.length;
         const memoryUsed = this.clientsBuffer.length;
-        
+
         return {
             activeClients: usedSlots,
             maxClients: this.maxClients,
             memoryUsed: memoryUsed,
             memoryUsedMB: (memoryUsed / 1024 / 1024).toFixed(2),
-            utilization: ((usedSlots / this.maxClients) * 100).toFixed(2) + '%'
+            utilization: ((usedSlots / this.maxClients) * 100).toFixed(2) + "%"
         };
     }
 
@@ -151,12 +151,12 @@ export class BufferRateLimitStore {
         const offset = slotIndex * this.entrySize;
         const head = this.clientsBuffer.readUInt32LE(offset);
         const count = this.clientsBuffer.readUInt32LE(offset + 4);
-        
+
         // Create Float64Array view of the timestamps section
         const timestampsOffset = offset + 8;
         const timestampsBuffer = this.clientsBuffer.subarray(
-            timestampsOffset, 
-            timestampsOffset + (this.maxRequests * 8)
+            timestampsOffset,
+            timestampsOffset + this.maxRequests * 8
         );
         const timestamps = new Float64Array(
             timestampsBuffer.buffer,
@@ -171,9 +171,9 @@ export class BufferRateLimitStore {
         if (this.freeSlots.length === 0) {
             // Force cleanup to free up slots
             this.performCleanup();
-            
+
             if (this.freeSlots.length === 0) {
-                throw new Error('Rate limit store capacity exceeded');
+                throw new Error("Rate limit store capacity exceeded");
             }
         }
 
@@ -181,14 +181,18 @@ export class BufferRateLimitStore {
         this.clientsIndex.set(key, slotIndex);
 
         const offset = slotIndex * this.entrySize;
-        
+
         // Initialize entry
-        this.clientsBuffer.writeUInt32LE(0, offset);     // head = 0
+        this.clientsBuffer.writeUInt32LE(0, offset); // head = 0
         this.clientsBuffer.writeUInt32LE(0, offset + 4); // count = 0
-        
+
         // Clear timestamps
         const timestampsOffset = offset + 8;
-        this.clientsBuffer.fill(0, timestampsOffset, timestampsOffset + (this.maxRequests * 8));
+        this.clientsBuffer.fill(
+            0,
+            timestampsOffset,
+            timestampsOffset + this.maxRequests * 8
+        );
 
         return this.getClientEntry(key)!;
     }
@@ -207,7 +211,10 @@ export class BufferRateLimitStore {
         return validCount;
     }
 
-    private cleanAndAddTimestamp(entry: ClientEntry, timestamp: number): number {
+    private cleanAndAddTimestamp(
+        entry: ClientEntry,
+        timestamp: number
+    ): number {
         const cutoff = timestamp - this.windowMs;
         let writeIndex = 0;
 
@@ -235,8 +242,8 @@ export class BufferRateLimitStore {
         }
 
         // Update count in buffer
-        const slotIndex = Array.from(this.clientsIndex.entries())
-            .find(([_, index]) => {
+        const slotIndex = Array.from(this.clientsIndex.entries()).find(
+            ([_, index]) => {
                 const offset = index * this.entrySize;
                 const timestamps = entry.timestamps;
                 const bufferTimestamps = new Float64Array(
@@ -245,7 +252,8 @@ export class BufferRateLimitStore {
                     this.maxRequests
                 );
                 return bufferTimestamps === timestamps;
-            })?.[1];
+            }
+        )?.[1];
 
         if (slotIndex !== undefined) {
             const offset = slotIndex * this.entrySize;

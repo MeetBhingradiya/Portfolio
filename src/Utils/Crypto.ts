@@ -9,7 +9,7 @@ enum EncryptionAlgorithms {
     AES_256_OFB = "aes-256-ofb",
     AES_256_CBC = "aes-256-cbc",
     AES_256_GCM = "aes-256-gcm",
-    AES_256_CTR = "aes-256-ctr",
+    AES_256_CTR = "aes-256-ctr"
     // SHA1 = "sha1",
     // SHA224 = "sha224",
     // SHA256 = "sha256",
@@ -62,7 +62,11 @@ interface TokenPayload {
     expires?: number;
 }
 
-const applySalt = (data: string, salt: string, format: "front" | "back" | "both") => {
+const applySalt = (
+    data: string,
+    salt: string,
+    format: "front" | "back" | "both"
+) => {
     if (format === "front") return salt + data;
     if (format === "back") return data + salt;
     return salt + data + salt;
@@ -70,12 +74,25 @@ const applySalt = (data: string, salt: string, format: "front" | "back" | "both"
 
 async function Encrypt(options: EncryptOptions): Promise<string> {
     const {
-        Data, Secret, Salt, Format, Rounds, Expires, Algorithm = EncryptionAlgorithms.AES_256_CTR
+        Data,
+        Secret,
+        Salt,
+        Format,
+        Rounds,
+        Expires,
+        Algorithm = EncryptionAlgorithms.AES_256_CTR
     } = options;
 
-    const serializedData = typeof Data === "object" ? JSON.stringify(Data) : Data.toString();
+    const serializedData =
+        typeof Data === "object" ? JSON.stringify(Data) : Data.toString();
 
-    const key = crypto.pbkdf2Sync(Secret, Salt, Rounds ? Rounds : 10, 32, "sha256");
+    const key = crypto.pbkdf2Sync(
+        Secret,
+        Salt,
+        Rounds ? Rounds : 10,
+        32,
+        "sha256"
+    );
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv(Algorithm, key, iv);
 
@@ -87,7 +104,7 @@ async function Encrypt(options: EncryptOptions): Promise<string> {
         iv: iv.toString("hex"),
         salt: Salt,
         encryptedData: encrypted,
-        expires: Expires ? new Date(Expires).getTime() : undefined,
+        expires: Expires ? new Date(Expires).getTime() : undefined
     };
 
     return Buffer.from(JSON.stringify(token)).toString("base64");
@@ -99,12 +116,24 @@ async function Decrypt(
     Rounds: number,
     Algorithm: EncryptionAlgorithms = EncryptionAlgorithms.AES_256_CTR
 ): Promise<any | null> {
-    const decoded = JSON.parse(Buffer.from(token, "base64").toString()) as TokenPayload;
+    const decoded = JSON.parse(
+        Buffer.from(token, "base64").toString()
+    ) as TokenPayload;
 
     if (decoded.expires && Date.now() > decoded.expires) return null;
 
-    const key = crypto.pbkdf2Sync(Secret, decoded.salt, Rounds ? Rounds : 10, 32, "sha256");
-    const decipher = crypto.createDecipheriv(Algorithm, key, Buffer.from(decoded.iv, "hex"));
+    const key = crypto.pbkdf2Sync(
+        Secret,
+        decoded.salt,
+        Rounds ? Rounds : 10,
+        32,
+        "sha256"
+    );
+    const decipher = crypto.createDecipheriv(
+        Algorithm,
+        key,
+        Buffer.from(decoded.iv, "hex")
+    );
 
     let decrypted = decipher.update(decoded.encryptedData, "hex", "utf-8");
     decrypted += decipher.final("utf-8");

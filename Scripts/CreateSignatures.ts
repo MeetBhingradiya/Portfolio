@@ -3,11 +3,11 @@
  * Run with: ts-node Scripts/CreateSignatures.ts "your string to hash"
  */
 
-import { createHash } from 'crypto';
-import * as readline from 'readline';
+import { createHash } from "crypto";
+import * as readline from "readline";
 
 function createSHA512Hash(input: string): string {
-    return createHash('sha512').update(input).digest('hex');
+    return createHash("sha512").update(input).digest("hex");
 }
 
 function startInteractiveMode() {
@@ -16,21 +16,25 @@ function startInteractiveMode() {
         output: process.stdout
     });
 
-    console.log('=== Signature Generator ===');
-    console.log('Enter a string to generate its SHA-512 hash (Ctrl+C to exit)');
+    console.log("=== Signature Generator ===");
+    console.log("Enter a string to generate its SHA-512 hash (Ctrl+C to exit)");
 
     function promptUser() {
-        rl.question('> ', (input) => {
-            if (input.trim().toLowerCase() === 'exit') {
+        rl.question("> ", (input) => {
+            if (input.trim().toLowerCase() === "exit") {
                 rl.close();
                 return;
             }
 
             const hash = createSHA512Hash(input);
-            console.log('\nInput: ', input);
-            console.log('SHA-512 Hash: ', hash);
-            console.log('\nYou can use this hash as your ADMIN_SIGNATURE in your .env file');
-            console.log('------------------------------------------------------\n');
+            console.log("\nInput: ", input);
+            console.log("SHA-512 Hash: ", hash);
+            console.log(
+                "\nYou can use this hash as your ADMIN_SIGNATURE in your .env file"
+            );
+            console.log(
+                "------------------------------------------------------\n"
+            );
             promptUser();
         });
     }
@@ -45,12 +49,14 @@ function main() {
         const input = args[0];
         const hash = createSHA512Hash(input);
 
-        console.log('Input: ', input);
-        console.log('SHA-512 Hash: ', hash);
-        console.log('\nYou can use this hash as your ADMIN_SIGNATURE in your .env file');
+        console.log("Input: ", input);
+        console.log("SHA-512 Hash: ", hash);
+        console.log(
+            "\nYou can use this hash as your ADMIN_SIGNATURE in your .env file"
+        );
     } else {
         startInteractiveMode();
     }
 }
 
-main(); 
+main();

@@ -112,12 +112,14 @@
 
 .animate-admin-shimmer {
     animation: admin-shimmer 3s ease-in-out infinite;
-    background: linear-gradient(90deg,
-            rgba(var(--danger-200), 0) 0%,
-            rgba(var(--danger-300), 0.2) 25%,
-            rgba(var(--danger-400), 0.3) 50%,
-            rgba(var(--danger-300), 0.2) 75%,
-            rgba(var(--danger-200), 0) 100%);
+    background: linear-gradient(
+        90deg,
+        rgba(var(--danger-200), 0) 0%,
+        rgba(var(--danger-300), 0.2) 25%,
+        rgba(var(--danger-400), 0.3) 50%,
+        rgba(var(--danger-300), 0.2) 75%,
+        rgba(var(--danger-200), 0) 100%
+    );
     background-size: 200% 100%;
 }
 
@@ -140,14 +142,20 @@
     inset: 0;
     padding: 2px;
     border-radius: inherit;
-    background: linear-gradient(140deg,
-            rgba(var(--danger-200), 0.6),
-            rgba(var(--danger-500), 0.9),
-            rgba(var(--danger-700), 0.7),
-            rgba(var(--danger-300), 0.9),
-            rgba(var(--danger-200), 0.6));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    background: linear-gradient(
+        140deg,
+        rgba(var(--danger-200), 0.6),
+        rgba(var(--danger-500), 0.9),
+        rgba(var(--danger-700), 0.7),
+        rgba(var(--danger-300), 0.9),
+        rgba(var(--danger-200), 0.6)
+    );
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
     z-index: -1;
@@ -160,11 +168,15 @@
 }
 
 .admin-avatar::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -3px;
     border-radius: 50%;
-    background: linear-gradient(45deg, rgba(var(--danger-200), 0.7), rgba(var(--danger-500), 0.9));
+    background: linear-gradient(
+        45deg,
+        rgba(var(--danger-200), 0.7),
+        rgba(var(--danger-500), 0.9)
+    );
     z-index: -1;
     animation: admin-border-pulse 3s ease-in-out infinite;
     filter: drop-shadow(0 0 12px rgba(243, 18, 96, 0.5));
@@ -172,15 +184,17 @@
 
 /* Modal-specific admin avatar glow effect */
 .admin-modal-avatar::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -4px;
     border-radius: 50%;
-    background: linear-gradient(140deg, 
+    background: linear-gradient(
+        140deg,
         rgba(var(--danger-200), 0.8),
         rgba(var(--danger-500), 0.95),
         rgba(var(--danger-700), 0.8),
-        rgba(var(--danger-300), 0.9));
+        rgba(var(--danger-300), 0.9)
+    );
     z-index: -1;
     animation: admin-border-pulse 3s ease-in-out infinite;
     filter: drop-shadow(0 0 15px rgba(243, 18, 96, 0.6));
@@ -191,27 +205,31 @@
 }
 
 .admin-double-border::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: -2px;
     border-radius: inherit;
-    background: linear-gradient(140deg,
+    background: linear-gradient(
+        140deg,
         rgba(var(--danger-200), 0.5),
         rgba(var(--danger-500), 0.8),
-        rgba(var(--danger-300), 0.5));
+        rgba(var(--danger-300), 0.5)
+    );
     z-index: -1;
     animation: admin-border-pulse 3s ease-in-out infinite;
 }
 
 .admin-double-border::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: -5px;
     border-radius: inherit;
-    background: linear-gradient(140deg,
+    background: linear-gradient(
+        140deg,
         rgba(var(--danger-300), 0.3),
         rgba(var(--danger-600), 0.5),
-        rgba(var(--danger-400), 0.3));
+        rgba(var(--danger-400), 0.3)
+    );
     z-index: -2;
     animation: admin-border-pulse 3s ease-in-out infinite reverse;
     filter: blur(2px);
@@ -225,14 +243,16 @@
 }
 
 .admin-hover-effect:hover::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(45deg,
-            rgba(var(--danger-200), 0.1),
-            rgba(var(--danger-400), 0.15),
-            rgba(var(--danger-300), 0.1));
+    background: linear-gradient(
+        45deg,
+        rgba(var(--danger-200), 0.1),
+        rgba(var(--danger-400), 0.15),
+        rgba(var(--danger-300), 0.1)
+    );
     z-index: -1;
     animation: admin-shimmer 3s ease-in-out infinite;
 }
@@ -246,14 +266,16 @@
 }
 
 .admin-modal-item::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: linear-gradient(145deg,
-            rgba(var(--danger-200), 0.15),
-            rgba(var(--danger-300), 0.05),
-            rgba(var(--danger-400), 0.15));
+    background: linear-gradient(
+        145deg,
+        rgba(var(--danger-200), 0.15),
+        rgba(var(--danger-300), 0.05),
+        rgba(var(--danger-400), 0.15)
+    );
     z-index: -1;
     animation: admin-shimmer 4s ease-in-out infinite;
 }
@@ -264,11 +286,13 @@
 
 /* Vibrant gradient background for admin elements */
 .admin-vibrant-bg {
-    background: linear-gradient(270deg, 
-        rgba(var(--danger-300), 0.7), 
-        rgba(var(--danger-500), 0.9), 
+    background: linear-gradient(
+        270deg,
+        rgba(var(--danger-300), 0.7),
+        rgba(var(--danger-500), 0.9),
         rgba(var(--danger-700), 0.6),
-        rgba(var(--danger-400), 0.8));
+        rgba(var(--danger-400), 0.8)
+    );
     background-size: 300% 100%;
     animation: admin-gradient-shift 8s ease infinite;
 }
@@ -280,15 +304,17 @@
 }
 
 .admin-triple-border::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: -3px;
-    background: linear-gradient(140deg,
+    background: linear-gradient(
+        140deg,
         rgba(var(--danger-200), 0.7),
         rgba(var(--danger-500), 1),
         rgba(var(--danger-700), 0.8),
         rgba(var(--danger-300), 1),
-        rgba(var(--danger-200), 0.7));
+        rgba(var(--danger-200), 0.7)
+    );
     background-size: 200% 200%;
     animation: admin-gradient-shift 6s linear infinite;
     z-index: -1;

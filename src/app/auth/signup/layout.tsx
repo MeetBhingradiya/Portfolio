@@ -12,15 +12,15 @@ export const metadata: Metadata = {
         "Signup",
         "Account",
         "Register",
-        "Create Account",
+        "Create Account"
     ]
-}
+};
 
 // @ File
 export default function signinLayout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

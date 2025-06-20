@@ -1,11 +1,14 @@
-import { NextRequest } from 'next/server';
-import sharp from 'sharp';
-import { ControllerResponseMap, ControllerResponseMapFormData } from '@Utils/ControllerResponseMap';
-import { Controller_Response } from '@Types';
+import { NextRequest } from "next/server";
+import sharp from "sharp";
+import {
+    ControllerResponseMap,
+    ControllerResponseMapFormData
+} from "@Utils/ControllerResponseMap";
+import { Controller_Response } from "@Types";
 
 interface CompressionSettings {
     quality: number;
-    format: 'jpeg' | 'png' | 'webp' | 'avif' | 'tiff' | 'jpg';
+    format: "jpeg" | "png" | "webp" | "avif" | "tiff" | "jpg";
     width?: number;
     height?: number;
     progressive?: boolean;
@@ -16,11 +19,11 @@ export async function POST(request: NextRequest) {
         const formData = await request.formData();
 
         // Extract compression settings
-        const settingsData = formData.get('settings') as string;
+        const settingsData = formData.get("settings") as string;
         if (!settingsData) {
             const response: Controller_Response = {
                 Status: 0,
-                Message: 'Compression settings not provided',
+                Message: "Compression settings not provided",
                 StatusCode: 400
             };
             return ControllerResponseMap(response);
@@ -31,7 +34,13 @@ export async function POST(request: NextRequest) {
         // Extract files
         const files: File[] = [];
         for (const [key, value] of formData.entries()) {
-            if (key.startsWith('file_') && value && typeof value === 'object' && 'name' in value && 'type' in value) {
+            if (
+                key.startsWith("file_") &&
+                value &&
+                typeof value === "object" &&
+                "name" in value &&
+                "type" in value
+            ) {
                 files.push(value as File);
             }
         }
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest) {
         if (files.length === 0) {
             const response: Controller_Response = {
                 Status: 0,
-                Message: 'No files provided',
+                Message: "No files provided",
                 StatusCode: 400
             };
             return ControllerResponseMap(response);
@@ -48,21 +57,27 @@ export async function POST(request: NextRequest) {
         if (files.length > 10) {
             const response: Controller_Response = {
                 Status: 0,
-                Message: 'Maximum 10 files allowed',
+                Message: "Maximum 10 files allowed",
                 StatusCode: 400
             };
-            return ControllerResponseMap(response);        }
+            return ControllerResponseMap(response);
+        }
 
         const compressedImages = [];
-        const compressedFiles: Array<{ buffer: Buffer; filename: string; mimeType: string; metadata: any }> = [];
+        const compressedFiles: Array<{
+            buffer: Buffer;
+            filename: string;
+            mimeType: string;
+            metadata: any;
+        }> = [];
 
         for (const file of files) {
             try {
                 // Validate file type
-                if (!file.type.startsWith('image/')) {
+                if (!file.type.startsWith("image/")) {
                     compressedImages.push({
                         originalName: file.name,
-                        error: 'Invalid file type. Only images are supported.'
+                        error: "Invalid file type. Only images are supported."
                     });
                     continue;
                 }
@@ -78,12 +93,15 @@ export async function POST(request: NextRequest) {
                 const metadata = await sharpInstance.metadata();
 
                 // Resize if dimensions are specified
-                if ((settings.width && settings.width > 0) || (settings.height && settings.height > 0)) {
+                if (
+                    (settings.width && settings.width > 0) ||
+                    (settings.height && settings.height > 0)
+                ) {
                     sharpInstance = sharpInstance.resize(
                         settings.width || null,
                         settings.height || null,
                         {
-                            fit: 'inside',
+                            fit: "inside",
                             withoutEnlargement: true
                         }
                     );
@@ -91,65 +109,67 @@ export async function POST(request: NextRequest) {
 
                 // Apply format and quality settings
                 let outputBuffer: Buffer;
-                let mimeType: string; switch (settings.format) {
-                    case 'jpeg':
+                let mimeType: string;
+                switch (settings.format) {
+                    case "jpeg":
                         outputBuffer = await sharpInstance
                             .jpeg({
                                 quality: settings.quality,
                                 progressive: settings.progressive ?? true
                             })
                             .toBuffer();
-                        mimeType = 'image/jpeg';
+                        mimeType = "image/jpeg";
                         break;
-                    case 'jpg':
+                    case "jpg":
                         outputBuffer = await sharpInstance
                             .jpeg({
                                 quality: settings.quality,
                                 progressive: settings.progressive ?? true
                             })
                             .toBuffer();
-                        mimeType = 'image/jpg';
+                        mimeType = "image/jpg";
                         break;
-                    case 'png':
+                    case "png":
                         outputBuffer = await sharpInstance
                             .png({
                                 quality: settings.quality,
                                 progressive: settings.progressive ?? true
                             })
                             .toBuffer();
-                        mimeType = 'image/png';
+                        mimeType = "image/png";
                         break;
-                    case 'webp':
+                    case "webp":
                         outputBuffer = await sharpInstance
                             .webp({
                                 quality: settings.quality
                             })
                             .toBuffer();
-                        mimeType = 'image/webp';
+                        mimeType = "image/webp";
                         break;
-                    case 'avif':
+                    case "avif":
                         outputBuffer = await sharpInstance
                             .avif({
                                 quality: settings.quality
                             })
                             .toBuffer();
-                        mimeType = 'image/avif';
+                        mimeType = "image/avif";
                         break;
-                    case 'tiff':
+                    case "tiff":
                         outputBuffer = await sharpInstance
                             .tiff({
                                 quality: settings.quality
                             })
                             .toBuffer();
-                        mimeType = 'image/tiff';
+                        mimeType = "image/tiff";
                         break;
                     default:
                         outputBuffer = await sharpInstance.toBuffer();
                         mimeType = file.type;
-                }                // Calculate compression ratio
+                } // Calculate compression ratio
                 const originalSize = file.size;
                 const compressedSize = outputBuffer.length;
-                const compressionRatio = ((originalSize - compressedSize) / originalSize) * 100;
+                const compressionRatio =
+                    ((originalSize - compressedSize) / originalSize) * 100;
 
                 // Create file metadata
                 const fileMetadata = {
@@ -162,9 +182,11 @@ export async function POST(request: NextRequest) {
                 };
 
                 // Add to compressed files array for FormData
-                const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+                const nameWithoutExt =
+                    file.name.substring(0, file.name.lastIndexOf(".")) ||
+                    file.name;
                 const compressedFileName = `${nameWithoutExt}_compressed.${settings.format}`;
-                
+
                 compressedFiles.push({
                     buffer: outputBuffer,
                     filename: compressedFileName,
@@ -182,20 +204,23 @@ export async function POST(request: NextRequest) {
                     originalWidth: metadata.width,
                     originalHeight: metadata.height
                 });
-
             } catch (error) {
-                console.error('Error compressing image:', error);
+                console.error("Error compressing image:", error);
                 compressedImages.push({
                     originalName: file.name,
-                    error: error instanceof Error ? error.message : 'Unknown compression error'
+                    error:
+                        error instanceof Error
+                            ? error.message
+                            : "Unknown compression error"
                 });
-            }        }
+            }
+        }
 
         // Check if we have any successfully compressed files
         if (compressedFiles.length > 0) {
             const response: Controller_Response = {
                 Status: 1,
-                Message: 'Images compressed successfully',
+                Message: "Images compressed successfully",
                 StatusCode: 200,
                 Data: {
                     images: compressedImages,
@@ -210,7 +235,7 @@ export async function POST(request: NextRequest) {
             // No files were successfully compressed
             const response: Controller_Response = {
                 Status: 0,
-                Message: 'No images could be compressed',
+                Message: "No images could be compressed",
                 StatusCode: 400,
                 Data: {
                     images: compressedImages,
@@ -222,15 +247,14 @@ export async function POST(request: NextRequest) {
 
             return ControllerResponseMap(response);
         }
-
     } catch (error) {
-        console.error('API Error:', error);
+        console.error("API Error:", error);
 
         const response: Controller_Response = {
             Status: 0,
-            Message: 'Internal server error',
+            Message: "Internal server error",
             StatusCode: 500,
-            Debug: error instanceof Error ? error.message : 'Unknown error'
+            Debug: error instanceof Error ? error.message : "Unknown error"
         };
 
         return ControllerResponseMap(response);

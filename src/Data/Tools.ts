@@ -1,8 +1,6 @@
-import type {
-    IBookmark,
-} from "@App/Tools/Settings/Types";
-import { v4 as uuidv4 } from 'uuid';
-import React from 'react';
+import type { IBookmark } from "@App/Tools/Settings/Types";
+import { v4 as uuidv4 } from "uuid";
+import React from "react";
 import {
     Search,
     Fingerprint,
@@ -19,7 +17,7 @@ import {
     Password,
     CalendarMonth,
     Key
-} from '@mui/icons-material';
+} from "@mui/icons-material";
 
 const BookmarksDB_: Array<IBookmark> = [
     // {
@@ -1108,7 +1106,7 @@ const BookmarksDB_: Array<IBookmark> = [
     //         "Gallery"
     //     ]
     // }
-]
+];
 
 export function ResolveIcon(link: IBookmark) {
     const iconUrl = link.Icon
@@ -1129,9 +1127,9 @@ export const BookmarksDB: Array<IBookmark> = BookmarksDB_.map((bookmark) => {
         id: uuidv4(),
         size: "128",
         icon: ResolveIcon(bookmark),
-        keywords: updatedKeywords,
+        keywords: updatedKeywords
     };
-})
+});
 
 // function Make_BookmarkSuggestionDB(array: Array<IBookmark>): Array<ISuggestion> {
 

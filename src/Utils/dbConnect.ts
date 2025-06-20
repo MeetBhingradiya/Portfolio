@@ -9,13 +9,18 @@ declare global {
 const MONGODB_URIs = getEnvs("MONGODB_");
 
 if (!MONGODB_URIs.length) {
-    throw new Error("Please define at least one `MONGODB_` environment variable inside .env.local or .env");
+    throw new Error(
+        "Please define at least one `MONGODB_` environment variable inside .env.local or .env"
+    );
 }
 
-const cachedConnections: Record<string, {
-    conn: mongoose.Connection | null
-    promise: Promise<mongoose.Connection> | null
-}> = {};
+const cachedConnections: Record<
+    string,
+    {
+        conn: mongoose.Connection | null;
+        promise: Promise<mongoose.Connection> | null;
+    }
+> = {};
 
 async function MultidbConnect(dbUri: string): Promise<mongoose.Connection> {
     if (cachedConnections[dbUri]?.conn) {
@@ -31,7 +36,9 @@ async function MultidbConnect(dbUri: string): Promise<mongoose.Connection> {
     }
 
     if (!cachedConnections[dbUri].promise) {
-        cachedConnections[dbUri].promise = mongoose.createConnection(dbUri, { bufferCommands: false }).asPromise();
+        cachedConnections[dbUri].promise = mongoose
+            .createConnection(dbUri, { bufferCommands: false })
+            .asPromise();
     }
 
     try {
@@ -49,7 +56,7 @@ const MONGODB_URI = MONGODB_URIs[0];
 
 if (!MONGODB_URI) {
     throw new Error(
-        "Please define the `MONGODB_` environment variables inside .env.local or .env",
+        "Please define the `MONGODB_` environment variables inside .env.local or .env"
     );
 }
 
@@ -60,18 +67,19 @@ if (!cached) {
 }
 
 async function dbConnect() {
-
     if (cached.conn) {
         return cached.conn;
     }
 
     if (!cached.promise) {
         const opts = {
-            bufferCommands: false,
+            bufferCommands: false
         };
-        cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
-            return mongoose;
-        });
+        cached.promise = mongoose
+            .connect(MONGODB_URI as string, opts)
+            .then((mongoose) => {
+                return mongoose;
+            });
     }
 
     try {
@@ -89,9 +97,4 @@ function getMongoDbClient() {
 }
 
 export default dbConnect;
-export {
-    dbConnect,
-    getMongoDbClient,
-    MultidbConnect,
-    MONGODB_URIs
-}
+export { dbConnect, getMongoDbClient, MultidbConnect, MONGODB_URIs };

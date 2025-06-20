@@ -5,3 +5,40 @@ coverage
 .vercel
 dist
 keys
+
+# Dependencies
+node_modules/
+
+# Lock files
+package-lock.json
+yarn.lock
+bun.lockb
+pnpm-lock.yaml
+
+# Environment files
+.env*
+
+# Generated files
+*.min.js
+*.min.css
+
+# Test directories
+Test/
+
+# Public assets
+public/assets/
+
+# Private keys
+*.pem
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+temp/
+
+# Cache
+.cache/
+.eslintcache

@@ -231,7 +231,7 @@ const Countrys = {
     // UA: "Ukraine",
     // UG: "Uganda",
     // UM: "U.S. Outlying Islands",
-    US: "United States",
+    US: "United States"
     // UY: "Uruguay",
     // UZ: "Uzbekistan",
     // VA: "Vatican City",
@@ -253,9 +253,12 @@ const Countrys = {
     // "GB-SCT": "Scotland",
     // "GB-WLS": "Wales",
     // "GB-NIR": "Northern Ireland"
-}
+};
 
-const ACountrys = Object.entries(Countrys).map(([key, value]) => ({ key, value }))
+const ACountrys = Object.entries(Countrys).map(([key, value]) => ({
+    key,
+    value
+}));
 
 enum Region {
     AC = "Ascension Island",
@@ -521,8 +524,4 @@ enum Region {
     "GB-NIR" = "Northern Ireland"
 }
 
-export {
-    Region,
-    Countrys,
-    ACountrys
-}
+export { Region, Countrys, ACountrys };

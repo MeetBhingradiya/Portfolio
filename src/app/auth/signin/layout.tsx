@@ -10,15 +10,15 @@ export const metadata: Metadata = {
         "Bhingradiya",
         "Portfolio",
         "Login",
-        "Account",
+        "Account"
     ]
-}
+};
 
 // @ File
 export default function signinLayout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

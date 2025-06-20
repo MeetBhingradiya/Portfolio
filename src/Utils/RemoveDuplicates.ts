@@ -1,5 +1,4 @@
 function removeDuplicates(list: Array<any>) {
-
     // ! Old method
     // return list.reduce((acc: Array<any>, element: any) => {
     //     if (element && !acc.includes(element)) return [...acc, element];
@@ -10,6 +9,4 @@ function removeDuplicates(list: Array<any>) {
     return Array.from(new Set(list));
 }
 
-export { 
-    removeDuplicates
-};
+export { removeDuplicates };

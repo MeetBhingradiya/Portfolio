@@ -12,99 +12,131 @@ import crypto from "crypto";
 export async function POST(req: NextRequest) {
     try {
         let Request = await req.json();
-        if (useEmptyFields({
-            ReqiuredFields: [
-                "username", // Changed from email to username per documentation
-                "password"
-            ],
-            targetObject: Request
-        }).isMissing) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Missing required fields',
-                StatusCode: 400
-            }, { status: 400 });
+        if (
+            useEmptyFields({
+                ReqiuredFields: [
+                    "username", // Changed from email to username per documentation
+                    "password"
+                ],
+                targetObject: Request
+            }).isMissing
+        ) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Missing required fields",
+                    StatusCode: 400
+                },
+                { status: 400 }
+            );
         }
 
         await dbConnect();
 
         // Find user by username or email (flexible lookup)
         const user = await Users_Model.findOne({
-            $or: [
+            "$or": [
                 { Username: Request.username },
-                { 'Emails.Email': Request.username.toLowerCase() }
+                { "Emails.Email": Request.username.toLowerCase() }
             ],
-            'Emails.isVerified': true,
-            isDeleted: false,
-            isLocked: false,
-            isSuspended: false
+            "Emails.isVerified": true,
+            "isDeleted": false,
+            "isLocked": false,
+            "isSuspended": false
         });
 
         if (!user) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Invalid username or password',
-                StatusCode: 401
-            }, { status: 401 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Invalid username or password",
+                    StatusCode: 401
+                },
+                { status: 401 }
+            );
         }
 
         // Verify password
-        const isValidPassword = await verifyUserPassword(user, Request.password);
-        
+        const isValidPassword = await verifyUserPassword(
+            user,
+            Request.password
+        );
+
         if (!isValidPassword) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Invalid username or password',
-                StatusCode: 401
-            }, { status: 401 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Invalid username or password",
+                    StatusCode: 401
+                },
+                { status: 401 }
+            );
         }
 
         // Create session for tracking
         const sessionData = await createUserSession(user, req);
         if (!sessionData) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Failed to create session',
-                StatusCode: 500
-            }, { status: 500 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Failed to create session",
+                    StatusCode: 500
+                },
+                { status: 500 }
+            );
         }
 
         // Generate JWT token as per documentation
-        const jwtToken = await generateAuthToken({
-            userID: user.UserID,
-            email: user.Emails.find(e => e.isPrimary)?.Email || user.Emails[0]?.Email,
-            username: user.Username,
-            sessionID: sessionData.sessionID
-        }, '30d');
+        const jwtToken = await generateAuthToken(
+            {
+                userID: user.UserID,
+                email:
+                    user.Emails.find((e) => e.isPrimary)?.Email ||
+                    user.Emails[0]?.Email,
+                username: user.Username,
+                sessionID: sessionData.sessionID
+            },
+            "30d"
+        );
 
-        return NextResponse.json({
-            Status: 1,
-            Message: 'Sign in successful',
-            StatusCode: 200,
-            Data: {
-                AuthorisedToken: jwtToken,
-                SessionID: sessionData.sessionID,
-            }
-        }, { status: 200 });
-
+        return NextResponse.json(
+            {
+                Status: 1,
+                Message: "Sign in successful",
+                StatusCode: 200,
+                Data: {
+                    AuthorisedToken: jwtToken,
+                    SessionID: sessionData.sessionID
+                }
+            },
+            { status: 200 }
+        );
     } catch (error: any) {
         log(error?.message);
-        return NextResponse.json({
-            Status: 0,
-            Message: 'Internal server error',
-            StatusCode: 500
-        }, {
-            status: 500
-        });
+        return NextResponse.json(
+            {
+                Status: 0,
+                Message: "Internal server error",
+                StatusCode: 500
+            },
+            {
+                status: 500
+            }
+        );
     }
 }
 
 // Helper function to verify password
-async function verifyUserPassword(user: any, password: string): Promise<boolean> {
+async function verifyUserPassword(
+    user: any,
+    password: string
+): Promise<boolean> {
     try {
         // Get the active credential
-        const activeCredential = user.Credentials?.find((cred: any) => cred.isActive);
-        
+        const activeCredential = user.Credentials?.find(
+            (cred: any) => cred.isActive
+        );
+
         if (!activeCredential) {
             return false;
         }
@@ -141,18 +173,18 @@ async function createUserSession(user: any, req: NextRequest) {
         // });
 
         // Generate access token
-        const accessToken = crypto.randomBytes(64).toString('hex');
+        const accessToken = crypto.randomBytes(64).toString("hex");
 
         // Get user agent and headers
-        const userAgent = req.headers.get('user-agent') || 'Unknown';
+        const userAgent = req.headers.get("user-agent") || "Unknown";
         const unknownHeaders: any[] = [];
-        
+
         // Parse user agent for platform and browser detection
         const platform = detectPlatform(userAgent);
-        const browser = detectBrowser(userAgent);        // Create session with expiration
+        const browser = detectBrowser(userAgent); // Create session with expiration
         const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
         const IP_Data = await IPData(getClientIP(req));
-        
+
         const session = await Sessions_Model.create({
             UserID: user.UserID,
             LocalStorage_RSAKeyID: "null",
@@ -175,36 +207,37 @@ async function createUserSession(user: any, req: NextRequest) {
         };
     } catch (error) {
         log(`Session creation error: ${error}`);
-        throw new Error('Failed to create session');
+        throw new Error("Failed to create session");
     }
 }
 
 // Helper function to detect platform from user agent
 function detectPlatform(userAgent: string): string {
-    if (userAgent.includes('Windows')) return 'Windows';
-    if (userAgent.includes('Mac')) return 'MacOS';
-    if (userAgent.includes('Linux')) return 'Linux';
-    if (userAgent.includes('Android')) return 'Android';
-    if (userAgent.includes('iPhone') || userAgent.includes('iPad')) return 'iOS';
-    return 'Unknown';
+    if (userAgent.includes("Windows")) return "Windows";
+    if (userAgent.includes("Mac")) return "MacOS";
+    if (userAgent.includes("Linux")) return "Linux";
+    if (userAgent.includes("Android")) return "Android";
+    if (userAgent.includes("iPhone") || userAgent.includes("iPad"))
+        return "iOS";
+    return "Unknown";
 }
 
 // Helper function to detect browser from user agent
 function detectBrowser(userAgent: string): string {
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    if (userAgent.includes('Opera')) return 'Opera';
-    if (userAgent.includes('Arc')) return 'Arc';
-    return 'Unknown';
+    if (userAgent.includes("Chrome")) return "Chrome";
+    if (userAgent.includes("Firefox")) return "Firefox";
+    if (userAgent.includes("Safari")) return "Safari";
+    if (userAgent.includes("Edge")) return "Edge";
+    if (userAgent.includes("Opera")) return "Opera";
+    if (userAgent.includes("Arc")) return "Arc";
+    return "Unknown";
 }
 
 // Helper function to get client IP
 function getClientIP(req: NextRequest): string {
-    const forwarded = req.headers.get('x-forwarded-for');
+    const forwarded = req.headers.get("x-forwarded-for");
     if (forwarded) {
-        return forwarded.split(',')[0].trim();
+        return forwarded.split(",")[0].trim();
     }
-    return req.headers.get('x-real-ip') || 'Unknown';
+    return req.headers.get("x-real-ip") || "Unknown";
 }

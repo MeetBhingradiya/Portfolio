@@ -8,7 +8,7 @@ const languages = [
     { code: "it", name: "Italian" },
     { code: "jp", name: "Japanese" },
     { code: "cn", name: "Chinese" },
-    { code: "ar", name: "Arabic" },
+    { code: "ar", name: "Arabic" }
 ];
 
 export { languages };

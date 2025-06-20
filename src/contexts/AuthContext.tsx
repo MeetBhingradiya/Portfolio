@@ -1,8 +1,14 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
-import { Axios } from '@Utils/Axios';
+import React, {
+    createContext,
+    useContext,
+    useEffect,
+    useState,
+    ReactNode
+} from "react";
+import { useRouter } from "next/navigation";
+import { Axios } from "@Utils/Axios";
 
 // Types
 interface User {
@@ -19,14 +25,21 @@ interface AuthContextType {
     user: User | null;
     loading: boolean;
     sessionID: string | null;
-    
+
     // Authentication methods
-    login: (email: string, password: string) => Promise<{ success: boolean; error?: string; requiresUsername?: boolean }>;
+    login: (
+        email: string,
+        password: string
+    ) => Promise<{
+        success: boolean;
+        error?: string;
+        requiresUsername?: boolean;
+    }>;
     logout: () => Promise<void>;
-    
+
     // Session management
     refreshSession: () => Promise<void>;
-    
+
     // User state
     isAuthenticated: boolean;
     isAdmin: boolean;
@@ -53,7 +66,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const initializeAuth = async () => {
         try {
-            const storedSessionID = localStorage.getItem('sessionID');
+            const storedSessionID = localStorage.getItem("sessionID");
             if (!storedSessionID) {
                 setLoading(false);
                 return;
@@ -62,7 +75,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
             setSessionID(storedSessionID);
             await validateSession(storedSessionID);
         } catch (error) {
-            console.error('Auth initialization error:', error);
+            console.error("Auth initialization error:", error);
             await clearAuth();
         } finally {
             setLoading(false);
@@ -71,8 +84,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     const validateSession = async (sessionId: string) => {
         try {
-            const response = await Axios.post('/api/session', { sessionID: sessionId });
-            
+            const response = await Axios.post("/api/session", {
+                sessionID: sessionId
+            });
+
             if (response.data.Status === 1) {
                 const userData = response.data.Data.user;
                 setUser(userData);
@@ -83,7 +98,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
                 return false;
             }
         } catch (error) {
-            console.error('Session validation error:', error);
+            console.error("Session validation error:", error);
             await clearAuth();
             return false;
         }
@@ -92,43 +107,42 @@ export function AuthProvider({ children }: AuthProviderProps) {
     const login = async (email: string, password: string) => {
         try {
             setLoading(true);
-            
-            const response = await Axios.post('/api/signin', {
+
+            const response = await Axios.post("/api/signin", {
                 email: email.toLowerCase(),
                 password
             });
 
             if (response.data.Status === 1) {
                 const data = response.data.Data;
-                
+
                 // Check if username creation is required
                 if (data.requiresUsername) {
-                    return { 
-                        success: true, 
+                    return {
+                        success: true,
                         requiresUsername: true,
-                        tempToken: data.tempToken 
+                        tempToken: data.tempToken
                     };
                 }
 
                 // Successful login with session
                 if (data.sessionID) {
-                    localStorage.setItem('sessionID', data.sessionID);
+                    localStorage.setItem("sessionID", data.sessionID);
                     setSessionID(data.sessionID);
                     setUser(data.user);
                     return { success: true };
                 }
             }
 
-            return { 
-                success: false, 
-                error: response.data.Message || 'Login failed' 
+            return {
+                success: false,
+                error: response.data.Message || "Login failed"
             };
-
         } catch (error: any) {
-            console.error('Login error:', error);
-            return { 
-                success: false, 
-                error: error.response?.data?.Message || 'Network error occurred' 
+            console.error("Login error:", error);
+            return {
+                success: false,
+                error: error.response?.data?.Message || "Network error occurred"
             };
         } finally {
             setLoading(false);
@@ -139,23 +153,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
         try {
             if (sessionID) {
                 // Call logout API
-                await Axios.delete('/api/session', { 
-                    data: { sessionID } 
+                await Axios.delete("/api/session", {
+                    data: { sessionID }
                 });
             }
         } catch (error) {
-            console.error('Logout API error:', error);
+            console.error("Logout API error:", error);
             // Continue with local logout even if API fails
         } finally {
             await clearAuth();
-            router.push('/');
+            router.push("/");
         }
     };
 
     const clearAuth = async () => {
         setUser(null);
         setSessionID(null);
-        localStorage.removeItem('sessionID');
+        localStorage.removeItem("sessionID");
     };
 
     const refreshSession = async () => {
@@ -166,7 +180,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Computed properties
     const isAuthenticated = !!user && !!sessionID;
-    const isAdmin = user?.isAdmin || user?.Role?.toLowerCase() === 'admin' || false;
+    const isAdmin =
+        user?.isAdmin || user?.Role?.toLowerCase() === "admin" || false;
 
     const value: AuthContextType = {
         user,
@@ -180,9 +195,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     };
 
     return (
-        <AuthContext.Provider value={value}>
-            {children}
-        </AuthContext.Provider>
+        <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
     );
 }
 
@@ -190,7 +203,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
     const context = useContext(AuthContext);
     if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
+        throw new Error("useAuth must be used within an AuthProvider");
     }
     return context as AuthContextType;
 }
@@ -207,21 +220,22 @@ export function withAuth<P extends object>(
         useEffect(() => {
             if (!loading) {
                 if (!isAuthenticated) {
-                    router.push('/auth/signin');
+                    router.push("/auth/signin");
                 } else if (requireAdmin && !isAdmin) {
-                    router.push('/dashboard');
+                    router.push("/dashboard");
                 }
             }
         }, [isAuthenticated, isAdmin, loading, router]);
 
         if (loading) {
             return (
-                <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'center', 
-                    alignItems: 'center', 
-                    height: '100vh' 
-                }}>
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        height: "100vh"
+                    }}>
                     Loading...
                 </div>
             );

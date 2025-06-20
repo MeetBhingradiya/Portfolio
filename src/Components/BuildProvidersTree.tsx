@@ -1,14 +1,17 @@
 import React from "react";
 
-type ProviderType<ProviderPropsType> = [React.ComponentType<ProviderPropsType>, ProviderPropsType];
+type ProviderType<ProviderPropsType> = [
+    React.ComponentType<ProviderPropsType>,
+    ProviderPropsType
+];
 
 type ChildrenType = {
-    children: React.ReactNode
+    children: React.ReactNode;
 };
 
-function buildProvidersTree<T extends Record<string, any>[]>(
-    Providers: { [K in keyof T]: ProviderType<T[K]> }
-): React.FC<ChildrenType> {
+function buildProvidersTree<T extends Record<string, any>[]>(Providers: {
+    [K in keyof T]: ProviderType<T[K]>;
+}): React.FC<ChildrenType> {
     function InitialComponent({ children }: ChildrenType) {
         return <>{children}</>;
     }

@@ -2,11 +2,7 @@
 
 import React from "react";
 import "@Styles/Tools-JSONObject.sass";
-import {
-    Clear,
-    ContentCopy,
-    FormatAlignLeft
-} from "@mui/icons-material";
+import { Clear, ContentCopy, FormatAlignLeft } from "@mui/icons-material";
 import { Button } from "@heroui/react";
 import MonacoEditor from "@monaco-editor/react";
 import { useTheme } from "@Hooks/useTheme";
@@ -17,7 +13,7 @@ interface IState {
     error: {
         isERROR: boolean;
         message: string;
-        source: 'json' | 'object' | '';
+        source: "json" | "object" | "";
     };
     copied: {
         json: boolean;
@@ -33,11 +29,11 @@ export default function JSONObject() {
         error: {
             isERROR: false,
             message: "",
-            source: '',
+            source: ""
         },
         copied: {
             json: false,
-            object: false,
+            object: false
         }
     });
 
@@ -47,7 +43,7 @@ export default function JSONObject() {
                 ...state,
                 json: value,
                 object: "",
-                error: { isERROR: false, message: "", source: '' },
+                error: { isERROR: false, message: "", source: "" }
             });
             return;
         }
@@ -58,7 +54,7 @@ export default function JSONObject() {
                 ...state,
                 json: value,
                 object: JSON.stringify(parsed, null, 2),
-                error: { isERROR: false, message: "", source: '' },
+                error: { isERROR: false, message: "", source: "" }
             });
         } catch (error: any) {
             setState({
@@ -67,8 +63,8 @@ export default function JSONObject() {
                 error: {
                     isERROR: true,
                     message: `Invalid JSON: ${error.message}`,
-                    source: 'json'
-                },
+                    source: "json"
+                }
             });
         }
     };
@@ -79,7 +75,7 @@ export default function JSONObject() {
                 ...state,
                 object: value,
                 json: "",
-                error: { isERROR: false, message: "", source: '' },
+                error: { isERROR: false, message: "", source: "" }
             });
             return;
         }
@@ -93,7 +89,7 @@ export default function JSONObject() {
                     ...state,
                     object: value,
                     json: JSON.stringify(parsed),
-                    error: { isERROR: false, message: "", source: '' },
+                    error: { isERROR: false, message: "", source: "" }
                 });
                 return;
             } catch (e) {
@@ -110,7 +106,7 @@ export default function JSONObject() {
                 ...state,
                 object: value,
                 json: JSON.stringify(parsed),
-                error: { isERROR: false, message: "", source: '' },
+                error: { isERROR: false, message: "", source: "" }
             });
         } catch (error: any) {
             setState({
@@ -119,14 +115,14 @@ export default function JSONObject() {
                 error: {
                     isERROR: true,
                     message: `Invalid Object: ${error.message}`,
-                    source: 'object'
-                },
+                    source: "object"
+                }
             });
         }
     };
 
     // Function to copy text to clipboard
-    const copyToClipboard = (text: string, type: 'json' | 'object') => {
+    const copyToClipboard = (text: string, type: "json" | "object") => {
         navigator.clipboard.writeText(text).then(() => {
             setState({
                 ...state,
@@ -138,7 +134,7 @@ export default function JSONObject() {
 
             // Reset copied state after 2 seconds
             setTimeout(() => {
-                setState(prevState => ({
+                setState((prevState) => ({
                     ...prevState,
                     copied: {
                         ...prevState.copied,
@@ -150,16 +146,20 @@ export default function JSONObject() {
     };
 
     // Function to format the JSON/Object
-    const formatCode = (type: 'json' | 'object') => {
+    const formatCode = (type: "json" | "object") => {
         try {
-            if (type === 'json' && state.json) {
-                const formatted = JSON.stringify(JSON.parse(state.json), null, 2);
+            if (type === "json" && state.json) {
+                const formatted = JSON.stringify(
+                    JSON.parse(state.json),
+                    null,
+                    2
+                );
                 setState({
                     ...state,
                     json: formatted,
-                    error: { isERROR: false, message: "", source: '' },
+                    error: { isERROR: false, message: "", source: "" }
                 });
-            } else if (type === 'object' && state.object) {
+            } else if (type === "object" && state.object) {
                 let objectString = state.object;
 
                 try {
@@ -171,11 +171,15 @@ export default function JSONObject() {
                         .replace(/'/g, '"');
                 }
 
-                const formatted = JSON.stringify(JSON.parse(objectString), null, 2);
+                const formatted = JSON.stringify(
+                    JSON.parse(objectString),
+                    null,
+                    2
+                );
                 setState({
                     ...state,
                     object: formatted,
-                    error: { isERROR: false, message: "", source: '' },
+                    error: { isERROR: false, message: "", source: "" }
                 });
             }
         } catch (error: any) {
@@ -185,25 +189,25 @@ export default function JSONObject() {
                     isERROR: true,
                     message: `Cannot format invalid ${type}: ${error.message}`,
                     source: type
-                },
+                }
             });
         }
     };
 
-    const clearInput = (type: 'json' | 'object') => {
-        if (type === 'json') {
+    const clearInput = (type: "json" | "object") => {
+        if (type === "json") {
             setState({
                 ...state,
                 json: "",
                 object: "",
-                error: { isERROR: false, message: "", source: '' },
+                error: { isERROR: false, message: "", source: "" }
             });
         } else {
             setState({
                 ...state,
                 object: "",
                 json: "",
-                error: { isERROR: false, message: "", source: '' },
+                error: { isERROR: false, message: "", source: "" }
             });
         }
     };
@@ -211,7 +215,9 @@ export default function JSONObject() {
     return (
         <div className="Page JSONObject">
             <h1 className="title">JSON ⇄ Object Converter</h1>
-            <p className="description">Convert between JSON and JavaScript Object notation in real-time</p>
+            <p className="description">
+                Convert between JSON and JavaScript Object notation in real-time
+            </p>
 
             <div className="converter-container">
                 <div className="converter-box glass">
@@ -219,30 +225,33 @@ export default function JSONObject() {
                         <h2>JSON</h2>
                         <div className="converter-actions">
                             <Button
-                                onPress={() => formatCode('json')}
-                                disabled={!state.json || (state.error.isERROR && state.error.source === 'json')}
+                                onPress={() => formatCode("json")}
+                                disabled={
+                                    !state.json ||
+                                    (state.error.isERROR &&
+                                        state.error.source === "json")
+                                }
                                 title="Format JSON"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <FormatAlignLeft />
                             </Button>
                             <Button
-                                onPress={() => copyToClipboard(state.json, 'json')}
+                                onPress={() =>
+                                    copyToClipboard(state.json, "json")
+                                }
                                 disabled={!state.json}
                                 title="Copy to clipboard"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <ContentCopy />
                             </Button>
                             <Button
-                                onPress={() => clearInput('json')}
+                                onPress={() => clearInput("json")}
                                 disabled={!state.json}
                                 title="Clear input"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <Clear />
                             </Button>
                         </div>
@@ -251,9 +260,13 @@ export default function JSONObject() {
                         <MonacoEditor
                             height="100%"
                             language="json"
-                        value={state.json}
+                            value={state.json}
                             onChange={handleJSONChange}
-                            theme={effectiveMode === "dark" ? "vs-dark" : "vs-light"}
+                            theme={
+                                effectiveMode === "dark"
+                                    ? "vs-dark"
+                                    : "vs-light"
+                            }
                             options={{
                                 minimap: { enabled: false },
                                 fontSize: 14,
@@ -264,8 +277,10 @@ export default function JSONObject() {
                             }}
                         />
                     </div>
-                    {state.error.isERROR && state.error.source === 'json' && (
-                        <div className="error-message">{state.error.message}</div>
+                    {state.error.isERROR && state.error.source === "json" && (
+                        <div className="error-message">
+                            {state.error.message}
+                        </div>
                     )}
                 </div>
 
@@ -274,30 +289,33 @@ export default function JSONObject() {
                         <h2>Object</h2>
                         <div className="converter-actions">
                             <Button
-                                onPress={() => formatCode('object')}
-                                disabled={!state.object || (state.error.isERROR && state.error.source === 'object')}
+                                onPress={() => formatCode("object")}
+                                disabled={
+                                    !state.object ||
+                                    (state.error.isERROR &&
+                                        state.error.source === "object")
+                                }
                                 title="Format Object"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <FormatAlignLeft />
                             </Button>
                             <Button
-                                onPress={() => copyToClipboard(state.object, 'object')}
+                                onPress={() =>
+                                    copyToClipboard(state.object, "object")
+                                }
                                 disabled={!state.object}
                                 title="Copy to clipboard"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <ContentCopy />
                             </Button>
                             <Button
-                                onPress={() => clearInput('object')}
+                                onPress={() => clearInput("object")}
                                 disabled={!state.object}
                                 title="Clear input"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <Clear />
                             </Button>
                         </div>
@@ -307,9 +325,13 @@ export default function JSONObject() {
                             height="100%"
                             defaultLanguage="javascript"
                             defaultValue={state.object}
-                        value={state.object}
+                            value={state.object}
                             onChange={handleObjectChange}
-                            theme={effectiveMode === "dark" ? "vs-dark" : "vs-light"}
+                            theme={
+                                effectiveMode === "dark"
+                                    ? "vs-dark"
+                                    : "vs-light"
+                            }
                             options={{
                                 minimap: { enabled: false },
                                 fontSize: 14,
@@ -320,8 +342,10 @@ export default function JSONObject() {
                             }}
                         />
                     </div>
-                    {state.error.isERROR && state.error.source === 'object' && (
-                        <div className="error-message">{state.error.message}</div>
+                    {state.error.isERROR && state.error.source === "object" && (
+                        <div className="error-message">
+                            {state.error.message}
+                        </div>
                     )}
                 </div>
             </div>

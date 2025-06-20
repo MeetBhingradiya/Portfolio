@@ -1,10 +1,13 @@
 const DescriptionMap: Record<string, string> = {
     "Config\\index.ts": "configuration settings for the project.",
     "Utils\\Sitemap.ts": "utility functions for generating sitemaps.",
-    "Config\\SocialLinks.tsx": "social media links for the landing page.",
+    "Config\\SocialLinks.tsx": "social media links for the landing page."
 };
 
-async function generateDescription(filename: string, fileContent: string): Promise<string> {
+async function generateDescription(
+    filename: string,
+    fileContent: string
+): Promise<string> {
     if (DescriptionMap[filename]) {
         return DescriptionMap[filename];
     }

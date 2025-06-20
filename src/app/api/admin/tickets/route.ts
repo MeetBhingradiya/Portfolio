@@ -1,59 +1,58 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { dbConnect } from '@Utils/dbConnect';
-import { Tickets_Model } from '@Models/Tickets';
-import { verifyAdminToken } from '@Utils/verifyAdminToken';
-import { v4 } from 'uuid';
+import { NextRequest, NextResponse } from "next/server";
+import { dbConnect } from "@Utils/dbConnect";
+import { Tickets_Model } from "@Models/Tickets";
+import { verifyAdminToken } from "@Utils/verifyAdminToken";
+import { v4 } from "uuid";
 
 // Get all tickets with admin filters
 export async function GET(request: NextRequest) {
     try {
         // Verify admin authentication
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const authHeader = request.headers.get("authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return NextResponse.json(
-                { success: false, error: 'Authentication required' },
+                { success: false, error: "Authentication required" },
                 { status: 401 }
             );
         }
 
         const token = authHeader.substring(7);
         const isValidAdmin = await verifyAdminToken(token);
-        
+
         if (!isValidAdmin) {
             return NextResponse.json(
-                { success: false, error: 'Invalid admin credentials' },
+                { success: false, error: "Invalid admin credentials" },
                 { status: 403 }
             );
         }
 
         await dbConnect();
-        
+
         const { searchParams } = new URL(request.url);
-        const status = searchParams.get('status');
-        const priority = searchParams.get('priority');
-        const page = parseInt(searchParams.get('page') || '1');
-        const limit = parseInt(searchParams.get('limit') || '20');
-        const search = searchParams.get('search');
+        const status = searchParams.get("status");
+        const priority = searchParams.get("priority");
+        const page = parseInt(searchParams.get("page") || "1");
+        const limit = parseInt(searchParams.get("limit") || "20");
+        const search = searchParams.get("search");
 
         // Build query
         const query: any = {};
-        if (status && status !== 'all') query.status = status;
-        if (priority && priority !== 'all') query.priority = priority;
+        if (status && status !== "all") query.status = status;
+        if (priority && priority !== "all") query.priority = priority;
         if (search) {
             query.$or = [
-                { id: { $regex: search, $options: 'i' } },
-                { name: { $regex: search, $options: 'i' } },
-                { email: { $regex: search, $options: 'i' } },
-                { subject: { $regex: search, $options: 'i' } }
+                { id: { $regex: search, $options: "i" } },
+                { name: { $regex: search, $options: "i" } },
+                { email: { $regex: search, $options: "i" } },
+                { subject: { $regex: search, $options: "i" } }
             ];
         }
 
         // Get total count for pagination
         const total = await Tickets_Model.countDocuments(query);
-        
+
         // Get tickets with pagination
-        const tickets = await Tickets_Model
-            .find(query)
+        const tickets = await Tickets_Model.find(query)
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(limit)
@@ -69,11 +68,10 @@ export async function GET(request: NextRequest) {
                 pages: Math.ceil(total / limit)
             }
         });
-
     } catch (error) {
-        console.error('Admin tickets retrieval error:', error);
+        console.error("Admin tickets retrieval error:", error);
         return NextResponse.json(
-            { success: false, error: 'Failed to retrieve tickets' },
+            { success: false, error: "Failed to retrieve tickets" },
             { status: 500 }
         );
     }
@@ -83,52 +81,55 @@ export async function GET(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
     try {
         // Verify admin authentication
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const authHeader = request.headers.get("authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return NextResponse.json(
-                { success: false, error: 'Authentication required' },
+                { success: false, error: "Authentication required" },
                 { status: 401 }
             );
         }
 
         const token = authHeader.substring(7);
         const isValidAdmin = await verifyAdminToken(token);
-        
+
         if (!isValidAdmin) {
             return NextResponse.json(
-                { success: false, error: 'Invalid admin credentials' },
+                { success: false, error: "Invalid admin credentials" },
                 { status: 403 }
             );
         }
 
         await dbConnect();
-        
+
         const data = await request.json();
         const { ticketId, status, priority, response } = data;
 
         if (!ticketId) {
             return NextResponse.json(
-                { success: false, error: 'Ticket ID is required' },
+                { success: false, error: "Ticket ID is required" },
                 { status: 400 }
             );
         }
 
         const ticket = await Tickets_Model.findOne({ id: ticketId });
-        
+
         if (!ticket) {
             return NextResponse.json(
-                { success: false, error: 'Ticket not found' },
+                { success: false, error: "Ticket not found" },
                 { status: 404 }
             );
         }
 
         // Update status if provided
-        if (status && ['open', 'in-progress', 'resolved', 'closed'].includes(status)) {
+        if (
+            status &&
+            ["open", "in-progress", "resolved", "closed"].includes(status)
+        ) {
             ticket.status = status;
         }
 
         // Update priority if provided
-        if (priority && ['low', 'medium', 'high'].includes(priority)) {
+        if (priority && ["low", "medium", "high"].includes(priority)) {
             ticket.priority = priority;
         }
 
@@ -147,7 +148,7 @@ export async function PATCH(request: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            message: 'Ticket updated successfully',
+            message: "Ticket updated successfully",
             ticket: {
                 id: ticket.id,
                 status: ticket.status,
@@ -156,11 +157,10 @@ export async function PATCH(request: NextRequest) {
                 responsesCount: ticket.responses.length
             }
         });
-
     } catch (error) {
-        console.error('Admin ticket update error:', error);
+        console.error("Admin ticket update error:", error);
         return NextResponse.json(
-            { success: false, error: 'Failed to update ticket' },
+            { success: false, error: "Failed to update ticket" },
             { status: 500 }
         );
     }
@@ -170,54 +170,53 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
     try {
         // Verify admin authentication
-        const authHeader = request.headers.get('authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        const authHeader = request.headers.get("authorization");
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return NextResponse.json(
-                { success: false, error: 'Authentication required' },
+                { success: false, error: "Authentication required" },
                 { status: 401 }
             );
         }
 
         const token = authHeader.substring(7);
         const isValidAdmin = await verifyAdminToken(token);
-        
+
         if (!isValidAdmin) {
             return NextResponse.json(
-                { success: false, error: 'Invalid admin credentials' },
+                { success: false, error: "Invalid admin credentials" },
                 { status: 403 }
             );
         }
 
         await dbConnect();
-        
+
         const { searchParams } = new URL(request.url);
-        const ticketId = searchParams.get('id');
+        const ticketId = searchParams.get("id");
 
         if (!ticketId) {
             return NextResponse.json(
-                { success: false, error: 'Ticket ID is required' },
+                { success: false, error: "Ticket ID is required" },
                 { status: 400 }
             );
         }
 
         const result = await Tickets_Model.deleteOne({ id: ticketId });
-        
+
         if (result.deletedCount === 0) {
             return NextResponse.json(
-                { success: false, error: 'Ticket not found' },
+                { success: false, error: "Ticket not found" },
                 { status: 404 }
             );
         }
 
         return NextResponse.json({
             success: true,
-            message: 'Ticket deleted successfully'
+            message: "Ticket deleted successfully"
         });
-
     } catch (error) {
-        console.error('Admin ticket deletion error:', error);
+        console.error("Admin ticket deletion error:", error);
         return NextResponse.json(
-            { success: false, error: 'Failed to delete ticket' },
+            { success: false, error: "Failed to delete ticket" },
             { status: 500 }
         );
     }

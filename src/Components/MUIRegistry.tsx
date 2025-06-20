@@ -1,12 +1,12 @@
 "use client";
-import createCache from '@emotion/cache';
-import { useServerInsertedHTML } from 'next/navigation';
-import { CacheProvider } from '@emotion/react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import React, { useMemo, useState } from 'react';
-import { useTheme } from '@Hooks/useTheme';
-import { LocalizationProvider } from '@mui/x-date-pickers-pro';
-import { AdapterLuxon } from '@mui/x-date-pickers-pro/AdapterLuxon';
+import createCache from "@emotion/cache";
+import { useServerInsertedHTML } from "next/navigation";
+import { CacheProvider } from "@emotion/react";
+import { ThemeProvider, createTheme } from "@mui/material/styles";
+import React, { useMemo, useState } from "react";
+import { useTheme } from "@Hooks/useTheme";
+import { LocalizationProvider } from "@mui/x-date-pickers-pro";
+import { AdapterLuxon } from "@mui/x-date-pickers-pro/AdapterLuxon";
 
 export default function MUIRegistry(props: any) {
     const { effectiveMode } = useTheme();
@@ -15,8 +15,8 @@ export default function MUIRegistry(props: any) {
         () =>
             createTheme({
                 palette: {
-                    mode: effectiveMode,
-                },
+                    mode: effectiveMode
+                }
             }),
         [effectiveMode]
     );
@@ -46,16 +46,16 @@ export default function MUIRegistry(props: any) {
         if (names.length === 0) {
             return null;
         }
-        let styles = '';
+        let styles = "";
         for (const name of names) {
             styles += cache.inserted[name];
         }
         return (
             <style
                 key={cache.key}
-                data-emotion={`${cache.key} ${names.join(' ')}`}
+                data-emotion={`${cache.key} ${names.join(" ")}`}
                 dangerouslySetInnerHTML={{
-                    __html: styles,
+                    __html: styles
                 }}
             />
         );
@@ -64,9 +64,7 @@ export default function MUIRegistry(props: any) {
     return (
         <CacheProvider value={cache}>
             <LocalizationProvider dateAdapter={AdapterLuxon}>
-                <ThemeProvider theme={MUITheme}>
-                    {props.children}
-                </ThemeProvider>
+                <ThemeProvider theme={MUITheme}>{props.children}</ThemeProvider>
             </LocalizationProvider>
         </CacheProvider>
     );

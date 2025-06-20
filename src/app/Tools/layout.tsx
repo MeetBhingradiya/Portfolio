@@ -12,13 +12,13 @@ export const metadata: Metadata = {
         "Portfolio",
         "Tools",
         "Newtab",
-        "Chrome Newtab",
+        "Chrome Newtab"
     ]
-}
+};
 
 // @ File
 export default async function ToolsLayout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
@@ -27,5 +27,5 @@ export default async function ToolsLayout({
             <ToolNavigation />
             {children}
         </>
-    )
+    );
 }

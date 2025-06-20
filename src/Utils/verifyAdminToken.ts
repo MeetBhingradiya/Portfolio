@@ -1,4 +1,4 @@
-import * as jose from 'jose';
+import * as jose from "jose";
 import { Config } from "@Config";
 
 async function verifyAdminToken(token: string): Promise<boolean> {

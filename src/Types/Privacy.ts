@@ -1,10 +1,8 @@
 enum Privacy {
-    Public = 'public',
-    Private = 'private',
-    Unlisted = 'unlisted',
-    Protected = 'protected'
+    Public = "public",
+    Private = "private",
+    Unlisted = "unlisted",
+    Protected = "protected"
 }
 
-export {
-    Privacy
-};
+export { Privacy };

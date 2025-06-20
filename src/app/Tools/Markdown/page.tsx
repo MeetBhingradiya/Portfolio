@@ -20,7 +20,7 @@ import { Button } from "@heroui/react";
 interface IState {
     markdown: string;
     htmlOutput: string;
-    activeTab: 'editor' | 'preview';
+    activeTab: "editor" | "preview";
     copied: boolean;
     fileName: string | null;
     showExportDropdown: boolean;
@@ -56,8 +56,8 @@ function hello() {
 > This is a blockquote example
 
 **Try editing this text to see the live preview in action!**`,
-        htmlOutput: '',
-        activeTab: 'editor',
+        htmlOutput: "",
+        activeTab: "editor",
         copied: false,
         fileName: null,
         showExportDropdown: false
@@ -71,62 +71,80 @@ function hello() {
         let html = markdown;
 
         // Headers
-        html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-        html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-        html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+        html = html.replace(/^### (.*$)/gim, "<h3>$1</h3>");
+        html = html.replace(/^## (.*$)/gim, "<h2>$1</h2>");
+        html = html.replace(/^# (.*$)/gim, "<h1>$1</h1>");
 
         // Bold
-        html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
 
         // Italic
-        html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
+        html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
 
         // Code blocks
-        html = html.replace(/```(\w+)?\n?([\s\S]*?)```/g, '<pre><code class="language-$1">$2</code></pre>');
+        html = html.replace(
+            /```(\w+)?\n?([\s\S]*?)```/g,
+            '<pre><code class="language-$1">$2</code></pre>'
+        );
 
         // Inline code
-        html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+        html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
         // Links
-        html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');        // Tables
-        const tableRegex = /^\|(.+)\|\s*\n\|([|\-:\s]+)\|\s*\n((?:\|.+\|\s*\n?)*)/gm;
+        html = html.replace(
+            /\[([^\]]+)\]\(([^)]+)\)/g,
+            '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+        ); // Tables
+        const tableRegex =
+            /^\|(.+)\|\s*\n\|([|\-:\s]+)\|\s*\n((?:\|.+\|\s*\n?)*)/gm;
         html = html.replace(tableRegex, (match, header, separator, rows) => {
-            const headerCells = header.split('|').map((cell: string) => `<th>${cell.trim()}</th>`).join('');
-            const rowsHtml = rows.trim().split('\n').map((row: string) => {
-                const cells = row.split('|').slice(1, -1).map((cell: string) => `<td>${cell.trim()}</td>`).join('');
-                return `<tr>${cells}</tr>`;
-            }).join('');
+            const headerCells = header
+                .split("|")
+                .map((cell: string) => `<th>${cell.trim()}</th>`)
+                .join("");
+            const rowsHtml = rows
+                .trim()
+                .split("\n")
+                .map((row: string) => {
+                    const cells = row
+                        .split("|")
+                        .slice(1, -1)
+                        .map((cell: string) => `<td>${cell.trim()}</td>`)
+                        .join("");
+                    return `<tr>${cells}</tr>`;
+                })
+                .join("");
             return `<table><thead><tr>${headerCells}</tr></thead><tbody>${rowsHtml}</tbody></table>`;
         });
 
         // Blockquotes
-        html = html.replace(/^> (.+)/gm, '<blockquote><p>$1</p></blockquote>');
+        html = html.replace(/^> (.+)/gm, "<blockquote><p>$1</p></blockquote>");
 
         // Horizontal rules
-        html = html.replace(/^---$/gm, '<hr>');        // Lists
-        html = html.replace(/^\* (.+)/gm, '<li>$1</li>');
-        html = html.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+        html = html.replace(/^---$/gm, "<hr>"); // Lists
+        html = html.replace(/^\* (.+)/gm, "<li>$1</li>");
+        html = html.replace(/(<li>.*<\/li>)/g, "<ul>$1</ul>");
 
         // Line breaks
-        html = html.replace(/\n\n/g, '</p><p>');
-        html = html.replace(/\n/g, '<br>');
+        html = html.replace(/\n\n/g, "</p><p>");
+        html = html.replace(/\n/g, "<br>");
 
         // Wrap in paragraphs
         html = `<p>${html}</p>`;
 
         // Clean up multiple p tags
-        html = html.replace(/<p><\/p>/g, '');
-        html = html.replace(/<p>(<h[1-6]>)/g, '$1');
-        html = html.replace(/(<\/h[1-6]>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<table>)/g, '$1');
-        html = html.replace(/(<\/table>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<blockquote>)/g, '$1');
-        html = html.replace(/(<\/blockquote>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<ul>)/g, '$1');
-        html = html.replace(/(<\/ul>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<hr>)<\/p>/g, '$1');
-        html = html.replace(/<p>(<pre>)/g, '$1');
-        html = html.replace(/(<\/pre>)<\/p>/g, '$1');
+        html = html.replace(/<p><\/p>/g, "");
+        html = html.replace(/<p>(<h[1-6]>)/g, "$1");
+        html = html.replace(/(<\/h[1-6]>)<\/p>/g, "$1");
+        html = html.replace(/<p>(<table>)/g, "$1");
+        html = html.replace(/(<\/table>)<\/p>/g, "$1");
+        html = html.replace(/<p>(<blockquote>)/g, "$1");
+        html = html.replace(/(<\/blockquote>)<\/p>/g, "$1");
+        html = html.replace(/<p>(<ul>)/g, "$1");
+        html = html.replace(/(<\/ul>)<\/p>/g, "$1");
+        html = html.replace(/<p>(<hr>)<\/p>/g, "$1");
+        html = html.replace(/<p>(<pre>)/g, "$1");
+        html = html.replace(/(<\/pre>)<\/p>/g, "$1");
 
         return html;
     };
@@ -134,20 +152,23 @@ function hello() {
     // Update HTML output when markdown changes
     useEffect(() => {
         const htmlOutput = parseMarkdown(state.markdown);
-        setState(prev => ({ ...prev, htmlOutput }));
+        setState((prev) => ({ ...prev, htmlOutput }));
     }, [state.markdown]);
 
     const handleMarkdownChange = (value: string) => {
-        setState(prev => ({ ...prev, markdown: value }));
+        setState((prev) => ({ ...prev, markdown: value }));
     };
 
     const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
-        if (file && (file.type === 'text/markdown' || file.name.endsWith('.md'))) {
+        if (
+            file &&
+            (file.type === "text/markdown" || file.name.endsWith(".md"))
+        ) {
             const reader = new FileReader();
             reader.onload = (e) => {
                 const content = e.target?.result as string;
-                setState(prev => ({
+                setState((prev) => ({
                     ...prev,
                     markdown: content,
                     fileName: file.name
@@ -160,24 +181,24 @@ function hello() {
     const handleCopyHtml = async () => {
         try {
             await navigator.clipboard.writeText(state.htmlOutput);
-            setState(prev => ({ ...prev, copied: true }));
+            setState((prev) => ({ ...prev, copied: true }));
             setTimeout(() => {
-                setState(prev => ({ ...prev, copied: false }));
+                setState((prev) => ({ ...prev, copied: false }));
             }, 2000);
         } catch (err) {
-            console.error('Failed to copy HTML:', err);
+            console.error("Failed to copy HTML:", err);
         }
     };
 
     const handleCopyMarkdown = async () => {
         try {
             await navigator.clipboard.writeText(state.markdown);
-            setState(prev => ({ ...prev, copied: true }));
+            setState((prev) => ({ ...prev, copied: true }));
             setTimeout(() => {
-                setState(prev => ({ ...prev, copied: false }));
+                setState((prev) => ({ ...prev, copied: false }));
             }, 2000);
         } catch (err) {
-            console.error('Failed to copy markdown:', err);
+            console.error("Failed to copy markdown:", err);
         }
     };
 
@@ -204,29 +225,31 @@ function hello() {
 </body>
 </html>`;
 
-        const blob = new Blob([fullHtml], { type: 'text/html' });
+        const blob = new Blob([fullHtml], { type: "text/html" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = state.fileName ? state.fileName.replace('.md', '.html') : 'document.html';
+        a.download = state.fileName
+            ? state.fileName.replace(".md", ".html")
+            : "document.html";
         a.click();
         URL.revokeObjectURL(url);
     };
 
     const handleExportMarkdown = () => {
-        const blob = new Blob([state.markdown], { type: 'text/markdown' });
+        const blob = new Blob([state.markdown], { type: "text/markdown" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = state.fileName || 'document.md';
+        a.download = state.fileName || "document.md";
         a.click();
         URL.revokeObjectURL(url);
     };
 
     const handleClear = () => {
-        setState(prev => ({
+        setState((prev) => ({
             ...prev,
-            markdown: '',
+            markdown: "",
             fileName: null
         }));
     };
@@ -257,7 +280,7 @@ function example() {
 [Link example](https://example.com)`;
 
     const insertSample = () => {
-        setState(prev => ({ ...prev, markdown: sampleMarkdown }));
+        setState((prev) => ({ ...prev, markdown: sampleMarkdown }));
     };
 
     return (
@@ -267,7 +290,9 @@ function example() {
                 <div className="header-content">
                     <div className="title-section">
                         <div className="tool-icon">
-                            <DescriptionOutlined sx={{ width: 32, height: 32 }} />
+                            <DescriptionOutlined
+                                sx={{ width: 32, height: 32 }}
+                            />
                         </div>
                         <div className="title-text">
                             <h1>Markdown Preview</h1>
@@ -277,35 +302,46 @@ function example() {
                     <div className="action-buttons">
                         <Button
                             className="action-button secondary small"
-                            onClick={insertSample}
-                        >
+                            onClick={insertSample}>
                             <InsertDriveFile />
                             Sample
                         </Button>
                         <Button
                             className="action-button secondary small"
-                            onClick={handleClear}
-                        >
+                            onClick={handleClear}>
                             <Clear />
                             Clear
                         </Button>
                         <div className="export-dropdown">
                             <Button
                                 className="action-button small"
-                                onClick={() => setState(prev => ({ ...prev, showExportDropdown: !prev.showExportDropdown }))}
-                            >
+                                onClick={() =>
+                                    setState((prev) => ({
+                                        ...prev,
+                                        showExportDropdown:
+                                            !prev.showExportDropdown
+                                    }))
+                                }>
                                 <FileDownload />
                                 Export
                             </Button>
                             {state.showExportDropdown && (
                                 <div className="dropdown-content">
-                                    <div className="dropdown-item" onClick={handleExportHtml}>
+                                    <div
+                                        className="dropdown-item"
+                                        onClick={handleExportHtml}>
                                         <GetApp className="item-icon" />
-                                        <span className="item-text">Export as HTML</span>
+                                        <span className="item-text">
+                                            Export as HTML
+                                        </span>
                                     </div>
-                                    <div className="dropdown-item" onClick={handleExportMarkdown}>
+                                    <div
+                                        className="dropdown-item"
+                                        onClick={handleExportMarkdown}>
                                         <GetApp className="item-icon" />
-                                        <span className="item-text">Export as Markdown</span>
+                                        <span className="item-text">
+                                            Export as Markdown
+                                        </span>
                                     </div>
                                 </div>
                             )}
@@ -318,8 +354,7 @@ function example() {
             <div className="file-upload-section">
                 <Button
                     className="action-button secondary"
-                    onClick={() => fileInputRef.current?.click()}
-                >
+                    onClick={() => fileInputRef.current?.click()}>
                     <Upload />
                     Upload .md file
                 </Button>
@@ -328,7 +363,7 @@ function example() {
                     type="file"
                     accept=".md,.markdown"
                     onChange={handleFileUpload}
-                    style={{ display: 'none' }}
+                    style={{ display: "none" }}
                 />
                 {state.fileName && (
                     <div className="file-info">
@@ -341,15 +376,17 @@ function example() {
             {/* Mobile Tabs */}
             <div className="mobile-tabs">
                 <button
-                    className={`tab ${state.activeTab === 'editor' ? 'active' : ''}`}
-                    onClick={() => setState(prev => ({ ...prev, activeTab: 'editor' }))}
-                >
+                    className={`tab ${state.activeTab === "editor" ? "active" : ""}`}
+                    onClick={() =>
+                        setState((prev) => ({ ...prev, activeTab: "editor" }))
+                    }>
                     <Edit /> Editor
                 </button>
                 <button
-                    className={`tab ${state.activeTab === 'preview' ? 'active' : ''}`}
-                    onClick={() => setState(prev => ({ ...prev, activeTab: 'preview' }))}
-                >
+                    className={`tab ${state.activeTab === "preview" ? "active" : ""}`}
+                    onClick={() =>
+                        setState((prev) => ({ ...prev, activeTab: "preview" }))
+                    }>
                     <Visibility /> Preview
                 </button>
             </div>
@@ -357,7 +394,8 @@ function example() {
             {/* Main Content */}
             <div className="tool-content">
                 {/* Editor Section */}
-                <div className={`editor-section ${state.activeTab === 'preview' ? 'mobile-hidden' : ''}`}>
+                <div
+                    className={`editor-section ${state.activeTab === "preview" ? "mobile-hidden" : ""}`}>
                     <div className="editor-header">
                         <h3>
                             <Edit />
@@ -365,11 +403,14 @@ function example() {
                         </h3>
                         <div className="editor-actions">
                             <button
-                                className={`copy-button ${state.copied ? 'copied' : ''}`}
+                                className={`copy-button ${state.copied ? "copied" : ""}`}
                                 onClick={handleCopyMarkdown}
-                                title="Copy Markdown"
-                            >
-                                {state.copied ? <CheckCircle /> : <ContentCopy />}
+                                title="Copy Markdown">
+                                {state.copied ? (
+                                    <CheckCircle />
+                                ) : (
+                                    <ContentCopy />
+                                )}
                             </button>
                         </div>
                     </div>
@@ -378,14 +419,17 @@ function example() {
                             ref={textareaRef}
                             className="editor-textarea"
                             value={state.markdown}
-                            onChange={(e) => handleMarkdownChange(e.target.value)}
+                            onChange={(e) =>
+                                handleMarkdownChange(e.target.value)
+                            }
                             placeholder="Start typing your markdown here..."
                         />
                     </div>
                 </div>
 
                 {/* Preview Section */}
-                <div className={`preview-section ${state.activeTab === 'editor' ? 'mobile-hidden' : ''}`}>
+                <div
+                    className={`preview-section ${state.activeTab === "editor" ? "mobile-hidden" : ""}`}>
                     <div className="preview-header">
                         <h3>
                             <Visibility />
@@ -393,18 +437,23 @@ function example() {
                         </h3>
                         <div className="preview-actions">
                             <button
-                                className={`copy-button ${state.copied ? 'copied' : ''}`}
+                                className={`copy-button ${state.copied ? "copied" : ""}`}
                                 onClick={handleCopyHtml}
-                                title="Copy HTML"
-                            >
-                                {state.copied ? <CheckCircle /> : <ContentCopy />}
+                                title="Copy HTML">
+                                {state.copied ? (
+                                    <CheckCircle />
+                                ) : (
+                                    <ContentCopy />
+                                )}
                             </button>
                         </div>
                     </div>
                     <div className="preview-container">
                         <div
                             className="markdown-preview"
-                            dangerouslySetInnerHTML={{ __html: state.htmlOutput }}
+                            dangerouslySetInnerHTML={{
+                                __html: state.htmlOutput
+                            }}
                         />
                     </div>
                 </div>

@@ -1,14 +1,17 @@
 # Portfolio of Meet Bhingradiya
-- This is a portfolio of Meet Bhingradiya, a software engineer with experience in various technologies and programming languages.
+
+- This is a portfolio of Meet Bhingradiya, a software engineer with experience
+  in various technologies and programming languages.
 
 ## Tech Stack
 
 ## Database Structure
 
 ## Source Structure
+
 ```js
 └── 📁MD // Static Markdown Files
-    └── Privacy.md 
+    └── Privacy.md
     └── Terms.md
 └── 📁Public // CDN is Required we still Prefer Github Raw from Remote Repository
 └── 📁Scripts
@@ -19,9 +22,9 @@
     └── pre-commit.ts // Before Commit Checks Next Build ERROR & Warnings
     └── SEOBoost.py // Automation BOT Script to Improve SEO on Google
     └── UpdateRemoteSettings.ts // Sign State.json & Update on Remote Repository
-    
+
 └── 📁src // Next JS Source Folder
-    └── 📁app 
+    └── 📁app
         └── icon.ico // Favicon
         └── layout.tsx // Main Layout of the App
         └── page.tsx // Landing Page
@@ -74,7 +77,7 @@
                     └── page.tsx
                 └── 📁Services
                     └── page.tsx
-            └── 📁admin // Administration of Site, Minimal Settings Even Controlled heare about Users can Login, Register or do Payments or not 
+            └── 📁admin // Administration of Site, Minimal Settings Even Controlled heare about Users can Login, Register or do Payments or not
                 └── 📁Analytics
                     └── page.tsx
                 └── 📁Dashboard

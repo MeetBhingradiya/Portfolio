@@ -16,13 +16,13 @@ export const metadata: Metadata = {
         "Download",
         "Download CRX with id"
     ]
-}
+};
 
 // @ File
 export default function ToolsLayout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

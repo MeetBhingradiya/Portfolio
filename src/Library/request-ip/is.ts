@@ -3,7 +3,9 @@ var regexes = {
     ipv6: /^((?=.*::)(?!.*::.+::)(::)?([\dA-F]{1,4}:(:|\b)|){5}|([\dA-F]{1,4}:){6})((([\dA-F]{1,4}((?!\3)::|:\b|$))|(?!\2\3)){2}|(((2[0-4]|1\d|[1-9])?\d|25[0-5])\.?\b){4})$/i
 };
 
-function not<T extends (...args: any[]) => boolean>(func: T): (...args: Parameters<T>) => boolean {
+function not<T extends (...args: any[]) => boolean>(
+    func: T
+): (...args: Parameters<T>) => boolean {
     return function () {
         return !func.apply(null, Array.prototype.slice.call(arguments));
     };
@@ -14,12 +16,11 @@ function existy(value: any) {
 }
 
 function ip(value: string | null): boolean {
-
-    if (value !== null && typeof value === 'string') {
+    if (value !== null && typeof value === "string") {
         return regexes.ipv4.test(value) || regexes.ipv6.test(value);
     }
 
-    return false
+    return false;
 }
 
 function object(value: any) {
@@ -27,7 +28,7 @@ function object(value: any) {
 }
 
 function string(value: any) {
-    return Object.prototype.toString.call(value) === '[object String]';
+    return Object.prototype.toString.call(value) === "[object String]";
 }
 
 var is = {

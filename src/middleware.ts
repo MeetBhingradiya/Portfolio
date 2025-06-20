@@ -3,124 +3,124 @@ import { SignJWT, importJWK, jwtVerify } from "jose";
 import { Config } from "@Config";
 import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 import {
-	rateLimitMiddleware,
-	defaultLimiter,
-	strictLimiter,
-	publicLimiter,
-	contactLimiter,
+    rateLimitMiddleware,
+    defaultLimiter,
+    strictLimiter,
+    publicLimiter,
+    contactLimiter
 } from "@Library/rate-limit";
 
 const CSRF_KEY = Config.Env.TRACE_SIGNATURE || "CSRF_KEY_PLACEHOLDER";
 
 const RATE_LIMIT_ROUTES = {
-	"/api/contact": contactLimiter,
-	"/api/auth": strictLimiter,
-	"/api/admin": strictLimiter,
-	"/api/trace": publicLimiter,
-	"/api/sitemap": publicLimiter,
-	"/api/robots": publicLimiter,
+    "/api/contact": contactLimiter,
+    "/api/auth": strictLimiter,
+    "/api/admin": strictLimiter,
+    "/api/trace": publicLimiter,
+    "/api/sitemap": publicLimiter,
+    "/api/robots": publicLimiter
 } as const;
 
 export async function middleware(req: NextRequest) {
-	const ModifiedHeaders = new Headers(req.headers);
-	ModifiedHeaders.set("x-url", req.url);
+    const ModifiedHeaders = new Headers(req.headers);
+    ModifiedHeaders.set("x-url", req.url);
 
-	if (req.nextUrl.pathname.startsWith("/api")) {
-		const limiter =
-			Object.entries(RATE_LIMIT_ROUTES).find(([route]) =>
-				req.nextUrl.pathname.startsWith(route)
-			)?.[1] || defaultLimiter;
+    if (req.nextUrl.pathname.startsWith("/api")) {
+        const limiter =
+            Object.entries(RATE_LIMIT_ROUTES).find(([route]) =>
+                req.nextUrl.pathname.startsWith(route)
+            )?.[1] || defaultLimiter;
 
-		const rateLimitResponse = await rateLimitMiddleware(req, limiter);
-		if (rateLimitResponse) {
-			return rateLimitResponse;
-		}
+        const rateLimitResponse = await rateLimitMiddleware(req, limiter);
+        if (rateLimitResponse) {
+            return rateLimitResponse;
+        }
 
-		const csrfExcludedRoutes = [
-			"/api/trace",
-			"/api/sitemap",
-			"/api/robots",
-			"/api/auth/connect",
-			"/api/auth/callback",
-			"/api/auth/disconnect",
-		];
+        const csrfExcludedRoutes = [
+            "/api/trace",
+            "/api/sitemap",
+            "/api/robots",
+            "/api/auth/connect",
+            "/api/auth/callback",
+            "/api/auth/disconnect"
+        ];
 
-		if (
-			csrfExcludedRoutes.some(
-				(route) =>
-					req.nextUrl.pathname === route ||
-					req.nextUrl.pathname.startsWith(route)
-			)
-		) {
-			return NextResponse.next({
-				request: { headers: ModifiedHeaders },
-			});
-		}
+        if (
+            csrfExcludedRoutes.some(
+                (route) =>
+                    req.nextUrl.pathname === route ||
+                    req.nextUrl.pathname.startsWith(route)
+            )
+        ) {
+            return NextResponse.next({
+                request: { headers: ModifiedHeaders }
+            });
+        }
 
-		const csrfTokenFromHeader = req.headers.get("x-csrf");
-		const csrfTokenFromCookie = req.cookies.get(
-			`${Config.Cookie_Prefix}csrf`
-		);
+        const csrfTokenFromHeader = req.headers.get("x-csrf");
+        const csrfTokenFromCookie = req.cookies.get(
+            `${Config.Cookie_Prefix}csrf`
+        );
 
-		if (!csrfTokenFromHeader) {
-			return ControllerResponseMap({
-				Status: 0,
-				Message: "CSRF token missing from headers",
-				StatusCode: "INVALID_AUTHORIZATION",
-				StatusNumber: 403,
-			});
-		}
+        if (!csrfTokenFromHeader) {
+            return ControllerResponseMap({
+                Status: 0,
+                Message: "CSRF token missing from headers",
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
+        }
 
-		if (!csrfTokenFromCookie) {
-			return ControllerResponseMap({
-				Status: 0,
-				Message: "CSRF token missing from cookies",
-				StatusCode: "INVALID_AUTHORIZATION",
-				StatusNumber: 403,
-			});
-		}
+        if (!csrfTokenFromCookie) {
+            return ControllerResponseMap({
+                Status: 0,
+                Message: "CSRF token missing from cookies",
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
+        }
 
-		if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
-			return ControllerResponseMap({
-				Status: 0,
-				Message: "CSRF token mismatch",
-				StatusCode: "INVALID_AUTHORIZATION",
-				StatusNumber: 403,
-			});
-		}
+        if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
+            return ControllerResponseMap({
+                Status: 0,
+                Message: "CSRF token mismatch",
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
+        }
 
-		try {
-			const verified = await jwtVerify(
-				csrfTokenFromCookie?.value ?? "",
-				await importJWK({ kty: "oct", k: CSRF_KEY }),
-				{
-					algorithms: ["HS256"],
-				}
-			);
+        try {
+            const verified = await jwtVerify(
+                csrfTokenFromCookie?.value ?? "",
+                await importJWK({ kty: "oct", k: CSRF_KEY }),
+                {
+                    algorithms: ["HS256"]
+                }
+            );
 
-			if (!verified) {
-				return ControllerResponseMap({
-					Status: 0,
-					Message: "Invalid CSRF token signature",
-					StatusCode: "INVALID_AUTHORIZATION",
-					StatusNumber: 403,
-				});
-			}
-		} catch (error) {
-			return ControllerResponseMap({
-				Status: 0,
-				Message: "CSRF token verification failed",
-				StatusCode: "INVALID_AUTHORIZATION",
-				StatusNumber: 403,
-			});
-		}
-	}
+            if (!verified) {
+                return ControllerResponseMap({
+                    Status: 0,
+                    Message: "Invalid CSRF token signature",
+                    StatusCode: "INVALID_AUTHORIZATION",
+                    StatusNumber: 403
+                });
+            }
+        } catch (error) {
+            return ControllerResponseMap({
+                Status: 0,
+                Message: "CSRF token verification failed",
+                StatusCode: "INVALID_AUTHORIZATION",
+                StatusNumber: 403
+            });
+        }
+    }
 
-	return NextResponse.next({
-		request: { headers: ModifiedHeaders },
-	});
+    return NextResponse.next({
+        request: { headers: ModifiedHeaders }
+    });
 }
 
 export const config = {
-	matcher: "/(.*)",
+    matcher: "/(.*)"
 };

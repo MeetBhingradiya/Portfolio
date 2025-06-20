@@ -1,8 +1,5 @@
 import { motion } from "framer-motion";
-import {
-    Card,
-    Skeleton
-} from "@heroui/react";
+import { Card, Skeleton } from "@heroui/react";
 import { CardContent } from "@mui/material";
 
 const MotionCard = motion.create(Card);
@@ -17,8 +14,7 @@ function BookmarkItemSkeleton({ index }: { index: number }) {
                 duration: 0.2,
                 delay: Math.min(index * 0.03, 0.2),
                 ease: "easeOut"
-            }}
-        >
+            }}>
             <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
@@ -38,7 +34,7 @@ function BookmarkItemSkeleton({ index }: { index: number }) {
                 </div>
             </CardContent>
         </MotionCard>
-    )
+    );
 }
 
 export default BookmarkItemSkeleton;

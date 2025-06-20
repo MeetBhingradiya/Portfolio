@@ -23,100 +23,100 @@ interface Agent {
 }
 
 var BOTS = [
-    '\\+https:\\/\\/developers.google.com\\/\\+\\/web\\/snippet\\/',
-    'ad\\smonitoring',
-    'adsbot',
-    'apex',
-    'applebot',
-    'archive.org_bot',
-    'baiduspider',
-    'bingbot',
-    'chromeheadless',
-    'cloudflare',
-    'cloudinary',
-    'crawler',
-    'curl',
-    'petalbot',
-    'leikibot',
-    'sirdatabot',
-    'discordbot',
-    'duckduckbot',
-    'embedly',
-    'exabot',
-    'facebookexternalhit',
-    'facebot',
-    'flipboard',
-    'google',
-    'googlebot',
-    'gsa-crawler',
-    'gurujibot',
-    'guzzlehttp',
-    'heritrix',
-    'ia_archiver',
-    'insights',
-    'linkedinbot',
-    'ltx71',
-    'mediapartners',
-    'msnbot',
-    'odklbot',
-    'phantom\\.js',
-    'phantomjs',
-    'pingdom',
-    'pinterest',
-    'python',
-    'rtlnieuws',
-    'skypeuripreview',
-    'slackbot',
-    'slurp',
-    'spbot',
-    'telegrambot',
-    'test\\scertificate',
-    'testing',
-    'tiabot',
-    'tumblr ',
-    'twitterbot',
-    'vkshare',
-    'web\\sscraper',
-    'wget',
-    'yandexbot',
-    'yandeximages',
-    'whatsapp',
-    'orangebot',
-    'smtbot',
-    'qwantify',
-    'mj12bot',
-    'ahrefsbot',
-    'seznambot',
-    'panscient\.com',
-    'duckduckgo-favicons-bot',
-    'uptimerobot',
-    'semrushbot',
-    'postman',
-    'dotbot',
-    'zoominfobot',
-    'ifttt',
-    'sogou',
-    'ru_bot',
-    'researchscan',
-    'nimbostratus-bot',
-    'slack-imgproxy',
-    'node-superagent',
-    'go-http-client',
-    'jersey',
-    'dataprovider.com',
-    'github-camo',
-    'dispatch',
-    'checkmarknetwork',
-    'screaming frog',
-    'whatweb',
-    'daum',
-    'netcraftsurveyagent',
-    'mojeekbot',
-    'surdotlybot',
-    'springbot'
+    "\\+https:\\/\\/developers.google.com\\/\\+\\/web\\/snippet\\/",
+    "ad\\smonitoring",
+    "adsbot",
+    "apex",
+    "applebot",
+    "archive.org_bot",
+    "baiduspider",
+    "bingbot",
+    "chromeheadless",
+    "cloudflare",
+    "cloudinary",
+    "crawler",
+    "curl",
+    "petalbot",
+    "leikibot",
+    "sirdatabot",
+    "discordbot",
+    "duckduckbot",
+    "embedly",
+    "exabot",
+    "facebookexternalhit",
+    "facebot",
+    "flipboard",
+    "google",
+    "googlebot",
+    "gsa-crawler",
+    "gurujibot",
+    "guzzlehttp",
+    "heritrix",
+    "ia_archiver",
+    "insights",
+    "linkedinbot",
+    "ltx71",
+    "mediapartners",
+    "msnbot",
+    "odklbot",
+    "phantom\\.js",
+    "phantomjs",
+    "pingdom",
+    "pinterest",
+    "python",
+    "rtlnieuws",
+    "skypeuripreview",
+    "slackbot",
+    "slurp",
+    "spbot",
+    "telegrambot",
+    "test\\scertificate",
+    "testing",
+    "tiabot",
+    "tumblr ",
+    "twitterbot",
+    "vkshare",
+    "web\\sscraper",
+    "wget",
+    "yandexbot",
+    "yandeximages",
+    "whatsapp",
+    "orangebot",
+    "smtbot",
+    "qwantify",
+    "mj12bot",
+    "ahrefsbot",
+    "seznambot",
+    "panscient\.com",
+    "duckduckgo-favicons-bot",
+    "uptimerobot",
+    "semrushbot",
+    "postman",
+    "dotbot",
+    "zoominfobot",
+    "ifttt",
+    "sogou",
+    "ru_bot",
+    "researchscan",
+    "nimbostratus-bot",
+    "slack-imgproxy",
+    "node-superagent",
+    "go-http-client",
+    "jersey",
+    "dataprovider.com",
+    "github-camo",
+    "dispatch",
+    "checkmarknetwork",
+    "screaming frog",
+    "whatweb",
+    "daum",
+    "netcraftsurveyagent",
+    "mojeekbot",
+    "surdotlybot",
+    "springbot"
 ];
 
-var IS_BOT_REGEXP = new RegExp('^.*(' + BOTS.join('|') + ').*$');
+var IS_BOT_REGEXP = new RegExp("^.*(" + BOTS.join("|") + ").*$");
 
 class UserAgent {
     private _Versions: any = {
@@ -207,7 +207,7 @@ class UserAgent {
         iOS: /ios/i,
         Bada: /Bada\/(\d+)\.(\d+)/i,
         Curl: /curl\/(\d+)\.(\d+)\.(\d+)/i,
-        Electron: /Electron\/(\d+)\.(\d+)\.(\d+)/i,
+        Electron: /Electron\/(\d+)\.(\d+)\.(\d+)/i
     };
 
     private _Platform: any = {
@@ -278,209 +278,218 @@ class UserAgent {
         isAlamoFire: false,
         isElectron: false,
         silkAccelerated: false,
-        browser: 'unknown',
-        version: 'unknown',
-        os: 'unknown',
-        platform: 'unknown',
+        browser: "unknown",
+        version: "unknown",
+        os: "unknown",
+        platform: "unknown",
         geoIp: {},
-        source: '',
-        isWechat: false,
+        source: "",
+        isWechat: false
     };
 
     private Agent: Agent = { ...this.DefaultAgent };
 
-    constructor(source?:string) {
+    constructor(source?: string) {
         if (source) {
             this.Agent.source = source;
         }
-    };
+    }
 
     private getBrowser = (string: any) => {
         switch (true) {
             case this._Browsers.YaBrowser.test(string):
                 this.Agent.isYaBrowser = true;
-                return 'YaBrowser';
+                return "YaBrowser";
             case this._Browsers.AlamoFire.test(string):
                 this.Agent.isAlamoFire = true;
-                return 'AlamoFire';
+                return "AlamoFire";
             case this._Browsers.Edge.test(string):
                 this.Agent.isEdge = true;
-                return 'Edge';
+                return "Edge";
             case this._Browsers.PhantomJS.test(string):
                 this.Agent.isPhantomJS = true;
-                return 'PhantomJS';
+                return "PhantomJS";
             case this._Browsers.Konqueror.test(string):
                 this.Agent.isKonqueror = true;
-                return 'Konqueror';
+                return "Konqueror";
             case this._Browsers.Amaya.test(string):
                 this.Agent.isAmaya = true;
-                return 'Amaya';
+                return "Amaya";
             case this._Browsers.Epiphany.test(string):
                 this.Agent.isEpiphany = true;
-                return 'Epiphany';
+                return "Epiphany";
             case this._Browsers.SeaMonkey.test(string):
                 this.Agent.isSeaMonkey = true;
-                return 'SeaMonkey';
+                return "SeaMonkey";
             case this._Browsers.Flock.test(string):
                 this.Agent.isFlock = true;
-                return 'Flock';
+                return "Flock";
             case this._Browsers.OmniWeb.test(string):
                 this.Agent.isOmniWeb = true;
-                return 'OmniWeb';
+                return "OmniWeb";
             case this._Browsers.Opera.test(string):
                 this.Agent.isOpera = true;
-                return 'Opera';
+                return "Opera";
             case this._Browsers.Chromium.test(string):
                 this.Agent.isChrome = true;
-                return 'Chromium';
+                return "Chromium";
             case this._Browsers.Facebook.test(string):
                 this.Agent.isFacebook = true;
-                return 'Facebook';
+                return "Facebook";
             case this._Browsers.Chrome.test(string):
                 this.Agent.isChrome = true;
-                return 'Chrome';
+                return "Chrome";
             case this._Browsers.WinJs.test(string):
                 this.Agent.isWinJs = true;
-                return 'WinJs';
+                return "WinJs";
             case this._Browsers.IE.test(string):
                 this.Agent.isIE = true;
-                return 'IE';
+                return "IE";
             case this._Browsers.Firefox.test(string):
                 this.Agent.isFirefox = true;
-                return 'Firefox';
+                return "Firefox";
             case this._Browsers.Safari.test(string):
                 this.Agent.isSafari = true;
-                return 'Safari';
+                return "Safari";
             case this._Browsers.PS3.test(string):
-                return 'ps3';
+                return "ps3";
             case this._Browsers.PSP.test(string):
-                return 'psp';
+                return "psp";
             case this._Browsers.UC.test(string):
                 this.Agent.isUC = true;
-                return 'UCBrowser';
+                return "UCBrowser";
             default:
-                if (string.indexOf('Dalvik') !== -1) {
-                    return 'unknown';
+                if (string.indexOf("Dalvik") !== -1) {
+                    return "unknown";
                 }
 
                 // If the UA does not start with Mozilla guess the user agent.
-                if (string.indexOf('Mozilla') !== 0 && /^([\d\w\-\.]+)\/[\d\w\.\-]+/i.test(string)) {
+                if (
+                    string.indexOf("Mozilla") !== 0 &&
+                    /^([\d\w\-\.]+)\/[\d\w\.\-]+/i.test(string)
+                ) {
                     this.Agent.isAuthoritative = false;
                     return RegExp.$1;
                 }
-                return 'unknown';
+                return "unknown";
         }
     };
 
-    private getBrowserVersion = (string: string):string => {
+    private getBrowserVersion = (string: string): string => {
         var regex;
         switch (this.Agent.browser) {
-            case 'Edge':
+            case "Edge":
                 if (this._Versions.Edge.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'PhantomJS':
+            case "PhantomJS":
                 if (this._Versions.PhantomJS.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'Chrome':
+            case "Chrome":
                 if (this._Versions.Chrome.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'Chromium':
+            case "Chromium":
                 if (this._Versions.Chromium.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'Safari':
+            case "Safari":
                 if (this._Versions.Safari.test(string)) {
                     return RegExp.$2;
                 }
                 break;
-            case 'Opera':
+            case "Opera":
                 if (this._Versions.Opera.test(string)) {
                     return RegExp.$1 ? RegExp.$1 : RegExp.$2;
                 }
                 break;
-            case 'Firefox':
+            case "Firefox":
                 if (this._Versions.Firefox.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'WinJs':
+            case "WinJs":
                 if (this._Versions.WinJs.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'IE':
+            case "IE":
                 if (this._Versions.IE.test(string)) {
                     return RegExp.$2 ? RegExp.$2 : RegExp.$1;
                 }
                 break;
-            case 'ps3':
+            case "ps3":
                 if (this._Versions.Ps3.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'psp':
+            case "psp":
                 if (this._Versions.Psp.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'Amaya':
+            case "Amaya":
                 if (this._Versions.Amaya.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'Epiphany':
+            case "Epiphany":
                 if (this._Versions.Epiphany.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'SeaMonkey':
+            case "SeaMonkey":
                 if (this._Versions.SeaMonkey.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'Flock':
+            case "Flock":
                 if (this._Versions.Flock.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'OmniWeb':
+            case "OmniWeb":
                 if (this._Versions.OmniWeb.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'UCBrowser':
+            case "UCBrowser":
                 if (this._Versions.UC.test(string)) {
                     return RegExp.$1;
                 }
                 break;
-            case 'Facebook':
+            case "Facebook":
                 if (this._Versions.Facebook.test(string)) {
                     return RegExp.$1;
                 }
                 break;
             default:
-                if (this.Agent.browser !== 'unknown') {
-                    regex = new RegExp(this.Agent.browser + '[\\/ ]([\\d\\w\\.\\-]+)', 'i');
+                if (this.Agent.browser !== "unknown") {
+                    regex = new RegExp(
+                        this.Agent.browser + "[\\/ ]([\\d\\w\\.\\-]+)",
+                        "i"
+                    );
                     if (regex.test(string)) {
                         return RegExp.$1;
                     }
                 } else {
                     this.testWebkit();
-                    if (this.Agent.isWebkit && this._Versions.WebKit.test(string)) {
+                    if (
+                        this.Agent.isWebkit &&
+                        this._Versions.WebKit.test(string)
+                    ) {
                         return RegExp.$1;
                     }
-                    return 'unknown';
+                    return "unknown";
                 }
         }
 
-        return 'unknown';
+        return "unknown";
     };
 
     private getWechatVersion = (string: string) => {
@@ -488,7 +497,7 @@ class UserAgent {
             return RegExp.$1;
         }
 
-        return 'unknown';
+        return "unknown";
     };
 
     private getElectronVersion = (string: string) => {
@@ -497,189 +506,189 @@ class UserAgent {
             return RegExp.$1;
         }
 
-        return '';
+        return "";
     };
 
     private getOS = (string: string) => {
         switch (true) {
             case this._OS.WindowsVista.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows Vista';
+                return "Windows Vista";
             case this._OS.Windows7.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows 7';
+                return "Windows 7";
             case this._OS.Windows8.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows 8';
+                return "Windows 8";
             case this._OS.Windows81.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows 8.1';
+                return "Windows 8.1";
             case this._OS.Windows10.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows 10.0';
+                return "Windows 10.0";
             case this._OS.Windows2003.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows 2003';
+                return "Windows 2003";
             case this._OS.WindowsXP.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows XP';
+                return "Windows XP";
             case this._OS.Windows2000.test(string):
                 this.Agent.isWindows = true;
-                return 'Windows 2000';
+                return "Windows 2000";
             case this._OS.WindowsPhone81.test(string):
                 this.Agent.isWindowsPhone = true;
-                return 'Windows Phone 8.1';
+                return "Windows Phone 8.1";
             case this._OS.WindowsPhone80.test(string):
                 this.Agent.isWindowsPhone = true;
-                return 'Windows Phone 8.0';
+                return "Windows Phone 8.0";
             case this._OS.Linux64.test(string):
                 this.Agent.isLinux = true;
                 this.Agent.isLinux64 = true;
-                return 'Linux 64';
+                return "Linux 64";
             case this._OS.Linux.test(string):
                 this.Agent.isLinux = true;
-                return 'Linux';
+                return "Linux";
             case this._OS.ChromeOS.test(string):
                 this.Agent.isChromeOS = true;
-                return 'Chrome OS';
+                return "Chrome OS";
             case this._OS.Wii.test(string):
-                return 'Wii';
+                return "Wii";
             case this._OS.PS3.test(string):
-                return 'Playstation';
+                return "Playstation";
             case this._OS.PSP.test(string):
-                return 'Playstation';
+                return "Playstation";
             case this._OS.OSXCheetah.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Cheetah';
+                return "OS X Cheetah";
             case this._OS.OSXPuma.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Puma';
+                return "OS X Puma";
             case this._OS.OSXJaguar.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Jaguar';
+                return "OS X Jaguar";
             case this._OS.OSXPanther.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Panther';
+                return "OS X Panther";
             case this._OS.OSXTiger.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Tiger';
+                return "OS X Tiger";
             case this._OS.OSXLeopard.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Leopard';
+                return "OS X Leopard";
             case this._OS.OSXSnowLeopard.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Snow Leopard';
+                return "OS X Snow Leopard";
             case this._OS.OSXLion.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Lion';
+                return "OS X Lion";
             case this._OS.OSXMountainLion.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Mountain Lion';
+                return "OS X Mountain Lion";
             case this._OS.OSXMavericks.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Mavericks';
+                return "OS X Mavericks";
             case this._OS.OSXYosemite.test(string):
                 this.Agent.isMac = true;
-                return 'OS X Yosemite';
+                return "OS X Yosemite";
             case this._OS.OSXElCapitan.test(string):
                 this.Agent.isMac = true;
-                return 'OS X El Capitan';
+                return "OS X El Capitan";
             case this._OS.MacOSSierra.test(string):
                 this.Agent.isMac = true;
-                return 'macOS Sierra';
+                return "macOS Sierra";
             case this._OS.MacOSHighSierra.test(string):
                 this.Agent.isMac = true;
-                return 'macOS High Sierra';
+                return "macOS High Sierra";
             case this._OS.MacOSMojave.test(string):
                 this.Agent.isMac = true;
-                return 'macOS Mojave';
+                return "macOS Mojave";
             case this._OS.Mac.test(string):
                 // !('ontouchend' in document);
                 // navigator.maxTouchPoints > 1
                 this.Agent.isMac = true;
-                return 'OS X';
+                return "OS X";
             case this._OS.iPad.test(string):
                 // 'ontouchend' in document;
                 let matchResult = string.match(this._OS.iPad);
                 if (matchResult) {
                     this.Agent.isiPad = true;
-                    return matchResult[0].replace('_', '.');
+                    return matchResult[0].replace("_", ".");
                 } else {
-                    return 'unknown';
+                    return "unknown";
                 }
             case this._OS.iPhone.test(string):
                 //  'ontouchend' in document;
                 let matchResult2 = string.match(this._OS.iPhone);
                 if (matchResult2) {
                     this.Agent.isiPhone = true;
-                    return matchResult2[0].replace('_', '.');
+                    return matchResult2[0].replace("_", ".");
                 } else {
-                    return 'unknown';
+                    return "unknown";
                 }
             case this._OS.Bada.test(string):
                 this.Agent.isBada = true;
-                return 'Bada';
+                return "Bada";
             case this._OS.Curl.test(string):
                 this.Agent.isCurl = true;
-                return 'Curl';
+                return "Curl";
             case this._OS.iOS.test(string):
                 this.Agent.isiPhone = true;
-                return 'iOS';
+                return "iOS";
             case this._OS.Electron.test(string):
                 this.Agent.isElectron = true;
-                return 'Electron';
+                return "Electron";
             default:
-                return 'unknown';
+                return "unknown";
         }
     };
 
     private getPlatform = (string: string) => {
         switch (true) {
             case this._Platform.Windows.test(string):
-                return 'Microsoft Windows';
+                return "Microsoft Windows";
             case this._Platform.WindowsPhone.test(string):
                 this.Agent.isWindowsPhone = true;
-                return 'Microsoft Windows Phone';
+                return "Microsoft Windows Phone";
             case this._Platform.Mac.test(string):
-                return 'Apple Mac';
+                return "Apple Mac";
             case this._Platform.Curl.test(string):
-                return 'Curl';
+                return "Curl";
             case this._Platform.Electron.test(string):
                 this.Agent.isElectron = true;
-                return 'Electron';
+                return "Electron";
             case this._Platform.Android.test(string):
                 this.Agent.isAndroid = true;
-                return 'Android';
+                return "Android";
             case this._Platform.Blackberry.test(string):
                 this.Agent.isBlackberry = true;
-                return 'Blackberry';
+                return "Blackberry";
             case this._Platform.Linux.test(string):
-                return 'Linux';
+                return "Linux";
             case this._Platform.Wii.test(string):
-                return 'Wii';
+                return "Wii";
             case this._Platform.Playstation.test(string):
-                return 'Playstation';
+                return "Playstation";
             case this._Platform.iPad.test(string):
                 this.Agent.isiPad = true;
-                return 'iPad';
+                return "iPad";
             case this._Platform.iPod.test(string):
                 this.Agent.isiPod = true;
-                return 'iPod';
+                return "iPod";
             case this._Platform.iPhone.test(string):
                 this.Agent.isiPhone = true;
-                return 'iPhone';
+                return "iPhone";
             case this._Platform.Samsung.test(string):
                 this.Agent.isSamsung = true;
-                return 'Samsung';
+                return "Samsung";
             case this._Platform.iOS.test(string):
-                return 'Apple iOS';
+                return "Apple iOS";
             default:
-                return 'unknown';
+                return "unknown";
         }
     };
 
     private testCompatibilityMode = () => {
-        var ua:any = this;
+        var ua: any = this;
         if (this.Agent.isIE) {
             if (/Trident\/(\d)\.0/i.test(ua.Agent.source)) {
                 var tridentVersion = parseInt(RegExp.$1, 10);
@@ -710,7 +719,7 @@ class UserAgent {
     private testSilk = () => {
         var ua = this;
         switch (true) {
-            case new RegExp('silk', 'gi').test(ua.Agent.source):
+            case new RegExp("silk", "gi").test(ua.Agent.source):
                 this.Agent.isSilk = true;
                 break;
             default:
@@ -719,7 +728,7 @@ class UserAgent {
         if (/Silk-Accelerated=true/gi.test(ua.Agent.source)) {
             this.Agent.SilkAccelerated = true;
         }
-        return this.Agent.isSilk ? 'Silk' : false;
+        return this.Agent.isSilk ? "Silk" : false;
     };
 
     private testKindleFire = () => {
@@ -727,31 +736,31 @@ class UserAgent {
         switch (true) {
             case /KFOT/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire';
+                return "Kindle Fire";
             case /KFTT/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HD';
+                return "Kindle Fire HD";
             case /KFJWI/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HD 8.9';
+                return "Kindle Fire HD 8.9";
             case /KFJWA/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HD 8.9 4G';
+                return "Kindle Fire HD 8.9 4G";
             case /KFSOWI/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HD 7';
+                return "Kindle Fire HD 7";
             case /KFTHWI/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HDX 7';
+                return "Kindle Fire HDX 7";
             case /KFTHWA/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HDX 7 4G';
+                return "Kindle Fire HDX 7 4G";
             case /KFAPWI/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HDX 8.9';
+                return "Kindle Fire HDX 8.9";
             case /KFAPWA/gi.test(ua.Agent.source):
                 this.Agent.isKindleFire = true;
-                return 'Kindle Fire HDX 8.9 4G';
+                return "Kindle Fire HDX 8.9 4G";
             default:
                 return false;
         }
@@ -763,8 +772,8 @@ class UserAgent {
             case /CaptiveNetwork/gi.test(ua.Agent.source):
                 ua.Agent.isCaptive = true;
                 ua.Agent.isMac = true;
-                ua.Agent.platform = 'Apple Mac';
-                return 'CaptiveNetwork';
+                ua.Agent.platform = "Apple Mac";
+                return "CaptiveNetwork";
             default:
                 return false;
         }
@@ -834,7 +843,7 @@ class UserAgent {
         }
     };
 
-    private testNginxGeoIP = (headers:any) => {
+    private testNginxGeoIP = (headers: any) => {
         var ua = this;
         Object.keys(headers).forEach(function (key) {
             if (/^GEOIP/i.test(key)) {
@@ -857,7 +866,10 @@ class UserAgent {
 
     private testSmartTV = () => {
         var ua = this;
-        ua.Agent.isSmartTV = new RegExp('smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv', 'gi').test(ua.Agent.source.toLowerCase());
+        ua.Agent.isSmartTV = new RegExp(
+            "smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv",
+            "gi"
+        ).test(ua.Agent.source.toLowerCase());
     };
 
     private testAndroidTablet = () => {
@@ -869,8 +881,11 @@ class UserAgent {
 
     private testWebkit = () => {
         var ua = this;
-        if (ua.Agent.browser === 'unknown' && /applewebkit/i.test(ua.Agent.source)) {
-            ua.Agent.browser = 'Apple WebKit';
+        if (
+            ua.Agent.browser === "unknown" &&
+            /applewebkit/i.test(ua.Agent.source)
+        ) {
+            ua.Agent.browser = "Apple WebKit";
             ua.Agent.isWebkit = true;
         }
     };
@@ -884,12 +899,12 @@ class UserAgent {
         }
     };
 
-    public parse = (source?:string):Agent => {
+    public parse = (source?: string): Agent => {
         var ua = new UserAgent();
         if (source === undefined) {
             source = this.Agent.source;
         }
-        ua.Agent.source = source.replace(/^\s*/, '').replace(/\s*$/, '');
+        ua.Agent.source = source.replace(/^\s*/, "").replace(/\s*$/, "");
         ua.Agent.os = ua.getOS(ua.Agent.source);
         ua.Agent.platform = ua.getPlatform(ua.Agent.source);
         ua.Agent.browser = ua.getBrowser(ua.Agent.source);
@@ -908,6 +923,6 @@ class UserAgent {
         ua.testWechat();
         return ua.Agent;
     };
-};
+}
 
 export { UserAgent };

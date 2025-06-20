@@ -1,8 +1,12 @@
 import { RedirectProtocols } from "@Config/RedirectProtocols";
 import { Config } from "@Config";
 
-function RedirectProtocolExecuter(ServerResponseStatuscode: string | undefined) {
-    const Protocol = RedirectProtocols.find((protocol) => protocol.protocol === ServerResponseStatuscode);
+function RedirectProtocolExecuter(
+    ServerResponseStatuscode: string | undefined
+) {
+    const Protocol = RedirectProtocols.find(
+        (protocol) => protocol.protocol === ServerResponseStatuscode
+    );
 
     if (Protocol) {
         if (Protocol.useUserPathasRedirect) {

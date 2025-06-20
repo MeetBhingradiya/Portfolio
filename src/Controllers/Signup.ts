@@ -26,7 +26,7 @@ async function is_email_Verified(email: string): Promise<boolean> {
 }
 
 async function is_username_created(email: string): Promise<boolean> {
-    const doc = await Users_Model.findOne({ 
+    const doc = await Users_Model.findOne({
         Emails: {
             $elemMatch: {
                 Email: email
@@ -45,11 +45,11 @@ async function is_username_already_exists(username: string): Promise<boolean> {
     return doc ? true : false;
 }
 
-async function Signup() { }
+async function Signup() {}
 
 export {
     is_email_already_exists,
     is_email_Verified,
     is_username_created,
-    is_username_already_exists,
-}
+    is_username_already_exists
+};

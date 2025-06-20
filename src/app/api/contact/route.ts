@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { requestIp } from "@Lib"
+import { NextRequest, NextResponse } from "next/server";
+import { requestIp } from "@Lib";
 import { createEmailTransport } from "@Utils/EmailSend";
 
 // Rate limiting store (in production, use Redis or database)
@@ -46,39 +46,43 @@ function checkRateLimit(clientIP: string): RateLimitResult {
     return { allowed: true };
 }
 
-function validateInput(data: ContactFormData): { valid: boolean; errors: string[] } {
+function validateInput(data: ContactFormData): {
+    valid: boolean;
+    errors: string[];
+} {
     const errors: string[] = [];
 
     // Basic validation
     if (!data.name || data.name.trim().length < 2) {
-        errors.push('Name must be at least 2 characters long');
+        errors.push("Name must be at least 2 characters long");
     }
 
     if (!data.email || !EMAIL_REGEX.test(data.email)) {
-        errors.push('Please provide a valid email address');
+        errors.push("Please provide a valid email address");
     }
 
     if (!data.subject || data.subject.trim().length < 5) {
-        errors.push('Subject must be at least 5 characters long');
+        errors.push("Subject must be at least 5 characters long");
     }
 
     if (!data.message || data.message.trim().length < 10) {
-        errors.push('Message must be at least 10 characters long');
+        errors.push("Message must be at least 10 characters long");
     }
 
     // Spam detection
-    const fullText = `${data.name} ${data.subject} ${data.message}`.toLowerCase();
+    const fullText =
+        `${data.name} ${data.subject} ${data.message}`.toLowerCase();
     for (const pattern of SPAM_PATTERNS) {
         if (pattern.test(fullText)) {
-            errors.push('Message content appears to be spam');
+            errors.push("Message content appears to be spam");
             break;
         }
     }
 
     // Length limits
-    if (data.name.length > 100) errors.push('Name is too long');
-    if (data.subject.length > 200) errors.push('Subject is too long');
-    if (data.message.length > 2000) errors.push('Message is too long');
+    if (data.name.length > 100) errors.push("Name is too long");
+    if (data.subject.length > 200) errors.push("Subject is too long");
+    if (data.message.length > 2000) errors.push("Message is too long");
 
     return { valid: errors.length === 0, errors };
 }
@@ -88,9 +92,9 @@ function formatTimeRemaining(milliseconds: number): string {
     const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
 
     if (hours > 0) {
-        return `${hours} hour${hours > 1 ? 's' : ''} and ${minutes} minute${minutes > 1 ? 's' : ''}`;
+        return `${hours} hour${hours > 1 ? "s" : ""} and ${minutes} minute${minutes > 1 ? "s" : ""}`;
     }
-    return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+    return `${minutes} minute${minutes > 1 ? "s" : ""}`;
 }
 
 export async function POST(request: NextRequest) {
@@ -101,7 +105,9 @@ export async function POST(request: NextRequest) {
         // Check rate limit
         const rateLimitResult = checkRateLimit(clientIP as string);
         if (!rateLimitResult.allowed) {
-            const timeRemaining = formatTimeRemaining(rateLimitResult.timeRemaining!);
+            const timeRemaining = formatTimeRemaining(
+                rateLimitResult.timeRemaining!
+            );
             return NextResponse.json(
                 {
                     success: false,
@@ -122,7 +128,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: 'Validation failed',
+                    error: "Validation failed",
                     details: validation.errors
                 },
                 { status: 400 }
@@ -285,18 +291,17 @@ This is an automated response. Please do not reply to this email.
 
         return NextResponse.json({
             success: true,
-            message: 'Message sent successfully! I\'ll get back to you soon.',
+            message: "Message sent successfully! I'll get back to you soon.",
             autoReply: true
         });
-
     } catch (error) {
-        console.error('Contact form error:', error);
+        console.error("Contact form error:", error);
 
         // Don't expose internal errors to client
         return NextResponse.json(
             {
                 success: false,
-                error: 'Failed to send message. Please try again later or contact me directly.',
+                error: "Failed to send message. Please try again later or contact me directly.",
                 internal: false
             },
             { status: 500 }
@@ -309,9 +314,9 @@ export async function OPTIONS(request: NextRequest) {
     return new NextResponse(null, {
         status: 200,
         headers: {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type',
-        },
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type"
+        }
     });
 }

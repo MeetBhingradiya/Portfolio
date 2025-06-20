@@ -1,7 +1,7 @@
 const RedirectProtocols: Array<{
-    protocol: string
-    redirectpath?: string
-    useUserPathasRedirect?: boolean
+    protocol: string;
+    redirectpath?: string;
+    useUserPathasRedirect?: boolean;
 }> = [
     {
         protocol: "INVALID_ORIGIN",
@@ -19,6 +19,6 @@ const RedirectProtocols: Array<{
         protocol: "UNSUPPORTED_PLATFORM",
         redirectpath: "/UnSupportedPlatform"
     }
-]
+];
 
 export { RedirectProtocols };

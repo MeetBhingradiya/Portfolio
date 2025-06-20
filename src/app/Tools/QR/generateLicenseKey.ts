@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import * as crypto from "crypto";
 
 enum LicensingModel {
     Perpetual = "perpetual",
@@ -20,6 +20,5 @@ function generateLicenseKey(
     const licenseKey = `${hashPart}${encodedData}`;
     return licenseKey;
 }
-
 
 export { LicensingModel, generateLicenseKey };

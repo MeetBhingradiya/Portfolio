@@ -1,8 +1,8 @@
 import { HeroUIProvider } from "@heroui/system";
 import { buildProvidersTree } from "./BuildProvidersTree";
-import MUIRegistry from '@Components/MUIRegistry';
-import { AuthProvider } from '@contexts/AuthContext';
-import { AccountProvider } from '@contexts/AccountContext';
+import MUIRegistry from "@Components/MUIRegistry";
+import { AuthProvider } from "@contexts/AuthContext";
+import { AccountProvider } from "@contexts/AccountContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const ProvidersTree = buildProvidersTree([
@@ -16,10 +16,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
             MUIRegistry,
             {
                 options: {
-                    key: "muiregistry",
+                    key: "muiregistry"
                 },
-                children,
-            },
+                children
+            }
         ],
         [
             AuthProvider,
@@ -32,12 +32,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
             {
                 children
             }
-        ],
+        ]
     ]);
 
-    return (
-        <ProvidersTree>
-            {children}
-        </ProvidersTree>
-    );
+    return <ProvidersTree>{children}</ProvidersTree>;
 }

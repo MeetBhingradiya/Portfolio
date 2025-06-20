@@ -1,5 +1,3 @@
-export default function RemoteImageLoader({
-    src,
-}: any) {
-    return src
+export default function RemoteImageLoader({ src }: any) {
+    return src;
 }

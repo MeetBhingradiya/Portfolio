@@ -15,13 +15,13 @@ export const metadata: Metadata = {
         "JSON Convert",
         "JSObject Convert"
     ]
-}
+};
 
 // @ File
 export default function Layout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

@@ -23,7 +23,7 @@ async function getUserFromToken(request: NextRequest) {
         const session = await Sessions_Model.findOne({
             SessionID: decoded.sessionID,
             UserID: decoded.userID,
-            ExpiresAt: { $gt: new Date() },
+            ExpiresAt: { $gt: new Date() }
         });
 
         if (!session) return null;
@@ -32,7 +32,7 @@ async function getUserFromToken(request: NextRequest) {
             UserID: decoded.userID,
             isDeleted: false,
             isLocked: false,
-            isSuspended: false,
+            isSuspended: false
         });
 
         return user;
@@ -48,54 +48,61 @@ interface RouteContext {
 }
 
 // POST /api/blog/[id]/publish - Toggle publish status
-export async function POST(
-    request: NextRequest,
-    context: RouteContext
-) {
+export async function POST(request: NextRequest, context: RouteContext) {
     try {
         const user = await getUserFromToken(request);
-        
+
         if (!user) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Authentication required',
-                StatusCode: 401
-            }, { status: 401 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Authentication required",
+                    StatusCode: 401
+                },
+                { status: 401 }
+            );
         }
 
         await dbConnect();
-        
+
         // Await the params since they're now a Promise in Next.js 15
         const params = await context.params;
         const { id: blogID } = params;
-        
+
         const body = await request.json();
         const { action } = body; // 'publish' or 'unpublish'
 
         // Find existing blog
-        const existingBlog = await Blogs_Model.findOne({ 
+        const existingBlog = await Blogs_Model.findOne({
             BlogID: blogID,
-            isDeleted: false 
+            isDeleted: false
         });
 
         if (!existingBlog) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Blog not found',
-                StatusCode: 404
-            }, { status: 404 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Blog not found",
+                    StatusCode: 404
+                },
+                { status: 404 }
+            );
         }
 
         // Check permissions (author or admin)
         if (existingBlog.AuthorID !== user.UserID && !user.isAdmin) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Insufficient permissions to publish/unpublish this blog',
-                StatusCode: 403
-            }, { status: 403 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message:
+                        "Insufficient permissions to publish/unpublish this blog",
+                    StatusCode: 403
+                },
+                { status: 403 }
+            );
         }
 
-        const isPublishing = action === 'publish';
+        const isPublishing = action === "publish";
         const updateData: any = {
             isPublished: isPublishing
         };
@@ -108,7 +115,7 @@ export async function POST(
 
         return NextResponse.json({
             Status: 1,
-            Message: `Blog ${isPublishing ? 'published' : 'unpublished'} successfully`,
+            Message: `Blog ${isPublishing ? "published" : "unpublished"} successfully`,
             StatusCode: 200,
             Data: {
                 blogID,
@@ -116,13 +123,15 @@ export async function POST(
                 publishDate: isPublishing ? updateData.PublishDate : null
             }
         });
-
     } catch (error: any) {
         log(`Blog publish error: ${error.message}`);
-        return NextResponse.json({
-            Status: 0,
-            Message: 'Failed to update publish status',
-            StatusCode: 500
-        }, { status: 500 });
+        return NextResponse.json(
+            {
+                Status: 0,
+                Message: "Failed to update publish status",
+                StatusCode: 500
+            },
+            { status: 500 }
+        );
     }
 }

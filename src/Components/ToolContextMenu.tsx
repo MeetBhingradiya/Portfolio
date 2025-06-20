@@ -1,6 +1,12 @@
 "use client";
-import React, { useEffect, useRef } from 'react';
-import { OpenInNew, Star, StarBorder, Bookmark, BookmarkBorder } from '@mui/icons-material';
+import React, { useEffect, useRef } from "react";
+import {
+    OpenInNew,
+    Star,
+    StarBorder,
+    Bookmark,
+    BookmarkBorder
+} from "@mui/icons-material";
 
 interface ToolContextMenuProps {
     x: number;
@@ -32,14 +38,17 @@ const ToolContextMenu: React.FC<ToolContextMenuProps> = ({
     // Close the menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+            if (
+                menuRef.current &&
+                !menuRef.current.contains(event.target as Node)
+            ) {
                 onClose();
             }
         };
 
-        document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener("mousedown", handleClickOutside);
         return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
+            document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [onClose]);
 
@@ -52,21 +61,24 @@ const ToolContextMenu: React.FC<ToolContextMenuProps> = ({
             ref={menuRef}
             className="tool-context-menu"
             style={{
-                position: 'fixed',
+                position: "fixed",
                 top: adjustedY,
                 left: adjustedX,
-                zIndex: 1100,
-            }}
-        >
+                zIndex: 1100
+            }}>
             <div className="context-menu-header">
                 <span className="context-menu-title">{toolName}</span>
             </div>
             <div className="context-menu-items">
-                <div className="context-menu-item" onClick={onOpenInNewTab}>
+                <div
+                    className="context-menu-item"
+                    onClick={onOpenInNewTab}>
                     <OpenInNew className="context-menu-icon" />
                     <span>Open in new tab</span>
                 </div>
-                <div className="context-menu-item" onClick={onAddToFavorites}>
+                <div
+                    className="context-menu-item"
+                    onClick={onAddToFavorites}>
                     {isFavorite ? (
                         <>
                             <Star className="context-menu-icon favorite" />
@@ -79,7 +91,9 @@ const ToolContextMenu: React.FC<ToolContextMenuProps> = ({
                         </>
                     )}
                 </div>
-                <div className="context-menu-item" onClick={onAddToBookmarks}>
+                <div
+                    className="context-menu-item"
+                    onClick={onAddToBookmarks}>
                     {isBookmarked ? (
                         <>
                             <Bookmark className="context-menu-icon bookmarked" />
@@ -97,4 +111,4 @@ const ToolContextMenu: React.FC<ToolContextMenuProps> = ({
     );
 };
 
-export default ToolContextMenu; 
+export default ToolContextMenu;

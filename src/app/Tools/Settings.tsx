@@ -1,17 +1,9 @@
 "use client";
 
 import React from "react";
-import {
-    Modal,
-    ModalContent,
-} from "@heroui/react";
-import {
-    IToolsSettingsTabs,
-} from "./Settings/Types"
-import type {
-    IToolsModalData,
-    IToolsState,
-} from "./Settings/Types"
+import { Modal, ModalContent } from "@heroui/react";
+import { IToolsSettingsTabs } from "./Settings/Types";
+import type { IToolsModalData, IToolsState } from "./Settings/Types";
 import Header from "./Settings/Header";
 import Footer from "./Settings/Footer";
 import ModelsBody from "./Settings/index";
@@ -20,20 +12,19 @@ function Settings({
     State,
     Dispatch,
     ModalState,
-    SetModalState,
+    SetModalState
 }: {
-    State: IToolsState,
-    Dispatch: React.Dispatch<React.SetStateAction<IToolsState>>,
+    State: IToolsState;
+    Dispatch: React.Dispatch<React.SetStateAction<IToolsState>>;
 
-    ModalState: IToolsModalData,
-    SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>,
+    ModalState: IToolsModalData;
+    SetModalState: React.Dispatch<React.SetStateAction<IToolsModalData>>;
 }) {
-
     function setIsMaximized(isMaximized: boolean) {
         SetModalState({
             ...ModalState,
             isMaximized: isMaximized
-        })
+        });
     }
 
     const DisableAdmin = () => {
@@ -42,40 +33,44 @@ function Settings({
                 ...prev,
                 isAdmin: false,
                 AdminSignature: "",
-                type: prev.type !== IToolsSettingsTabs.Cloud ? prev.type : IToolsSettingsTabs.BeAdmin
-            }
-        })
-    }
+                type:
+                    prev.type !== IToolsSettingsTabs.Cloud
+                        ? prev.type
+                        : IToolsSettingsTabs.BeAdmin
+            };
+        });
+    };
 
     return (
         <>
             <Modal
                 backdrop="opaque"
                 isDismissable={
-                    ModalState.type === IToolsSettingsTabs.Edit
-                        || ModalState.type === IToolsSettingsTabs.Create
-                        || ModalState.type === IToolsSettingsTabs.AdminCreate
-                        || ModalState.type === IToolsSettingsTabs.AdminEdit
-                        ? false : true
+                    ModalState.type === IToolsSettingsTabs.Edit ||
+                    ModalState.type === IToolsSettingsTabs.Create ||
+                    ModalState.type === IToolsSettingsTabs.AdminCreate ||
+                    ModalState.type === IToolsSettingsTabs.AdminEdit
+                        ? false
+                        : true
                 }
                 isKeyboardDismissDisabled={
-                    ModalState.type === IToolsSettingsTabs.Edit
-                        || ModalState.type === IToolsSettingsTabs.Create
-                        || ModalState.type === IToolsSettingsTabs.AdminCreate
-                        || ModalState.type === IToolsSettingsTabs.AdminEdit
-                        ? false : true
+                    ModalState.type === IToolsSettingsTabs.Edit ||
+                    ModalState.type === IToolsSettingsTabs.Create ||
+                    ModalState.type === IToolsSettingsTabs.AdminCreate ||
+                    ModalState.type === IToolsSettingsTabs.AdminEdit
+                        ? false
+                        : true
                 }
                 isOpen={ModalState.isOpen}
                 onClose={() => {
                     SetModalState({
                         ...ModalState,
                         isOpen: false
-                    })
+                    });
                 }}
                 hideCloseButton={true}
                 size={ModalState.isMaximized ? "full" : "4xl"}
-                scrollBehavior="inside"
-            >
+                scrollBehavior="inside">
                 <ModalContent
                     className="backdrop-blur-md"
                     style={{
@@ -86,13 +81,12 @@ function Settings({
                         background: "var(--bookmark)",
                         border: "1px solid var(--bookmark-border)",
                         boxShadow: "0 0 10px 0 rgba(0, 0, 0, 0.1)"
-                    }}
-                >
+                    }}>
                     <Header
                         type={ModalState.type}
                         isMaximized={ModalState.isMaximized}
                         onClose={() => {
-                            SetModalState({ ...ModalState, isOpen: false })
+                            SetModalState({ ...ModalState, isOpen: false });
                         }}
                         setIsMaximized={setIsMaximized}
                         isAdmin={ModalState.isAdmin}
@@ -113,7 +107,7 @@ function Settings({
                         SetModalState={SetModalState}
                     />
                 </ModalContent>
-            </Modal >
+            </Modal>
         </>
     );
 }

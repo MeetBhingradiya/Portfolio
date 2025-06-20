@@ -32,7 +32,8 @@ ${data}
  * @returns The generated `<sitemap>` string.
  */
 function SitemapIndexItemWrap(endpoint: string): string {
-    if (!endpoint) throw new Error('Endpoint is required for SitemapIndexItemWrap.');
+    if (!endpoint)
+        throw new Error("Endpoint is required for SitemapIndexItemWrap.");
     return `<sitemap>
 <loc>${endpoint}</loc>
 </sitemap>`;
@@ -63,7 +64,14 @@ function SitemapItemWrap({
      * The frequency of the sitemap item.
      * @example "always", "hourly", "daily", "weekly", "monthly", "yearly", "never"
      */
-    frequency?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
+    frequency?:
+        | "always"
+        | "hourly"
+        | "daily"
+        | "weekly"
+        | "monthly"
+        | "yearly"
+        | "never";
     /**
      * The priority of the sitemap item.
      */
@@ -82,7 +90,7 @@ function SitemapItemWrap({
          * ! Overrides the `priority` parameter.
          */
         autoPriority?: boolean;
-    }
+    };
 }): string {
     if (!endpoint) throw new Error("Endpoint is required for SitemapItemWrap.");
 
@@ -96,8 +104,9 @@ function SitemapItemWrap({
     let sitemapItem = `<url>\n<loc>${endpoint}</loc>\n`;
 
     if (lastmod) {
-        sitemapItem += `<lastmod>${lastmod instanceof Date ? lastmod.toISOString() : lastmod
-            }</lastmod>\n`;
+        sitemapItem += `<lastmod>${
+            lastmod instanceof Date ? lastmod.toISOString() : lastmod
+        }</lastmod>\n`;
     }
     if (frequency) {
         sitemapItem += `<changefreq>${frequency}</changefreq>\n`;
@@ -117,14 +126,13 @@ function SitemapItemWrap({
     return sitemapItem;
 }
 
-
 /**
  * Combines multiple sitemap items into a single sitemap URL set.
  * @param items - Array of sitemap items as strings.
  * @returns The complete `<urlset>` wrapped sitemap.
  */
 function generateSitemap(items: string[]): string {
-    const content = items.join('\n');
+    const content = items.join("\n");
     return XMLWrap(SitemapURLSetWrap(content));
 }
 
@@ -134,7 +142,7 @@ function generateSitemap(items: string[]): string {
  * @returns The complete `<sitemapindex>` wrapped sitemap index.
  */
 function generateSitemapIndex(items: string[]): string {
-    const content = items.join('\n');
+    const content = items.join("\n");
     return XMLWrap(SitemapIndexWrap(content));
 }
 
@@ -155,33 +163,35 @@ function getPriority(frequency: Frequency): number {
         weekly: 0.6,
         monthly: 0.4,
         yearly: 0.2,
-        never: 0.0,
+        never: 0.0
     };
 
     return priorityMap[frequency];
 }
 
 interface EndpointFrequency {
-    route: string
-    frequency: Frequency
+    route: string;
+    frequency: Frequency;
 }
 
 interface MultipleEndpointFrequency {
-    endpoints: string[]
-    frequency: Frequency
+    endpoints: string[];
+    frequency: Frequency;
 }
 
 interface RoutePriority {
-    route: string
-    priority: number
-    frequency: Frequency
+    route: string;
+    priority: number;
+    frequency: Frequency;
 }
 
-function mapEndpointsToPriorities(endpoints: EndpointFrequency[]): RoutePriority[] {
+function mapEndpointsToPriorities(
+    endpoints: EndpointFrequency[]
+): RoutePriority[] {
     return endpoints.map(({ route, frequency }) => ({
         route,
         priority: getPriority(frequency),
-        frequency,
+        frequency
     }));
 }
 
@@ -191,11 +201,7 @@ export {
     SitemapItemWrap,
     SitemapIndexItemWrap,
     mapEndpointsToPriorities,
-    getPriority,
-}
+    getPriority
+};
 
-export type {
-    EndpointFrequency,
-    RoutePriority,
-    Frequency
-}
+export type { EndpointFrequency, RoutePriority, Frequency };

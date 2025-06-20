@@ -20,19 +20,19 @@ interface TodoItem {
 }
 
 // Filter types for todo list
-type FilterType = 'all' | 'active' | 'completed';
+type FilterType = "all" | "active" | "completed";
 
 export default function TodoList() {
     // State for managing todos
     const [todos, setTodos] = useState<TodoItem[]>([]);
     const [inputText, setInputText] = useState<string>("");
-    const [filter, setFilter] = useState<FilterType>('all');
+    const [filter, setFilter] = useState<FilterType>("all");
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editText, setEditText] = useState<string>("");
 
     // Load todos from localStorage on initial render
     useEffect(() => {
-        const savedTodos = localStorage.getItem('todos');
+        const savedTodos = localStorage.getItem("todos");
         if (savedTodos) {
             try {
                 setTodos(JSON.parse(savedTodos));
@@ -46,12 +46,14 @@ export default function TodoList() {
 
     // Save todos to localStorage whenever they change
     useEffect(() => {
-        localStorage.setItem('todos', JSON.stringify(todos));
+        localStorage.setItem("todos", JSON.stringify(todos));
     }, [todos]);
 
     // Generate a unique ID for new todos
     const generateId = (): string => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        return (
+            Date.now().toString(36) + Math.random().toString(36).substr(2, 5)
+        );
     };
 
     // Add a new todo
@@ -76,7 +78,7 @@ export default function TodoList() {
 
     // Handle key press for adding todo with Enter key
     const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
+        if (e.key === "Enter") {
             addTodo();
         }
     };
@@ -84,7 +86,7 @@ export default function TodoList() {
     // Toggle todo completion status
     const toggleTodo = (id: string) => {
         setTodos(
-            todos.map(todo =>
+            todos.map((todo) =>
                 todo.id === id ? { ...todo, completed: !todo.completed } : todo
             )
         );
@@ -92,8 +94,8 @@ export default function TodoList() {
 
     // Delete a todo
     const deleteTodo = (id: string) => {
-        setTodos(todos.filter(todo => todo.id !== id));
-        
+        setTodos(todos.filter((todo) => todo.id !== id));
+
         // If we're deleting the item being edited, clear editing state
         if (editingId === id) {
             setEditingId(null);
@@ -117,11 +119,13 @@ export default function TodoList() {
         }
 
         setTodos(
-            todos.map(todo =>
-                todo.id === editingId ? { ...todo, text: editText.trim() } : todo
+            todos.map((todo) =>
+                todo.id === editingId
+                    ? { ...todo, text: editText.trim() }
+                    : todo
             )
         );
-        
+
         // Clear editing state
         setEditingId(null);
         setEditText("");
@@ -134,9 +138,9 @@ export default function TodoList() {
 
     // Handle key press for editing
     const handleEditKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
+        if (e.key === "Enter") {
             saveEdit();
-        } else if (e.key === 'Escape') {
+        } else if (e.key === "Escape") {
             // Cancel editing on Escape
             setEditingId(null);
             setEditText("");
@@ -145,24 +149,26 @@ export default function TodoList() {
 
     // Clear all completed todos
     const clearCompleted = () => {
-        setTodos(todos.filter(todo => !todo.completed));
+        setTodos(todos.filter((todo) => !todo.completed));
     };
 
     // Filter todos based on current filter
-    const filteredTodos = todos.filter(todo => {
-        if (filter === 'active') return !todo.completed;
-        if (filter === 'completed') return todo.completed;
+    const filteredTodos = todos.filter((todo) => {
+        if (filter === "active") return !todo.completed;
+        if (filter === "completed") return todo.completed;
         return true; // 'all' filter shows everything
     });
 
     // Stats for the todo list
-    const completedCount = todos.filter(todo => todo.completed).length;
+    const completedCount = todos.filter((todo) => todo.completed).length;
     const activeCount = todos.length - completedCount;
 
     return (
         <div className="Page TodoList">
             <h1 className="title">Todo List</h1>
-            <p className="description">Create, manage, and save your tasks in one place</p>
+            <p className="description">
+                Create, manage, and save your tasks in one place
+            </p>
 
             <div className="todo-container glass">
                 <div className="todo-header">
@@ -182,7 +188,9 @@ export default function TodoList() {
                         onChange={handleInputChange}
                         onKeyDown={handleInputKeyPress}
                     />
-                    <button className="add-button" onClick={addTodo}>
+                    <button
+                        className="add-button"
+                        onClick={addTodo}>
                         <Add />
                     </button>
                 </div>
@@ -190,15 +198,17 @@ export default function TodoList() {
                 {/* Todo List */}
                 <div className="todo-list">
                     {filteredTodos.length > 0 ? (
-                        filteredTodos.map(todo => (
-                            <div key={todo.id} className="todo-item">
+                        filteredTodos.map((todo) => (
+                            <div
+                                key={todo.id}
+                                className="todo-item">
                                 <input
                                     type="checkbox"
                                     className="todo-checkbox"
                                     checked={todo.completed}
                                     onChange={() => toggleTodo(todo.id)}
                                 />
-                                
+
                                 {editingId === todo.id ? (
                                     <input
                                         type="text"
@@ -210,35 +220,31 @@ export default function TodoList() {
                                         autoFocus
                                     />
                                 ) : (
-                                    <span 
-                                        className={`todo-text ${todo.completed ? 'completed' : ''}`}
-                                    >
+                                    <span
+                                        className={`todo-text ${todo.completed ? "completed" : ""}`}>
                                         {todo.text}
                                     </span>
                                 )}
-                                
+
                                 <div className="todo-actions">
                                     {editingId === todo.id ? (
                                         <button
                                             className="todo-action"
-                                            onClick={saveEdit}
-                                        >
+                                            onClick={saveEdit}>
                                             <Save fontSize="small" />
                                         </button>
                                     ) : (
                                         <button
                                             className="todo-action"
                                             onClick={() => startEditing(todo)}
-                                            disabled={todo.completed}
-                                        >
+                                            disabled={todo.completed}>
                                             <Edit fontSize="small" />
                                         </button>
                                     )}
-                                    
+
                                     <button
                                         className="todo-action delete"
-                                        onClick={() => deleteTodo(todo.id)}
-                                    >
+                                        onClick={() => deleteTodo(todo.id)}>
                                         <Delete fontSize="small" />
                                     </button>
                                 </div>
@@ -247,10 +253,12 @@ export default function TodoList() {
                     ) : (
                         <div className="empty-state">
                             <CheckCircleOutline className="empty-icon" />
-                            <div className="empty-text">No tasks to display</div>
+                            <div className="empty-text">
+                                No tasks to display
+                            </div>
                             <div className="empty-subtext">
-                                {filter === 'all' 
-                                    ? "Add a new task to get started!" 
+                                {filter === "all"
+                                    ? "Add a new task to get started!"
                                     : `No ${filter} tasks found. Change the filter to see other tasks.`}
                             </div>
                         </div>
@@ -260,11 +268,14 @@ export default function TodoList() {
                 {/* Todo Stats */}
                 <div className="todo-stats">
                     <div className="stats-text">
-                        <span>{activeCount}</span> item{activeCount !== 1 ? 's' : ''} left
+                        <span>{activeCount}</span> item
+                        {activeCount !== 1 ? "s" : ""} left
                     </div>
-                    
+
                     {completedCount > 0 && (
-                        <button className="clear-completed" onClick={clearCompleted}>
+                        <button
+                            className="clear-completed"
+                            onClick={clearCompleted}>
                             Clear completed
                         </button>
                     )}
@@ -273,25 +284,22 @@ export default function TodoList() {
                 {/* Filters */}
                 <div className="todo-filters">
                     <button
-                        className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-                        onClick={() => setFilter('all')}
-                    >
+                        className={`filter-btn ${filter === "all" ? "active" : ""}`}
+                        onClick={() => setFilter("all")}>
                         All
                     </button>
                     <button
-                        className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
-                        onClick={() => setFilter('active')}
-                    >
+                        className={`filter-btn ${filter === "active" ? "active" : ""}`}
+                        onClick={() => setFilter("active")}>
                         Active
                     </button>
                     <button
-                        className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
-                        onClick={() => setFilter('completed')}
-                    >
+                        className={`filter-btn ${filter === "completed" ? "active" : ""}`}
+                        onClick={() => setFilter("completed")}>
                         Completed
                     </button>
                 </div>
             </div>
         </div>
     );
-} 
+}

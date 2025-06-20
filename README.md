@@ -8,7 +8,10 @@
 
 ## 🚀 Overview
 
-This repository houses my personal portfolio website built with Next.js, showcasing my projects, skills, and professional experience. The project incorporates modern web development practices and includes an advanced workspace ecosystem for efficient development.
+This repository houses my personal portfolio website built with Next.js,
+showcasing my projects, skills, and professional experience. The project
+incorporates modern web development practices and includes an advanced workspace
+ecosystem for efficient development.
 
 ## ✨ Features
 
@@ -51,28 +54,32 @@ Portfolio/
 ### Installation
 
 1. Clone the repository
-   ```bash
-   git clone https://github.com/MeetBhingradiya/Portfolio.git
-   ```
+
+    ```bash
+    git clone https://github.com/MeetBhingradiya/Portfolio.git
+    ```
 
 2. Navigate to the project directory
-   ```bash
-   cd Portfolio
-   ```
+
+    ```bash
+    cd Portfolio
+    ```
 
 3. Install dependencies
-   ```bash
-   npm install
-   # or
-   yarn
-   ```
+
+    ```bash
+    npm install
+    # or
+    yarn
+    ```
 
 4. Start the development server
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
+
+    ```bash
+    npm run dev
+    # or
+    yarn dev
+    ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
@@ -86,7 +93,8 @@ Portfolio/
 
 ## 📈 Advanced Workspace Ecosystem
 
-This repository includes a comprehensive workspace ecosystem designed to enhance productivity:
+This repository includes a comprehensive workspace ecosystem designed to enhance
+productivity:
 
 - **Automated Workflows** - Scripts for common development tasks
 - **Code Quality Tools** - Linting and formatting configurations

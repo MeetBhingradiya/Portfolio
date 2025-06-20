@@ -16,8 +16,11 @@ function HMACSignature(SecretKey: string = SECRET_KEY) {
     const generateSignature = (jsonData: any): string => {
         const clonedData = JSON.parse(JSON.stringify(jsonData)); // Deep clone the JSON data to avoid mutations.
         const Minify = JSON.stringify(clonedData); // Convert JSON to a minified string.
-        return crypto.createHmac("sha256", SecretKey).update(Minify).digest("hex");
-    }
+        return crypto
+            .createHmac("sha256", SecretKey)
+            .update(Minify)
+            .digest("hex");
+    };
 
     /**
      * Verifies the integrity of the JSON data using HMAC SHA-256.
@@ -30,12 +33,12 @@ function HMACSignature(SecretKey: string = SECRET_KEY) {
     }): boolean => {
         const originalSignature = jsonData.Signature;
         if (!originalSignature) {
-            console.error("❌ No \"Signature\" found in the JSON.");
+            console.error('❌ No "Signature" found in the JSON.');
             return false;
         }
 
         if (!jsonData.Data) {
-            console.error("❌ No \"Data\" found in the JSON.");
+            console.error('❌ No "Data" found in the JSON.');
             return false;
         }
 
@@ -48,7 +51,7 @@ function HMACSignature(SecretKey: string = SECRET_KEY) {
             console.error("❌ Signature mismatch!");
             return false;
         }
-    }
+    };
 
     /**
      * Fetches JSON data from a given URL and verifies its signature.
@@ -58,8 +61,8 @@ function HMACSignature(SecretKey: string = SECRET_KEY) {
     const verifySignatureFromUrl = async (url: string): Promise<boolean> => {
         try {
             const response = await fetch(url);
-            if (!response.ok) { 
-                throw new Error(`Failed to fetch data: ${response.statusText}`); 
+            if (!response.ok) {
+                throw new Error(`Failed to fetch data: ${response.statusText}`);
             }
 
             const jsonData = await response.json();
@@ -77,6 +80,4 @@ function HMACSignature(SecretKey: string = SECRET_KEY) {
     };
 }
 
-export {
-    HMACSignature
-};
+export { HMACSignature };

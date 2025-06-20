@@ -1,86 +1,99 @@
-import mongoose from 'mongoose';
-import { v4 } from 'uuid';
+import mongoose from "mongoose";
+import { v4 } from "uuid";
 
-const TicketResponse_Schema = new mongoose.Schema({
-    id: {
-        type: String,
-        default: () => v4(),
-        required: true
+const TicketResponse_Schema = new mongoose.Schema(
+    {
+        id: {
+            type: String,
+            default: () => v4(),
+            required: true
+        },
+        message: {
+            type: String,
+            required: true
+        },
+        isAdmin: {
+            type: Boolean,
+            default: false
+        },
+        createdAt: {
+            type: Date,
+            default: Date.now
+        }
     },
-    message: {
-        type: String,
-        required: true
+    { _id: false }
+);
+
+const Ticket_Schema = new mongoose.Schema(
+    {
+        id: {
+            type: String,
+            unique: true,
+            required: true
+        },
+        // User Association - can be null for anonymous tickets
+        userID: {
+            type: String,
+            default: null,
+            index: true
+        },
+        name: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        email: {
+            type: String,
+            required: true,
+            lowercase: true,
+            trim: true
+        },
+        subject: {
+            type: String,
+            required: true,
+            trim: true
+        },
+        message: {
+            type: String,
+            required: true
+        },
+        projectType: {
+            type: String,
+            required: true,
+            enum: [
+                "general",
+                "web-development",
+                "mobile-app",
+                "collaboration",
+                "consulting",
+                "other"
+            ]
+        },
+        status: {
+            type: String,
+            enum: ["open", "in-progress", "resolved", "closed"],
+            default: "open"
+        },
+        priority: {
+            type: String,
+            enum: ["low", "medium", "high"],
+            default: "low"
+        },
+        clientIP: {
+            type: String
+        },
+        // Allow anonymous users to view their tickets
+        isAnonymous: {
+            type: Boolean,
+            default: true
+        },
+        responses: [TicketResponse_Schema]
     },
-    isAdmin: {
-        type: Boolean,
-        default: false
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
+    {
+        timestamps: true,
+        versionKey: "v1"
     }
-}, { _id: false });
-
-const Ticket_Schema = new mongoose.Schema({
-    id: {
-        type: String,
-        unique: true,
-        required: true
-    },
-    // User Association - can be null for anonymous tickets
-    userID: {
-        type: String,
-        default: null,
-        index: true
-    },
-    name: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    email: {
-        type: String,
-        required: true,
-        lowercase: true,
-        trim: true
-    },
-    subject: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    message: {
-        type: String,
-        required: true
-    },
-    projectType: {
-        type: String,
-        required: true,
-        enum: ['general', 'web-development', 'mobile-app', 'collaboration', 'consulting', 'other']
-    },
-    status: {
-        type: String,
-        enum: ['open', 'in-progress', 'resolved', 'closed'],
-        default: 'open'
-    },
-    priority: {
-        type: String,
-        enum: ['low', 'medium', 'high'],
-        default: 'low'
-    },
-    clientIP: {
-        type: String
-    },
-    // Allow anonymous users to view their tickets
-    isAnonymous: {
-        type: Boolean,
-        default: true
-    },
-    responses: [TicketResponse_Schema]
-}, {
-    timestamps: true,
-    versionKey: "v1"
-});
+);
 
 // Indexes for better performance
 // Note: id field already has unique index from schema definition
@@ -97,8 +110,8 @@ export interface ITicket extends mongoose.Document {
     subject: string;
     message: string;
     projectType: string;
-    status: 'open' | 'in-progress' | 'resolved' | 'closed';
-    priority: 'low' | 'medium' | 'high';
+    status: "open" | "in-progress" | "resolved" | "closed";
+    priority: "low" | "medium" | "high";
     clientIP?: string;
     isAnonymous: boolean;
     responses: Array<{
@@ -118,7 +131,9 @@ export interface ITicketResponse {
     createdAt: Date;
 }
 
-const Tickets_Model = mongoose.models?.Tickets || mongoose.model<ITicket>('Tickets', Ticket_Schema);
+const Tickets_Model =
+    mongoose.models?.Tickets ||
+    mongoose.model<ITicket>("Tickets", Ticket_Schema);
 
 export { Tickets_Model };
 export default Tickets_Model;

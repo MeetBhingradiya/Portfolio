@@ -1,11 +1,10 @@
 "use client";
-import React from 'react';
+import React from "react";
 
 function UnSupportedPlateform_Page() {
-    const [platform, setPlatform] = React.useState('');
+    const [platform, setPlatform] = React.useState("");
 
     React.useEffect(() => {
-
         const userAgent = navigator.userAgent;
         // if (userAgent.includes('iPhone') || userAgent.includes('iPad')) {
         //     setPlatform('iOS');
@@ -16,22 +15,16 @@ function UnSupportedPlateform_Page() {
         // } else if (userAgent.includes('Mac')) {
         //     setPlatform('Mac');
         // }
-
     }, []);
 
     return (
-
-        <div className='Page CENTER'>
-
-            <div className='flex flex-col gap-4 justify-center items-center'>
-                <h1 className='text-4xl'>UnSupported Oprating System</h1>
-                <p className='text-2xl'>{platform}</p>
+        <div className="Page CENTER">
+            <div className="flex flex-col gap-4 justify-center items-center">
+                <h1 className="text-4xl">UnSupported Oprating System</h1>
+                <p className="text-2xl">{platform}</p>
             </div>
-
         </div>
-
     );
-
 }
 
 export default UnSupportedPlateform_Page;

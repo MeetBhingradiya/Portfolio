@@ -2,7 +2,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Encrypt & Decrypt - Meet Bhingradiya",
-    description: "Encrypt and decrypt text using various cryptographic algorithms like AES, DES, TripleDES, Rabbit, and RC4",
+    description:
+        "Encrypt and decrypt text using various cryptographic algorithms like AES, DES, TripleDES, Rabbit, and RC4",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
@@ -22,13 +23,13 @@ export const metadata: Metadata = {
         "Cryptography",
         "Security"
     ]
-}
+};
 
 // @ File
 export default function Layout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

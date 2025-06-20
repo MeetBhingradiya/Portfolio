@@ -15,7 +15,9 @@
         "updateState": "bun Scripts/UpdateRemoteSettings.ts",
         "CreateSign": "bun Scripts/CreateSignatures.ts",
         "RemoveComments": "bun Scripts/RemoveComments.ts",
-        "RSAKeys": "bun Scripts/GenerateRSAKeys.ts"
+        "RSAKeys": "bun Scripts/GenerateRSAKeys.ts",
+        "prettier": "bun Scripts/Prettier.ts",
+        "prepare": "husky"
     },
     "dependencies": {
         "@chakra-ui/icons": "^2.2.4",
@@ -128,6 +130,7 @@
         "chalk": "^5.4.1",
         "eslint": "^9.27.0",
         "eslint-config-next": "15.3.2",
+        "husky": "^9.1.7",
         "jsonc": "^2.0.0",
         "postcss": "^8.5.3",
         "prettier": "3.5.3",

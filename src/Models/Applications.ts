@@ -1,202 +1,243 @@
-import mongoose from 'mongoose';
-import { v4 } from 'uuid';
+import mongoose from "mongoose";
+import { v4 } from "uuid";
 
-const Applications_Schema: mongoose.Schema = new mongoose.Schema({
-    ApplicationID: {
-        type: String,
-        default: v4,
-        unique: true,
-        required: true
-    },
-    
-    // ? Human Readable Identifier
-    Icon: { type: String },
-    Name: { type: String },
-    Description: { type: String },
-
-    // ? Client Details
-    Company_Name: { type: String },
-    Company_Logo: { type: String },
-    Company_Description: { type: String },
-    Company_Website: { type: String },
-    Company_Phone: { type: String },
-    Company_Email: { type: String },
-    Company_Location: { type: String },
-    Company_Social: { type: mongoose.Schema.Types.Mixed },
-    Company_GST: { type: String },
-    Company_Owner_Name: { type: String },
-    Company_Owner_PAN: { type: String },
-    Company_Owner_Addhar: { type: String },
-
-    // ? Server & Client Signatures
-    Services: [{
-        ClientType: { 
-            type: String, 
-            enum: ["Client", "Server", "Database"],
-            required: true 
+const Applications_Schema: mongoose.Schema = new mongoose.Schema(
+    {
+        ApplicationID: {
+            type: String,
+            default: v4,
+            unique: true,
+            required: true
         },
-        Signature: { type: String, required: true },
-        enabled: { type: Boolean, default: true },
-        Note: { type: String },
-        Suspend: {
-            Start: { type: Date },
-            End: { type: Date }
-        },
-        Resume: {
-            Start: { type: Date },
-            End: { type: Date }
-        }
-    }],
 
-    // ? Billing & Payment Details
-    Amount: { type: Number, required: true },
-    Currency: { 
-        type: String, 
-        enum: ["INR", "USD", "EUR", "GBP", "AUD", "CAD", "JPY", "CNY"],
-        required: true 
-    },
-    BillingCycle: { 
-        type: String, 
-        enum: ["OneTime", "Monthly", "Yearly"],
-        required: true 
-    },
+        // ? Human Readable Identifier
+        Icon: { type: String },
+        Name: { type: String },
+        Description: { type: String },
 
-    // ? Payment Due & Overdue Management
-    PaymentDueDate: { type: Date },
-    LastPaymentDate: { type: Date },
-    IsOverdue: { type: Boolean, default: false },
-    OverdueGracePeriodDays: { type: Number, default: 45 },
-    OverdueActions: {
-        Android: {
-            enabled: { type: Boolean, default: true },
-            action: { 
-                type: String, 
-                enum: ["crash", "redirect", "disable"],
-                default: "crash"
-            },
-            redirectUrl: { type: String },
-            errorMessage: { 
-                type: String, 
-                default: "Payment overdue. Please contact support to reactivate your app."
+        // ? Client Details
+        Company_Name: { type: String },
+        Company_Logo: { type: String },
+        Company_Description: { type: String },
+        Company_Website: { type: String },
+        Company_Phone: { type: String },
+        Company_Email: { type: String },
+        Company_Location: { type: String },
+        Company_Social: { type: mongoose.Schema.Types.Mixed },
+        Company_GST: { type: String },
+        Company_Owner_Name: { type: String },
+        Company_Owner_PAN: { type: String },
+        Company_Owner_Addhar: { type: String },
+
+        // ? Server & Client Signatures
+        Services: [
+            {
+                ClientType: {
+                    type: String,
+                    enum: ["Client", "Server", "Database"],
+                    required: true
+                },
+                Signature: { type: String, required: true },
+                enabled: { type: Boolean, default: true },
+                Note: { type: String },
+                Suspend: {
+                    Start: { type: Date },
+                    End: { type: Date }
+                },
+                Resume: {
+                    Start: { type: Date },
+                    End: { type: Date }
+                }
             }
-        },
-        Backend: {
-            enabled: { type: Boolean, default: true },
-            action: { 
-                type: String, 
-                enum: ["error", "disable", "limited_access"],
-                default: "error"
-            },
-            errorMessage: { 
-                type: String, 
-                default: "Service suspended due to overdue payment."
-            },
-            allowedEndpoints: [{ type: String }]
-        },
-        Frontend: {
-            enabled: { type: Boolean, default: true },
-            action: { 
-                type: String, 
-                enum: ["redirect", "disable", "overlay"],
-                default: "redirect"
-            },
-            redirectUrl: { type: String },
-            errorMessage: { 
-                type: String, 
-                default: "Payment overdue. Please update your payment to continue using this service."
-            }
-        }
-    },
+        ],
 
-    PaymentHistory: [{
-        Date: { type: Date, required: true },
+        // ? Billing & Payment Details
         Amount: { type: Number, required: true },
-        Currency: { 
-            type: String, 
+        Currency: {
+            type: String,
             enum: ["INR", "USD", "EUR", "GBP", "AUD", "CAD", "JPY", "CNY"],
-            required: true 
+            required: true
         },
-        PaymentType: { 
-            type: String, 
+        BillingCycle: {
+            type: String,
             enum: ["OneTime", "Monthly", "Yearly"],
-            required: true 
+            required: true
         },
-        PaymentMethod: { 
-            type: String, 
-            enum: ["UPI", "Card", "NetBanking", "Wallet", "Cash", "Cheque", "BankTransfer"],
-            required: true 
-        },
-        Status: { 
-            type: String, 
-            enum: ["Pending", "Completed", "Failed"],
-            required: true 
-        },
-        DueDate: { type: Date },
-        OverdueDays: { type: Number, default: 0 }
-    }],    PaymentMethods: [{
-        Method: { 
-            type: String, 
-            enum: ["UPI", "Card", "NetBanking", "Wallet", "Cash", "Cheque", "BankTransfer"],
-            required: true 
-        },
-        Details: { type: mongoose.Schema.Types.Mixed }
-    }],
 
-    // ? Developer Access & Security
-    DeveloperAccess: {
-        Enabled: { type: Boolean, default: false },
-        SecretKey: { type: String },
-        ExpiryDate: { type: Date },
-        LastLogin: { type: Date },
-        Permissions: { type: mongoose.Schema.Types.Mixed },
-        EmergencyToken: { type: String },
-        IPWhitelist: [{ type: String }],
-        RateLimit: {
-            MaxAttempts: { type: Number, default: 5 },
-            TimeWindowMinutes: { type: Number, default: 15 }
+        // ? Payment Due & Overdue Management
+        PaymentDueDate: { type: Date },
+        LastPaymentDate: { type: Date },
+        IsOverdue: { type: Boolean, default: false },
+        OverdueGracePeriodDays: { type: Number, default: 45 },
+        OverdueActions: {
+            Android: {
+                enabled: { type: Boolean, default: true },
+                action: {
+                    type: String,
+                    enum: ["crash", "redirect", "disable"],
+                    default: "crash"
+                },
+                redirectUrl: { type: String },
+                errorMessage: {
+                    type: String,
+                    default:
+                        "Payment overdue. Please contact support to reactivate your app."
+                }
+            },
+            Backend: {
+                enabled: { type: Boolean, default: true },
+                action: {
+                    type: String,
+                    enum: ["error", "disable", "limited_access"],
+                    default: "error"
+                },
+                errorMessage: {
+                    type: String,
+                    default: "Service suspended due to overdue payment."
+                },
+                allowedEndpoints: [{ type: String }]
+            },
+            Frontend: {
+                enabled: { type: Boolean, default: true },
+                action: {
+                    type: String,
+                    enum: ["redirect", "disable", "overlay"],
+                    default: "redirect"
+                },
+                redirectUrl: { type: String },
+                errorMessage: {
+                    type: String,
+                    default:
+                        "Payment overdue. Please update your payment to continue using this service."
+                }
+            }
         },
-        AccessLogs: [{
-            Timestamp: { type: Date, default: Date.now },
-            IP: { type: String },
-            Action: { type: String },
-            Success: { type: Boolean }
-        }]
+
+        PaymentHistory: [
+            {
+                Date: { type: Date, required: true },
+                Amount: { type: Number, required: true },
+                Currency: {
+                    type: String,
+                    enum: [
+                        "INR",
+                        "USD",
+                        "EUR",
+                        "GBP",
+                        "AUD",
+                        "CAD",
+                        "JPY",
+                        "CNY"
+                    ],
+                    required: true
+                },
+                PaymentType: {
+                    type: String,
+                    enum: ["OneTime", "Monthly", "Yearly"],
+                    required: true
+                },
+                PaymentMethod: {
+                    type: String,
+                    enum: [
+                        "UPI",
+                        "Card",
+                        "NetBanking",
+                        "Wallet",
+                        "Cash",
+                        "Cheque",
+                        "BankTransfer"
+                    ],
+                    required: true
+                },
+                Status: {
+                    type: String,
+                    enum: ["Pending", "Completed", "Failed"],
+                    required: true
+                },
+                DueDate: { type: Date },
+                OverdueDays: { type: Number, default: 0 }
+            }
+        ],
+        PaymentMethods: [
+            {
+                Method: {
+                    type: String,
+                    enum: [
+                        "UPI",
+                        "Card",
+                        "NetBanking",
+                        "Wallet",
+                        "Cash",
+                        "Cheque",
+                        "BankTransfer"
+                    ],
+                    required: true
+                },
+                Details: { type: mongoose.Schema.Types.Mixed }
+            }
+        ],
+
+        // ? Developer Access & Security
+        DeveloperAccess: {
+            Enabled: { type: Boolean, default: false },
+            SecretKey: { type: String },
+            ExpiryDate: { type: Date },
+            LastLogin: { type: Date },
+            Permissions: { type: mongoose.Schema.Types.Mixed },
+            EmergencyToken: { type: String },
+            IPWhitelist: [{ type: String }],
+            RateLimit: {
+                MaxAttempts: { type: Number, default: 5 },
+                TimeWindowMinutes: { type: Number, default: 15 }
+            },
+            AccessLogs: [
+                {
+                    Timestamp: { type: Date, default: Date.now },
+                    IP: { type: String },
+                    Action: { type: String },
+                    Success: { type: Boolean }
+                }
+            ]
+        },
+
+        // ? Emergency Controls
+        EmergencyControls: {
+            ShutdownEnabled: { type: Boolean, default: false },
+            ShutdownReason: { type: String },
+            ShutdownDate: { type: Date },
+            RestartKey: { type: String }
+        }
     },
-
-    // ? Emergency Controls
-    EmergencyControls: {
-        ShutdownEnabled: { type: Boolean, default: false },
-        ShutdownReason: { type: String },
-        ShutdownDate: { type: Date },
-        RestartKey: { type: String }
+    {
+        timestamps: true,
+        versionKey: "v1"
     }
-}, {
-    timestamps: true,
-    versionKey: "v1"
-});
+);
 
 // Add instance methods to check overdue status
-Applications_Schema.methods.checkOverdueStatus = function() {
+Applications_Schema.methods.checkOverdueStatus = function () {
     const now = new Date();
     const gracePeriod = this.OverdueGracePeriodDays || 45;
-    
+
     if (!this.PaymentDueDate) return false;
-    
-    const daysSinceOverdue = Math.floor((now.getTime() - this.PaymentDueDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
+    const daysSinceOverdue = Math.floor(
+        (now.getTime() - this.PaymentDueDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
+
     if (daysSinceOverdue > gracePeriod) {
         this.IsOverdue = true;
         return true;
     }
-    
+
     this.IsOverdue = false;
     return false;
 };
 
-Applications_Schema.methods.calculateNextDueDate = function() {
+Applications_Schema.methods.calculateNextDueDate = function () {
     const now = new Date();
     let nextDueDate = new Date();
-    
+
     switch (this.BillingCycle) {
         case "Monthly":
             nextDueDate.setMonth(now.getMonth() + 1);
@@ -210,31 +251,39 @@ Applications_Schema.methods.calculateNextDueDate = function() {
         default:
             return null;
     }
-    
+
     return nextDueDate;
 };
 
-Applications_Schema.methods.getOverdueActionForClient = function(clientType: "Android" | "Backend" | "Frontend") {
+Applications_Schema.methods.getOverdueActionForClient = function (
+    clientType: "Android" | "Backend" | "Frontend"
+) {
     if (!this.IsOverdue || !this.OverdueActions) return null;
-    
+
     switch (clientType) {
         case "Android":
-            return this.OverdueActions.Android?.enabled ? this.OverdueActions.Android : null;
+            return this.OverdueActions.Android?.enabled
+                ? this.OverdueActions.Android
+                : null;
         case "Backend":
-            return this.OverdueActions.Backend?.enabled ? this.OverdueActions.Backend : null;
+            return this.OverdueActions.Backend?.enabled
+                ? this.OverdueActions.Backend
+                : null;
         case "Frontend":
-            return this.OverdueActions.Frontend?.enabled ? this.OverdueActions.Frontend : null;
+            return this.OverdueActions.Frontend?.enabled
+                ? this.OverdueActions.Frontend
+                : null;
         default:
             return null;
     }
 };
 
 // Add static method to find all overdue applications
-Applications_Schema.statics.findOverdueApplications = function() {
+Applications_Schema.statics.findOverdueApplications = function () {
     const now = new Date();
     const gracePeriodAgo = new Date();
     gracePeriodAgo.setDate(now.getDate() - 45); // Default 45 days
-    
+
     return this.find({
         PaymentDueDate: { $lt: gracePeriodAgo },
         IsOverdue: { $ne: false }
@@ -287,7 +336,7 @@ export interface IApplications extends mongoose.Document {
     Amount: number;
     Currency: "INR" | "USD" | "EUR" | "GBP" | "AUD" | "CAD" | "JPY" | "CNY";
     BillingCycle: "OneTime" | "Monthly" | "Yearly";
-    
+
     // ? Payment Due & Overdue Management
     PaymentDueDate?: Date;
     LastPaymentDate?: Date;
@@ -313,20 +362,34 @@ export interface IApplications extends mongoose.Document {
             errorMessage?: string;
         };
     };
-    
+
     PaymentHistory?: Array<{
         Date: Date;
         Amount: number;
         Currency: "INR" | "USD" | "EUR" | "GBP" | "AUD" | "CAD" | "JPY" | "CNY";
         PaymentType: "OneTime" | "Monthly" | "Yearly";
-        PaymentMethod: "UPI" | "Card" | "NetBanking" | "Wallet" | "Cash" | "Cheque" | "BankTransfer";
+        PaymentMethod:
+            | "UPI"
+            | "Card"
+            | "NetBanking"
+            | "Wallet"
+            | "Cash"
+            | "Cheque"
+            | "BankTransfer";
         Status: "Pending" | "Completed" | "Failed";
         DueDate?: Date;
         OverdueDays?: number;
     }>;
 
     PaymentMethods?: Array<{
-        Method: "UPI" | "Card" | "NetBanking" | "Wallet" | "Cash" | "Cheque" | "BankTransfer";
+        Method:
+            | "UPI"
+            | "Card"
+            | "NetBanking"
+            | "Wallet"
+            | "Cash"
+            | "Cheque"
+            | "BankTransfer";
         Details: {
             UPI?: string;
             Card?: {
@@ -383,4 +446,6 @@ export interface IApplications extends mongoose.Document {
     };
 }
 
-export const Applications_Model: mongoose.Model<IApplications> = mongoose.models?.Applications || mongoose.model<IApplications>("Applications", Applications_Schema);
+export const Applications_Model: mongoose.Model<IApplications> =
+    mongoose.models?.Applications ||
+    mongoose.model<IApplications>("Applications", Applications_Schema);

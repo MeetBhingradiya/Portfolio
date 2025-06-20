@@ -23,8 +23,8 @@ export interface AuthenticatedRequest extends NextRequest {
 
 export interface AuthResult {
     success: boolean;
-    user?: AuthenticatedRequest['user'];
-    session?: AuthenticatedRequest['session'];
+    user?: AuthenticatedRequest["user"];
+    session?: AuthenticatedRequest["session"];
     error?: string;
     statusCode?: number;
 }
@@ -35,18 +35,22 @@ export interface AuthResult {
  * @param requireAdmin Whether admin privileges are required
  * @returns AuthResult with user and session data or error
  */
-export async function authenticateUser(req: NextRequest, requireAdmin: boolean = false): Promise<AuthResult> {
+export async function authenticateUser(
+    req: NextRequest,
+    requireAdmin: boolean = false
+): Promise<AuthResult> {
     try {
         await dbConnect();
 
         // Get session token from cookies or Authorization header
-        const sessionToken = req.cookies.get('session-token')?.value || 
-                           req.headers.get('Authorization')?.replace('Bearer ', '');
+        const sessionToken =
+            req.cookies.get("session-token")?.value ||
+            req.headers.get("Authorization")?.replace("Bearer ", "");
 
         if (!sessionToken) {
             return {
                 success: false,
-                error: 'No session token provided',
+                error: "No session token provided",
                 statusCode: 401
             };
         }
@@ -61,7 +65,7 @@ export async function authenticateUser(req: NextRequest, requireAdmin: boolean =
         if (!session) {
             return {
                 success: false,
-                error: 'Invalid or expired session',
+                error: "Invalid or expired session",
                 statusCode: 401
             };
         }
@@ -75,7 +79,7 @@ export async function authenticateUser(req: NextRequest, requireAdmin: boolean =
         if (!user) {
             return {
                 success: false,
-                error: 'User not found',
+                error: "User not found",
                 statusCode: 404
             };
         }
@@ -84,7 +88,7 @@ export async function authenticateUser(req: NextRequest, requireAdmin: boolean =
         if (user.isLocked || user.isSuspended) {
             return {
                 success: false,
-                error: 'Account is locked or suspended',
+                error: "Account is locked or suspended",
                 statusCode: 403
             };
         }
@@ -93,7 +97,7 @@ export async function authenticateUser(req: NextRequest, requireAdmin: boolean =
         if (requireAdmin && !user.isAdmin) {
             return {
                 success: false,
-                error: 'Admin privileges required',
+                error: "Admin privileges required",
                 statusCode: 403
             };
         }
@@ -108,7 +112,10 @@ export async function authenticateUser(req: NextRequest, requireAdmin: boolean =
             success: true,
             user: {
                 UserID: user.UserID,
-                Email: user.Emails.find(email => email.isPrimary)?.Email || user.Emails[0]?.Email || '',
+                Email:
+                    user.Emails.find((email) => email.isPrimary)?.Email ||
+                    user.Emails[0]?.Email ||
+                    "",
                 FirstName: user.FirstName,
                 LastName: user.LastName,
                 Username: user.Username,
@@ -121,12 +128,11 @@ export async function authenticateUser(req: NextRequest, requireAdmin: boolean =
                 ExpiresAt: session.ExpiresAt
             }
         };
-
     } catch (error: any) {
         log(`Authentication error: ${error?.message}`);
         return {
             success: false,
-            error: 'Internal server error during authentication',
+            error: "Internal server error during authentication",
             statusCode: 500
         };
     }
@@ -139,18 +145,24 @@ export async function authenticateUser(req: NextRequest, requireAdmin: boolean =
  * @returns Wrapped handler with authentication
  */
 export function withAuth(
-    handler: (req: AuthenticatedRequest, ...args: any[]) => Promise<NextResponse>,
+    handler: (
+        req: AuthenticatedRequest,
+        ...args: any[]
+    ) => Promise<NextResponse>,
     requireAdmin: boolean = false
 ) {
     return async (req: NextRequest, ...args: any[]): Promise<NextResponse> => {
         const authResult = await authenticateUser(req, requireAdmin);
 
         if (!authResult.success) {
-            return NextResponse.json({
-                Status: 0,
-                Message: authResult.error,
-                StatusCode: authResult.statusCode
-            }, { status: authResult.statusCode });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: authResult.error,
+                    StatusCode: authResult.statusCode
+                },
+                { status: authResult.statusCode }
+            );
         }
 
         // Attach user and session data to request
@@ -166,14 +178,16 @@ export function withAuth(
  * Utility function to validate session and get user data
  * Use this in API routes that need user information
  */
-export async function validateSession(sessionToken: string): Promise<AuthResult> {
+export async function validateSession(
+    sessionToken: string
+): Promise<AuthResult> {
     try {
         await dbConnect();
 
         if (!sessionToken) {
             return {
                 success: false,
-                error: 'Session token is required',
+                error: "Session token is required",
                 statusCode: 400
             };
         }
@@ -187,7 +201,7 @@ export async function validateSession(sessionToken: string): Promise<AuthResult>
         if (!session) {
             return {
                 success: false,
-                error: 'Invalid or expired session',
+                error: "Invalid or expired session",
                 statusCode: 401
             };
         }
@@ -200,7 +214,7 @@ export async function validateSession(sessionToken: string): Promise<AuthResult>
         if (!user) {
             return {
                 success: false,
-                error: 'User not found',
+                error: "User not found",
                 statusCode: 404
             };
         }
@@ -208,7 +222,7 @@ export async function validateSession(sessionToken: string): Promise<AuthResult>
         if (user.isLocked || user.isSuspended) {
             return {
                 success: false,
-                error: 'Account is locked or suspended',
+                error: "Account is locked or suspended",
                 statusCode: 403
             };
         }
@@ -217,7 +231,10 @@ export async function validateSession(sessionToken: string): Promise<AuthResult>
             success: true,
             user: {
                 UserID: user.UserID,
-                Email: user.Emails.find(email => email.isPrimary)?.Email || user.Emails[0]?.Email || '',
+                Email:
+                    user.Emails.find((email) => email.isPrimary)?.Email ||
+                    user.Emails[0]?.Email ||
+                    "",
                 FirstName: user.FirstName,
                 LastName: user.LastName,
                 Username: user.Username,
@@ -230,12 +247,11 @@ export async function validateSession(sessionToken: string): Promise<AuthResult>
                 ExpiresAt: session.ExpiresAt
             }
         };
-
     } catch (error: any) {
         log(`Session validation error: ${error?.message}`);
         return {
             success: false,
-            error: 'Internal server error during session validation',
+            error: "Internal server error during session validation",
             statusCode: 500
         };
     }

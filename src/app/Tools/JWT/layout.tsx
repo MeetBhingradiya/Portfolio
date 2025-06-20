@@ -2,7 +2,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "JWT Debugger - Meet Bhingradiya",
-    description: "Decode, verify and debug JSON Web Tokens (JWT) securely in your browser.",
+    description:
+        "Decode, verify and debug JSON Web Tokens (JWT) securely in your browser.",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
@@ -16,13 +17,13 @@ export const metadata: Metadata = {
         "JWT Decoder",
         "Token Verification"
     ]
-}
+};
 
 // @ File
 export default function Layout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
+    return children;
 }

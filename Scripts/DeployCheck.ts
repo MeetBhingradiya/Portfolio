@@ -1,25 +1,26 @@
 import { execSync } from "child_process";
 
 interface IConstants {
-    RemoteFile: string
-    RemoteFileBranch: string
+    RemoteFile: string;
+    RemoteFileBranch: string;
 }
 
 interface DeploymentCheckState {
-    CommitMessage: string
-    RemoteDeployPermission: boolean
+    CommitMessage: string;
+    RemoteDeployPermission: boolean;
     CommitMessageActions: {
-        words: string[]
-        description: string
-        bypassRepositoryAuthorization?: boolean
-        action: "block" | "allow"
-    }[]
+        words: string[];
+        description: string;
+        bypassRepositoryAuthorization?: boolean;
+        action: "block" | "allow";
+    }[];
 }
 
 const Constants: IConstants = {
-    RemoteFile: "https://raw.githubusercontent.com/MeetBhingradiya/Portfolio-RemoteState/refs/heads/Release/State.json",
+    RemoteFile:
+        "https://raw.githubusercontent.com/MeetBhingradiya/Portfolio-RemoteState/refs/heads/Release/State.json",
     RemoteFileBranch: "Release"
-}
+};
 
 let DeploymentCheckState: DeploymentCheckState = {
     CommitMessage: "",
@@ -34,9 +35,10 @@ let DeploymentCheckState: DeploymentCheckState = {
                 "STOP_DEPLOY",
                 "README",
                 "No Deploy",
-                "no deploy",
+                "no deploy"
             ],
-            description: "Block Deployment if these words are found in the commit message.",
+            description:
+                "Block Deployment if these words are found in the commit message.",
             bypassRepositoryAuthorization: false,
             action: "block"
         },
@@ -51,16 +53,16 @@ let DeploymentCheckState: DeploymentCheckState = {
                 "FIX",
                 "fix"
             ],
-            description: "Bypass Repository Authorization if these words are found in the commit message.",
+            description:
+                "Bypass Repository Authorization if these words are found in the commit message.",
             bypassRepositoryAuthorization: true,
             action: "allow"
         }
     ]
-}
+};
 
 function getFileContent(url: string): Promise<any> {
-    return fetch(url)
-    .then(response => {
+    return fetch(url).then((response) => {
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -94,28 +96,32 @@ async function isDeployBlockedByRepository(): Promise<boolean> {
     return false;
 }
 
-async function isDeployBlockedByCommitMessage(commitMessage: string): Promise<boolean> {
+async function isDeployBlockedByCommitMessage(
+    commitMessage: string
+): Promise<boolean> {
     for (const action of DeploymentCheckState.CommitMessageActions) {
         if (action.action === "block") {
             for (const word of action.words) {
                 if (commitMessage.includes(word)) {
-                    console.log(`🚫 Deployment blocked by commit message containing "${word}".`);
+                    console.log(
+                        `🚫 Deployment blocked by commit message containing "${word}".`
+                    );
                     return true;
                 }
             }
         } else if (action.action === "allow") {
-    
             for (const word of action.words) {
-
                 if (commitMessage.includes(word)) {
-
-                    console.log(`✅ Deployment allowed by commit message containing "${word}".`);
-                    console.log(`💫 Checking for Bypass Authrizations...`)
+                    console.log(
+                        `✅ Deployment allowed by commit message containing "${word}".`
+                    );
+                    console.log(`💫 Checking for Bypass Authrizations...`);
 
                     if (action.bypassRepositoryAuthorization === true) {
-                        console.log("🔓 Bypassing Remote Authorization due to Commit Message.");
+                        console.log(
+                            "🔓 Bypassing Remote Authorization due to Commit Message."
+                        );
                         return false;
-
                     } else {
                         return !DeploymentCheckState.RemoteDeployPermission;
                     }
@@ -131,21 +137,25 @@ async function isDeployBlockedByCommitMessage(commitMessage: string): Promise<bo
     // @ Debug
     // const commitMessage = "I am a commit message no deploy";
     const commitMessage = execSync("git log -1 --pretty=%B").toString().trim();
-    
-    const branch = execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
-    console.log(`📝 Commit Message: "${commitMessage}"`)
+
+    const branch = execSync("git rev-parse --abbrev-ref HEAD")
+        .toString()
+        .trim();
+    console.log(`📝 Commit Message: "${commitMessage}"`);
     console.log(`🌿 Branch: ${branch}`);
     DeploymentCheckState.CommitMessage = commitMessage;
 
-    console.log("💫 Checking for Remote Authorizations.")
-    if (!await isDeployBlockedByRepository()) {
+    console.log("💫 Checking for Remote Authorizations.");
+    if (!(await isDeployBlockedByRepository())) {
         DeploymentCheckState.RemoteDeployPermission = true;
     }
 
     console.log("🔍 Checking Deployment Conditions on Commit Message..");
     if (await isDeployBlockedByCommitMessage(commitMessage)) {
         if (DeploymentCheckState.RemoteDeployPermission) {
-            console.log("🚫 Deployment blocked by Commit Message despite Remote Authorization.");
+            console.log(
+                "🚫 Deployment blocked by Commit Message despite Remote Authorization."
+            );
         }
 
         console.log("❌ Vercel does not have permission to deploy this Commit");
@@ -154,4 +164,4 @@ async function isDeployBlockedByCommitMessage(commitMessage: string): Promise<bo
 
     console.log("✅ Vercel has now permission to deploy this Commit");
     process.exit(1);
-})()
+})();

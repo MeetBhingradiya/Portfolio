@@ -8,7 +8,11 @@ import { log } from "@Utils";
 import { OTP } from "@Utils/OTP";
 
 // Send password reset email
-async function sendPasswordResetEmail(email: string, otp: string, name: string): Promise<boolean> {
+async function sendPasswordResetEmail(
+    email: string,
+    otp: string,
+    name: string
+): Promise<boolean> {
     try {
         const transporter = createEmailTransport();
         await transporter.verify();
@@ -82,43 +86,56 @@ async function sendPasswordResetEmail(email: string, otp: string, name: string):
 export async function POST(req: NextRequest) {
     try {
         const Request = await req.json();
-        
-        if (useEmptyFields({
-            ReqiuredFields: ["email"],
-            targetObject: Request
-        }).isMissing) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Email is required',
-                StatusCode: 400
-            }, { status: 400 });
+
+        if (
+            useEmptyFields({
+                ReqiuredFields: ["email"],
+                targetObject: Request
+            }).isMissing
+        ) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Email is required",
+                    StatusCode: 400
+                },
+                { status: 400 }
+            );
         }
 
         await dbConnect();
 
         // Check if user exists with verified email (different from signup verification)
         const user = await Users_Model.findOne({
-            'Emails.Email': Request.email.toLowerCase(),
-            'Emails.isVerified': true, // Must be verified to reset password
-            isDeleted: false
+            "Emails.Email": Request.email.toLowerCase(),
+            "Emails.isVerified": true, // Must be verified to reset password
+            "isDeleted": false
         });
 
         if (!user) {
             // For security, we don't reveal if email exists or not
-            return NextResponse.json({
-                Status: 1,
-                Message: 'If an account with this email exists, you will receive a password reset code.',
-                StatusCode: 200
-            }, { status: 200 });
+            return NextResponse.json(
+                {
+                    Status: 1,
+                    Message:
+                        "If an account with this email exists, you will receive a password reset code.",
+                    StatusCode: 200
+                },
+                { status: 200 }
+            );
         }
 
         // Check if account is locked or suspended
         if (user.isLocked || user.isSuspended) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Account is locked or suspended. Please contact support.',
-                StatusCode: 403
-            }, { status: 403 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message:
+                        "Account is locked or suspended. Please contact support.",
+                    StatusCode: 403
+                },
+                { status: 403 }
+            );
         }
 
         // Generate OTP for password reset
@@ -151,28 +168,35 @@ export async function POST(req: NextRequest) {
         const emailSent = await sendPasswordResetEmail(
             Request.email,
             otpCode,
-            user.FirstName || 'User'
+            user.FirstName || "User"
         );
 
-        return NextResponse.json({
-            Status: 1,
-            Message: emailSent 
-                ? 'Password reset code sent to your email' 
-                : 'If an account with this email exists, you will receive a password reset code.',
-            StatusCode: 200,
-            Data: emailSent ? {
-                email: Request.email,
-                expiresIn: 10 * 60 // 10 minutes in seconds
-            } : {}
-        }, { status: 200 });
-
+        return NextResponse.json(
+            {
+                Status: 1,
+                Message: emailSent
+                    ? "Password reset code sent to your email"
+                    : "If an account with this email exists, you will receive a password reset code.",
+                StatusCode: 200,
+                Data: emailSent
+                    ? {
+                          email: Request.email,
+                          expiresIn: 10 * 60 // 10 minutes in seconds
+                      }
+                    : {}
+            },
+            { status: 200 }
+        );
     } catch (error: any) {
         log(`Password reset request error: ${error?.message}`);
-        return NextResponse.json({
-            Status: 0,
-            Message: 'Internal server error',
-            StatusCode: 500
-        }, { status: 500 });
+        return NextResponse.json(
+            {
+                Status: 0,
+                Message: "Internal server error",
+                StatusCode: 500
+            },
+            { status: 500 }
+        );
     }
 }
 
@@ -180,16 +204,21 @@ export async function POST(req: NextRequest) {
 export async function PUT(req: NextRequest) {
     try {
         const Request = await req.json();
-        
-        if (useEmptyFields({
-            ReqiuredFields: ["email", "otp"],
-            targetObject: Request
-        }).isMissing) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Email and OTP are required',
-                StatusCode: 400
-            }, { status: 400 });
+
+        if (
+            useEmptyFields({
+                ReqiuredFields: ["email", "otp"],
+                targetObject: Request
+            }).isMissing
+        ) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Email and OTP are required",
+                    StatusCode: 400
+                },
+                { status: 400 }
+            );
         }
 
         await dbConnect();
@@ -201,42 +230,56 @@ export async function PUT(req: NextRequest) {
         });
 
         if (!otpRecord) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Invalid or expired reset code',
-                StatusCode: 400
-            }, { status: 400 });
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Invalid or expired reset code",
+                    StatusCode: 400
+                },
+                { status: 400 }
+            );
         }
 
         // Parse OTP data
         const otpData = JSON.parse(otpRecord.Data);
-        
-        if (otpData.email !== Request.email.toLowerCase() || otpData.otp !== Request.otp) {
-            return NextResponse.json({
-                Status: 0,
-                Message: 'Invalid reset code',
-                StatusCode: 400
-            }, { status: 400 });
+
+        if (
+            otpData.email !== Request.email.toLowerCase() ||
+            otpData.otp !== Request.otp
+        ) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Invalid reset code",
+                    StatusCode: 400
+                },
+                { status: 400 }
+            );
         }
 
         // OTP is valid - return success (but don't delete it yet, save for password reset)
-        return NextResponse.json({
-            Status: 1,
-            Message: 'Reset code verified successfully',
-            StatusCode: 200,
-            Data: {
-                userID: otpData.userID,
-                email: Request.email,
-                verified: true
-            }
-        }, { status: 200 });
-
+        return NextResponse.json(
+            {
+                Status: 1,
+                Message: "Reset code verified successfully",
+                StatusCode: 200,
+                Data: {
+                    userID: otpData.userID,
+                    email: Request.email,
+                    verified: true
+                }
+            },
+            { status: 200 }
+        );
     } catch (error: any) {
         log(`Password reset OTP verification error: ${error?.message}`);
-        return NextResponse.json({
-            Status: 0,
-            Message: 'Internal server error',
-            StatusCode: 500
-        }, { status: 500 });
+        return NextResponse.json(
+            {
+                Status: 0,
+                Message: "Internal server error",
+                StatusCode: 500
+            },
+            { status: 500 }
+        );
     }
 }

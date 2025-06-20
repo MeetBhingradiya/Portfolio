@@ -12,37 +12,42 @@ function OTP({
     IncludeSpecialCharsOnly = false,
     ExcludeSpecialCharsOnly = false
 }: {
-    Length?: number,
-    Digits?: boolean,
-    Uppercase?: boolean,
-    Lowercase?: boolean,
-    Special?: boolean,
-    UUIDChars?: number,
-    ExcludeSpecialChars?: string[],
-    IncludeSpecialChars?: string[],
-    IncludeSpecialCharsOnly?: boolean,
-    ExcludeSpecialCharsOnly?: boolean
+    Length?: number;
+    Digits?: boolean;
+    Uppercase?: boolean;
+    Lowercase?: boolean;
+    Special?: boolean;
+    UUIDChars?: number;
+    ExcludeSpecialChars?: string[];
+    IncludeSpecialChars?: string[];
+    IncludeSpecialCharsOnly?: boolean;
+    ExcludeSpecialCharsOnly?: boolean;
 }) {
-    let Characters = '';
+    let Characters = "";
 
     if (IncludeSpecialCharsOnly) {
         // If only special characters should be included, ignore other character types
-        Characters = IncludeSpecialChars.length ? IncludeSpecialChars.join('') : '!@#$%^&*()_+-=[]{}|;:,.<>?';
+        Characters = IncludeSpecialChars.length
+            ? IncludeSpecialChars.join("")
+            : "!@#$%^&*()_+-=[]{}|;:,.<>?";
     } else {
-        if (Digits) Characters += '0123456789';
-        if (Uppercase) Characters += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        if (Lowercase) Characters += 'abcdefghijklmnopqrstuvwxyz';
+        if (Digits) Characters += "0123456789";
+        if (Uppercase) Characters += "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        if (Lowercase) Characters += "abcdefghijklmnopqrstuvwxyz";
         if (Special) {
-            let specialChars = '!@#$%^&*()_+-=[]{}|;:,.<>?';
-            
+            let specialChars = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+
             // If ExcludeSpecialChars is set, remove them
             if (ExcludeSpecialChars.length) {
-                specialChars = specialChars.split('').filter(char => !ExcludeSpecialChars.includes(char)).join('');
+                specialChars = specialChars
+                    .split("")
+                    .filter((char) => !ExcludeSpecialChars.includes(char))
+                    .join("");
             }
-            
+
             // If IncludeSpecialChars is set, use only the specified characters
             if (IncludeSpecialChars.length) {
-                specialChars = IncludeSpecialChars.join('');
+                specialChars = IncludeSpecialChars.join("");
             }
 
             Characters += specialChars;
@@ -51,14 +56,16 @@ function OTP({
 
     // If only excluded special characters should be removed, reset characters to exclude them only
     if (ExcludeSpecialCharsOnly) {
-        Characters = Characters.split('').filter(char => !ExcludeSpecialChars.includes(char)).join('');
+        Characters = Characters.split("")
+            .filter((char) => !ExcludeSpecialChars.includes(char))
+            .join("");
     }
 
-    let OTP = '';
+    let OTP = "";
 
     // Generate UUID-based characters if requested
     if (UUIDChars > 0) {
-        const uuid = v4().replace(/-/g, '');
+        const uuid = v4().replace(/-/g, "");
         for (let i = 0; i < UUIDChars; i++) {
             OTP += uuid.charAt(Math.floor(Math.random() * uuid.length));
         }
@@ -73,6 +80,4 @@ function OTP({
     return OTP;
 }
 
-export {
-    OTP
-}
+export { OTP };

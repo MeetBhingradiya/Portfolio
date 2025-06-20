@@ -15,30 +15,30 @@ import { Button } from "@heroui/react";
 
 // Algorithm options for JWT
 const ALGORITHM_OPTIONS = {
-    "HS256": "HMAC with SHA-256",
-    "HS384": "HMAC with SHA-384",
-    "HS512": "HMAC with SHA-512",
-    "RS256": "RSASSA-PKCS1-v1_5 with SHA-256",
-    "RS384": "RSASSA-PKCS1-v1_5 with SHA-384",
-    "RS512": "RSASSA-PKCS1-v1_5 with SHA-512",
-    "ES256": "ECDSA with SHA-256",
-    "ES384": "ECDSA with SHA-384",
-    "ES512": "ECDSA with SHA-512",
-    "PS256": "RSASSA-PSS with SHA-256",
-    "PS384": "RSASSA-PSS with SHA-384",
-    "PS512": "RSASSA-PSS with SHA-512",
-    "none": "No digital signature or MAC performed"
+    HS256: "HMAC with SHA-256",
+    HS384: "HMAC with SHA-384",
+    HS512: "HMAC with SHA-512",
+    RS256: "RSASSA-PKCS1-v1_5 with SHA-256",
+    RS384: "RSASSA-PKCS1-v1_5 with SHA-384",
+    RS512: "RSASSA-PKCS1-v1_5 with SHA-512",
+    ES256: "ECDSA with SHA-256",
+    ES384: "ECDSA with SHA-384",
+    ES512: "ECDSA with SHA-512",
+    PS256: "RSASSA-PSS with SHA-256",
+    PS384: "RSASSA-PSS with SHA-384",
+    PS512: "RSASSA-PSS with SHA-512",
+    none: "No digital signature or MAC performed"
 };
 
 // JWT Standard claims
 const STANDARD_CLAIMS = {
-    "iss": "Issuer",
-    "sub": "Subject",
-    "aud": "Audience",
-    "exp": "Expiration Time",
-    "nbf": "Not Before",
-    "iat": "Issued At",
-    "jti": "JWT ID"
+    iss: "Issuer",
+    sub: "Subject",
+    aud: "Audience",
+    exp: "Expiration Time",
+    nbf: "Not Before",
+    iat: "Issued At",
+    jti: "JWT ID"
 };
 
 interface DecodedJWT {
@@ -50,7 +50,7 @@ interface DecodedJWT {
 }
 
 interface VerificationStatus {
-    status: 'valid' | 'invalid' | 'warning' | 'none';
+    status: "valid" | "invalid" | "warning" | "none";
     message: string;
 }
 
@@ -59,7 +59,7 @@ interface JWTState {
     decodedToken: DecodedJWT | null;
     secret: string;
     verificationStatus: VerificationStatus;
-    activeTab: 'header' | 'payload' | 'signature';
+    activeTab: "header" | "payload" | "signature";
     error: string;
     showSecret: boolean;
 }
@@ -69,8 +69,8 @@ export default function JWTDebugger() {
         token: "",
         decodedToken: null,
         secret: "",
-        verificationStatus: { status: 'none', message: "" },
-        activeTab: 'payload',
+        verificationStatus: { status: "none", message: "" },
+        activeTab: "payload",
         error: "",
         showSecret: false
     });
@@ -79,23 +79,26 @@ export default function JWTDebugger() {
     const decodeToken = (token: string): DecodedJWT | null => {
         try {
             // Clear any existing errors
-            setState(prev => ({ ...prev, error: "" }));
+            setState((prev) => ({ ...prev, error: "" }));
 
             if (!token.trim()) {
                 return null;
             }
 
             // Split the token into parts
-            const parts = token.split('.');
+            const parts = token.split(".");
             if (parts.length !== 3) {
-                setState(prev => ({ ...prev, error: "Invalid JWT format. Expected format: header.payload.signature" }));
+                setState((prev) => ({
+                    ...prev,
+                    error: "Invalid JWT format. Expected format: header.payload.signature"
+                }));
                 return null;
             }
 
             // Decode header and payload
             const header = JSON.parse(atob(parts[0]));
             const payload = JSON.parse(atob(parts[1]));
-            
+
             // Return the decoded token
             return {
                 header,
@@ -104,7 +107,10 @@ export default function JWTDebugger() {
                 valid: true
             };
         } catch (error: any) {
-            setState(prev => ({ ...prev, error: `Error decoding token: ${error.message}` }));
+            setState((prev) => ({
+                ...prev,
+                error: `Error decoding token: ${error.message}`
+            }));
             return null;
         }
     };
@@ -116,7 +122,7 @@ export default function JWTDebugger() {
             ...state,
             token: newToken,
             decodedToken: decodeToken(newToken),
-            verificationStatus: { status: 'none', message: "" }
+            verificationStatus: { status: "none", message: "" }
         });
     };
 
@@ -125,12 +131,12 @@ export default function JWTDebugger() {
         setState({
             ...state,
             secret: e.target.value,
-            verificationStatus: { status: 'none', message: "" }
+            verificationStatus: { status: "none", message: "" }
         });
     };
 
     // Toggle tab
-    const handleTabChange = (tab: 'header' | 'payload' | 'signature') => {
+    const handleTabChange = (tab: "header" | "payload" | "signature") => {
         setState({ ...state, activeTab: tab });
     };
 
@@ -145,8 +151,8 @@ export default function JWTDebugger() {
             token: "",
             decodedToken: null,
             secret: "",
-            verificationStatus: { status: 'none', message: "" },
-            activeTab: 'payload',
+            verificationStatus: { status: "none", message: "" },
+            activeTab: "payload",
             error: "",
             showSecret: false
         });
@@ -163,18 +169,18 @@ export default function JWTDebugger() {
             setState({
                 ...state,
                 verificationStatus: {
-                    status: 'invalid',
+                    status: "invalid",
                     message: "Invalid token. Please enter a valid JWT first."
                 }
             });
             return;
         }
 
-        if (!state.secret.trim() && state.decodedToken.header.alg !== 'none') {
+        if (!state.secret.trim() && state.decodedToken.header.alg !== "none") {
             setState({
                 ...state,
                 verificationStatus: {
-                    status: 'warning',
+                    status: "warning",
                     message: "Secret is required for verification."
                 }
             });
@@ -185,12 +191,12 @@ export default function JWTDebugger() {
         if (state.decodedToken.payload.exp) {
             const expirationTime = state.decodedToken.payload.exp * 1000; // Convert to milliseconds
             const currentTime = Date.now();
-            
+
             if (expirationTime < currentTime) {
                 setState({
                     ...state,
                     verificationStatus: {
-                        status: 'invalid',
+                        status: "invalid",
                         message: "Token has expired."
                     }
                 });
@@ -202,12 +208,12 @@ export default function JWTDebugger() {
         if (state.decodedToken.payload.nbf) {
             const notBeforeTime = state.decodedToken.payload.nbf * 1000; // Convert to milliseconds
             const currentTime = Date.now();
-            
+
             if (notBeforeTime > currentTime) {
                 setState({
                     ...state,
                     verificationStatus: {
-                        status: 'invalid',
+                        status: "invalid",
                         message: "Token is not yet valid (nbf claim)."
                     }
                 });
@@ -217,38 +223,40 @@ export default function JWTDebugger() {
 
         // For client-side only verification, we can't actually verify the signature cryptographically without a backend
         // So we'll just do some basic validation and simulate the verification
-        
-        if (state.decodedToken.header.alg === 'none') {
+
+        if (state.decodedToken.header.alg === "none") {
             setState({
                 ...state,
                 verificationStatus: {
-                    status: 'warning',
-                    message: "Token uses 'none' algorithm. This is insecure and should not be used in production."
+                    status: "warning",
+                    message:
+                        "Token uses 'none' algorithm. This is insecure and should not be used in production."
                 }
             });
             return;
         }
-        
+
         // Check if token is properly formatted
-        const parts = state.token.split('.');
+        const parts = state.token.split(".");
         if (parts.length !== 3 || !parts[2]) {
             setState({
                 ...state,
                 verificationStatus: {
-                    status: 'invalid',
+                    status: "invalid",
                     message: "Invalid token format or missing signature."
                 }
             });
             return;
         }
-        
+
         // For the purpose of demonstration, we'll "simulate" a successful verification
         // In a real app, you'd use a JWT library for proper cryptographic verification
         setState({
             ...state,
             verificationStatus: {
-                status: 'valid',
-                message: "Token structure is valid. Client-side signature verification is limited - for complete validation, use a server."
+                status: "valid",
+                message:
+                    "Token structure is valid. Client-side signature verification is limited - for complete validation, use a server."
             }
         });
     };
@@ -256,7 +264,7 @@ export default function JWTDebugger() {
     // Format timestamp to readable date
     const formatTimestamp = (timestamp: number) => {
         if (!timestamp) return "N/A";
-        
+
         try {
             const date = new Date(timestamp * 1000); // Convert to milliseconds
             return date.toLocaleString();
@@ -268,28 +276,32 @@ export default function JWTDebugger() {
     // Check if a timestamp is expired
     const isExpired = (timestamp: number) => {
         if (!timestamp) return false;
-        return (timestamp * 1000) < Date.now();
+        return timestamp * 1000 < Date.now();
     };
 
     // Render token details
     const renderTokenDetails = () => {
         if (!state.decodedToken) return null;
-        
+
         const { payload } = state.decodedToken;
-        
+
         const details = [];
-        
+
         // Add standard claims
         for (const [key, label] of Object.entries(STANDARD_CLAIMS)) {
             if (payload[key] !== undefined) {
-                if (key === 'exp' || key === 'nbf' || key === 'iat') {
+                if (key === "exp" || key === "nbf" || key === "iat") {
                     const timestamp = payload[key];
-                    const isTokenExpired = key === 'exp' && isExpired(timestamp);
-                    
+                    const isTokenExpired =
+                        key === "exp" && isExpired(timestamp);
+
                     details.push(
-                        <div className="detail-item" key={key}>
+                        <div
+                            className="detail-item"
+                            key={key}>
                             <div className="detail-label">{label}</div>
-                            <div className={`detail-value timestamp ${isTokenExpired ? 'expired' : ''}`}>
+                            <div
+                                className={`detail-value timestamp ${isTokenExpired ? "expired" : ""}`}>
                                 {formatTimestamp(timestamp)}
                                 {isTokenExpired && " (Expired)"}
                             </div>
@@ -297,11 +309,13 @@ export default function JWTDebugger() {
                     );
                 } else {
                     details.push(
-                        <div className="detail-item" key={key}>
+                        <div
+                            className="detail-item"
+                            key={key}>
                             <div className="detail-label">{label}</div>
                             <div className="detail-value">
-                                {typeof payload[key] === 'object' 
-                                    ? JSON.stringify(payload[key]) 
+                                {typeof payload[key] === "object"
+                                    ? JSON.stringify(payload[key])
                                     : String(payload[key])}
                             </div>
                         </div>
@@ -309,41 +323,48 @@ export default function JWTDebugger() {
                 }
             }
         }
-        
+
         // Add algorithm info
         details.push(
-            <div className="detail-item" key="alg">
+            <div
+                className="detail-item"
+                key="alg">
                 <div className="detail-label">Algorithm</div>
                 <div className="detail-value">
-                    {state.decodedToken.header.alg} 
-                    {ALGORITHM_OPTIONS[state.decodedToken.header.alg as keyof typeof ALGORITHM_OPTIONS] 
-                        ? ` (${ALGORITHM_OPTIONS[state.decodedToken.header.alg as keyof typeof ALGORITHM_OPTIONS]})` 
-                        : ''}
+                    {state.decodedToken.header.alg}
+                    {ALGORITHM_OPTIONS[
+                        state.decodedToken.header
+                            .alg as keyof typeof ALGORITHM_OPTIONS
+                    ]
+                        ? ` (${ALGORITHM_OPTIONS[state.decodedToken.header.alg as keyof typeof ALGORITHM_OPTIONS]})`
+                        : ""}
                 </div>
             </div>
         );
-        
+
         // Add token type
         if (state.decodedToken.header.typ) {
             details.push(
-                <div className="detail-item" key="typ">
+                <div
+                    className="detail-item"
+                    key="typ">
                     <div className="detail-label">Token Type</div>
-                    <div className="detail-value">{state.decodedToken.header.typ}</div>
+                    <div className="detail-value">
+                        {state.decodedToken.header.typ}
+                    </div>
                 </div>
             );
         }
-        
-        return (
-            <div className="details-grid">
-                {details}
-            </div>
-        );
+
+        return <div className="details-grid">{details}</div>;
     };
 
     return (
         <div className="Page JWTDebugger">
             <h1 className="title">JWT Debugger</h1>
-            <p className="description">Debug and verify JSON Web Tokens securely in your browser</p>
+            <p className="description">
+                Debug and verify JSON Web Tokens securely in your browser
+            </p>
 
             <div className="jwt-container">
                 {/* JWT Input */}
@@ -356,13 +377,12 @@ export default function JWTDebugger() {
                                 disabled={!state.token}
                                 title="Clear all fields"
                                 variant="ghost"
-                                isIconOnly
-                            >
+                                isIconOnly>
                                 <Clear />
                             </Button>
                         </div>
                     </div>
-                    
+
                     <div className="jwt-textarea-container">
                         <div className="jwt-label">Enter your JWT token:</div>
                         <textarea
@@ -386,37 +406,54 @@ export default function JWTDebugger() {
                             <h2>Decoded</h2>
                             <div className="decoded-tabs">
                                 <button
-                                    className={`tab-button ${state.activeTab === 'header' ? 'active' : ''}`}
-                                    onClick={() => handleTabChange('header')}
-                                >
+                                    className={`tab-button ${state.activeTab === "header" ? "active" : ""}`}
+                                    onClick={() => handleTabChange("header")}>
                                     Header
                                 </button>
                                 <button
-                                    className={`tab-button ${state.activeTab === 'payload' ? 'active' : ''}`}
-                                    onClick={() => handleTabChange('payload')}
-                                >
+                                    className={`tab-button ${state.activeTab === "payload" ? "active" : ""}`}
+                                    onClick={() => handleTabChange("payload")}>
                                     Payload
                                 </button>
                                 <button
-                                    className={`tab-button ${state.activeTab === 'signature' ? 'active' : ''}`}
-                                    onClick={() => handleTabChange('signature')}
-                                >
+                                    className={`tab-button ${state.activeTab === "signature" ? "active" : ""}`}
+                                    onClick={() =>
+                                        handleTabChange("signature")
+                                    }>
                                     Signature
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div className="decoded-content">
-                            <div className={`tab-content ${state.activeTab === 'header' ? 'active' : ''}`}>
-                                <pre>{JSON.stringify(state.decodedToken.header, null, 2)}</pre>
+                            <div
+                                className={`tab-content ${state.activeTab === "header" ? "active" : ""}`}>
+                                <pre>
+                                    {JSON.stringify(
+                                        state.decodedToken.header,
+                                        null,
+                                        2
+                                    )}
+                                </pre>
                             </div>
-                            
-                            <div className={`tab-content ${state.activeTab === 'payload' ? 'active' : ''}`}>
-                                <pre>{JSON.stringify(state.decodedToken.payload, null, 2)}</pre>
+
+                            <div
+                                className={`tab-content ${state.activeTab === "payload" ? "active" : ""}`}>
+                                <pre>
+                                    {JSON.stringify(
+                                        state.decodedToken.payload,
+                                        null,
+                                        2
+                                    )}
+                                </pre>
                             </div>
-                            
-                            <div className={`tab-content ${state.activeTab === 'signature' ? 'active' : ''}`}>
-                                <pre>{state.decodedToken.signature || "No signature"}</pre>
+
+                            <div
+                                className={`tab-content ${state.activeTab === "signature" ? "active" : ""}`}>
+                                <pre>
+                                    {state.decodedToken.signature ||
+                                        "No signature"}
+                                </pre>
                             </div>
                         </div>
                     </div>
@@ -428,58 +465,78 @@ export default function JWTDebugger() {
                         <div className="verification-header">
                             <h2>Verify Signature</h2>
                         </div>
-                        
+
                         <div className="verification-content">
                             <div className="secret-input">
-                                <label htmlFor="secret-key">Secret Key or Public Key:</label>
-                                <div style={{ position: 'relative' }}>
+                                <label htmlFor="secret-key">
+                                    Secret Key or Public Key:
+                                </label>
+                                <div style={{ position: "relative" }}>
                                     <input
                                         id="secret-key"
-                                        type={state.showSecret ? "text" : "password"}
+                                        type={
+                                            state.showSecret
+                                                ? "text"
+                                                : "password"
+                                        }
                                         value={state.secret}
                                         onChange={handleSecretChange}
                                         placeholder="Enter your secret key"
                                     />
                                     <Button
                                         onPress={toggleShowSecret}
-                                        title={state.showSecret ? "Hide secret" : "Show secret"}
+                                        title={
+                                            state.showSecret
+                                                ? "Hide secret"
+                                                : "Show secret"
+                                        }
                                         variant="ghost"
                                         isIconOnly
                                         style={{
-                                            position: 'absolute',
-                                            right: '8px',
-                                            top: '50%',
-                                            transform: 'translateY(-50%)'
-                                        }}
-                                    >
-                                        {state.showSecret ? <VisibilityOff /> : <Visibility />}
+                                            position: "absolute",
+                                            right: "8px",
+                                            top: "50%",
+                                            transform: "translateY(-50%)"
+                                        }}>
+                                        {state.showSecret ? (
+                                            <VisibilityOff />
+                                        ) : (
+                                            <Visibility />
+                                        )}
                                     </Button>
                                 </div>
                             </div>
-                            
+
                             <Button
                                 onPress={verifyToken}
                                 disabled={!state.decodedToken}
                                 variant="ghost"
-                                style={{ minWidth: '120px' }}
-                            >
+                                style={{ minWidth: "120px" }}>
                                 Verify
                             </Button>
-                            
-                            {state.verificationStatus.status !== 'none' && (
+
+                            {state.verificationStatus.status !== "none" && (
                                 <div className="status-container">
-                                    <div className="status-title">Verification Result:</div>
-                                    <div className={`status-message ${state.verificationStatus.status}`}>
-                                        {state.verificationStatus.status === 'valid' && (
+                                    <div className="status-title">
+                                        Verification Result:
+                                    </div>
+                                    <div
+                                        className={`status-message ${state.verificationStatus.status}`}>
+                                        {state.verificationStatus.status ===
+                                            "valid" && (
                                             <VerifiedUser className="status-icon" />
                                         )}
-                                        {state.verificationStatus.status === 'invalid' && (
+                                        {state.verificationStatus.status ===
+                                            "invalid" && (
                                             <ErrorOutline className="status-icon" />
                                         )}
-                                        {state.verificationStatus.status === 'warning' && (
+                                        {state.verificationStatus.status ===
+                                            "warning" && (
                                             <WarningAmber className="status-icon" />
                                         )}
-                                        <span>{state.verificationStatus.message}</span>
+                                        <span>
+                                            {state.verificationStatus.message}
+                                        </span>
                                     </div>
                                 </div>
                             )}
@@ -493,7 +550,7 @@ export default function JWTDebugger() {
                         <div className="details-header">
                             <h2>Token Details</h2>
                         </div>
-                        
+
                         <div className="details-content">
                             {renderTokenDetails()}
                         </div>

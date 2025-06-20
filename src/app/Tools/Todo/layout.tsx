@@ -2,7 +2,8 @@ import { Metadata } from "next";
 
 export const metadata: Metadata = {
     title: "Todo List - Meet Bhingradiya",
-    description: "Create, manage and save your tasks with this simple Todo List tool.",
+    description:
+        "Create, manage and save your tasks with this simple Todo List tool.",
     icons: "/favicon.ico",
     keywords: [
         "Meet Bhingradiya",
@@ -16,13 +17,13 @@ export const metadata: Metadata = {
         "Task List",
         "Task Tracker"
     ]
-}
+};
 
 // @ File
 export default function Layout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    return children
-} 
+    return children;
+}

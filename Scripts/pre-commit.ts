@@ -15,7 +15,11 @@ const logFile = path.join(process.cwd(), "pre-commit.log");
 fs.writeFileSync(logFile, "");
 
 // 📌 Beautify & save logs
-const logOutput = (prefix: string, message: string, type: "INFO" | "WARN" | "ERROR" = "INFO") => {
+const logOutput = (
+    prefix: string,
+    message: string,
+    type: "INFO" | "WARN" | "ERROR" = "INFO"
+) => {
     const timestamp = getTimestamp();
     const formattedLog = `[${timestamp}] [${prefix}] [${type}] ${message.trim()}`;
 

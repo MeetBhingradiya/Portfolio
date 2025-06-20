@@ -7,213 +7,213 @@
 import { useEffect, useRef, useState } from "react";
 
 type ShaderParams = {
-	patternScale: number;
-	refraction: number;
-	edge: number;
-	patternBlur: number;
-	liquid: number;
-	speed: number;
+    patternScale: number;
+    refraction: number;
+    edge: number;
+    patternBlur: number;
+    liquid: number;
+    speed: number;
 };
 
 const defaultParams: ShaderParams = {
-	patternScale: 2,
-	refraction: 0.015,
-	edge: 1,
-	patternBlur: 0.005,
-	liquid: 0.07,
-	speed: 0.3,
+    patternScale: 2,
+    refraction: 0.015,
+    edge: 1,
+    patternBlur: 0.005,
+    liquid: 0.07,
+    speed: 0.3
 };
 
 export function parseLogoImage(
-	file: File
+    file: File
 ): Promise<{ imageData: ImageData; pngBlob: Blob }> {
-	const canvas = document.createElement("canvas");
-	const ctx = canvas.getContext("2d");
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-	return new Promise((resolve, reject) => {
-		if (!file || !ctx) {
-			reject(new Error("Invalid file or context"));
-			return;
-		}
+    return new Promise((resolve, reject) => {
+        if (!file || !ctx) {
+            reject(new Error("Invalid file or context"));
+            return;
+        }
 
-		const img = new Image();
-		img.crossOrigin = "anonymous";
-		img.onload = function () {
-			if (file.type === "image/svg+xml") {
-				img.width = 1000;
-				img.height = 1000;
-			}
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = function () {
+            if (file.type === "image/svg+xml") {
+                img.width = 1000;
+                img.height = 1000;
+            }
 
-			const MAX_SIZE = 1000;
-			const MIN_SIZE = 500;
-			let width = img.naturalWidth;
-			let height = img.naturalHeight;
+            const MAX_SIZE = 1000;
+            const MIN_SIZE = 500;
+            let width = img.naturalWidth;
+            let height = img.naturalHeight;
 
-			if (
-				width > MAX_SIZE ||
-				height > MAX_SIZE ||
-				width < MIN_SIZE ||
-				height < MIN_SIZE
-			) {
-				if (width > height) {
-					if (width > MAX_SIZE) {
-						height = Math.round((height * MAX_SIZE) / width);
-						width = MAX_SIZE;
-					} else if (width < MIN_SIZE) {
-						height = Math.round((height * MIN_SIZE) / width);
-						width = MIN_SIZE;
-					}
-				} else {
-					if (height > MAX_SIZE) {
-						width = Math.round((width * MAX_SIZE) / height);
-						height = MAX_SIZE;
-					} else if (height < MIN_SIZE) {
-						width = Math.round((width * MIN_SIZE) / height);
-						height = MIN_SIZE;
-					}
-				}
-			}
+            if (
+                width > MAX_SIZE ||
+                height > MAX_SIZE ||
+                width < MIN_SIZE ||
+                height < MIN_SIZE
+            ) {
+                if (width > height) {
+                    if (width > MAX_SIZE) {
+                        height = Math.round((height * MAX_SIZE) / width);
+                        width = MAX_SIZE;
+                    } else if (width < MIN_SIZE) {
+                        height = Math.round((height * MIN_SIZE) / width);
+                        width = MIN_SIZE;
+                    }
+                } else {
+                    if (height > MAX_SIZE) {
+                        width = Math.round((width * MAX_SIZE) / height);
+                        height = MAX_SIZE;
+                    } else if (height < MIN_SIZE) {
+                        width = Math.round((width * MIN_SIZE) / height);
+                        height = MIN_SIZE;
+                    }
+                }
+            }
 
-			canvas.width = width;
-			canvas.height = height;
+            canvas.width = width;
+            canvas.height = height;
 
-			const shapeCanvas = document.createElement("canvas");
-			shapeCanvas.width = width;
-			shapeCanvas.height = height;
-			const shapeCtx = shapeCanvas.getContext("2d")!;
-			shapeCtx.drawImage(img, 0, 0, width, height);
+            const shapeCanvas = document.createElement("canvas");
+            shapeCanvas.width = width;
+            shapeCanvas.height = height;
+            const shapeCtx = shapeCanvas.getContext("2d")!;
+            shapeCtx.drawImage(img, 0, 0, width, height);
 
-			const shapeImageData = shapeCtx.getImageData(0, 0, width, height);
-			const data = shapeImageData.data;
-			const shapeMask = new Array(width * height).fill(false);
-			for (let y = 0; y < height; y++) {
-				for (let x = 0; x < width; x++) {
-					const idx4 = (y * width + x) * 4;
-					const r = data[idx4];
-					const g = data[idx4 + 1];
-					const b = data[idx4 + 2];
-					const a = data[idx4 + 3];
-					shapeMask[y * width + x] = !(
-						(r === 255 && g === 255 && b === 255 && a === 255) ||
-						a === 0
-					);
-				}
-			}
+            const shapeImageData = shapeCtx.getImageData(0, 0, width, height);
+            const data = shapeImageData.data;
+            const shapeMask = new Array(width * height).fill(false);
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx4 = (y * width + x) * 4;
+                    const r = data[idx4];
+                    const g = data[idx4 + 1];
+                    const b = data[idx4 + 2];
+                    const a = data[idx4 + 3];
+                    shapeMask[y * width + x] = !(
+                        (r === 255 && g === 255 && b === 255 && a === 255) ||
+                        a === 0
+                    );
+                }
+            }
 
-			function inside(x: number, y: number) {
-				if (x < 0 || x >= width || y < 0 || y >= height) return false;
-				return shapeMask[y * width + x];
-			}
+            function inside(x: number, y: number) {
+                if (x < 0 || x >= width || y < 0 || y >= height) return false;
+                return shapeMask[y * width + x];
+            }
 
-			const boundaryMask = new Array(width * height).fill(false);
-			for (let y = 0; y < height; y++) {
-				for (let x = 0; x < width; x++) {
-					const idx = y * width + x;
-					if (!shapeMask[idx]) continue;
-					let isBoundary = false;
-					for (let ny = y - 1; ny <= y + 1 && !isBoundary; ny++) {
-						for (let nx = x - 1; nx <= x + 1 && !isBoundary; nx++) {
-							if (!inside(nx, ny)) {
-								isBoundary = true;
-							}
-						}
-					}
-					if (isBoundary) {
-						boundaryMask[idx] = true;
-					}
-				}
-			}
+            const boundaryMask = new Array(width * height).fill(false);
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    if (!shapeMask[idx]) continue;
+                    let isBoundary = false;
+                    for (let ny = y - 1; ny <= y + 1 && !isBoundary; ny++) {
+                        for (let nx = x - 1; nx <= x + 1 && !isBoundary; nx++) {
+                            if (!inside(nx, ny)) {
+                                isBoundary = true;
+                            }
+                        }
+                    }
+                    if (isBoundary) {
+                        boundaryMask[idx] = true;
+                    }
+                }
+            }
 
-			const interiorMask = new Array(width * height).fill(false);
-			for (let y = 1; y < height - 1; y++) {
-				for (let x = 1; x < width - 1; x++) {
-					const idx = y * width + x;
-					if (
-						shapeMask[idx] &&
-						shapeMask[idx - 1] &&
-						shapeMask[idx + 1] &&
-						shapeMask[idx - width] &&
-						shapeMask[idx + width]
-					) {
-						interiorMask[idx] = true;
-					}
-				}
-			}
+            const interiorMask = new Array(width * height).fill(false);
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const idx = y * width + x;
+                    if (
+                        shapeMask[idx] &&
+                        shapeMask[idx - 1] &&
+                        shapeMask[idx + 1] &&
+                        shapeMask[idx - width] &&
+                        shapeMask[idx + width]
+                    ) {
+                        interiorMask[idx] = true;
+                    }
+                }
+            }
 
-			const u = new Float32Array(width * height).fill(0);
-			const newU = new Float32Array(width * height).fill(0);
-			const C = 0.01;
-			const ITERATIONS = 300;
+            const u = new Float32Array(width * height).fill(0);
+            const newU = new Float32Array(width * height).fill(0);
+            const C = 0.01;
+            const ITERATIONS = 300;
 
-			function getU(x: number, y: number, arr: Float32Array) {
-				if (x < 0 || x >= width || y < 0 || y >= height) return 0;
-				if (!shapeMask[y * width + x]) return 0;
-				return arr[y * width + x];
-			}
+            function getU(x: number, y: number, arr: Float32Array) {
+                if (x < 0 || x >= width || y < 0 || y >= height) return 0;
+                if (!shapeMask[y * width + x]) return 0;
+                return arr[y * width + x];
+            }
 
-			for (let iter = 0; iter < ITERATIONS; iter++) {
-				for (let y = 0; y < height; y++) {
-					for (let x = 0; x < width; x++) {
-						const idx = y * width + x;
-						if (!shapeMask[idx] || boundaryMask[idx]) {
-							newU[idx] = 0;
-							continue;
-						}
-						const sumN =
-							getU(x + 1, y, u) +
-							getU(x - 1, y, u) +
-							getU(x, y + 1, u) +
-							getU(x, y - 1, u);
-						newU[idx] = (C + sumN) / 4;
-					}
-				}
-				u.set(newU);
-			}
+            for (let iter = 0; iter < ITERATIONS; iter++) {
+                for (let y = 0; y < height; y++) {
+                    for (let x = 0; x < width; x++) {
+                        const idx = y * width + x;
+                        if (!shapeMask[idx] || boundaryMask[idx]) {
+                            newU[idx] = 0;
+                            continue;
+                        }
+                        const sumN =
+                            getU(x + 1, y, u) +
+                            getU(x - 1, y, u) +
+                            getU(x, y + 1, u) +
+                            getU(x, y - 1, u);
+                        newU[idx] = (C + sumN) / 4;
+                    }
+                }
+                u.set(newU);
+            }
 
-			let maxVal = 0;
-			for (let i = 0; i < width * height; i++) {
-				if (u[i] > maxVal) maxVal = u[i];
-			}
-			const alpha = 2.0;
-			const outImg = ctx.createImageData(width, height);
+            let maxVal = 0;
+            for (let i = 0; i < width * height; i++) {
+                if (u[i] > maxVal) maxVal = u[i];
+            }
+            const alpha = 2.0;
+            const outImg = ctx.createImageData(width, height);
 
-			for (let y = 0; y < height; y++) {
-				for (let x = 0; x < width; x++) {
-					const idx = y * width + x;
-					const px = idx * 4;
-					if (!shapeMask[idx]) {
-						outImg.data[px] = 255;
-						outImg.data[px + 1] = 255;
-						outImg.data[px + 2] = 255;
-						outImg.data[px + 3] = 255;
-					} else {
-						const raw = u[idx] / maxVal;
-						const remapped = Math.pow(raw, alpha);
-						const gray = 255 * (1 - remapped);
-						outImg.data[px] = gray;
-						outImg.data[px + 1] = gray;
-						outImg.data[px + 2] = gray;
-						outImg.data[px + 3] = 255;
-					}
-				}
-			}
-			ctx.putImageData(outImg, 0, 0);
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const idx = y * width + x;
+                    const px = idx * 4;
+                    if (!shapeMask[idx]) {
+                        outImg.data[px] = 255;
+                        outImg.data[px + 1] = 255;
+                        outImg.data[px + 2] = 255;
+                        outImg.data[px + 3] = 255;
+                    } else {
+                        const raw = u[idx] / maxVal;
+                        const remapped = Math.pow(raw, alpha);
+                        const gray = 255 * (1 - remapped);
+                        outImg.data[px] = gray;
+                        outImg.data[px + 1] = gray;
+                        outImg.data[px + 2] = gray;
+                        outImg.data[px + 3] = 255;
+                    }
+                }
+            }
+            ctx.putImageData(outImg, 0, 0);
 
-			canvas.toBlob((blob) => {
-				if (!blob) {
-					reject(new Error("Failed to create PNG blob"));
-					return;
-				}
-				resolve({
-					imageData: outImg,
-					pngBlob: blob,
-				});
-			}, "image/png");
-		};
+            canvas.toBlob((blob) => {
+                if (!blob) {
+                    reject(new Error("Failed to create PNG blob"));
+                    return;
+                }
+                resolve({
+                    imageData: outImg,
+                    pngBlob: blob
+                });
+            }, "image/png");
+        };
 
-		img.onerror = () => reject(new Error("Failed to load image"));
-		img.src = URL.createObjectURL(file);
-	});
+        img.onerror = () => reject(new Error("Failed to load image"));
+        img.src = URL.createObjectURL(file);
+    });
 }
 
 const vertexShaderSource = `#version 300 es
@@ -382,240 +382,240 @@ void main() {
 `;
 
 export default function MetallicPaint({
-	imageData,
-	params = defaultParams,
+    imageData,
+    params = defaultParams
 }: {
-	imageData: ImageData;
-	params: ShaderParams;
+    imageData: ImageData;
+    params: ShaderParams;
 }) {
-	const canvasRef = useRef<HTMLCanvasElement>(null);
-	const [gl, setGl] = useState<WebGL2RenderingContext | null>(null);
-	const [uniforms, setUniforms] = useState<
-		Record<string, WebGLUniformLocation>
-	>({});
-	const totalAnimationTime = useRef(0);
-	const lastRenderTime = useRef(0);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [gl, setGl] = useState<WebGL2RenderingContext | null>(null);
+    const [uniforms, setUniforms] = useState<
+        Record<string, WebGLUniformLocation>
+    >({});
+    const totalAnimationTime = useRef(0);
+    const lastRenderTime = useRef(0);
 
-	function updateUniforms() {
-		if (!gl || !uniforms) return;
-		gl.uniform1f(uniforms.u_edge, params.edge);
-		gl.uniform1f(uniforms.u_patternBlur, params.patternBlur);
-		gl.uniform1f(uniforms.u_time, 0);
-		gl.uniform1f(uniforms.u_patternScale, params.patternScale);
-		gl.uniform1f(uniforms.u_refraction, params.refraction);
-		gl.uniform1f(uniforms.u_liquid, params.liquid);
-	}
+    function updateUniforms() {
+        if (!gl || !uniforms) return;
+        gl.uniform1f(uniforms.u_edge, params.edge);
+        gl.uniform1f(uniforms.u_patternBlur, params.patternBlur);
+        gl.uniform1f(uniforms.u_time, 0);
+        gl.uniform1f(uniforms.u_patternScale, params.patternScale);
+        gl.uniform1f(uniforms.u_refraction, params.refraction);
+        gl.uniform1f(uniforms.u_liquid, params.liquid);
+    }
 
-	useEffect(() => {
-		function initShader() {
-			const canvas = canvasRef.current;
-			const gl = canvas?.getContext("webgl2", {
-				antialias: true,
-				alpha: true,
-			});
-			if (!canvas || !gl) {
-				return;
-			}
+    useEffect(() => {
+        function initShader() {
+            const canvas = canvasRef.current;
+            const gl = canvas?.getContext("webgl2", {
+                antialias: true,
+                alpha: true
+            });
+            if (!canvas || !gl) {
+                return;
+            }
 
-			function createShader(
-				gl: WebGL2RenderingContext,
-				sourceCode: string,
-				type: number
-			) {
-				const shader = gl.createShader(type);
-				if (!shader) {
-					return null;
-				}
+            function createShader(
+                gl: WebGL2RenderingContext,
+                sourceCode: string,
+                type: number
+            ) {
+                const shader = gl.createShader(type);
+                if (!shader) {
+                    return null;
+                }
 
-				gl.shaderSource(shader, sourceCode);
-				gl.compileShader(shader);
+                gl.shaderSource(shader, sourceCode);
+                gl.compileShader(shader);
 
-				if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-					console.error(
-						"An error occurred compiling the shaders: " +
-							gl.getShaderInfoLog(shader)
-					);
-					gl.deleteShader(shader);
-					return null;
-				}
+                if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                    console.error(
+                        "An error occurred compiling the shaders: " +
+                            gl.getShaderInfoLog(shader)
+                    );
+                    gl.deleteShader(shader);
+                    return null;
+                }
 
-				return shader;
-			}
+                return shader;
+            }
 
-			const vertexShader = createShader(
-				gl,
-				vertexShaderSource,
-				gl.VERTEX_SHADER
-			);
-			const fragmentShader = createShader(
-				gl,
-				liquidFragSource,
-				gl.FRAGMENT_SHADER
-			);
-			const program = gl.createProgram();
-			if (!program || !vertexShader || !fragmentShader) {
-				return;
-			}
+            const vertexShader = createShader(
+                gl,
+                vertexShaderSource,
+                gl.VERTEX_SHADER
+            );
+            const fragmentShader = createShader(
+                gl,
+                liquidFragSource,
+                gl.FRAGMENT_SHADER
+            );
+            const program = gl.createProgram();
+            if (!program || !vertexShader || !fragmentShader) {
+                return;
+            }
 
-			gl.attachShader(program, vertexShader);
-			gl.attachShader(program, fragmentShader);
-			gl.linkProgram(program);
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
 
-			if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-				console.error(
-					"Unable to initialize the shader program: " +
-						gl.getProgramInfoLog(program)
-				);
-				return null;
-			}
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error(
+                    "Unable to initialize the shader program: " +
+                        gl.getProgramInfoLog(program)
+                );
+                return null;
+            }
 
-			function getUniforms(
-				program: WebGLProgram,
-				gl: WebGL2RenderingContext
-			) {
-				let uniforms: Record<string, WebGLUniformLocation> = {};
-				let uniformCount = gl.getProgramParameter(
-					program,
-					gl.ACTIVE_UNIFORMS
-				);
-				for (let i = 0; i < uniformCount; i++) {
-					let uniformName = gl.getActiveUniform(program, i)?.name;
-					if (!uniformName) continue;
-					uniforms[uniformName] = gl.getUniformLocation(
-						program,
-						uniformName
-					) as WebGLUniformLocation;
-				}
-				return uniforms;
-			}
-			const uniforms = getUniforms(program, gl);
-			setUniforms(uniforms);
+            function getUniforms(
+                program: WebGLProgram,
+                gl: WebGL2RenderingContext
+            ) {
+                let uniforms: Record<string, WebGLUniformLocation> = {};
+                let uniformCount = gl.getProgramParameter(
+                    program,
+                    gl.ACTIVE_UNIFORMS
+                );
+                for (let i = 0; i < uniformCount; i++) {
+                    let uniformName = gl.getActiveUniform(program, i)?.name;
+                    if (!uniformName) continue;
+                    uniforms[uniformName] = gl.getUniformLocation(
+                        program,
+                        uniformName
+                    ) as WebGLUniformLocation;
+                }
+                return uniforms;
+            }
+            const uniforms = getUniforms(program, gl);
+            setUniforms(uniforms);
 
-			const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-			const vertexBuffer = gl.createBuffer();
-			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-			gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+            const vertexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
-			gl.useProgram(program);
+            gl.useProgram(program);
 
-			const positionLocation = gl.getAttribLocation(
-				program,
-				"a_position"
-			);
-			gl.enableVertexAttribArray(positionLocation);
+            const positionLocation = gl.getAttribLocation(
+                program,
+                "a_position"
+            );
+            gl.enableVertexAttribArray(positionLocation);
 
-			gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-			gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
-			setGl(gl);
-		}
+            setGl(gl);
+        }
 
-		initShader();
-		updateUniforms();
-	}, []);
+        initShader();
+        updateUniforms();
+    }, []);
 
-	useEffect(() => {
-		if (!gl || !uniforms) return;
-		updateUniforms();
-	}, [gl, params, uniforms]);
+    useEffect(() => {
+        if (!gl || !uniforms) return;
+        updateUniforms();
+    }, [gl, params, uniforms]);
 
-	// Render every frame
-	useEffect(() => {
-		if (!gl || !uniforms) return;
+    // Render every frame
+    useEffect(() => {
+        if (!gl || !uniforms) return;
 
-		let renderId: number;
+        let renderId: number;
 
-		function render(currentTime: number) {
-			const deltaTime = currentTime - lastRenderTime.current;
-			lastRenderTime.current = currentTime;
+        function render(currentTime: number) {
+            const deltaTime = currentTime - lastRenderTime.current;
+            lastRenderTime.current = currentTime;
 
-			totalAnimationTime.current += deltaTime * params.speed;
-			gl!.uniform1f(uniforms.u_time, totalAnimationTime.current);
-			gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
-			renderId = requestAnimationFrame(render);
-		}
+            totalAnimationTime.current += deltaTime * params.speed;
+            gl!.uniform1f(uniforms.u_time, totalAnimationTime.current);
+            gl!.drawArrays(gl!.TRIANGLE_STRIP, 0, 4);
+            renderId = requestAnimationFrame(render);
+        }
 
-		lastRenderTime.current = performance.now();
-		renderId = requestAnimationFrame(render);
+        lastRenderTime.current = performance.now();
+        renderId = requestAnimationFrame(render);
 
-		return () => {
-			cancelAnimationFrame(renderId);
-		};
-	}, [gl, params.speed]);
+        return () => {
+            cancelAnimationFrame(renderId);
+        };
+    }, [gl, params.speed]);
 
-	useEffect(() => {
-		const canvasEl = canvasRef.current;
-		if (!canvasEl || !gl || !uniforms) return;
+    useEffect(() => {
+        const canvasEl = canvasRef.current;
+        if (!canvasEl || !gl || !uniforms) return;
 
-		function resizeCanvas() {
-			if (!canvasEl || !gl || !uniforms || !imageData) return;
-			const imgRatio = imageData.width / imageData.height;
-			gl.uniform1f(uniforms.u_img_ratio, imgRatio);
+        function resizeCanvas() {
+            if (!canvasEl || !gl || !uniforms || !imageData) return;
+            const imgRatio = imageData.width / imageData.height;
+            gl.uniform1f(uniforms.u_img_ratio, imgRatio);
 
-			const side = 1000;
-			canvasEl.width = side * devicePixelRatio;
-			canvasEl.height = side * devicePixelRatio;
-			gl.viewport(0, 0, canvasEl.height, canvasEl.height);
-			gl.uniform1f(uniforms.u_ratio, 1);
-			gl.uniform1f(uniforms.u_img_ratio, imgRatio);
-		}
+            const side = 1000;
+            canvasEl.width = side * devicePixelRatio;
+            canvasEl.height = side * devicePixelRatio;
+            gl.viewport(0, 0, canvasEl.height, canvasEl.height);
+            gl.uniform1f(uniforms.u_ratio, 1);
+            gl.uniform1f(uniforms.u_img_ratio, imgRatio);
+        }
 
-		resizeCanvas();
-		window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+        window.addEventListener("resize", resizeCanvas);
 
-		return () => {
-			window.removeEventListener("resize", resizeCanvas);
-		};
-	}, [gl, uniforms, imageData]);
+        return () => {
+            window.removeEventListener("resize", resizeCanvas);
+        };
+    }, [gl, uniforms, imageData]);
 
-	useEffect(() => {
-		if (!gl || !uniforms) return;
+    useEffect(() => {
+        if (!gl || !uniforms) return;
 
-		const existingTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
-		if (existingTexture) {
-			gl.deleteTexture(existingTexture);
-		}
+        const existingTexture = gl.getParameter(gl.TEXTURE_BINDING_2D);
+        if (existingTexture) {
+            gl.deleteTexture(existingTexture);
+        }
 
-		const imageTexture = gl.createTexture();
-		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, imageTexture);
+        const imageTexture = gl.createTexture();
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, imageTexture);
 
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-		gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-		gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
 
-		try {
-			gl.texImage2D(
-				gl.TEXTURE_2D,
-				0,
-				gl.RGBA,
-				imageData?.width,
-				imageData?.height,
-				0,
-				gl.RGBA,
-				gl.UNSIGNED_BYTE,
-				imageData?.data
-			);
+        try {
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0,
+                gl.RGBA,
+                imageData?.width,
+                imageData?.height,
+                0,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                imageData?.data
+            );
 
-			gl.uniform1i(uniforms.u_image_texture, 0);
-		} catch (e) {
-			console.error("Error uploading texture:", e);
-		}
+            gl.uniform1i(uniforms.u_image_texture, 0);
+        } catch (e) {
+            console.error("Error uploading texture:", e);
+        }
 
-		return () => {
-			if (imageTexture) {
-				gl.deleteTexture(imageTexture);
-			}
-		};
-	}, [gl, uniforms, imageData]);
+        return () => {
+            if (imageTexture) {
+                gl.deleteTexture(imageTexture);
+            }
+        };
+    }, [gl, uniforms, imageData]);
 
-	return (
-		<canvas
-			ref={canvasRef}
-			className="block w-full h-full object-contain"
-		/>
-	);
+    return (
+        <canvas
+            ref={canvasRef}
+            className="block w-full h-full object-contain"
+        />
+    );
 }

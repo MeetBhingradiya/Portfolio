@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
     Code,
     Star,
@@ -11,15 +11,17 @@ import {
     Timeline,
     Refresh,
     GitHub
-} from '@mui/icons-material';
-import { GitHubAPI, GitHubStats } from '@Utils/GitHubAPI';
+} from "@mui/icons-material";
+import { GitHubAPI, GitHubStats } from "@Utils/GitHubAPI";
 import CountUp from "@Lib/TextAnimations/CountUp/CountUp";
 
 interface GitHubStatsComponentProps {
     showExtended?: boolean;
 }
 
-const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtended = false }) => {
+const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({
+    showExtended = false
+}) => {
     const [stats, setStats] = useState<GitHubStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -31,8 +33,8 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
             const githubStats = await GitHubAPI.fetchGitHubStats();
             setStats(githubStats as GitHubStats);
         } catch (err) {
-            setError('Failed to fetch GitHub data');
-            console.error('Error fetching GitHub stats:', err);
+            setError("Failed to fetch GitHub data");
+            console.error("Error fetching GitHub stats:", err);
         } finally {
             setLoading(false);
         }
@@ -56,7 +58,9 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
             color: "text-yellow-400"
         },
         {
-            icon: <ForkRight className="text-4xl text-green-400 mx-auto mb-4" />,
+            icon: (
+                <ForkRight className="text-4xl text-green-400 mx-auto mb-4" />
+            ),
             value: stats?.totalForks || 0,
             label: "Forks",
             color: "text-green-400"
@@ -75,18 +79,19 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
             value: stats?.following || 0,
             label: "Following",
             color: "text-pink-400"
-        },
+        }
     ];
 
-    const displayStats = showExtended ? [...basicStats, ...extendedStats] : basicStats;
+    const displayStats = showExtended
+        ? [...basicStats, ...extendedStats]
+        : basicStats;
 
     return (
         <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 2 }}
-            className="w-full max-w-4xl"
-        >
+            className="w-full max-w-4xl">
             <div className="flex items-center justify-center gap-4 mb-12">
                 <h2 className="text-3xl font-bold text-white text-center">
                     GitHub Activity
@@ -96,7 +101,9 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
             {loading && !stats ? (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[1, 2, 3].map((i) => (
-                        <div key={i} className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 text-center">
+                        <div
+                            key={i}
+                            className="bg-white/10 backdrop-blur-sm rounded-lg p-6 border border-white/20 text-center">
                             <div className="animate-pulse">
                                 <div className="w-12 h-12 bg-gray-400 rounded-full mx-auto mb-4"></div>
                                 <div className="h-8 bg-gray-400 rounded mb-2"></div>
@@ -107,15 +114,17 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                 </div>
             ) : error || !stats ? (
                 <div className="bg-red-500/20 backdrop-blur-sm rounded-lg p-6 border border-red-500/30 text-center">
-                    <p className="text-red-300 mb-4">{error || 'Failed to load GitHub data'}</p>
+                    <p className="text-red-300 mb-4">
+                        {error || "Failed to load GitHub data"}
+                    </p>
                     <button
                         onClick={fetchStats}
-                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 mx-auto"
-                    >
+                        className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors flex items-center gap-2 mx-auto">
                         <Refresh className="text-sm" />
                         Retry
                     </button>
-                </div>            ) : (
+                </div>
+            ) : (
                 <>
                     {showExtended ? (
                         <div className="space-y-8">
@@ -126,9 +135,10 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                                         key={index}
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 2.2 + index * 0.1 }}
-                                        className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-300 group"
-                                    >
+                                        transition={{
+                                            delay: 2.2 + index * 0.1
+                                        }}
+                                        className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-300 group">
                                         <div className="group-hover:scale-110 transition-transform duration-300">
                                             {stat.icon}
                                         </div>
@@ -139,15 +149,17 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                                                 delay={2.4 + index * 0.1}
                                                 className="text-3xl font-bold text-white"
                                                 separator=","
-                                                onStart={() => { }}
-                                                onEnd={() => { }}
+                                                onStart={() => {}}
+                                                onEnd={() => {}}
                                             />
                                         </h3>
-                                        <p className="text-gray-300 text-lg">{stat.label}</p>
+                                        <p className="text-gray-300 text-lg">
+                                            {stat.label}
+                                        </p>
                                     </motion.div>
                                 ))}
                             </div>
-                            
+
                             {/* Second Row - 2 Extended Stats Centered */}
                             <div className="flex justify-center">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl w-full">
@@ -156,9 +168,10 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                                             key={index + 3}
                                             initial={{ opacity: 0, y: 20 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: 2.5 + index * 0.1 }}
-                                            className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-300 group"
-                                        >
+                                            transition={{
+                                                delay: 2.5 + index * 0.1
+                                            }}
+                                            className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-300 group">
                                             <div className="group-hover:scale-110 transition-transform duration-300">
                                                 {stat.icon}
                                             </div>
@@ -169,11 +182,13 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                                                     delay={2.7 + index * 0.1}
                                                     className="text-3xl font-bold text-white"
                                                     separator=","
-                                                    onStart={() => { }}
-                                                    onEnd={() => { }}
+                                                    onStart={() => {}}
+                                                    onEnd={() => {}}
                                                 />
                                             </h3>
-                                            <p className="text-gray-300 text-lg">{stat.label}</p>
+                                            <p className="text-gray-300 text-lg">
+                                                {stat.label}
+                                            </p>
                                         </motion.div>
                                     ))}
                                 </div>
@@ -187,8 +202,7 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 2.2 + index * 0.1 }}
-                                    className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-300 group"
-                                >
+                                    className="bg-white/10 backdrop-blur-sm rounded-lg p-8 border border-white/20 text-center hover:bg-white/15 transition-all duration-300 group">
                                     <div className="group-hover:scale-110 transition-transform duration-300">
                                         {stat.icon}
                                     </div>
@@ -199,11 +213,13 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                                             delay={2.4 + index * 0.1}
                                             className="text-3xl font-bold text-white"
                                             separator=","
-                                            onStart={() => { }}
-                                            onEnd={() => { }}
+                                            onStart={() => {}}
+                                            onEnd={() => {}}
                                         />
                                     </h3>
-                                    <p className="text-gray-300 text-lg">{stat.label}</p>
+                                    <p className="text-gray-300 text-lg">
+                                        {stat.label}
+                                    </p>
                                 </motion.div>
                             ))}
                         </div>
@@ -214,14 +230,12 @@ const GitHubStatsComponent: React.FC<GitHubStatsComponentProps> = ({ showExtende
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 3 }}
-                        className="text-center mt-8"
-                    >
+                        className="text-center mt-8">
                         <a
                             href="https://github.com/MeetBhingradiya"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-full transition-all duration-300 hover:scale-105 border border-gray-700"
-                        >
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-gray-900 hover:bg-gray-800 text-white rounded-full transition-all duration-300 hover:scale-105 border border-gray-700">
                             <GitHub className="text-xl" />
                             View Profile
                         </a>

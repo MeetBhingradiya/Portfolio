@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { dbConnect } from '@Utils/dbConnect';
-import { Tickets_Model } from '@Models/Tickets';
-import { Users_Model } from '@Models/Users';
-import { Sessions_Model } from '@Models/Sessions';
-import { v4 } from 'uuid';
+import { NextRequest, NextResponse } from "next/server";
+import { dbConnect } from "@Utils/dbConnect";
+import { Tickets_Model } from "@Models/Tickets";
+import { Users_Model } from "@Models/Users";
+import { Sessions_Model } from "@Models/Sessions";
+import { v4 } from "uuid";
 import { createEmailTransport } from "@Utils/EmailSend";
 
 // Type definitions
@@ -14,19 +14,22 @@ interface AddResponseData {
     email?: string; // For anonymous users
 }
 
-function validateResponseInput(data: AddResponseData): { valid: boolean; errors: string[] } {
+function validateResponseInput(data: AddResponseData): {
+    valid: boolean;
+    errors: string[];
+} {
     const errors: string[] = [];
 
     if (!data.ticketId || data.ticketId.trim().length === 0) {
-        errors.push('Ticket ID is required');
+        errors.push("Ticket ID is required");
     }
 
     if (!data.message || data.message.trim().length < 5) {
-        errors.push('Message must be at least 5 characters long');
+        errors.push("Message must be at least 5 characters long");
     }
 
     if (data.message && data.message.length > 1000) {
-        errors.push('Message is too long (max 1000 characters)');
+        errors.push("Message is too long (max 1000 characters)");
     }
 
     return { valid: errors.length === 0, errors };
@@ -34,17 +37,17 @@ function validateResponseInput(data: AddResponseData): { valid: boolean; errors:
 
 async function getUserFromSession(sessionID: string) {
     if (!sessionID) return null;
-    
+
     const session = await Sessions_Model.findOne({ SessionID: sessionID });
     if (!session) return null;
-    
-    const user = await Users_Model.findOne({ 
+
+    const user = await Users_Model.findOne({
         UserID: session.UserID,
         isDeleted: false,
         isLocked: false,
         isSuspended: false
     });
-    
+
     return user;
 }
 
@@ -68,16 +71,16 @@ async function sendNewResponseNotification(
                         <h2 style="color: #333; margin-top: 0;">Hi ${customerName}!</h2>
                         
                         <p style="color: #666; font-size: 16px; line-height: 1.6;">
-                            ${isUserResponse ? 'Your response has been added to' : 'There\'s a new response to'} ticket <strong>${ticketId}</strong>.
+                            ${isUserResponse ? "Your response has been added to" : "There's a new response to"} ticket <strong>${ticketId}</strong>.
                         </p>
                         
                         <div style="background: #f8f9ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #667eea;">
-                            <h4 style="color: #333; margin: 0 0 10px 0;">${isUserResponse ? 'Your Response:' : 'New Response:'}</h4>
-                            <p style="color: #555; margin: 0; font-style: italic;">"${responseMessage.substring(0, 200)}${responseMessage.length > 200 ? '...' : ''}"</p>
+                            <h4 style="color: #333; margin: 0 0 10px 0;">${isUserResponse ? "Your Response:" : "New Response:"}</h4>
+                            <p style="color: #555; margin: 0; font-style: italic;">"${responseMessage.substring(0, 200)}${responseMessage.length > 200 ? "..." : ""}"</p>
                         </div>
                         
                         <div style="text-align: center; margin-top: 30px;">
-                            <a href="${process.env.NEXT_PUBLIC_SITE_URL || 'https://meet-bhingradiya.vercel.app'}/tickets?id=${ticketId}" 
+                            <a href="${process.env.NEXT_PUBLIC_SITE_URL || "https://meet-bhingradiya.vercel.app"}/tickets?id=${ticketId}" 
                                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; display: inline-block; font-weight: bold;">
                                 🔍 View Full Conversation
                             </a>
@@ -97,13 +100,13 @@ async function sendNewResponseNotification(
         await transporter.sendMail({
             from: `"Meet Bhingradiya Support" <${process.env.SMTP_EMAIL}>`,
             to: process.env.SMTP_EMAIL, // Admin email
-            subject: `💬 ${isUserResponse ? 'New Customer Response' : 'Response Added'} - ${ticketId}`,
+            subject: `💬 ${isUserResponse ? "New Customer Response" : "Response Added"} - ${ticketId}`,
             html: emailHtml
         });
 
         return true;
     } catch (error) {
-        console.error('Failed to send response notification email:', error);
+        console.error("Failed to send response notification email:", error);
         return false;
     }
 }
@@ -120,7 +123,7 @@ export async function POST(request: NextRequest) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: 'Validation failed',
+                    error: "Validation failed",
                     details: validation.errors
                 },
                 { status: 400 }
@@ -128,18 +131,23 @@ export async function POST(request: NextRequest) {
         }
 
         // Find the ticket
-        const ticket = await Tickets_Model.findOne({ id: data.ticketId.toUpperCase() });
+        const ticket = await Tickets_Model.findOne({
+            id: data.ticketId.toUpperCase()
+        });
         if (!ticket) {
             return NextResponse.json(
-                { success: false, error: 'Ticket not found' },
+                { success: false, error: "Ticket not found" },
                 { status: 404 }
             );
         }
 
         // Check if ticket is closed
-        if (ticket.status === 'closed') {
+        if (ticket.status === "closed") {
             return NextResponse.json(
-                { success: false, error: 'Cannot add responses to closed tickets' },
+                {
+                    success: false,
+                    error: "Cannot add responses to closed tickets"
+                },
                 { status: 400 }
             );
         }
@@ -152,8 +160,10 @@ export async function POST(request: NextRequest) {
             user = await getUserFromSession(data.sessionID);
             if (user) {
                 // Check if user owns this ticket or if user email matches
-                isAuthorized = ticket.userID === user.UserID || 
-                             ticket.email === user.Emails.find(e => e.isPrimary)?.Email;
+                isAuthorized =
+                    ticket.userID === user.UserID ||
+                    ticket.email ===
+                        user.Emails.find((e) => e.isPrimary)?.Email;
             }
         }
 
@@ -164,7 +174,10 @@ export async function POST(request: NextRequest) {
 
         if (!isAuthorized) {
             return NextResponse.json(
-                { success: false, error: 'Access denied. You can only respond to your own tickets.' },
+                {
+                    success: false,
+                    error: "Access denied. You can only respond to your own tickets."
+                },
                 { status: 403 }
             );
         }
@@ -181,12 +194,12 @@ export async function POST(request: NextRequest) {
         // Add response to ticket
         ticket.responses.push(newResponse);
         ticket.updatedAt = new Date();
-        
+
         // Update status if it was closed/resolved
-        if (ticket.status === 'resolved') {
-            ticket.status = 'in-progress';
+        if (ticket.status === "resolved") {
+            ticket.status = "in-progress";
         }
-        
+
         await ticket.save();
 
         // Send notification email
@@ -198,13 +211,13 @@ export async function POST(request: NextRequest) {
                 true
             );
         } catch (emailError) {
-            console.error('Email notification failed:', emailError);
+            console.error("Email notification failed:", emailError);
             // Don't fail the response if email fails
         }
 
         return NextResponse.json({
             success: true,
-            message: 'Response added successfully!',
+            message: "Response added successfully!",
             response: {
                 id: responseId,
                 message: newResponse.message,
@@ -212,13 +225,12 @@ export async function POST(request: NextRequest) {
                 createdAt: newResponse.createdAt
             }
         });
-
     } catch (error) {
-        console.error('Add response error:', error);
+        console.error("Add response error:", error);
         return NextResponse.json(
             {
                 success: false,
-                error: 'Failed to add response. Please try again later.'
+                error: "Failed to add response. Please try again later."
             },
             { status: 500 }
         );

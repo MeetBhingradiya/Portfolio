@@ -1,10 +1,6 @@
 {
     "compilerOptions": {
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ],
+        "lib": ["dom", "dom.iterable", "esnext"],
         "allowJs": true,
         "skipLibCheck": true,
         "strict": true,
@@ -22,136 +18,53 @@
             }
         ],
         "paths": {
-
             // ? Root Aliases
-            "@Root/*": [
-                "./"
-            ],
-            "@/*": [
-                "./src/*"
-            ],
-            
+            "@Root/*": ["./"],
+            "@/*": ["./src/*"],
             // ? Public Aliases
-            "@Public/*": [
-                "./src/public/*"
-            ],
-
+            "@Public/*": ["./src/public/*"],
             // ? Routes Aliases
-            "@App/*": [
-                "./src/app/*"
-            ],
-            "@Pages/*": [
-                "./src/pages/*"
-            ],
-
+            "@App/*": ["./src/app/*"],
+            "@Pages/*": ["./src/pages/*"],
             // ? Config Aliases
-            "@Config": [
-                "./src/Config/index.ts"
-            ],
-            "@Config/*": [
-                "./src/Config/*"
-            ],
-
+            "@Config": ["./src/Config/index.ts"],
+            "@Config/*": ["./src/Config/*"],
             // ? Components Aliases
-            "@Components/*": [
-                "./src/Components/*"
-            ],
-
+            "@Components/*": ["./src/Components/*"],
             // ? Controllers Aliases
-            "@Controllers": [
-                "./src/Controllers/index.ts"
-            ],
-            "@Controllers/*": [
-                "./src/Controllers/*"
-            ],
-            
-            "@Middleware": [
-                "./src/Middleware/index.ts"
-            ],
-            "@Middleware/*": [
-                "./src/Middleware/*"
-            ],
-
-            "@Data/*": [
-                "./src/Data/*"
-            ],
-            "@Emails/*": [
-                "./src/Emails/*"
-            ],
-            
+            "@Controllers": ["./src/Controllers/index.ts"],
+            "@Controllers/*": ["./src/Controllers/*"],
+            "@Middleware": ["./src/Middleware/index.ts"],
+            "@Middleware/*": ["./src/Middleware/*"],
+            "@Data/*": ["./src/Data/*"],
+            "@Emails/*": ["./src/Emails/*"],
             // ? Hooks Aliases
-            "@Hooks": [
-                "./src/Hooks/index.ts"
-            ],
-            "@Hooks/*": [
-                "./src/Hooks/*"
-            ],
-
+            "@Hooks": ["./src/Hooks/index.ts"],
+            "@Hooks/*": ["./src/Hooks/*"],
             // ? Contexts Aliases
-            "@contexts/*": [
-                "./src/contexts/*"
-            ],
-
+            "@contexts/*": ["./src/contexts/*"],
             // ? Custom Hooks Aliases
-            "@hooks/*": [
-                "./src/hooks/*"
-            ],
-
+            "@hooks/*": ["./src/hooks/*"],
             // ? Models Aliases
-            "@Models": [
-                "./src/Models/index.ts"
-            ],
-            "@Models/*": [
-                "./src/Models/*"
-            ],
-
+            "@Models": ["./src/Models/index.ts"],
+            "@Models/*": ["./src/Models/*"],
             // ? Custom Librairies Aliases
-            "@Lib": [
-                "./src/Lib/index.ts"
-            ],
-            "@Lib/*": [
-                "./src/Lib/*"
-            ],
-
-            "@Library": [
-                "./src/Library/index.ts"
-            ],
-            "@Library/*": [
-                "./src/Library/*"
-            ],
-
+            "@Lib": ["./src/Lib/index.ts"],
+            "@Lib/*": ["./src/Lib/*"],
+            "@Library": ["./src/Library/index.ts"],
+            "@Library/*": ["./src/Library/*"],
             // ? Styles Aliases
-            "@Styles/*": [
-                "./src/Styles/*"
-            ],
-
+            "@Styles/*": ["./src/Styles/*"],
             // ? Types Aliases
-            "@Types/Server": [
-                "./src/Types/index.Server.ts"
-            ],
-            "@Types/Client": [
-                "./src/Types/index.Client.ts"
-            ],
-            "@Types": [
-                "./src/Types/index.ts"
-            ],
-            "@Types/*": [
-                "./src/Types/*"
-            ],
-
+            "@Types/Server": ["./src/Types/index.Server.ts"],
+            "@Types/Client": ["./src/Types/index.Client.ts"],
+            "@Types": ["./src/Types/index.ts"],
+            "@Types/*": ["./src/Types/*"],
             // ? Utils Aliases
-            "@Utils/Server": [
-                "./src/Utils/index.Server.ts"
-            ],
-            "@Utils/Client": [
-                "./src/Utils/index.Client.ts"
-            ],
-            "@Utils": [
-                "./src/Utils/index.ts"
-            ],
-            "@Utils/*": [
-                "./src/Utils/*"
-            ]
+            "@Utils/Server": ["./src/Utils/index.Server.ts"],
+            "@Utils/Client": ["./src/Utils/index.Client.ts"],
+            "@Utils": ["./src/Utils/index.ts"],
+            "@Utils/*": ["./src/Utils/*"]
         },
         "target": "ES2017"
     },
@@ -159,9 +72,9 @@
         "next-env.d.ts",
         "**/*.ts",
         "**/*.tsx",
-        ".next/types/**/*.ts"
-, "Scripts/TestProxyServer.mjs"    ],
-    "exclude": [
-        "node_modules"
-    ]
+        ".next/types/**/*.ts",
+        "Scripts/TestProxyServer.mjs",
+        "prettier.configcjs"
+    ],
+    "exclude": ["node_modules"]
 }

@@ -1,29 +1,23 @@
 import { NextRequest } from "next/server";
 import { Config } from "@Config";
 import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
-import * as jose from 'jose';
+import * as jose from "jose";
 import dbConnect from "@Utils/dbConnect";
 import { Bookmarks_Model } from "@Models/Bookmarks";
 import { verifyAdminToken } from "@Utils/verifyAdminToken";
 
-// ? Enables Cache 
-export const revalidate = 60
+// ? Enables Cache
+export const revalidate = 60;
 
 export async function POST(req: NextRequest) {
     try {
         // Parse request body
         const body = await req.json();
 
-        const {
-            _page,
-            _limit,
-            excludeID,
-            adminSignature,
-            query,
-        } = body;
+        const { _page, _limit, excludeID, adminSignature, query } = body;
 
-        let page = parseInt(_page || '1');
-        let limit = parseInt(_limit || '20');
+        let page = parseInt(_page || "1");
+        let limit = parseInt(_limit || "20");
 
         if (limit > 20) {
             limit = 20;
@@ -32,15 +26,18 @@ export async function POST(req: NextRequest) {
         if (limit < 5) {
             limit = 5;
         }
-        
-        const adminToken = req.headers.get('x-admin-signature') || adminSignature;
-        const isAdmin = await verifyAdminToken(adminToken || '');
-        
+
+        const adminToken =
+            req.headers.get("x-admin-signature") || adminSignature;
+        const isAdmin = await verifyAdminToken(adminToken || "");
+
         // Get already added bookmark IDs from body
-        const excludeIds = Array.isArray(excludeID) 
-            ? excludeID 
-            : (excludeID ? excludeID.split(',') : []);
-            
+        const excludeIds = Array.isArray(excludeID)
+            ? excludeID
+            : excludeID
+              ? excludeID.split(",")
+              : [];
+
         await dbConnect();
 
         // ? Sort By Pipeline (First Attempt)
@@ -48,34 +45,34 @@ export async function POST(req: NextRequest) {
             // ? Sponsored Bookmarks have highest priority
             isSponsored: -1,
             // ? Exact match in Name field
-            ...(query ? { 'exactNameMatch': -1 } : {}),
+            ...(query ? { exactNameMatch: -1 } : {}),
             // ? Starts with query in Name field
-            ...(query ? { 'startsWithMatch': -1 } : {}),
+            ...(query ? { startsWithMatch: -1 } : {}),
             // ? Keyword match
-            ...(query ? { 'keywordMatch': -1 } : {}),
+            ...(query ? { keywordMatch: -1 } : {}),
             // ? WebLink match
-            ...(query ? { 'urlMatch': -1 } : {}),
+            ...(query ? { urlMatch: -1 } : {}),
             // ? Finally sort by name alphabetically
             Name: 1
         };
 
         // ? Pipeline for advanced search and sorting
         let pipeline = [];
-        
+
         // ? Match stage for basic filtering
         pipeline.push({
             $match: {
                 isDeleted: false,
                 BookmarkID: { $nin: excludeIds },
                 isPublished: isAdmin ? { $ne: false } : true,
-                isAdminOnly: isAdmin ? { $ne: false } : false,
+                isAdminOnly: isAdmin ? { $ne: false } : false
             }
         });
 
         // ? If query is provided, add text search logic
         if (query && query.trim().length > 0) {
-            const queryRegex = new RegExp(query, 'i');
-            
+            const queryRegex = new RegExp(query, "i");
+
             pipeline.push({
                 $match: {
                     $or: [
@@ -94,27 +91,51 @@ export async function POST(req: NextRequest) {
                 $addFields: {
                     exactNameMatch: {
                         $cond: {
-                            if: { $eq: [{ $toLower: "$Name" }, query.toLowerCase()] },
+                            if: {
+                                $eq: [
+                                    { $toLower: "$Name" },
+                                    query.toLowerCase()
+                                ]
+                            },
                             then: 1,
                             else: 0
                         }
                     },
                     startsWithMatch: {
                         $cond: {
-                            if: { $regexMatch: { input: { $toLower: "$Name" }, regex: new RegExp(`^${query.toLowerCase()}`) } },
+                            if: {
+                                $regexMatch: {
+                                    input: { $toLower: "$Name" },
+                                    regex: new RegExp(`^${query.toLowerCase()}`)
+                                }
+                            },
                             then: 1,
                             else: 0
                         }
                     },
                     keywordMatch: {
                         $cond: {
-                            if: { 
+                            if: {
                                 $gt: [
-                                    { $size: { $filter: { 
-                                        input: { $ifNull: ["$Keywords", []] }, 
-                                        as: "keyword", 
-                                        cond: { $regexMatch: { input: { $toLower: "$$keyword" }, regex: queryRegex } } 
-                                    }}},
+                                    {
+                                        $size: {
+                                            $filter: {
+                                                input: {
+                                                    $ifNull: ["$Keywords", []]
+                                                },
+                                                as: "keyword",
+                                                cond: {
+                                                    $regexMatch: {
+                                                        input: {
+                                                            $toLower:
+                                                                "$$keyword"
+                                                        },
+                                                        regex: queryRegex
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    },
                                     0
                                 ]
                             },
@@ -124,7 +145,12 @@ export async function POST(req: NextRequest) {
                     },
                     urlMatch: {
                         $cond: {
-                            if: { $regexMatch: { input: { $toLower: "$WebLink" }, regex: queryRegex } },
+                            if: {
+                                $regexMatch: {
+                                    input: { $toLower: "$WebLink" },
+                                    regex: queryRegex
+                                }
+                            },
                             then: 1,
                             else: 0
                         }
@@ -135,14 +161,14 @@ export async function POST(req: NextRequest) {
 
         // ? Sort stage
         pipeline.push({ $sort: sortPriority });
-        
+
         // ? Skip and limit for pagination
         pipeline.push({ $skip: (page - 1) * limit });
         pipeline.push({ $limit: limit });
 
         // Explicitly cast pipeline to any to avoid TypeScript errors with complex aggregation pipelines
         let Bookmarks = await Bookmarks_Model.aggregate(pipeline as any).exec();
-        
+
         if (!Bookmarks || Bookmarks.length === 0) {
             return ControllerResponseMap({
                 Status: 1,

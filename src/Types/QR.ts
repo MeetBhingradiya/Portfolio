@@ -1,6 +1,6 @@
 // ? Templates
 
-// @ UPI -> Brands : GPay, PhonePe, Paytm, Fampay, Amazonpay, 
+// @ UPI -> Brands : GPay, PhonePe, Paytm, Fampay, Amazonpay,
 // @ Wifi
 // @ Bluetooth
 // @ Contact
@@ -55,7 +55,7 @@ enum DataTemplates {
     Twitter = "Twitter",
     LinkedIn = "LinkedIn",
     YouTube = "YouTube",
-    WhatsApp = "WhatsApp",
+    WhatsApp = "WhatsApp"
 }
 
 export { DataTemplates };

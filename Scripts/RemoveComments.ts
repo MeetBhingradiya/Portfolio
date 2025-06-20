@@ -1,8 +1,8 @@
-import path from 'path';
-import fs from 'fs';
+import path from "path";
+import fs from "fs";
 
-const WhitelistedExtensions = ['.ts', '.tsx', '.js', '.jsx'];
-const targetDirectory = path.resolve('src');
+const WhitelistedExtensions = [".ts", ".tsx", ".js", ".jsx"];
+const targetDirectory = path.resolve("src");
 
 function getAllFiles(dir: string, allFiles: string[] = []): string[] {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -11,7 +11,10 @@ function getAllFiles(dir: string, allFiles: string[] = []): string[] {
         const fullPath = path.join(dir, entry.name);
         if (entry.isDirectory()) {
             getAllFiles(fullPath, allFiles);
-        } else if (entry.isFile() && WhitelistedExtensions.includes(path.extname(entry.name))) {
+        } else if (
+            entry.isFile() &&
+            WhitelistedExtensions.includes(path.extname(entry.name))
+        ) {
             allFiles.push(fullPath);
         }
     }
@@ -22,13 +25,15 @@ function getAllFiles(dir: string, allFiles: string[] = []): string[] {
 async function processFile(filePath: string): Promise<void> {
     console.log(`[File Licensing] Cleaning comment from: ${filePath}`);
 
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    const fileContent = fs.readFileSync(filePath, "utf-8");
 
     let updatedContent: string;
-    if (fileContent.startsWith('/**')) {
-        const closingIndex = fileContent.indexOf('*/');
+    if (fileContent.startsWith("/**")) {
+        const closingIndex = fileContent.indexOf("*/");
         if (closingIndex !== -1) {
-            const contentAfterComment = fileContent.slice(closingIndex + 2).trimStart();
+            const contentAfterComment = fileContent
+                .slice(closingIndex + 2)
+                .trimStart();
             updatedContent = contentAfterComment;
         } else {
             console.warn(`⚠️ Malformed comment block in: ${filePath}`);
@@ -40,9 +45,12 @@ async function processFile(filePath: string): Promise<void> {
     }
 
     try {
-        fs.writeFileSync(filePath, updatedContent, 'utf-8');
+        fs.writeFileSync(filePath, updatedContent, "utf-8");
     } catch (error) {
-        console.error(`❌ Failed to update ${filePath}:`, (error as Error).message);
+        console.error(
+            `❌ Failed to update ${filePath}:`,
+            (error as Error).message
+        );
     }
 }
 
@@ -51,7 +59,7 @@ async function processAllFilesInSrc() {
 
     const allFiles = getAllFiles(targetDirectory);
     if (allFiles.length === 0) {
-        console.log('✅ No files found in src/ to clean.');
+        console.log("✅ No files found in src/ to clean.");
         return;
     }
 

@@ -4,11 +4,10 @@ import "@Styles/Auth.sass";
 
 // @ File
 export default function AuthLayout({
-    children,
+    children
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-
     return (
         <>
             <Aurora
@@ -19,7 +18,7 @@ export default function AuthLayout({
             />
             <Particles
                 className="custom-particles"
-                particleColors={['#ffffff', '#ffffff']}
+                particleColors={["#ffffff", "#ffffff"]}
                 particleCount={200}
                 particleSpread={10}
                 speed={0.1}

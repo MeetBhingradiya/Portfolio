@@ -4,13 +4,13 @@ const predefinedBackgrounds = [
         id: "Defualt-Dark",
         type: "gradient",
         value: "linear-gradient(117deg, #1B242D 41.82%, #361B2B 60.59%), radial-gradient(circle at center, rgb(0, 15, 24), rgb(0,0,0) 70%)",
-        name: "Default Dark",
+        name: "Default Dark"
     },
     {
         id: "Defualt-Light",
         type: "gradient",
         value: "linear-gradient(117deg, #e4f1ff 41.82%, #ffdff2 60.59%), radial-gradient(circle at center, rgb(255, 255, 255), rgb(240, 240, 240) 70%)",
-        name: "Default Dark",
+        name: "Default Dark"
     },
 
     // Solid colors
@@ -42,7 +42,12 @@ const predefinedBackgrounds = [
     { id: "solid-26", type: "color", value: "#7cfc00", name: "Lawn Green" },
     { id: "solid-27", type: "color", value: "#00ffff", name: "Aqua" },
     { id: "solid-28", type: "color", value: "#00ced1", name: "Dark Turquoise" },
-    { id: "solid-29", type: "color", value: "#20b2aa", name: "Light Sea Green" },
+    {
+        id: "solid-29",
+        type: "color",
+        value: "#20b2aa",
+        name: "Light Sea Green"
+    },
     { id: "solid-30", type: "color", value: "#008080", name: "Teal" },
     { id: "solid-31", type: "color", value: "#0000ff", name: "Blue" },
     { id: "solid-32", type: "color", value: "#00008b", name: "Dark Blue" },
@@ -57,7 +62,12 @@ const predefinedBackgrounds = [
     { id: "solid-41", type: "color", value: "#9932cc", name: "Dark Orchid" },
     { id: "solid-42", type: "color", value: "#ba55d3", name: "Medium Orchid" },
     { id: "solid-43", type: "color", value: "#ff00ff", name: "Fuchsia" },
-    { id: "solid-44", type: "color", value: "#c71585", name: "Medium Violet Red" },
+    {
+        id: "solid-44",
+        type: "color",
+        value: "#c71585",
+        name: "Medium Violet Red"
+    },
     { id: "solid-45", type: "color", value: "#ff1493", name: "Deep Pink" },
     { id: "solid-46", type: "color", value: "#ff69b4", name: "Hot Pink" },
     { id: "solid-47", type: "color", value: "#8b4513", name: "Saddle Brown" },

@@ -41,7 +41,4 @@ function getRelativeTime(date: Date): string {
     return diff < 0 ? `in ${years} years` : `${years} years ago`;
 }
 
-export {
-    getRelativeTime,
-    isFutureDate
-}
+export { getRelativeTime, isFutureDate };

@@ -17,7 +17,9 @@ export async function POST(req: NextRequest, { params }: Params) {
         const body = await req.json();
         const { adminSignature, bookmark } = body;
 
-        const isAdminAuthenticated = await verifyAdminToken(adminSignature || req.headers.get('x-admin-signature'));
+        const isAdminAuthenticated = await verifyAdminToken(
+            adminSignature || req.headers.get("x-admin-signature")
+        );
         if (!isAdminAuthenticated) {
             return ControllerResponseMap({
                 Status: 0,
@@ -26,7 +28,7 @@ export async function POST(req: NextRequest, { params }: Params) {
             });
         }
 
-        if (!params.id || params.id === 'undefined') {
+        if (!params.id || params.id === "undefined") {
             return ControllerResponseMap({
                 Status: 0,
                 Message: "Invalid bookmark ID",
@@ -34,7 +36,9 @@ export async function POST(req: NextRequest, { params }: Params) {
             });
         }
 
-        const existingID = await Bookmarks_Model.findOne({ BookmarkID: params.id });
+        const existingID = await Bookmarks_Model.findOne({
+            BookmarkID: params.id
+        });
         if (existingID) {
             return ControllerResponseMap({
                 Status: 0,

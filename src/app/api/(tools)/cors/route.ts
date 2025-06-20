@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import axios from 'axios';
+import { NextRequest, NextResponse } from "next/server";
+import axios from "axios";
 
 // export async function GET(req: NextRequest) {
 //     try {
@@ -53,16 +53,16 @@ export async function POST(req: NextRequest) {
 
         if (!body.endpoint) {
             return NextResponse.json(
-                { error: 'Endpoint is required' },
+                { error: "Endpoint is required" },
                 { status: 400 }
             );
         }
 
         const axiosConfig = {
             url: body.endpoint,
-            method: body.method || 'GET',
+            method: body.method || "GET",
             headers: body.headers || {},
-            data: body.body,
+            data: body.body
         };
 
         const response = await axios(axiosConfig);
@@ -71,13 +71,13 @@ export async function POST(req: NextRequest) {
             status: response.status,
             statusText: response.statusText,
             headers: response.headers,
-            data: response.data,
+            data: response.data
         });
     } catch (error: any) {
         return NextResponse.json(
             {
                 error: error.message,
-                details: error.response?.data || null,
+                details: error.response?.data || null
             },
             { status: error.response?.status || 500 }
         );

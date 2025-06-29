@@ -96,7 +96,7 @@ const footerSections: FooterSection[] = [
             },
             {
                 label: "LinkedIn",
-                href: "https://linkedin.com/in/meetbhingradiya",
+                href: "https://linkedin.com/in/meet-bhingradiya",
                 external: true
             },
             {

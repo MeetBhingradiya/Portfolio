@@ -40,6 +40,8 @@ const nextConfig: NextConfig = {
     devIndicators: {
         position: "bottom-right"
     },
+    
+    
     // crossOrigin: "anonymous",
     images: {
         loader: "custom",

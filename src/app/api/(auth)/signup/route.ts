@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCurrentState } from "@Controllers/State";
 import { Users_Model, IUser } from "@Models/Users";
 import { OTPs_Model, IOTP, OTPs } from "@Models/OneTimePass";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
@@ -13,6 +14,40 @@ import { dbConnect } from "@Utils/dbConnect";
 import { log } from "@Utils";
 import { OTP } from "@Utils/OTP";
 import { createEmailTransport } from "@Utils/EmailSend";
+
+// Helper function to validate password against state requirements
+function validatePasswordAgainstState(password: string, requirements: any) {
+    const errors: string[] = [];
+
+    if (password.length < requirements.Min_Length) {
+        errors.push(`Password must be at least ${requirements.Min_Length} characters long`);
+    }
+
+    if (password.length > requirements.Max_Length) {
+        errors.push(`Password must not exceed ${requirements.Max_Length} characters`);
+    }
+
+    if (requirements.Require_Uppercase && !/[A-Z]/.test(password)) {
+        errors.push('Password must contain at least one uppercase letter');
+    }
+
+    if (requirements.Require_Lowercase && !/[a-z]/.test(password)) {
+        errors.push('Password must contain at least one lowercase letter');
+    }
+
+    if (requirements.Require_Numbers && !/\d/.test(password)) {
+        errors.push('Password must contain at least one number');
+    }
+
+    if (requirements.Require_Special_Characters && !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        errors.push('Password must contain at least one special character');
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
+}
 
 async function sendOTPEmail(
     email: string,
@@ -132,6 +167,62 @@ export async function POST(req: NextRequest) {
 
     try {
         await dbConnect();
+
+        // Check state settings before allowing signup
+        const currentState = await getCurrentState();
+        if (!currentState) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Service configuration error",
+                    StatusCode: 503
+                },
+                { status: 503 }
+            );
+        }
+
+        // Check if signup is enabled
+        if (!currentState.Authentication.Signup_Enabled) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Registration is currently disabled",
+                    StatusCode: 403
+                },
+                { status: 403 }
+            );
+        }
+
+        // Check email domain whitelist
+        const emailDomain = Body.email.split('@')[1]?.toLowerCase();
+        if (emailDomain && currentState.Authentication.Whitelisted_Email_Domains.length > 0) {
+            if (!currentState.Authentication.Whitelisted_Email_Domains.includes(emailDomain)) {
+                return NextResponse.json(
+                    {
+                        Status: 0,
+                        Message: `Email domain '${emailDomain}' is not allowed for registration`,
+                        StatusCode: 403
+                    },
+                    { status: 403 }
+                );
+            }
+        }
+
+        // Validate password against state requirements
+        const passwordValidation = validatePasswordAgainstState(Body.password, currentState.Authentication.Password_Strength);
+        if (!passwordValidation.isValid) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Password does not meet requirements",
+                    StatusCode: 400,
+                    Data: {
+                        errors: passwordValidation.errors
+                    }
+                },
+                { status: 400 }
+            );
+        }
 
         // ? Check if email is already registered
         const FindUser = await Users_Model.findOne({

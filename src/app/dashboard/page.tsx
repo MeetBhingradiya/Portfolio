@@ -559,17 +559,18 @@ export default function Dashboard() {
                             />
                             {State.DashboardData.user.isAdmin && (
                                 <Tooltip content="Admin Panel">
-                                    {" "}
                                     <Button
                                         color="secondary"
                                         variant="bordered"
                                         isIconOnly
                                         onPress={() => router.push("/admin")}
                                         className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
+                                        {" "}
                                         <AdminPanelSettings />
                                     </Button>
                                 </Tooltip>
-                            )}{" "}
+                            )}
+                            {" "}
                             <Button
                                 color="danger"
                                 variant="bordered"

@@ -7,6 +7,7 @@ import { IPData, log } from "@Utils";
 import { dbConnect } from "@Utils/dbConnect";
 import { generateAuthToken } from "@Utils/JWT";
 import { Config } from "@Config";
+import { getCurrentState } from "@Controllers/State";
 import crypto from "crypto";
 
 export async function POST(req: NextRequest) {
@@ -32,6 +33,31 @@ export async function POST(req: NextRequest) {
         }
 
         await dbConnect();
+
+        // Check state settings before allowing signin
+        const currentState = await getCurrentState();
+        if (!currentState) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Service configuration error",
+                    StatusCode: 503
+                },
+                { status: 503 }
+            );
+        }
+
+        // Check if signin is enabled
+        if (!currentState.Authentication.Signin_Enabled) {
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "Sign in is currently disabled",
+                    StatusCode: 403
+                },
+                { status: 403 }
+            );
+        }
 
         // Find user by username or email (flexible lookup)
         const user = await Users_Model.findOne({

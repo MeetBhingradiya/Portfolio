@@ -1111,7 +1111,7 @@ function Tools() {
                         height: `${gridHeight}px`,
                         overflow: "visible"
                     }}>
-                    {[...DefualtBookmarks, ...State.FilterBookmarks].map(
+                    {State.FilterBookmarks.map(
                         (item, index) => (
                             <GridItem
                                 // className="ListItem"

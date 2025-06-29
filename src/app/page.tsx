@@ -17,14 +17,14 @@ export default function HomePage() {
             {/* Hero Section */}
             <GitHubStyleHero />
 
+            {/* Technology Groups */}
+            <TechnologyGroups />
+
             {/* Horizontal Showcase */}
             <HorizontalShowcase />
 
             {/* Blogs Section */}
             <BlogsSection />
-
-            {/* Technology Groups */}
-            <TechnologyGroups />
 
             {/* Contact Section */}
             <ContactSection />

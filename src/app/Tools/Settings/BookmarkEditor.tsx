@@ -38,7 +38,9 @@ import {
     Shield,
     Star,
     EditOff,
-    DeleteForever
+    DeleteForever,
+    Photo,
+    CheckCircle
 } from "@mui/icons-material";
 import {
     Card,
@@ -59,6 +61,7 @@ import {
 import SvgComponent from "@Components/SVGComponent";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "react-toastify";
+import { Axios } from "@Utils/Axios";
 import Image from "next/image";
 import type { IBookmark } from "./Types";
 import { DefualtBookmark, ILinkOpenTypes } from "./Types";
@@ -295,61 +298,307 @@ function BookmarkEditor({
         setKeywordSuggestions(newSuggestions);
     };
 
+    // Simple/Advanced mode toggle
+    const [isAdvancedMode, setIsAdvancedMode] = React.useState<boolean>(false);
+    const [isAutoDetecting, setIsAutoDetecting] = React.useState<boolean>(false);
+
+    // Auto-detect name from URL
+    const autoDetectName = async (url: string) => {
+        if (!url) return;
+        
+        try {
+            setIsAutoDetecting(true);
+            
+            // First try direct fetch
+            let htmlContent = '';
+            let corsUsed = false;
+
+            try {
+                const response = await fetch(url, { method: 'GET', mode: 'cors' });
+                htmlContent = await response.text();
+            } catch {
+                // Use CORS proxy if direct fetch fails
+                corsUsed = true;
+                const corsResponse = await Axios.post('/api/cors', {
+                    body: {
+                        endpoint: url,
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        }
+                    }
+                });
+
+                if (corsResponse.data.status === 200) {
+                    htmlContent = corsResponse.data.data;
+                } else {
+                    throw new Error('Failed to fetch through CORS proxy');
+                }
+            }
+
+            // Extract title from HTML
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+            const title = doc.querySelector('title')?.textContent?.trim();
+            
+            if (title) {
+                setEditedBookmark(prev => ({
+                    ...prev,
+                    Name: title
+                }));
+                toast.success(`Auto-detected name: "${title}" ${corsUsed ? '(via CORS proxy)' : ''}`);
+            } else {
+                // Fallback to domain name
+                const domain = new URL(url).hostname.replace('www.', '');
+                const fallbackName = domain.charAt(0).toUpperCase() + domain.slice(1);
+                setEditedBookmark(prev => ({
+                    ...prev,
+                    Name: fallbackName
+                }));
+                toast.info(`Used domain as name: "${fallbackName}"`);
+            }
+        } catch (error) {
+            console.error('Auto-detect name error:', error);
+            // Fallback to domain name on error
+            try {
+                const domain = new URL(url).hostname.replace('www.', '');
+                const fallbackName = domain.charAt(0).toUpperCase() + domain.slice(1);
+                setEditedBookmark(prev => ({
+                    ...prev,
+                    Name: fallbackName
+                }));
+                toast.info(`Used domain as name: "${fallbackName}"`);
+            } catch {
+                toast.error('Failed to auto-detect name');
+            }
+        } finally {
+            setIsAutoDetecting(false);
+        }
+    };
+
+    // Quick setup from URL only
+    const handleQuickSetup = async () => {
+        if (!editedBookmark.WebLink) {
+            toast.error("Please enter a URL first");
+            return;
+        }
+
+        // Auto-detect name if not provided
+        if (!editedBookmark.Name.trim()) {
+            await autoDetectName(editedBookmark.WebLink);
+        }
+
+        // Auto-detect favicon
+        await detectFavicon();
+    };
+    const [faviconDetection, setFaviconDetection] = React.useState({
+        isDetecting: false,
+        detectedFavicons: [] as Array<{
+            url: string;
+            size: string;
+            type: string;
+            source: 'html' | 'default';
+            isDefault?: boolean;
+        }>,
+        selectedFavicon: '',
+        error: null as string | null
+    });
+
     // Try to detect favicon from URL
-    const detectFavicon = () => {
-        toast.info("Favicon Detection Currently not Available");
-        // if (!editedBookmark.WebLink) return;
+    const detectFavicon = async () => {
+        if (!editedBookmark.WebLink) {
+            toast.error("Please enter a web link first");
+            return;
+        }
 
-        // const url = new URL(editedBookmark.WebLink);
-        // const faviconUrl = `${url.protocol}//${url.hostname}/favicon.ico`;
+        try {
+            new URL(editedBookmark.WebLink);
+        } catch {
+            toast.error("Please enter a valid URL");
+            return;
+        }
 
-        // // Check if the favicon URL is valid by making a request
-        // fetch(faviconUrl)
-        //     .then(response => {
-        //         if (response.ok) {
-        //             setIconPreviewUrl(faviconUrl);
+        setFaviconDetection(prev => ({
+            ...prev,
+            isDetecting: true,
+            detectedFavicons: [],
+            error: null
+        }));
 
-        //             // Update the bookmark with the favicon URL
-        //             setEditedBookmark(prev => ({
-        //                 ...prev,
-        //                 Icon: faviconUrl,
-        //                 isSVG: false
-        //             }));
-        //         } else {
-        //             console.error('Favicon not found:', faviconUrl);
-        //         }
-        //     })
-        //     .catch(error => {
-        //         fetch(editedBookmark.WebLink)
-        //             .then((response) => response.text())
-        //             .then((html) => {
-        //                 const parser = new DOMParser();
-        //                 const doc = parser.parseFromString(html, 'text/html');
-        //                 const link = doc.querySelector("link[rel*='icon']") || doc.querySelector("link[rel*='shortcut icon']");
-        //                 const href = link?.getAttribute('href');
+        const detectedFavicons: Array<{
+            url: string;
+            size: string;
+            type: string;
+            source: 'html' | 'default';
+            isDefault?: boolean;
+        }> = [];
+        const url = editedBookmark.WebLink;
+        const domain = new URL(url).origin;
 
-        //                 if (href) {
-        //                     // Attempt to find HD icon by checking for larger sizes
-        //                     const hdLink = doc.querySelector("link[rel*='icon'][sizes='192x192']") ||
-        //                         doc.querySelector("link[rel*='icon'][sizes='512x512']") ||
-        //                         link;
+        try {
+            // First, try to fetch the HTML directly
+            let htmlContent = '';
+            let corsUsed = false;
 
-        //                     const hdHref = hdLink?.getAttribute('href') || href;
+            try {
+                const directResponse = await fetch(url, {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                htmlContent = await directResponse.text();
+            } catch (corsError) {
+                // If CORS fails, use your CORS proxy API
+                console.log('Direct fetch failed, using CORS proxy...');
+                corsUsed = true;
+                
+                const corsResponse = await Axios.post('/api/cors', {
+                    body: {
+                        endpoint: url,
+                        method: 'GET',
+                        headers: {
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                        }
+                    }
+                });
 
-        //                     setIconPreviewUrl(hdHref);
+                if (corsResponse.data.status === 200) {
+                    htmlContent = corsResponse.data.data;
+                } else {
+                    throw new Error('Failed to fetch through CORS proxy');
+                }
+            }
 
-        //                     // Update the bookmark with the favicon URL
-        //                     setEditedBookmark(prev => ({
-        //                         ...prev,
-        //                         Icon: hdHref,
-        //                         isSVG: false
-        //                     }));
-        //                 }
-        //             })
-        //             .catch((error) => {
-        //                 console.error('Error fetching website HTML:', error);
-        //             });
-        //     });
+            // Parse HTML to find favicon links
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlContent, 'text/html');
+
+            // Standard favicon selectors
+            const faviconSelectors = [
+                'link[rel="icon"]',
+                'link[rel="shortcut icon"]', 
+                'link[rel="apple-touch-icon"]',
+                'link[rel="apple-touch-icon-precomposed"]',
+                'link[rel="mask-icon"]',
+                'link[rel="fluid-icon"]'
+            ];
+
+            // Extract favicons from HTML
+            for (const selector of faviconSelectors) {
+                const elements = doc.querySelectorAll(selector);
+                elements.forEach((element: Element) => {
+                    const href = element.getAttribute('href');
+                    const sizes = element.getAttribute('sizes') || 'unknown';
+                    const type = element.getAttribute('type') || 'unknown';
+                    
+                    if (href) {
+                        let faviconUrl = href;
+                        
+                        // Handle relative URLs
+                        if (href.startsWith('//')) {
+                            faviconUrl = `https:${href}`;
+                        } else if (href.startsWith('/')) {
+                            faviconUrl = `${domain}${href}`;
+                        } else if (!href.startsWith('http')) {
+                            faviconUrl = `${domain}/${href}`;
+                        }
+                        
+                        detectedFavicons.push({
+                            url: faviconUrl,
+                            size: sizes,
+                            type: type,
+                            source: 'html' as const
+                        });
+                    }
+                });
+            }
+
+            // Add default favicon.ico if not found in HTML
+            const defaultFaviconUrl = `${domain}/favicon.ico`;
+            const hasDefaultFavicon = detectedFavicons.some(f => f.url === defaultFaviconUrl);
+            
+            if (!hasDefaultFavicon) {
+                // Check if default favicon exists
+                try {
+                    let faviconExists = false;
+                    
+                    try {
+                        const response = await fetch(defaultFaviconUrl, { method: 'HEAD' });
+                        faviconExists = response.ok;
+                    } catch {
+                        // Try with CORS proxy
+                        if (corsUsed) {
+                            const corsResponse = await Axios.post('/api/cors', {
+                                body: {
+                                    endpoint: defaultFaviconUrl,
+                                    method: 'HEAD'
+                                }
+                            });
+                            faviconExists = corsResponse.data.status === 200;
+                        }
+                    }
+
+                    if (faviconExists) {
+                        detectedFavicons.unshift({
+                            url: defaultFaviconUrl,
+                            size: '16x16',
+                            type: 'image/x-icon',
+                            source: 'default' as const,
+                            isDefault: true
+                        });
+                    }
+                } catch (error) {
+                    console.log('Could not verify default favicon:', error);
+                }
+            }
+
+            // Remove duplicates
+            const uniqueFavicons = detectedFavicons.filter((favicon, index, self) => 
+                index === self.findIndex(f => f.url === favicon.url)
+            );
+
+            // Select default favicon (prefer /favicon.ico, then first HTML found)
+            let selectedFavicon = '';
+            const defaultFav = uniqueFavicons.find(f => f.isDefault);
+            if (defaultFav) {
+                selectedFavicon = defaultFav.url;
+            } else if (uniqueFavicons.length > 0) {
+                selectedFavicon = uniqueFavicons[0].url;
+            }
+
+            setFaviconDetection(prev => ({
+                ...prev,
+                isDetecting: false,
+                detectedFavicons: uniqueFavicons,
+                selectedFavicon,
+                error: null
+            }));
+
+            if (uniqueFavicons.length > 0) {
+                toast.success(`Found ${uniqueFavicons.length} favicon(s)! ${corsUsed ? '(via CORS proxy)' : ''}`);
+            } else {
+                toast.warning("No favicons found on this website");
+            }
+
+        } catch (error: any) {
+            console.error('Favicon detection error:', error);
+            setFaviconDetection(prev => ({
+                ...prev,
+                isDetecting: false,
+                error: error.message || 'Failed to detect favicons'
+            }));
+            toast.error(`Failed to detect favicons: ${error.message}`);
+        }
+    };
+
+    // Apply selected favicon
+    const applySelectedFavicon = () => {
+        if (faviconDetection.selectedFavicon) {
+            setEditedBookmark(prev => ({
+                ...prev,
+                Icon: faviconDetection.selectedFavicon
+            }));
+            toast.success("Favicon applied successfully!");
+        }
     };
 
     // Detect if a URL is an Android app deep link
@@ -511,6 +760,145 @@ function BookmarkEditor({
             </div>
 
             <div className="flex flex-col gap-7 w-full">
+                {/* Mode Toggle */}
+                <div className="flex justify-between items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border">
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            {isAdvancedMode ? (
+                                <Security className="text-primary" />
+                            ) : (
+                                <Star className="text-primary" />
+                            )}
+                            <div>
+                                <h3 className="font-semibold">
+                                    {isAdvancedMode ? "Advanced Mode" : "Simple Mode"}
+                                </h3>
+                                <p className="text-xs text-gray-500">
+                                    {isAdvancedMode 
+                                        ? "Full control with all features" 
+                                        : "Quick setup with just URL and name"
+                                    }
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button
+                            size="sm"
+                            color="primary"
+                            variant="flat"
+                            onPress={() => setIsAdvancedMode(!isAdvancedMode)}>
+                            {isAdvancedMode ? "Switch to Simple" : "Advanced Options"}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* Simple Mode */}
+                {!isAdvancedMode && (
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-col gap-4">
+                            <h2 className="text-xl font-semibold flex items-center gap-2">
+                                <Add className="text-primary" />
+                                Quick Bookmark Setup
+                            </h2>
+                            
+                            <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <div className="flex items-start gap-3">
+                                    <Info className="text-blue-500 mt-1" />
+                                    <div>
+                                        <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                            Easy Setup
+                                        </p>
+                                        <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                            Just enter a URL and we'll automatically detect the website name and icon for you!
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                                <Input
+                                    name="WebLink"
+                                    label="Website URL"
+                                    placeholder="https://example.com"
+                                    value={editedBookmark.WebLink}
+                                    onChange={handleInputChange}
+                                    isRequired={isCreateMode}
+                                    isInvalid={!!errors.URL}
+                                    errorMessage={errors.URL}
+                                    startContent={<Language className="text-default-400" />}
+                                    description="Enter the website URL you want to bookmark"
+                                    size="lg"
+                                />
+
+                                <Input
+                                    name="Name"
+                                    label="Bookmark Name (Optional)"
+                                    placeholder="We'll auto-detect this from the website"
+                                    value={editedBookmark.Name}
+                                    onChange={handleInputChange}
+                                    startContent={<Label className="text-default-400" />}
+                                    description="Leave empty to auto-detect from website title"
+                                    size="lg"
+                                />
+                            </div>
+
+                            <div className="flex flex-col gap-3">
+                                <Button
+                                    size="lg"
+                                    color="primary"
+                                    onPress={handleQuickSetup}
+                                    isLoading={isAutoDetecting || faviconDetection.isDetecting}
+                                    isDisabled={!editedBookmark.WebLink || !isValidUrl}
+                                    className="w-full"
+                                    startContent={<CheckCircle />}>
+                                    {isAutoDetecting || faviconDetection.isDetecting 
+                                        ? "Setting up bookmark..." 
+                                        : "Auto-Setup Bookmark"
+                                    }
+                                </Button>
+                                
+                                <div className="grid grid-cols-2 gap-2">
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        onPress={() => window.open(editedBookmark.WebLink, "_blank")}
+                                        isDisabled={!editedBookmark.WebLink || !isValidUrl}
+                                        startContent={<Language />}>
+                                        Test URL
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        color="secondary"
+                                        variant="flat"
+                                        onPress={() => setIsAdvancedMode(true)}
+                                        startContent={<Security />}>
+                                        Advanced Options
+                                    </Button>
+                                </div>
+                            </div>
+
+                            {/* Simple Preview */}
+                            {(editedBookmark.Name || editedBookmark.WebLink) && (
+                                <div className="mt-4">
+                                    <h3 className="text-sm font-semibold mb-3">Preview</h3>
+                                    <div className="flex justify-center">
+                                        <BookmarkItem
+                                            Data={editedBookmark}
+                                            isMobileRender={true}
+                                            isAdmin={isAdmin}
+                                            drag={false}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Advanced Mode */}
+                {isAdvancedMode && (
+                    <div className="flex flex-col gap-7">
                 {/* General Information Tab */}
                 <div className="flex flex-col gap-4">
                     <h2 className="text-xl font-semibold">Basic Information</h2>
@@ -599,10 +987,11 @@ function BookmarkEditor({
                                     color="primary"
                                     variant="flat"
                                     onPress={detectFavicon}
+                                    isLoading={faviconDetection.isDetecting}
                                     isDisabled={
-                                        !isValidUrl || !editedBookmark.WebLink
+                                        !isValidUrl || !editedBookmark.WebLink || faviconDetection.isDetecting
                                     }>
-                                    Detect Favicon
+                                    {faviconDetection.isDetecting ? "Detecting..." : "Detect Favicon"}
                                 </Button>
 
                                 <Button
@@ -620,6 +1009,86 @@ function BookmarkEditor({
                                     Test URL
                                 </Button>
                             </div>
+
+                            {/* Favicon Detection Results */}
+                            {(faviconDetection.detectedFavicons.length > 0 || faviconDetection.error) && (
+                                <div className="mt-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                                    <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                                        <Photo className="text-default-400" />
+                                        Detected Favicons
+                                    </h3>
+                                    
+                                    {faviconDetection.error && (
+                                        <div className="text-red-500 text-sm mb-3 flex items-center gap-2">
+                                            <Warning className="text-red-500" />
+                                            {faviconDetection.error}
+                                        </div>
+                                    )}
+
+                                    {faviconDetection.detectedFavicons.length > 0 && (
+                                        <>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+                                                {faviconDetection.detectedFavicons.map((favicon, index) => (
+                                                    <div
+                                                        key={index}
+                                                        className={`
+                                                            relative border rounded-lg p-2 cursor-pointer transition-all
+                                                            ${faviconDetection.selectedFavicon === favicon.url 
+                                                                ? 'border-primary bg-primary/10' 
+                                                                : 'border-gray-200 dark:border-gray-600 hover:border-primary/50'
+                                                            }
+                                                        `}
+                                                        onClick={() => setFaviconDetection(prev => ({
+                                                            ...prev,
+                                                            selectedFavicon: favicon.url
+                                                        }))}>
+                                                        
+                                                        <div className="aspect-square flex items-center justify-center mb-2">
+                                                            <img
+                                                                src={favicon.url}
+                                                                alt="Favicon"
+                                                                className="max-w-full max-h-full object-contain"
+                                                                style={{ maxWidth: '32px', maxHeight: '32px' }}
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                                }}
+                                                            />
+                                                        </div>
+                                                        
+                                                        <div className="text-xs text-center">
+                                                            <div className="font-medium truncate" title={favicon.url}>
+                                                                {favicon.isDefault ? 'Default' : favicon.size}
+                                                            </div>
+                                                            <div className="text-gray-500 truncate">
+                                                                {favicon.source === 'default' ? 'favicon.ico' : 'HTML'}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {faviconDetection.selectedFavicon === favicon.url && (
+                                                            <div className="absolute top-1 right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center">
+                                                                <CheckCircle style={{ fontSize: '12px', color: 'white' }} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            
+                                            <div className="flex justify-between items-center">
+                                                <div className="text-xs text-gray-500">
+                                                    Selected: {faviconDetection.selectedFavicon || 'None'}
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    color="primary"
+                                                    isDisabled={!faviconDetection.selectedFavicon}
+                                                    onPress={applySelectedFavicon}>
+                                                    Apply Favicon
+                                                </Button>
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
@@ -941,7 +1410,7 @@ function BookmarkEditor({
                                 typeof editedBookmark.Icon === "string" ? (
                                     editedBookmark.isSVG ? (
                                         <SvgComponent
-                                            svgString={editedBookmark.Icon}
+                                            svgString={editedBookmark.Icon as string}
                                             _class="w-20 h-20"
                                             style={{
                                                 color:
@@ -951,7 +1420,7 @@ function BookmarkEditor({
                                         />
                                     ) : (
                                         <Image
-                                            src={editedBookmark.Icon}
+                                            src={editedBookmark.Icon as string}
                                             alt={editedBookmark.Name}
                                             width={80}
                                             height={80}
@@ -989,6 +1458,37 @@ function BookmarkEditor({
                             </div>
                         </div>
                     </div>
+
+                    {/* Current Icon Display */}
+                    {editedBookmark.Icon && typeof editedBookmark.Icon === 'string' && (
+                        <div className="mt-2 p-3 border rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 flex items-center justify-center">
+                                    <img
+                                        src={editedBookmark.Icon as string}
+                                        alt="Current Icon"
+                                        className="max-w-full max-h-full object-contain"
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                        }}
+                                    />
+                                </div>
+                                <div className="flex-1">
+                                    <div className="text-sm font-medium">Current Icon</div>
+                                    <div className="text-xs text-gray-500 truncate" title={editedBookmark.Icon as string}>
+                                        {editedBookmark.Icon as string}
+                                    </div>
+                                </div>
+                                <Button
+                                    size="sm"
+                                    color="danger"
+                                    variant="light"
+                                    onPress={() => setEditedBookmark(prev => ({ ...prev, Icon: '' }))}>
+                                    Remove
+                                </Button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Client Options Tab */}
@@ -1378,6 +1878,8 @@ function BookmarkEditor({
                         </div>
                     </div>
                 </div>
+                    </div>
+                )}
             </div>
         </div>
     );

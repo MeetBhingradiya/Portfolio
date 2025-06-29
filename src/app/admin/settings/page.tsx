@@ -39,11 +39,13 @@ import {
     Save,
     RestartAlt,
     Warning,
-    CheckCircle
+    CheckCircle,
+    CloudSync
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
 import AdminLayout from "@Components/Admin/Layout/AdminLayout";
+import StateSettingsComponent from "@Components/Admin/StateSettings";
 
 interface SiteSettings {
     siteName: string;
@@ -277,7 +279,20 @@ export default function SettingsAdminPage() {
                                 tab: "max-w-fit px-6 h-12",
                                 tabContent:
                                     "group-data-[selected=true]:text-primary"
-                            }}>
+                            }}>                            {/* State Settings */}
+                            <Tab
+                                key="state"
+                                title={
+                                    <div className="flex items-center space-x-2">
+                                        <CloudSync className="w-4 h-4" />
+                                        <span>State</span>
+                                    </div>
+                                }>
+                                <div className="p-6">
+                                    <StateSettingsComponent />
+                                </div>
+                            </Tab>
+
                             {/* General Settings */}
                             <Tab
                                 key="general"

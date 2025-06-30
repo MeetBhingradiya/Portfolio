@@ -2,7 +2,6 @@ import React from "react";
 import { IBookmark, DefualtBookmark } from "./Types";
 import "@Styles/Tools-Bookmark.sass";
 import { Cloud, Public, Security } from "@mui/icons-material";
-import Image from "next/image";
 import SvgComponent from "@Components/SVGComponent";
 import { motion } from "framer-motion";
 import { Card } from "@heroui/react";
@@ -49,13 +48,17 @@ function BookmarkItem({
                         <SvgComponent svgString={Data.Icon as string} />
                     </div>
                 ) : (
-                    <Image
+                    <img
                         src={Data.Icon as string}
                         alt={Data.Name}
                         width={48}
                         height={48}
                         style={{
                             objectFit: "contain"
+                        }}
+                        onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = 'none';
                         }}
                     />
                 )

@@ -46,6 +46,10 @@ interface IBookmark {
     fillColor?: string;
     CORSProxy?: boolean;
 
+    // Dynamic Icon Resolver
+    isDynamicIcon?: boolean;
+    iconTemplate?: string;
+
     isSponsored: boolean;
     isPublished: boolean;
     isCloudSync: boolean;
@@ -76,6 +80,10 @@ const DefualtBookmark: IBookmark = {
     isSVG: false,
     fillColor: "#000000",
     CORSProxy: false,
+
+    // ? Dynamic Icon Resolver
+    isDynamicIcon: false,
+    iconTemplate: "",
 
     // ? Admin Options
     isPublished: false,

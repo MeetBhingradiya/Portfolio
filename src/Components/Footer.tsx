@@ -27,7 +27,6 @@ import {
     Settings
 } from "@mui/icons-material";
 import Link from "next/link";
-import Image from "next/image";
 import ModelMenu from "@Components/ModelMenu";
 
 interface FooterLink {
@@ -253,11 +252,9 @@ function Footer() {
                                 <div className="flex items-center space-x-3">
                                     <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
                                         {/* <Code className="text-white text-xl" /> */}
-                                        <Image
+                                        <img
                                             src="/favicon.ico"
                                             alt="Logo"
-                                            width={48}
-                                            height={48}
                                             className="w-full h-full rounded-lg"
                                         />
                                     </div>
@@ -526,12 +523,12 @@ function Footer() {
                                 </div>
                                 <div className="flex items-center space-x-1">
                                     <span>Powered by</span>
-                                    <Image
+                                    <img
                                         src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg"
                                         alt="Vercel Logo"
+                                        className="dark:invert"
                                         width={24}
                                         height={16}
-                                        className="dark:invert"
                                     />
                                 </div>
                             </div>

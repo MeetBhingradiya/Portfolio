@@ -3,7 +3,6 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { ResolveIcon } from "@Data/Tools";
-import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
 import "@Styles/Tool.sass";
 import {
@@ -144,9 +143,7 @@ function Tools() {
     const [ContextMenu, setContextMenu] = React.useState<IBookmarkContextMenu>(
         DefualtBookmarkContextMenu
     );
-    const [windowWidth, setWindowWidth] = React.useState<number>(
-        isClient ? window.innerWidth : 0
-    );
+    const [windowWidth, setWindowWidth] = React.useState<number>(0);
     const [longPressTimer, setLongPressTimer] =
         React.useState<NodeJS.Timeout | null>(null);
     const [SuggestionsState, setSuggestionsState] =
@@ -154,24 +151,33 @@ function Tools() {
 
     // @ Functions
 
+    // Safe window operations to prevent hydration issues
+    const safeWindowOpen = (url: string, target: string = "_blank", features?: string) => {
+        if (isClient && typeof window !== "undefined") {
+            window.open(url, target, features);
+        }
+    };
+
     const OpenLink = (url: string, e?: any, OpenMethod?: ILinkOpenTypes) => {
+        if (!isClient) return;
+        
         if (!OpenMethod) {
             OpenMethod = State.Preferences.OpenMethod;
         }
 
         if (OpenMethod === ILinkOpenTypes.NEW_TAB) {
-            window.open(url, "_blank");
+            safeWindowOpen(url, "_blank");
         } else if (OpenMethod === ILinkOpenTypes.CURRENT_TAB) {
-            window.open(url, "_self");
+            safeWindowOpen(url, "_self");
         } else if (OpenMethod === ILinkOpenTypes.NEW_WINDOW) {
-            window.open(
+            safeWindowOpen(
                 url,
                 "_blank",
                 `width=${window.innerWidth},height=${window.innerHeight},resizable=0`
             );
         } else if (OpenMethod === ILinkOpenTypes.FULL_SCREEN) {
             launchFullScreen(e);
-            // window.open(url, "_self");
+            // safeWindowOpen(url, "_self");
         }
     };
 
@@ -558,6 +564,8 @@ function Tools() {
         e: React.MouseEvent<HTMLDivElement>,
         ID: string
     ) {
+        if (!isClient) return;
+        
         e.preventDefault();
         setContextMenu({
             mouseX: e.clientX + 2,
@@ -667,7 +675,9 @@ function Tools() {
     }
 
     const handleResize = () => {
-        setWindowWidth(window.innerWidth);
+        if (isClient && typeof window !== "undefined") {
+            setWindowWidth(window.innerWidth);
+        }
     };
 
     function SearchEngineLinkBuilder(query: string) {
@@ -690,6 +700,7 @@ function Tools() {
 
     const canOpenWindowsApp = (windowsAppLink: string | undefined) => {
         if (!windowsAppLink) return false;
+        if (typeof navigator === "undefined") return false;
         return (
             windowsAppLink.trim() !== "" &&
             navigator.userAgent.indexOf("Windows") !== -1 &&
@@ -699,6 +710,7 @@ function Tools() {
 
     const canOpenAndroidApp = (androidAppLink: string | undefined) => {
         if (!androidAppLink) return false;
+        if (typeof navigator === "undefined") return false;
         return (
             androidAppLink.trim() !== "" &&
             /Android/i.test(navigator.userAgent) &&
@@ -720,16 +732,18 @@ function Tools() {
         appLink: string | undefined,
         isWindowsApp: boolean = false
     ) => {
-        if (!appLink || appLink.trim() === "") return;
+        if (!isClient || !appLink || appLink.trim() === "") return;
 
         try {
-            window.location.href = appLink;
+            if (typeof window !== "undefined") {
+                window.location.href = appLink;
+            }
         } catch (error) {
             log("Failed to open app:", error);
             const bookmark = State.Bookmarks.find((b) =>
                 isWindowsApp ? b.Windows === appLink : b.Android === appLink
             );
-            if (bookmark) {
+            if (bookmark && typeof window !== "undefined") {
                 window.location.href = bookmark.WebLink;
             }
         }
@@ -757,12 +771,17 @@ function Tools() {
 
     // @Updates
     React.useEffect(() => {
-        window.addEventListener("keydown", handleKeyPress);
+        if (isClient && typeof window !== "undefined") {
+            window.addEventListener("keydown", handleKeyPress);
+        }
 
         return () => {
-            window.removeEventListener("keydown", handleKeyPress);
+            if (isClient && typeof window !== "undefined") {
+                window.removeEventListener("keydown", handleKeyPress);
+            }
         };
     }, [
+        isClient,
         SuggestionsState.Index,
         ModalState.isOpen,
         State.Query,
@@ -772,8 +791,8 @@ function Tools() {
 
     // ? Initial Run & Window Resize, Focus on Search Input Listeners
     React.useEffect(() => {
-        // ? Only Run at First Load
-        if (State.isFirstRun) {
+        // ? Only Run at First Load and on Client Side
+        if (State.isFirstRun && isClient) {
             handleResize();
 
             // ? Focus on Search Input
@@ -782,10 +801,11 @@ function Tools() {
             }
 
             // ? get Settings & Bookmarks from Local Storage
-            const data = localStorage.getItem(StorageKey);
+            if (typeof localStorage !== "undefined") {
+                const data = localStorage.getItem(StorageKey);
 
-            // ? Step 1 if No Data Found
-            if (data === null) {
+                // ? Step 1 if No Data Found
+                if (data === null) {
                 setState({
                     ...State,
                     Preferences: {
@@ -818,14 +838,19 @@ function Tools() {
                     )
                 });
             }
+            }
         }
 
-        window.addEventListener("resize", handleResize);
+        if (isClient && typeof window !== "undefined") {
+            window.addEventListener("resize", handleResize);
+        }
 
         return () => {
-            window.removeEventListener("resize", handleResize);
+            if (isClient && typeof window !== "undefined") {
+                window.removeEventListener("resize", handleResize);
+            }
         };
-    }, []);
+    }, [isClient]);
 
     // ? Cloud Sync After the First Run
     React.useEffect(() => {
@@ -837,23 +862,26 @@ function Tools() {
     }, [State.isFirstRun]);
 
     React.useEffect(() => {
-        localStorage.setItem(
-            StorageKey,
-            JSON.stringify({
-                Booksmarks: State.Bookmarks,
-                Preferences: {
-                    OpenMethod: State.Preferences.OpenMethod,
-                    SearchEngine: State.Preferences.SearchEngine,
-                    CloudSync: State.Preferences.CloudSync,
-                    Locale: State.Preferences.Locale,
-                    priorityAndroidapp: State.Preferences.priorityAndroidapp,
-                    priorityWindowsApp: State.Preferences.priorityWindowsApp,
-                    PlateformPriority: State.Preferences.PlateformPriority,
-                    ShowLabels: State.Preferences.ShowLabels
-                }
-            })
-        );
+        if (isClient && typeof localStorage !== "undefined") {
+            localStorage.setItem(
+                StorageKey,
+                JSON.stringify({
+                    Booksmarks: State.Bookmarks,
+                    Preferences: {
+                        OpenMethod: State.Preferences.OpenMethod,
+                        SearchEngine: State.Preferences.SearchEngine,
+                        CloudSync: State.Preferences.CloudSync,
+                        Locale: State.Preferences.Locale,
+                        priorityAndroidapp: State.Preferences.priorityAndroidapp,
+                        priorityWindowsApp: State.Preferences.priorityWindowsApp,
+                        PlateformPriority: State.Preferences.PlateformPriority,
+                        ShowLabels: State.Preferences.ShowLabels
+                    }
+                })
+            );
+        }
     }, [
+        isClient,
         State.Bookmarks,
         State.Preferences.CloudSync,
         State.Preferences.OpenMethod,
@@ -918,7 +946,7 @@ function Tools() {
                                             );
                                         }}>
                                         {item?.Thumbnail && (
-                                            <Image
+                                            <img
                                                 className="Thumbnail"
                                                 width={64}
                                                 height={64}
@@ -1008,16 +1036,20 @@ function Tools() {
                         ref={searchInputRef}
                         autoComplete="off"
                         onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                            window.removeEventListener(
-                                "keydown",
-                                handleKeyPress
-                            );
+                            if (isClient && typeof window !== "undefined") {
+                                window.removeEventListener(
+                                    "keydown",
+                                    handleKeyPress
+                                );
+                            }
                             if (searchInputRef.current) {
                                 searchInputRef.current.style.width = "55%";
                             }
                         }}
                         onBlur={(e: React.FocusEvent<HTMLInputElement>) => {
-                            window.addEventListener("keydown", handleKeyPress);
+                            if (isClient && typeof window !== "undefined") {
+                                window.addEventListener("keydown", handleKeyPress);
+                            }
                             if (searchInputRef.current) {
                                 searchInputRef.current.style.width = "15%";
                             }
@@ -1103,8 +1135,6 @@ function Tools() {
             <GridContextProvider onChange={onGridChange}>
                 <GridDropZone
                     id="items"
-                    // className="BookmarkList"
-                    className="mt-25"
                     boxesPerRow={boxesPerRow}
                     rowHeight={rowHeight}
                     style={{
@@ -1264,7 +1294,7 @@ function Tools() {
                                             {!item.isSVG &&
                                                 typeof item.Icon ===
                                                     "string" && (
-                                                    <Image
+                                                    <img
                                                         src={
                                                             ResolveIcon(
                                                                 item
@@ -1273,7 +1303,6 @@ function Tools() {
                                                         alt={item.Name}
                                                         width={64}
                                                         height={64}
-                                                        priority
                                                         style={{
                                                             borderRadius:
                                                                 "15px",
@@ -1336,6 +1365,7 @@ function Tools() {
                             <div>
                                 {bookmark?.Windows &&
                                     bookmark.Windows.trim() !== "" &&
+                                    typeof navigator !== "undefined" &&
                                     navigator.userAgent.indexOf("Windows") !==
                                         -1 &&
                                     State.Preferences.priorityWindowsApp ===
@@ -1349,7 +1379,7 @@ function Tools() {
                                                 setContextMenu(null);
                                             }}>
                                             <ListItemIcon>
-                                                <Image
+                                                <img
                                                     src="https://img.icons8.com/fluency/128/windows-10.png"
                                                     alt="Windows"
                                                     width={24}
@@ -1364,6 +1394,7 @@ function Tools() {
 
                                 {bookmark?.Android &&
                                     bookmark.Android.trim() !== "" &&
+                                    typeof navigator !== "undefined" &&
                                     /Android/i.test(navigator.userAgent) &&
                                     State.Preferences.priorityAndroidapp ===
                                         true && (
@@ -1375,7 +1406,7 @@ function Tools() {
                                                 setContextMenu(null);
                                             }}>
                                             <ListItemIcon>
-                                                <Image
+                                                <img
                                                     src="https://img.icons8.com/fluency/128/android-os.png"
                                                     alt="Android"
                                                     width={24}
@@ -1405,7 +1436,7 @@ function Tools() {
                                         setContextMenu(null);
                                     }}>
                                     <ListItemIcon>
-                                        <Image
+                                        <img
                                             src="https://img.icons8.com/fluency/128/new-window.png"
                                             alt="New Window"
                                             width={24}
@@ -1417,16 +1448,10 @@ function Tools() {
                                     </ListItemText>
                                 </MenuItem>
 
-                                {bookmark?.isEditBlock && (
+                                {!bookmark?.isEditBlock && (
                                     <MenuItem
                                         onClick={() => {
                                             setContextMenu(null);
-                                            if (bookmark?.isEditBlock) {
-                                                toast.error(
-                                                    "This Bookmark is Blocked for Editing"
-                                                );
-                                                return;
-                                            }
                                             OpenEditModel(
                                                 ContextMenu?.ItemID ?? ""
                                             );
@@ -1438,13 +1463,26 @@ function Tools() {
                                     </MenuItem>
                                 )}
 
-                                {bookmark?.isDeleteBlock && (
+                                {bookmark?.isEditBlock && (
                                     <MenuItem
                                         onClick={() => {
                                             setContextMenu(null);
                                             toast.error(
-                                                "This Bookmark is Blocked for Deletion"
+                                                "This Bookmark is Blocked for Editing"
                                             );
+                                        }}>
+                                        <ListItemIcon>
+                                            <AutoFixHigh style={{ color: "gray" }} />
+                                        </ListItemIcon>
+                                        <ListItemText>Edit (Blocked)</ListItemText>
+                                    </MenuItem>
+                                )}
+
+                                {!bookmark?.isDeleteBlock && (
+                                    <MenuItem
+                                        onClick={() => {
+                                            setContextMenu(null);
+                                            DeleteBookmark(ContextMenu?.ItemID ?? "");
                                         }}>
                                         <ListItemIcon>
                                             <Delete style={{ color: "red" }} />

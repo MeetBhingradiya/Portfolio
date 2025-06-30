@@ -1,7 +1,7 @@
+import { IBookmark } from "@/Types/Tools";
 import { Bookmarks_Model } from "@Models/Bookmarks";
 import dbConnect from "@Utils/dbConnect";
 import { v4 } from "uuid";
-import { BookmarksDB } from "@Data/Tools";
 
 // Get bookmarks with more flexible querying
 async function Controller_GET_Bookmarks(
@@ -31,31 +31,7 @@ async function Controller_GET_Bookmarks(
 
     if (!Bookmarks || Bookmarks.length === 0) {
         // Initialize with default bookmarks
-        const defaultBookmarks = [];
-
-        for (const data of BookmarksDB) {
-            const docid: string = v4();
-            const newBookmark = new Bookmarks_Model({
-                BookmarkID: docid,
-                Name: data.Name,
-                WebLink: data.WebLink,
-                Icon: data.Icon,
-                Description: data.Description,
-                isSVG: data.isSVG,
-                fillColor: data.fillColor,
-                Keywords: data.Keywords,
-                isPublished: true,
-                isDeleted: false
-            });
-
-            // Add to return array
-            defaultBookmarks.push(newBookmark.toObject());
-
-            // Save to database (don't await here to avoid blocking)
-            newBookmark.save().catch((err) => {
-                console.error("Error saving default bookmark:", err);
-            });
-        }
+        const defaultBookmarks = [] as IBookmark[];
 
         // Return the default bookmarks immediately
         return defaultBookmarks;

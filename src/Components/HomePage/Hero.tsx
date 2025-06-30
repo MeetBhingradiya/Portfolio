@@ -16,7 +16,6 @@ import {
     TrendingUp
 } from "@mui/icons-material";
 import Link from "next/link";
-import Image from "next/image";
 
 const expertiseAreas = [
     "Security Engineer",
@@ -252,12 +251,13 @@ function HeroSection() {
                             <div className="relative w-64 h-64 lg:w-80 lg:h-80">
                                 <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full animate-spin-slow opacity-75"></div>
                                 <div className="absolute inset-2 bg-white dark:bg-gray-900 rounded-full"></div>
-                                <Image
+                                <img
+                                    loading="lazy"
                                     src="/favicon.ico"
                                     alt="Meet Bhingradiya - Security Engineer"
-                                    className="absolute inset-4 rounded-full object-cover"
-                                    width={280}
-                                    height={280}
+                                    className="absolute inset-2 rounded-full object-cover"
+                                    width={300}
+                                    height={300}
                                 />
 
                                 {/* Status indicators */}

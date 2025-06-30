@@ -17,7 +17,6 @@ import {
     Star,
     Visibility
 } from "@mui/icons-material";
-import { useTheme } from "@Hooks/useTheme";
 import Image from "next/image";
 
 interface NavLink {
@@ -85,12 +84,10 @@ function Header() {
                                 href="/"
                                 className="flex items-center space-x-3">
                                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center p-[1px]">
-                                    <Image
+                                    <img
                                         src="/favicon.ico"
-                                        alt="Meet Bhingradiya Logo"
-                                        width={40}
-                                        height={40}
-                                        className="rounded-lg"
+                                        alt="Meet Bhingradiya"
+                                        className="rounded-lg w-9 h-9 object-cover"
                                     />
                                 </div>
                                 <span

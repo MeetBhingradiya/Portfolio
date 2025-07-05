@@ -70,7 +70,7 @@ const contactMethods: ContactMethod[] = [
         title: "Email Me",
         description: "Best for detailed discussions and project inquiries",
         icon: <Email className="text-2xl" />,
-        link: "mailto:meetbhingradiya@outlook.com",
+        link: "/contact",
         type: "email",
         color: "from-blue-500 to-blue-600",
         spotlightColor: "rgba(59, 130, 246, 0.15)",
@@ -86,7 +86,7 @@ const contactMethods: ContactMethod[] = [
         type: "social",
         color: "from-blue-600 to-blue-700",
         spotlightColor: "rgba(37, 99, 235, 0.15)",
-        available: false,
+        available: true,
         responseTime: "Typically responds within 24 hours"
     },
     {
@@ -123,7 +123,7 @@ const contactMethods: ContactMethod[] = [
         type: "download",
         color: "from-purple-500 to-purple-600",
         spotlightColor: "rgba(139, 92, 246, 0.15)",
-        available: false
+        available: true
     },
     {
         id: "location",
@@ -134,7 +134,7 @@ const contactMethods: ContactMethod[] = [
         type: "location",
         color: "from-red-500 to-red-600",
         spotlightColor: "rgba(239, 68, 68, 0.15)",
-        available: false,
+        available: true,
         responseTime: "Available for remote work globally"
     }
 ];

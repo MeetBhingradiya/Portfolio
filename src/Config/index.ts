@@ -71,6 +71,16 @@ interface IConfig {
         ExcludingPhone: string;
         IncludingPhone: string;
     };
+    ContactOptions: {
+        Email: boolean
+        Tickets: boolean
+        LinkedIn: boolean
+        GitHub: boolean
+        Resume: boolean
+        Calendly: boolean
+        Location: boolean
+        RSS: boolean
+    }
 }
 
 const Config: IConfig = {
@@ -146,6 +156,16 @@ const Config: IConfig = {
     DigitalResume: {
         ExcludingPhone: "https://rxresu.me/meetbhingradiya/resume",
         IncludingPhone: "https://rxresu.me/meetbhingradiya/resumePlus"
+    },
+    ContactOptions: {
+        Email: true,
+        Tickets: true,
+        LinkedIn: false,
+        GitHub: true,
+        Resume: true,
+        Calendly: true,
+        Location: false,
+        RSS: false
     }
 };
 

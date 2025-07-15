@@ -63,20 +63,20 @@ const showcaseItems: ShowcaseItem[] = [
         featured: true,
         category: "Full Stack"
     },
-    {
-        id: "automation-bot",
-        title: "MS Rewards Automation",
-        description:
-            "Commercial automation software with multi-threading, session management, and anti-detection systems. Features licensing and monitoring.",
-        type: "project",
-        image: "/projects/automation-bot.jpg",
-        technologies: ["Python", "Selenium", "Multi-threading", "Automation"],
-        links: {
-            github: "https://github.com/MeetBhingradiya/BingRewardsBots"
-        },
-        metrics: { stars: 8, views: 1200 },
-        category: "Automation"
-    },
+    // {
+    //     id: "automation-bot",
+    //     title: "MS Rewards Automation",
+    //     description:
+    //         "Commercial automation software with multi-threading, session management, and anti-detection systems. Features licensing and monitoring.",
+    //     type: "project",
+    //     image: "/projects/automation-bot.jpg",
+    //     technologies: ["Python", "Selenium", "Multi-threading", "Automation"],
+    //     links: {
+    //         github: "https://github.com/MeetBhingradiya/BingRewardsBots"
+    //     },
+    //     metrics: { stars: 8, views: 1200 },
+    //     category: "Automation"
+    // },
     {
         id: "express-router-plugin",
         title: "Express Router Plugin",
@@ -102,25 +102,25 @@ const showcaseItems: ShowcaseItem[] = [
         technologies: ["AI", "GitHub Copilot", "Development"],
         category: "AI & Tools"
     },
-    {
-        id: "security-achievement",
-        title: "Security Expert Recognition",
-        description:
-            "Recognition for building enterprise-grade security systems with threat intelligence and advanced protection mechanisms.",
-        type: "achievement",
-        image: "/achievements/security-expert.jpg",
-        technologies: ["Security", "Threat Intelligence", "Protection"],
-        category: "Security"
-    }
+    // {
+    //     id: "security-achievement",
+    //     title: "Security Expert Recognition",
+    //     description:
+    //         "Recognition for building enterprise-grade security systems with threat intelligence and advanced protection mechanisms.",
+    //     type: "achievement",
+    //     image: "/achievements/security-expert.jpg",
+    //     technologies: ["Security", "Threat Intelligence", "Protection"],
+    //     category: "Security"
+    // }
 ];
 
 const categories = [
     "All",
     "Full Stack",
-    "Automation",
+    // "Automation",
     "Framework",
     "AI & Tools",
-    "Security"
+    // "Security"
 ];
 
 function Showcase() {

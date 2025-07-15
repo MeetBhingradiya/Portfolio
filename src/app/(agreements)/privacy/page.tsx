@@ -12,13 +12,18 @@ import {
     Share,
     ContactMail,
     Update,
-    ArrowBack
+    ArrowBack,
+    Inventory
 } from "@mui/icons-material";
 import Link from "next/link";
-import Image from "next/image";
 
 function PrivacyPolicyPage() {
     const sections = [
+        {
+            id: "products-covered",
+            title: "Products Covered",
+            icon: <Inventory className="text-2xl" />
+        },
         {
             id: "information-collection",
             title: "Information We Collect",
@@ -75,7 +80,7 @@ function PrivacyPolicyPage() {
                         </Link>
                         <div className="flex items-center space-x-3">
                             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                                <Image
+                                <img
                                     src="/favicon.ico"
                                     alt="Logo"
                                     width={40}
@@ -177,6 +182,33 @@ function PrivacyPolicyPage() {
 
             {/* Content Sections */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
+
+                {/* Products Covered */}
+                <motion.section
+                    id="services"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6 }}
+                    className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
+                    <div className="flex items-center space-x-3 mb-6">
+                        <div className="text-blue-500">
+                            <Inventory className="text-3xl" />
+                        </div>
+                        <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                            Products Covered
+                        </h2>
+                    </div>
+                    <div className="prose prose-lg dark:prose-invert max-w-none">
+                        <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
+                            This Privacy Policy applies to the following services or websites:
+                        </p>
+                        <ul className="text-gray-600 dark:text-gray-300 space-y-2">
+                            <li>Sneh Creation' CRM</li>
+                            <li>Meet's Portfolio or its Related Domains</li>
+                        </ul>
+                    </div>
+                </motion.section>
+
                 {/* Information Collection */}
                 <motion.section
                     id="information-collection"

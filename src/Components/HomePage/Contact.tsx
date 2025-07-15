@@ -28,6 +28,7 @@ import {
 } from "@mui/icons-material";
 import Link from "next/link";
 import SpotlightCard from "@Lib/Components/SpotlightCard/SpotlightCard";
+import { Config } from "@Config";
 
 interface ContactMethod {
     id: string;
@@ -74,7 +75,7 @@ const contactMethods: ContactMethod[] = [
         type: "email",
         color: "from-blue-500 to-blue-600",
         spotlightColor: "rgba(59, 130, 246, 0.15)",
-        available: true,
+        available: Config.ContactOptions.Email,
         responseTime: "Usually responds within 12 hours"
     },
     {
@@ -86,7 +87,7 @@ const contactMethods: ContactMethod[] = [
         type: "social",
         color: "from-blue-600 to-blue-700",
         spotlightColor: "rgba(37, 99, 235, 0.15)",
-        available: true,
+        available: Config.ContactOptions.LinkedIn,
         responseTime: "Typically responds within 24 hours"
     },
     {
@@ -99,7 +100,7 @@ const contactMethods: ContactMethod[] = [
         type: "social",
         color: "from-gray-700 to-gray-800",
         spotlightColor: "rgba(59, 130, 246, 0.15)",
-        available: true,
+        available: Config.ContactOptions.GitHub,
         responseTime: "Check daily"
     },
     {
@@ -111,7 +112,7 @@ const contactMethods: ContactMethod[] = [
         type: "calendar",
         color: "from-green-500 to-green-600",
         spotlightColor: "rgba(34, 197, 94, 0.15)",
-        available: true,
+        available: Config.ContactOptions.Calendly,
         responseTime: "View Available Slots"
     },
     {
@@ -123,7 +124,7 @@ const contactMethods: ContactMethod[] = [
         type: "download",
         color: "from-purple-500 to-purple-600",
         spotlightColor: "rgba(139, 92, 246, 0.15)",
-        available: true
+        available: Config.ContactOptions.Resume
     },
     {
         id: "location",
@@ -134,7 +135,7 @@ const contactMethods: ContactMethod[] = [
         type: "location",
         color: "from-red-500 to-red-600",
         spotlightColor: "rgba(239, 68, 68, 0.15)",
-        available: true,
+        available: Config.ContactOptions.Location,
         responseTime: "Available for remote work globally"
     }
 ];
@@ -291,7 +292,7 @@ function ContactSection() {
                     transition={{ duration: 0.6 }}
                     className="text-center mb-16">
                     <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-                        Let&apos;s
+                        Let&apos;s {" "}
                         <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                             Connect
                         </span>
@@ -315,7 +316,7 @@ function ContactSection() {
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                             {isBusinessHours()
                                 ? "Available Now"
-                                : "Outside Business Hours"}
+                                : "Outside Business Hours "}
                             • {getLocalTime()} IST
                         </span>
                         <LocationOn className="text-sm text-gray-500 dark:text-gray-400" />
@@ -374,7 +375,7 @@ function ContactSection() {
                 {/* Service Pricing */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.15 }}
                     className="mb-16">
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">
@@ -390,17 +391,16 @@ function ContactSection() {
                             <motion.div
                                 key={service.id}
                                 initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                whileInView={{ opacity: 1, y: 0 }}
                                 transition={{
                                     duration: 0.6,
                                     delay: index * 0.1
                                 }}
                                 whileHover={{ scale: 1.03, y: -5 }}
-                                className={`relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border ${
-                                    service.popular
+                                className={`relative bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border ${service.popular
                                         ? "border-blue-500 ring-2 ring-blue-500/20"
                                         : "border-gray-200 dark:border-gray-700"
-                                } hover:shadow-xl transition-all duration-300 group overflow-hidden`}>
+                                    } hover:shadow-xl transition-all duration-300 group overflow-hidden`}>
                                 {/* Popular Badge */}
                                 {service.popular && (
                                     <div className="absolute -top-0 -right-1">
@@ -474,7 +474,7 @@ function ContactSection() {
                     {/* Pricing Note */}
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        whileInView={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
                         className="mt-8 text-center">
                         <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 max-w-4xl mx-auto">
@@ -497,7 +497,7 @@ function ContactSection() {
                 {/* Contact Methods */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2, opacity: 1 }}>
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
                         Contact
@@ -507,7 +507,7 @@ function ContactSection() {
                             <motion.div
                                 key={method.id}
                                 initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                whileInView={{ opacity: 1, y: 0 }}
                                 transition={{
                                     duration: 0.6,
                                     delay: index * 0.1
@@ -528,11 +528,10 @@ function ContactSection() {
                                     method.available && setHoveredMethod(null)
                                 }>
                                 <SpotlightCard
-                                    className={`h-full border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 group relative overflow-hidden flex flex-col min-h-[240px] ${
-                                        method.available
+                                    className={`h-full border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg transition-all duration-300 group relative overflow-hidden flex flex-col min-h-[240px] ${method.available
                                             ? "hover:shadow-xl cursor-pointer"
                                             : "opacity-60 cursor-not-allowed"
-                                    }`}
+                                        }`}
                                     spotlightColor={method.spotlightColor}>
                                     {method.available ? (
                                         <a
@@ -640,10 +639,14 @@ function ContactSection() {
                                 <Language className="text-sm" />
                                 <span>English, Hindi, Gujarati</span>
                             </div>
-                            <div className="flex items-center space-x-1">
-                                <Schedule className="text-sm" />
-                                <span>GMT+5:30 (India Standard Time)</span>
-                            </div>
+                            {
+                                Config.ContactOptions.Calendly && (
+                                    <div className="flex items-center space-x-1">
+                                        <Schedule className="text-sm" />
+                                        <span>GMT+5:30 (India Standard Time)</span>
+                                    </div>
+                                )
+                            }
                             <div className="flex items-center space-x-1">
                                 <Work className="text-sm" />
                                 <span>Available for immediate hiring</span>
@@ -659,7 +662,7 @@ function ContactSection() {
                                 href="/contact"
                                 className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium rounded-lg transition-all duration-300 hover:shadow-lg hover:scale-105">
                                 <Message className="mr-2" />
-                                View Full Contact Page
+                                Connect with me
                                 <Send className="ml-2 text-sm" />
                             </Link>
                         </motion.div>

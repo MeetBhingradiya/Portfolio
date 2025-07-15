@@ -35,6 +35,7 @@ import {
 } from "@mui/icons-material";
 import GitHubStyleHeader from "@Components/HomePage/Header";
 import { Axios } from "@Utils/Axios";
+import { Config } from "@Config";
 
 interface ContactFormData {
     name: string;
@@ -144,9 +145,9 @@ const contactMethods = [
         description: "Best for detailed discussions and project proposals",
         icon: <Email className="text-2xl" />,
         value: "meetbhingradiya@outlook.com",
-        link: "mailto:meetbhingradiya@outlook.com",
+        link: "?template=technical-consultation",
         color: "from-blue-500 to-blue-600",
-        available: true,
+        available: Config.ContactOptions.Email,
         responseTime: "< 24 hours",
         type: "primary"
     },
@@ -158,7 +159,7 @@ const contactMethods = [
         value: "Book 30-60 min slot",
         link: "https://calendly.com/meetbhingradiya",
         color: "from-green-500 to-emerald-600",
-        available: true,
+        available: Config.ContactOptions.Calendly,
         responseTime: "Available slots shown",
         type: "meeting"
     },
@@ -170,7 +171,7 @@ const contactMethods = [
         value: "/in/meetbhingradiya",
         link: "https://linkedin.com/in/meetbhingradiya",
         color: "from-blue-600 to-blue-700",
-        available: true,
+        available: Config.ContactOptions.LinkedIn,
         responseTime: "Active daily",
         type: "social"
     },
@@ -182,7 +183,7 @@ const contactMethods = [
         value: "@MeetBhingradiya",
         link: "https://github.com/MeetBhingradiya",
         color: "from-gray-700 to-gray-800",
-        available: true,
+        available: Config.ContactOptions.GitHub,
         responseTime: "Check daily",
         type: "social"
     }
@@ -520,6 +521,13 @@ function ContactPageContent() {
         e.preventDefault();
 
         if (submissionMode === "email") {
+            if (Config.ContactOptions.Email === false) {
+                setStatus({
+                    type: "error",
+                    message: "Email contact is currently disabled. Please use the ticket system if available."
+                });
+                return;
+            }
             setStatus({ type: "loading", message: "Sending message..." });
 
             try {
@@ -569,6 +577,13 @@ function ContactPageContent() {
                 });
             }
         } else {
+            if (Config.ContactOptions.Tickets === false) {
+                setStatus({
+                    type: "error",
+                    message: "Ticket contact is currently disabled. Please use the email system if available."
+                });
+                return;
+            }
             setStatus({
                 type: "loading",
                 message: "Creating support ticket..."
@@ -668,18 +683,18 @@ function ContactPageContent() {
                         </p>
 
                         {/* Quick Stats */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
                             {[
                                 {
                                     icon: <AccessTime className="text-lg" />,
                                     label: "< 24h",
                                     desc: "Response Time"
                                 },
-                                {
-                                    icon: <TrendingUp className="text-lg" />,
-                                    label: "89.7/100",
-                                    desc: "Skill Score"
-                                },
+                                // {
+                                //     icon: <TrendingUp className="text-lg" />,
+                                //     label: "89.7/100",
+                                //     desc: "Skill Score"
+                                // },
                                 {
                                     icon: <Public className="text-lg" />,
                                     label: "Global",
@@ -800,64 +815,68 @@ function ContactPageContent() {
                             </div>
 
                             <div className="space-y-4">
-                                {contactMethods.map((method, index) => (
-                                    <motion.a
-                                        key={method.id}
-                                        href={method.link}
-                                        target={
-                                            method.link.startsWith("http")
-                                                ? "_blank"
-                                                : "_self"
-                                        }
-                                        rel={
-                                            method.link.startsWith("http")
-                                                ? "noopener noreferrer"
-                                                : ""
-                                        }
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        transition={{
-                                            duration: 0.6,
-                                            delay: index * 0.1
-                                        }}
-                                        whileHover={{ scale: 1.02, x: 5 }}
-                                        whileTap={{ scale: 0.98 }}
-                                        className="flex items-center space-x-4 p-6 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
-                                        <div
-                                            className={`p-3 bg-gradient-to-r ${method.color} text-white rounded-lg group-hover:scale-110 transition-transform duration-300`}>
-                                            {method.icon}
-                                        </div>
+                                {contactMethods.map((method, index) => {
+                                    if (!method.available) return null;
 
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <h4 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
-                                                    {method.title}
-                                                </h4>
-                                                {method.available && (
-                                                    <span className="inline-flex items-center space-x-1 text-xs font-medium text-green-600 dark:text-green-400">
-                                                        <CheckCircle className="text-sm" />
-                                                        <span>Available</span>
+                                    return (
+                                        <motion.a
+                                            key={method.id}
+                                            href={method.link}
+                                            target={
+                                                method.link.startsWith("http")
+                                                    ? "_blank"
+                                                    : "_self"
+                                            }
+                                            rel={
+                                                method.link.startsWith("http")
+                                                    ? "noopener noreferrer"
+                                                    : ""
+                                            }
+                                            initial={{ opacity: 0, y: 20 }}
+                                            whileInView={{ opacity: 1, y: 0 }}
+                                            transition={{
+                                                duration: 0.6,
+                                                delay: index * 0.1
+                                            }}
+                                            whileHover={{ scale: 1.02, x: 5 }}
+                                            whileTap={{ scale: 0.98 }}
+                                            className="flex items-center space-x-4 p-6 bg-white dark:bg-gray-900 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-all duration-300 group">
+                                            <div
+                                                className={`p-3 bg-gradient-to-r ${method.color} text-white rounded-lg group-hover:scale-110 transition-transform duration-300`}>
+                                                {method.icon}
+                                            </div>
+
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <h4 className="text-lg font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                                        {method.title}
+                                                    </h4>
+                                                    {method.available && (
+                                                        <span className="inline-flex items-center space-x-1 text-xs font-medium text-green-600 dark:text-green-400">
+                                                            <CheckCircle className="text-sm" />
+                                                            <span>Available</span>
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
+                                                    {method.description}
+                                                </p>
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-gray-800 dark:text-gray-200 font-medium text-sm">
+                                                        {method.value}
                                                     </span>
-                                                )}
+                                                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                                                        {method.responseTime}
+                                                    </span>
+                                                </div>
                                             </div>
-                                            <p className="text-gray-600 dark:text-gray-300 text-sm mb-2">
-                                                {method.description}
-                                            </p>
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-gray-800 dark:text-gray-200 font-medium text-sm">
-                                                    {method.value}
-                                                </span>
-                                                <span className="text-xs text-gray-500 dark:text-gray-400">
-                                                    {method.responseTime}
-                                                </span>
-                                            </div>
-                                        </div>
 
-                                        <div className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors duration-300">
-                                            <Send className="text-lg" />
-                                        </div>
-                                    </motion.a>
-                                ))}
+                                            <div className="text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-colors duration-300">
+                                                <Send className="text-lg" />
+                                            </div>
+                                        </motion.a>
+                                    )
+                                })}
                             </div>
 
                             {/* Additional Info */}
@@ -871,12 +890,16 @@ function ContactPageContent() {
                                     Professional Info
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600 dark:text-gray-300">
-                                    <div className="flex items-center space-x-2">
-                                        <LocationOn className="text-xs text-gray-500" />
-                                        <span>
-                                            Surat, Gujarat, India (GMT+5:30)
-                                        </span>
-                                    </div>
+                                    {
+                                        Config.ContactOptions.Location && (
+                                            <div className="flex items-center space-x-2">
+                                                <LocationOn className="text-xs text-gray-500" />
+                                                <span>
+                                                    Surat, Gujarat, India (GMT+5:30)
+                                                </span>
+                                            </div>
+                                        )
+                                    }
                                     <div className="flex items-center space-x-2">
                                         <Language className="text-xs text-gray-500" />
                                         <span>English, Hindi, Gujarati</span>
@@ -953,11 +976,10 @@ function ContactPageContent() {
                                         }
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`flex-1 flex items-center justify-center px-4 py-3 rounded-md transition-all duration-300 text-sm font-medium ${
-                                            submissionMode === "email"
-                                                ? "bg-blue-600 text-white shadow-lg"
-                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-                                        }`}>
+                                        className={`flex-1 flex items-center justify-center px-4 py-3 rounded-md transition-all duration-300 text-sm font-medium ${submissionMode === "email"
+                                            ? "bg-blue-600 text-white shadow-lg"
+                                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+                                            }`}>
                                         <Email className="mr-2 text-sm" />
                                         Direct Email
                                     </motion.button>
@@ -968,11 +990,10 @@ function ContactPageContent() {
                                         }
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        className={`flex-1 flex items-center justify-center px-4 py-3 rounded-md transition-all duration-300 text-sm font-medium ${
-                                            submissionMode === "ticket"
-                                                ? "bg-green-600 text-white shadow-lg"
-                                                : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
-                                        }`}>
+                                        className={`flex-1 flex items-center justify-center px-4 py-3 rounded-md transition-all duration-300 text-sm font-medium ${submissionMode === "ticket"
+                                            ? "bg-green-600 text-white shadow-lg"
+                                            : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-700"
+                                            }`}>
                                         <ConfirmationNumber className="mr-2 text-sm" />
                                         Support Ticket
                                     </motion.button>
@@ -1188,12 +1209,12 @@ function ContactPageContent() {
                                         className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                                         placeholder={
                                             formData.projectType ===
-                                            "staff-engineer"
+                                                "staff-engineer"
                                                 ? "Please include: company name, role details, compensation range, location/remote policy, and any specific requirements..."
                                                 : formData.projectType ===
                                                     "consulting"
-                                                  ? "Please describe your technical challenges, current architecture, and what specific help you need..."
-                                                  : "Tell me about your project, goals, and how I can help..."
+                                                    ? "Please describe your technical challenges, current architecture, and what specific help you need..."
+                                                    : "Tell me about your project, goals, and how I can help..."
                                         }
                                     />
                                 </div>
@@ -1210,15 +1231,13 @@ function ContactPageContent() {
                                         scale:
                                             status.type === "loading" ? 1 : 0.98
                                     }}
-                                    className={`w-full px-8 py-4 bg-gradient-to-r ${
-                                        submissionMode === "email"
-                                            ? "from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
-                                            : "from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
-                                    } text-white font-semibold rounded-lg transition-all duration-300 ${
-                                        status.type === "loading"
+                                    className={`w-full px-8 py-4 bg-gradient-to-r ${submissionMode === "email"
+                                        ? "from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                                        : "from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700"
+                                        } text-white font-semibold rounded-lg transition-all duration-300 ${status.type === "loading"
                                             ? "opacity-70 cursor-not-allowed"
                                             : "hover:shadow-lg"
-                                    }`}>
+                                        }`}>
                                     {status.type === "loading" ? (
                                         <div className="flex items-center justify-center">
                                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
@@ -1284,13 +1303,12 @@ function ContactPageContent() {
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, y: -10 }}
-                                            className={`p-4 rounded-lg flex items-start space-x-3 ${
-                                                status.type === "success"
-                                                    ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400"
-                                                    : status.type === "error"
-                                                      ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
-                                                      : "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400"
-                                            }`}>
+                                            className={`p-4 rounded-lg flex items-start space-x-3 ${status.type === "success"
+                                                ? "bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400"
+                                                : status.type === "error"
+                                                    ? "bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400"
+                                                    : "bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-400"
+                                                }`}>
                                             {status.type === "success" && (
                                                 <CheckCircle className="text-lg mt-0.5 flex-shrink-0" />
                                             )}
@@ -1324,34 +1342,61 @@ function ContactPageContent() {
                             existing tickets.
                         </p>
                         <div className="flex flex-wrap justify-center gap-4">
-                            <motion.a
-                                href="https://calendly.com/meetbhingradiya"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200 flex items-center space-x-2">
-                                <VideoCall className="text-lg" />
-                                <span>Schedule a Call</span>
-                            </motion.a>
-                            <motion.a
-                                href="/tickets"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center space-x-2">
-                                <Support className="text-lg" />
-                                <span>Check Ticket Status</span>
-                            </motion.a>
-                            <motion.a
-                                href="https://rxresu.me/meetbhingradiya/resume"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}
-                                className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center space-x-2">
-                                <Download className="text-lg" />
-                                <span>Download Resume</span>
-                            </motion.a>
+                            {
+                                Config.ContactOptions.Calendly && (
+                                    <motion.a
+                                        href="https://calendly.com/meetbhingradiya"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-6 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors duration-200 flex items-center space-x-2">
+                                        <VideoCall className="text-lg" />
+                                        <span>Schedule a Call</span>
+                                    </motion.a>
+                                )
+                            }
+                            {
+                                Config.ContactOptions.Tickets && (
+                                    <motion.a
+                                        href="/tickets"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                                        <Support className="text-lg" />
+                                        <span>Check Ticket Status</span>
+                                    </motion.a>
+                                )
+                            }
+                            {
+                                Config.ContactOptions.Resume && (
+                                    <motion.a
+                                        href="https://rxresu.me/meetbhingradiya/resume"
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                                        <Download className="text-lg" />
+                                        <span>Download Resume</span>
+                                    </motion.a>
+                                )
+                            }
+                            {
+                                !Config.ContactOptions.Resume &&
+                                !Config.ContactOptions.Calendly &&
+                                !Config.ContactOptions.Tickets && (
+                                    <motion.div
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}
+                                        className="px-6 py-3 bg-white/10 hover:bg-white/20 border border white/30 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center space-x-2">
+                                        <Error className="text-lg" />
+                                        <span>
+                                            Currently no alternative contact options available.
+                                        </span>
+                                    </motion.div>
+                                )
+                            }
                         </div>
                     </motion.div>
                 </div>

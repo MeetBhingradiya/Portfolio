@@ -37,10 +37,10 @@ const nextConfig: NextConfig = {
     reactProductionProfiling: false,
     
     // SWC compiler options
-    compiler: {
-        removeConsole: process.env.NODE_ENV === 'production',
-        styledComponents: true,
-    },
+    // compiler: {
+    //     removeConsole: process.env.NODE_ENV === 'production',
+    //     styledComponents: true,
+    // },
     
     // Experimental features - cleaned up for latest Next.js
     experimental: {

@@ -18,7 +18,6 @@ import {
 } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
 import GitHubStyleHeader from "@Components/HomePage/Header";
-import Footer from "@Components/Footer";
 import { Axios } from "@Utils/Axios";
 
 interface Blog {
@@ -758,8 +757,6 @@ function BlogListPage() {
                     )}
                 </div>
             </section>{" "}
-            {/* Footer */}
-            <Footer />
         </div>
     );
 }
@@ -774,7 +771,6 @@ function BlogListLoading() {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
                 </div>
             </div>
-            <Footer />
         </div>
     );
 }

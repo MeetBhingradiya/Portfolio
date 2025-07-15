@@ -64,8 +64,13 @@ function Header() {
 
     return (
         <>
+            {!isScrolled && (
+                <div className="sticky top-0 left-0 w-full bg-white/95 text-blue-700 border-b border-blue-200 dark:bg-gray-900/95 dark:text-blue-300 dark:border-blue-900 text-center py-2 font-semibold text-sm z-[60] transition-colors duration-300">
+                    🚧 Site is under development 🚧
+                </div>
+            )}
             <motion.header
-                className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+                className={`fixed ${!isScrolled ? 'top-8' : 'top-0'} left-0 right-0 z-50 transition-all duration-300 ${
                     isScrolled
                         ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm"
                         : "bg-transparent"

@@ -37,23 +37,23 @@ interface BlogPost {
 }
 
 const blogPosts: BlogPost[] = [
-    {
-        id: "location-bias-tech-hiring",
-        title: "Location-Based Experience Bias in Tech Hiring",
-        excerpt:
-            "Exploring how geographical location creates artificial barriers for skilled developers, despite the tech industry's move toward remote work.",
-        content:
-            "A deep dive into the challenges skilled developers face when location bias overshadows demonstrable technical capabilities...",
-        publishedAt: "2025-06-15",
-        readTime: 8,
-        views: 1247,
-        likes: 89,
-        comments: 23,
-        tags: ["Career", "Remote Work", "Tech Industry", "Hiring"],
-        category: "Career Insights",
-        featured: true,
-        slug: "location-bias-tech-hiring"
-    },
+    // {
+    //     id: "location-bias-tech-hiring",
+    //     title: "Location-Based Experience Bias in Tech Hiring",
+    //     excerpt:
+    //         "Exploring how geographical location creates artificial barriers for skilled developers, despite the tech industry's move toward remote work.",
+    //     content:
+    //         "A deep dive into the challenges skilled developers face when location bias overshadows demonstrable technical capabilities...",
+    //     publishedAt: "2025-06-15",
+    //     readTime: 8,
+    //     views: 1247,
+    //     likes: 89,
+    //     comments: 23,
+    //     tags: ["Career", "Remote Work", "Tech Industry", "Hiring"],
+    //     category: "Career Insights",
+    //     featured: true,
+    //     slug: "location-bias-tech-hiring"
+    // },
     {
         id: "ai-enhanced-development",
         title: "AI-Enhanced Development: Beyond GitHub Copilot",
@@ -88,23 +88,23 @@ const blogPosts: BlogPost[] = [
         featured: false,
         slug: "enterprise-security-architecture"
     },
-    {
-        id: "automation-systems-design",
-        title: "Designing Scalable Automation: Multi-threading and Anti-Detection",
-        excerpt:
-            "Lessons learned from building commercial automation software with advanced session management and detection avoidance.",
-        content:
-            "Technical insights into building automation systems that can operate at scale...",
-        publishedAt: "2025-05-28",
-        readTime: 10,
-        views: 1534,
-        likes: 124,
-        comments: 34,
-        tags: ["Automation", "Python", "Scaling", "Architecture"],
-        category: "Development",
-        featured: false,
-        slug: "automation-systems-design"
-    },
+    // {
+    //     id: "automation-systems-design",
+    //     title: "Designing Scalable Automation: Multi-threading and Anti-Detection",
+    //     excerpt:
+    //         "Lessons learned from building commercial automation software with advanced session management and detection avoidance.",
+    //     content:
+    //         "Technical insights into building automation systems that can operate at scale...",
+    //     publishedAt: "2025-05-28",
+    //     readTime: 10,
+    //     views: 1534,
+    //     likes: 124,
+    //     comments: 34,
+    //     tags: ["Automation", "Python", "Scaling", "Architecture"],
+    //     category: "Development",
+    //     featured: false,
+    //     slug: "automation-systems-design"
+    // },
     {
         id: "npm-package-development",
         title: "Publishing Your First NPM Package: Express Router Plugin Journey",
@@ -335,7 +335,7 @@ function BlogsSection() {
                     </div>
 
                     {/* Tag Chips */}
-                    <div className="flex flex-wrap gap-2">
+                    {/* <div className="flex flex-wrap gap-2">
                         <span className="text-sm font-medium text-gray-600 dark:text-gray-400 flex items-center">
                             Popular tags:
                         </span>
@@ -353,7 +353,7 @@ function BlogsSection() {
                                 #{tag}
                             </motion.button>
                         ))}
-                    </div>
+                    </div> */}
                 </motion.div>{" "}
                 {/* Blog Posts Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -374,15 +374,6 @@ function BlogsSection() {
                                         : ""
                                 }`}
                                 whileHover={{ y: -5 }}>
-                                {/* Featured Badge */}
-                                {post.featured && (
-                                    <div className="absolute top-4 left-4 z-10">
-                                        <span className="inline-flex items-center space-x-1 bg-blue-600 text-white px-2 py-1 rounded-full text-xs font-medium">
-                                            <TrendingUp className="text-xs" />
-                                            <span>Featured</span>
-                                        </span>
-                                    </div>
-                                )}
 
                                 {/* Image Placeholder */}
                                 <div className="relative h-48 bg-gradient-to-br from-blue-500 to-purple-600 overflow-hidden">

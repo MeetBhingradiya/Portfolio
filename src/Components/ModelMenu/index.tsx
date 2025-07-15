@@ -103,12 +103,12 @@ interface IUserPreferences {
 
 interface IComponentState {
     Current_Tab:
-        | "background"
-        | "border"
-        | "theme"
-        | "language"
-        | "cookies"
-        | "info";
+    | "background"
+    | "border"
+    | "theme"
+    | "language"
+    | "cookies"
+    | "info";
     Explore_Background_Tab: "gradients" | "colors" | "uploaded";
     UserPreferences: IUserPreferences;
     UploadedFiles: IBackground_Image[];
@@ -674,7 +674,7 @@ export default function ModelMenu({
             scrollBehavior="outside"
             classNames={{
                 base: "bg-transparent",
-                backdrop: "bg-black/50 backdrop-blur-sm",
+                backdrop: isOpen ? "bg-black/50 backdrop-blur-sm" : "pointer-events-none bg-transparent",
                 wrapper: "items-center justify-center"
             }}
             motionProps={{
@@ -755,47 +755,47 @@ export default function ModelMenu({
                             <div className="flex flex-col gap-6">
                                 {componentState.UploadedFiles.length <
                                     MAX_UPLOADS && (
-                                    <Card className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
-                                        <CardBody className="p-6">
-                                            <div className="text-center">
-                                                <div className="flex justify-center mb-4">
-                                                    <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
-                                                        <CloudUpload className="text-3xl text-blue-600 dark:text-blue-400" />
+                                        <Card className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                            <CardBody className="p-6">
+                                                <div className="text-center">
+                                                    <div className="flex justify-center mb-4">
+                                                        <div className="p-4 bg-blue-100 dark:bg-blue-900/30 rounded-full">
+                                                            <CloudUpload className="text-3xl text-blue-600 dark:text-blue-400" />
+                                                        </div>
                                                     </div>
+                                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                                        Upload Custom Background
+                                                    </h3>
+                                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+                                                        Add your own background
+                                                        image to personalize your
+                                                        experience
+                                                    </p>
+                                                    <label
+                                                        htmlFor="bg-upload"
+                                                        className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 cursor-pointer">
+                                                        <AddPhotoAlternate className="mr-2" />
+                                                        Choose Images
+                                                    </label>
+                                                    <input
+                                                        type="file"
+                                                        id="bg-upload"
+                                                        accept="image/*"
+                                                        className="hidden"
+                                                        multiple
+                                                        onChange={handleFileUpload}
+                                                    />
+                                                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                                        Max {MAX_UPLOADS} images, up
+                                                        to{" "}
+                                                        {MAX_FILE_SIZE /
+                                                            (1024 * 1024)}
+                                                        MB each
+                                                    </p>
                                                 </div>
-                                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                                    Upload Custom Background
-                                                </h3>
-                                                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-                                                    Add your own background
-                                                    image to personalize your
-                                                    experience
-                                                </p>
-                                                <label
-                                                    htmlFor="bg-upload"
-                                                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 cursor-pointer">
-                                                    <AddPhotoAlternate className="mr-2" />
-                                                    Choose Images
-                                                </label>
-                                                <input
-                                                    type="file"
-                                                    id="bg-upload"
-                                                    accept="image/*"
-                                                    className="hidden"
-                                                    multiple
-                                                    onChange={handleFileUpload}
-                                                />
-                                                <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                                                    Max {MAX_UPLOADS} images, up
-                                                    to{" "}
-                                                    {MAX_FILE_SIZE /
-                                                        (1024 * 1024)}
-                                                    MB each
-                                                </p>
-                                            </div>
-                                        </CardBody>
-                                    </Card>
-                                )}{" "}
+                                            </CardBody>
+                                        </Card>
+                                    )}{" "}
                                 {componentState.UploadedFiles.length > 0 && (
                                     <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
                                         <CardBody className="p-6">
@@ -815,31 +815,31 @@ export default function ModelMenu({
 
                                             {componentState.UploadedFiles
                                                 .length >= MAX_UPLOADS && (
-                                                <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-                                                    <div className="flex items-center">
-                                                        <Warning
-                                                            className="text-red-500 dark:text-red-400 shrink-0 mr-2"
-                                                            fontSize="small"
-                                                        />
-                                                        <div className="flex-1">
-                                                            <p className="text-red-700 dark:text-red-300 font-medium text-sm">
-                                                                Storage limit
-                                                                reached
-                                                            </p>
-                                                            <p className="text-red-600 dark:text-red-400 text-xs">
-                                                                You&apos;ve used
-                                                                all{" "}
-                                                                {MAX_UPLOADS}{" "}
-                                                                background
-                                                                slots. Remove
-                                                                existing
-                                                                backgrounds to
-                                                                upload new ones.
-                                                            </p>
+                                                    <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                                                        <div className="flex items-center">
+                                                            <Warning
+                                                                className="text-red-500 dark:text-red-400 shrink-0 mr-2"
+                                                                fontSize="small"
+                                                            />
+                                                            <div className="flex-1">
+                                                                <p className="text-red-700 dark:text-red-300 font-medium text-sm">
+                                                                    Storage limit
+                                                                    reached
+                                                                </p>
+                                                                <p className="text-red-600 dark:text-red-400 text-xs">
+                                                                    You&apos;ve used
+                                                                    all{" "}
+                                                                    {MAX_UPLOADS}{" "}
+                                                                    background
+                                                                    slots. Remove
+                                                                    existing
+                                                                    backgrounds to
+                                                                    upload new ones.
+                                                                </p>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
+                                                )}
 
                                             <div className="mb-4">
                                                 <div className="flex justify-between items-center mb-2">
@@ -850,12 +850,12 @@ export default function ModelMenu({
                                                         {Math.round(
                                                             (getLocalStorageUsage() /
                                                                 (1024 * 1024)) *
-                                                                10
+                                                            10
                                                         ) / 10}{" "}
                                                         MB /{" "}
                                                         {Math.round(
                                                             MAX_IMAGE_Cloud /
-                                                                (1024 * 1024)
+                                                            (1024 * 1024)
                                                         )}{" "}
                                                         MB
                                                     </span>
@@ -876,15 +876,14 @@ export default function ModelMenu({
                                                     (bg) => (
                                                         <div
                                                             key={bg.id}
-                                                            className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg group ${
-                                                                componentState
+                                                            className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg group ${componentState
                                                                     .UserPreferences
                                                                     .Activebackground
                                                                     .id ===
-                                                                bg.id
+                                                                    bg.id
                                                                     ? "ring-2 ring-blue-500 dark:ring-blue-400 shadow-md"
                                                                     : "hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600"
-                                                            }`}
+                                                                }`}
                                                             onClick={() =>
                                                                 handleBackgroundSelect(
                                                                     bg
@@ -897,11 +896,11 @@ export default function ModelMenu({
                                                                         bg
                                                                             .bufferkeys
                                                                             ?.length >
-                                                                        0
+                                                                            0
                                                                             ? bg
-                                                                                  .bufferkeys
-                                                                                  .length ===
-                                                                              1
+                                                                                .bufferkeys
+                                                                                .length ===
+                                                                                1
                                                                                 ? `url(${localStorage.getItem(bg.bufferkeys[0])})`
                                                                                 : `url(${bg.bufferkeys.map((key) => localStorage.getItem(key)).join("")})`
                                                                             : "none"
@@ -927,12 +926,12 @@ export default function ModelMenu({
                                                                 .Activebackground
                                                                 .id ===
                                                                 bg.id && (
-                                                                <div className="absolute bottom-1 left-1">
-                                                                    <div className="p-1 bg-blue-500 text-white rounded-full shadow-md">
-                                                                        <Star className="text-sm" />
+                                                                    <div className="absolute bottom-1 left-1">
+                                                                        <div className="p-1 bg-blue-500 text-white rounded-full shadow-md">
+                                                                            <Star className="text-sm" />
+                                                                        </div>
                                                                     </div>
-                                                                </div>
-                                                            )}
+                                                                )}
                                                             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2">
                                                                 <p className="text-white text-xs font-medium truncate">
                                                                     {bg.name}
@@ -957,9 +956,9 @@ export default function ModelMenu({
                                                         ...prevState,
                                                         Explore_Background_Tab:
                                                             key as
-                                                                | "gradients"
-                                                                | "colors"
-                                                                | "uploaded"
+                                                            | "gradients"
+                                                            | "colors"
+                                                            | "uploaded"
                                                     })
                                                 )
                                             }>
@@ -979,7 +978,7 @@ export default function ModelMenu({
                                                     (bg) =>
                                                         bg.type ===
                                                         (componentState.Explore_Background_Tab ===
-                                                        "gradients"
+                                                            "gradients"
                                                             ? "gradient"
                                                             : "color")
                                                 )
@@ -1007,12 +1006,12 @@ export default function ModelMenu({
                                                             style={{
                                                                 background:
                                                                     bg.type ===
-                                                                    "color"
+                                                                        "color"
                                                                         ? bg.value
                                                                         : "none",
                                                                 backgroundImage:
                                                                     bg.type ===
-                                                                    "gradient"
+                                                                        "gradient"
                                                                         ? bg.value
                                                                         : "none"
                                                             }}
@@ -1115,11 +1114,10 @@ export default function ModelMenu({
                                     </h3>
                                     <div className="flex flex-col gap-4">
                                         <div
-                                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                                theme === "light"
+                                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${theme === "light"
                                                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                                                     : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                                            }`}
+                                                }`}
                                             onClick={() => {
                                                 setTheme("light");
                                             }}>
@@ -1145,11 +1143,10 @@ export default function ModelMenu({
                                         </div>
 
                                         <div
-                                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                                theme === "dark"
+                                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${theme === "dark"
                                                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                                                     : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                                            }`}
+                                                }`}
                                             onClick={() => {
                                                 setTheme("dark");
                                             }}>
@@ -1175,11 +1172,10 @@ export default function ModelMenu({
                                         </div>
 
                                         <div
-                                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                                                theme === "system"
+                                            className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${theme === "system"
                                                     ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                                                     : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                                            }`}
+                                                }`}
                                             onClick={() => {
                                                 setTheme("system");
                                             }}>
@@ -1231,23 +1227,27 @@ export default function ModelMenu({
                                 </div>
                             }
                             value="language">
-                            <Card>
-                                <CardBody>
-                                    <h3 className="mb-4">Website Language</h3>
+                            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <CardBody className="p-6">
+                                    <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Website Language</h3>
                                     <Select
                                         label="Select Language"
                                         defaultSelectedKeys={["en"]} // Default to English
                                         onChange={(e) =>
                                             handleLanguageChange(e.target.value)
                                         }
-                                        className="max-w-md">
+                                        className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 rounded-lg shadow-sm transition-colors duration-200"
+                                        listboxProps={{
+                                            className: "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white rounded-lg shadow-lg"
+                                        }}
+                                    >
                                         {languages.map((lang) => (
-                                            <SelectItem key={lang.code}>
+                                            <SelectItem key={lang.code} className="hover:bg-blue-100 dark:hover:bg-blue-900/30">
                                                 {lang.name}
                                             </SelectItem>
                                         ))}
                                     </Select>
-                                    <p className="mt-4 text-sm text-gray-500">
+                                    <p className="mt-4 text-sm text-gray-500 dark:text-gray-400">
                                         Note: Language support may be limited in
                                         certain parts of the website.
                                     </p>
@@ -1265,16 +1265,16 @@ export default function ModelMenu({
                                 </div>
                             }
                             value="cookies">
-                            <Card>
-                                <CardBody>
-                                    <h3 className="mb-4">Cookie Preferences</h3>
+                            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <CardBody className="p-6">
+                                    <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Cookie Preferences</h3>
                                     <div className="flex flex-col gap-4">
                                         <div className="flex justify-between items-center">
                                             <div>
                                                 <h4 className="font-medium">
                                                     Necessary Cookies
                                                 </h4>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                                     Required for the website to
                                                     function properly
                                                 </p>
@@ -1292,7 +1292,7 @@ export default function ModelMenu({
                                                 <h4 className="font-medium">
                                                     Functional Cookies
                                                 </h4>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                                     Enhance the functionality of
                                                     the website
                                                 </p>
@@ -1337,7 +1337,7 @@ export default function ModelMenu({
                                                 <h4 className="font-medium">
                                                     Performance Cookies
                                                 </h4>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                                     Enhance the performance of
                                                     the website
                                                 </p>
@@ -1382,7 +1382,7 @@ export default function ModelMenu({
                                                 <h4 className="font-medium">
                                                     Analytics Cookies
                                                 </h4>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                                     Help us improve by
                                                     collecting anonymous usage
                                                     data
@@ -1427,7 +1427,7 @@ export default function ModelMenu({
                                                 <h4 className="font-medium">
                                                     Marketing Cookies
                                                 </h4>
-                                                <p className="text-xs text-gray-500">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
                                                     Used to display personalized
                                                     ads and content
                                                 </p>
@@ -1480,9 +1480,9 @@ export default function ModelMenu({
                                 </div>
                             }
                             value="info">
-                            <Card>
-                                <CardBody>
-                                    <h3 className="mb-4">Version Info</h3>{" "}
+                            <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm">
+                                <CardBody className="p-6">
+                                    <h3 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">Version</h3>{" "}
                                     <div className="flex flex-col gap-2">
                                         <p>
                                             <strong>Current Version:</strong>{" "}
@@ -1504,13 +1504,13 @@ export default function ModelMenu({
 
                                                 return isFutureDate(releaseDate)
                                                     ? "Coming " +
-                                                          getRelativeTime(
-                                                              releaseDate
-                                                          )
+                                                    getRelativeTime(
+                                                        releaseDate
+                                                    )
                                                     : "Released " +
-                                                          getRelativeTime(
-                                                              releaseDate
-                                                          );
+                                                    getRelativeTime(
+                                                        releaseDate
+                                                    );
                                             })()}
                                         </p>
                                         <Button

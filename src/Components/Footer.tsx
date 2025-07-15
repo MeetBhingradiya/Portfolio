@@ -1,31 +1,33 @@
 "use client";
 
 import React, { useState } from "react";
+import { Config } from "@Config";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     ArrowUpward,
-    Favorite,
     Email,
     LocationOn,
-    Code,
-    Coffee,
     GitHub,
     LinkedIn,
-    Star,
-    Visibility,
     Schedule,
     Language,
     Security,
     Build,
-    Public,
     Copyright,
     Shield as Privacy,
     Description,
     Support,
-    RssFeed,
     Analytics,
-    Settings
+    Settings,
+    LockPerson,
+    Quiz,
+    PictureAsPdf,
+    Book,
+    Signpost,
+    RssFeed,
+    VideoLibrary
 } from "@mui/icons-material";
+import { Tooltip } from "@heroui/react";
 import Link from "next/link";
 import ModelMenu from "@Components/ModelMenu";
 
@@ -34,6 +36,7 @@ interface FooterLink {
     href: string;
     external?: boolean;
     icon?: React.ReactNode;
+    isDisabled?: boolean;
 }
 
 interface FooterSection {
@@ -46,43 +49,72 @@ const footerSections: FooterSection[] = [
         title: "Projects",
         links: [
             {
-                label: "Portfolio Platform",
+                label: "My Portfolio",
                 href: "https://github.com/MeetBhingradiya/Portfolio",
-                external: true
+                external: true,
+                icon: <Build className="text-xs" />
             },
-            // {
-            // 	label: "MS Rewards Bot",
-            // 	href: "https://github.com/MeetBhingradiya/BingRewardsBots",
-            // 	external: true,
-            // },
             {
                 label: "Express Router Plugin",
                 href: "https://github.com/MeetBhingradiya/express-router-plugin",
-                external: true
+                external: true,
+                icon: <Signpost className="text-xs" />
             },
             {
                 label: "TS to MP4 Converter",
                 href: "https://github.com/MeetBhingradiya/TStoMP4",
-                external: true
+                external: true,
+                icon: <VideoLibrary className="text-xs" />
             },
-            { label: "All Projects", href: "/projects" }
+            {
+                label: "Enterprise IdleLock",
+                href: "https://github.com/MeetBhingradiya/SnehCreation-DeviceAutoLock",
+                external: true,
+                icon: <LockPerson className="text-xs" />
+            },
+            {
+                label: "Image Compress & PDF",
+                href: "https://github.com/MeetBhingradiya/NextImageCompress-PDF",
+                external: true,
+                icon: <PictureAsPdf className="text-xs" />
+            },
+            {
+                label: "All Projects",
+                href: "https://github.com/MeetBhingradiya?tab=repositories",
+                external: true,
+                icon: <Book className="text-xs" />,
+                isDisabled: true
+            },
         ]
     },
     {
         title: "Content",
         links: [
-            { label: "Technical Blog", href: "/blog" },
-            { label: "Case Studies", href: "/case-studies" },
             {
-                label: "Documentation",
-                href: "https://notes.meetbhingradiya.tech"
+                label: "Blogs",
+                icon: <Support className="text-xs" />,
+                href: "/blog"
             },
-            // {
-            // 	label: "RSS Feed",
-            // 	href: "/rss.xml",
-            // 	icon: <RssFeed className="text-xs" />,
+            // { 
+            //     label: "Timeline", 
+            //     href: "/" 
             // },
-            { label: "Sitemap", href: "/api/sitemap" }
+            {
+                label: "My Notes",
+                href: "https://notes.meetbhingradiya.tech",
+                icon: <Book className="text-xs" />
+            },
+            {
+                label: "RSS Feed",
+                href: "/rss.xml",
+                icon: <RssFeed className="text-xs" />,
+                isDisabled: Config.ContactOptions.RSS ? false : true
+            },
+            {
+                label: "Sitemap",
+                href: "/api/sitemap",
+                icon: <Signpost className="text-xs" />
+            }
         ]
     },
     {
@@ -91,26 +123,36 @@ const footerSections: FooterSection[] = [
             {
                 label: "Resume",
                 href: "https://rxresu.me/meetbhingradiya/resume",
-                external: true
+                icon: <PictureAsPdf className="text-xs" />,
+                external: true,
+                isDisabled: Config.ContactOptions.Resume ? false : true
             },
             {
                 label: "LinkedIn",
                 href: "https://linkedin.com/in/meet-bhingradiya",
-                external: true
+                icon: <LinkedIn className="text-xs" />,
+                external: true,
+                isDisabled: Config.ContactOptions.LinkedIn ? false : true
             },
             {
                 label: "GitHub",
                 href: "https://github.com/MeetBhingradiya",
-                external: true
+                icon: <GitHub className="text-xs" />,
+                external: true,
+                isDisabled: Config.ContactOptions.GitHub ? false : true
             },
             {
                 label: "Schedule Meeting",
                 href: "https://calendly.com/meetbhingradiya",
-                external: true
+                icon: <Schedule className="text-xs" />,
+                external: true,
+                isDisabled: Config.ContactOptions.Calendly ? false : true
             },
             {
                 label: "Contact",
-                href: "/contact"
+                href: "/contact",
+                icon: <Email className="text-xs" />,
+                isDisabled: Config.ContactOptions.Email ? false : true
             }
         ]
     },
@@ -128,10 +170,11 @@ const footerSections: FooterSection[] = [
                 icon: <Description className="text-xs" />
             },
             {
-                label: "Support",
+                label: "FAQ's",
                 // href: "/support",
                 href: "/contact",
-                icon: <Support className="text-xs" />
+                icon: <Quiz className="text-xs" />,
+                isDisabled: Config.ContactOptions.Email ? false : true
             },
             {
                 label: "Settings",
@@ -139,9 +182,9 @@ const footerSections: FooterSection[] = [
                 icon: <Settings className="text-xs" />
             },
             {
-                label: "Edit Page",
+                label: "Administration",
                 href: "/auth/signin",
-                icon: <Code className="text-xs" />,
+                icon: <LockPerson className="text-xs" />,
                 external: true
             }
         ]
@@ -153,27 +196,27 @@ const achievements: Array<{
     label: string;
     value: string;
 }> = [
-    // {
-    // 	icon: <Security className="text-lg" />,
-    // 	label: "Security Expert",
-    // 	value: "95%",
-    // },
-    // {
-    // 	icon: <Build className="text-lg" />,
-    // 	label: "Automation",
-    // 	value: "98%",
-    // },
-    // {
-    // 	icon: <Public className="text-lg" />,
-    // 	label: "Open Source",
-    // 	value: "Active",
-    // },
-    // {
-    // 	icon: <Star className="text-lg" />,
-    // 	label: "Skill Score",
-    // 	value: "89.7/100",
-    // },
-];
+        // {
+        // 	icon: <Security className="text-lg" />,
+        // 	label: "Security Expert",
+        // 	value: "95%",
+        // },
+        // {
+        // 	icon: <Build className="text-lg" />,
+        // 	label: "Automation",
+        // 	value: "98%",
+        // },
+        // {
+        // 	icon: <Public className="text-lg" />,
+        // 	label: "Open Source",
+        // 	value: "Active",
+        // },
+        // {
+        // 	icon: <Star className="text-lg" />,
+        // 	label: "Skill Score",
+        // 	value: "89.7/100",
+        // },
+    ];
 
 const technologies = [
     "Next.js",
@@ -192,7 +235,6 @@ const technologies = [
 
 function Footer() {
     const [showScrollTop, setShowScrollTop] = useState(false);
-    const [hoveredTech, setHoveredTech] = useState<string | null>(null);
     const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
 
     React.useEffect(() => {
@@ -306,7 +348,7 @@ function Footer() {
                                 )}
 
                                 {/* Social Links */}
-                                <div className="flex space-x-4">
+                                {/* <div className="flex space-x-4">
                                     <motion.a
                                         href="https://github.com/MeetBhingradiya"
                                         target="_blank"
@@ -332,7 +374,7 @@ function Footer() {
                                         className="p-3 bg-white/10 hover:bg-white/20 rounded-lg transition-colors duration-300">
                                         <Email className="text-xl" />
                                     </motion.a>
-                                </div>
+                                </div> */}
                             </motion.div>
 
                             {/* Navigation Links */}
@@ -351,112 +393,81 @@ function Footer() {
                                             {section.title}
                                         </h4>
                                         <div className="space-y-3">
-                                            {section.links.map(
-                                                (link, linkIndex) => (
-                                                    <motion.div
-                                                        key={link.label}
-                                                        // initial={{
-                                                        // 	opacity: 0,
-                                                        // 	x: -10,
-                                                        // }}
-                                                        whileInView={{
-                                                            opacity: 1,
-                                                            x: 0
-                                                        }}
-                                                        transition={{
-                                                            duration: 0.4,
-                                                            delay:
-                                                                linkIndex * 0.05
-                                                        }}>
-                                                        {link.href ===
-                                                        "#settings" ? (
-                                                            <button
-                                                                onClick={() =>
-                                                                    setIsModelMenuOpen(
-                                                                        true
-                                                                    )
-                                                                }
-                                                                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 text-sm group cursor-pointer">
+                                            {section.links.map((link, linkIndex) => (
+                                                <motion.div
+                                                    key={link.label}
+                                                    // initial={{
+                                                    // 	opacity: 0,
+                                                    // 	x: -10,
+                                                    // }}
+                                                    whileInView={{
+                                                        opacity: 1,
+                                                        x: 0
+                                                    }}
+                                                    transition={{
+                                                        duration: 0.4,
+                                                        delay:
+                                                            linkIndex * 0.05
+                                                    }}>
+                                                    {link.isDisabled ? (
+                                                        <Tooltip content="Item Disabled By Creator of this Website please try again later">
+                                                            <span className="flex items-center space-x-2 text-gray-300 cursor-not-allowed text-sm group opacity-60 select-none">
                                                                 {link.icon && (
-                                                                    <span className="text-gray-400 group-hover:text-white">
-                                                                        {
-                                                                            link.icon
-                                                                        }
+                                                                    <span className="text-gray-300">
+                                                                        {link.icon}
                                                                     </span>
                                                                 )}
-                                                                <span className="group-hover:translate-x-1 transition-transform duration-200">
-                                                                    {link.label}
+                                                                <span>{link.label}</span>
+                                                            </span>
+                                                        </Tooltip>
+                                                    ) : link.href === "#settings" ? (
+                                                        <button
+                                                            onClick={() =>
+                                                                setIsModelMenuOpen(
+                                                                    true
+                                                                )
+                                                            }
+                                                            className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 text-sm group cursor-pointer">
+                                                            {link.icon && (
+                                                                <span className="text-gray-400 group-hover:text-white">
+                                                                    {link.icon}
                                                                 </span>
-                                                            </button>
-                                                        ) : (
-                                                            <Link
-                                                                href={link.href}
-                                                                target={
-                                                                    link.external
-                                                                        ? "_blank"
-                                                                        : "_self"
-                                                                }
-                                                                rel={
-                                                                    link.external
-                                                                        ? "noopener noreferrer"
-                                                                        : ""
-                                                                }
-                                                                className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 text-sm group">
-                                                                {link.icon && (
-                                                                    <span className="text-gray-400 group-hover:text-white">
-                                                                        {
-                                                                            link.icon
-                                                                        }
-                                                                    </span>
-                                                                )}
-                                                                <span className="group-hover:translate-x-1 transition-transform duration-200">
-                                                                    {link.label}
+                                                            )}
+                                                            <span className="group-hover:translate-x-1 transition-transform duration-200">
+                                                                {link.label}
+                                                            </span>
+                                                        </button>
+                                                    ) : (
+                                                        <Link
+                                                            href={link.href}
+                                                            target={
+                                                                link.external
+                                                                    ? "_blank"
+                                                                    : "_self"
+                                                            }
+                                                            rel={
+                                                                link.external
+                                                                    ? "noopener noreferrer"
+                                                                    : ""
+                                                            }
+                                                            className="flex items-center space-x-2 text-gray-300 hover:text-white transition-colors duration-200 text-sm group">
+                                                            {link.icon && (
+                                                                <span className="text-gray-400 group-hover:text-white">
+                                                                    {link.icon}
                                                                 </span>
-                                                            </Link>
-                                                        )}
-                                                    </motion.div>
-                                                )
-                                            )}
+                                                            )}
+                                                            <span className="group-hover:translate-x-1 transition-transform duration-200">
+                                                                {link.label}
+                                                            </span>
+                                                        </Link>
+                                                    )}
+                                                </motion.div>
+                                            ))}
                                         </div>
                                     </motion.div>
                                 ))}
                             </div>
                         </div>
-
-                        {/* Technology Tags */}
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
-                            className="mb-12">
-                            <h4 className="text-lg font-semibold text-white mb-6 text-center">
-                                Technologies & Expertise
-                            </h4>
-                            <div className="flex flex-wrap justify-center gap-3">
-                                {technologies.map((tech, index) => (
-                                    <motion.span
-                                        key={tech}
-                                        initial={{ opacity: 0, scale: 0.8 }}
-                                        whileInView={{ opacity: 1, scale: 1 }}
-                                        transition={{
-                                            duration: 0.4,
-                                            delay: index * 0.05
-                                        }}
-                                        whileHover={{ scale: 1.05, y: -2 }}
-                                        onHoverStart={() =>
-                                            setHoveredTech(tech)
-                                        }
-                                        onHoverEnd={() => setHoveredTech(null)}
-                                        className={`px-3 py-1 bg-white/10 hover:bg-white/20 rounded-full text-sm transition-all duration-300 cursor-default ${
-                                            hoveredTech === tech
-                                                ? "ring-2 ring-blue-400"
-                                                : ""
-                                        }`}>
-                                        {tech}
-                                    </motion.span>
-                                ))}
-                            </div>
-                        </motion.div>
 
                         {/* Current Status */}
                         <motion.div
@@ -473,18 +484,28 @@ function Footer() {
                                     </span>
                                 </div>
                                 <div className="flex items-center space-x-6 text-sm text-gray-300">
-                                    <div className="flex items-center space-x-1">
-                                        <LocationOn className="text-sm" />
-                                        <span>Surat, India</span>
-                                    </div>
-                                    <div className="flex items-center space-x-1">
-                                        <Schedule className="text-sm" />
-                                        <span>GMT+5:30</span>
-                                    </div>
+                                    {
+                                        Config.ContactOptions.Location && (
+                                            <div className="flex items-center space-x-1">
+                                                <LocationOn className="text-sm" />
+                                                <span>Surat, India</span>
+                                            </div>
+                                        )
+                                    }
+                                    {
+                                        Config.ContactOptions.Calendly && (
+                                            <div className="flex items-center space-x-1">
+                                                <Schedule className="text-sm" />
+                                                <span>GMT+5:30</span>
+                                            </div>
+                                        )
+                                    }
                                     <div className="flex items-center space-x-1">
                                         <Language className="text-sm" />
                                         <span>
-                                            Available for Remote & OnSite
+                                            Available for Remote {
+                                                Config.ContactOptions.Location ? " & OnSite" : ""
+                                            }
                                         </span>
                                     </div>
                                     <div className="flex items-center space-x-1">
@@ -520,16 +541,6 @@ function Footer() {
                                 <div className="flex items-center space-x-1">
                                     <Security className="text-sm" />
                                     <span>Secured with best practices</span>
-                                </div>
-                                <div className="flex items-center space-x-1">
-                                    <span>Powered by</span>
-                                    <img
-                                        src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/vercel/vercel-original.svg"
-                                        alt="Vercel Logo"
-                                        className="dark:invert"
-                                        width={24}
-                                        height={16}
-                                    />
                                 </div>
                             </div>
                         </div>{" "}

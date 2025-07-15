@@ -16,13 +16,15 @@ import {
     TrendingUp
 } from "@mui/icons-material";
 import Link from "next/link";
+import { Config } from "@Config";
 
 const expertiseAreas = [
-    "Security Engineer",
+    // "Security Engineer",
     "Full Stack Developer",
     // "Framework Author",
     "DevOps Engineer",
-    "System Architect",
+    "Programmer",
+    // "System Architect",
     "Open Source Contributor"
 ];
 
@@ -51,6 +53,7 @@ const quickStats = [
 
 function HeroSection() {
     const [currentExpertiseIndex, setCurrentExpertiseIndex] = useState(0);
+    const [isAtTop, setIsAtTop] = useState(true);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -59,6 +62,14 @@ function HeroSection() {
             );
         }, 3000);
         return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsAtTop(window.scrollY <= 50);
+        };
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     return (
@@ -110,7 +121,7 @@ function HeroSection() {
                                             className="font-semibold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                                             {
                                                 expertiseAreas[
-                                                    currentExpertiseIndex
+                                                currentExpertiseIndex
                                                 ]
                                             }
                                         </motion.span>
@@ -194,17 +205,23 @@ function HeroSection() {
                                 </Link>
                             </motion.div>
 
-                            <motion.div
-                                whileHover={{ scale: 1.05 }}
-                                whileTap={{ scale: 0.95 }}>
-                                <Link
-                                    href="https://rxresu.me/meetbhingradiya/resume"
-                                    target="_blank"
-                                    className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
-                                    <CloudDownload className="text-lg" />
-                                    <span>Resume</span>
-                                </Link>
-                            </motion.div>
+
+                            {
+                                Config.ContactOptions.Resume && (
+                                    <motion.div
+                                        whileHover={{ scale: 1.05 }}
+                                        whileTap={{ scale: 0.95 }}>
+                                        <Link
+                                            href="https://rxresu.me/meetbhingradiya/resume"
+                                            target="_blank"
+                                            className="inline-flex items-center space-x-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200">
+                                            <CloudDownload className="text-lg" />
+                                            <span>Resume</span>
+                                        </Link>
+                                    </motion.div>
+                                )
+                            }
+
                         </motion.div>
                         {/* Location & Social */}
                         <motion.div
@@ -212,10 +229,15 @@ function HeroSection() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.6 }}
                             className="flex flex-wrap items-center gap-6 text-gray-600 dark:text-gray-400">
-                            <div className="flex items-center space-x-2">
-                                <LocationOn className="text-lg" />
-                                <span>Surat, Gujarat, India</span>
-                            </div>
+                            {
+                                Config.ContactOptions.Location && (
+                                    <div className="flex items-center space-x-2">
+                                        <LocationOn className="text-lg" />
+                                        <span>Surat, Gujarat, India</span>
+                                    </div>
+                                )
+                            }
+
 
                             <div className="flex items-center space-x-4">
                                 <motion.a

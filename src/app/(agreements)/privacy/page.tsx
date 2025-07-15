@@ -203,8 +203,8 @@ function PrivacyPolicyPage() {
                             This Privacy Policy applies to the following services or websites:
                         </p>
                         <ul className="text-gray-600 dark:text-gray-300 space-y-2">
-                            <li>Sneh Creation' CRM</li>
-                            <li>Meet's Portfolio or its Related Domains</li>
+                            <li>Sneh Creation</li>
+                            <li>Meet&apos;s Portfolio or its Related Domains</li>
                         </ul>
                     </div>
                 </motion.section>

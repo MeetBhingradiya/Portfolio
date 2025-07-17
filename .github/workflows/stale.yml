@@ -1,19 +1,21 @@
 name: Close inactive issues
 on:
-  schedule:
-    - cron: "30 3 * * *"
+    schedule:
+        - cron: "30 3 * * *"
 
 jobs:
-  close-issues:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-    steps:
-      - uses: actions/stale@v5
-        with:
-          days-before-issue-stale: 120
-          stale-issue-label: "🚫 Status: Stale"
-          stale-issue-message: "This issue is stale because it has been open for 14 days with no activity."
-          days-before-pr-stale: -1
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+    close-issues:
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            pull-requests: write
+        steps:
+            - uses: actions/stale@v5
+              with:
+                  days-before-issue-stale: 120
+                  stale-issue-label: "🚫 Status: Stale"
+                  stale-issue-message:
+                      "This issue is stale because it has been open for 14 days
+                      with no activity."
+                  days-before-pr-stale: -1
+                  repo-token: ${{ secrets.GITHUB_TOKEN }}

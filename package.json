@@ -2,8 +2,7 @@
     "name": "meetbhingradiya",
     "version": "0.0.2",
     "scripts": {
-        "dev": "next dev",
-        "fast": "next dev --turbo",
+        "dev": "next dev --turbo",
         "build": "next build",
         "start": "next start",
         "lint": "next lint",

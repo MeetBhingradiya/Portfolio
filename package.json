@@ -107,7 +107,7 @@
         "uuid": "^11.1.0"
     },
     "devDependencies": {
-        "@types/bcrypt": "^5.0.2",
+        "@types/bcrypt": "^6.0.0",
         "@types/bun": "^1.2.13",
         "@types/cli-progress": "^3.11.6",
         "@types/cors": "^2.8.18",

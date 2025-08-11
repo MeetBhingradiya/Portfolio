@@ -54,14 +54,14 @@ export const StaticEndpointsPages: Array<EndpointFrequency> = [
         route: "Tools/Hash",
         frequency: "weekly"
     },
-    {
-        route: "Tools/ImageToPDF",
-        frequency: "weekly"
-    },
-    {
-        route: "Tools/ImageCompress",
-        frequency: "weekly"
-    },
+    // {
+    //     route: "Tools/ImageToPDF",
+    //     frequency: "weekly"
+    // },
+    // {
+    //     route: "Tools/ImageCompress",
+    //     frequency: "weekly"
+    // },
     {
         route: "Tools/EncryptAndDecrypt",
         frequency: "weekly"

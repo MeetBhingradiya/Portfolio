@@ -9,7 +9,7 @@ import {
 } from "./Types";
 import { Card, Input, Button } from "@heroui/react";
 import { Typography, Grid } from "@mui/material";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
     Search,
     AddCircleOutline,
@@ -18,7 +18,6 @@ import {
     LocalMall
 } from "@mui/icons-material";
 import { Axios } from "@Utils/Axios";
-import { useInView } from "react-intersection-observer";
 import BookmarkItemMarketPlace from "./BookmarkItemMarketPlace";
 import BookmarkItemSkeleton from "./BookmarkItemSkeleton";
 import { log } from "@/Utils";

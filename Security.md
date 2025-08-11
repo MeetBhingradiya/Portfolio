@@ -13,12 +13,12 @@ deployed portfolio website, please follow these steps:
 1. **Do not** disclose the vulnerability publicly on GitHub Issues or other
    public forums.
 2. Email me directly at
-   [meetbhingradiya.dev@gmail.com](mailto:meetbhingradiya.dev@gmail.com) with a
+   [meetbhingradiya@outlook.com](mailto:meetbhingradiya@outlook.com) with a
    detailed description of the vulnerability.
 3. Include the following details in your report:
     - Description of the vulnerability
     - Steps to reproduce the issue
-    - Potential impact
+    - Potential impact (optional)
     - Any suggested fixes (if available)
 
 ### What to Expect
@@ -44,6 +44,6 @@ acknowledged here (with permission).
 ## Contact
 
 If you have any questions about this security policy, please contact me at
-[meetbhingradiya.dev@gmail.com](mailto:meetbhingradiya.dev@gmail.com).
+[meetbhingradiya@outlook.com](mailto:meetbhingradiya@outlook.com).
 
 Last updated: 2025-06-20

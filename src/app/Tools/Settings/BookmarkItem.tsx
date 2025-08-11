@@ -3,7 +3,7 @@ import { IBookmark, DefualtBookmark } from "./Types";
 import "@Styles/Tools-Bookmark.sass";
 import { Cloud, Public, Security } from "@mui/icons-material";
 import SvgComponent from "@Components/SVGComponent";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Card } from "@heroui/react";
 const MotionCard = motion.create(Card);
 

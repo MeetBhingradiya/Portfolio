@@ -4,7 +4,7 @@ import { Config } from "@Config";
 import { UserAgent } from "@Utils/UserAgent";
 import { IPData } from "@Utils/IPData";
 import { changeCase } from "@Utils/CaseChnage";
-import { getClientIp } from "@Lib/request-ip";
+import { getClientIp } from "@Library/request-ip";
 import { ParseIPDataConfig } from "@/Utils/ParseIPDatatoConfig";
 import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 
@@ -391,7 +391,7 @@ export async function POST(req: NextRequest) {
 
     response.cookies.set(`${Config.Cookie_Prefix}csrf`, csrfToken, {
         httpOnly: true,
-        secure: true,
+        secure: Config.Environment === "production", // Only secure in production
         sameSite: "strict",
         path: "/",
         maxAge: 60 * 20

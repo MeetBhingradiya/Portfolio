@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Card, CardBody, CardHeader, Chip } from "@heroui/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 interface StatCardProps {
     title: string;

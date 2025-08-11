@@ -18,16 +18,22 @@ async function getValidCSRFToken(): Promise<string> {
 
         CSRF_UnderProgress = true;
         try {
+            console.log("[getValidCSRFToken] Fetching new CSRF token...");
             csrfToken = await getCSRFToken();
+            console.log("[getValidCSRFToken] Received token response:", csrfToken);
+            
             if (csrfToken?.Status === 1) {
                 localStorage.setItem("trace", JSON.stringify(csrfToken));
+                console.log("[getValidCSRFToken] Token stored in localStorage");
             } else {
+                console.error("[getValidCSRFToken] Invalid token response:", csrfToken);
                 // Handle redirect protocols
                 RedirectProtocolExecuter(csrfToken?.StatusCode);
                 csrfToken = null;
                 throw new Error("CSRF token retrieval failed");
             }
         } catch (error) {
+            console.error("[getValidCSRFToken] Error fetching token:", error);
             csrfToken = null;
             throw error;
         } finally {
@@ -35,7 +41,9 @@ async function getValidCSRFToken(): Promise<string> {
         }
     }
 
-    return csrfToken.data || "";
+    const token = csrfToken.Data?.token || "";
+    console.log("[getValidCSRFToken] Returning token:", token ? "✓" : "✗");
+    return token;
 }
 
 /**
@@ -59,20 +67,46 @@ export async function fetchWithCSRF(
     // Try to get CSRF token
     let token = "";
     try {
+        console.log("[fetchWithCSRF] Attempting to get CSRF token...");
         token = await getValidCSRFToken();
+        console.log("[fetchWithCSRF] Successfully obtained CSRF token");
     } catch (error) {
+        console.log("[fetchWithCSRF] Failed to get new CSRF token, trying localStorage fallback...");
         // If we can't get a token, try to get it from localStorage as fallback
         const trace = localStorage.getItem("trace");
         if (trace) {
             try {
                 const parsedTrace = JSON.parse(trace);
-                token = parsedTrace.data.token || "";
+                if (parsedTrace?.Data?.token) {
+                    token = parsedTrace.Data.token;
+                    // Also restore the token to memory
+                    csrfToken = parsedTrace;
+                    console.log("[fetchWithCSRF] Using token from localStorage fallback");
+                } else {
+                    console.error("[fetchWithCSRF] Invalid trace structure in localStorage:", parsedTrace);
+                }
             } catch (e) {
                 console.error(
-                    "Failed to parse CSRF token from localStorage:",
+                    "[fetchWithCSRF] Failed to parse CSRF token from localStorage:",
                     e
                 );
             }
+        } else {
+            console.error("[fetchWithCSRF] No trace found in localStorage");
+        }
+    }
+
+    // If no token available, try to get one before making the request
+    if (!token) {
+        console.log("[fetchWithCSRF] No CSRF token available, fetching new token...");
+        try {
+            token = await getValidCSRFToken();
+            if (token) {
+                console.log("[fetchWithCSRF] Successfully obtained new CSRF token");
+            }
+        } catch (tokenError) {
+            console.error("[fetchWithCSRF] Failed to obtain CSRF token:", tokenError);
+            // Continue without token - let the server handle the error
         }
     }
 
@@ -80,6 +114,9 @@ export async function fetchWithCSRF(
     const headers = new Headers(options.headers);
     if (token) {
         headers.set("x-csrf", token);
+        console.log("[fetchWithCSRF] Added CSRF token to headers");
+    } else {
+        console.warn("[fetchWithCSRF] No CSRF token available - request will likely fail");
     }
 
     // Make the request
@@ -123,7 +160,7 @@ export async function fetchWithCSRF(
 
             // Check for invalid authorization (expired CSRF token)
             if (errorData?.StatusCode === "INVALID_AUTHORIZATION") {
-                console.log("CSRF token expired, attempting to refresh...");
+                console.log("[fetchWithCSRF] CSRF token expired, attempting to refresh...");
                 localStorage.removeItem("trace");
                 csrfToken = null;
 
@@ -132,47 +169,46 @@ export async function fetchWithCSRF(
                     csrfRetryAttempted = true;
 
                     try {
-                        console.log("Fetching new CSRF token...");
+                        console.log("[fetchWithCSRF] Fetching new CSRF token...");
                         const newToken = await getValidCSRFToken();
-                        console.log(
-                            "New CSRF token obtained, retrying request..."
-                        );
+                        console.log("[fetchWithCSRF] New CSRF token obtained, retrying request...");
 
                         // Update headers with new token
                         const newHeaders = new Headers(options.headers);
                         newHeaders.set("x-csrf", newToken);
 
-                        // Retry the request
+                        // Retry the request with new token
                         response = await fetch(url, {
                             ...options,
                             headers: newHeaders,
                             credentials: "include"
                         });
 
-                        // Reset retry flag on successful retry
-                        if (response.ok) {
-                            console.log(
-                                "Request successful after token refresh"
-                            );
-                            csrfRetryAttempted = false;
-                        } else if (response.status === 429) {
-                            // Handle rate limit on retry
+                        console.log("[fetchWithCSRF] Retry response status:", response.status);
+
+                        // If retry fails, parse error again
+                        if (!response.ok) {
                             const retryErrorData = await response.json();
-                            throw new Error(
-                                `Rate limit exceeded on retry. ${retryErrorData?.Message || "Please try again later."}`
-                            );
+                            console.error("[fetchWithCSRF] Retry failed:", retryErrorData);
+                            
+                            // Handle redirect protocols for retry failure
+                            if (retryErrorData?.StatusCode && response.status !== 429) {
+                                RedirectProtocolExecuter(retryErrorData.StatusCode);
+                            }
+                            
+                            const retryMessage = retryErrorData?.Message || `HTTP error! status: ${response.status}`;
+                            throw new Error(retryMessage);
                         }
+
+                        console.log("[fetchWithCSRF] CSRF token refresh and retry successful");
                     } catch (retryError) {
-                        console.error(
-                            "Failed to refresh CSRF token:",
-                            retryError
-                        );
+                        console.error("[fetchWithCSRF] Failed to refresh CSRF token:", retryError);
                         csrfRetryAttempted = false;
                         throw retryError;
                     }
                 } else {
                     console.log(
-                        "CSRF token refresh already attempted, not retrying again"
+                        "[fetchWithCSRF] CSRF token refresh already attempted, not retrying again"
                     );
                     csrfRetryAttempted = false;
                 }
@@ -282,23 +318,23 @@ export function getRateLimitInfo(error: any): {
     return {
         retryAfter: parseInt(
             headers?.["retry-after"] ||
-                data?.Data?.rateLimitInfo?.retryAfter ||
-                "0"
+            data?.Data?.rateLimitInfo?.retryAfter ||
+            "0"
         ),
         limit: parseInt(
             headers?.["x-ratelimit-limit"] ||
-                data?.Data?.rateLimitInfo?.limit ||
-                "0"
+            data?.Data?.rateLimitInfo?.limit ||
+            "0"
         ),
         remaining: parseInt(
             headers?.["x-ratelimit-remaining"] ||
-                data?.Data?.rateLimitInfo?.remaining ||
-                "0"
+            data?.Data?.rateLimitInfo?.remaining ||
+            "0"
         ),
         resetTime: parseInt(
             headers?.["x-ratelimit-reset"] ||
-                data?.Data?.rateLimitInfo?.resetTime ||
-                "0"
+            data?.Data?.rateLimitInfo?.resetTime ||
+            "0"
         )
     };
 }

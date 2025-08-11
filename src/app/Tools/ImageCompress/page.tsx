@@ -16,7 +16,6 @@ import {
 } from "@mui/icons-material";
 import { Select, SelectItem } from "@heroui/react";
 import JSZip from "jszip";
-import { Axios } from "@Utils/Axios";
 import { Controller_Response } from "@Types";
 import { fetchWithCSRF } from "@Utils/FetchWithCSRF";
 
@@ -66,6 +65,52 @@ export default function ImageCompress() {
     });
     const [isDragOver, setIsDragOver] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Initialize CSRF token on component mount
+    useEffect(() => {
+        const initializeCSRF = async () => {
+            try {
+                console.log("[ImageCompress] Initializing CSRF token...");
+                const response = await fetch("/api/trace", {
+                    method: "POST",
+                    credentials: "include"
+                });
+                const data = await response.json();
+                if (data?.Status === 1) {
+                    localStorage.setItem("trace", JSON.stringify(data));
+                    console.log(
+                        "[ImageCompress] CSRF token initialized successfully"
+                    );
+
+                    // Check if cookie was set
+                    const cookies = document.cookie;
+                    console.log("[ImageCompress] Current cookies:", cookies);
+                    if (cookies.includes("smnetwork_csrf")) {
+                        console.log(
+                            "[ImageCompress] CSRF cookie found in document.cookie"
+                        );
+                    } else {
+                        console.warn(
+                            "[ImageCompress] CSRF cookie NOT found in document.cookie"
+                        );
+                    }
+                } else {
+                    console.warn(
+                        "[ImageCompress] Failed to initialize CSRF token:",
+                        data
+                    );
+                }
+            } catch (error) {
+                console.error(
+                    "[ImageCompress] Error initializing CSRF token:",
+                    error
+                );
+            }
+        };
+
+        initializeCSRF();
+    }, []);
+
     const formatBytes = (bytes: number): string => {
         if (bytes === 0) return "0 Bytes";
         const k = 1024;

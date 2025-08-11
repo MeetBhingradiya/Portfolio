@@ -76,7 +76,7 @@ import { DefualtBookmark, ILinkOpenTypes } from "./Types";
 import "@Styles/Tools-Bookmark.sass";
 import BookmarkItem from "./BookmarkItem";
 import BookmarkItemMarketPlace from "./BookmarkItemMarketPlace";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 interface IBookmarkEditorProps {
     bookmark: IBookmark;

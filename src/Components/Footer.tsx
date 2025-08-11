@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { Config } from "@Config";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
     ArrowUpward,
     Email,
@@ -18,18 +18,20 @@ import {
     Description,
     Support,
     Analytics,
-    Settings,
+    Settings as ISettings,
     LockPerson,
     Quiz,
     PictureAsPdf,
     Book,
     Signpost,
     RssFeed,
-    VideoLibrary
+    VideoLibrary,
+    Timeline,
+    Article
 } from "@mui/icons-material";
 import { Tooltip } from "@heroui/react";
 import Link from "next/link";
-import ModelMenu from "@Components/ModelMenu";
+import Settings from "@Components/Settings";
 
 interface FooterLink {
     label: string;
@@ -92,13 +94,15 @@ const footerSections: FooterSection[] = [
         links: [
             {
                 label: "Blogs",
-                icon: <Support className="text-xs" />,
+                icon: <Article className="text-xs" />,
                 href: "/blog"
             },
-            // { 
-            //     label: "Timeline", 
-            //     href: "/" 
-            // },
+            { 
+                label: "Timeline", 
+                icon: <Timeline className="text-xs" />,
+                href: "/timeline",
+                isDisabled: Config.ContactOptions.Timeline ? false : true
+            },
             {
                 label: "My Notes",
                 href: "https://notes.meetbhingradiya.tech",
@@ -179,7 +183,7 @@ const footerSections: FooterSection[] = [
             {
                 label: "Settings",
                 href: "#settings",
-                icon: <Settings className="text-xs" />
+                icon: <ISettings className="text-xs" />
             },
             {
                 label: "Administration",
@@ -306,11 +310,15 @@ function Footer() {
                                 </div>
 
                                 <p className="text-gray-300 leading-relaxed">
-                                    Security-focused Staff Engineer with
+                                    {/* Security-focused Staff Engineer with
                                     expertise in enterprise automation,
                                     framework development, and AI-enhanced
                                     workflows. Building the future of secure,
-                                    scalable software systems.
+                                    scalable software systems. */}
+
+                                    Project Manager with a focus on
+                                    delivering high-quality software solutions
+                                    on time and within your budget.
                                 </p>
 
                                 {achievements.length > 0 && (
@@ -479,8 +487,7 @@ function Footer() {
                                 <div className="flex items-center space-x-3">
                                     <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
                                     <span className="font-semibold">
-                                        Currently Available for Full Stack
-                                        Developer Positions
+                                        Currently Available for Project Manager Positions
                                     </span>
                                 </div>
                                 <div className="flex items-center space-x-6 text-sm text-gray-300">
@@ -547,8 +554,8 @@ function Footer() {
                     </motion.div>
                 </div>
 
-                {/* ModelMenu */}
-                <ModelMenu
+                {/* Settings */}
+                <Settings
                     isOpen={isModelMenuOpen}
                     onClose={() => setIsModelMenuOpen(false)}
                 />

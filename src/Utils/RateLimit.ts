@@ -1,4 +1,4 @@
-import { requestIp } from "@Lib";
+import { getClientIp } from "@Library";
 import { MemoryStore } from "@Utils/RateLimitStore";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -12,7 +12,7 @@ const DefaultOptions = {
     headers: true,
     skipFailedRequests: false,
     skipSuccessfulRequests: false,
-    keyGenerator: (request: NextRequest) => requestIp(request)!
+    keyGenerator: (request: NextRequest) => getClientIp(request)!
 };
 
 store.init(DefaultOptions);

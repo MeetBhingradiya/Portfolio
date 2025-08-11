@@ -42,7 +42,7 @@ import {
 } from "@mui/icons-material";
 import { DatePicker, LocalizationProvider } from "@mui/x-date-pickers-pro";
 import { AdapterLuxon } from "@mui/x-date-pickers-pro/AdapterLuxon";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Axios } from "@Utils/Axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
@@ -51,7 +51,7 @@ import { IGender } from "@Types/Gender";
 import { Config } from "@Config/index";
 import { DateTime } from "luxon";
 
-// Animation variants for framer-motion
+// Animation variants for motion/react
 const containerVariants = {
     hidden: { opacity: 0, y: 50 },
     visible: {

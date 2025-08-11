@@ -1,12 +1,8 @@
-"use client";
-
 import React from "react";
-import { motion } from "framer-motion";
+import { Motion } from "@Components"
 import {
     Security,
     Shield,
-    Lock,
-    Visibility,
     Cookie,
     Storage,
     Share,
@@ -17,8 +13,7 @@ import {
 } from "@mui/icons-material";
 import Link from "next/link";
 
-function PrivacyPolicyPage() {
-    const sections = [
+const sections = [
         {
             id: "products-covered",
             title: "Products Covered",
@@ -66,6 +61,8 @@ function PrivacyPolicyPage() {
         }
     ];
 
+function PrivacyPolicy() {
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
             {/* Header */}
@@ -97,7 +94,8 @@ function PrivacyPolicyPage() {
             </div>
 
             {/* Hero Section */}
-            <motion.div
+            <Motion
+                type="div"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -114,40 +112,45 @@ function PrivacyPolicyPage() {
 
                 <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                     {" "}
-                    <motion.div
+                    <Motion
+                        type="div"
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-8">
                         <Shield className="text-4xl" />
-                    </motion.div>
-                    <motion.h1
+                    </Motion>
+                    <Motion
+                        type="h1"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
                         className="text-4xl md:text-6xl font-bold mb-6">
                         Privacy Policy
-                    </motion.h1>
-                    <motion.p
+                    </Motion>
+                    <Motion
+                        type="p"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
                         className="text-xl md:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
                         Your privacy is important to us. This policy explains
                         how we collect, use, and protect your information.
-                    </motion.p>
-                    <motion.div
+                    </Motion>
+                    <Motion
+                        type="div"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.5 }}
                         className="text-blue-200">
                         <p>Last updated: June 19, 2025</p>
-                    </motion.div>
+                    </Motion>
                 </div>
-            </motion.div>
+            </Motion>
 
             {/* Table of Contents */}
-            <motion.div
+            <Motion
+                type="div"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -158,7 +161,8 @@ function PrivacyPolicyPage() {
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {sections.map((section, index) => (
-                            <motion.a
+                            <Motion
+                                type="a"
                                 key={section.id}
                                 href={`#${section.id}`}
                                 initial={{ opacity: 0, x: -20 }}
@@ -174,17 +178,18 @@ function PrivacyPolicyPage() {
                                 <span className="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
                                     {section.title}
                                 </span>
-                            </motion.a>
+                            </Motion>
                         ))}
                     </div>
                 </div>
-            </motion.div>
+            </Motion>
 
             {/* Content Sections */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
 
                 {/* Products Covered */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="services"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -207,10 +212,11 @@ function PrivacyPolicyPage() {
                             <li>Meet&apos;s Portfolio or its Related Domains</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
 
                 {/* Information Collection */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="information-collection"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -243,9 +249,10 @@ function PrivacyPolicyPage() {
                             <li>Usage data and analytics</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Information Use */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="information-use"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -273,9 +280,10 @@ function PrivacyPolicyPage() {
                             <li>Ensure security and prevent fraud</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Information Sharing */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="information-sharing"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -306,9 +314,10 @@ function PrivacyPolicyPage() {
                             </li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Data Security */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="data-security"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -338,9 +347,10 @@ function PrivacyPolicyPage() {
                             <li>Regular security training for our team</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Cookies */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="cookies"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -361,9 +371,10 @@ function PrivacyPolicyPage() {
                             control cookie settings in your browser preferences.
                         </p>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Your Rights */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="your-rights"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -390,9 +401,10 @@ function PrivacyPolicyPage() {
                             <li>Data portability</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Policy Updates */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="updates"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -415,9 +427,10 @@ function PrivacyPolicyPage() {
                             updated&rdquo; date.
                         </p>
                     </div>
-                </motion.section>{" "}
+                </Motion>{" "}
                 {/* Contact */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="contact"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -439,7 +452,8 @@ function PrivacyPolicyPage() {
                             concerns about how your data is handled, please
                             don&apos;t hesitate to contact me.
                         </p>
-                        <motion.div
+                        <Motion
+                            type="div"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}>
                             <Link
@@ -448,12 +462,12 @@ function PrivacyPolicyPage() {
                                 <ContactMail className="text-xl" />
                                 <span>Contact Me</span>
                             </Link>
-                        </motion.div>
+                        </Motion>
                     </div>
-                </motion.section>
+                </Motion>
             </div>
         </div>
     );
 }
 
-export default PrivacyPolicyPage;
+export default PrivacyPolicy;

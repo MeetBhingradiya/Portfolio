@@ -10,7 +10,7 @@ import React, {
     HTMLAttributes,
     ReactNode
 } from "react";
-import { motion, AnimatePresence, Variants } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "motion/react";
 
 interface StepperProps extends HTMLAttributes<HTMLDivElement> {
     children: ReactNode;

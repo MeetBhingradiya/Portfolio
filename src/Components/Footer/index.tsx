@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import "@Styles/Footer.sass";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Config } from "@Config";
 import { getRelativeTime, isFutureDate } from "@Utils/Relativetime";
 import { Tooltip } from "@heroui/react";
@@ -15,9 +15,9 @@ import {
     LightMode,
     LinkedIn,
     YouTube,
-    Settings
+    Settings as ISettings
 } from "@mui/icons-material";
-import ModelMenu from "@Components/ModelMenu";
+import Settings from "@Components/Settings";
 import { SocialLinks } from "@Config/SocialLinks";
 import { useTheme } from "@Hooks/useTheme";
 
@@ -136,12 +136,12 @@ function Footer({
                         className="Version settings-toggle"
                         onClick={() => setIsSettingsOpen(true)}
                         style={{ cursor: "pointer" }}>
-                        <Settings />
+                        <ISettings />
                     </div>
                 </Tooltip>
             </div>
             {/* Settings Modal */}
-            <ModelMenu
+            <Settings
                 isOpen={isSettingsOpen}
                 onClose={() => setIsSettingsOpen(false)}
             />

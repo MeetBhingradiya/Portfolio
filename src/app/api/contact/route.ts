@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requestIp } from "@Lib";
+import { getClientIp } from "@Library";
 import { createEmailTransport } from "@Utils/EmailSend";
 
 // Rate limiting store (in production, use Redis or database)
@@ -100,7 +100,7 @@ function formatTimeRemaining(milliseconds: number): string {
 export async function POST(request: NextRequest) {
     try {
         // Get client IP for rate limiting
-        const clientIP = requestIp(request);
+        const clientIP = getClientIp(request);
 
         // Check rate limit
         const rateLimitResult = checkRateLimit(clientIP as string);

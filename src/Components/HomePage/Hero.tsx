@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
     Security,
     Architecture,
@@ -21,6 +21,8 @@ import { Config } from "@Config";
 const expertiseAreas = [
     // "Security Engineer",
     "Full Stack Developer",
+    "Product Engineer",
+    "Project Manager",
     // "Framework Author",
     "DevOps Engineer",
     "Programmer",
@@ -31,24 +33,24 @@ const expertiseAreas = [
 const quickStats = [
     {
         icon: <Star className="text-lg" />,
-        label: "10+",
+        label: "5+",
         description: "Projects"
     },
     {
         icon: <Group className="text-lg" />,
-        label: "10k+",
+        label: "80k+",
         description: "Lines of Code"
     },
     {
         icon: <GitHub className="text-lg" />,
         label: "3+",
         description: "Years Experience"
+    },
+    {
+        icon: <TrendingUp className="text-lg" />,
+        label: "40+",
+        description: "Tools & Technologies"
     }
-    // {
-    // 	icon: <TrendingUp className="text-lg" />,
-    // 	label: "89.7",
-    // 	description: "Skill Score By AI",
-    // },
 ];
 
 function HeroSection() {
@@ -93,7 +95,7 @@ function HeroSection() {
                             className="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-4 py-2 rounded-full text-sm font-medium border border-green-200 dark:border-green-800">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                             <span>
-                                Available for Full Stack Developer positions
+                                Available for Project Manager positions
                             </span>
                         </motion.div>
                         <motion.div
@@ -137,11 +139,11 @@ function HeroSection() {
                             className="text-lg sm:text-xl text-gray-600 dark:text-gray-300 leading-relaxed max-w-3xl">
                             Security-focused software engineer specializing in{" "}
                             <span className="font-semibold text-blue-600 dark:text-blue-400">
-                                enterprise automation
+                                enterprise software solutions
                             </span>
                             ,{" "}
                             <span className="font-semibold text-purple-600 dark:text-purple-400">
-                                framework development
+                                website building
                             </span>
                             , and{" "}
                             <span className="font-semibold text-pink-600 dark:text-pink-400">

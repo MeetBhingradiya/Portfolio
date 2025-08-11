@@ -60,6 +60,43 @@ export default function ImageToPDF() {
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    // Initialize CSRF token on component mount
+    useEffect(() => {
+        const initializeCSRF = async () => {
+            try {
+                console.log("[ImageToPDF] Initializing CSRF token...");
+                const response = await fetch("/api/trace", {
+                    method: "POST",
+                    credentials: "include"
+                });
+                const data = await response.json();
+                if (data?.Status === 1) {
+                    localStorage.setItem("trace", JSON.stringify(data));
+                    console.log("[ImageToPDF] CSRF token initialized successfully");
+
+                    // Check if cookie was set
+                    const cookies = document.cookie;
+                    console.log("[ImageToPDF] Current cookies:", cookies);
+                    if (cookies.includes("smnetwork_csrf")) {
+                        console.log(
+                            "[ImageToPDF] CSRF cookie found in document.cookie"
+                        );
+                    } else {
+                        console.warn(
+                            "[ImageToPDF] CSRF cookie NOT found in document.cookie"
+                        );
+                    }
+                } else {
+                    console.warn("[ImageToPDF] Failed to initialize CSRF token:", data);
+                }
+            } catch (error) {
+                console.error("[ImageToPDF] Error initializing CSRF token:", error);
+            }
+        };
+
+        initializeCSRF();
+    }, []);
+
     const formatBytes = (bytes: number): string => {
         if (bytes === 0) return "0 Bytes";
         const k = 1024;

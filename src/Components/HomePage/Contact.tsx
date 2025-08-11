@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
     Email,
     GitHub,
@@ -498,7 +498,7 @@ function ContactSection() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.2, opacity: 1 }}>
+                    transition={{ duration: 0.6, delay: 0.2 }}>
                     <h3 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-8">
                         Contact
                     </h3>{" "}

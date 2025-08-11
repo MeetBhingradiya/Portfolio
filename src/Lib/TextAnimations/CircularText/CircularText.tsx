@@ -3,7 +3,7 @@
 */
 
 import React, { useEffect, useState } from "react";
-import { motion, useAnimation } from "framer-motion";
+import { motion, useAnimation } from "motion/react";
 
 interface CircularTextProps {
     text: string;
@@ -19,16 +19,16 @@ const getRotationTransition = (
 ) => ({
     from: from,
     to: from + 360,
-    ease: "linear",
+    ease: "linear" as const,
     duration: duration,
-    type: "tween",
+    type: "tween" as const,
     repeat: loop ? Infinity : 0
 });
 
 const getTransition = (duration: number, from: number) => ({
     rotate: getRotationTransition(duration, from),
     scale: {
-        type: "spring",
+        type: "spring" as const,
         damping: 20,
         stiffness: 300
     }
@@ -74,8 +74,8 @@ const CircularText: React.FC<CircularTextProps> = ({
                     rotate: currentRotation,
                     scale: 1,
                     transition: {
-                        rotate: { type: "spring", damping: 20, stiffness: 300 },
-                        scale: { type: "spring", damping: 20, stiffness: 300 }
+                        rotate: { type: "spring" as const, damping: 20, stiffness: 300 },
+                        scale: { type: "spring" as const, damping: 20, stiffness: 300 }
                     }
                 });
                 break;

@@ -3,7 +3,7 @@
 import React from "react";
 import { toast } from "react-toastify";
 import { ResolveIcon } from "@Data/Tools";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import "@Styles/Tool.sass";
 import {
     Add,

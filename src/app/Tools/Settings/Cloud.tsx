@@ -10,7 +10,7 @@ import {
 } from "./Types";
 import { Card, Input, Button, Chip, Tooltip } from "@heroui/react";
 import { Typography, Grid, Divider } from "@mui/material";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
     Search,
     CloudSync,

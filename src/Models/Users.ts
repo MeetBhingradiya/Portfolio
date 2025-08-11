@@ -187,8 +187,8 @@ export interface IUser extends mongoose.Document {
         PhoneNumber: string;
         isPrimary: boolean;
         isVerified: boolean;
-    }>; 
-    
+    }>;
+
     // ? Access Credentials
     Credentials: Array<{
         Salt: string;
@@ -255,4 +255,5 @@ export interface IUser extends mongoose.Document {
 }
 
 export const Users_Model: mongoose.Model<IUser> =
-    mongoose.models?.Users || mongoose.model<IUser>("Users", User_Schema);
+    mongoose.models?.OLD_Users ||
+    mongoose.model<IUser>("OLD_Users", User_Schema);

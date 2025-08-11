@@ -19,7 +19,7 @@ import {
     Chip,
     Switch
 } from "@heroui/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
     Search,
     Notifications,

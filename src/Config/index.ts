@@ -4,6 +4,7 @@ export * from "./RedirectProtocols";
 
 interface IConfig {
     Name: string; // ? vX.X.X Stage | Beta
+    DBName?: string;
     version: `v${number}.${number}.${number}${" Stage" | " Beta" | "" | " Alpha"}`; // ? DD/MM/YYYY
     releasedate: `${number}/${number}/${number}`;
 
@@ -44,14 +45,11 @@ interface IConfig {
         ADMIN_SIGNATURE?: string;
         TRACE_SIGNATURE?: string;
         JWT_SECRET?: string;
-        RSA_PUBLIC_KEY?: string;
-        RSA_PRIVATE_KEY?: string;
         NODE_ENV?: "development" | "production" | "test";
         CONTACT_EMAIL?: string;
         IPDATA_WEBSITE_KEY?: string;
         STATE_SIGNATURE?: string;
         APPLICATION_ID?: string;
-        // OAuth Provider Configuration
         GOOGLE_CLIENT_ID?: string;
         GOOGLE_CLIENT_SECRET?: string;
         GITHUB_CLIENT_ID?: string;
@@ -80,12 +78,14 @@ interface IConfig {
         Calendly: boolean
         Location: boolean
         RSS: boolean
+        Timeline: boolean
     }
 }
 
 const Config: IConfig = {
     Name: "Meet Bhingradiya",
     version: "v0.0.2 Alpha",
+    DBName: `${process.env.NODE_ENV === "production" ? "prod" : "dev"}_meetbhingradiya`,
     releasedate: "19/06/2025",
     visiblebranch: "Release",
     isHomeReleased: true,
@@ -131,13 +131,11 @@ const Config: IConfig = {
         ADMIN_SIGNATURE: process.env.ADMIN_SIGNATURE,
         TRACE_SIGNATURE: process.env.TRACE_SIGNATURE,
         JWT_SECRET: process.env.STATE_SIGNATURE,
-        RSA_PUBLIC_KEY: process.env.RSA_PUBLIC_KEY,
-        RSA_PRIVATE_KEY: process.env.RSA_PRIVATE_KEY,
         NODE_ENV: process.env.NODE_ENV as "development" | "production" | "test",
         CONTACT_EMAIL: process.env.CONTACT_EMAIL,
         IPDATA_WEBSITE_KEY: process.env.IPDATA_WEBSITE_KEY,
         STATE_SIGNATURE: process.env.STATE_SIGNATURE,
-        // OAuth Provider Configuration
+        APPLICATION_ID: process.env.APPLICATION_ID,
         GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
         GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
         GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
@@ -160,12 +158,13 @@ const Config: IConfig = {
     ContactOptions: {
         Email: true,
         Tickets: true,
-        LinkedIn: false,
+        LinkedIn: true,
         GitHub: true,
         Resume: true,
         Calendly: true,
         Location: false,
-        RSS: false
+        RSS: false,
+        Timeline: false
     }
 };
 

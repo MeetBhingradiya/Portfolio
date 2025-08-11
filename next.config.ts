@@ -25,8 +25,8 @@ let Extensions = [
 ];
 
 // Development performance optimization
-const isDev = process.env.NODE_ENV === 'development';
-const useTurbopack = process.env.TURBOPACK === '1';
+const isDev = process.env.NODE_ENV === "development";
+const useTurbopack = process.env.TURBOPACK === "1";
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
@@ -35,33 +35,32 @@ const nextConfig: NextConfig = {
     },
     productionBrowserSourceMaps: false,
     reactProductionProfiling: false,
-    
+
     // SWC compiler options
     // compiler: {
     //     removeConsole: process.env.NODE_ENV === 'production',
     //     styledComponents: true,
     // },
-    
+
     // Experimental features - cleaned up for latest Next.js
     experimental: {
         // Better memory management
         workerThreads: false,
-        
+
         // Optimize bundling - these work with both webpack and turbopack
         optimizePackageImports: [
-            'lucide-react',
-            '@radix-ui/react-icons',
-            'framer-motion',
-            '@heroicons/react',
-            'react-icons',
-            // Add your heavy packages here
+            "motion",
+            "@heroicons/react",
+            "react-icons",
+            "@mui/icons-material",
+            "@mui/material"
         ],
-        
+
         // Other performance features
         optimisticClientCache: true,
-        serverMinification: true,
+        serverMinification: true
     },
-    
+
     // Enhanced images config for dev performance
     images: {
         loader: "custom",
@@ -74,13 +73,13 @@ const nextConfig: NextConfig = {
                 hostname: "*"
             }
         ],
-        formats: ['image/webp', 'image/avif'],
+        formats: ["image/webp", "image/avif"]
     },
 
     // Only apply headers in production to speed up dev
     async headers() {
         if (isDev) return [];
-        
+
         return [
             {
                 source: "/(.*)",
@@ -109,6 +108,9 @@ const nextConfig: NextConfig = {
                         key: "Content-Security-Policy",
                         value: CSPGenerator({
                             directive: {
+                                [CSPDirectiveOptions.ObjectSrc]: {
+                                    None: true
+                                },
                                 [CSPDirectiveOptions.FrameSrc]: {
                                     Domains: ["*"],
                                     Self: true
@@ -140,15 +142,14 @@ const nextConfig: NextConfig = {
                                     Self: true,
                                     Domains: [
                                         "https://suggestqueries.google.com",
-                                        "https://api.bing.com", 
+                                        "https://api.bing.com",
                                         "https://duckduckgo.com",
                                         "*"
                                     ]
                                 }
                             },
-                            minify: true,
-                            removeWhitespace: true
-                        })
+                            minify: true
+                        }) as string
                     },
                     {
                         key: "Access-Control-Allow-Origin",
@@ -177,14 +178,14 @@ const nextConfig: NextConfig = {
         implementation: "sass",
         includePaths: [path.join(__dirname, "src", "Styles")],
         ...(isDev && {
-            outputStyle: 'expanded',
-            sourceMap: true,
+            outputStyle: "expanded",
+            sourceMap: true
         })
     },
 
     // Turbopack config - only valid options
     turbopack: {
-        resolveExtensions: Extensions,
+        resolveExtensions: Extensions
         // Memory limit is handled by NODE_OPTIONS in your .env.local
         // No memoryLimit option exists here
     },
@@ -202,13 +203,13 @@ const nextConfig: NextConfig = {
                     poll: 1000,
                     aggregateTimeout: 300,
                     ignored: [
-                        '**/node_modules/**',
-                        '**/.git/**',
-                        '**/dist/**',
-                        '**/build/**',
-                        '**/.next/**',
-                        '**/coverage/**',
-                        '**/*.log',
+                        "**/node_modules/**",
+                        "**/.git/**",
+                        "**/dist/**",
+                        "**/build/**",
+                        "**/.next/**",
+                        "**/coverage/**",
+                        "**/*.log"
                     ]
                 };
 
@@ -218,32 +219,32 @@ const nextConfig: NextConfig = {
                     removeAvailableModules: false,
                     removeEmptyChunks: false,
                     splitChunks: {
-                        chunks: 'async',
+                        chunks: "async",
                         cacheGroups: {
                             default: false,
-                            vendors: false,
+                            vendors: false
                         }
-                    },
+                    }
                 };
 
                 // Faster rebuilds
                 config.snapshot = {
                     module: {
-                        timestamp: true,
+                        timestamp: true
                     },
                     resolve: {
-                        timestamp: true,
-                    },
+                        timestamp: true
+                    }
                 };
 
                 // Enhanced caching for development
                 config.cache = {
-                    type: 'filesystem',
+                    type: "filesystem",
                     allowCollectingMemory: true,
                     buildDependencies: {
-                        config: [__filename],
+                        config: [__filename]
                     },
-                    cacheDirectory: path.resolve('.next/cache'),
+                    cacheDirectory: path.resolve(".next/cache")
                 };
             }
 
@@ -271,26 +272,26 @@ const nextConfig: NextConfig = {
                     // Faster module resolution
                     symlinks: false,
                     cacheWithContext: false,
-                    modules: ['node_modules'],
+                    modules: ["node_modules"]
                 },
                 experiments: {
                     ...config.experiments,
                     topLevelAwait: true,
-                    layers: true,
+                    layers: true
                 }
             };
 
             return Config;
-        },
+        }
     }),
-    
+
     serverExternalPackages: ["sharp"],
-    
+
     // Additional dev optimizations
     onDemandEntries: {
         maxInactiveAge: 25 * 1000,
-        pagesBufferLength: 2,
-    },
+        pagesBufferLength: 2
+    }
 };
 
 export default nextConfig;

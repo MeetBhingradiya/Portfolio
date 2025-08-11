@@ -61,14 +61,14 @@ import {
     GitHub,
     Microsoft
 } from "@mui/icons-material";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "motion/react";
 import { useRouter } from "next/navigation";
 import { Axios } from "@Utils/Axios";
 import { AccountSwitcher } from "@Components/AccountSwitcher";
 import { useAccount } from "@contexts/AccountContext";
 
 // Animation variants
-const containerVariants = {
+const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
         opacity: 1,
@@ -79,13 +79,13 @@ const containerVariants = {
     }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
     hidden: { y: 20, opacity: 0 },
     visible: {
         y: 0,
         opacity: 1,
         transition: {
-            type: "spring",
+            type: "spring" as const,
             stiffness: 100,
             damping: 10
         }

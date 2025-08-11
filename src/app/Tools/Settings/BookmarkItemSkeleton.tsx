@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Card, Skeleton } from "@heroui/react";
 import { CardContent } from "@mui/material";
 

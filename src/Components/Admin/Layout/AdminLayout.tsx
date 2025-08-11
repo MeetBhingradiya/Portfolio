@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { HeroUIProvider } from "@heroui/react";
 import AdminSidebar from "../Navigation/AdminSidebar";
 import AdminTopBar from "../Navigation/AdminTopBar";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 
 interface AdminLayoutProps {
     children: React.ReactNode;

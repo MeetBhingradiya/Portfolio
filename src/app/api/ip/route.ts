@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import Libraries from "@Lib";
+import { getClientIp } from "@Library";
 
 export async function GET(req: NextRequest) {
-    const IP = Libraries.requestIp(req);
+    const IP = getClientIp(req);
 
     return NextResponse.json(
         {

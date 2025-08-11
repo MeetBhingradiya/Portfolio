@@ -1,11 +1,8 @@
-"use client";
-
 import React from "react";
-import { motion } from "framer-motion";
+import { Motion } from "@Components"
 import {
     Description,
     Gavel,
-    Security,
     Warning,
     AccountBalance,
     Copyright,
@@ -19,8 +16,7 @@ import {
 } from "@mui/icons-material";
 import Link from "next/link";
 
-function TermsOfServicePage() {
-    const sections = [
+const sections = [
         {
             id: "products-covered",
             title: "Products Covered",
@@ -78,6 +74,7 @@ function TermsOfServicePage() {
         }
     ];
 
+function TermsOfService() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
             {/* Header */}
@@ -109,7 +106,8 @@ function TermsOfServicePage() {
             </div>
 
             {/* Hero Section */}
-            <motion.div
+            <Motion
+                type="div"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -125,21 +123,24 @@ function TermsOfServicePage() {
                 </div>
 
                 <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <motion.div
+                    <Motion
+                        type="div"
                         initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.6, delay: 0.2 }}
                         className="inline-flex items-center justify-center w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full mb-8">
                         <Description className="text-4xl" />
-                    </motion.div>
-                    <motion.h1
+                    </Motion>
+                    <Motion
+                        type="h1"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.3 }}
                         className="text-4xl md:text-6xl font-bold mb-6">
                         Terms of Service
-                    </motion.h1>
-                    <motion.p
+                    </Motion>
+                    <Motion
+                        type="p"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.4 }}
@@ -147,19 +148,21 @@ function TermsOfServicePage() {
                         Please read these terms carefully before using our
                         services. By accessing our website, you agree to these
                         terms.
-                    </motion.p>
-                    <motion.div
+                    </Motion>
+                    <Motion
+                        type="div"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.6, delay: 0.5 }}
                         className="text-purple-200">
                         <p>Last updated: June 19, 2025</p>
-                    </motion.div>
+                    </Motion>
                 </div>
-            </motion.div>
+            </Motion>
 
             {/* Table of Contents */}
-            <motion.div
+            <Motion
+                type="div"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -170,7 +173,8 @@ function TermsOfServicePage() {
                     </h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {sections.map((section, index) => (
-                            <motion.a
+                            <Motion
+                                type="a"
                                 key={section.id}
                                 href={`#${section.id}`}
                                 initial={{ opacity: 0, x: -20 }}
@@ -186,16 +190,17 @@ function TermsOfServicePage() {
                                 <span className="text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white">
                                     {section.title}
                                 </span>
-                            </motion.a>
+                            </Motion>
                         ))}
                     </div>
                 </div>
-            </motion.div>
+            </Motion>
 
             {/* Content Sections */}
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pb-20">
                 {/* Products Covered */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="services"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -218,10 +223,11 @@ function TermsOfServicePage() {
                             <li>Meet&apos;s Portfolio or its Related Domains</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
 
                 {/* Acceptance of Terms */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="acceptance"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -245,9 +251,10 @@ function TermsOfServicePage() {
                             this service.
                         </p>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Description of Services */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="services"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -274,9 +281,10 @@ function TermsOfServicePage() {
                             <li>Educational content and resources</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* User Conduct */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="user-conduct"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -316,9 +324,10 @@ function TermsOfServicePage() {
                             </li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Intellectual Property */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="intellectual-property"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -343,9 +352,10 @@ function TermsOfServicePage() {
                             without our prior written consent.
                         </p>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Prohibited Uses */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="prohibited-uses"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -385,9 +395,10 @@ function TermsOfServicePage() {
                             <li>To submit false or misleading information</li>
                         </ul>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Disclaimers */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="disclaimers"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -414,9 +425,10 @@ function TermsOfServicePage() {
                             under applicable law.
                         </p>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Limitation of Liability */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="limitation-liability"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -441,9 +453,10 @@ function TermsOfServicePage() {
                             losses, resulting from your use of the service.
                         </p>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Termination */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="termination"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -466,9 +479,10 @@ function TermsOfServicePage() {
                             use the service will cease immediately.
                         </p>
                     </div>
-                </motion.section>
+                </Motion>
                 {/* Changes to Terms */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="changes"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -492,9 +506,10 @@ function TermsOfServicePage() {
                             determined at our sole discretion.
                         </p>
                     </div>
-                </motion.section>{" "}
+                </Motion>{" "}
                 {/* Contact Information */}
-                <motion.section
+                <Motion
+                    type="section"
                     id="contact"
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -516,7 +531,8 @@ function TermsOfServicePage() {
                             I&apos;m here to help. Feel free to reach out
                             through my contact page.
                         </p>
-                        <motion.div
+                        <Motion
+                            type="div"
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}>
                             <Link
@@ -525,12 +541,12 @@ function TermsOfServicePage() {
                                 <ContactMail className="text-xl" />
                                 <span>Get in Touch</span>
                             </Link>
-                        </motion.div>
+                        </Motion>
                     </div>
-                </motion.section>
+                </Motion>
             </div>
         </div>
     );
 }
 
-export default TermsOfServicePage;
+export default TermsOfService;

@@ -195,7 +195,7 @@ export default function QRCustomizationTool() {
         TemplatesData: {
             Text: "https://meetbhingradiya.vercel.app/Tools/QR",
             upi: {
-                pa: "meetbhingradiya36@okaxis",
+                pa: "meetbhingradiya@pingpay",
                 pn: "Buy a Coffie to Meet Bhingradiya",
                 am: "100",
                 mc: "",

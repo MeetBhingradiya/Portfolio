@@ -11,7 +11,7 @@ import {
     Chip,
     Tooltip
 } from "@heroui/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
     Home,
     Article,

@@ -16,9 +16,8 @@ import {
     Transition,
     type VariantLabels,
     type Target,
-    type AnimationControls,
     type TargetAndTransition
-} from "framer-motion";
+} from "motion/react";
 
 function cn(...classes: (string | undefined | null | boolean)[]): string {
     return classes.filter(Boolean).join(" ");
@@ -39,7 +38,7 @@ export interface RotatingTextProps
     texts: string[];
     transition?: Transition;
     initial?: boolean | Target | VariantLabels;
-    animate?: boolean | VariantLabels | AnimationControls | TargetAndTransition;
+    animate?: boolean | VariantLabels | TargetAndTransition;
     exit?: Target | VariantLabels;
     animatePresenceMode?: "sync" | "wait";
     animatePresenceInitial?: boolean;
@@ -59,7 +58,7 @@ const RotatingText = forwardRef<RotatingTextRef, RotatingTextProps>(
     (
         {
             texts,
-            transition = { type: "spring", damping: 25, stiffness: 300 },
+            transition = { type: "spring" as const, damping: 25, stiffness: 300 },
             initial = { y: "100%", opacity: 0 },
             animate = { y: 0, opacity: 1 },
             exit = { y: "-120%", opacity: 0 },

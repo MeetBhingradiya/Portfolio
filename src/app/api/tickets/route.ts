@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requestIp } from "@Lib";
+import { getClientIp } from "@Library";
 import { dbConnect } from "@Utils/dbConnect";
 import { Tickets_Model, ITicket } from "@Models/Tickets";
 import { createEmailTransport } from "@Utils/EmailSend";
@@ -194,7 +194,7 @@ async function sendTicketConfirmationEmail(
 export async function POST(request: NextRequest) {
     try {
         await dbConnect();
-        const clientIP = await requestIp(request);
+        const clientIP = await getClientIp(request);
 
         // Check rate limit
         // const rateLimitResult = checkRateLimit(clientIP as string);

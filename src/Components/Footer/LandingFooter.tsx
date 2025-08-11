@@ -5,7 +5,7 @@ import "@Styles/LandingFooter.sass";
 import { SocialLinks } from "@Config/SocialLinks";
 import { useTheme } from "@Hooks/useTheme";
 import { Tooltip } from "@heroui/react";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
     ArrowUpward,
     Favorite,
@@ -16,13 +16,13 @@ import {
     GitHub,
     LinkedIn,
     Lightbulb,
-    Settings,
+    Settings as ISettings,
     Contrast,
     DarkMode,
     LightMode
 } from "@mui/icons-material";
 import Image from "next/image";
-import ModelMenu from "@Components/ModelMenu";
+import Settings from "@Components/Settings";
 
 interface Link {
     label: string;
@@ -473,7 +473,7 @@ function LandingFooter() {
                                     <div
                                         className="cursor-pointer hover:text-white"
                                         onClick={() => setIsSettingsOpen(true)}>
-                                        <Settings className="text-lg" />
+                                        <ISettings className="text-lg" />
                                     </div>
                                 </Tooltip>
                             </div>
@@ -482,7 +482,7 @@ function LandingFooter() {
                 </div>
 
                 {/* Settings Modal */}
-                <ModelMenu
+                <Settings
                     isOpen={isSettingsOpen}
                     onClose={() => setIsSettingsOpen(false)}
                 />

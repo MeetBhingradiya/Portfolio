@@ -2,9 +2,9 @@
 	Installed from https://reactbits.dev/ts/tailwind/
 */
 
-import type { SpringOptions } from "framer-motion";
+import type { SpringOptions } from "motion/react";
 import { useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "motion/react";
 
 interface TiltedCardProps {
     imageSrc: React.ComponentProps<"img">["src"];

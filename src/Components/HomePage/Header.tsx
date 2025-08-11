@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
     Home as HomeIcon,
     Work,
@@ -32,11 +32,11 @@ function Header() {
 
     const navLinks: NavLink[] = [
         { href: "/", label: "Home", icon: <HomeIcon className="text-lg" /> },
-        {
-            href: "#showcase",
-            label: "Projects",
-            icon: <Work className="text-lg" />
-        },
+        // {
+        //     href: "#showcase",
+        //     label: "Projects",
+        //     icon: <Work className="text-lg" />
+        // },
         {
             href: "/blogs",
             label: "Blogs",
@@ -70,11 +70,10 @@ function Header() {
                 </div>
             )}
             <motion.header
-                className={`fixed ${!isScrolled ? 'top-8' : 'top-0'} left-0 right-0 z-50 transition-all duration-300 ${
-                    isScrolled
+                className={`fixed ${!isScrolled ? 'top-8' : 'top-0'} left-0 right-0 z-50 transition-all duration-300 ${isScrolled
                         ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm"
                         : "bg-transparent"
-                }`}
+                    }`}
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}>
@@ -96,11 +95,10 @@ function Header() {
                                     />
                                 </div>
                                 <span
-                                    className={`font-bold text-lg transition-colors duration-300 ${
-                                        isScrolled
+                                    className={`font-bold text-lg transition-colors duration-300 ${isScrolled
                                             ? "text-gray-900 dark:text-white"
                                             : "text-white"
-                                    }`}>
+                                        }`}>
                                     Meet Bhingradiya
                                 </span>
                             </Link>
@@ -117,15 +115,14 @@ function Header() {
                                         whileTap={{ y: 0 }}>
                                         <Link
                                             href={link.href}
-                                            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-                                                isActive
+                                            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive
                                                     ? isScrolled
                                                         ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                                         : "bg-white/20 text-white"
                                                     : isScrolled
-                                                      ? "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
-                                                      : "text-gray-200 hover:text-white hover:bg-white/10"
-                                            }`}>
+                                                        ? "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
+                                                        : "text-gray-200 hover:text-white hover:bg-white/10"
+                                                }`}>
                                             {link.icon}
                                             <span>{link.label}</span>
                                         </Link>
@@ -144,11 +141,10 @@ function Header() {
                                     rel="noopener noreferrer"
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
-                                    className={`transition-colors duration-300 ${
-                                        isScrolled
+                                    className={`transition-colors duration-300 ${isScrolled
                                             ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                                             : "text-gray-200 hover:text-white"
-                                    }`}>
+                                        }`}>
                                     <GitHub className="text-xl" />
                                 </motion.a>
                                 <motion.a
@@ -157,22 +153,20 @@ function Header() {
                                     rel="noopener noreferrer"
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
-                                    className={`transition-colors duration-300 ${
-                                        isScrolled
+                                    className={`transition-colors duration-300 ${isScrolled
                                             ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                                             : "text-gray-200 hover:text-white"
-                                    }`}>
+                                        }`}>
                                     <LinkedIn className="text-xl" />
                                 </motion.a>
                             </div>
 
                             {/* Mobile Menu Button */}
                             <motion.button
-                                className={`md:hidden transition-colors duration-300 ${
-                                    isScrolled
+                                className={`md:hidden transition-colors duration-300 ${isScrolled
                                         ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
                                         : "text-gray-200 hover:text-white"
-                                }`}
+                                    }`}
                                 onClick={() =>
                                     setIsMobileMenuOpen(!isMobileMenuOpen)
                                 }
@@ -218,11 +212,10 @@ function Header() {
                                             transition={{ delay: index * 0.1 }}>
                                             <Link
                                                 href={link.href}
-                                                className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${
-                                                    isActive
+                                                className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${isActive
                                                         ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
-                                                }`}>
+                                                    }`}>
                                                 {link.icon}
                                                 <span>{link.label}</span>
                                             </Link>

@@ -20,7 +20,7 @@ import {
     SelectItem
 } from "@heroui/react";
 import {
-    Settings,
+    Settings as ISettings,
     Contrast,
     LightMode,
     DarkMode,
@@ -41,11 +41,11 @@ import {
     Monitor
 } from "@mui/icons-material";
 import { Config } from "@Config";
-import { motion } from "framer-motion";
 import { getRelativeTime, isFutureDate } from "@Utils/Relativetime";
 import { predefinedBackgrounds } from "@Config/Gredients";
 import { TRANSITION_EASINGS } from "@heroui/framer-utils";
 import { useTheme } from "@Hooks/useTheme";
+import { log } from "@Utils";
 
 // ? Type Definitions
 const MAX_UPLOADS = 6;
@@ -162,7 +162,7 @@ function safeSetItem(key: string, value: string) {
     }
 }
 
-export default function ModelMenu({
+export default function Settings({
     isOpen,
     onClose
 }: {
@@ -194,7 +194,7 @@ export default function ModelMenu({
                     UserPreferences: parsedPreferences
                 }));
             } catch (error) {
-                console.error("Error loading user preferences:", error);
+                log("Error loading user preferences:", error);
             }
         }
 
@@ -287,18 +287,26 @@ export default function ModelMenu({
                     UploadedFiles: loadedBackgrounds
                 }));
             } catch (error) {
-                console.error("Error loading backgrounds:", error);
+                log("Error loading backgrounds:", error);
             }
         }
     }
 
     const applyBackground = () => {
-        const SelectedBackgroundData = localStorage.getItem("Active-BG");
+        const SelectedBackgroundData = localStorage.getItem(STORAGE_KEYS.USER_PREFERENCES);
 
         if (SelectedBackgroundData) {
-            const parsedData = JSON.parse(SelectedBackgroundData);
-
+            let parsedData = JSON.parse(SelectedBackgroundData);
+            parsedData = parsedData.Activebackground;
             const html = document.documentElement;
+
+            if (!parsedData) {
+                html.style.background = "none";
+                html.style.backgroundImage = predefinedBackgrounds[0].value;
+                log("No active background found in user preferences.");
+                return;
+            }
+
             if (parsedData?.type === "color") {
                 html.style.background = parsedData.value;
                 html.style.backgroundImage = "none";
@@ -313,6 +321,21 @@ export default function ModelMenu({
                         );
                         if (imageData) {
                             html.style.backgroundImage = `url(${imageData})`;
+                        } else {
+                            html.style.background = "none";
+                            html.style.backgroundImage = predefinedBackgrounds[0].value;
+
+                            // ! Fix Currpted Data Using Reset Activebackground Object
+                            safeSetItem(
+                                STORAGE_KEYS.USER_PREFERENCES,
+                                JSON.stringify({
+                                    ...componentState.UserPreferences,
+                                    Activebackground: predefinedBackgrounds[0]
+                                }) 
+                            );
+
+                            log("Corrupted data found. Resetting to default background.");
+                            return;
                         }
                     } else {
                         let completeImage = "";
@@ -331,9 +354,15 @@ export default function ModelMenu({
                                 html.style.backgroundImage =
                                     predefinedBackgrounds[0].value;
 
-                                localStorage.removeItem(
-                                    STORAGE_KEYS.ACTIVE_BACKGROUND
+                                // ! Fix Currpted Data Using Reset Activebackground Object
+                                safeSetItem(
+                                    STORAGE_KEYS.USER_PREFERENCES,
+                                    JSON.stringify({
+                                        ...componentState.UserPreferences,
+                                        Activebackground: predefinedBackgrounds[0]
+                                    })
                                 );
+                                log("Corrupted data found. Resetting to default background.");
                                 return;
                             }
                         }
@@ -342,8 +371,6 @@ export default function ModelMenu({
                 } else {
                     html.style.background = "none";
                     html.style.backgroundImage = predefinedBackgrounds[0].value;
-
-                    localStorage.removeItem(STORAGE_KEYS.ACTIVE_BACKGROUND);
                 }
 
                 html.style.backgroundSize = "cover";
@@ -418,8 +445,6 @@ export default function ModelMenu({
             }
         }));
 
-        // Save the selection to localStorage
-        safeSetItem("Active-BG", JSON.stringify(background));
         loadBackgroundList();
     };
 
@@ -434,7 +459,7 @@ export default function ModelMenu({
     };
 
     const handleLanguageChange = (value: string) => {
-        console.log("Language changed to:", value);
+        log("Language changed to:", value);
     };
 
     const handleCookiePreferenceChange = (
@@ -621,17 +646,18 @@ export default function ModelMenu({
             UploadedFiles: updatedBackgrounds
         }));
 
-        const selectedBg = localStorage.getItem(STORAGE_KEYS.ACTIVE_BACKGROUND);
+        const selectedBg = localStorage.getItem(STORAGE_KEYS.USER_PREFERENCES);
         if (selectedBg) {
             try {
                 const parsedBg = JSON.parse(selectedBg);
-                if (parsedBg.id === id) {
+
+                if (parsedBg.Activebackground.id === id) {
                     handleBackgroundSelect(
                         predefinedBackgrounds[0] as IBackground
                     );
                 }
             } catch (error) {
-                console.error("Error checking selected background:", error);
+                log("Error checking selected background:", error);
             }
         }
 
@@ -657,7 +683,7 @@ export default function ModelMenu({
                 }
             }
         } catch (error) {
-            console.error(
+            log(
                 "Error removing background from localStorage:",
                 error
             );
@@ -677,6 +703,7 @@ export default function ModelMenu({
                 backdrop: isOpen ? "bg-black/50 backdrop-blur-sm" : "pointer-events-none bg-transparent",
                 wrapper: "items-center justify-center"
             }}
+            hideCloseButton
             motionProps={{
                 variants: {
                     enter: {
@@ -714,7 +741,7 @@ export default function ModelMenu({
                 <ModalHeader className="flex flex-col gap-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-t-lg p-6">
                     <div className="flex items-center space-x-3">
                         <div className="p-2 bg-white/10 rounded-lg backdrop-blur-sm">
-                            <Settings className="text-2xl text-white" />
+                            <ISettings className="text-2xl text-white" />
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-white">
@@ -877,12 +904,12 @@ export default function ModelMenu({
                                                         <div
                                                             key={bg.id}
                                                             className={`relative rounded-xl overflow-hidden cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg group ${componentState
-                                                                    .UserPreferences
-                                                                    .Activebackground
-                                                                    .id ===
-                                                                    bg.id
-                                                                    ? "ring-2 ring-blue-500 dark:ring-blue-400 shadow-md"
-                                                                    : "hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600"
+                                                                .UserPreferences
+                                                                .Activebackground
+                                                                .id ===
+                                                                bg.id
+                                                                ? "ring-2 ring-blue-500 dark:ring-blue-400 shadow-md"
+                                                                : "hover:ring-2 hover:ring-gray-300 dark:hover:ring-gray-600"
                                                                 }`}
                                                             onClick={() =>
                                                                 handleBackgroundSelect(
@@ -1115,8 +1142,8 @@ export default function ModelMenu({
                                     <div className="flex flex-col gap-4">
                                         <div
                                             className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${theme === "light"
-                                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                                                 }`}
                                             onClick={() => {
                                                 setTheme("light");
@@ -1144,8 +1171,8 @@ export default function ModelMenu({
 
                                         <div
                                             className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${theme === "dark"
-                                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                                                 }`}
                                             onClick={() => {
                                                 setTheme("dark");
@@ -1173,8 +1200,8 @@ export default function ModelMenu({
 
                                         <div
                                             className={`p-4 rounded-lg border-2 cursor-pointer transition-all duration-200 hover:shadow-md ${theme === "system"
-                                                    ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                                                    : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                                                ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                                                : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
                                                 }`}
                                             onClick={() => {
                                                 setTheme("system");

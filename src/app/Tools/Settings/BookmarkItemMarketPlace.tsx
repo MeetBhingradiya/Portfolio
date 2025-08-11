@@ -14,7 +14,7 @@ import {
 import { Button, Card, Tooltip, cn } from "@heroui/react";
 import SvgComponent from "@/Components/SVGComponent";
 
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 const MotionCard = motion.create(Card);
 
 function BookmarkItemMarketPlace({

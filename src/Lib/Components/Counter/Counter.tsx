@@ -2,7 +2,7 @@
 	Installed from https://reactbits.dev/ts/tailwind/
 */
 
-import { MotionValue, motion, useSpring, useTransform } from "framer-motion";
+import { MotionValue, motion, useSpring, useTransform } from "motion/react";
 import { useEffect } from "react";
 
 interface NumberProps {

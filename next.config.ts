@@ -146,6 +146,10 @@ const nextConfig: NextConfig = {
                                         "https://duckduckgo.com",
                                         "*"
                                     ]
+                                },
+                                [CSPDirectiveOptions.StyleSrc]: {
+                                    Self: true,
+                                    Inline: true
                                 }
                             },
                             minify: true

@@ -96,7 +96,9 @@ export async function parseMultipartResponse(response: Response): Promise<{
             const indexMatch = part.name.match(/file_(\d+)/);
             if (indexMatch) {
                 const index = parseInt(indexMatch[1]);
-                const blob = new Blob([part.data], {
+                // Create a new Uint8Array with proper ArrayBuffer to ensure compatibility
+                const fileData = new Uint8Array(part.data.buffer.slice(part.data.byteOffset, part.data.byteOffset + part.data.byteLength));
+                const blob = new Blob([fileData], {
                     type: part.contentType || "application/octet-stream"
                 });
 

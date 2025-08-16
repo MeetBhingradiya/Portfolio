@@ -1,11 +1,9 @@
 import type { Metadata } from "next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@Styles/globals.sass";
 import { Inter } from "next/font/google";
 import { Providers } from "@Components/Providers";
 import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
-import Header from "@Components/Header";
 import Footer from "@Components/Footer";
 import { ToastContainer } from "react-toastify";
 import { muiXTelemetrySettings } from "@mui/x-license";
@@ -106,8 +104,8 @@ export default function RootLayout({
                 )}
 
                 {/* ? Vercel Speed Insights */}
-                {Config.Environment === "production" &&
-                    Config.VercelSpeedInsight && <SpeedInsights />}
+                {/* {Config.Environment === "production" &&
+                    Config.VercelSpeedInsight && <SpeedInsights />} */}
 
                 {/* ? React Scan */}
                 {Config.Environment === "development" && Config.ReactScan && (

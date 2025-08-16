@@ -66,12 +66,12 @@ const REQUIRED_HEADERS = [
     "accept-encoding",
     "user-agent",
     "connection",
-    "sec-ch-ua",
-    "sec-ch-ua-platform",
-    "sec-ch-ua-mobile",
-    "sec-fetch-dest",
-    "sec-fetch-mode",
-    "sec-fetch-site",
+    // "sec-ch-ua",
+    // "sec-ch-ua-platform",
+    // "sec-ch-ua-mobile",
+    // "sec-fetch-dest",
+    // "sec-fetch-mode",
+    // "sec-fetch-site",
     "origin"
 ];
 
@@ -111,14 +111,14 @@ function detectAutomationBot(req: NextRequest): {
     }
 
     // 3. Check for missing required headers
-    for (const header of REQUIRED_HEADERS) {
-        if (!req.headers.has(header)) {
-            return {
-                isBot: true,
-                reason: `Missing required header: ${header}`
-            };
-        }
-    }
+    // for (const header of REQUIRED_HEADERS) {
+    //     if (!req.headers.has(header)) {
+    //         return {
+    //             isBot: true,
+    //             reason: `Missing required header: ${header}`
+    //         };
+    //     }
+    // }
 
     // 4. Selenium-specific detection
     // if (userAgent.includes('chrome')) {
@@ -145,14 +145,14 @@ function detectAutomationBot(req: NextRequest): {
     }
 
     // 6. Check Accept-Language patterns
-    if (
-        !acceptLanguage ||
-        acceptLanguage === "en-US" ||
-        acceptLanguage === "en"
-    ) {
-        // Real browsers usually have more complex Accept-Language headers
-        return { isBot: true, reason: "Suspicious Accept-Language header" };
-    }
+    // if (
+    //     !acceptLanguage ||
+    //     acceptLanguage === "en-US" ||
+    //     acceptLanguage !== "en"
+    // ) {
+    //     // Real browsers usually have more complex Accept-Language headers
+    //     return { isBot: true, reason: "Suspicious Accept-Language header" };
+    // }
 
     // 7. Check Accept-Encoding patterns
     if (
@@ -180,9 +180,9 @@ function detectAutomationBot(req: NextRequest): {
     }
 
     // 9. Check for missing or invalid Sec-CH-UA-Mobile
-    if (secUaMobile !== "?0" && secUaMobile !== "?1") {
-        return { isBot: true, reason: "Invalid Sec-CH-UA-Mobile header" };
-    }
+    // if (secUaMobile !== "?0" && secUaMobile !== "?1") {
+    //     return { isBot: true, reason: "Invalid Sec-CH-UA-Mobile header" };
+    // }
 
     // 10. Advanced: Check for WebDriver property (would need client-side JS)
     // This would be implemented on the frontend and sent as a custom header
@@ -328,10 +328,11 @@ export async function POST(req: NextRequest) {
     }
 
     if (
-        !WhiteListedPlatforms.includes(
-            changeCase.upperFirst(secUaPlatform.replace(/"/g, "")) as any
-        )
+        !WhiteListedPlatforms.includes(changeCase.upperFirst(parsedUA.platform) as any)
     ) {
+        console.log(
+            "Unsupported platform detected:", parsedUA.platform
+        );
         return ControllerResponseMap({
             Status: 0,
             Message: "Unsupported Platform",
@@ -339,7 +340,7 @@ export async function POST(req: NextRequest) {
             StatusNumber: 403,
             Debug:
                 Config.Environment === "development"
-                    ? { platform: secUaPlatform }
+                    ? { platform: parsedUA.platform }
                     : undefined
         });
     }

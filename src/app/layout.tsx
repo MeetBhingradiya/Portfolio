@@ -51,7 +51,6 @@ export const metadata: Metadata = {
         "meetbhingradiya.dev",
         "meetbhingradiya.live",
         "meetbhingradiya.site",
-        "meetbhingradiya.shop",
         "meetbhingradiya.co.in",
         "meetbhingradiya.in",
         "meetbhingradiya.tech",

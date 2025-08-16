@@ -18,3 +18,6 @@ export * from "./State";
 // ? Wallets Management
 export * from "./Wallets";
 export * from "./Transactions";
+
+// ? Timetable Management
+export * from "./Timetable";

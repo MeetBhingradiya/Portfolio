@@ -16,7 +16,7 @@ interface IConfig {
     ReactScan: boolean;
     WhiteListedDomains: string[];
     WhiteListedPlatforms: Array<
-        "Windows" | "Linux" | "Android" | "iOS" | "MacOS"
+        "Microsoft Windows" | "Linux" | "Android" | "iOS" | "MacOS"
     >;
     WhiteListedBrowsers: Array<
         "Chrome" | "Edge" | "Safari" | "Firefox" | "Opera" | "Arc" | "Brave"
@@ -94,7 +94,6 @@ const Config: IConfig = {
     VercelSpeedInsight: true,
     ReactScan: false,
     WhiteListedDomains: [
-        "meetbhingradiya.shop",
         "meetbhingradiya.tech",
         // "meetbhingradiya.vercel.app",
         // "admin.meetbhingradiya.tech",
@@ -104,7 +103,7 @@ const Config: IConfig = {
         // "stage-meetbhingradiya.vercel.app",
         // "admin-meetbhingradiya.vercel.app"
     ],
-    WhiteListedPlatforms: ["Windows", "Linux", "Android"],
+    WhiteListedPlatforms: ["Microsoft Windows", "Linux", "Android"],
     WhiteListedBrowsers: ["Chrome", "Edge", "Opera"],
     ThreatIntelligence: [
         "TOR",

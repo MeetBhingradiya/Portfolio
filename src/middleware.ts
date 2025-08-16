@@ -42,7 +42,8 @@ export async function middleware(req: NextRequest) {
             "/api/robots",
             "/api/auth/connect",
             "/api/auth/callback",
-            "/api/auth/disconnect"
+            "/api/auth/disconnect",
+            "/api/timetable"
         ];
 
         if (

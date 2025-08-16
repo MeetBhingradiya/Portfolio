@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { getEnvs } from "./getEnvs";
+import { Config } from "@Config";
 
 declare global {
     var mongoose: any;
@@ -76,7 +77,7 @@ async function dbConnect() {
             bufferCommands: false
         };
         cached.promise = mongoose
-            .connect(MONGODB_URI as string, opts)
+            .connect(`${MONGODB_URI}${Config.DBName}` as string, opts)
             .then((mongoose) => {
                 return mongoose;
             });

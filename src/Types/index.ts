@@ -5,3 +5,4 @@ export * from "./Organization";
 export * from "./QR";
 export * from "./Gender";
 export * from "./Controllers";
+export * from "./Timetable";

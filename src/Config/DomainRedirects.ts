@@ -6,10 +6,6 @@ interface DomainRedirectsCondition {
 
 const DomainRedirects: Array<DomainRedirectsCondition> = [
     {
-        Domain: ["meetbhingradiya.shop"],
-        RedirectPath: "/Shop"
-    },
-    {
         Domain: ["meetbhingradiya.tech"],
         RedirectPath: "/Home"
     },

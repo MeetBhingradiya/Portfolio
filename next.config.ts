@@ -157,7 +157,7 @@ const nextConfig: NextConfig = {
                     },
                     {
                         key: "Access-Control-Allow-Origin",
-                        value: "meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech, meetbhingradiya.shop"
+                        value: "meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech"
                     },
                     {
                         key: "Access-Control-Allow-Methods",

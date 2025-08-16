@@ -103,7 +103,7 @@ const Config: IConfig = {
         // "stage-meetbhingradiya.vercel.app",
         // "admin-meetbhingradiya.vercel.app"
     ],
-    WhiteListedPlatforms: ["Microsoft Windows", "Linux", "Android"],
+    WhiteListedPlatforms: ["Microsoft Windows", "Linux", "Android", "iOS"],
     WhiteListedBrowsers: ["Chrome", "Edge", "Opera"],
     ThreatIntelligence: [
         "TOR",

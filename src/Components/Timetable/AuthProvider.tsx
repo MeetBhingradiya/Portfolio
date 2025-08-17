@@ -34,13 +34,7 @@ interface AuthProviderProps {
 }
 
 const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [session, setSession] = useState<Session | null>({
-        user: {
-            id: 'demo-user-001',
-            name: 'Demo User',
-            email: 'demo@example.com'
-        }
-    });
+    const [session, setSession] = useState<Session | null>(null);
     const [status, setStatus] = useState<'loading' | 'authenticated' | 'unauthenticated'>('authenticated');
 
     const signIn = async (credentials: { name: string; email?: string }) => {

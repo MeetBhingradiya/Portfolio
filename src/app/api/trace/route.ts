@@ -12,7 +12,7 @@ const CSRF_KEY = Config.Env.TRACE_SIGNATURE;
 const ALLOWED_ORIGINS = [
     ...Config.WhiteListedDomains.map((domain) => `https://${domain}`),
     Config.Environment === "development" ? "http://localhost:3000" : null,
-    Config.Environment === "development" ? "http://192.168.0.101:3000" : null
+    Config.Environment === "development" ? "http://192.168.1.75:3000" : null
 ];
 const WhiteListedPlatforms = Config.WhiteListedPlatforms;
 const WhiteListedBrowsers = Config.WhiteListedBrowsers;
@@ -245,20 +245,21 @@ export async function POST(req: NextRequest) {
     const secUaPlatform = req.headers.get("sec-ch-ua-platform") || "";
     const parsedUA = new UserAgent(userAgent).parse();
 
-    // console.log({
-    //     origin,
-    //     referer,
-    //     userAgent,
-    //     secUa,
-    //     secUaPlatform,
-    //     headers: Array.from(req.headers.entries())
-    //         .map(([key, value]) => `${key}: ${value}`)
-    //         .join(", "),
-    //     ip: getClientIp(req) || "Unknown IP",
-    //     botDetection: detectAutomationBot(req),
-    //     platform: parsedUA.platform,
-    //     browser: parsedUA.browser
-    // })
+    console.log({
+        origin,
+        referer,
+        userAgent,
+        secUa,
+        secUaPlatform,
+        headers: Array.from(req.headers.entries())
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(", "),
+        ip: getClientIp(req) || "Unknown IP",
+        botDetection: detectAutomationBot(req),
+        platform: parsedUA.platform,
+        parsedPlateform: changeCase.upperFirst(parsedUA.platform),
+        browser: parsedUA.browser
+    })
 
     // **Enhanced Bot Detection**
     const botDetection = detectAutomationBot(req);
@@ -344,9 +345,6 @@ export async function POST(req: NextRequest) {
     if (
         !WhiteListedPlatforms.includes(changeCase.upperFirst(parsedUA.platform) as any)
     ) {
-        console.log(
-            "Unsupported platform detected:", parsedUA.platform
-        );
         return ControllerResponseMap({
             Status: 0,
             Message: "Unsupported Platform",

@@ -342,20 +342,20 @@ export async function POST(req: NextRequest) {
         });
     }
 
-    if (
-        !WhiteListedPlatforms.includes(changeCase.upperFirst(parsedUA.platform) as any)
-    ) {
-        return ControllerResponseMap({
-            Status: 0,
-            Message: "Unsupported Platform",
-            StatusCode: "UNSUPPORTED_PLATFORM",
-            StatusNumber: 403,
-            Debug:
-                Config.Environment === "development"
-                    ? { platform: parsedUA.platform }
-                    : undefined
-        });
-    }
+    // if (
+    //     !WhiteListedPlatforms.includes(changeCase.upperFirst(parsedUA.platform) as any)
+    // ) {
+    //     return ControllerResponseMap({
+    //         Status: 0,
+    //         Message: "Unsupported Platform",
+    //         StatusCode: "UNSUPPORTED_PLATFORM",
+    //         StatusNumber: 403,
+    //         Debug:
+    //             Config.Environment === "development"
+    //                 ? { platform: parsedUA.platform }
+    //                 : undefined
+    //     });
+    // }
 
     // 4. Threat Intelligence Checks
     if (Config.Environment !== "development") {

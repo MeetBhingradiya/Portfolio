@@ -81,8 +81,7 @@ function detectAutomationBot(req: NextRequest): {
 } {
     const userAgent = req.headers.get("user-agent")?.toLowerCase() || "";
     const secUa = req.headers.get("sec-ch-ua")?.toLowerCase() || "";
-    const secUaPlatform =
-        req.headers.get("sec-ch-ua-platform")?.toLowerCase() || "";
+    const secUaPlatform = req.headers.get("sec-ch-ua-platform")?.toLowerCase() || "";
     const secUaMobile = req.headers.get("sec-ch-ua-mobile") || "";
     const acceptLanguage = req.headers.get("accept-language") || "";
     const acceptEncoding = req.headers.get("accept-encoding") || "";
@@ -244,6 +243,22 @@ export async function POST(req: NextRequest) {
     const userAgent = req.headers.get("user-agent") || "";
     const secUa = req.headers.get("sec-ch-ua") || "";
     const secUaPlatform = req.headers.get("sec-ch-ua-platform") || "";
+    const parsedUA = new UserAgent(userAgent).parse();
+
+    // console.log({
+    //     origin,
+    //     referer,
+    //     userAgent,
+    //     secUa,
+    //     secUaPlatform,
+    //     headers: Array.from(req.headers.entries())
+    //         .map(([key, value]) => `${key}: ${value}`)
+    //         .join(", "),
+    //     ip: getClientIp(req) || "Unknown IP",
+    //     botDetection: detectAutomationBot(req),
+    //     platform: parsedUA.platform,
+    //     browser: parsedUA.browser
+    // })
 
     // **Enhanced Bot Detection**
     const botDetection = detectAutomationBot(req);
@@ -293,7 +308,6 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Enhanced User-Agent Analysis
-    const parsedUA = new UserAgent(userAgent).parse();
 
     // Check if it's a known bot
     if (parsedUA.isBot) {

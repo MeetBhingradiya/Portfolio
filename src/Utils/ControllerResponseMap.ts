@@ -53,6 +53,7 @@ function ControllerResponseMap(Response: Controller_Response): NextResponse {
         Data: Response.Data || undefined,
         Debug: Response.Debug || undefined
     };
+    // console.log("JSONBody", JSONBody);
     return NextResponse.json(JSONBody, {
         status: StatusNumber,
         statusText: Response.StatusText || undefined

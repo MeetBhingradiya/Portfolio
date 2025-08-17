@@ -44,6 +44,9 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             visibleDays: timetable.visibleDays,
             timeSlots: timetable.timeSlots,
             isActive: timetable.isActive,
+            availableSubjects: timetable.availableSubjects,
+            availableClassrooms: timetable.availableClassrooms,
+            availableFaculty: timetable.availableFaculty,
             createdAt: timetable.createdAt,
             updatedAt: timetable.updatedAt
         };

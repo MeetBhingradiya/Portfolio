@@ -245,21 +245,21 @@ export async function POST(req: NextRequest) {
     const secUaPlatform = req.headers.get("sec-ch-ua-platform") || "";
     const parsedUA = new UserAgent(userAgent).parse();
 
-    console.log({
-        origin,
-        referer,
-        userAgent,
-        secUa,
-        secUaPlatform,
-        headers: Array.from(req.headers.entries())
-            .map(([key, value]) => `${key}: ${value}`)
-            .join(", "),
-        ip: getClientIp(req) || "Unknown IP",
-        botDetection: detectAutomationBot(req),
-        platform: parsedUA.platform,
-        parsedPlateform: changeCase.upperFirst(parsedUA.platform),
-        browser: parsedUA.browser
-    })
+    // console.log({
+    //     origin,
+    //     referer,
+    //     userAgent,
+    //     secUa,
+    //     secUaPlatform,
+    //     headers: Array.from(req.headers.entries())
+    //         .map(([key, value]) => `${key}: ${value}`)
+    //         .join(", "),
+    //     ip: getClientIp(req) || "Unknown IP",
+    //     botDetection: detectAutomationBot(req),
+    //     platform: parsedUA.platform,
+    //     parsedPlateform: changeCase.upperFirst(parsedUA.platform),
+    //     browser: parsedUA.browser
+    // })
 
     // **Enhanced Bot Detection**
     const botDetection = detectAutomationBot(req);

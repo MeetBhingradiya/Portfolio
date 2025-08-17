@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import TimetableManager from '@/Components/Timetable/TimetableManager';
+import TimetableManager from '@Components/Timetable/TimetableManager';
 
 const TimetablePage: React.FC = () => {
     return (

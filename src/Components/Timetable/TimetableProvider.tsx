@@ -2,14 +2,13 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Timetable, TimetableListResponse, DayOfWeek, Batch, ProgramType } from '@/Types/Timetable';
-import { useOffline, useServiceWorker } from '@/Hooks/useOffline';
 import { Axios } from '@/Utils/Axios';
+import { TimetableUtility } from '@/Utils/TimetableUtility';
 
 interface TimetableContextType {
     timetables: Timetable[];
     loading: boolean;
     error: string | null;
-    isOffline: boolean;
     refetch: () => Promise<void>;
     createTimetable: (data: any) => Promise<void>;
     updateTimetable: (id: string, data: any) => Promise<void>;
@@ -33,15 +32,11 @@ interface TimetableProviderProps {
 }
 
 const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refreshTrigger = 0 }) => {
-    const { isOffline } = useOffline();
-    const { isRegistered, triggerSync } = useServiceWorker();
-    
     const [timetables, setTimetables] = useState<Timetable[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const fetchTimetables = async () => {
-        console.log('Fetching timetables (anonymous mode)');
         setLoading(true);
         setError(null);
         
@@ -56,26 +51,18 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
             
             const data: TimetableListResponse = response.data;
             
-            // Check if response indicates offline mode
-            if (data.offline) {
-                setError('You are offline. Showing cached data.');
-            }
-            
+            console.log('TimetableProvider: Fetched', data.timetables?.length || 0, 'timetables');
             setTimetables(data.timetables as Timetable[]);
         } catch (err: any) {
             const errorMessage = err?.response?.data?.message || err?.message || 'An error occurred';
-            setError(isOffline ? 'You are offline. Please check your connection.' : errorMessage);
-            console.error('Error fetching timetables:', err);
+            setError(errorMessage);
+            console.error('TimetableProvider: Error fetching timetables:', err);
         } finally {
             setLoading(false);
         }
     };
 
     const createTimetable = async (data: any) => {
-        if (isOffline) {
-            throw new Error('Cannot create timetables while offline');
-        }
-        
         try {
             await Axios.post('/api/timetable', data);
             await fetchTimetables(); // Refresh the list
@@ -86,8 +73,9 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
     };
 
     const updateTimetable = async (id: string, data: any) => {
-        if (isOffline) {
-            throw new Error('Cannot update timetables while offline');
+        // Validate timetable ID before making API call
+        if (!TimetableUtility.isValidTimetableId(id)) {
+            throw new Error('Cannot update demo or invalid timetables');
         }
         
         try {
@@ -100,8 +88,9 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
     };
 
     const deleteTimetable = async (id: string) => {
-        if (isOffline) {
-            throw new Error('Cannot delete timetables while offline');
+        // Validate timetable ID before making API call
+        if (!TimetableUtility.isValidTimetableId(id)) {
+            throw new Error('Cannot delete demo or invalid timetables');
         }
         
         try {
@@ -114,8 +103,9 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
     };
 
     const exportTimetable = async (id: string, options: any) => {
-        if (isOffline) {
-            throw new Error('Cannot export timetables while offline');
+        // Validate timetable ID before making API call
+        if (!TimetableUtility.isValidTimetableId(id)) {
+            throw new Error('Cannot export demo or invalid timetables');
         }
         
         try {
@@ -144,18 +134,10 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
         fetchTimetables();
     }, [refreshTrigger]);
 
-    // Trigger background sync when coming back online
-    useEffect(() => {
-        if (!isOffline && isRegistered) {
-            triggerSync().catch(console.error);
-        }
-    }, [isOffline, isRegistered, triggerSync]);
-
     const value: TimetableContextType = {
         timetables: timetables || [], // Ensure it's never undefined
         loading,
         error,
-        isOffline,
         refetch: fetchTimetables,
         createTimetable,
         updateTimetable,

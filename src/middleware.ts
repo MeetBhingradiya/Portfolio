@@ -43,16 +43,25 @@ export async function middleware(req: NextRequest) {
             "/api/auth/connect",
             "/api/auth/callback",
             "/api/auth/disconnect",
-            "/api/timetable"
+            "/api/timetable",
+            "/api/timetable/*"
         ];
 
-        if (
-            csrfExcludedRoutes.some(
-                (route) =>
-                    req.nextUrl.pathname === route ||
-                    req.nextUrl.pathname.startsWith(route)
-            )
-        ) {
+        // Support for regex patterns in excluded routes
+        const csrfExcludedRegexRoutes = [
+            /^\/api\/timetable(\/.*)?$/,
+            /^\/api\/auth\/(connect|callback|disconnect)$/
+        ];
+
+        const isExcludedRoute = csrfExcludedRoutes.some(
+            (route) =>
+                req.nextUrl.pathname === route ||
+                req.nextUrl.pathname.startsWith(route)
+        ) || csrfExcludedRegexRoutes.some(
+            (regex) => regex.test(req.nextUrl.pathname)
+        );
+
+        if (isExcludedRoute) {
             return NextResponse.next({
                 request: { headers: ModifiedHeaders }
             });

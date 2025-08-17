@@ -3,7 +3,10 @@
 export enum SubjectSlotType {
     LECTURE = "Lecture",
     LAB = "Lab",
-    TUTORIAL = "Tutorial"
+    TUTORIAL = "Tutorial",
+    BREAK = "Break",
+    LUNCH = "Lunch",
+    SHORT_BREAK = "Short Break"
 }
 
 export enum DayOfWeek {
@@ -19,7 +22,9 @@ export enum DayOfWeek {
 export enum Batch {
     A = "A",
     B = "B",
-    C = "C"
+    C = "C",
+    G7 = "G7",
+    G8 = "G8"
 }
 
 export enum ProgramType {
@@ -27,10 +32,28 @@ export enum ProgramType {
     REGULAR = "Regular"
 }
 
-export interface RoomLocation {
+// Dropdown Options Interfaces
+export interface SubjectOption {
+    code: string; // e.g., "SEIT2220"
+    name: string; // e.g., "Software Engineering"
+}
+
+export interface ClassroomOption {
     buildingCode: string; // e.g., "CX", "BX"
     floorNumber: number; // 1 digit
     roomNumber: string; // 2 digits e.g., "11", "12"
+    displayName: string; // e.g., "CX111" (without hyphens)
+}
+
+export interface FacultyOption {
+    shortName: string; // e.g., "JDoe"
+    longName: string; // e.g., "Dr. John Doe"
+}
+
+export interface RoomLocation {
+    buildingCode: string; // e.g., "CX", "BX" (can be empty for special slot types)
+    floorNumber: number; // 1 digit (can be 0 for special slot types)
+    roomNumber: string; // 2 digits e.g., "11", "12" (can be empty for special slot types)
 }
 
 export interface TimeSlot {
@@ -39,13 +62,19 @@ export interface TimeSlot {
 }
 
 export interface Subject {
-    code: string; // e.g., "SEIT2220"
-    name: string; // e.g., "Software Engineering"
+    code: string; // e.g., "SEIT2220" (for academic subjects) or "Break", "Lunch", "Short Break" (for special slots)
+    name: string; // e.g., "Software Engineering" (for academic subjects) or "Break", "Lunch", "Short Break" (for special slots)
     type: SubjectSlotType;
-    faculty?: string; // Faculty name
-    room: RoomLocation;
+    faculty?: string; // Faculty name (optional for Break, Lunch, Short Break)
+    room: RoomLocation; // Room details (can be empty for Break, Lunch, Short Break)
     timeSlot: TimeSlot;
     day: DayOfWeek;
+}
+
+// Day-grouped subjects for better organization
+export interface DaySubjects {
+    day: DayOfWeek;
+    subjects: Subject[];
 }
 
 export interface TimetableMetadata {
@@ -64,12 +93,18 @@ export interface Timetable extends Document {
     title: string; // User-friendly name
     metadata: TimetableMetadata;
     subjects: Subject[];
+    dayGroupedSubjects: DaySubjects[]; // Organized by days for better performance
     visibleDays: DayOfWeek[]; // Days to show in the timetable
-    timeSlots: TimeSlot[]; // All time slots for the day
+    timeSlots: TimeSlot[]; // All time slots for the day (auto-sorted)
     isActive: boolean;
     createdAt: Date;
     updatedAt: Date;
     userId: string; // Owner of the timetable
+    
+    // Dropdown options for form selections
+    availableSubjects: SubjectOption[];
+    availableClassrooms: ClassroomOption[];
+    availableFaculty: FacultyOption[];
 }
 
 export interface TimetableCell {
@@ -106,10 +141,14 @@ export interface CreateTimetableRequest {
     subjects: Subject[];
     visibleDays: DayOfWeek[];
     timeSlots: TimeSlot[];
+    availableSubjects: SubjectOption[];
+    availableClassrooms: ClassroomOption[];
+    availableFaculty: FacultyOption[];
 }
 
 export interface UpdateTimetableRequest extends Partial<CreateTimetableRequest> {
     isActive?: boolean;
+    dayGroupedSubjects?: DaySubjects[];
 }
 
 // Filter and Search Types
@@ -142,3 +181,52 @@ export interface TimetableExportRequest {
     timetableId: string;
     options: PDFExportOptions;
 }
+
+// Utility Functions and Types
+export interface TimetableUtils {
+    // Sort time slots by start time
+    sortTimeSlots: (timeSlots: TimeSlot[]) => TimeSlot[];
+    
+    // Group subjects by day
+    groupSubjectsByDay: (subjects: Subject[]) => DaySubjects[];
+    
+    // Get available time slots for a specific day
+    getAvailableTimeSlotsForDay: (day: DayOfWeek, subjects: Subject[], allTimeSlots: TimeSlot[]) => TimeSlot[];
+    
+    // Validate that each time slot has only one subject per day
+    validateSingleSubjectPerSlot: (daySubjects: DaySubjects) => boolean;
+    
+    // Auto-organize timetable for optimal performance
+    organizeTimetable: (subjects: Subject[], timeSlots: TimeSlot[]) => {
+        sortedTimeSlots: TimeSlot[];
+        dayGroupedSubjects: DaySubjects[];
+        conflicts: TimetableConflict[];
+    };
+}
+
+export interface TimetableConflict {
+    day: DayOfWeek;
+    timeSlot: TimeSlot;
+    conflictingSubjects: Subject[];
+    type: 'MULTIPLE_SUBJECTS' | 'OVERLAPPING_TIME' | 'INVALID_ROOM';
+}
+
+// Helper functions for dropdown formatting
+export const formatClassroomDisplay = (classroom: ClassroomOption): string => {
+    return `${classroom.buildingCode}${classroom.floorNumber}${classroom.roomNumber}`;
+};
+
+export const formatFacultyDisplay = (faculty: FacultyOption): string => {
+    return `${faculty.shortName} (${faculty.longName})`;
+};
+
+export const formatSubjectDisplay = (subject: SubjectOption): string => {
+    return `${subject.code} - ${subject.name}`;
+};
+
+// Time slot comparison for sorting
+export const compareTimeSlots = (a: TimeSlot, b: TimeSlot): number => {
+    const timeA = new Date(`1970-01-01 ${a.startTime}`).getTime();
+    const timeB = new Date(`1970-01-01 ${b.startTime}`).getTime();
+    return timeA - timeB;
+};

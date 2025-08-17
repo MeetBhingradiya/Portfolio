@@ -44,7 +44,7 @@ interface TimetableListProps {
 const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
-    const { timetables, loading, error, isOffline, deleteTimetable, exportTimetable } = useTimetable();
+    const { timetables, loading, error, deleteTimetable, exportTimetable } = useTimetable();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -170,14 +170,6 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                             >
                                 My Timetables ({filteredTimetables.length})
                             </Typography>
-                            {isOffline && (
-                                <Chip
-                                    label="🔄 Offline Mode"
-                                    color="warning"
-                                    variant="outlined"
-                                    sx={{ fontWeight: 500 }}
-                                />
-                            )}
                         </Box>
 
                         <TextField

@@ -8,29 +8,34 @@ import {
     TimeSlot,
     Subject,
     TimetableMetadata,
-    Timetable as ITimetable
+    Timetable as ITimetable,
+    SubjectOption,
+    ClassroomOption,
+    FacultyOption,
+    DaySubjects
 } from '@/Types/Timetable';
 
 // Room Location Schema
 const RoomLocationSchema = new Schema<RoomLocation>({
     buildingCode: {
         type: String,
-        required: true,
+        required: false, // Allow empty for special slot types
         uppercase: true,
         trim: true,
         maxlength: 3
     },
     floorNumber: {
         type: Number,
-        required: true,
+        required: false, // Allow empty for special slot types
         min: 0,
-        max: 9
+        max: 9,
+        default: 0
     },
     roomNumber: {
         type: String,
-        required: true,
+        required: false, // Allow empty for special slot types
         trim: true,
-        maxlength: 3
+        maxlength: 4
     }
 }, { _id: false });
 
@@ -53,8 +58,7 @@ const SubjectSchema = new Schema<Subject>({
     code: {
         type: String,
         required: true,
-        uppercase: true,
-        trim: true
+        trim: true // Removed uppercase since special slot types might not be uppercase
     },
     name: {
         type: String,
@@ -68,11 +72,13 @@ const SubjectSchema = new Schema<Subject>({
     },
     faculty: {
         type: String,
-        trim: true
+        trim: true,
+        default: '' // Default to empty string for special slot types
     },
     room: {
         type: RoomLocationSchema,
-        required: true
+        required: true,
+        default: () => ({ buildingCode: '', floorNumber: 0, roomNumber: '' }) // Default empty room for special slot types
     },
     timeSlot: {
         type: TimeSlotSchema,
@@ -82,6 +88,63 @@ const SubjectSchema = new Schema<Subject>({
         type: String,
         enum: Object.values(DayOfWeek),
         required: true
+    }
+}, { _id: false });
+
+// Subject Option Schema for dropdown selections
+const SubjectOptionSchema = new Schema<SubjectOption>({
+    code: {
+        type: String,
+        required: true,
+        uppercase: true,
+        trim: true
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    }
+}, { _id: false });
+
+// Classroom Option Schema for dropdown selections
+const ClassroomOptionSchema = new Schema<ClassroomOption>({
+    buildingCode: {
+        type: String,
+        required: true,
+        uppercase: true,
+        trim: true,
+        maxlength: 3
+    },
+    floorNumber: {
+        type: Number,
+        required: true,
+        min: 0,
+        max: 9
+    },
+    roomNumber: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 4
+    },
+    displayName: {
+        type: String,
+        required: true,
+        trim: true
+    }
+}, { _id: false });
+
+// Faculty Option Schema for dropdown selections
+const FacultyOptionSchema = new Schema<FacultyOption>({
+    shortName: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    longName: {
+        type: String,
+        required: true,
+        trim: true
     }
 }, { _id: false });
 
@@ -125,6 +188,19 @@ const TimetableMetadataSchema = new Schema<TimetableMetadata>({
     }
 }, { _id: false });
 
+// Day Subjects Schema for organized grouping
+const DaySubjectsSchema = new Schema<DaySubjects>({
+    day: {
+        type: String,
+        enum: Object.values(DayOfWeek),
+        required: true
+    },
+    subjects: [{
+        type: SubjectSchema,
+        required: true
+    }]
+}, { _id: false });
+
 // Main Timetable Schema
 const TimetableSchema = new Schema<ITimetable>({
     title: {
@@ -140,6 +216,10 @@ const TimetableSchema = new Schema<ITimetable>({
     subjects: [{
         type: SubjectSchema,
         required: true
+    }],
+    dayGroupedSubjects: [{
+        type: DaySubjectsSchema,
+        default: []
     }],
     visibleDays: [{
         type: String,
@@ -158,7 +238,19 @@ const TimetableSchema = new Schema<ITimetable>({
         type: String,
         required: true,
         trim: true
-    }
+    },
+    availableSubjects: [{
+        type: SubjectOptionSchema,
+        default: []
+    }],
+    availableClassrooms: [{
+        type: ClassroomOptionSchema,
+        default: []
+    }],
+    availableFaculty: [{
+        type: FacultyOptionSchema,
+        default: []
+    }]
 }, {
     timestamps: true,
     toJSON: {
@@ -264,6 +356,76 @@ TimetableSchema.pre('save', function (next) {
         const timeB = new Date(`1970-01-01 ${b.startTime}`);
         return timeA.getTime() - timeB.getTime();
     });
+
+    // Sort subjects by time slot within each day
+    this.subjects.sort((a, b) => {
+        // First sort by day
+        const dayOrder = Object.values(DayOfWeek);
+        const dayDiff = dayOrder.indexOf(a.day) - dayOrder.indexOf(b.day);
+        if (dayDiff !== 0) return dayDiff;
+        
+        // Then sort by time slot
+        const timeA = new Date(`1970-01-01 ${a.timeSlot.startTime}`);
+        const timeB = new Date(`1970-01-01 ${b.timeSlot.startTime}`);
+        return timeA.getTime() - timeB.getTime();
+    });
+
+    // Auto-generate day grouped subjects
+    const grouped: { [key in DayOfWeek]?: Subject[] } = {};
+    this.subjects.forEach(subject => {
+        if (!grouped[subject.day]) {
+            grouped[subject.day] = [];
+        }
+        grouped[subject.day]!.push(subject);
+    });
+
+    this.dayGroupedSubjects = Object.entries(grouped).map(([day, subjects]) => ({
+        day: day as DayOfWeek,
+        subjects: subjects || []
+    }));
+
+    // Auto-generate dropdown options if not provided
+    if (!this.availableSubjects || this.availableSubjects.length === 0) {
+        const uniqueSubjects = new Map<string, any>();
+        this.subjects.forEach(subject => {
+            if (!uniqueSubjects.has(subject.code)) {
+                uniqueSubjects.set(subject.code, {
+                    code: subject.code,
+                    name: subject.name
+                });
+            }
+        });
+        this.availableSubjects = Array.from(uniqueSubjects.values());
+    }
+
+    if (!this.availableClassrooms || this.availableClassrooms.length === 0) {
+        const uniqueRooms = new Map<string, any>();
+        this.subjects.forEach(subject => {
+            const roomKey = `${subject.room.buildingCode}-${subject.room.floorNumber}-${subject.room.roomNumber}`;
+            if (!uniqueRooms.has(roomKey)) {
+                uniqueRooms.set(roomKey, {
+                    buildingCode: subject.room.buildingCode,
+                    floorNumber: subject.room.floorNumber,
+                    roomNumber: subject.room.roomNumber,
+                    displayName: roomKey
+                });
+            }
+        });
+        this.availableClassrooms = Array.from(uniqueRooms.values());
+    }
+
+    if (!this.availableFaculty || this.availableFaculty.length === 0) {
+        const uniqueFaculty = new Map<string, any>();
+        this.subjects.forEach(subject => {
+            if (subject.faculty && !uniqueFaculty.has(subject.faculty)) {
+                uniqueFaculty.set(subject.faculty, {
+                    shortName: subject.faculty,
+                    longName: subject.faculty
+                });
+            }
+        });
+        this.availableFaculty = Array.from(uniqueFaculty.values());
+    }
 
     // Remove duplicates from visible days
     this.visibleDays = [...new Set(this.visibleDays)];

@@ -41,6 +41,7 @@ import {
 import { Timetable, TimetableGrid, Subject, SubjectSlotType, Batch, ProgramType, DayOfWeek } from '@/Types/Timetable';
 import { useTimetable } from './TimetableProvider';
 import { Axios } from '@Utils/Axios';
+import { TimetableUtility } from '@/Utils/TimetableUtility';
 import EditTimetableDialog from './EditTimetableDialog';
 
 interface TimetableViewProps {
@@ -106,13 +107,44 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
             }
         };
 
+        // Validate timetable ID before making API call
         if (timetable && timetable._id) {
+            // Skip API call for invalid or demo IDs to prevent spam requests
+            if (!TimetableUtility.isValidTimetableId(timetable._id)) {
+                console.warn('TimetableView: Skipping API call for invalid/demo timetable ID:', timetable._id);
+                setError('This is a demo timetable. Real API functionality is not available.');
+                setLoading(false);
+                return;
+            }
+            
+            console.log('TimetableView: Fetching grid for timetable ID:', timetable._id);
             fetchTimetableGrid();
         } else {
             setError('Invalid timetable data');
             setLoading(false);
         }
     }, [timetable._id]);
+
+    // Debug logging for subjects
+    useEffect(() => {
+        if (timetable?.subjects) {
+            console.log('TimetableView: Timetable subjects loaded:', timetable.subjects);
+            console.log('TimetableView: Special slot types found:', 
+                timetable.subjects.filter(s => s.type === 'Break' || s.type === 'Lunch' || s.type === 'Short Break'));
+        }
+    }, [timetable?.subjects]);
+
+    // Debug logging for grid data
+    useEffect(() => {
+        if (grid?.cells) {
+            console.log('TimetableView: Grid loaded:', grid);
+            const nonEmptyCells = grid.cells.flat().filter(cell => !cell.isEmpty);
+            console.log('TimetableView: Non-empty cells:', nonEmptyCells);
+            console.log('TimetableView: Special slot cells:', 
+                nonEmptyCells.filter(cell => cell.subject && 
+                    (cell.subject.type === 'Break' || cell.subject.type === 'Lunch' || cell.subject.type === 'Short Break')));
+        }
+    }, [grid]);
 
     const handleEdit = () => {
         setEditDialogOpen(true);
@@ -202,6 +234,10 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                 return isDark ? theme.palette.secondary.dark : theme.palette.secondary.light;
             case SubjectSlotType.TUTORIAL:
                 return isDark ? theme.palette.success.dark : theme.palette.success.light;
+            case SubjectSlotType.BREAK:
+            case SubjectSlotType.LUNCH:
+            case SubjectSlotType.SHORT_BREAK:
+                return isDark ? theme.palette.warning.dark : theme.palette.warning.light;
             default:
                 return isDark ? theme.palette.grey[800] : theme.palette.grey[200];
         }
@@ -215,9 +251,20 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                 return 'secondary';
             case SubjectSlotType.TUTORIAL:
                 return 'success';
+            case SubjectSlotType.BREAK:
+            case SubjectSlotType.LUNCH:
+            case SubjectSlotType.SHORT_BREAK:
+                return 'warning';
             default:
                 return 'default';
         }
+    };
+
+    // Helper function to check if subject type is a special slot (Break, Lunch, Short Break)
+    const isSpecialSlotType = (type: SubjectSlotType): boolean => {
+        return type === SubjectSlotType.BREAK || 
+               type === SubjectSlotType.LUNCH || 
+               type === SubjectSlotType.SHORT_BREAK;
     };
 
     const getBatchColor = (batch: Batch) => {
@@ -311,7 +358,7 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                                                         color: theme.palette.mode === 'dark' ? 'common.white' : 'common.black' 
                                                     }}
                                                 >
-                                                    {subject.code}
+                                                    {isSpecialSlotType(subject.type) ? subject.type : subject.code}
                                                 </Typography>
                                                 <Chip
                                                     size="small"
@@ -321,16 +368,18 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                                                 />
                                             </Box>
                                             
-                                            <Typography 
-                                                variant="body1" 
-                                                mb={1.5}
-                                                fontWeight="500"
-                                                sx={{ 
-                                                    color: theme.palette.mode === 'dark' ? 'common.white' : 'common.black' 
-                                                }}
-                                            >
-                                                {subject.name}
-                                            </Typography>
+                                            {!isSpecialSlotType(subject.type) && (
+                                                <Typography 
+                                                    variant="body1" 
+                                                    mb={1.5}
+                                                    fontWeight="500"
+                                                    sx={{ 
+                                                        color: theme.palette.mode === 'dark' ? 'common.white' : 'common.black' 
+                                                    }}
+                                                >
+                                                    {subject.name}
+                                                </Typography>
+                                            )}
                                             
                                             <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
                                                 <Typography 
@@ -342,18 +391,20 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                                                 >
                                                     🕐 {subject.timeSlot.startTime} - {subject.timeSlot.endTime}
                                                 </Typography>
-                                                <Typography 
-                                                    variant="body2" 
-                                                    fontWeight="500"
-                                                    sx={{ 
-                                                        color: theme.palette.mode === 'dark' ? 'grey.200' : 'text.secondary' 
-                                                    }}
-                                                >
-                                                    📍 {subject.room.buildingCode}{subject.room.floorNumber}{subject.room.roomNumber}
-                                                </Typography>
+                                                {!isSpecialSlotType(subject.type) && (
+                                                    <Typography 
+                                                        variant="body2" 
+                                                        fontWeight="500"
+                                                        sx={{ 
+                                                            color: theme.palette.mode === 'dark' ? 'grey.200' : 'text.secondary' 
+                                                        }}
+                                                    >
+                                                        📍 {subject.room.buildingCode}{subject.room.floorNumber}{subject.room.roomNumber}
+                                                    </Typography>
+                                                )}
                                             </Box>
                                             
-                                            {subject.faculty && (
+                                            {!isSpecialSlotType(subject.type) && subject.faculty && (
                                                 <Typography 
                                                     variant="body2" 
                                                     fontWeight="500"
@@ -504,35 +555,39 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                                                             color: theme.palette.mode === 'dark' ? 'common.white' : 'inherit' 
                                                         }}
                                                     >
-                                                        {cell.subject.code}
+                                                        {isSpecialSlotType(cell.subject.type) ? cell.subject.type : cell.subject.code}
                                                     </Typography>
-                                                    <Typography 
-                                                        variant="body2" 
-                                                        gutterBottom
-                                                        fontWeight="500"
-                                                        sx={{ 
-                                                            color: theme.palette.mode === 'dark' ? 'common.white' : 'inherit' 
-                                                        }}
-                                                    >
-                                                        {cell.subject.name}
-                                                    </Typography>
+                                                    {!isSpecialSlotType(cell.subject.type) && (
+                                                        <Typography 
+                                                            variant="body2" 
+                                                            gutterBottom
+                                                            fontWeight="500"
+                                                            sx={{ 
+                                                                color: theme.palette.mode === 'dark' ? 'common.white' : 'inherit' 
+                                                            }}
+                                                        >
+                                                            {cell.subject.name}
+                                                        </Typography>
+                                                    )}
                                                     <Chip
                                                         size="small"
                                                         label={cell.subject.type}
                                                         color={getSubjectTypeChipColor(cell.subject.type)}
                                                         sx={{ mb: 1, fontWeight: 500 }}
                                                     />
-                                                    <Typography 
-                                                        variant="caption" 
-                                                        display="block" 
-                                                        sx={{ 
-                                                            color: theme.palette.mode === 'dark' ? 'grey.200' : 'text.secondary',
-                                                            fontWeight: 500
-                                                        }}
-                                                    >
-                                                        📍 {cell.subject.room.buildingCode}{cell.subject.room.floorNumber}{cell.subject.room.roomNumber}
-                                                    </Typography>
-                                                    {cell.subject.faculty && (
+                                                    {!isSpecialSlotType(cell.subject.type) && (
+                                                        <Typography 
+                                                            variant="caption" 
+                                                            display="block" 
+                                                            sx={{ 
+                                                                color: theme.palette.mode === 'dark' ? 'grey.200' : 'text.secondary',
+                                                                fontWeight: 500
+                                                            }}
+                                                        >
+                                                            📍 {cell.subject.room.buildingCode}{cell.subject.room.floorNumber}{cell.subject.room.roomNumber}
+                                                        </Typography>
+                                                    )}
+                                                    {!isSpecialSlotType(cell.subject.type) && cell.subject.faculty && (
                                                         <Typography 
                                                             variant="caption" 
                                                             display="block" 

@@ -166,10 +166,10 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
         <Box>
             {/* Modern Search Section */}
             <Fade in={true}>
-                <Card 
-                    sx={{ 
+                <Card
+                    sx={{
                         mb: 4,
-                        background: theme.palette.mode === 'dark' 
+                        background: theme.palette.mode === 'dark'
                             ? `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)} 0%, ${alpha(theme.palette.secondary.main, 0.1)} 100%)`
                             : `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.05)} 0%, ${alpha(theme.palette.secondary.main, 0.05)} 100%)`,
                         backdropFilter: 'blur(10px)',
@@ -179,8 +179,8 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                 >
                     <CardContent>
                         <Box display="flex" alignItems="center" justifyContent="space-between" mb={3}>
-                            <Typography 
-                                variant="h5" 
+                            <Typography
+                                variant="h5"
                                 fontWeight="700"
                                 sx={{
                                     background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
@@ -205,7 +205,7 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                                     </InputAdornment>
                                 ),
                             }}
-                            sx={{ 
+                            sx={{
                                 '& .MuiOutlinedInput-root': {
                                     borderRadius: 3,
                                     background: alpha(theme.palette.background.paper, 0.6),
@@ -229,11 +229,11 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
             {/* Timetable Grid */}
             {filteredTimetables.length === 0 ? (
                 <Slide direction="up" in={true}>
-                    <Box 
-                        textAlign="center" 
+                    <Box
+                        textAlign="center"
                         py={8}
                         sx={{
-                            background: theme.palette.mode === 'dark' 
+                            background: theme.palette.mode === 'dark'
                                 ? alpha(theme.palette.background.paper, 0.3)
                                 : alpha(theme.palette.background.paper, 0.6),
                             borderRadius: 3,
@@ -245,8 +245,8 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                             {searchQuery ? 'No timetables found' : 'No timetables yet'}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
-                            {searchQuery 
-                                ? 'Try adjusting your search terms' 
+                            {searchQuery
+                                ? 'Try adjusting your search terms'
                                 : 'Create your first timetable to get started'
                             }
                         </Typography>
@@ -269,7 +269,7 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                                     height: '100%',
                                     display: 'flex',
                                     flexDirection: 'column',
-                                    background: theme.palette.mode === 'dark' 
+                                    background: theme.palette.mode === 'dark'
                                         ? alpha(theme.palette.background.paper, 0.6)
                                         : alpha(theme.palette.background.paper, 0.9),
                                     backdropFilter: 'blur(20px)',
@@ -290,8 +290,8 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                             >
                                 <CardContent sx={{ flexGrow: 1, pb: 1 }}>
                                     <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
-                                        <Typography 
-                                            variant="h6" 
+                                        <Typography
+                                            variant="h6"
                                             fontWeight="700"
                                             sx={{
                                                 background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
@@ -311,7 +311,7 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                                                 handleMenuOpen(e, timetable._id);
                                                 setSelectedTimetable(timetable);
                                             }}
-                                            sx={{ 
+                                            sx={{
                                                 opacity: 0.7,
                                                 '&:hover': { opacity: 1 }
                                             }}
@@ -327,14 +327,14 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                                                 {timetable.metadata?.programName || 'N/A'}
                                             </Typography>
                                         </Box>
-                                        
+
                                         <Box display="flex" alignItems="center">
                                             <DateRange sx={{ fontSize: 16, mr: 1, color: 'secondary.main' }} />
                                             <Typography variant="body2" fontWeight="500">
                                                 {timetable.metadata?.semester || 'N/A'}
                                             </Typography>
                                         </Box>
-                                        
+
                                         <Box display="flex" alignItems="center">
                                             <Schedule sx={{ fontSize: 16, mr: 1, color: 'success.main' }} />
                                             <Typography variant="body2" color="text.secondary">
@@ -379,9 +379,9 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                                     </Box>
                                 </CardContent>
 
-                                <CardActions 
+                                <CardActions
                                     className="card-actions"
-                                    sx={{ 
+                                    sx={{
                                         pt: 0,
                                         px: 2,
                                         pb: 2,
@@ -452,10 +452,14 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                     <FileDownload sx={{ mr: 1 }} />
                     Export PDF
                 </MenuItem>
-                <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
-                    <Delete sx={{ mr: 1 }} />
-                    Delete
-                </MenuItem>
+                {
+                    selectedTimetableId && timetables.find(t => t._id === selectedTimetableId)?.isLocked ? void 0 : (
+                        <MenuItem onClick={handleDelete} sx={{ color: 'error.main' }}>
+                            <Delete sx={{ mr: 1 }} />
+                            Delete
+                        </MenuItem>
+                    )
+                }
             </Menu>
 
             {/* Edit Dialog */}

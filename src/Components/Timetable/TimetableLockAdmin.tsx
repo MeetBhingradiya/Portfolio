@@ -104,7 +104,7 @@ const TimetableLockAdmin: React.FC = () => {
                             {loading ? 'Locking...' : 'Lock All Timetables'}
                         </Button>
 
-                        <Button
+                        {/* <Button
                             variant="contained"
                             color="success"
                             startIcon={loading ? <CircularProgress size={20} /> : <LockOpen />}
@@ -113,7 +113,7 @@ const TimetableLockAdmin: React.FC = () => {
                             fullWidth
                         >
                             {loading ? 'Unlocking...' : 'Unlock All Timetables'}
-                        </Button>
+                        </Button> */}
                     </Box>
 
                     <Divider sx={{ my: 2 }} />

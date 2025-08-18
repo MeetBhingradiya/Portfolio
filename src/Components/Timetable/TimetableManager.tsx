@@ -200,7 +200,7 @@ const TimetableManager: React.FC = () => {
                 />
 
                 {/* Lock Admin Dialog */}
-                <Dialog
+                {/* <Dialog
                     open={adminDialogOpen}
                     onClose={() => setAdminDialogOpen(false)}
                     maxWidth="md"
@@ -215,7 +215,7 @@ const TimetableManager: React.FC = () => {
                     <DialogContent>
                         <TimetableLockAdmin />
                     </DialogContent>
-                </Dialog>
+                </Dialog> */}
 
                 {/* Background Decoration */}
                 <Box

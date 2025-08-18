@@ -36,94 +36,94 @@ export async function middleware(req: NextRequest) {
             return rateLimitResponse;
         }
 
-        const csrfExcludedRoutes = [
-            "/api/trace",
-            "/api/sitemap",
-            "/api/robots",
-            "/api/auth/connect",
-            "/api/auth/callback",
-            "/api/auth/disconnect",
-            "/api/timetable",
-            "/api/timetable/*"
-        ];
+        // const csrfExcludedRoutes = [
+        //     "/api/trace",
+        //     "/api/sitemap",
+        //     "/api/robots",
+        //     "/api/auth/connect",
+        //     "/api/auth/callback",
+        //     "/api/auth/disconnect",
+        //     "/api/timetable",
+        //     "/api/timetable/*"
+        // ];
 
-        // Support for regex patterns in excluded routes
-        const csrfExcludedRegexRoutes = [
-            /^\/api\/timetable(\/.*)?$/,
-            /^\/api\/auth\/(connect|callback|disconnect)$/
-        ];
+        // // Support for regex patterns in excluded routes
+        // const csrfExcludedRegexRoutes = [
+        //     /^\/api\/timetable(\/.*)?$/,
+        //     /^\/api\/auth\/(connect|callback|disconnect)$/
+        // ];
 
-        const isExcludedRoute = csrfExcludedRoutes.some(
-            (route) =>
-                req.nextUrl.pathname === route ||
-                req.nextUrl.pathname.startsWith(route)
-        ) || csrfExcludedRegexRoutes.some(
-            (regex) => regex.test(req.nextUrl.pathname)
-        );
+        // const isExcludedRoute = csrfExcludedRoutes.some(
+        //     (route) =>
+        //         req.nextUrl.pathname === route ||
+        //         req.nextUrl.pathname.startsWith(route)
+        // ) || csrfExcludedRegexRoutes.some(
+        //     (regex) => regex.test(req.nextUrl.pathname)
+        // );
 
-        if (isExcludedRoute) {
-            return NextResponse.next({
-                request: { headers: ModifiedHeaders }
-            });
-        }
+        // if (isExcludedRoute) {
+        //     return NextResponse.next({
+        //         request: { headers: ModifiedHeaders }
+        //     });
+        // }
 
-        const csrfTokenFromHeader = req.headers.get("x-csrf");
-        const csrfTokenFromCookie = req.cookies.get(
-            `${Config.Cookie_Prefix}csrf`
-        );
+        // const csrfTokenFromHeader = req.headers.get("x-csrf");
+        // const csrfTokenFromCookie = req.cookies.get(
+        //     `${Config.Cookie_Prefix}csrf`
+        // );
 
-        if (!csrfTokenFromHeader) {
-            return ControllerResponseMap({
-                Status: 0,
-                Message: "CSRF token missing from headers",
-                StatusCode: "INVALID_AUTHORIZATION",
-                StatusNumber: 403
-            });
-        }
+        // if (!csrfTokenFromHeader) {
+        //     return ControllerResponseMap({
+        //         Status: 0,
+        //         Message: "CSRF token missing from headers",
+        //         StatusCode: "INVALID_AUTHORIZATION",
+        //         StatusNumber: 403
+        //     });
+        // }
 
-        if (!csrfTokenFromCookie) {
-            return ControllerResponseMap({
-                Status: 0,
-                Message: "CSRF token missing from cookies",
-                StatusCode: "INVALID_AUTHORIZATION",
-                StatusNumber: 403
-            });
-        }
+        // if (!csrfTokenFromCookie) {
+        //     return ControllerResponseMap({
+        //         Status: 0,
+        //         Message: "CSRF token missing from cookies",
+        //         StatusCode: "INVALID_AUTHORIZATION",
+        //         StatusNumber: 403
+        //     });
+        // }
 
-        if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
-            return ControllerResponseMap({
-                Status: 0,
-                Message: "CSRF token mismatch",
-                StatusCode: "INVALID_AUTHORIZATION",
-                StatusNumber: 403
-            });
-        }
+        // if (csrfTokenFromHeader !== csrfTokenFromCookie.value) {
+        //     return ControllerResponseMap({
+        //         Status: 0,
+        //         Message: "CSRF token mismatch",
+        //         StatusCode: "INVALID_AUTHORIZATION",
+        //         StatusNumber: 403
+        //     });
+        // }
 
-        try {
-            const verified = await jwtVerify(
-                csrfTokenFromCookie?.value ?? "",
-                await importJWK({ kty: "oct", k: CSRF_KEY }),
-                {
-                    algorithms: ["HS256"]
-                }
-            );
+        // try {
+        //     const verified = await jwtVerify(
+        //         csrfTokenFromCookie?.value ?? "",
+        //         await importJWK({ kty: "oct", k: CSRF_KEY }),
+        //         {
+        //             algorithms: ["HS256"]
+        //         }
+        //     );
 
-            if (!verified) {
-                return ControllerResponseMap({
-                    Status: 0,
-                    Message: "Invalid CSRF token signature",
-                    StatusCode: "INVALID_AUTHORIZATION",
-                    StatusNumber: 403
-                });
-            }
-        } catch (error) {
-            return ControllerResponseMap({
-                Status: 0,
-                Message: "CSRF token verification failed",
-                StatusCode: "INVALID_AUTHORIZATION",
-                StatusNumber: 403
-            });
-        }
+        //     if (!verified) {
+        //         return ControllerResponseMap({
+        //             Status: 0,
+        //             Message: "Invalid CSRF token signature",
+        //             StatusCode: "INVALID_AUTHORIZATION",
+        //             StatusNumber: 403
+        //         });
+        //     }
+        // } catch (error) {
+        //     return ControllerResponseMap({
+        //         Status: 0,
+        //         Message: "CSRF token verification failed",
+        //         StatusCode: "INVALID_AUTHORIZATION",
+        //         StatusNumber: 403
+        //     });
+        // }
     }
 
     return NextResponse.next({

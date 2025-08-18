@@ -43,7 +43,7 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
         try {
             const response = await Axios.get('/api/timetable', {
                 params: {
-                    limit: 50,
+                    limit: 10,
                     sortBy: 'createdAt',
                     sortOrder: 'desc'
                 }

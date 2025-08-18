@@ -325,22 +325,22 @@ export async function POST(req: NextRequest) {
     }
 
     // 3. Browser and Platform Validation
-    if (
-        !WhiteListedBrowsers.includes(
-            changeCase.upperFirst(parsedUA.browser) as any
-        )
-    ) {
-        return ControllerResponseMap({
-            Status: 0,
-            Message: "Unsupported browser",
-            StatusCode: "UNSUPPORTED_BROWSER",
-            StatusNumber: 403,
-            Debug:
-                Config.Environment === "development"
-                    ? { browser: parsedUA.browser }
-                    : undefined
-        });
-    }
+    // if (
+    //     !WhiteListedBrowsers.includes(
+    //         changeCase.upperFirst(parsedUA.browser) as any
+    //     )
+    // ) {
+    //     return ControllerResponseMap({
+    //         Status: 0,
+    //         Message: "Unsupported browser",
+    //         StatusCode: "UNSUPPORTED_BROWSER",
+    //         StatusNumber: 403,
+    //         Debug:
+    //             Config.Environment === "development"
+    //                 ? { browser: parsedUA.browser }
+    //                 : undefined
+    //     });
+    // }
 
     // if (
     //     !WhiteListedPlatforms.includes(changeCase.upperFirst(parsedUA.platform) as any)

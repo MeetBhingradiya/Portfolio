@@ -36,13 +36,16 @@ import {
     Schedule,
     School,
     DateRange,
-    ContentCopy
+    ContentCopy,
+    Lock,
+    LockOpen
 } from '@mui/icons-material';
 import { Timetable, TimetableGrid, Subject, SubjectSlotType, Batch, ProgramType, DayOfWeek } from '@/Types/Timetable';
 import { useTimetable } from './TimetableProvider';
 import { Axios } from '@Utils/Axios';
 import { TimetableUtility } from '@/Utils/TimetableUtility';
 import EditTimetableDialog from './EditTimetableDialog';
+import TimetableLockDialog from './TimetableLockDialog';
 
 interface TimetableViewProps {
     timetable: Timetable;
@@ -61,6 +64,7 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
     const [duplicating, setDuplicating] = useState(false);
     const [selectedDay, setSelectedDay] = useState<string | 'all'>('all');
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [lockDialogOpen, setLockDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchTimetableGrid = async () => {
@@ -168,6 +172,16 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
             }
         };
         fetchTimetableGrid();
+    };
+
+    const handleLockManagement = () => {
+        setLockDialogOpen(true);
+        handleMenuClose();
+    };
+
+    const handleLockSuccess = () => {
+        setLockDialogOpen(false);
+        // Optionally refresh timetable data to get updated lock status
     };
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
@@ -665,11 +679,22 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                                 Select Day
                             </Typography>
                             <Box display="flex" alignItems="center" gap={1}>
+                                {timetable.isLocked && (
+                                    <Chip
+                                        icon={<Lock />}
+                                        label="Locked"
+                                        color="warning"
+                                        size="small"
+                                        sx={{ fontWeight: 500 }}
+                                        title={timetable.lockReason || 'Timetable is locked'}
+                                    />
+                                )}
                                 <Button
                                     size="small"
                                     variant="outlined"
                                     startIcon={<Edit />}
                                     onClick={handleEdit}
+                                    disabled={timetable.isLocked}
                                     sx={{
                                         textTransform: 'none',
                                         borderRadius: 2,
@@ -819,9 +844,22 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                     }
                 }}
             >
-                <MenuItem onClick={handleEdit}>
+                <MenuItem onClick={handleEdit} disabled={timetable.isLocked}>
                     <Edit sx={{ mr: 1 }} />
                     Edit Timetable
+                </MenuItem>
+                <MenuItem onClick={handleLockManagement}>
+                    {timetable.isLocked ? (
+                        <>
+                            <LockOpen sx={{ mr: 1 }} />
+                            Unlock Timetable
+                        </>
+                    ) : (
+                        <>
+                            <Lock sx={{ mr: 1 }} />
+                            Lock Timetable
+                        </>
+                    )}
                 </MenuItem>
                 <MenuItem onClick={handleDuplicate} disabled={duplicating}>
                     <ContentCopy sx={{ mr: 1 }} />
@@ -839,6 +877,14 @@ const TimetableView: React.FC<TimetableViewProps> = ({ timetable, onBack }) => {
                 onClose={() => setEditDialogOpen(false)}
                 timetable={timetable}
                 onSuccess={handleEditSuccess}
+            />
+
+            {/* Lock Management Dialog */}
+            <TimetableLockDialog
+                open={lockDialogOpen}
+                onClose={() => setLockDialogOpen(false)}
+                timetable={timetable}
+                onSuccess={handleLockSuccess}
             />
         </Box>
     );

@@ -14,6 +14,9 @@ interface TimetableContextType {
     updateTimetable: (id: string, data: any) => Promise<void>;
     deleteTimetable: (id: string) => Promise<void>;
     exportTimetable: (id: string, options: any) => Promise<void>;
+    lockTimetable: (id: string, lockData: any) => Promise<void>;
+    unlockTimetable: (id: string, unlockData: any) => Promise<void>;
+    getLockStatus: (id: string) => Promise<any>;
 }
 
 const TimetableContext = createContext<TimetableContextType | undefined>(undefined);
@@ -130,6 +133,51 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
         }
     };
 
+    const lockTimetable = async (id: string, lockData: any) => {
+        // Validate timetable ID before making API call
+        if (!TimetableUtility.isValidTimetableId(id)) {
+            throw new Error('Cannot lock demo or invalid timetables');
+        }
+        
+        try {
+            await Axios.post(`/api/timetable/${id}/lock`, lockData);
+            await fetchTimetables(); // Refresh the list
+        } catch (err: any) {
+            const errorMessage = err?.response?.data?.error || err?.message || 'Failed to lock timetable';
+            throw new Error(errorMessage);
+        }
+    };
+
+    const unlockTimetable = async (id: string, unlockData: any) => {
+        // Validate timetable ID before making API call
+        if (!TimetableUtility.isValidTimetableId(id)) {
+            throw new Error('Cannot unlock demo or invalid timetables');
+        }
+        
+        try {
+            await Axios.delete(`/api/timetable/${id}/lock`, { data: unlockData });
+            await fetchTimetables(); // Refresh the list
+        } catch (err: any) {
+            const errorMessage = err?.response?.data?.error || err?.message || 'Failed to unlock timetable';
+            throw new Error(errorMessage);
+        }
+    };
+
+    const getLockStatus = async (id: string) => {
+        // Validate timetable ID before making API call
+        if (!TimetableUtility.isValidTimetableId(id)) {
+            throw new Error('Cannot get lock status for demo or invalid timetables');
+        }
+        
+        try {
+            const response = await Axios.get(`/api/timetable/${id}/lock`);
+            return response.data.lockStatus;
+        } catch (err: any) {
+            const errorMessage = err?.response?.data?.error || err?.message || 'Failed to get lock status';
+            throw new Error(errorMessage);
+        }
+    };
+
     useEffect(() => {
         fetchTimetables();
     }, [refreshTrigger]);
@@ -143,6 +191,9 @@ const TimetableProvider: React.FC<TimetableProviderProps> = ({ children, refresh
         updateTimetable,
         deleteTimetable,
         exportTimetable,
+        lockTimetable,
+        unlockTimetable,
+        getLockStatus
     };
 
     return (

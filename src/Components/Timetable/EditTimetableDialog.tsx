@@ -32,7 +32,8 @@ import {
     School,
     AccessTime,
     LocationOn,
-    Person
+    Person,
+    Lock
 } from '@mui/icons-material';
 import dayjs, { Dayjs } from 'dayjs';
 import { useTimetable } from './TimetableProvider';
@@ -256,6 +257,12 @@ const EditTimetableDialog: React.FC<EditTimetableDialogProps> = ({
     const handleSubmit = async () => {
         if (!timetable) return;
 
+        // Check if timetable is locked
+        if (timetable.isLocked) {
+            setError('This timetable is locked and cannot be edited. Please unlock it first to make changes.');
+            return;
+        }
+
         setLoading(true);
         setError(null);
 
@@ -392,6 +399,22 @@ const EditTimetableDialog: React.FC<EditTimetableDialogProps> = ({
                                 <CircularProgress sx={{ mb: 2 }} />
                                 <Typography color="text.secondary">Loading timetable data...</Typography>
                             </Box>
+                        </Box>
+                    )}
+
+                    {timetable?.isLocked && (
+                        <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1, border: '1px solid', borderColor: 'warning.main' }}>
+                            <Box display="flex" alignItems="center" gap={1}>
+                                <Lock color="warning" />
+                                <Typography color="warning.dark" fontWeight="600">
+                                    Timetable Locked
+                                </Typography>
+                            </Box>
+                            <Typography color="warning.dark" variant="body2" sx={{ mt: 1 }}>
+                                {timetable.lockReason || 'This timetable is locked and cannot be edited.'}
+                                {timetable.lockedBy && ` Locked by: ${timetable.lockedBy}`}
+                                {timetable.lockedAt && ` on ${new Date(timetable.lockedAt).toLocaleString()}`}
+                            </Typography>
                         </Box>
                     )}
 
@@ -1118,9 +1141,9 @@ const EditTimetableDialog: React.FC<EditTimetableDialogProps> = ({
                 <Button
                     onClick={handleSubmit}
                     variant="contained"
-                    disabled={loading || !title.trim()}
+                    disabled={loading || !title.trim() || timetable?.isLocked}
                 >
-                    {loading ? 'Updating...' : 'Update Timetable'}
+                    {loading ? 'Updating...' : (timetable?.isLocked ? 'Locked' : 'Update Timetable')}
                 </Button>
             </DialogActions>
         </Dialog>

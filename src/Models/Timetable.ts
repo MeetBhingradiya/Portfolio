@@ -234,6 +234,29 @@ const TimetableSchema = new Schema<ITimetable>({
         type: Boolean,
         default: true
     },
+    isLocked: {
+        type: Boolean,
+        default: false
+    },
+    lockReason: {
+        type: String,
+        trim: true
+    },
+    lockedBy: {
+        type: String,
+        trim: true
+    },
+    lockedAt: {
+        type: Date
+    },
+    unlockCode: {
+        type: String,
+        trim: true
+    },
+    allowedEditors: [{
+        type: String,
+        trim: true
+    }],
     userId: {
         type: String,
         required: true,
@@ -267,6 +290,8 @@ const TimetableSchema = new Schema<ITimetable>({
 
 // Indexes for better performance
 TimetableSchema.index({ userId: 1, isActive: 1 });
+TimetableSchema.index({ userId: 1, isLocked: 1 });
+TimetableSchema.index({ isLocked: 1, lockedBy: 1 });
 TimetableSchema.index({ 'metadata.academicYear': 1, 'metadata.semester': 1 });
 TimetableSchema.index({ 'metadata.programName': 1, 'metadata.batch': 1 });
 TimetableSchema.index({ createdAt: -1 });
@@ -300,6 +325,74 @@ TimetableSchema.methods.getSubjectByTimeAndDay = function (timeSlot: TimeSlot, d
         subject.timeSlot.startTime === timeSlot.startTime &&
         subject.timeSlot.endTime === timeSlot.endTime
     );
+};
+
+// Lock management methods
+TimetableSchema.methods.canEdit = function (userId?: string) {
+    // If not locked, anyone can edit (or apply your own logic)
+    if (!this.isLocked) return true;
+    
+    // If user is not provided, cannot edit
+    if (!userId) return false;
+    
+    // Owner can always edit
+    if (this.userId === userId) return true;
+    
+    // Check if user is in allowed editors list
+    if (this.allowedEditors && this.allowedEditors.includes(userId)) return true;
+    
+    return false;
+};
+
+TimetableSchema.methods.canDelete = function (userId?: string) {
+    // If locked, cannot delete unless user has permission
+    if (this.isLocked) {
+        if (!userId) return false;
+        // Only owner can delete locked timetables
+        return this.userId === userId;
+    }
+    
+    return true;
+};
+
+TimetableSchema.methods.lock = function (userId: string, reason?: string, unlockCode?: string, allowedEditors?: string[]) {
+    this.isLocked = true;
+    this.lockReason = reason;
+    this.lockedBy = userId;
+    this.lockedAt = new Date();
+    this.unlockCode = unlockCode;
+    this.allowedEditors = allowedEditors || [];
+    return this.save();
+};
+
+TimetableSchema.methods.unlock = function (userId?: string, unlockCode?: string) {
+    // Check if user has permission to unlock
+    if (!this.canUnlock(userId, unlockCode)) {
+        throw new Error('Unauthorized to unlock this timetable');
+    }
+    
+    this.isLocked = false;
+    this.lockReason = undefined;
+    this.lockedBy = undefined;
+    this.lockedAt = undefined;
+    this.unlockCode = undefined;
+    this.allowedEditors = [];
+    return this.save();
+};
+
+TimetableSchema.methods.canUnlock = function (userId?: string, unlockCode?: string) {
+    if (!this.isLocked) return true;
+    
+    // If no user provided, cannot unlock
+    if (!userId) return false;
+    
+    // Owner can always unlock
+    if (this.userId === userId) return true;
+    
+    // Check unlock code if provided
+    if (this.unlockCode && unlockCode && this.unlockCode === unlockCode) return true;
+    
+    return false;
 };
 
 TimetableSchema.methods.generateGrid = function () {

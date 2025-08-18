@@ -44,6 +44,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
             visibleDays: timetable.visibleDays,
             timeSlots: timetable.timeSlots,
             isActive: timetable.isActive,
+            isLocked: timetable.isLocked,
+            lockReason: timetable.lockReason,
+            lockedBy: timetable.lockedBy,
+            lockedAt: timetable.lockedAt,
+            allowedEditors: timetable.allowedEditors,
             availableSubjects: timetable.availableSubjects,
             availableClassrooms: timetable.availableClassrooms,
             availableFaculty: timetable.availableFaculty,
@@ -73,10 +78,32 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
         const { id } = await params;
 
-        const timetable = await TimetableModel.findOneAndUpdate(
-            {
-                _id: id
-            },
+        const timetable = await TimetableModel.findById(id);
+
+        if (!timetable) {
+            return NextResponse.json({ error: 'Timetable not found' }, { status: 404 });
+        }
+
+        // Check if timetable is locked
+        if (timetable.isLocked) {
+            // For public system, we'll check if unlock code is provided
+            const userId = body.userId || 'anonymous';
+            
+            if (!timetable.canEdit(userId)) {
+                return NextResponse.json({ 
+                    error: 'Timetable is locked and cannot be edited',
+                    lockInfo: {
+                        isLocked: true,
+                        lockReason: timetable.lockReason,
+                        lockedBy: timetable.lockedBy,
+                        lockedAt: timetable.lockedAt
+                    }
+                }, { status: 403 });
+            }
+        }
+
+        const updatedTimetable = await TimetableModel.findByIdAndUpdate(
+            id,
             body,
             {
                 new: true,
@@ -84,13 +111,9 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
             }
         );
 
-        if (!timetable) {
-            return NextResponse.json({ error: 'Timetable not found' }, { status: 404 });
-        }
-
         return NextResponse.json({
             message: 'Timetable updated successfully',
-            timetable: timetable.toJSON()
+            timetable: updatedTimetable?.toJSON()
         });
     } catch (error) {
         console.error('Error updating timetable:', error);
@@ -107,13 +130,31 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         const { id } = await params;
 
-        const timetable = await TimetableModel.findOneAndDelete({
-            _id: id
-        });
+        const timetable = await TimetableModel.findById(id);
 
         if (!timetable) {
             return NextResponse.json({ error: 'Timetable not found' }, { status: 404 });
         }
+
+        // Check if timetable is locked
+        if (timetable.isLocked) {
+            // For public system, we'll check if user has permission
+            const userId = 'anonymous'; // In a real auth system, get from session/token
+            
+            if (!timetable.canDelete(userId)) {
+                return NextResponse.json({ 
+                    error: 'Timetable is locked and cannot be deleted',
+                    lockInfo: {
+                        isLocked: true,
+                        lockReason: timetable.lockReason,
+                        lockedBy: timetable.lockedBy,
+                        lockedAt: timetable.lockedAt
+                    }
+                }, { status: 403 });
+            }
+        }
+
+        await TimetableModel.findByIdAndDelete(id);
 
         return NextResponse.json({ message: 'Timetable deleted successfully' });
     } catch (error) {

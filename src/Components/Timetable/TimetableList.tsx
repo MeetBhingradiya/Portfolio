@@ -31,11 +31,14 @@ import {
     Edit,
     Delete,
     FileDownload,
-    Visibility
+    Visibility,
+    Lock,
+    LockOpen
 } from '@mui/icons-material';
 import { useTimetable } from './TimetableProvider';
 import { Timetable, Batch, ProgramType } from '@/Types/Timetable';
 import EditTimetableDialog from './EditTimetableDialog';
+import TimetableLockDialog from './TimetableLockDialog';
 
 interface TimetableListProps {
     onTimetableSelect: (timetable: Timetable) => void;
@@ -50,6 +53,7 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedTimetableId, setSelectedTimetableId] = useState<string | null>(null);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [lockDialogOpen, setLockDialogOpen] = useState(false);
     const [selectedTimetable, setSelectedTimetable] = useState<Timetable | null>(null);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, timetableId: string) => {
@@ -102,6 +106,23 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
 
     const handleEditSuccess = () => {
         setEditDialogOpen(false);
+        setSelectedTimetable(null);
+        // The list will automatically refresh through the context
+    };
+
+    const handleLockManagement = () => {
+        if (selectedTimetableId) {
+            const timetable = timetables.find(t => t._id === selectedTimetableId);
+            if (timetable) {
+                setSelectedTimetable(timetable);
+                setLockDialogOpen(true);
+            }
+        }
+        handleMenuClose();
+    };
+
+    const handleLockSuccess = () => {
+        setLockDialogOpen(false);
         setSelectedTimetable(null);
         // The list will automatically refresh through the context
     };
@@ -345,6 +366,16 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                                                 sx={{ fontWeight: 500 }}
                                             />
                                         )}
+                                        {timetable.isLocked && (
+                                            <Chip
+                                                icon={<Lock />}
+                                                label="Locked"
+                                                color="warning"
+                                                size="small"
+                                                sx={{ fontWeight: 500 }}
+                                                title={timetable.lockReason || 'Timetable is locked'}
+                                            />
+                                        )}
                                     </Box>
                                 </CardContent>
 
@@ -404,6 +435,19 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                     <Edit sx={{ mr: 1 }} />
                     Edit
                 </MenuItem>
+                <MenuItem onClick={handleLockManagement}>
+                    {selectedTimetableId && timetables.find(t => t._id === selectedTimetableId)?.isLocked ? (
+                        <>
+                            <LockOpen sx={{ mr: 1 }} />
+                            Unlock
+                        </>
+                    ) : (
+                        <>
+                            <Lock sx={{ mr: 1 }} />
+                            Lock
+                        </>
+                    )}
+                </MenuItem>
                 <MenuItem onClick={handleExport}>
                     <FileDownload sx={{ mr: 1 }} />
                     Export PDF
@@ -420,6 +464,14 @@ const TimetableList: React.FC<TimetableListProps> = ({ onTimetableSelect }) => {
                 timetable={selectedTimetable}
                 onClose={() => setEditDialogOpen(false)}
                 onSuccess={handleEditSuccess}
+            />
+
+            {/* Lock Management Dialog */}
+            <TimetableLockDialog
+                open={lockDialogOpen}
+                timetable={selectedTimetable}
+                onClose={() => setLockDialogOpen(false)}
+                onSuccess={handleLockSuccess}
             />
         </Box>
     );

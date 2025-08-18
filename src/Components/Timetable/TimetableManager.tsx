@@ -11,19 +11,22 @@ import {
     Slide,
     Fade,
     useTheme,
-    alpha
+    alpha,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button
 } from '@mui/material';
 import { 
     Add, 
     ArrowBack, 
     Refresh, 
     CalendarMonth,
-    GridView 
+    Security,
+    Close
 } from '@mui/icons-material';
-import TimetableList from './TimetableList';
-import TimetableView from './TimetableView';
-import CreateTimetableDialog from './CreateTimetableDialog';
-import TimetableProvider from './TimetableProvider';
+import { TimetableProvider, TimetableList, TimetableView, CreateTimetableDialog, TimetableLockAdmin } from './index';
 import { Timetable } from '@/Types/Timetable';
 
 const TimetableManager: React.FC = () => {
@@ -31,6 +34,7 @@ const TimetableManager: React.FC = () => {
     const [currentView, setCurrentView] = useState<'list' | 'view'>('list');
     const [selectedTimetable, setSelectedTimetable] = useState<Timetable | null>(null);
     const [createDialogOpen, setCreateDialogOpen] = useState(false);
+    const [adminDialogOpen, setAdminDialogOpen] = useState(false);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
 
     const handleTimetableSelect = (timetable: Timetable) => {
@@ -120,6 +124,21 @@ const TimetableManager: React.FC = () => {
                             {/* Action Buttons */}
                             <Box display="flex" gap={1}>
                                 <IconButton
+                                    onClick={() => setAdminDialogOpen(true)}
+                                    sx={{
+                                        background: alpha(theme.palette.warning.main, 0.1),
+                                        '&:hover': {
+                                            background: alpha(theme.palette.warning.main, 0.2),
+                                            transform: 'scale(1.05)'
+                                        },
+                                        transition: 'all 0.2s ease'
+                                    }}
+                                    title="Lock Administration"
+                                >
+                                    <Security />
+                                </IconButton>
+                                
+                                <IconButton
                                     onClick={handleRefresh}
                                     sx={{
                                         background: alpha(theme.palette.secondary.main, 0.1),
@@ -179,6 +198,24 @@ const TimetableManager: React.FC = () => {
                         handleRefresh();
                     }}
                 />
+
+                {/* Lock Admin Dialog */}
+                <Dialog
+                    open={adminDialogOpen}
+                    onClose={() => setAdminDialogOpen(false)}
+                    maxWidth="md"
+                    fullWidth
+                >
+                    <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        Lock Administration
+                        <IconButton onClick={() => setAdminDialogOpen(false)} size="small">
+                            <Close />
+                        </IconButton>
+                    </DialogTitle>
+                    <DialogContent>
+                        <TimetableLockAdmin />
+                    </DialogContent>
+                </Dialog>
 
                 {/* Background Decoration */}
                 <Box

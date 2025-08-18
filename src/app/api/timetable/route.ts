@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
     const [timetables, total] = await Promise.all([
       TimetableModel
         .find(mongoQuery)
-        .select('title metadata isActive createdAt')
+        .select('title metadata isActive isLocked lockReason lockedBy lockedAt createdAt')
         .sort({ [sortField]: sortOrder })
         .skip(skip)
         .limit(query.limit!)

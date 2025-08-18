@@ -97,6 +97,12 @@ export interface Timetable extends Document {
     visibleDays: DayOfWeek[]; // Days to show in the timetable
     timeSlots: TimeSlot[]; // All time slots for the day (auto-sorted)
     isActive: boolean;
+    isLocked: boolean; // Lock status to prevent unauthorized editing/deletion
+    lockReason?: string; // Optional reason for locking
+    lockedBy?: string; // User who locked the timetable
+    lockedAt?: Date; // When the timetable was locked
+    unlockCode?: string; // Optional unlock code for additional security
+    allowedEditors?: string[]; // List of user IDs who can edit even when locked
     createdAt: Date;
     updatedAt: Date;
     userId: string; // Owner of the timetable
@@ -149,6 +155,18 @@ export interface CreateTimetableRequest {
 export interface UpdateTimetableRequest extends Partial<CreateTimetableRequest> {
     isActive?: boolean;
     dayGroupedSubjects?: DaySubjects[];
+}
+
+// Lock Management Types
+export interface TimetableLockRequest {
+    lockReason?: string;
+    unlockCode?: string;
+    allowedEditors?: string[];
+}
+
+export interface TimetableUnlockRequest {
+    unlockCode?: string;
+    userId?: string;
 }
 
 // Filter and Search Types

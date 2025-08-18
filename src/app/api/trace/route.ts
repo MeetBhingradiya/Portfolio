@@ -358,28 +358,28 @@ export async function POST(req: NextRequest) {
     // }
 
     // 4. Threat Intelligence Checks
-    if (Config.Environment !== "development") {
-        const IP = getClientIp(req) as string;
-        const TreatIntelligence = await IPData(IP);
+    // if (Config.Environment !== "development") {
+    //     const IP = getClientIp(req) as string;
+    //     const TreatIntelligence = await IPData(IP);
 
-        if (TreatIntelligence?.isERROR) {
-            return ControllerResponseMap({
-                Status: 0,
-                Message: "Threat Detection Failed",
-                StatusCode: "THREAT_CHECK_FAILED",
-                StatusNumber: 500
-            });
-        }
+    //     if (TreatIntelligence?.isERROR) {
+    //         return ControllerResponseMap({
+    //             Status: 0,
+    //             Message: "Threat Detection Failed",
+    //             StatusCode: "THREAT_CHECK_FAILED",
+    //             StatusNumber: 500
+    //         });
+    //     }
 
-        if (ParseIPDataConfig(TreatIntelligence).isFound) {
-            return ControllerResponseMap({
-                Status: 0,
-                Message: "Threat Detected",
-                StatusCode: "THREAT_DETECTED",
-                StatusNumber: 403
-            });
-        }
-    }
+    //     if (ParseIPDataConfig(TreatIntelligence).isFound) {
+    //         return ControllerResponseMap({
+    //             Status: 0,
+    //             Message: "Threat Detected",
+    //             StatusCode: "THREAT_DETECTED",
+    //             StatusNumber: 403
+    //         });
+    //     }
+    // }
 
     // **Generate CSRF Token**
     const csrfToken = await new SignJWT({})

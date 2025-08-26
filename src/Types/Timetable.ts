@@ -106,7 +106,7 @@ export interface Timetable extends Document {
     createdAt: Date;
     updatedAt: Date;
     userId: string; // Owner of the timetable
-    
+
     // Dropdown options for form selections
     availableSubjects: SubjectOption[];
     availableClassrooms: ClassroomOption[];
@@ -128,11 +128,11 @@ export interface TimetableGrid {
 
 // API Response Types
 export interface TimetableListResponse {
-  timetables: Pick<Timetable, '_id' | 'title' | 'metadata' | 'isActive' | 'createdAt'>[];
-  total: number;
-  page: number;
-  limit: number;
-  offline?: boolean; // Added for offline detection
+    timetables: Pick<Timetable, '_id' | 'title' | 'metadata' | 'isActive' | 'createdAt'>[];
+    total: number;
+    page: number;
+    limit: number;
+    offline?: boolean; // Added for offline detection
 }
 
 export interface TimetableResponse {
@@ -204,16 +204,16 @@ export interface TimetableExportRequest {
 export interface TimetableUtils {
     // Sort time slots by start time
     sortTimeSlots: (timeSlots: TimeSlot[]) => TimeSlot[];
-    
+
     // Group subjects by day
     groupSubjectsByDay: (subjects: Subject[]) => DaySubjects[];
-    
+
     // Get available time slots for a specific day
     getAvailableTimeSlotsForDay: (day: DayOfWeek, subjects: Subject[], allTimeSlots: TimeSlot[]) => TimeSlot[];
-    
+
     // Validate that each time slot has only one subject per day
     validateSingleSubjectPerSlot: (daySubjects: DaySubjects) => boolean;
-    
+
     // Auto-organize timetable for optimal performance
     organizeTimetable: (subjects: Subject[], timeSlots: TimeSlot[]) => {
         sortedTimeSlots: TimeSlot[];

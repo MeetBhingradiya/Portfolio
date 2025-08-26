@@ -1,314 +1,146 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { dbConnect } from "@Utils/dbConnect";
-import { Users_Model } from "@Models/Users";
-import { Sessions_Model } from "@Models/Sessions";
 import { verifyJWT } from "@Utils/JWT";
-import { log } from "@Utils";
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
     try {
-        // Get token from Authorization header or cookies
-        const authHeader = request.headers.get("authorization");
-        const token =
-            authHeader?.replace("Bearer ", "") ||
-            request.cookies.get("auth-token")?.value;
+        let userEmail: string | null = null;
+        let authMethod: "nextauth" | "jwt" = "nextauth";
 
-        if (!token) {
-            return NextResponse.json(
-                {
+        // Try NextAuth session first
+        const session = await auth();
+        if (session?.user?.email) {
+            userEmail = session.user.email;
+            authMethod = "nextauth";
+        } else {
+            // Fallback to JWT token authentication
+            const authHeader = req.headers.get("authorization");
+            const token = authHeader?.replace("Bearer ", "") || req.cookies.get("auth-token")?.value;
+
+            if (!token) {
+                return NextResponse.json({
                     Status: 0,
-                    Message: "Authentication token required",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
-        }
+                    Message: "Authentication required",
+                    StatusCode: "AUTHENTICATION_REQUIRED"
+                }, { status: 401 });
+            }
 
-        // Verify JWT token
-        const decoded = await verifyJWT(token);
-        if (!decoded) {
-            return NextResponse.json(
-                {
+            const decoded = await verifyJWT(token);
+            if (!decoded || !decoded.email) {
+                return NextResponse.json({
                     Status: 0,
                     Message: "Invalid authentication token",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
+                    StatusCode: "INVALID_TOKEN"
+                }, { status: 401 });
+            }
+
+            userEmail = decoded.email;
+            authMethod = "jwt";
+        }
+
+        if (!userEmail) {
+            return NextResponse.json({
+                Status: 0,
+                Message: "Authentication required",
+                StatusCode: "AUTHENTICATION_REQUIRED"
+            }, { status: 401 });
         }
 
         await dbConnect();
+        const { Users_Model } = await import("@Models/EnhancedUsers");
+        const { Sessions_Model } = await import("@Models/Sessions");
 
-        // Check if current session is still active
-        const currentSession = await Sessions_Model.findOne({
-            SessionID: decoded.sessionID,
-            UserID: decoded.userID,
-            ExpiresAt: { $gt: new Date() }
+        // Get user data by email (works for both NextAuth and JWT authentication)
+        const user = await Users_Model.findOne({
+            email: userEmail
         });
 
-        if (!currentSession) {
-            return NextResponse.json(
-                {
-                    Status: 0,
-                    Message: "Session expired or invalid",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
-        }
-
-        // Get user data
-        const user = await Users_Model.findOne({
-            UserID: decoded.userID,
-            isDeleted: false,
-            isLocked: false,
-            isSuspended: false
-        })
-            .select("-Credentials")
-            .lean();
-
         if (!user) {
-            return NextResponse.json(
-                {
-                    Status: 0,
-                    Message: "User not found or account suspended",
-                    StatusCode: 404
-                },
-                { status: 404 }
-            );
+            return NextResponse.json({
+                Status: 0,
+                Message: "User not found",
+                StatusCode: "USER_NOT_FOUND"
+            }, { status: 404 });
         }
 
-        // Get all active sessions for this user (excluding current session)
-        const allActiveSessions = await Sessions_Model.find({
-            UserID: decoded.userID,
+        // Get active sessions for this user
+        const activeSessions = await Sessions_Model.find({
+            UserID: user.UserID || user._id,
             ExpiresAt: { $gt: new Date() }
-        })
-            .sort({ createdAt: -1 })
-            .lean();
+        }).sort({ LastActivity: -1 });
 
-        // Separate current session from other sessions
-        const otherActiveSessions = allActiveSessions.filter(
-            (session) => session.SessionID !== decoded.sessionID
-        );
-
-        // Calculate security stats
-        const totalActiveSessions = allActiveSessions.length;
-        // Get last password change (check the most recent active credential)
-        // If no credentials exist, fall back to account creation date
-        const lastPasswordChange =
-            user.Credentials && user.Credentials.length > 0
-                ? user.Credentials.filter((cred: any) => cred.isActive).sort(
-                      (a: any, b: any) =>
-                          new Date(b.createdAt).getTime() -
-                          new Date(a.createdAt).getTime()
-                  )[0]?.createdAt || user.createdAt
-                : user.createdAt;
-        // Prepare comprehensive user data
-        const userData = {
-            UserID: user.UserID,
-            Username: user.Username,
-            FirstName: user.FirstName,
-            LastName: user.LastName,
-            Emails: user.Emails || [],
-            PhoneNumbers: user.PhoneNumbers || [],
-            Icon: user.Icon,
-            DateOfBirth: user.DateOfBirth,
-            Gender: user.Gender,
-            isAdmin: user.isAdmin || user.Username === "MeetBhingradiya",
-            isMFA: user.isMFA || false,
-            isEmailVerified:
-                user.Emails?.some((email) => email.isVerified) || false,
-            createdAt: user.createdAt,
-            lastLoginAt: currentSession.createdAt,
-            profileCompleteness: calculateProfileCompleteness(user),
-            thirdPartyConnections: user.thirdPartyConnections || []
-        };
-
-        // Prepare current session data
-        const currentSessionData = {
-            SessionID: currentSession.SessionID,
-            Platform: currentSession.Platform || "Unknown",
-            Browser: currentSession.Browser || "Unknown",
-            ExpiresAt: currentSession.ExpiresAt,
-            IPDataMappedResponse: currentSession.IPDataMappedResponse || {},
-            createdAt: currentSession.createdAt,
-            lastActivity: currentSession.updatedAt || currentSession.createdAt,
-            isCurrent: true
-        };
-
-        // Prepare other active sessions data
-        const otherSessionsData = otherActiveSessions.map((session) => ({
-            SessionID: session.SessionID,
-            Platform: session.Platform || "Unknown",
-            Browser: session.Browser || "Unknown",
-            ExpiresAt: session.ExpiresAt,
-            IPDataMappedResponse: session.IPDataMappedResponse || {},
-            createdAt: session.createdAt,
-            lastActivity: session.updatedAt || session.createdAt,
-            Location: getLocationString(session.IPDataMappedResponse),
+        // Format session data
+        const formattedSessions = activeSessions.map(sess => ({
+            id: sess.SessionID,
+            platform: sess.Platform || "Unknown",
+            browser: sess.Browser || "Unknown",
+            location: sess.IPDataMappedResponse ? {
+                city: sess.IPDataMappedResponse.City,
+                country: sess.IPDataMappedResponse.Country,
+                region: sess.IPDataMappedResponse.Region
+            } : undefined,
+            createdAt: sess.createdAt,
+            lastActivity: sess.LastActivity || sess.updatedAt,
             isCurrent: false
         }));
 
-        // Security overview
-        const securityData = {
-            totalActiveSessions,
-            lastPasswordChange,
-            twoFactorEnabled: userData.isMFA,
-            emailVerificationStatus: userData.isEmailVerified,
-            accountAge: Math.floor(
-                (new Date().getTime() - new Date(user.createdAt).getTime()) /
-                    (1000 * 60 * 60 * 24)
-            ),
-            lastLoginLocation: getLocationString(
-                currentSession.IPDataMappedResponse
-            )
+        // Get connected accounts/providers from the user model
+        const connectedAccounts = user.connectedAccounts || [];
+
+        // Prepare user data with new model structure
+        const userData = {
+            UserID: user.UserID || user._id?.toString(),
+            Username: user.profile?.username || user.profile?.displayName?.replace(/\s+/g, '').toLowerCase() || '',
+            FirstName: user.profile?.firstName || user.profile?.displayName?.split(' ')[0] || '',
+            LastName: user.profile?.lastName || user.profile?.displayName?.split(' ').slice(1).join(' ') || '',
+            DisplayName: user.profile?.displayName || '',
+            Bio: user.profile?.bio || '',
+            Avatar: user.profile?.avatar || (session?.user?.image) || '',
+            Website: user.profile?.website || '',
+            Location: user.profile?.location || '',
+            Emails: [{ 
+                Email: user.email, 
+                isPrimary: true, 
+                isVerified: user.isEmailVerified
+            }],
+            isAdmin: user.role === 'admin',
+            isEmailVerified: user.isEmailVerified,
+            isMFA: user.security?.isMFAEnabled || false,
+            role: user.role,
+            accountType: user.accountType,
+            createdAt: user.createdAt,
+            lastLoginAt: user.lastLoginAt || user.updatedAt || user.createdAt,
+            preferences: user.preferences || {}
         };
 
         return NextResponse.json({
             Status: 1,
             Message: "Dashboard data retrieved successfully",
-            StatusCode: 200,
             Data: {
                 user: userData,
-                currentSession: currentSessionData,
-                activeSessions: otherSessionsData,
-                security: securityData,
-                stats: {
-                    totalSessions: totalActiveSessions,
-                    emailCount: userData.Emails.length,
-                    verifiedEmails: userData.Emails.filter(
-                        (email) => email.isVerified
-                    ).length,
-                    phoneCount: userData.PhoneNumbers.length
+                connectedAccounts: connectedAccounts.map((account: any) => ({
+                    provider: account.provider,
+                    providerAccountId: account.providerAccountId,
+                    connectedAt: account.connectedAt,
+                    lastUsed: account.lastUsed,
+                    email: account.email
+                })),
+                activeSessions: formattedSessions,
+                security: {
+                    mfaEnabled: userData.isMFA,
+                    passkeyEnabled: false, // Not implemented in new model yet
+                    lastPasswordChange: user.updatedAt || user.createdAt
                 }
             }
         });
+
     } catch (error: any) {
-        log(`Dashboard error: ${error.message}`);
-        return NextResponse.json(
-            {
-                Status: 0,
-                Message: "Failed to retrieve dashboard data",
-                StatusCode: 500
-            },
-            { status: 500 }
-        );
-    }
-}
-
-// Terminate all other sessions (keep current session active)
-export async function DELETE(request: NextRequest) {
-    try {
-        const authHeader = request.headers.get("authorization");
-        const token =
-            authHeader?.replace("Bearer ", "") ||
-            request.cookies.get("auth-token")?.value;
-
-        if (!token) {
-            return NextResponse.json(
-                {
-                    Status: 0,
-                    Message: "Authentication token required",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
-        }
-
-        const decoded = await verifyJWT(token);
-        if (!decoded) {
-            return NextResponse.json(
-                {
-                    Status: 0,
-                    Message: "Invalid authentication token",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
-        }
-
-        await dbConnect();
-
-        // Verify current session is valid
-        const currentSession = await Sessions_Model.findOne({
-            SessionID: decoded.sessionID,
-            UserID: decoded.userID,
-            ExpiresAt: { $gt: new Date() }
-        });
-
-        if (!currentSession) {
-            return NextResponse.json(
-                {
-                    Status: 0,
-                    Message: "Current session invalid",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
-        }
-
-        // Delete all other sessions for this user (except current session)
-        const result = await Sessions_Model.deleteMany({
-            UserID: decoded.userID,
-            SessionID: { $ne: decoded.sessionID }
-        });
-
-        log(
-            `User ${decoded.userID} terminated ${result.deletedCount} other sessions`
-        );
-
+        console.error("Dashboard API error:", error);
         return NextResponse.json({
-            Status: 1,
-            Message: `Successfully terminated ${result.deletedCount} other sessions`,
-            StatusCode: 200,
-            Data: {
-                terminatedSessions: result.deletedCount
-            }
-        });
-    } catch (error: any) {
-        log(`Session termination error: ${error.message}`);
-        return NextResponse.json(
-            {
-                Status: 0,
-                Message: "Failed to terminate sessions",
-                StatusCode: 500
-            },
-            { status: 500 }
-        );
+            Status: 0,
+            Message: "Internal server error",
+            StatusCode: "INTERNAL_ERROR"
+        }, { status: 500 });
     }
-}
-
-// Helper function to calculate profile completeness
-function calculateProfileCompleteness(user: any): number {
-    let completeness = 0;
-    const fields = [
-        "FirstName",
-        "LastName",
-        "Username",
-        "Emails",
-        "DateOfBirth",
-        "Gender"
-    ];
-
-    fields.forEach((field) => {
-        if (field === "Emails") {
-            if (user.Emails && user.Emails.length > 0) completeness += 20;
-        } else if (user[field]) {
-            completeness += 16.67;
-        }
-    });
-
-    return Math.round(completeness);
-}
-
-// Helper function to format location string
-function getLocationString(ipData: any): string {
-    if (!ipData) return "Unknown location";
-
-    const parts = [];
-    if (ipData.city) parts.push(ipData.city);
-    if (ipData.region) parts.push(ipData.region);
-    if (ipData.country) parts.push(ipData.country);
-
-    return parts.length > 0 ? parts.join(", ") : "Unknown location";
 }

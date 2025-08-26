@@ -387,7 +387,7 @@ export default function BlogAdminPage() {
         try {
             const response = await Axios.get("/api/blog/analytics", {
                 headers: {
-                    Authorization: `Bearer ${currentAccount?.Session.Token}`
+                    Authorization: `Bearer ${currentAccount?.Session?.Token || ''}`
                 }
             });
 

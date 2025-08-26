@@ -2,7 +2,7 @@
     "_id": {
         "$oid": "68a1a5433f66e38f0c6ca9d4"
     },
-    "title": "PDEU - B.Tech Computer Engineering G8 Semester 1",
+    "title": "✔️ PDEU CE G8",
     "metadata": {
         "programName": "B.Tech Computer Engineering",
         "semester": "1",
@@ -21,8 +21,8 @@
     },
     "subjects": [
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -69,8 +69,8 @@
             "day": "Monday"
         },
         {
-            "code": "Lunch",
-            "name": "Lunch",
+            "code": "",
+            "name": "",
             "type": "Lunch",
             "faculty": "",
             "room": {
@@ -101,8 +101,8 @@
             "day": "Monday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -149,8 +149,8 @@
             "day": "Monday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -197,8 +197,8 @@
             "day": "Tuesday"
         },
         {
-            "code": "Lunch",
-            "name": "Lunch",
+            "code": "",
+            "name": "",
             "type": "Lunch",
             "faculty": "",
             "room": {
@@ -229,8 +229,8 @@
             "day": "Tuesday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -277,8 +277,8 @@
             "day": "Tuesday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -325,8 +325,8 @@
             "day": "Wednesday"
         },
         {
-            "code": "Lunch",
-            "name": "Lunch",
+            "code": "",
+            "name": "",
             "type": "Lunch",
             "faculty": "",
             "room": {
@@ -357,8 +357,8 @@
             "day": "Wednesday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -405,8 +405,8 @@
             "day": "Wednesday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -453,8 +453,8 @@
             "day": "Thursday"
         },
         {
-            "code": "Lunch",
-            "name": "Lunch",
+            "code": "",
+            "name": "",
             "type": "Lunch",
             "faculty": "",
             "room": {
@@ -485,8 +485,8 @@
             "day": "Thursday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -565,8 +565,8 @@
             "day": "Friday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {
@@ -597,8 +597,8 @@
             "day": "Friday"
         },
         {
-            "code": "Lunch",
-            "name": "Lunch",
+            "code": "",
+            "name": "",
             "type": "Lunch",
             "faculty": "",
             "room": {
@@ -645,8 +645,8 @@
             "day": "Friday"
         },
         {
-            "code": "Short Break",
-            "name": "Short Break",
+            "code": "",
+            "name": "",
             "type": "Short Break",
             "faculty": "",
             "room": {

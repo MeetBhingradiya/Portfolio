@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Users_Model } from "@Models/Users";
+import { Users_Model as EnhancedUsers_Model } from "@Models/EnhancedUsers";
 import { OTPs_Model, OTPs } from "@Models/OneTimePass";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { dbConnect } from "@Utils/dbConnect";
@@ -8,6 +8,9 @@ import { createEmailTransport } from "@Utils/EmailSend";
 import { OTP } from "@Utils/OTP";
 import { ControllerResponseMap } from "@Utils/ControllerResponseMap";
 import { Decrypt, Encrypt } from "@Utils/Crypto";
+
+// Using Node.js runtime for database access
+// export const runtime = "edge";
 
 async function sendOTPEmail(
     email: string,
@@ -97,9 +100,9 @@ export async function POST(req: NextRequest) {
 
         await dbConnect();
 
-        const user = await Users_Model.findOne({
-            "Emails.Email": Request.email.toLowerCase(),
-            "Emails.isVerified": false
+        const user = await EnhancedUsers_Model.findOne({
+            email: Request.email.toLowerCase(),
+            isEmailVerified: false
         });
 
         if (!user) {
@@ -113,10 +116,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Get user's latest credentials for encryption
-        const latestCredentials = user.Credentials?.filter(
-            (cred: any) => cred.isActive
-        )?.sort((a: any, b: any) => b.Rounds - a.Rounds)[0]; // Generate OTP
+        // Get user's security credentials for encryption
+        const userSecurity = user.security;        // Generate OTP
         const otpCode = OTP({
             Length: 6,
             Digits: true,
@@ -125,25 +126,8 @@ export async function POST(req: NextRequest) {
             Special: false
         });
 
-        let otpData: string;
-        if (latestCredentials) {
-            // Encrypt OTP if credentials are available
-            otpData = await Encrypt({
-                Data: String(otpCode), // Ensure string type
-                Secret: latestCredentials.Secret,
-                Salt: latestCredentials.Salt || latestCredentials.Secret, // Use Salt if available, fallback to Secret
-                Format: "both",
-                Rounds: latestCredentials.Rounds
-            });
-        } else {
-            // Store as plain text if no credentials (fallback for incomplete signups)
-            otpData = JSON.stringify({
-                email: Request.email.toLowerCase(),
-                otp: otpCode,
-                userID: user.UserID,
-                encrypted: false
-            });
-        }
+        // Store OTP as plain text for enhanced model (consistent with signup)
+        const otpData = otpCode; // Store directly as plain text
 
         // Store OTP in database
         await OTPs_Model.create({
@@ -157,7 +141,7 @@ export async function POST(req: NextRequest) {
         const emailSent = await sendOTPEmail(
             Request.email,
             otpCode,
-            user.FirstName || "User"
+            user.profile?.firstName || "User"
         );
 
         if (!emailSent) {
@@ -216,9 +200,9 @@ export async function PUT(req: NextRequest) {
 
         await dbConnect();
 
-        const User = await Users_Model.findOne({
-            "Emails.Email": Request.email.toLowerCase(),
-            "Emails.isVerified": false
+        const User = await EnhancedUsers_Model.findOne({
+            email: Request.email.toLowerCase(),
+            isEmailVerified: false
         });
 
         if (!User) {
@@ -228,10 +212,6 @@ export async function PUT(req: NextRequest) {
                 StatusCode: 404
             });
         }
-
-        const latestCredentials = User.Credentials?.filter(
-            (cred) => cred.isActive
-        )?.sort((a, b) => b.Rounds - a.Rounds)[0];
         const otpRecord = await OTPs_Model.findOne({
             Type: OTPs.Email,
             UserID: User.UserID,
@@ -248,64 +228,30 @@ export async function PUT(req: NextRequest) {
 
         let isOTPValid = false;
 
-        try {
-            // Try to parse as JSON first (plain text format)
-            const jsonData = JSON.parse(otpRecord.Data);
-            if (jsonData.encrypted === false) {
-                // Plain text OTP
-                isOTPValid =
-                    jsonData.otp === Request.otp &&
-                    jsonData.email === Request.email.toLowerCase() &&
-                    jsonData.userID === User.UserID;
-            } else {
-                throw new Error("Not plain text format");
-            }
-        } catch (parseError) {
-            // Must be encrypted format
-            if (!latestCredentials) {
-                return ControllerResponseMap({
-                    Status: 0,
-                    Message: "Cannot verify encrypted OTP without credentials",
-                    StatusCode: 400
-                });
-            }
-
+        // For enhanced model, check if OTP is stored as plain text
+        if (otpRecord.Data === Request.otp) {
+            // Direct plain text comparison (newer enhanced model format)
+            isOTPValid = true;
+        } else {
+            // Try to parse as JSON for backward compatibility
             try {
-                const decryptedOTP = await Decrypt(
-                    otpRecord.Data,
-                    latestCredentials.Secret,
-                    latestCredentials.Rounds
-                );
-
-                // Handle both string and object results from decryption
-                let actualOTP: string;
-                if (typeof decryptedOTP === "string") {
-                    actualOTP = decryptedOTP;
-                } else if (typeof decryptedOTP === "number") {
-                    actualOTP = String(decryptedOTP);
-                } else if (
-                    typeof decryptedOTP === "object" &&
-                    decryptedOTP?.otp
-                ) {
-                    actualOTP = decryptedOTP.otp;
+                const jsonData = JSON.parse(otpRecord.Data);
+                if (jsonData.encrypted === false) {
+                    // JSON format with plain text OTP
+                    isOTPValid =
+                        jsonData.otp === Request.otp &&
+                        jsonData.email === Request.email.toLowerCase() &&
+                        jsonData.userID === User.UserID;
                 } else {
-                    log(
-                        `Unexpected decrypted OTP format: ${JSON.stringify(decryptedOTP)}`
-                    );
-                    actualOTP = String(decryptedOTP);
+                    return ControllerResponseMap({
+                        Status: 0,
+                        Message: "Encrypted OTP format not supported in enhanced model",
+                        StatusCode: 400
+                    });
                 }
-
-                isOTPValid = actualOTP === Request.otp;
-                log(
-                    `Encrypted OTP validation result: ${isOTPValid} (expected: ${Request.otp}, actual: ${actualOTP})`
-                );
-            } catch (decryptError) {
-                log(`OTP decryption error: ${decryptError}`);
-                return ControllerResponseMap({
-                    Status: 0,
-                    Message: "Invalid verification code format",
-                    StatusCode: 400
-                });
+            } catch (parseError) {
+                // If it's not JSON and not a direct match, it's invalid
+                isOTPValid = false;
             }
         }
 
@@ -317,13 +263,13 @@ export async function PUT(req: NextRequest) {
             });
         }
 
-        await Users_Model.updateOne(
+        await EnhancedUsers_Model.updateOne(
+            { UserID: User.UserID },
             {
-                "UserID": User.UserID,
-                "Emails.Email": Request.email.toLowerCase()
-            },
-            {
-                $set: { "Emails.$.isVerified": true }
+                $set: { 
+                    isEmailVerified: true,
+                    emailVerified: new Date()
+                }
             }
         );
 

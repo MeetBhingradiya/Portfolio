@@ -1,117 +1,135 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { dbConnect } from "@Utils/dbConnect";
-import { Users_Model } from "@Models/Users";
 import { verifyJWT } from "@Utils/JWT";
-import { log } from "@Utils";
 
-export async function PATCH(request: NextRequest) {
+// Using Node.js runtime for database access
+// export const runtime = "edge";
+
+export async function PUT(req: NextRequest) {
     try {
-        const authHeader = request.headers.get("authorization");
-        const token =
-            authHeader?.replace("Bearer ", "") ||
-            request.cookies.get("auth-token")?.value;
+        let userEmail: string | null = null;
+        let authMethod: "nextauth" | "jwt" = "nextauth";
 
-        if (!token) {
-            return NextResponse.json(
-                {
+        // Try NextAuth session first
+        const session = await auth();
+        if (session?.user?.email) {
+            userEmail = session.user.email;
+            authMethod = "nextauth";
+        } else {
+            // Fallback to JWT token authentication
+            const authHeader = req.headers.get("authorization");
+            const token = authHeader?.replace("Bearer ", "") || req.cookies.get("auth-token")?.value;
+
+            if (!token) {
+                return NextResponse.json({
                     Status: 0,
-                    Message: "Authentication token required",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
-        }
+                    Message: "Authentication required",
+                    StatusCode: "AUTHENTICATION_REQUIRED"
+                }, { status: 401 });
+            }
 
-        const decoded = await verifyJWT(token);
-        if (!decoded) {
-            return NextResponse.json(
-                {
+            const decoded = await verifyJWT(token);
+            if (!decoded || !decoded.email) {
+                return NextResponse.json({
                     Status: 0,
                     Message: "Invalid authentication token",
-                    StatusCode: 401
-                },
-                { status: 401 }
-            );
+                    StatusCode: "INVALID_TOKEN"
+                }, { status: 401 });
+            }
+
+            userEmail = decoded.email;
+            authMethod = "jwt";
         }
 
-        const { FirstName, LastName, Username } = await request.json();
-
-        if (!FirstName || !LastName || !Username) {
-            return NextResponse.json(
-                {
-                    Status: 0,
-                    Message: "First name, last name, and username are required",
-                    StatusCode: 400
-                },
-                { status: 400 }
-            );
+        if (!userEmail) {
+            return NextResponse.json({
+                Status: 0,
+                Message: "Authentication required",
+                StatusCode: "AUTHENTICATION_REQUIRED"
+            }, { status: 401 });
         }
+
+        const updateData = await req.json();
+        const {
+            firstName,
+            lastName,
+            displayName,
+            bio,
+            website,
+            location,
+            preferences
+        } = updateData;
 
         await dbConnect();
+        const { Users_Model } = await import("@Models/EnhancedUsers");
 
-        // Check if username is already taken by another user
-        if (Username) {
-            const existingUser = await Users_Model.findOne({
-                Username: Username,
-                UserID: { $ne: decoded.userID }
-            });
-
-            if (existingUser) {
-                return NextResponse.json(
-                    {
-                        Status: 0,
-                        Message: "Username is already taken",
-                        StatusCode: 409
-                    },
-                    { status: 409 }
-                );
-            }
-        }
-
-        // Update user profile
+        // Find and update user
         const updatedUser = await Users_Model.findOneAndUpdate(
-            { UserID: decoded.userID },
+            { email: userEmail },
             {
-                FirstName,
-                LastName,
-                Username,
-                updatedAt: new Date()
+                $set: {
+                    "profile.firstName": firstName,
+                    "profile.lastName": lastName,
+                    "profile.displayName": displayName,
+                    "profile.bio": bio,
+                    "profile.website": website,
+                    "profile.location": location,
+                    preferences: preferences,
+                    lastActiveAt: new Date()
+                }
             },
             { new: true }
-        ).select("-Credentials");
+        );
 
         if (!updatedUser) {
-            return NextResponse.json(
-                {
-                    Status: 0,
-                    Message: "User not found",
-                    StatusCode: 404
-                },
-                { status: 404 }
-            );
+            return NextResponse.json({
+                Status: 0,
+                Message: "User not found",
+                StatusCode: "USER_NOT_FOUND"
+            }, { status: 404 });
         }
 
-        log(`User ${decoded.userID} updated profile`);
+        // Return updated user data
+        const userData = {
+            UserID: updatedUser.UserID || updatedUser._id?.toString(),
+            Username: updatedUser.profile?.username || updatedUser.profile?.displayName?.replace(/\s+/g, '').toLowerCase() || '',
+            FirstName: updatedUser.profile?.firstName || '',
+            LastName: updatedUser.profile?.lastName || '',
+            DisplayName: updatedUser.profile?.displayName || '',
+            Bio: updatedUser.profile?.bio || '',
+            Avatar: updatedUser.profile?.avatar || (authMethod === "nextauth" ? session?.user?.image : null),
+            Website: updatedUser.profile?.website || '',
+            Location: updatedUser.profile?.location || '',
+            Emails: [{ 
+                Email: updatedUser.email, 
+                isPrimary: true, 
+                isVerified: updatedUser.isEmailVerified
+            }],
+            isAdmin: updatedUser.role === 'admin',
+            isEmailVerified: updatedUser.isEmailVerified,
+            isMFA: updatedUser.security?.isMFAEnabled || false,
+            role: updatedUser.role,
+            accountType: updatedUser.accountType,
+            createdAt: updatedUser.createdAt,
+            lastLoginAt: updatedUser.lastLoginAt || updatedUser.updatedAt || updatedUser.createdAt,
+            preferences: updatedUser.preferences || {}
+        };
 
         return NextResponse.json({
             Status: 1,
             Message: "Profile updated successfully",
-            StatusCode: 200,
             Data: {
-                FirstName: updatedUser.FirstName,
-                LastName: updatedUser.LastName,
-                Username: updatedUser.Username
+                user: userData
             }
         });
+
     } catch (error: any) {
-        log(`Profile update error: ${error.message}`);
-        return NextResponse.json(
-            {
-                Status: 0,
-                Message: "Failed to update profile",
-                StatusCode: 500
-            },
-            { status: 500 }
-        );
+        console.error("Profile update error:", error);
+        return NextResponse.json({
+            Status: 0,
+            Message: "Internal server error",
+            StatusCode: "INTERNAL_ERROR"
+        }, { status: 500 });
     }
 }

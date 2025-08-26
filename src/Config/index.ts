@@ -65,6 +65,17 @@ interface IConfig {
         DISCORD_CLIENT_ID?: string;
         DISCORD_CLIENT_SECRET?: string;
     };
+    AuthProviders: {
+        [key: string]: {
+            enabled: boolean;
+            clientId?: string;
+            clientSecret?: string;
+            server?: string;
+            from?: string;
+            rpName?: string;
+            rpId?: string;
+        };
+    };
     DigitalResume: {
         ExcludingPhone: string;
         IncludingPhone: string;
@@ -153,6 +164,97 @@ const Config: IConfig = {
     DigitalResume: {
         ExcludingPhone: "https://rxresu.me/meetbhingradiya/resume",
         IncludingPhone: "https://rxresu.me/meetbhingradiya/resumePlus"
+    },
+    AuthProviders: {
+        google: {
+            enabled: true,
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET
+        },
+        github: {
+            enabled: true,
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET
+        },
+        discord: {
+            enabled: false,
+            clientId: process.env.DISCORD_CLIENT_ID,
+            clientSecret: process.env.DISCORD_CLIENT_SECRET
+        },
+        apple: {
+            enabled: false, // Dynamically shown only on iOS/macOS
+            clientId: process.env.APPLE_CLIENT_ID,
+            clientSecret: process.env.APPLE_CLIENT_SECRET
+        },
+        facebook: {
+            enabled: false,
+            clientId: process.env.FACEBOOK_CLIENT_ID,
+            clientSecret: process.env.FACEBOOK_CLIENT_SECRET
+        },
+        linkedin: {
+            enabled: false,
+            clientId: process.env.LINKEDIN_CLIENT_ID,
+            clientSecret: process.env.LINKEDIN_CLIENT_SECRET
+        },
+        microsoft: {
+            enabled: false,
+            clientId: process.env.MICROSOFT_CLIENT_ID,
+            clientSecret: process.env.MICROSOFT_CLIENT_SECRET
+        },
+        instagram: {
+            enabled: false,
+            clientId: process.env.INSTAGRAM_CLIENT_ID,
+            clientSecret: process.env.INSTAGRAM_CLIENT_SECRET
+        },
+        patreon: {
+            enabled: false,
+            clientId: process.env.PATREON_CLIENT_ID,
+            clientSecret: process.env.PATREON_CLIENT_SECRET
+        },
+        pinterest: {
+            enabled: false,
+            clientId: process.env.PINTEREST_CLIENT_ID,
+            clientSecret: process.env.PINTEREST_CLIENT_SECRET
+        },
+        reddit: {
+            enabled: false,
+            clientId: process.env.REDDIT_CLIENT_ID,
+            clientSecret: process.env.REDDIT_CLIENT_SECRET
+        },
+        slack: {
+            enabled: false,
+            clientId: process.env.SLACK_CLIENT_ID,
+            clientSecret: process.env.SLACK_CLIENT_SECRET
+        },
+        spotify: {
+            enabled: false,
+            clientId: process.env.SPOTIFY_CLIENT_ID,
+            clientSecret: process.env.SPOTIFY_CLIENT_SECRET
+        },
+        twitter: {
+            enabled: false,
+            clientId: process.env.TWITTER_CLIENT_ID,
+            clientSecret: process.env.TWITTER_CLIENT_SECRET
+        },
+        gitlab: {
+            enabled: false,
+            clientId: process.env.GITLAB_CLIENT_ID,
+            clientSecret: process.env.GITLAB_CLIENT_SECRET
+        },
+        credentials: {
+            enabled: true,
+            clientId: "credentials",
+        },
+        email: {
+            enabled: true,
+            server: process.env.EMAIL_SERVER,
+            from: process.env.EMAIL_FROM
+        },
+        Passkeys: {
+            enabled: true,
+            rpName: "Meet Bhingradiya",
+            rpId: process.env.NODE_ENV === "production" ? "meetbhingradiya.tech" : "localhost"
+        }
     },
     ContactOptions: {
         Email: true,

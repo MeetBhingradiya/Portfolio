@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Users_Model } from "@Models/Users";
+import { Users_Model as EnhancedUsers_Model } from "@Models/EnhancedUsers";
 import { useEmptyFields } from "@Hooks";
 import { Config } from "@Config";
 import { dbConnect } from "@Utils/dbConnect";
 import { log } from "@Utils";
+
+// Using Node.js runtime for database access
+// export const runtime = "edge";
 
 // POST - Create/update username after email verification
 export async function POST(req: NextRequest) {
@@ -28,18 +31,36 @@ export async function POST(req: NextRequest) {
 
         await dbConnect();
 
+        // Debug: Check if user exists at all
+        const userExists = await EnhancedUsers_Model.findOne({
+            email: Request.email.toLowerCase()
+        });
+
+        if (!userExists) {
+            log(`Username API: User not found for email: ${Request.email}`);
+            return NextResponse.json(
+                {
+                    Status: 0,
+                    Message: "User not found",
+                    StatusCode: 404
+                },
+                { status: 404 }
+            );
+        }
+
+        log(`Username API: User found - ID: ${userExists.UserID}, isEmailVerified: ${userExists.isEmailVerified}`);
+
         // Find user by email and check if email is verified
-        const user = await Users_Model.findOne({
-            "Emails.Email": Request.email.toLowerCase(),
-            "Emails.isVerified": true,
-            "isDeleted": false
+        const user = await EnhancedUsers_Model.findOne({
+            email: Request.email.toLowerCase(),
+            isEmailVerified: true
         });
 
         if (!user) {
             return NextResponse.json(
                 {
                     Status: 0,
-                    Message: "User not found or email not verified",
+                    Message: userExists.isEmailVerified ? "User verification issue" : "Email not verified. Please verify your email first.",
                     StatusCode: 404
                 },
                 { status: 404 }
@@ -47,10 +68,9 @@ export async function POST(req: NextRequest) {
         }
 
         // Check if username is already taken
-        const existingUsername = await Users_Model.findOne({
-            Username: Request.username,
-            UserID: { $ne: user.UserID }, // Exclude current user
-            isDeleted: false
+        const existingUsername = await EnhancedUsers_Model.findOne({
+            "profile.username": Request.username,
+            UserID: { $ne: user.UserID } // Exclude current user
         });
 
         if (existingUsername) {
@@ -79,12 +99,12 @@ export async function POST(req: NextRequest) {
         }
 
         // Update username
-        await Users_Model.updateOne(
+        await EnhancedUsers_Model.updateOne(
             { UserID: user.UserID },
             {
                 $set: {
-                    Username: Request.username,
-                    UsernameCreatedAt: new Date()
+                    "profile.username": Request.username,
+                    "metadata.lastModified": new Date()
                 }
             }
         );
@@ -154,9 +174,8 @@ export async function GET(req: NextRequest) {
         await dbConnect();
 
         // Check if username exists
-        const existingUser = await Users_Model.findOne({
-            Username: username,
-            isDeleted: false
+        const existingUser = await EnhancedUsers_Model.findOne({
+            "profile.username": username
         });
 
         const isAvailable = !existingUser;

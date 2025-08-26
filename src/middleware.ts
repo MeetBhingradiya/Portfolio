@@ -43,6 +43,9 @@ export async function middleware(req: NextRequest) {
             "/api/auth/connect",
             "/api/auth/callback",
             "/api/auth/disconnect",
+            "/api/auth/signout",
+            "/api/auth/session",
+            "/api/auth/providers",
             "/api/timetable",
             "/api/timetable/*"
         ];
@@ -50,7 +53,7 @@ export async function middleware(req: NextRequest) {
         // Support for regex patterns in excluded routes
         const csrfExcludedRegexRoutes = [
             /^\/api\/timetable(\/.*)?$/,
-            /^\/api\/auth\/(connect|callback|disconnect)$/
+            /^\/api\/auth\/.*$/
         ];
 
         const isExcludedRoute = csrfExcludedRoutes.some(

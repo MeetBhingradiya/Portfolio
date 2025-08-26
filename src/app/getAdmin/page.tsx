@@ -115,7 +115,7 @@ export default function AdminSetupPage() {
         } catch (err: any) {
             if (err.response?.status === 401) {
                 if (activeAccount) {
-                    removeAccount(activeAccount.UserID);
+                    removeAccount(activeAccount.id);
                 }
                 router.push("/auth/signin");
             } else {

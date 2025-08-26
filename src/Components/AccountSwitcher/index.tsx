@@ -20,7 +20,7 @@ import {
     AccountCircle,
     Settings
 } from "@mui/icons-material";
-import { useAccount, Account } from "@contexts/AccountContext";
+import { useAccountSwitcher, Account } from "@Hooks/useAccountSwitcher";
 import { useRouter } from "next/navigation";
 
 interface AccountSwitcherProps {
@@ -40,7 +40,7 @@ export function AccountSwitcher({
         switchAccount,
         removeAccount,
         isLoading: hookIsLoading
-    } = useAccount();
+    } = useAccountSwitcher();
     const router = useRouter();
     const [isLoading, setIsLoading] = React.useState(false);
 
@@ -67,7 +67,7 @@ export function AccountSwitcher({
     const handleAccountSwitch = async (account: Account) => {
         setIsLoading(true);
         try {
-            await switchAccount(account.UserID);
+            await switchAccount(account.id);
             onAccountChange?.(account);
             // Small delay to show loading state
             await new Promise((resolve) => setTimeout(resolve, 500));
@@ -86,7 +86,7 @@ export function AccountSwitcher({
 
     const handleSignOut = () => {
         if (activeAccount) {
-            removeAccount(activeAccount.UserID);
+            removeAccount(activeAccount.id);
             router.push("/auth/signin");
         }
     };
@@ -96,9 +96,9 @@ export function AccountSwitcher({
         return null;
     }
 
-    // Get other accounts
+    // Get other accounts (for single-user NextAuth, this will typically be empty)
     const otherAccounts = accounts.filter(
-        (acc: Account) => acc.UserID !== activeAccount?.UserID
+        (acc: Account) => acc.id !== activeAccount?.id
     );
 
     // Create all dropdown items as an array to avoid conditional rendering type issues
@@ -209,13 +209,13 @@ export function AccountSwitcher({
 
         otherAccounts.forEach((account: Account) => {
             const actualIndex = accounts.findIndex(
-                (acc) => acc.UserID === account.UserID
+                (acc) => acc.id === account.id
             );
             const displayIndex = actualIndex + 1;
 
             menuItems.push(
                 <DropdownItem
-                    key={`account-${account.UserID}`}
+                    key={`account-${account.id}`}
                     onPress={() => handleAccountSwitch(account)}
                     className="gap-3"
                     description={

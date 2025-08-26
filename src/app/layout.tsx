@@ -60,7 +60,7 @@ export const metadata: Metadata = {
         name: "Meet Bhingradiya",
         url: "https://github.com/MeetBhingradiya"
     },
-    
+
 };
 
 // @ File
@@ -95,17 +95,13 @@ export default function RootLayout({
                 {/* Google ADS Monetization */}
                 {Config.Environment === "production" && Config.GoogleADS && (
                     <>
-                        <meta name="google-adsense-account" content="ca-pub-1096073946887913"/>
+                        <meta name="google-adsense-account" content="ca-pub-1096073946887913" />
                         <script
                             async
                             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1096073946887913"
                             crossOrigin="anonymous"></script>
                     </>
                 )}
-
-                {/* ? Vercel Speed Insights */}
-                {/* {Config.Environment === "production" &&
-                    Config.VercelSpeedInsight && <SpeedInsights />} */}
 
                 {/* ? React Scan */}
                 {Config.Environment === "development" && Config.ReactScan && (

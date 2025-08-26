@@ -1,71 +1,73 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { motion, Variants } from "motion/react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@contexts/NextAuthContext";
+import { useSession, signOut } from "next-auth/react";
 import {
     Card,
     CardBody,
     CardHeader,
     Button,
+    Avatar,
     Chip,
     Divider,
-    Spinner,
-    Avatar,
-    Input,
     Modal,
     ModalContent,
     ModalHeader,
     ModalBody,
     ModalFooter,
     useDisclosure,
-    Tabs,
-    Tab,
-    Tooltip,
-    Badge,
+    Table,
+    TableHeader,
+    TableColumn,
+    TableBody,
+    TableRow,
+    TableCell,
+    Spinner,
     Switch,
-    Progress
+    Badge,
+    Alert
 } from "@heroui/react";
 import {
     Dashboard as DashboardIcon,
     Person,
     Security,
+    Settings,
     ExitToApp,
-    Computer,
-    Smartphone,
-    AccessTime,
-    Verified,
-    Warning,
-    Edit,
-    Add,
-    Delete,
-    Key,
-    Email,
-    Save,
-    Cancel,
     AdminPanelSettings,
-    VpnKey,
-    PhoneAndroid,
-    Logout,
-    DeleteForever,
-    Visibility,
-    VisibilityOff,
-    CheckCircle,
-    Error as ErrorIcon,
+    Verified,
+    Shield,
+    DeviceHub,
     LocationOn,
-    Language,
     Schedule,
-    ConnectWithoutContact,
-    AccountCircle,
-    LinkedIn,
-    Facebook,
-    Instagram,
+    Warning,
+    CheckCircle,
+    Language,
     GitHub,
-    Microsoft
+    Facebook,
+    Microsoft,
+    LinkedIn,
+    Instagram,
+    X as TwitterIcon,
+    Delete,
+    Add,
+    Key,
+    Fingerprint
 } from "@mui/icons-material";
-import { motion, AnimatePresence, Variants } from "motion/react";
-import { useRouter } from "next/navigation";
+import { 
+    FaDiscord, 
+    FaInstagram as FaInstagramIcon, 
+    FaPatreon, 
+    FaPinterest, 
+    FaReddit, 
+    FaSlack, 
+    FaSpotify, 
+    FaGitlab 
+} from "react-icons/fa";
+import { Config } from "@Config";
 import { Axios } from "@Utils/Axios";
-import { AccountSwitcher } from "@Components/AccountSwitcher";
-import { useAccount } from "@contexts/AccountContext";
 
 // Animation variants
 const containerVariants: Variants = {
@@ -92,1300 +94,536 @@ const itemVariants: Variants = {
     }
 };
 
-// Third-party providers configuration
-const thirdPartyProviders = [
-    {
-        id: "google",
-        name: "Google",
-        icon: <Language className="text-red-500" />,
-        color: "border-red-200 hover:bg-red-50 dark:border-red-500/30 dark:hover:bg-red-900/20",
-        connectUrl: "/api/auth/connect/google"
-    },
-    {
-        id: "github",
-        name: "GitHub",
-        icon: <GitHub className="text-gray-700 dark:text-gray-300" />,
-        color: "border-gray-200 hover:bg-gray-50 dark:border-gray-500/30 dark:hover:bg-gray-800/20",
-        connectUrl: "/api/auth/connect/github"
-    },
-    {
-        id: "microsoft",
-        name: "Microsoft",
-        icon: <Microsoft className="text-blue-500" />,
-        color: "border-blue-200 hover:bg-blue-50 dark:border-blue-500/30 dark:hover:bg-blue-900/20",
-        connectUrl: "/api/auth/connect/microsoft"
-    },
-    {
-        id: "linkedin",
-        name: "LinkedIn",
-        icon: <LinkedIn className="text-blue-600" />,
-        color: "border-blue-200 hover:bg-blue-50 dark:border-blue-500/30 dark:hover:bg-blue-900/20",
-        connectUrl: "/api/auth/connect/linkedin"
-    },
-    {
-        id: "facebook",
-        name: "Facebook",
-        icon: <Facebook className="text-blue-700" />,
-        color: "border-blue-200 hover:bg-blue-50 dark:border-blue-500/30 dark:hover:bg-blue-900/20",
-        connectUrl: "/api/auth/connect/facebook"
-    },
-    {
-        id: "instagram",
-        name: "Instagram",
-        icon: <Instagram className="text-pink-500" />,
-        color: "border-pink-200 hover:bg-pink-50 dark:border-pink-500/30 dark:hover:bg-pink-900/20",
-        connectUrl: "/api/auth/connect/instagram"
-    },
-    {
-        id: "discord",
-        name: "Discord",
-        icon: <ConnectWithoutContact className="text-indigo-500" />,
-        color: "border-indigo-200 hover:bg-indigo-50 dark:border-indigo-500/30 dark:hover:bg-indigo-900/20",
-        connectUrl: "/api/auth/connect/discord"
-    }
-];
+// Provider Icons
+const providerIcons: Record<string, React.ReactNode> = {
+    google: <Language className="text-red-500" />,
+    github: <GitHub className="text-gray-700 dark:text-gray-300" />,
+    discord: <FaDiscord className="text-indigo-500" />,
+    facebook: <Facebook className="text-blue-600" />,
+    linkedin: <LinkedIn className="text-blue-700" />,
+    microsoft: <Microsoft className="text-blue-500" />,
+    instagram: <FaInstagramIcon className="text-pink-500" />,
+    patreon: <FaPatreon className="text-orange-500" />,
+    pinterest: <FaPinterest className="text-red-600" />,
+    reddit: <FaReddit className="text-orange-600" />,
+    slack: <FaSlack className="text-purple-500" />,
+    spotify: <FaSpotify className="text-green-500" />,
+    twitter: <TwitterIcon className="text-black dark:text-white" />,
+    gitlab: <FaGitlab className="text-orange-500" />
+};
 
-interface ThirdPartyConnection {
+interface ConnectedAccount {
     provider: string;
-    providerId: string;
-    email?: string;
+    providerAccountId: string;
     connectedAt: string;
     lastUsed?: string;
+    email?: string;
 }
 
-interface User {
-    UserID: string;
-    Username: string;
-    FirstName: string;
-    LastName: string;
-    Emails: Array<{
-        Email: string;
-        isPrimary: boolean;
-        isVerified: boolean;
-    }>;
-    isAdmin: boolean;
-    isEmailVerified: boolean;
-    isMFA: boolean;
-    createdAt: string;
-    lastLoginAt: string;
-    thirdPartyConnections?: ThirdPartyConnection[];
-}
-
-interface Session {
-    SessionID: string;
-    Platform: string;
-    Browser: string;
-    ExpiresAt: string;
-    IPDataMappedResponse?: {
+interface SessionInfo {
+    id: string;
+    platform: string;
+    browser: string;
+    location?: {
         city?: string;
         country?: string;
         region?: string;
     };
     createdAt: string;
     lastActivity: string;
-    isCurrent?: boolean;
+    isCurrent: boolean;
 }
 
 interface DashboardData {
-    user: User;
-    currentSession: Session;
-    activeSessions: Session[];
+    connectedAccounts: ConnectedAccount[];
+    activeSessions: SessionInfo[];
     security: {
-        totalActiveSessions: number;
+        mfaEnabled: boolean;
+        passkeyEnabled: boolean;
         lastPasswordChange?: string;
     };
 }
 
-export default function Dashboard() {
+export default function DashboardPage() {
     const router = useRouter();
-    const {
-        accounts,
-        activeAccount,
-        isLoading: accountSwitcherLoading,
-        switchAccount,
-        removeAccount
-    } = useAccount();
-
-    const [State, setState] = React.useState({
-        isLoading: true,
-        DashboardData: null as DashboardData | null,
-        error: "",
-        activeTab: "overview",
-        editProfileData: {
-            FirstName: "",
-            LastName: "",
-            Username: ""
-        },
-        isEditingProfile: false,
-        profileSaveLoading: false,
-        signOutLoading: false,
-        passwordData: {
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: ""
-        },
-        showPasswords: {
-            current: false,
-            new: false,
-            confirm: false
-        },
-        passwordChangeLoading: false,
-        newEmailData: {
-            email: ""
-        },
-        emailActionLoading: "",
-        emailVerificationData: {
-            email: "",
-            otp: "",
-            verificationLoading: false
-        },
-        sessionActionLoading: "",
-        thirdPartyConnectionLoading: ""
-    });
-
-    // Modals
-    const {
-        isOpen: isPasswordModalOpen,
-        onOpen: onPasswordModalOpen,
-        onClose: onPasswordModalClose
+    const { user, isAuthenticated, loading, logout } = useAuth();
+    const { data: session } = useSession();
+    const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string>("");
+    
+    const { 
+        isOpen: isSignOutOpen, 
+        onOpen: onSignOutOpen, 
+        onClose: onSignOutClose 
     } = useDisclosure();
 
-    const {
-        isOpen: isEmailModalOpen,
-        onOpen: onEmailModalOpen,
-        onClose: onEmailModalClose
-    } = useDisclosure();
+    // Fetch dashboard data
+    useEffect(() => {
+        if (!isAuthenticated || !user) return;
 
-    // Data fetching
-    const fetchDashboardData = React.useCallback(async () => {
-        try {
-            setState((prev) => ({ ...prev, isLoading: true, error: "" }));
-            const response = await Axios.get("/api/dashboard");
-
-            if (response.data.Status === 1) {
-                setState((prev) => ({
-                    ...prev,
-                    DashboardData: response.data.Data,
-                    error: ""
-                }));
-            } else {
-                setState((prev) => ({
-                    ...prev,
-                    error: response.data.Message || "Failed to load dashboard"
-                }));
-            }
-        } catch (error: any) {
-            if (error.response?.status === 401) {
-                if (activeAccount) {
-                    removeAccount(activeAccount.UserID);
-                }
-                router.push("/auth/signin");
-            } else {
-                setState((prev) => ({
-                    ...prev,
-                    error:
-                        error.response?.data?.Message ||
-                        "Failed to load dashboard data"
-                }));
-            }
-        } finally {
-            setState((prev) => ({ ...prev, isLoading: false }));
-        }
-    }, [activeAccount, removeAccount, router]);
-
-    // Effects
-    React.useEffect(() => {
-        if (accountSwitcherLoading) return;
-        if (!activeAccount) {
-            router.push("/auth/signin");
-            return;
-        }
-        fetchDashboardData();
-    }, [
-        activeAccount?.UserID,
-        accountSwitcherLoading,
-        fetchDashboardData,
-        router
-    ]);
-
-    React.useEffect(() => {
-        if (State.DashboardData?.user) {
-            setState((prev) => ({
-                ...prev,
-                editProfileData: {
-                    FirstName: State.DashboardData!.user.FirstName,
-                    LastName: State.DashboardData!.user.LastName,
-                    Username: State.DashboardData!.user.Username
-                }
-            }));
-        }
-    }, [State.DashboardData?.user]);
-
-    // Sign out handler
-    const handleSignOut = React.useCallback(async () => {
-        setState((prev) => ({ ...prev, signOutLoading: true }));
-        try {
-            if (activeAccount) {
-                const otherAccounts = accounts.filter(
-                    (acc) => acc.UserID !== activeAccount.UserID
-                );
-                if (otherAccounts.length > 0) {
-                    const mostRecentAccount = otherAccounts.sort(
-                        (a, b) =>
-                            new Date(b.LastUsed || 0).getTime() -
-                            new Date(a.LastUsed || 0).getTime()
-                    )[0];
-                    await removeAccount(activeAccount.UserID);
-                    await switchAccount(mostRecentAccount.UserID);
-                    window.location.reload();
-                    return;
+        const fetchDashboardData = async () => {
+            try {
+                setIsLoading(true);
+                const response = await Axios.get("/api/dashboard");
+                
+                if (response.data.Status === 1) {
+                    setDashboardData(response.data.Data);
                 } else {
-                    await removeAccount(activeAccount.UserID);
+                    setError(response.data.Message || "Failed to load dashboard data");
                 }
+            } catch (error: any) {
+                setError(error.response?.data?.Message || "Failed to load dashboard data");
+            } finally {
+                setIsLoading(false);
             }
+        };
 
-            localStorage.removeItem("auth-token");
-            router.push("/auth/signin");
+        fetchDashboardData();
+    }, [isAuthenticated, user]);
+
+    const handleSignOut = async () => {
+        try {
+            await logout();
+            router.push("/");
         } catch (error) {
-            router.push("/auth/signin");
+            console.error("Sign out error:", error);
         } finally {
-            setState((prev) => ({ ...prev, signOutLoading: false }));
-        }
-    }, [activeAccount, accounts, switchAccount, removeAccount, router]);
-
-    // Third-party connection handlers
-    const handleConnectThirdParty = async (providerId: string) => {
-        setState((prev) => ({
-            ...prev,
-            thirdPartyConnectionLoading: providerId
-        }));
-        try {
-            const provider = thirdPartyProviders.find(
-                (p) => p.id === providerId
-            );
-            if (provider) {
-                // Open OAuth popup
-                const width = 500;
-                const height = 600;
-                const left = window.screen.width / 2 - width / 2;
-                const top = window.screen.height / 2 - height / 2;
-
-                const popup = window.open(
-                    provider.connectUrl,
-                    "oauth",
-                    `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,resizable=yes`
-                );
-
-                // Listen for popup completion
-                const checkClosed = setInterval(() => {
-                    if (popup?.closed) {
-                        clearInterval(checkClosed);
-                        fetchDashboardData(); // Refresh data after connection
-                    }
-                }, 1000);
-            }
-        } catch (error: any) {
-            setState((prev) => ({
-                ...prev,
-                error:
-                    error.response?.data?.Message ||
-                    `Failed to connect to ${providerId}`
-            }));
-        } finally {
-            setState((prev) => ({ ...prev, thirdPartyConnectionLoading: "" }));
+            onSignOutClose();
         }
     };
 
-    const handleDisconnectThirdParty = async (providerId: string) => {
-        setState((prev) => ({
-            ...prev,
-            thirdPartyConnectionLoading: providerId
-        }));
+    const handleDisconnectProvider = async (provider: string) => {
         try {
-            const response = await Axios.delete(
-                `/api/auth/disconnect/${providerId}`
-            );
+            const response = await Axios.post("/api/auth/disconnect", {
+                provider
+            });
+
             if (response.data.Status === 1) {
-                fetchDashboardData();
+                // Refresh dashboard data
+                window.location.reload();
             } else {
-                setState((prev) => ({
-                    ...prev,
-                    error:
-                        response.data.Message ||
-                        `Failed to disconnect from ${providerId}`
-                }));
+                setError(response.data.Message || "Failed to disconnect provider");
             }
         } catch (error: any) {
-            if (error.response?.status === 401) {
-                if (activeAccount) await removeAccount(activeAccount.UserID);
-                router.push("/auth/signin");
-            } else {
-                setState((prev) => ({
-                    ...prev,
-                    error:
-                        error.response?.data?.Message ||
-                        `Failed to disconnect from ${providerId}`
-                }));
-            }
-        } finally {
-            setState((prev) => ({ ...prev, thirdPartyConnectionLoading: "" }));
+            setError(error.response?.data?.Message || "Failed to disconnect provider");
         }
     };
 
-    // Loading states
-    if (accountSwitcherLoading || State.isLoading) {
+    const handleConnectProvider = (provider: string) => {
+        window.location.href = `/api/auth/connect/${provider}?callbackUrl=${encodeURIComponent("/dashboard")}`;
+    };
+
+    if (loading || isLoading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ duration: 0.5 }}>
-                    <Spinner size="lg" />
-                </motion.div>
-                <motion.div
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.5 }}
-                    className="text-center">
-                    <p className="text-lg font-medium">
-                        {accountSwitcherLoading
-                            ? "Loading Account..."
-                            : "Loading Dashboard..."}
-                    </p>
-                </motion.div>
+            <div className="min-h-screen flex items-center justify-center">
+                <Spinner size="lg" />
             </div>
         );
     }
 
-    if (State.error && !State.DashboardData) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
-                <Warning className="text-6xl text-danger" />
-                <p className="text-lg text-danger font-medium">{State.error}</p>
-                <Button
-                    color="primary"
-                    onPress={() => fetchDashboardData()}
-                    isLoading={State.isLoading}>
-                    Try Again
-                </Button>
-            </div>
-        );
-    }
-
-    if (!State.DashboardData) {
-        return (
-            <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
-                <p className="text-lg font-medium">No data available</p>
-            </div>
-        );
+    if (!isAuthenticated || !user) {
+        router.push("/auth/signin");
+        return null;
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 relative overflow-x-hidden">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-5 dark:opacity-10">
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='7'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                    }}
-                />
-            </div>
-            {/* Floating Background Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div
-                    className="absolute top-20 left-10 w-32 h-32 bg-blue-400/10 rounded-full blur-xl"
-                    animate={{ y: [0, -20, 0], scale: [1, 1.1, 1] }}
-                    transition={{
-                        duration: 6,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                />
-                <motion.div
-                    className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl"
-                    animate={{ y: [0, 20, 0], scale: [1, 0.9, 1] }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                />
-                <motion.div
-                    className="absolute bottom-40 left-1/4 w-20 h-20 bg-pink-400/10 rounded-full blur-xl"
-                    animate={{ y: [0, -15, 0], scale: [1, 1.2, 1] }}
-                    transition={{
-                        duration: 7,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                />
-            </div>
-            {/* Main Content Container */}
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
             <motion.div
-                className="relative z-10 h-screen overflow-y-auto"
+                className="container mx-auto px-4 py-8"
                 variants={containerVariants}
                 initial="hidden"
-                animate="visible">
-                <div className="container mx-auto p-6 space-y-6">
-                    {/* Header with Account Switcher */}
-                    <motion.div
-                        className="flex justify-between items-center"
-                        variants={itemVariants}>
+                animate="visible"
+            >
+                {/* Header */}
+                <motion.div variants={itemVariants} className="mb-8">
+                    <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <motion.div
-                                whileHover={{ rotate: 360 }}
-                                transition={{ duration: 0.5 }}>
-                                <DashboardIcon
-                                    sx={{ fontSize: "2rem" }}
-                                    className="text-primary"
-                                />
-                            </motion.div>
+                            <Avatar
+                                src={user.image}
+                                alt={user.name}
+                                size="lg"
+                                fallback={<Person />}
+                            />
                             <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                    Dashboard
+                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                                    Welcome, {user.firstName || user.name?.split(" ")[0] || user.username}!
                                 </h1>
-                                <p className="text-default-500">
-                                    Welcome back,{" "}
-                                    {State.DashboardData.user.FirstName}!
-                                </p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    <p className="text-gray-600 dark:text-gray-400">
+                                        @{user.username}
+                                    </p>
+                                    {user.isEmailVerified && (
+                                        <Chip
+                                            size="sm"
+                                            variant="flat"
+                                            color="success"
+                                            startContent={<Verified className="w-3 h-3" />}
+                                        >
+                                            Verified
+                                        </Chip>
+                                    )}
+                                    {user.isAdmin && (
+                                        <Chip
+                                            size="sm"
+                                            variant="flat"
+                                            color="warning"
+                                            startContent={<AdminPanelSettings className="w-3 h-3" />}
+                                        >
+                                            Admin
+                                        </Chip>
+                                    )}
+                                </div>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                            <AccountSwitcher
-                                variant="full"
-                                showAddAccount={true}
-                                onAccountChange={() => window.location.reload()}
-                            />
-                            {State.DashboardData.user.isAdmin && (
-                                <Tooltip content="Admin Panel">
-                                    <Button
-                                        color="secondary"
-                                        variant="bordered"
-                                        isIconOnly
-                                        onPress={() => router.push("/admin")}
-                                        className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                        {" "}
-                                        <AdminPanelSettings />
-                                    </Button>
-                                </Tooltip>
-                            )}
-                            {" "}
-                            <Button
-                                color="danger"
-                                variant="bordered"
-                                startContent={<ExitToApp />}
-                                onPress={handleSignOut}
-                                isLoading={State.signOutLoading}
-                                isDisabled={State.signOutLoading}
-                                className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                {State.signOutLoading
-                                    ? "Signing Out..."
-                                    : "Sign Out"}
-                            </Button>
-                        </div>
+                        <Button
+                            color="danger"
+                            variant="light"
+                            onPress={onSignOutOpen}
+                            startContent={<ExitToApp />}
+                        >
+                            Sign Out
+                        </Button>
+                    </div>
+                </motion.div>
+
+                {/* Error Message */}
+                {error && (
+                    <motion.div variants={itemVariants} className="mb-6">
+                        <Alert
+                            color="danger"
+                            variant="flat"
+                            title="Error"
+                            description={error}
+                            onClose={() => setError("")}
+                        />
                     </motion.div>
+                )}
 
-                    {/* Error Alert */}
-                    <AnimatePresence>
-                        {State.error && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                transition={{ duration: 0.3 }}>
-                                <Card className="border-danger bg-danger-50/80 dark:bg-danger-900/30 backdrop-blur-md">
-                                    <CardBody className="flex flex-row items-center gap-3">
-                                        <ErrorIcon className="text-danger" />
-                                        <p className="text-danger font-medium flex-grow">
-                                            {State.error}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* User Information */}
+                    <motion.div variants={itemVariants} className="lg:col-span-2">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center gap-2">
+                                    <Person />
+                                    <h2 className="text-xl font-semibold">Profile Information</h2>
+                                </div>
+                            </CardHeader>
+                            <CardBody className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            First Name
+                                        </label>
+                                        <p className="text-gray-900 dark:text-white">
+                                            {user.firstName || "Not set"}
                                         </p>
-                                        <Button
-                                            size="sm"
-                                            variant="light"
-                                            color="danger"
-                                            onPress={() =>
-                                                setState((prev) => ({
-                                                    ...prev,
-                                                    error: ""
-                                                }))
-                                            }>
-                                            Dismiss
-                                        </Button>
-                                    </CardBody>
-                                </Card>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-
-                    {/* Main Content Tabs */}
-                    <motion.div
-                        className="w-full"
-                        variants={itemVariants}>
-                        <Tabs
-                            selectedKey={State.activeTab}
-                            onSelectionChange={(key) =>
-                                setState((prev) => ({
-                                    ...prev,
-                                    activeTab: key.toString()
-                                }))
-                            }
-                            aria-label="Dashboard sections"
-                            variant="bordered"
-                            className="w-full"
-                            classNames={{
-                                tabList:
-                                    "backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30",
-                                tab: "data-[selected=true]:bg-white/30 dark:data-[selected=true]:bg-gray-700/50",
-                                panel: "pt-6"
-                            }}>
-                            <Tab
-                                key="overview"
-                                title="Overview">
-                                {" "}
-                                <div className="space-y-6">
-                                    {/* User Profile Card */}
-                                    <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                        <CardHeader className="flex gap-3">
-                                            <Avatar
-                                                icon={<Person />}
-                                                classNames={{
-                                                    base: "bg-gradient-to-br from-indigo-500 to-pink-500",
-                                                    icon: "text-white/80"
-                                                }}
-                                            />
-                                            <div className="flex flex-col flex-grow">
-                                                <p className="text-md font-semibold">
-                                                    {
-                                                        State.DashboardData.user
-                                                            .FirstName
-                                                    }{" "}
-                                                    {
-                                                        State.DashboardData.user
-                                                            .LastName
-                                                    }
-                                                </p>
-                                                <p className="text-small text-default-500">
-                                                    @
-                                                    {
-                                                        State.DashboardData.user
-                                                            .Username
-                                                    }
-                                                </p>
-                                            </div>
-                                            <div className="flex gap-2 items-center">
-                                                {State.DashboardData.user
-                                                    .isAdmin && (
-                                                    <Chip
-                                                        color="warning"
-                                                        variant="flat"
-                                                        size="sm">
-                                                        Admin
-                                                    </Chip>
-                                                )}
-                                                {State.DashboardData.user
-                                                    .isEmailVerified ? (
-                                                    <Chip
-                                                        color="success"
-                                                        variant="flat"
-                                                        size="sm"
-                                                        startContent={
-                                                            <Verified />
-                                                        }>
-                                                        Verified
-                                                    </Chip>
-                                                ) : (
-                                                    <Chip
-                                                        color="danger"
-                                                        variant="flat"
-                                                        size="sm">
-                                                        Unverified
-                                                    </Chip>
-                                                )}
-                                            </div>
-                                        </CardHeader>
-                                        <Divider />
-                                        <CardBody>
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                <div>
-                                                    <p className="text-small text-default-500 mb-1">
-                                                        Primary Email
-                                                    </p>
-                                                    <p className="font-medium">
-                                                        {State.DashboardData.user.Emails.find(
-                                                            (email) =>
-                                                                email.isPrimary
-                                                        )?.Email ||
-                                                            State.DashboardData
-                                                                .user.Emails[0]
-                                                                ?.Email ||
-                                                            "No email"}
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-small text-default-500 mb-1">
-                                                        User ID
-                                                    </p>
-                                                    <p className="font-mono text-small">
-                                                        {
-                                                            State.DashboardData
-                                                                .user.UserID
-                                                        }
-                                                    </p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-small text-default-500 mb-1">
-                                                        Member Since
-                                                    </p>
-                                                    <p className="font-medium">
-                                                        {new Date(
-                                                            State.DashboardData.user.createdAt
-                                                        ).toLocaleDateString()}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </CardBody>
-                                    </Card>{" "}
-                                    {/* Quick Stats */}
-                                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                        <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                            <CardBody className="text-center">
-                                                <div className="flex items-center justify-center mb-2">
-                                                    <Security className="text-primary text-2xl" />
-                                                </div>
-                                                <p className="text-2xl font-bold">
-                                                    {
-                                                        State.DashboardData
-                                                            .security
-                                                            .totalActiveSessions
-                                                    }
-                                                </p>
-                                                <p className="text-small text-default-500">
-                                                    Active Sessions
-                                                </p>
-                                            </CardBody>
-                                        </Card>{" "}
-                                        <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                            <CardBody className="text-center">
-                                                <div className="flex items-center justify-center mb-2">
-                                                    <Email className="text-success text-2xl" />
-                                                </div>
-                                                <p className="text-2xl font-bold">
-                                                    {
-                                                        State.DashboardData.user
-                                                            .Emails.length
-                                                    }
-                                                </p>
-                                                <p className="text-small text-default-500">
-                                                    Email Addresses
-                                                </p>
-                                            </CardBody>
-                                        </Card>{" "}
-                                        <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                            <CardBody className="text-center">
-                                                <div className="flex items-center justify-center mb-2">
-                                                    <AccessTime className="text-warning text-2xl" />
-                                                </div>
-                                                <p className="text-small font-bold">
-                                                    {new Date(
-                                                        State.DashboardData.user.lastLoginAt
-                                                    ).toLocaleDateString()}
-                                                </p>
-                                                <p className="text-small text-default-500">
-                                                    Last Login
-                                                </p>
-                                            </CardBody>
-                                        </Card>{" "}
-                                        <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                            <CardBody className="text-center">
-                                                <div className="flex items-center justify-center mb-2">
-                                                    <VpnKey
-                                                        className={`text-2xl ${
-                                                            State.DashboardData
-                                                                .user.isMFA
-                                                                ? "text-success"
-                                                                : "text-danger"
-                                                        }`}
-                                                    />
-                                                </div>
-                                                <p className="text-small font-bold">
-                                                    {State.DashboardData.user
-                                                        .isMFA
-                                                        ? "Enabled"
-                                                        : "Disabled"}
-                                                </p>
-                                                <p className="text-small text-default-500">
-                                                    Two-Factor Auth
-                                                </p>
-                                            </CardBody>
-                                        </Card>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Last Name
+                                        </label>
+                                        <p className="text-gray-900 dark:text-white">
+                                            {user.lastName || "Not set"}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Email
+                                        </label>
+                                        <p className="text-gray-900 dark:text-white">
+                                            {user.email}
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                            Username
+                                        </label>
+                                        <p className="text-gray-900 dark:text-white">
+                                            @{user.username}
+                                        </p>
                                     </div>
                                 </div>
-                            </Tab>
-
-                            <Tab
-                                key="connections"
-                                title="Third-Party Connections">
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <h2 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                                Connected Accounts
-                                            </h2>
-                                            <p className="text-default-500">
-                                                Manage your connected
-                                                third-party accounts
-                                            </p>
-                                        </div>
-                                    </div>
-                                    {/* Third-party providers grid */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                        {thirdPartyProviders.map((provider) => {
-                                            const isConnected =
-                                                State.DashboardData?.user.thirdPartyConnections?.some(
-                                                    (conn) =>
-                                                        conn.provider ===
-                                                        provider.id
-                                                );
-                                            const connectionData =
-                                                State.DashboardData?.user.thirdPartyConnections?.find(
-                                                    (conn) =>
-                                                        conn.provider ===
-                                                        provider.id
-                                                );
-
-                                            return (
-                                                <motion.div
-                                                    key={provider.id}
-                                                    whileHover={{ scale: 1.02 }}
-                                                    transition={{
-                                                        type: "spring",
-                                                        stiffness: 400,
-                                                        damping: 25
-                                                    }}>
-                                                    {" "}
-                                                    <Card
-                                                        className={`backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30 ${provider.color} transition-all duration-300`}>
-                                                        <CardBody className="p-4">
-                                                            <div className="flex items-center justify-between mb-3">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2 rounded-lg bg-white/30 dark:bg-gray-700/50">
-                                                                        {
-                                                                            provider.icon
-                                                                        }
-                                                                    </div>
-                                                                    <div>
-                                                                        <p className="font-semibold">
-                                                                            {
-                                                                                provider.name
-                                                                            }
-                                                                        </p>
-                                                                        {isConnected &&
-                                                                            connectionData?.email && (
-                                                                                <p className="text-sm text-default-500">
-                                                                                    {
-                                                                                        connectionData.email
-                                                                                    }
-                                                                                </p>
-                                                                            )}
-                                                                    </div>
-                                                                </div>
-                                                                <Chip
-                                                                    color={
-                                                                        isConnected
-                                                                            ? "success"
-                                                                            : "default"
-                                                                    }
-                                                                    variant="flat"
-                                                                    size="sm">
-                                                                    {isConnected
-                                                                        ? "Connected"
-                                                                        : "Not Connected"}
-                                                                </Chip>
-                                                            </div>{" "}
-                                                            {isConnected &&
-                                                                connectionData && (
-                                                                    <div className="mb-3 p-3 rounded-lg bg-white/20 dark:bg-gray-700/30">
-                                                                        <div className="flex justify-between text-sm">
-                                                                            <span className="text-default-500">
-                                                                                Connected:
-                                                                            </span>
-                                                                            <span>
-                                                                                {new Date(
-                                                                                    connectionData.connectedAt
-                                                                                ).toLocaleDateString()}
-                                                                            </span>
-                                                                        </div>
-                                                                        {connectionData.lastUsed && (
-                                                                            <div className="flex justify-between text-sm mt-1">
-                                                                                <span className="text-default-500">
-                                                                                    Last
-                                                                                    used:
-                                                                                </span>
-                                                                                <span>
-                                                                                    {new Date(
-                                                                                        connectionData.lastUsed
-                                                                                    ).toLocaleDateString()}
-                                                                                </span>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                )}
-                                                            <div className="flex gap-2">
-                                                                {isConnected ? (
-                                                                    <Button
-                                                                        color="danger"
-                                                                        variant="flat"
-                                                                        size="sm"
-                                                                        fullWidth
-                                                                        startContent={
-                                                                            <Delete />
-                                                                        }
-                                                                        onPress={() =>
-                                                                            handleDisconnectThirdParty(
-                                                                                provider.id
-                                                                            )
-                                                                        }
-                                                                        isLoading={
-                                                                            State.thirdPartyConnectionLoading ===
-                                                                            provider.id
-                                                                        }>
-                                                                        Disconnect
-                                                                    </Button>
-                                                                ) : (
-                                                                    <Button
-                                                                        color="primary"
-                                                                        variant="flat"
-                                                                        size="sm"
-                                                                        fullWidth
-                                                                        startContent={
-                                                                            <ConnectWithoutContact />
-                                                                        }
-                                                                        onPress={() =>
-                                                                            handleConnectThirdParty(
-                                                                                provider.id
-                                                                            )
-                                                                        }
-                                                                        isLoading={
-                                                                            State.thirdPartyConnectionLoading ===
-                                                                            provider.id
-                                                                        }>
-                                                                        Connect
-                                                                    </Button>
-                                                                )}
-                                                            </div>
-                                                        </CardBody>
-                                                    </Card>
-                                                </motion.div>
-                                            );
-                                        })}
-                                    </div>{" "}
-                                    {/* Connection benefits info */}
-                                    <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-3">
-                                                <ConnectWithoutContact className="text-primary" />
-                                                <div>
-                                                    <p className="text-md font-semibold">
-                                                        Why Connect Third-Party
-                                                        Accounts?
-                                                    </p>
-                                                    <p className="text-small text-default-500">
-                                                        Benefits of linking your
-                                                        accounts
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </CardHeader>
-                                        <Divider />
-                                        <CardBody>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div className="flex gap-3">
-                                                    <CheckCircle className="text-success mt-1" />
-                                                    <div>
-                                                        <p className="font-medium">
-                                                            Quick Sign-In
-                                                        </p>
-                                                        <p className="text-small text-default-500">
-                                                            Use any connected
-                                                            account to sign in
-                                                            instantly
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex gap-3">
-                                                    <Security className="text-primary mt-1" />
-                                                    <div>
-                                                        <p className="font-medium">
-                                                            Enhanced Security
-                                                        </p>
-                                                        <p className="text-small text-default-500">
-                                                            Additional
-                                                            authentication
-                                                            methods for better
-                                                            security
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardBody>
-                                    </Card>
-                                </div>
-                            </Tab>
-
-                            <Tab
-                                key="emails"
-                                title="Email Management">
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-center">
-                                        <div>
-                                            <h2 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                                Email Addresses
-                                            </h2>
-                                            <p className="text-default-500">
-                                                Manage your email addresses and
-                                                verification status
-                                            </p>
-                                        </div>
+                                <Divider />
+                                <div className="flex justify-end">
+                                    <div className="flex gap-2">
                                         <Button
                                             color="primary"
-                                            startContent={<Add />}
-                                            onPress={onEmailModalOpen}>
-                                            Add Email
+                                            variant="flat"
+                                            startContent={<Settings />}
+                                            onPress={() => router.push("/profile")}
+                                        >
+                                            Edit Profile
                                         </Button>
-                                    </div>{" "}
-                                    <div className="space-y-3">
-                                        {State.DashboardData.user.Emails.map(
-                                            (email, index) => (
-                                                <Card
-                                                    key={index}
-                                                    className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                                    <CardBody className="flex flex-row items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <Email className="text-default-400" />
-                                                            <div>
-                                                                <p className="font-medium">
-                                                                    {
-                                                                        email.Email
-                                                                    }
-                                                                </p>
-                                                                <div className="flex gap-2 mt-1">
-                                                                    {email.isPrimary && (
-                                                                        <Chip
-                                                                            size="sm"
-                                                                            color="primary"
-                                                                            variant="flat">
-                                                                            Primary
-                                                                        </Chip>
-                                                                    )}
-                                                                    {email.isVerified ? (
-                                                                        <Chip
-                                                                            size="sm"
-                                                                            color="success"
-                                                                            variant="flat"
-                                                                            startContent={
-                                                                                <CheckCircle />
-                                                                            }>
-                                                                            Verified
-                                                                        </Chip>
-                                                                    ) : (
-                                                                        <Chip
-                                                                            size="sm"
-                                                                            color="warning"
-                                                                            variant="flat">
-                                                                            Unverified
-                                                                        </Chip>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            {!email.isVerified && (
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="flat"
-                                                                    color="success"
-                                                                    isLoading={
-                                                                        State.emailActionLoading ===
-                                                                        email.Email
-                                                                    }>
-                                                                    Verify
-                                                                </Button>
-                                                            )}
-                                                        </div>
-                                                    </CardBody>
-                                                </Card>
-                                            )
-                                        )}
+                                        <Button
+                                            color="secondary"
+                                            variant="flat"
+                                            startContent={<Settings />}
+                                            onPress={() => router.push("/settings")}
+                                        >
+                                            Settings
+                                        </Button>
                                     </div>
                                 </div>
-                            </Tab>
+                            </CardBody>
+                        </Card>
+                    </motion.div>
 
-                            <Tab
-                                key="security"
-                                title="Security & Sessions">
-                                {" "}
-                                <div className="space-y-6">
-                                    {/* Password Change Section */}
-                                    <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                        <CardHeader className="flex justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <Key className="text-warning" />
-                                                <div>
-                                                    <p className="text-md font-semibold">
-                                                        Password
-                                                    </p>
-                                                    <p className="text-small text-default-500">
-                                                        Change your account
-                                                        password
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            <Button
-                                                color="warning"
-                                                variant="flat"
-                                                onPress={onPasswordModalOpen}>
-                                                Change Password
-                                            </Button>
-                                        </CardHeader>
-                                    </Card>{" "}
-                                    {/* Current Session */}
-                                    <Card className="backdrop-blur-md bg-white/20 dark:bg-gray-800/30 border-white/30 dark:border-gray-600/30">
-                                        <CardHeader>
-                                            <div className="flex items-center gap-3">
-                                                <Security className="text-success" />
-                                                <div>
-                                                    <p className="text-md font-semibold">
-                                                        Current Session
-                                                    </p>
-                                                    <p className="text-small text-default-500">
-                                                        This device and session
-                                                    </p>
-                                                </div>
-                                                <Badge
-                                                    color="success"
-                                                    variant="flat"
-                                                    content="Current">
-                                                    <span></span>
-                                                </Badge>
-                                            </div>
-                                        </CardHeader>
-                                        <Divider />
-                                        <CardBody>
-                                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                                <div className="flex items-center gap-2">
-                                                    <Computer className="text-blue-500" />
-                                                    <div>
-                                                        <p className="text-small text-default-500">
-                                                            Platform
-                                                        </p>
-                                                        <p className="font-medium">
-                                                            {
-                                                                State
-                                                                    .DashboardData
-                                                                    .currentSession
-                                                                    ?.Platform
-                                                            }
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-small text-default-500">
-                                                        Browser
-                                                    </p>
-                                                    <p className="font-medium">
-                                                        {State.DashboardData
-                                                            .currentSession
-                                                            ?.Browser ||
-                                                            "Chrome"}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <LocationOn className="text-default-400" />
-                                                    <div>
-                                                        <p className="text-small text-default-500">
-                                                            Location
-                                                        </p>
-                                                        <p className="font-medium">
-                                                            {State.DashboardData
-                                                                .currentSession
-                                                                ?.IPDataMappedResponse
-                                                                ?.city ||
-                                                                "Unknown"}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Schedule className="text-default-400" />
-                                                    <div>
-                                                        <p className="text-small text-default-500">
-                                                            Expires
-                                                        </p>
-                                                        <p className="font-medium">
-                                                            {new Date(
-                                                                State.DashboardData.currentSession?.ExpiresAt
-                                                            ).toLocaleDateString()}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </CardBody>
-                                    </Card>
+                    {/* Security Overview */}
+                    <motion.div variants={itemVariants}>
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center gap-2">
+                                    <Security />
+                                    <h2 className="text-xl font-semibold">Security</h2>
                                 </div>
-                            </Tab>
-                        </Tabs>
+                            </CardHeader>
+                            <CardBody className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium">Two-Factor Auth</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            Extra security layer
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        isSelected={user.isMFAEnabled}
+                                        color="success"
+                                    />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="font-medium">Passkey</p>
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            Biometric authentication
+                                        </p>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        color="primary"
+                                        startContent={<Fingerprint />}
+                                    >
+                                        Setup
+                                    </Button>
+                                </div>
+                                <Divider />
+                                <Button
+                                    color="primary"
+                                    variant="flat"
+                                    fullWidth
+                                    startContent={<Shield />}
+                                    onPress={() => router.push("/dashboard/security")}
+                                >
+                                    Security Settings
+                                </Button>
+                            </CardBody>
+                        </Card>
+                    </motion.div>
+
+                    {/* Connected Accounts */}
+                    <motion.div variants={itemVariants} className="lg:col-span-2">
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-2">
+                                        <DeviceHub />
+                                        <h2 className="text-xl font-semibold">Connected Accounts</h2>
+                                    </div>
+                                    <Button
+                                        size="sm"
+                                        color="primary"
+                                        variant="flat"
+                                        startContent={<Add />}
+                                        onPress={() => router.push("/dashboard/connect")}
+                                    >
+                                        Connect More
+                                    </Button>
+                                </div>
+                            </CardHeader>
+                            <CardBody>
+                                {dashboardData?.connectedAccounts?.length ? (
+                                    <div className="space-y-3">
+                                        {dashboardData.connectedAccounts.map((account, index) => (
+                                            <div
+                                                key={`${account.provider}-${index}`}
+                                                className="flex items-center justify-between p-3 border rounded-lg"
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    {providerIcons[account.provider] || <Key />}
+                                                    <div>
+                                                        <p className="font-medium capitalize">
+                                                            {account.provider}
+                                                        </p>
+                                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                            Connected {new Date(account.connectedAt).toLocaleDateString()}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <Button
+                                                    size="sm"
+                                                    color="danger"
+                                                    variant="light"
+                                                    startContent={<Delete />}
+                                                    onPress={() => handleDisconnectProvider(account.provider)}
+                                                >
+                                                    Disconnect
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <DeviceHub className="mx-auto text-gray-400 mb-4" fontSize="large" />
+                                        <p className="text-gray-600 dark:text-gray-400">
+                                            No connected accounts
+                                        </p>
+                                        <Button
+                                            color="primary"
+                                            variant="flat"
+                                            className="mt-4"
+                                            onPress={() => router.push("/dashboard/connect")}
+                                        >
+                                            Connect an Account
+                                        </Button>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </motion.div>
+
+                    {/* Active Sessions */}
+                    <motion.div variants={itemVariants}>
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center gap-2">
+                                    <Schedule />
+                                    <h2 className="text-xl font-semibold">Active Sessions</h2>
+                                </div>
+                            </CardHeader>
+                            <CardBody>
+                                {dashboardData?.activeSessions?.length ? (
+                                    <div className="space-y-3">
+                                        {dashboardData.activeSessions.slice(0, 3).map((session, index) => (
+                                            <div
+                                                key={session.id}
+                                                className={`p-3 border rounded-lg ${
+                                                    session.isCurrent ? 'border-green-200 bg-green-50 dark:bg-green-900/20' : ''
+                                                }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <p className="font-medium text-sm">
+                                                            {session.browser} on {session.platform}
+                                                        </p>
+                                                        {session.location && (
+                                                            <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                                <LocationOn className="w-3 h-3 inline mr-1" />
+                                                                {session.location.city}, {session.location.country}
+                                                            </p>
+                                                        )}
+                                                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                                                            {session.isCurrent ? 'Current session' : `Last active: ${new Date(session.lastActivity).toLocaleDateString()}`}
+                                                        </p>
+                                                    </div>
+                                                    {session.isCurrent && (
+                                                        <Chip size="sm" color="success" variant="flat">
+                                                            Current
+                                                        </Chip>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-4">
+                                        <Schedule className="mx-auto text-gray-400 mb-2" />
+                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                            No active sessions
+                                        </p>
+                                    </div>
+                                )}
+                                
+                                {dashboardData?.activeSessions && dashboardData.activeSessions.length > 3 && (
+                                    <Button
+                                        size="sm"
+                                        variant="flat"
+                                        fullWidth
+                                        className="mt-3"
+                                        onPress={() => router.push("/dashboard/sessions")}
+                                    >
+                                        View All Sessions
+                                    </Button>
+                                )}
+                            </CardBody>
+                        </Card>
                     </motion.div>
                 </div>
+
+                {/* Quick Actions */}
+                <motion.div variants={itemVariants} className="mt-8">
+                    <Card>
+                        <CardHeader>
+                            <h2 className="text-xl font-semibold">Quick Actions</h2>
+                        </CardHeader>
+                        <CardBody>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                <Button
+                                    variant="flat"
+                                    className="h-20 flex-col"
+                                    onPress={() => router.push("/profile")}
+                                >
+                                    <Person className="mb-2" />
+                                    <span className="text-sm">Edit Profile</span>
+                                </Button>
+                                <Button
+                                    variant="flat"
+                                    className="h-20 flex-col"
+                                    onPress={() => router.push("/dashboard/security")}
+                                >
+                                    <Security className="mb-2" />
+                                    <span className="text-sm">Security</span>
+                                </Button>
+                                <Button
+                                    variant="flat"
+                                    className="h-20 flex-col"
+                                    onPress={() => router.push("/dashboard/connect")}
+                                >
+                                    <DeviceHub className="mb-2" />
+                                    <span className="text-sm">Connect Apps</span>
+                                </Button>
+                                {user.isAdmin && (
+                                    <Button
+                                        variant="flat"
+                                        className="h-20 flex-col"
+                                        onPress={() => router.push("/admin")}
+                                    >
+                                        <AdminPanelSettings className="mb-2" />
+                                        <span className="text-sm">Admin Panel</span>
+                                    </Button>
+                                )}
+                            </div>
+                        </CardBody>
+                    </Card>
+                </motion.div>
             </motion.div>
-            {/* Password Change Modal */}
-            <Modal
-                isOpen={isPasswordModalOpen}
-                onClose={onPasswordModalClose}
-                size="lg">
-                <ModalContent className="backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-white/20 dark:border-gray-700/30">
-                    <ModalHeader className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                            <Key className="text-warning" />
-                            Change Password
-                        </div>
+
+            {/* Sign Out Confirmation Modal */}
+            <Modal isOpen={isSignOutOpen} onClose={onSignOutClose}>
+                <ModalContent>
+                    <ModalHeader>
+                        <h3>Confirm Sign Out</h3>
                     </ModalHeader>
                     <ModalBody>
-                        <div className="space-y-4">
-                            <Input
-                                label="Current Password"
-                                type={
-                                    State.showPasswords.current
-                                        ? "text"
-                                        : "password"
-                                }
-                                value={State.passwordData.currentPassword}
-                                onChange={(e) =>
-                                    setState((prev) => ({
-                                        ...prev,
-                                        passwordData: {
-                                            ...prev.passwordData,
-                                            currentPassword: e.target.value
-                                        }
-                                    }))
-                                }
-                                endContent={
-                                    <button
-                                        onClick={() =>
-                                            setState((prev) => ({
-                                                ...prev,
-                                                showPasswords: {
-                                                    ...prev.showPasswords,
-                                                    current:
-                                                        !prev.showPasswords
-                                                            .current
-                                                }
-                                            }))
-                                        }>
-                                        {State.showPasswords.current ? (
-                                            <VisibilityOff />
-                                        ) : (
-                                            <Visibility />
-                                        )}
-                                    </button>
-                                }
-                            />
-                            <Input
-                                label="New Password"
-                                type={
-                                    State.showPasswords.new
-                                        ? "text"
-                                        : "password"
-                                }
-                                value={State.passwordData.newPassword}
-                                onChange={(e) =>
-                                    setState((prev) => ({
-                                        ...prev,
-                                        passwordData: {
-                                            ...prev.passwordData,
-                                            newPassword: e.target.value
-                                        }
-                                    }))
-                                }
-                                endContent={
-                                    <button
-                                        onClick={() =>
-                                            setState((prev) => ({
-                                                ...prev,
-                                                showPasswords: {
-                                                    ...prev.showPasswords,
-                                                    new: !prev.showPasswords.new
-                                                }
-                                            }))
-                                        }>
-                                        {State.showPasswords.new ? (
-                                            <VisibilityOff />
-                                        ) : (
-                                            <Visibility />
-                                        )}
-                                    </button>
-                                }
-                            />
-                        </div>
+                        <p>Are you sure you want to sign out? You&apos;ll need to sign in again to access your account.</p>
                     </ModalBody>
                     <ModalFooter>
-                        <Button
-                            variant="light"
-                            onPress={onPasswordModalClose}>
+                        <Button variant="light" onPress={onSignOutClose}>
                             Cancel
                         </Button>
-                        <Button
-                            color="warning"
-                            isLoading={State.passwordChangeLoading}
-                            isDisabled={
-                                !State.passwordData.currentPassword ||
-                                !State.passwordData.newPassword ||
-                                State.passwordData.newPassword.length < 8
-                            }>
-                            Change Password
-                        </Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>{" "}
-            {/* Add Email Modal */}
-            <Modal
-                isOpen={isEmailModalOpen}
-                onClose={onEmailModalClose}>
-                <ModalContent className="backdrop-blur-md bg-white/90 dark:bg-gray-900/90 border border-white/20 dark:border-gray-700/30">
-                    <ModalHeader className="flex flex-col gap-1">
-                        <div className="flex items-center gap-2">
-                            <Email className="text-primary" />
-                            Add Email Address
-                        </div>
-                    </ModalHeader>
-                    <ModalBody>
-                        <Input
-                            label="Email Address"
-                            type="email"
-                            value={State.newEmailData.email}
-                            onChange={(e) =>
-                                setState((prev) => ({
-                                    ...prev,
-                                    newEmailData: { email: e.target.value }
-                                }))
-                            }
-                            placeholder="Enter new email address"
-                        />
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button
-                            variant="light"
-                            onPress={onEmailModalClose}>
-                            Cancel
-                        </Button>
-                        <Button
-                            color="primary"
-                            isDisabled={
-                                !State.newEmailData.email ||
-                                !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
-                                    State.newEmailData.email
-                                )
-                            }>
-                            Add Email
+                        <Button color="danger" onPress={handleSignOut}>
+                            Sign Out
                         </Button>
                     </ModalFooter>
                 </ModalContent>

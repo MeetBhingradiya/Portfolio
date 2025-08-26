@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentState } from "@Controllers/State";
-import { Users_Model, IUser } from "@Models/Users";
+import { Users_Model as EnhancedUsers_Model } from "@Models/EnhancedUsers";
 import { OTPs_Model, IOTP, OTPs } from "@Models/OneTimePass";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { Config } from "@Config";
-import {
-    Encrypt,
-    generateSalt,
-    generateRounds,
-    generateSecret
-} from "@Utils/Crypto";
+import bcrypt from "bcrypt";
 import { dbConnect } from "@Utils/dbConnect";
 import { log } from "@Utils";
 import { OTP } from "@Utils/OTP";
 import { createEmailTransport } from "@Utils/EmailSend";
+
+// Using Node.js runtime for database access
+// export const runtime = "edge";
 
 // Helper function to validate password against state requirements
 function validatePasswordAgainstState(password: string, requirements: any) {
@@ -225,8 +223,8 @@ export async function POST(req: NextRequest) {
         }
 
         // ? Check if email is already registered
-        const FindUser = await Users_Model.findOne({
-            "Emails.Email": Body.email.toLowerCase()
+        const FindUser = await EnhancedUsers_Model.findOne({
+            email: Body.email.toLowerCase()
         });
 
         if (FindUser) {
@@ -240,45 +238,50 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // ? Encrypt Password using the crypto system
-        const salt = generateSalt();
-        const rounds = generateRounds();
-        const secret = generateSecret();
+        // ? Hash Password using bcrypt
+        const saltRounds = 12;
+        const hashedPassword = await bcrypt.hash(Body.password, saltRounds);
 
-        const encryptedPassword = await Encrypt({
-            Data: Body.password,
-            Secret: secret,
-            Salt: salt,
-            Format: "both",
-            Rounds: rounds
-        });
-
-        // ? Create new user
-        const newUser = await Users_Model.create({
-            Emails: [
-                {
-                    Email: Body.email.toLowerCase(),
-                    isPrimary: true,
-                    isVerified: false
+        // ? Create new user with enhanced model
+        const newUser = await EnhancedUsers_Model.create({
+            UserID: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            email: Body.email.toLowerCase(),
+            password: hashedPassword, // Store bcrypt hashed password
+            isEmailVerified: false,
+            role: 'user',
+            accountType: 'personal',
+            profile: {
+                firstName: Body.firstname,
+                lastName: Body.lastname,
+                displayName: `${Body.firstname} ${Body.lastname}`,
+                username: Body.username || `user_${Date.now()}`,
+                bio: '',
+                avatar: '',
+                website: '',
+                location: '',
+                dateOfBirth: new Date(Body.dateofbirth)
+            },
+            security: {
+                isMFAEnabled: false,
+                loginAttempts: 0,
+                lastPasswordChange: new Date()
+            },
+            preferences: {
+                theme: 'system',
+                language: 'en',
+                timezone: 'UTC',
+                notifications: {
+                    email: true,
+                    push: false,
+                    marketing: false
                 }
-            ],
-            Credentials: [
-                {
-                    Salt: salt,
-                    Secret: secret,
-                    Data: encryptedPassword,
-                    Rounds: rounds,
-                    isActive: true
-                }
-            ],
-            Username: Body.username || Config.DatabaseBydefualt.SignupUsername,
-            FirstName: Body.firstname,
-            LastName: Body.lastname,
-            DateOfBirth: new Date(Body.dateofbirth),
-            Gender: Body.gender,
-            isLocked: false,
-            isSuspended: false,
-            isDeleted: false
+            },
+            personalInfo: {
+                dateOfBirth: new Date(Body.dateofbirth),
+                gender: Body.gender
+            },
+            connectedAccounts: [],
+            activityLog: []
         });
 
         // ? Generate OTP for Email Verification
@@ -290,19 +293,12 @@ export async function POST(req: NextRequest) {
             Special: false
         });
 
-        const encryptedOTP = await Encrypt({
-            Data: otpCode,
-            Secret: secret,
-            Salt: salt,
-            Format: "both",
-            Rounds: rounds
-        });
-
+        // Store OTP as plain text with expiration (simpler approach for enhanced model)
         await OTPs_Model.create({
             Type: OTPs.Email,
-            Data: encryptedOTP, // ? This will Unlocked only with Latest Users Credentials
+            Data: otpCode, // Store as plain text for simplicity
             UserID: newUser.UserID,
-            ExpiresAt: new Date(Date.now() + 10 * 60 * 1000) // ? 10 minutes
+            ExpiresAt: new Date(Date.now() + 15 * 60 * 1000) // ? 15 minutes
         });
 
         const emailSent = await sendOTPEmail(
@@ -326,7 +322,7 @@ export async function POST(req: NextRequest) {
                 StatusCode: 200,
                 Data: {
                     UserID: newUser.UserID,
-                    Email: Body.email,
+                    Email: newUser.email,
                     EmailSent: emailSent,
                     OTPExpiresIn: 15 * 60 // 15 minutes in seconds
                 }

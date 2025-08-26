@@ -1,7 +1,7 @@
 import { HeroUIProvider } from "@heroui/system";
 import { buildProvidersTree } from "./BuildProvidersTree";
 import MUIRegistry from "@Components/MUIRegistry";
-import { AuthProvider } from "@contexts/AuthContext";
+import { AuthProviders } from "@Components/AuthProviders";
 import { AccountProvider } from "@contexts/AccountContext";
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -22,13 +22,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
             }
         ],
         [
-            AuthProvider,
+            AccountProvider,
             {
                 children
             }
         ],
         [
-            AccountProvider,
+            AuthProviders,
             {
                 children
             }

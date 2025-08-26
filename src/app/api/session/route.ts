@@ -6,6 +6,9 @@ import { dbConnect } from "@Utils/dbConnect";
 import { log } from "@Utils";
 import { verifyJWT } from "@Utils/JWT";
 
+// Using Node.js runtime for database access
+// export const runtime = "edge";
+
 export async function POST(req: NextRequest): Promise<NextResponse> {
     try {
         // Get token from Authorization header or cookies

@@ -4,6 +4,9 @@ import { Users_Model } from "@Models/Users";
 import { dbConnect } from "@Utils/dbConnect";
 import { Sessions_Model } from "@/Models";
 
+// Using Node.js runtime for database access
+// export const runtime = "edge";
+
 export async function POST(request: NextRequest) {
     try {
         const authHeader = request.headers.get("authorization");

@@ -63,7 +63,7 @@
         "luxon": "^3.7.1",
         "mongodb": "^6.18.0",
         "mongoose": "^8.16.4",
-        "motion": "12.23.9",
+        "motion": "12.23.12",
         "next": "~15.4.4",
         "next-auth": "^5.0.0-beta.29",
         "nodemailer": "^7.0.5",

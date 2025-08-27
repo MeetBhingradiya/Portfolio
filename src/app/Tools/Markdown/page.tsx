@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import "@Styles/Tools-Markdown.sass";
 import {
     DescriptionOutlined,
     Edit,
@@ -13,54 +12,82 @@ import {
     Clear,
     GetApp,
     InsertDriveFile,
-    CheckCircle
+    CheckCircle,
+    Settings,
+    Download
 } from "@mui/icons-material";
-import { Button } from "@heroui/react";
+import { Button, Card, CardBody, Tabs, Tab, Textarea, Chip, Tooltip, Divider } from "@heroui/react";
 
 interface IState {
     markdown: string;
     htmlOutput: string;
-    activeTab: "editor" | "preview";
+    activeTab: "editor" | "preview" | "split";
     copied: boolean;
     fileName: string | null;
-    showExportDropdown: boolean;
+    wordCount: number;
+    charCount: number;
 }
 
 export default function MarkdownPreview() {
     const [state, setState] = useState<IState>({
-        markdown: `# Welcome to Markdown Preview
+        markdown: `# Welcome to Markdown Editor
 
-This is a **live markdown editor** with real-time preview capabilities.
+This is a **live markdown editor** with real-time preview capabilities and modern glassmorphism UI.
 
-## Features
-- Real-time preview
-- Syntax highlighting
-- Export to HTML
-- File upload support
-- Mobile responsive
+## ✨ Features
+- 🚀 Real-time preview
+- 🎨 Syntax highlighting  
+- 📤 Export to HTML/PDF
+- 📁 File upload support
+- 📱 Mobile responsive
+- 🔢 Word & character count
 
-### Code Example
+### 💻 Code Example
 \`\`\`javascript
-function hello() {
-    console.log("Hello, World!");
+function greetUser(name) {
+    console.log(\`Hello, \${name}! Welcome to our markdown editor.\`);
+    return \`Nice to meet you, \${name}!\`;
 }
+
+greetUser("Developer");
 \`\`\`
 
-### Table Example
-| Feature | Status |
-|---------|--------|
-| Live Preview | ✅ |
-| Export | ✅ |
-| Upload | ✅ |
+### 📊 Table Example
+| Feature | Status | Priority |
+|---------|--------|----------|
+| Live Preview | ✅ Complete | High |
+| Export HTML | ✅ Complete | High |
+| File Upload | ✅ Complete | Medium |
+| Syntax Highlight | ✅ Complete | Medium |
+| Dark Mode | ✅ Complete | Low |
 
-> This is a blockquote example
+### 📝 Lists & Quotes
+**Unordered List:**
+- Modern glassmorphism design
+- Responsive layout
+- Professional typography
+- Smooth animations
 
-**Try editing this text to see the live preview in action!**`,
+**Ordered List:**
+1. Write your markdown
+2. See live preview
+3. Export or copy
+4. Share with others
+
+> 💡 **Pro Tip:** This editor supports all standard markdown syntax plus some extended features. Try experimenting with different elements!
+
+### 🔗 Links & Media
+[Visit GitHub](https://github.com) for more amazing projects.
+
+---
+
+**Try editing this text to see the live preview in action!** ✨`,
         htmlOutput: "",
-        activeTab: "editor",
+        activeTab: "split",
         copied: false,
         fileName: null,
-        showExportDropdown: false
+        wordCount: 0,
+        charCount: 0
     });
 
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,10 +176,18 @@ function hello() {
         return html;
     };
 
-    // Update HTML output when markdown changes
+    // Update HTML output and counts when markdown changes
     useEffect(() => {
         const htmlOutput = parseMarkdown(state.markdown);
-        setState((prev) => ({ ...prev, htmlOutput }));
+        const wordCount = state.markdown.trim() ? state.markdown.trim().split(/\s+/).length : 0;
+        const charCount = state.markdown.length;
+        
+        setState((prev) => ({ 
+            ...prev, 
+            htmlOutput,
+            wordCount,
+            charCount
+        }));
     }, [state.markdown]);
 
     const handleMarkdownChange = (value: string) => {
@@ -284,180 +319,356 @@ function example() {
     };
 
     return (
-        <div className="markdown-tool">
+        <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-6 pt-45 min-h-max pb-16">
             {/* Header */}
-            <div className="tool-header">
-                <div className="header-content">
-                    <div className="title-section">
-                        <div className="tool-icon">
-                            <DescriptionOutlined
-                                sx={{ width: 32, height: 32 }}
-                            />
-                        </div>
-                        <div className="title-text">
-                            <h1>Markdown Preview</h1>
-                            <p>Edit and preview Markdown with live rendering</p>
-                        </div>
-                    </div>
-                    <div className="action-buttons">
-                        <Button
-                            className="action-button secondary small"
-                            onClick={insertSample}>
-                            <InsertDriveFile />
-                            Sample
-                        </Button>
-                        <Button
-                            className="action-button secondary small"
-                            onClick={handleClear}>
-                            <Clear />
-                            Clear
-                        </Button>
-                        <div className="export-dropdown">
-                            <Button
-                                className="action-button small"
-                                onClick={() =>
-                                    setState((prev) => ({
-                                        ...prev,
-                                        showExportDropdown:
-                                            !prev.showExportDropdown
-                                    }))
-                                }>
-                                <FileDownload />
-                                Export
-                            </Button>
-                            {state.showExportDropdown && (
-                                <div className="dropdown-content">
-                                    <div
-                                        className="dropdown-item"
-                                        onClick={handleExportHtml}>
-                                        <GetApp className="item-icon" />
-                                        <span className="item-text">
-                                            Export as HTML
-                                        </span>
+            <div className="text-center mb-8">
+                <div className="text-4xl font-bold mb-2 text-white">
+                    📝 Markdown Editor & Preview
+                </div>
+                <div className="text-base text-gray-400 mb-6 max-w-2xl">
+                    Write, preview, and export beautiful markdown documents with real-time rendering
+                </div>
+            </div>
+
+            <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Content Area */}
+                <div className="lg:col-span-2 space-y-6">
+                    {/* Stats & Actions */}
+                    <Card className="bg-black/10 backdrop-blur-lg border border-white/20">
+                        <CardBody className="p-4">
+                            <div className="flex flex-wrap items-center justify-between gap-4">
+                                <div className="flex items-center gap-6">
+                                    <div className="text-center">
+                                        <div className="text-xl font-bold text-white">{state.wordCount}</div>
+                                        <div className="text-xs text-gray-400">Words</div>
                                     </div>
-                                    <div
-                                        className="dropdown-item"
-                                        onClick={handleExportMarkdown}>
-                                        <GetApp className="item-icon" />
-                                        <span className="item-text">
-                                            Export as Markdown
-                                        </span>
+                                    <div className="text-center">
+                                        <div className="text-xl font-bold text-white">{state.charCount}</div>
+                                        <div className="text-xs text-gray-400">Characters</div>
                                     </div>
+                                    {state.fileName && (
+                                        <Chip 
+                                            startContent={<InsertDriveFile />} 
+                                            variant="flat" 
+                                            color="primary"
+                                            size="sm"
+                                        >
+                                            {state.fileName}
+                                        </Chip>
+                                    )}
                                 </div>
-                            )}
-                        </div>
-                    </div>
+                                
+                                <div className="flex items-center gap-2">
+                                    <Tooltip content="Upload Markdown File">
+                                        <Button
+                                            isIconOnly
+                                            variant="bordered"
+                                            size="sm"
+                                            onPress={() => fileInputRef.current?.click()}
+                                        >
+                                            <Upload />
+                                        </Button>
+                                    </Tooltip>
+                                    
+                                    <Tooltip content="Insert Sample">
+                                        <Button
+                                            isIconOnly
+                                            variant="bordered"
+                                            size="sm"
+                                            onPress={insertSample}
+                                        >
+                                            <InsertDriveFile />
+                                        </Button>
+                                    </Tooltip>
+                                    
+                                    <Tooltip content="Clear All">
+                                        <Button
+                                            isIconOnly
+                                            variant="bordered"
+                                            size="sm"
+                                            color="danger"
+                                            onPress={handleClear}
+                                        >
+                                            <Clear />
+                                        </Button>
+                                    </Tooltip>
+                                    
+                                    <Button
+                                        startContent={<Download />}
+                                        color="primary"
+                                        variant="shadow"
+                                        size="sm"
+                                        onPress={handleExportHtml}
+                                        className="bg-gradient-to-r from-blue-500 to-purple-600"
+                                    >
+                                        Export HTML
+                                    </Button>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Editor and Preview */}
+                    <Card className="bg-black/10 backdrop-blur-lg border border-white/20">
+                        <CardBody className="p-6">
+                            <Tabs 
+                                selectedKey={state.activeTab}
+                                onSelectionChange={(key) => setState(prev => ({ ...prev, activeTab: key as "editor" | "preview" | "split" }))}
+                                variant="underlined"
+                                classNames={{
+                                    tabList: "gap-6 w-full relative rounded-none p-0 border-b border-divider",
+                                    cursor: "w-full bg-blue-500",
+                                    tab: "max-w-fit px-0 h-12",
+                                    tabContent: "group-data-[selected=true]:text-blue-400"
+                                }}
+                            >
+                                <Tab 
+                                    key="editor" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <Edit />
+                                            <span>Editor</span>
+                                        </div>
+                                    }
+                                >
+                                    <div className="mt-6">
+                                        <Textarea
+                                            ref={textareaRef}
+                                            value={state.markdown}
+                                            onChange={(e) => handleMarkdownChange(e.target.value)}
+                                            placeholder="Start typing your markdown here..."
+                                            minRows={20}
+                                            maxRows={30}
+                                            variant="bordered"
+                                            className="bg-white/5 font-mono"
+                                            classNames={{
+                                                input: "font-mono text-sm resize-none",
+                                                inputWrapper: "bg-gray-900/50 border-white/10"
+                                            }}
+                                        />
+                                        
+                                        <div className="flex justify-between items-center mt-3">
+                                            <div className="text-xs text-gray-400">
+                                                Lines: {state.markdown.split('\n').length}
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                variant="bordered"
+                                                startContent={state.copied ? <CheckCircle /> : <ContentCopy />}
+                                                onPress={handleCopyMarkdown}
+                                                color={state.copied ? "success" : "default"}
+                                            >
+                                                {state.copied ? "Copied!" : "Copy Markdown"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Tab>
+
+                                <Tab 
+                                    key="preview" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <Visibility />
+                                            <span>Preview</span>
+                                        </div>
+                                    }
+                                >
+                                    <div className="mt-6">
+                                        <div className="bg-white rounded-lg p-6 min-h-[500px] shadow-inner border border-gray-200">
+                                            <div
+                                                className="prose prose-lg max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-white prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50 prose-table:table-auto prose-th:bg-gray-50"
+                                                dangerouslySetInnerHTML={{ __html: state.htmlOutput }}
+                                            />
+                                        </div>
+                                        
+                                        <div className="flex justify-end mt-3">
+                                            <Button
+                                                size="sm"
+                                                variant="bordered"
+                                                startContent={state.copied ? <CheckCircle /> : <ContentCopy />}
+                                                onPress={handleCopyHtml}
+                                                color={state.copied ? "success" : "default"}
+                                            >
+                                                {state.copied ? "Copied!" : "Copy HTML"}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Tab>
+
+                                <Tab 
+                                    key="split" 
+                                    title={
+                                        <div className="flex items-center gap-2">
+                                            <Code />
+                                            <span>Split View</span>
+                                        </div>
+                                    }
+                                >
+                                    <div className="mt-6 grid grid-cols-1 xl:grid-cols-2 gap-4 h-[600px]">
+                                        {/* Editor Side */}
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h4 className="text-sm font-medium text-gray-300">Markdown Source</h4>
+                                                <Button
+                                                    size="sm"
+                                                    variant="light"
+                                                    isIconOnly
+                                                    onPress={handleCopyMarkdown}
+                                                >
+                                                    <ContentCopy className="text-gray-400" />
+                                                </Button>
+                                            </div>
+                                            <Textarea
+                                                value={state.markdown}
+                                                onChange={(e) => handleMarkdownChange(e.target.value)}
+                                                placeholder="Type markdown here..."
+                                                minRows={25}
+                                                variant="bordered"
+                                                className="bg-white/5 font-mono flex-1"
+                                                classNames={{
+                                                    input: "font-mono text-sm resize-none",
+                                                    inputWrapper: "bg-gray-900/50 border-white/10 h-full"
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Preview Side */}
+                                        <div className="flex flex-col">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <h4 className="text-sm font-medium text-gray-300">Live Preview</h4>
+                                                <Button
+                                                    size="sm"
+                                                    variant="light"
+                                                    isIconOnly
+                                                    onPress={handleCopyHtml}
+                                                >
+                                                    <ContentCopy className="text-gray-400" />
+                                                </Button>
+                                            </div>
+                                            <div className="bg-white rounded-lg p-4 flex-1 overflow-y-auto shadow-inner border border-gray-200 [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full">
+                                                <div
+                                                    className="prose prose-sm max-w-none prose-headings:text-gray-900 prose-p:text-gray-700 prose-strong:text-gray-900 prose-code:bg-gray-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-pre:bg-gray-900 prose-pre:text-white prose-blockquote:border-l-blue-500 prose-blockquote:bg-blue-50"
+                                                    dangerouslySetInnerHTML={{ __html: state.htmlOutput }}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </Tab>
+                            </Tabs>
+                        </CardBody>
+                    </Card>
+                </div>
+
+                {/* Sidebar */}
+                <div className="space-y-6">
+                    {/* Export Options */}
+                    <Card className="bg-black/10 backdrop-blur-lg border border-white/20">
+                        <CardBody className="p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <FileDownload className="text-green-400" />
+                                Export Options
+                            </h3>
+                            
+                            <div className="space-y-3">
+                                <Button
+                                    fullWidth
+                                    variant="bordered"
+                                    startContent={<GetApp />}
+                                    onPress={handleExportHtml}
+                                    className="justify-start"
+                                >
+                                    Export as HTML
+                                </Button>
+                                
+                                <Button
+                                    fullWidth
+                                    variant="bordered"
+                                    startContent={<GetApp />}
+                                    onPress={handleExportMarkdown}
+                                    className="justify-start"
+                                >
+                                    Export as Markdown
+                                </Button>
+                                
+                                <Divider />
+                                
+                                <Button
+                                    fullWidth
+                                    variant="bordered"
+                                    startContent={<ContentCopy />}
+                                    onPress={handleCopyHtml}
+                                    className="justify-start"
+                                    color={state.copied ? "success" : "default"}
+                                >
+                                    {state.copied ? "Copied HTML!" : "Copy HTML"}
+                                </Button>
+                                
+                                <Button
+                                    fullWidth
+                                    variant="bordered"
+                                    startContent={<ContentCopy />}
+                                    onPress={handleCopyMarkdown}
+                                    className="justify-start"
+                                    color={state.copied ? "success" : "default"}
+                                >
+                                    {state.copied ? "Copied Markdown!" : "Copy Markdown"}
+                                </Button>
+                            </div>
+                        </CardBody>
+                    </Card>
+
+                    {/* Markdown Guide */}
+                    <Card className="bg-black/10 backdrop-blur-lg border border-white/20">
+                        <CardBody className="p-6">
+                            <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <Code className="text-blue-400" />
+                                Quick Reference
+                            </h3>
+                            
+                            <div className="space-y-3 text-sm">
+                                <div>
+                                    <div className="text-gray-300 font-medium">Headers</div>
+                                    <div className="text-gray-400 font-mono"># H1 ## H2 ### H3</div>
+                                </div>
+                                
+                                <div>
+                                    <div className="text-gray-300 font-medium">Emphasis</div>
+                                    <div className="text-gray-400 font-mono">**bold** *italic*</div>
+                                </div>
+                                
+                                <div>
+                                    <div className="text-gray-300 font-medium">Links</div>
+                                    <div className="text-gray-400 font-mono">[text](url)</div>
+                                </div>
+                                
+                                <div>
+                                    <div className="text-gray-300 font-medium">Lists</div>
+                                    <div className="text-gray-400 font-mono">- item<br />1. numbered</div>
+                                </div>
+                                
+                                <div>
+                                    <div className="text-gray-300 font-medium">Code</div>
+                                    <div className="text-gray-400 font-mono">`inline` ```block```</div>
+                                </div>
+                                
+                                <div>
+                                    <div className="text-gray-300 font-medium">Tables</div>
+                                    <div className="text-gray-400 font-mono">| col | col |<br />|-----|-----|</div>
+                                </div>
+                            </div>
+                        </CardBody>
+                    </Card>
                 </div>
             </div>
 
-            {/* File Upload Section */}
-            <div className="file-upload-section">
-                <Button
-                    className="action-button secondary"
-                    onClick={() => fileInputRef.current?.click()}>
-                    <Upload />
-                    Upload .md file
-                </Button>
-                <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".md,.markdown"
-                    onChange={handleFileUpload}
-                    style={{ display: "none" }}
-                />
-                {state.fileName && (
-                    <div className="file-info">
-                        <InsertDriveFile />
-                        <span>{state.fileName}</span>
-                    </div>
-                )}
-            </div>
-
-            {/* Mobile Tabs */}
-            <div className="mobile-tabs">
-                <button
-                    className={`tab ${state.activeTab === "editor" ? "active" : ""}`}
-                    onClick={() =>
-                        setState((prev) => ({ ...prev, activeTab: "editor" }))
-                    }>
-                    <Edit /> Editor
-                </button>
-                <button
-                    className={`tab ${state.activeTab === "preview" ? "active" : ""}`}
-                    onClick={() =>
-                        setState((prev) => ({ ...prev, activeTab: "preview" }))
-                    }>
-                    <Visibility /> Preview
-                </button>
-            </div>
-
-            {/* Main Content */}
-            <div className="tool-content">
-                {/* Editor Section */}
-                <div
-                    className={`editor-section ${state.activeTab === "preview" ? "mobile-hidden" : ""}`}>
-                    <div className="editor-header">
-                        <h3>
-                            <Edit />
-                            Markdown Editor
-                        </h3>
-                        <div className="editor-actions">
-                            <button
-                                className={`copy-button ${state.copied ? "copied" : ""}`}
-                                onClick={handleCopyMarkdown}
-                                title="Copy Markdown">
-                                {state.copied ? (
-                                    <CheckCircle />
-                                ) : (
-                                    <ContentCopy />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                    <div className="editor-container">
-                        <textarea
-                            ref={textareaRef}
-                            className="editor-textarea"
-                            value={state.markdown}
-                            onChange={(e) =>
-                                handleMarkdownChange(e.target.value)
-                            }
-                            placeholder="Start typing your markdown here..."
-                        />
-                    </div>
-                </div>
-
-                {/* Preview Section */}
-                <div
-                    className={`preview-section ${state.activeTab === "editor" ? "mobile-hidden" : ""}`}>
-                    <div className="preview-header">
-                        <h3>
-                            <Visibility />
-                            Live Preview
-                        </h3>
-                        <div className="preview-actions">
-                            <button
-                                className={`copy-button ${state.copied ? "copied" : ""}`}
-                                onClick={handleCopyHtml}
-                                title="Copy HTML">
-                                {state.copied ? (
-                                    <CheckCircle />
-                                ) : (
-                                    <ContentCopy />
-                                )}
-                            </button>
-                        </div>
-                    </div>
-                    <div className="preview-container">
-                        <div
-                            className="markdown-preview"
-                            dangerouslySetInnerHTML={{
-                                __html: state.htmlOutput
-                            }}
-                        />
-                    </div>
-                </div>
-            </div>
+            {/* Hidden file input */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".md,.markdown,.txt"
+                onChange={handleFileUpload}
+                style={{ display: "none" }}
+            />
         </div>
     );
 }

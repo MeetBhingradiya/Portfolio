@@ -11,7 +11,6 @@ import QRCodeStyling, {
 import QRBorder, { DecorationType, ExtensionOptions } from "qr-border-plugin";
 import { LicensingModel, generateLicenseKey } from "./generateLicenseKey";
 import { useWindowCheck } from "@Hooks/useWindowCheck";
-import "@Styles/Tools-QR.sass";
 
 // @ Components Imports
 import {
@@ -21,7 +20,14 @@ import {
     Checkbox,
     Button,
     ButtonGroup,
-    Tooltip
+    Tooltip,
+    Select,
+    SelectItem,
+    Card,
+    CardBody,
+    CardHeader,
+    Divider,
+    Chip
 } from "@heroui/react";
 
 import {
@@ -31,7 +37,18 @@ import {
     Slider
 } from "@mui/material";
 
-import { WifiProtectedSetup, CloudDownload } from "@mui/icons-material";
+import { 
+    WifiProtectedSetup, 
+    CloudDownload, 
+    QrCode,
+    Download,
+    Settings,
+    Palette,
+    BorderOuter,
+    Image,
+    Security,
+    GetApp
+} from "@mui/icons-material";
 import Link from "next/link";
 
 const StyledToggleButtonGroup = styled(ToggleButtonGroup)(({ theme }) => ({
@@ -196,7 +213,7 @@ export default function QRCustomizationTool() {
             Text: "https://meetbhingradiya.vercel.app/Tools/QR",
             upi: {
                 pa: "meetbhingradiya@pingpay",
-                pn: "Buy a Coffie to Meet Bhingradiya",
+                pn: "Buy a Coffee to Meet Bhingradiya",
                 am: "100",
                 mc: "",
                 tr: "",
@@ -210,19 +227,37 @@ export default function QRCustomizationTool() {
                 gstin: ""
             },
             wifi: {
-                ssid: "Wifi",
-                password: "password",
+                ssid: "MyWiFi",
+                password: "password123",
                 type: "WPA",
                 hidden: false
+            },
+            bluetooth: {
+                name: "My Device",
+                address: "00:11:22:33:44:55"
+            },
+            contact: {
+                name: "Meet Bhingradiya",
+                phone: "+911234567890",
+                email: "meet@example.com",
+                address: "123 Tech Street, Mumbai, India",
+                org: "Tech Company",
+                title: "Software Engineer",
+                url: "https://meetbhingradiya.vercel.app"
+            },
+            email: {
+                email: "meet@example.com",
+                subject: "Hello from QR Code",
+                body: "This is a message from a QR code!"
             }
         },
         QROptions: {
             shape: "square",
             type: "svg",
-            width: 600,
-            height: 600,
-            margin: 100,
-            data: "https://meetbhingradiya.tech/Tools/QR",
+            width: 400,
+            height: 400,
+            margin: 10,
+            data: "https://meetbhingradiya.vercel.app/Tools/QR",
             image: "/favicon.ico",
             qrOptions: {
                 errorCorrectionLevel: "M"
@@ -232,18 +267,20 @@ export default function QRCustomizationTool() {
                 color: PredefinedColour
             },
             backgroundOptions: {
-                round: 1,
                 color: "#ffffff"
             },
             cornersSquareOptions: {
-                type: "rounded" as CornerSquareType
+                type: "rounded" as CornerSquareType,
+                color: PredefinedColour
             },
             cornersDotOptions: {
-                type: "rounded" as CornerDotType
+                type: "rounded" as CornerDotType,
+                color: PredefinedColour
             },
             imageOptions: {
                 crossOrigin: "anonymous",
                 margin: 5,
+                imageSize: 0.4,
                 hideBackgroundDots: true,
                 saveAsBlob: false
             }
@@ -414,1078 +451,1747 @@ export default function QRCustomizationTool() {
 
     // @ Updates
     useEffect(() => {
-        const qrInstance = new QRCodeStyling(State.QROptions);
-        if (State?.BorderDesign) {
-            qrInstance.applyExtension(
-                QRBorder(State.QRPluginOptions as any) as any
-            );
+        try {
+            // Set the license key first
+            if (State.LicenseKey) {
+                QRBorder.setKey(State.LicenseKey);
+            }
+            
+            const qrInstance = new QRCodeStyling({
+                ...State.QROptions,
+                width: 400,
+                height: 400,
+                margin: 10,
+                data: TemplateConvertData()
+            });
+            
+            if (State.BorderDesign && State.LicenseKey) {
+                try {
+                    qrInstance.applyExtension(
+                        QRBorder(State.QRPluginOptions as any) as any
+                    );
+                } catch (error) {
+                    console.warn("Border plugin error:", error);
+                }
+            }
+            
+            setQrCode(qrInstance);
+        } catch (error) {
+            console.error("QR Code generation error:", error);
         }
-        QRBorder.setKey(State.LicenseKey);
-        setQrCode(qrInstance);
     }, [
         State.QROptions,
         State.BorderDesign,
         State.QRPluginOptions,
-        State.LicenseKey
+        State.LicenseKey,
+        State.TemplatesData,
+        State.DataType
     ]);
 
     useEffect(() => {
         if (ref.current && qrCode) {
-            QRCodeStyling._clearContainer(ref.current as any);
-            qrCode.append(ref.current);
+            try {
+                // Clear previous content
+                ref.current.innerHTML = '';
+                qrCode.append(ref.current);
+            } catch (error) {
+                console.error("QR Code render error:", error);
+            }
         }
     }, [qrCode]);
 
-    useEffect(() => {
-        setState({
-            ...State,
-            QROptions: {
-                ...State.QROptions,
-                data: TemplateConvertData()
-            }
-        });
-    }, [State.TemplatesData, State.DataType]);
-
     return (
-        <div className="QR">
-            <h1>QR Code Customization Tool</h1>
-            <div className="Body">
-                <div className="Preview">
-                    <div
-                        className="Preview-QR"
-                        ref={ref}
-                    />
+        <div className="flex flex-col items-center w-full max-w-7xl mx-auto px-4 py-6 pt-45 min-h-max pb-16">
+            {/* Header */}
+            <div className="text-3xl font-bold mb-2 text-center text-white">
+                QR Code Generator & Customizer
+            </div>
+            <div className="text-base text-gray-400 mb-8 text-center max-w-2xl">
+                Create and customize beautiful QR codes with advanced styling options, gradients, borders, and more. 
+                Support for multiple data types including text, UPI payments, and more.
+            </div>
+
+            {/* Main Content Layout */}
+            <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* QR Preview Section */}
+                <div className="bg-black/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 transition-all duration-300 hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] hover:border-white/30">
+                    <div className="flex items-center gap-3 mb-4">
+                        <QrCode className="text-blue-400" />
+                        <h3 className="text-xl font-semibold text-white">QR Code Preview</h3>
+                    </div>
+                    
+                    <div className="flex justify-center items-center min-h-[400px] bg-gradient-to-br from-white via-gray-50 to-gray-100 rounded-lg border border-white/20 p-4 shadow-inner">
+                        <div
+                            ref={ref}
+                            className="flex justify-center items-center w-full h-full"
+                            style={{
+                                minHeight: '350px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        />
+                    </div>
+
+                    {/* QR Info & Controls */}
+                    <div className="mt-4 space-y-4">
+                        {/* QR Size Controls */}
+                        <div className="bg-white/5 rounded-lg p-4">
+                            <h4 className="text-sm font-medium text-gray-300 mb-3">QR Code Settings</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">Width</label>
+                                    <Input
+                                        type="number"
+                                        value={State.QROptions.width?.toString() || "400"}
+                                        onChange={(e) => handleChange("width", parseInt(e.target.value) || 400)}
+                                        min="100"
+                                        max="1000"
+                                        size="sm"
+                                        variant="bordered"
+                                        className="bg-white/5"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-400 mb-1 block">Height</label>
+                                    <Input
+                                        type="number"
+                                        value={State.QROptions.height?.toString() || "400"}
+                                        onChange={(e) => handleChange("height", parseInt(e.target.value) || 400)}
+                                        min="100"
+                                        max="1000"
+                                        size="sm"
+                                        variant="bordered"
+                                        className="bg-white/5"
+                                    />
+                                </div>
+                            </div>
+                            
+                            <div className="mt-3">
+                                <label className="text-xs text-gray-400 mb-1 block">Margin: {State.QROptions.margin || 10}px</label>
+                                <Input
+                                    type="range"
+                                    value={(State.QROptions.margin || 10).toString()}
+                                    onChange={(e) => handleChange("margin", parseInt(e.target.value))}
+                                    min="0"
+                                    max="50"
+                                    size="sm"
+                                    variant="bordered"
+                                    className="bg-white/5"
+                                />
+                            </div>
+                        </div>
+
+                        {/* QR Info Display */}
+                        <div className="grid grid-cols-2 gap-3 text-sm">
+                            <div className="bg-white/5 rounded-lg p-3 cursor-pointer hover:bg-white/10 transition-all duration-200 border border-transparent hover:border-blue-400/30 group" 
+                                 onClick={() => {
+                                     // Focus on data type section
+                                     (document.querySelector('[data-key="templates"]') as HTMLElement)?.click();
+                                 }}>
+                                <div className="text-gray-400 group-hover:text-blue-300 transition-colors">Data Type</div>
+                                <div className="text-white font-medium capitalize flex items-center justify-between">
+                                    {State.DataType}
+                                    <span className="text-xs text-blue-400 group-hover:text-blue-300 transition-colors">✎ Edit</span>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white/5 rounded-lg p-3 cursor-pointer hover:bg-white/10 transition-all duration-200 border border-transparent hover:border-green-400/30 group"
+                                 onClick={() => {
+                                     // Focus on advanced section for size settings
+                                     (document.querySelector('[data-key="security"]') as HTMLElement)?.click();
+                                 }}>
+                                <div className="text-gray-400 group-hover:text-green-300 transition-colors">Size</div>
+                                <div className="text-white font-medium flex items-center justify-between">
+                                    {State.QROptions.width}×{State.QROptions.height}
+                                    <span className="text-xs text-green-400 group-hover:text-green-300 transition-colors">⚙️ Config</span>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white/5 rounded-lg p-3 cursor-pointer hover:bg-white/10 transition-all duration-200 border border-transparent hover:border-yellow-400/30 group"
+                                 onClick={() => {
+                                     // Focus on security section
+                                     (document.querySelector('[data-key="security"]') as HTMLElement)?.click();
+                                 }}>
+                                <div className="text-gray-400 group-hover:text-yellow-300 transition-colors">Error Correction</div>
+                                <div className="text-white font-medium flex items-center justify-between">
+                                    {State.QROptions.qrOptions?.errorCorrectionLevel}
+                                    <span className="text-xs text-yellow-400 group-hover:text-yellow-300 transition-colors">✎ Edit</span>
+                                </div>
+                            </div>
+                            
+                            <div className="bg-white/5 rounded-lg p-3 cursor-pointer hover:bg-white/10 transition-all duration-200 border border-transparent hover:border-red-400/30 group"
+                                 onClick={() => {
+                                     // Focus on border section
+                                     (document.querySelector('[data-key="border"]') as HTMLElement)?.click();
+                                 }}>
+                                <div className="text-gray-400 group-hover:text-red-300 transition-colors">Border Plugin</div>
+                                <div className="text-white font-medium flex items-center justify-between">
+                                    {State.BorderDesign ? 'Enabled' : 'Disabled'}
+                                    <span className="text-xs text-red-400 group-hover:text-red-300 transition-colors">⚙️ Configure</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Quick Download Section */}
+                    <div className="mt-6 flex flex-wrap gap-3 justify-center">
+                        <Select
+                            label="Format"
+                            selectedKeys={[State.FileExt || "svg"]}
+                            onSelectionChange={(keys) => {
+                                const selectedKey = Array.from(keys)[0] as FileExtension;
+                                setState({ ...State, FileExt: selectedKey });
+                            }}
+                            className="w-32"
+                            size="sm"
+                            variant="bordered"
+                        >
+                            <SelectItem key="svg">SVG</SelectItem>
+                            <SelectItem key="png">PNG</SelectItem>
+                            <SelectItem key="jpeg">JPEG</SelectItem>
+                            <SelectItem key="webp">WEBP</SelectItem>
+                        </Select>
+                        
+                        <Button
+                            color="primary"
+                            variant="shadow"
+                            startContent={<Download />}
+                            onClick={onDownloadClick}
+                            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white font-medium px-6"
+                            size="md"
+                        >
+                            Download QR
+                        </Button>
+                    </div>
                 </div>
 
-                <div className="Controls">
+                {/* Controls Section */}
+                <div className="bg-black/10 backdrop-blur-lg border border-white/20 rounded-lg p-6 transition-all duration-300 hover:shadow-[0_8px_32px_0_rgba(31,38,135,0.37)] hover:border-white/30">
+                    <div className="flex items-center gap-3 mb-4">
+                        <Settings className="text-purple-400" />
+                        <h3 className="text-xl font-semibold text-white">Customization Options</h3>
+                    </div>
                     <Accordion
-                        variant="shadow"
-                        className="Accordin"
-                        selectionMode="multiple">
-                        {/* @Templates */}
+                        variant="splitted"
+                        selectionMode="single"
+                        defaultExpandedKeys={["templates", "data"]}
+                        className="overflow-y-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] [&>div]:!mb-0 [&>div]:!mt-0 [&>div]:!gap-1 space-y-1"
+                    >
+                        {/* Data Templates */}
                         <AccordionItem
-                            title="Templates"
-                            subtitle="Choose from the Pre-Defined Templates">
-                            <StyledToggleButtonGroup
-                                className="item-CenterToggleButtons"
-                                value={State.DataType}
-                                exclusive
-                                sx={{
-                                    // ? Modify All the Items Border-Radius
-                                    "& .MuiToggleButtonGroup-firstButton": {
-                                        borderRadius: "10px 0 0 10px"
-                                    },
-                                    "& .MuiToggleButtonGroup-lastButton": {
-                                        borderRadius: "0 10px 10px 0"
-                                    }
-                                }}
-                                onChange={(e, value) => {
-                                    if (value === null) {
-                                        return;
-                                    }
-                                    return setState({
-                                        ...State,
-                                        DataType: value as DataTypes
-                                    });
-                                }}>
-                                <ToggleButton value="text">Text</ToggleButton>
-                                <ToggleButton value="upi">UPI</ToggleButton>
-                                {/* <ToggleButton value="wifi">
-                                    Wifi
-                                </ToggleButton>
-                                <ToggleButton value="bluetooth">
-                                    Bluetooth
-                                </ToggleButton>
-                                <ToggleButton value="contact">
-                                    Contact
-                                </ToggleButton>
-                                <ToggleButton value="email">
-                                    Email
-                                </ToggleButton>
-                                <ToggleButton value="phone">
-                                    Phone
-                                </ToggleButton> */}
-                            </StyledToggleButtonGroup>
+                            key="templates"
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <QrCode className="text-blue-400" />
+                                    <span>Data Type</span>
+                                </div>
+                            }
+                            subtitle="Choose the type of data to encode"
+                            className="bg-white/5 border border-white/10 rounded-lg !mb-0"
+                        >
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                    <Button
+                                        variant={State.DataType === DataTypes.Text ? "solid" : "ghost"}
+                                        color={State.DataType === DataTypes.Text ? "primary" : "default"}
+                                        onPress={() => setState({
+                                            ...State,
+                                            DataType: DataTypes.Text
+                                        })}
+                                        className="h-16 flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-lg">📝</span>
+                                        <span>Text/URL</span>
+                                    </Button>
+                                    
+                                    <Button
+                                        variant={State.DataType === DataTypes.UPI ? "solid" : "ghost"}
+                                        color={State.DataType === DataTypes.UPI ? "primary" : "default"}
+                                        onPress={() => setState({
+                                            ...State,
+                                            DataType: DataTypes.UPI
+                                        })}
+                                        className="h-16 flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-lg">💳</span>
+                                        <span>UPI Payment</span>
+                                    </Button>
+
+                                    <Button
+                                        variant={State.DataType === DataTypes.Wifi ? "solid" : "ghost"}
+                                        color={State.DataType === DataTypes.Wifi ? "primary" : "default"}
+                                        onClick={() => setState({
+                                            ...State,
+                                            DataType: DataTypes.Wifi
+                                        })}
+                                        className="h-16 flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-lg">📶</span>
+                                        <span>WiFi</span>
+                                    </Button>
+
+                                    <Button
+                                        variant={State.DataType === DataTypes.Contact ? "solid" : "ghost"}
+                                        color={State.DataType === DataTypes.Contact ? "primary" : "default"}
+                                        onClick={() => setState({
+                                            ...State,
+                                            DataType: DataTypes.Contact
+                                        })}
+                                        className="h-16 flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-lg">👤</span>
+                                        <span>Contact</span>
+                                    </Button>
+
+                                    <Button
+                                        variant={State.DataType === DataTypes.Email ? "solid" : "ghost"}
+                                        color={State.DataType === DataTypes.Email ? "primary" : "default"}
+                                        onClick={() => setState({
+                                            ...State,
+                                            DataType: DataTypes.Email
+                                        })}
+                                        className="h-16 flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-lg">📧</span>
+                                        <span>Email</span>
+                                    </Button>
+
+                                    <Button
+                                        variant={State.DataType === DataTypes.Phone ? "solid" : "ghost"}
+                                        color={State.DataType === DataTypes.Phone ? "primary" : "default"}
+                                        onClick={() => setState({
+                                            ...State,
+                                            DataType: DataTypes.Phone
+                                        })}
+                                        className="h-16 flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-lg">📞</span>
+                                        <span>Phone</span>
+                                    </Button>
+
+                                    <Button
+                                        variant={State.DataType === DataTypes.Bluetooth ? "solid" : "ghost"}
+                                        color={State.DataType === DataTypes.Bluetooth ? "primary" : "default"}
+                                        onClick={() => setState({
+                                            ...State,
+                                            DataType: DataTypes.Bluetooth
+                                        })}
+                                        className="h-16 flex flex-col items-center justify-center"
+                                    >
+                                        <span className="text-lg">🔵</span>
+                                        <span>Bluetooth</span>
+                                    </Button>
+                                </div>
+                            </div>
                         </AccordionItem>
 
-                        {/* @Data */}
+                        {/* Data Input */}
                         <AccordionItem
-                            title="Data"
-                            subtitle="Change QR Data to Generate QR Code">
-                            {/* @Text */}
-                            {State.DataType === DataTypes.Text && (
-                                <Input
-                                    className="item"
-                                    type="text"
-                                    label={"QR Data"}
-                                    value={State.TemplatesData?.Text}
-                                    onChange={(e) =>
-                                        setState({
-                                            ...State,
-                                            TemplatesData: {
-                                                ...State.TemplatesData,
-                                                Text: e.target.value
-                                            }
-                                        })
-                                    }
-                                    isClearable
-                                    onClear={() => {
-                                        setState({
-                                            ...State,
-                                            TemplatesData: {
-                                                ...State.TemplatesData,
-                                                Text: ""
-                                            }
-                                        });
-                                    }}
-                                />
-                            )}
+                            key="data"
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <span>📊</span>
+                                    <span>Data Input</span>
+                                </div>
+                            }
+                            subtitle="Enter the data to be encoded in the QR code"
+                            className="bg-white/5 border border-white/10 rounded-lg !mb-0"
+                        >
+                            <div className="space-y-4">
+                                {/* Text Input */}
+                                {State.DataType === DataTypes.Text && (
+                                    <Input
+                                        type="text"
+                                        label="Text or URL"
+                                        placeholder="Enter text or URL to encode"
+                                        value={State.TemplatesData?.Text}
+                                        onChange={(e) =>
+                                            setState({
+                                                ...State,
+                                                TemplatesData: {
+                                                    ...State.TemplatesData,
+                                                    Text: e.target.value
+                                                }
+                                            })
+                                        }
+                                        variant="bordered"
+                                        className="bg-white/5"
+                                        isClearable
+                                        onClear={() => {
+                                            setState({
+                                                ...State,
+                                                TemplatesData: {
+                                                    ...State.TemplatesData,
+                                                    Text: ""
+                                                }
+                                            });
+                                        }}
+                                    />
+                                )}
 
-                            {/* UPI */}
-                            {State.DataType === DataTypes.UPI && (
-                                <>
-                                    {Object.keys(
-                                        State.TemplatesData?.upi ?? {}
-                                    ).map((key) => (
+                                {/* UPI Input */}
+                                {State.DataType === DataTypes.UPI && (
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <Input
+                                                type="text"
+                                                label="UPI ID"
+                                                placeholder="yourname@upi"
+                                                value={State.TemplatesData?.upi?.pa}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            upi: {
+                                                                ...State.TemplatesData.upi,
+                                                                pa: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                            
+                                            <Input
+                                                type="text"
+                                                label="Payee Name"
+                                                placeholder="Recipient name"
+                                                value={State.TemplatesData?.upi?.pn}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            upi: {
+                                                                ...State.TemplatesData.upi,
+                                                                pn: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                        </div>
+                                        
                                         <Input
-                                            key={key}
-                                            className="item"
-                                            type={"text"}
-                                            label={key}
-                                            value={
-                                                State.TemplatesData?.upi[
-                                                    key as keyof typeof State.TemplatesData.upi
-                                                ] as string
-                                            }
+                                            type="number"
+                                            label="Amount (Optional)"
+                                            placeholder="Enter amount in INR"
+                                            value={State.TemplatesData?.upi?.am || ""}
                                             onChange={(e) =>
                                                 setState({
                                                     ...State,
                                                     TemplatesData: {
                                                         ...State.TemplatesData,
                                                         upi: {
-                                                            ...State
-                                                                .TemplatesData
-                                                                .upi,
-                                                            [key]: e.target
-                                                                .value
+                                                            ...State.TemplatesData.upi,
+                                                            am: e.target.value
                                                         }
                                                     }
                                                 })
                                             }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            startContent={
+                                                <div className="pointer-events-none flex items-center">
+                                                    <span className="text-default-400 text-small">₹</span>
+                                                </div>
+                                            }
                                             isClearable
-                                            onClear={() => {
+                                        />
+                                        
+                                        <Input
+                                            type="text"
+                                            label="Transaction Note (Optional)"
+                                            placeholder="Payment description"
+                                            value={State.TemplatesData?.upi?.tn || ""}
+                                            onChange={(e) =>
                                                 setState({
                                                     ...State,
                                                     TemplatesData: {
                                                         ...State.TemplatesData,
                                                         upi: {
-                                                            ...State
-                                                                .TemplatesData
-                                                                .upi,
-                                                            [key]: ""
+                                                            ...State.TemplatesData.upi,
+                                                            tn: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            isClearable
+                                        />
+                                    </div>
+                                )}
+
+                                {/* WiFi Input */}
+                                {State.DataType === DataTypes.Wifi && (
+                                    <div className="space-y-3">
+                                        <Input
+                                            type="text"
+                                            label="Network Name (SSID)"
+                                            placeholder="Enter WiFi network name"
+                                            value={State.TemplatesData?.wifi?.ssid}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        wifi: {
+                                                            ...State.TemplatesData.wifi!,
+                                                            ssid: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            isClearable
+                                        />
+                                        
+                                        <Input
+                                            type="password"
+                                            label="WiFi Password"
+                                            placeholder="Enter WiFi password"
+                                            value={State.TemplatesData?.wifi?.password}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        wifi: {
+                                                            ...State.TemplatesData.wifi!,
+                                                            password: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            isClearable
+                                        />
+
+                                        <Select
+                                            label="Security Type"
+                                            selectedKeys={[State.TemplatesData?.wifi?.type || "WPA"]}
+                                            onSelectionChange={(keys) => {
+                                                const selectedKey = Array.from(keys)[0] as "WPA" | "WEP" | "nopass";
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        wifi: {
+                                                            ...State.TemplatesData.wifi!,
+                                                            type: selectedKey
                                                         }
                                                     }
                                                 });
                                             }}
-                                            isDisabled={key === "cu"}
-                                        />
-                                    ))}
-                                </>
-                            )}
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                        >
+                                            <SelectItem key="WPA">WPA/WPA2</SelectItem>
+                                            <SelectItem key="WEP">WEP</SelectItem>
+                                            <SelectItem key="nopass">No Password</SelectItem>
+                                        </Select>
 
-                            {/* Wifi */}
-                            {
-                                // State.DataType === DataTypes.Wifi && (
-                                //     <>
-                                //         {
-                                //             Object.keys(State.TemplatesData?.wifi ?? {}).map((key) => (
-                                //                 <Input
-                                //                     key={key}
-                                //                     className="item"
-                                //                     type="text"
-                                //                     label={key}
-                                //                     value={State.TemplatesData?.wifi[key as keyof typeof State.TemplatesData.wifi] as string}
-                                //                     onChange={(e) => setState({
-                                //                         ...State,
-                                //                         TemplatesData: {
-                                //                             ...State.TemplatesData,
-                                //                             wifi: {
-                                //                                 ...State.TemplatesData.wifi,
-                                //                                 [key]: e.target.value
-                                //                             }
-                                //                         }
-                                //                     })}
-                                //                     isClearable
-                                //                     onClear={() => {
-                                //                         setState({
-                                //                             ...State,
-                                //                             TemplatesData: {
-                                //                                 ...State.TemplatesData,
-                                //                                 wifi: {
-                                //                                     ...State.TemplatesData.wifi,
-                                //                                     [key]: ""
-                                //                                 }
-                                //                             }
-                                //                         })
-                                //                     }}
-                                //                 />
-                                //             ))
-                                //         }
-                                //     </>
-                                // )
-                            }
-                        </AccordionItem>
-
-                        {/* @Shape */}
-                        <AccordionItem
-                            title="Shape"
-                            subtitle="Customize the Shape of QR Code & Its Border">
-                            <StyledToggleButtonGroup
-                                className="item-CenterToggleButtons"
-                                value={State.QROptions.shape}
-                                exclusive
-                                onChange={async (e, value) => {
-                                    if (value === null) {
-                                        return;
-                                    }
-
-                                    setState({
-                                        ...State,
-                                        QROptions: {
-                                            ...State.QROptions,
-                                            shape: value
-                                        },
-                                        QRPluginOptions: {
-                                            ...State.QRPluginOptions,
-                                            round: value === "circle" ? 1 : 0
-                                        }
-                                    });
-                                }}
-                                sx={{
-                                    // ? Modify All the Items Border-Radius
-                                    "& .MuiToggleButtonGroup-firstButton": {
-                                        borderRadius: "10px 0 0 10px"
-                                    },
-                                    "& .MuiToggleButtonGroup-lastButton": {
-                                        borderRadius: "0 10px 10px 0"
-                                    }
-                                }}>
-                                <ToggleButton value="square">
-                                    {/* Square SVG */}
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24">
-                                        <rect
-                                            width="24"
-                                            height="24"
-                                        />
-                                    </svg>
-                                </ToggleButton>
-                                <ToggleButton value="circle">
-                                    {/* Circle SVG */}
-                                    <svg
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        width="24"
-                                        height="24"
-                                        viewBox="0 0 24 24">
-                                        <circle
-                                            cx="12"
-                                            cy="12"
-                                            r="10"
-                                        />
-                                    </svg>
-                                </ToggleButton>
-                            </StyledToggleButtonGroup>
-                        </AccordionItem>
-
-                        {/* @Image */}
-                        <AccordionItem
-                            title="Image"
-                            subtitle="Add Custom Image into QR Code">
-                            <Input
-                                className="item"
-                                label="Size"
-                                type="range"
-                                min="1"
-                                max="5"
-                                value={
-                                    State.QROptions.imageOptions?.imageSize
-                                        ? State.QROptions.imageOptions?.imageSize.toString()
-                                        : "0"
-                                }
-                                onChange={(e) =>
-                                    handleChange("imageOptions", {
-                                        ...State.QROptions.imageOptions,
-                                        imageSize: parseInt(e.target.value)
-                                    })
-                                }
-                            />
-                            <Input
-                                className="item"
-                                type="text"
-                                label={"Image"}
-                                value={State.QROptions.image}
-                                onChange={(e) =>
-                                    handleChange("image", e.target.value)
-                                }
-                                isClearable
-                                onClear={() => handleChange("image", "")}
-                            />
-
-                            <div className="p-3"></div>
-                        </AccordionItem>
-
-                        {/* @Dots */}
-                        <AccordionItem
-                            title="Dots"
-                            subtitle="Change QR Dots Style & Color OR Gradient">
-                            <StyledToggleButtonGroup
-                                className="item-CenterToggleButtons"
-                                value={State.QROptions.dotsOptions?.type}
-                                exclusive
-                                sx={{
-                                    // ? Modify All the Items Border-Radius
-                                    "& .MuiToggleButtonGroup-firstButton": {
-                                        borderRadius: "10px 0 0 10px"
-                                    },
-                                    "& .MuiToggleButtonGroup-lastButton": {
-                                        borderRadius: "0 10px 10px 0"
-                                    }
-                                }}
-                                onChange={(e, value) => {
-                                    if (value === null) {
-                                        return;
-                                    }
-                                    return handleChange("dotsOptions", {
-                                        ...State.QROptions.dotsOptions,
-                                        type: value
-                                    });
-                                }}>
-                                <Tooltip content="Square">
-                                    <ToggleButton value="square">
-                                        {/* Square SVG */}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24">
-                                            <rect
-                                                width="24"
-                                                height="24"
-                                            />
-                                        </svg>
-                                    </ToggleButton>
-                                </Tooltip>
-
-                                <Tooltip content="Rounded">
-                                    <ToggleButton value="rounded">
-                                        {/* Rounded SVG */}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24">
-                                            <rect
-                                                width="24"
-                                                height="24"
-                                                rx="10"
-                                            />
-                                        </svg>
-                                    </ToggleButton>
-                                </Tooltip>
-
-                                <Tooltip content="Extra Rounded">
-                                    <ToggleButton value="extra-rounded">
-                                        {/* Extra Rounded SVG */}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24">
-                                            <rect
-                                                width="24"
-                                                height="24"
-                                                rx="12"
-                                            />
-                                        </svg>
-                                    </ToggleButton>
-                                </Tooltip>
-
-                                <Tooltip content="Classy">
-                                    <ToggleButton value="classy">
-                                        {/* Classy SVG */}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="25"
-                                            height="25"
-                                            viewBox="0 0 25 25"
-                                            fill="none">
-                                            <path
-                                                d="M0.0229537 10.2253C0.0102767 4.70242 4.47714 0.215004 9.99997 0.202327L23.9999 0.170192L24.0321 14.1702C24.0447 19.693 19.5779 24.1804 14.0551 24.1931L0.0550889 24.2252L0.0229537 10.2253Z"
-                                                fill="black"
-                                            />
-                                        </svg>
-                                    </ToggleButton>
-                                </Tooltip>
-
-                                <Tooltip content="Classy Rounded">
-                                    <ToggleButton value="classy-rounded">
-                                        {/* Classy Rounded SVG */}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="25"
-                                            height="25"
-                                            viewBox="0 0 25 25"
-                                            fill="none">
-                                            <path
-                                                d="M0.0413167 18.2252C0.0184981 8.28413 8.05885 0.206783 18 0.183964L23.9999 0.170192L24.0137 6.17018C24.0365 16.1113 15.9962 24.1886 6.05507 24.2114L0.0550889 24.2252L0.0413167 18.2252Z"
-                                                fill="black"
-                                            />
-                                        </svg>
-                                    </ToggleButton>
-                                </Tooltip>
-
-                                <Tooltip content="Dots">
-                                    <ToggleButton value="dots">
-                                        {/* Dots SVG */}
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="24"
-                                            height="24"
-                                            viewBox="0 0 24 24">
-                                            <circle
-                                                cx="12"
-                                                cy="12"
-                                                r="7"
-                                            />
-                                        </svg>
-                                    </ToggleButton>
-                                </Tooltip>
-                            </StyledToggleButtonGroup>
-
-                            <div className="item-Download">
-                                {/* Toggle Between Gredient & Colour */}
-                                <StyledToggleButtonGroup
-                                    className="item-noEffect"
-                                    value={
-                                        State.QRToggleOptions?.dotsBackground
-                                    }
-                                    exclusive
-                                    sx={{
-                                        // ? Modify All the Items Border-Radius
-                                        "& .MuiToggleButtonGroup-firstButton": {
-                                            borderRadius: "10px 0 0 10px"
-                                        },
-                                        "& .MuiToggleButtonGroup-lastButton": {
-                                            borderRadius: "0 10px 10px 0"
-                                        }
-                                    }}
-                                    onChange={(e, value) => {
-                                        if (value === null) {
-                                            return;
-                                        }
-                                        return setState({
-                                            ...State,
-                                            QRToggleOptions: {
-                                                ...State.QRToggleOptions,
-                                                dotsBackground: value
-                                            },
-                                            QROptions: {
-                                                ...State.QROptions,
-                                                dotsOptions: {
-                                                    ...State.QROptions
-                                                        .dotsOptions,
-                                                    gradient:
-                                                        value === "gradient"
-                                                            ? PreDefinedGredient
-                                                            : undefined,
-                                                    color:
-                                                        value === "color"
-                                                            ? PredefinedColour
-                                                            : undefined
-                                                }
+                                        <Checkbox
+                                            isSelected={State.TemplatesData?.wifi?.hidden}
+                                            onValueChange={(checked) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        wifi: {
+                                                            ...State.TemplatesData.wifi!,
+                                                            hidden: checked
+                                                        }
+                                                    }
+                                                })
                                             }
-                                        });
-                                    }}>
-                                    <ToggleButton value="color">
-                                        Color
-                                    </ToggleButton>
-                                    <ToggleButton value="gradient">
-                                        Gradient
-                                    </ToggleButton>
-                                </StyledToggleButtonGroup>
-                            </div>
-                            {State.QRToggleOptions?.dotsBackground ===
-                                "color" && (
-                                <label
-                                    className="item"
-                                    style={{
-                                        backgroundColor:
-                                            State.QROptions.dotsOptions?.color,
-                                        width: "50px",
-                                        height: "50px",
-                                        borderRadius:
-                                            State.QROptions.dotsOptions
-                                                ?.type === "rounded"
-                                                ? "10px"
-                                                : "0px",
-                                        border:
-                                            State.QROptions.dotsOptions
-                                                ?.type === "rounded"
-                                                ? "1px solid #000000"
-                                                : "none"
-                                    }}>
-                                    <input
-                                        className="Hide"
-                                        type="color"
-                                        value={
-                                            State.QROptions.dotsOptions?.color
-                                        }
+                                        >
+                                            Hidden Network
+                                        </Checkbox>
+                                    </div>
+                                )}
+
+                                {/* Contact Input */}
+                                {State.DataType === DataTypes.Contact && (
+                                    <div className="space-y-3">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <Input
+                                                type="text"
+                                                label="Full Name"
+                                                placeholder="John Doe"
+                                                value={State.TemplatesData?.contact?.name}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            contact: {
+                                                                ...State.TemplatesData.contact!,
+                                                                name: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                            
+                                            <Input
+                                                type="tel"
+                                                label="Phone Number"
+                                                placeholder="+1234567890"
+                                                value={State.TemplatesData?.contact?.phone}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            contact: {
+                                                                ...State.TemplatesData.contact!,
+                                                                phone: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <Input
+                                                type="email"
+                                                label="Email Address"
+                                                placeholder="john@example.com"
+                                                value={State.TemplatesData?.contact?.email}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            contact: {
+                                                                ...State.TemplatesData.contact!,
+                                                                email: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                            
+                                            <Input
+                                                type="text"
+                                                label="Organization"
+                                                placeholder="Company Name"
+                                                value={State.TemplatesData?.contact?.org}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            contact: {
+                                                                ...State.TemplatesData.contact!,
+                                                                org: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                        </div>
+
+                                        <Input
+                                            type="text"
+                                            label="Address"
+                                            placeholder="123 Main St, City, State, ZIP"
+                                            value={State.TemplatesData?.contact?.address}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        contact: {
+                                                            ...State.TemplatesData.contact!,
+                                                            address: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            isClearable
+                                        />
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <Input
+                                                type="text"
+                                                label="Job Title"
+                                                placeholder="Software Engineer"
+                                                value={State.TemplatesData?.contact?.title}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            contact: {
+                                                                ...State.TemplatesData.contact!,
+                                                                title: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                            
+                                            <Input
+                                                type="url"
+                                                label="Website"
+                                                placeholder="https://example.com"
+                                                value={State.TemplatesData?.contact?.url}
+                                                onChange={(e) =>
+                                                    setState({
+                                                        ...State,
+                                                        TemplatesData: {
+                                                            ...State.TemplatesData,
+                                                            contact: {
+                                                                ...State.TemplatesData.contact!,
+                                                                url: e.target.value
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5"
+                                                isClearable
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Email Input */}
+                                {State.DataType === DataTypes.Email && (
+                                    <div className="space-y-3">
+                                        <Input
+                                            type="email"
+                                            label="Email Address"
+                                            placeholder="recipient@example.com"
+                                            value={State.TemplatesData?.email?.email}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        email: {
+                                                            ...State.TemplatesData.email!,
+                                                            email: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            isClearable
+                                        />
+                                        
+                                        <Input
+                                            type="text"
+                                            label="Subject"
+                                            placeholder="Email subject"
+                                            value={State.TemplatesData?.email?.subject}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        email: {
+                                                            ...State.TemplatesData.email!,
+                                                            subject: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            isClearable
+                                        />
+                                        
+                                        <Input
+                                            type="text"
+                                            label="Message Body"
+                                            placeholder="Email message"
+                                            value={State.TemplatesData?.email?.body}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        email: {
+                                                            ...State.TemplatesData.email!,
+                                                            body: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            isClearable
+                                        />
+                                    </div>
+                                )}
+
+                                {/* Phone Input */}
+                                {State.DataType === DataTypes.Phone && (
+                                    <Input
+                                        type="tel"
+                                        label="Phone Number"
+                                        placeholder="+1234567890"
+                                        value={State.TemplatesData?.Text}
                                         onChange={(e) =>
-                                            handleChange("dotsOptions", {
-                                                ...State.QROptions.dotsOptions,
-                                                color: e.target.value
+                                            setState({
+                                                ...State,
+                                                TemplatesData: {
+                                                    ...State.TemplatesData,
+                                                    Text: e.target.value
+                                                }
                                             })
                                         }
-                                    />
-                                </label>
-                            )}
-
-                            {/* Gredient Generation Options */}
-                            {/* 
-                                type: "radial" | "linear" // ToggleButton
-                                rotation?: number; // Input Range
-                                colorStops: { 
-                                    offset: number;
-                                    color: string;
-                                }[];
-                            */}
-
-                            {State.QRToggleOptions?.dotsBackground ===
-                                "gradient" && (
-                                <>
-                                    <StyledToggleButtonGroup
-                                        className="item-CenterToggleButtons"
-                                        value={
-                                            State.QROptions.dotsOptions
-                                                ?.gradient?.type
+                                        variant="bordered"
+                                        className="bg-white/5"
+                                        startContent={
+                                            <div className="pointer-events-none flex items-center">
+                                                <span className="text-default-400 text-small">📞</span>
+                                            </div>
                                         }
-                                        exclusive
-                                        sx={{
-                                            // ? Modify All the Items Border-Radius
-                                            "& .MuiToggleButtonGroup-firstButton":
-                                                {
-                                                    borderRadius:
-                                                        "10px 0 0 10px"
-                                                },
-                                            "& .MuiToggleButtonGroup-lastButton":
-                                                {
-                                                    borderRadius:
-                                                        "0 10px 10px 0"
-                                                }
-                                        }}
-                                        onChange={(e, value) => {
-                                            if (value === null) {
-                                                return;
-                                            }
-                                            return handleChange("dotsOptions", {
-                                                ...State.QROptions.dotsOptions,
-                                                gradient: {
-                                                    ...State.QROptions
-                                                        .dotsOptions?.gradient,
-                                                    type: value
+                                        isClearable
+                                        onClear={() => {
+                                            setState({
+                                                ...State,
+                                                TemplatesData: {
+                                                    ...State.TemplatesData,
+                                                    Text: ""
                                                 }
                                             });
-                                        }}>
-                                        <ToggleButton value="radial">
-                                            Radial
-                                        </ToggleButton>
-                                        <ToggleButton value="linear">
-                                            Linear
-                                        </ToggleButton>
-                                    </StyledToggleButtonGroup>
-
-                                    <Input
-                                        className="item"
-                                        type="range"
-                                        label={"Rotation"}
-                                        min="0"
-                                        max="360"
-                                        value={
-                                            State.QROptions.dotsOptions
-                                                ?.gradient?.rotation
-                                                ? State.QROptions.dotsOptions?.gradient?.rotation.toString()
-                                                : "0"
-                                        }
-                                        onChange={(e) =>
-                                            handleChange("dotsOptions", {
-                                                ...State.QROptions.dotsOptions,
-                                                gradient: {
-                                                    ...State.QROptions
-                                                        .dotsOptions?.gradient,
-                                                    rotation: parseInt(
-                                                        e.target.value
-                                                    )
-                                                }
-                                            })
-                                        }
+                                        }}
                                     />
+                                )}
 
-                                    {/* Gredient Colour Stop & Single Ranged Selection Display with Add & Remove Other Stops (Min 2 Stops) */}
-                                    <div className="item-Gradient">
-                                        <Slider
-                                            track={false}
-                                            defaultValue={PreDefinedGredient.colorStops.map(
-                                                (stop) => stop.offset * 100
-                                            )}
-                                            value={State.QROptions.dotsOptions?.gradient?.colorStops.map(
-                                                (stop) => stop.offset * 100
-                                            )}
-                                            onChange={(_, value: any) => {
-                                                handleChange("dotsOptions", {
-                                                    ...State.QROptions
-                                                        .dotsOptions,
-                                                    gradient: {
-                                                        ...State.QROptions
-                                                            .dotsOptions
-                                                            ?.gradient,
-                                                        colorStops:
-                                                            State.QROptions.dotsOptions?.gradient?.colorStops.map(
-                                                                (
-                                                                    stop,
-                                                                    index: any
-                                                                ) => ({
-                                                                    ...stop,
-                                                                    offset:
-                                                                        value[
-                                                                            index
-                                                                        ] / 100
-                                                                })
-                                                            )
+                                {/* Bluetooth Input */}
+                                {State.DataType === DataTypes.Bluetooth && (
+                                    <div className="space-y-3">
+                                        <Input
+                                            type="text"
+                                            label="Device Name"
+                                            placeholder="My Bluetooth Device"
+                                            value={State.TemplatesData?.bluetooth?.name}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        bluetooth: {
+                                                            ...State.TemplatesData.bluetooth!,
+                                                            name: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            startContent={
+                                                <div className="pointer-events-none flex items-center">
+                                                    <span className="text-default-400 text-small">🔵</span>
+                                                </div>
+                                            }
+                                            isClearable
+                                        />
+                                        
+                                        <Input
+                                            type="text"
+                                            label="MAC Address"
+                                            placeholder="00:11:22:33:44:55"
+                                            value={State.TemplatesData?.bluetooth?.address}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    TemplatesData: {
+                                                        ...State.TemplatesData,
+                                                        bluetooth: {
+                                                            ...State.TemplatesData.bluetooth!,
+                                                            address: e.target.value
+                                                        }
+                                                    }
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="bg-white/5"
+                                            startContent={
+                                                <div className="pointer-events-none flex items-center">
+                                                    <span className="text-default-400 text-small">📡</span>
+                                                </div>
+                                            }
+                                            isClearable
+                                            description="Enter the Bluetooth device MAC address in format: XX:XX:XX:XX:XX:XX"
+                                        />
+                                    </div>
+                                )}
+                            </div>
+                        </AccordionItem>
+
+                        {/* Style & Appearance */}
+                        <AccordionItem
+                            key="style"
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <Palette className="text-green-400" />
+                                    <span>Style & Appearance</span>
+                                </div>
+                            }
+                            subtitle="Customize the visual appearance of your QR code"
+                            className="bg-white/5 border border-white/10 rounded-lg !mb-0"
+                        >
+                            <div className="space-y-6">
+                                {/* Shape Selection */}
+                                <div>
+                                    <label className="text-sm font-medium text-gray-300 mb-2 block">QR Code Shape</label>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <Button
+                                            variant={State.QROptions.shape === "square" ? "solid" : "ghost"}
+                                            color={State.QROptions.shape === "square" ? "primary" : "default"}
+                                            onClick={() => {
+                                                setState({
+                                                    ...State,
+                                                    QROptions: {
+                                                        ...State.QROptions,
+                                                        shape: "square"
+                                                    },
+                                                    QRPluginOptions: {
+                                                        ...State.QRPluginOptions,
+                                                        round: 0
                                                     }
                                                 });
                                             }}
-                                            sx={{
-                                                width: "100%",
-                                                marginBottom: "10px"
-                                            }}
-                                        />
-                                        {State.QROptions.dotsOptions?.gradient?.colorStops.map(
-                                            (stop, index) => (
-                                                <div
-                                                    key={index}
-                                                    className="item-Gradient-Stop">
-                                                    <label
-                                                        className="item"
-                                                        style={{
-                                                            backgroundColor:
-                                                                stop.color,
-                                                            width: "50px",
-                                                            height: "50px"
-                                                        }}>
-                                                        <input
-                                                            className="Hide"
-                                                            type="color"
-                                                            value={stop.color}
-                                                            onChange={(e) =>
-                                                                handleChange(
-                                                                    "dotsOptions",
-                                                                    {
-                                                                        ...State
-                                                                            .QROptions
-                                                                            .dotsOptions,
-                                                                        gradient:
-                                                                            {
-                                                                                ...State
-                                                                                    .QROptions
-                                                                                    .dotsOptions
-                                                                                    ?.gradient,
-                                                                                colorStops:
-                                                                                    State.QROptions.dotsOptions?.gradient?.colorStops.map(
-                                                                                        (
-                                                                                            s,
-                                                                                            i
-                                                                                        ) =>
-                                                                                            i ===
-                                                                                            index
-                                                                                                ? {
-                                                                                                      ...s,
-                                                                                                      color: e
-                                                                                                          .target
-                                                                                                          .value
-                                                                                                  }
-                                                                                                : s
-                                                                                    )
-                                                                            }
-                                                                    }
-                                                                )
-                                                            }
-                                                        />
-                                                    </label>
-                                                    <Button
-                                                        className="item"
-                                                        variant="light"
-                                                        onClick={() =>
-                                                            handleChange(
-                                                                "dotsOptions",
-                                                                {
-                                                                    ...State
-                                                                        .QROptions
-                                                                        .dotsOptions,
-                                                                    gradient: {
-                                                                        ...State
-                                                                            .QROptions
-                                                                            .dotsOptions
-                                                                            ?.gradient,
-                                                                        colorStops:
-                                                                            State.QROptions.dotsOptions?.gradient?.colorStops.filter(
-                                                                                (
-                                                                                    _,
-                                                                                    i
-                                                                                ) =>
-                                                                                    i !==
-                                                                                    index
-                                                                            )
-                                                                    }
-                                                                }
-                                                            )
-                                                        }>
-                                                        Remove
-                                                    </Button>
-                                                </div>
-                                            )
-                                        )}
+                                            className="h-12 flex items-center justify-center gap-2"
+                                        >
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                <rect width="20" height="20" x="2" y="2" rx="2"/>
+                                            </svg>
+                                            Square
+                                        </Button>
+                                        
                                         <Button
-                                            className="item"
-                                            variant="light"
-                                            onClick={() =>
-                                                handleChange("dotsOptions", {
-                                                    ...State.QROptions
-                                                        .dotsOptions,
-                                                    gradient: {
-                                                        ...State.QROptions
-                                                            .dotsOptions
-                                                            ?.gradient,
-                                                        colorStops: [
-                                                            ...(State.QROptions
-                                                                .dotsOptions
-                                                                ?.gradient
-                                                                ?.colorStops ??
-                                                                []),
-                                                            {
-                                                                offset: 0,
-                                                                color: "#000000"
-                                                            }
-                                                        ]
+                                            variant={State.QROptions.shape === "circle" ? "solid" : "ghost"}
+                                            color={State.QROptions.shape === "circle" ? "primary" : "default"}
+                                            onClick={() => {
+                                                setState({
+                                                    ...State,
+                                                    QROptions: {
+                                                        ...State.QROptions,
+                                                        shape: "circle"
+                                                    },
+                                                    QRPluginOptions: {
+                                                        ...State.QRPluginOptions,
+                                                        round: 1
                                                     }
-                                                })
-                                            }>
-                                            Add Stop
+                                                });
+                                            }}
+                                            className="h-12 flex items-center justify-center gap-2"
+                                        >
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                                                <circle cx="12" cy="12" r="10"/>
+                                            </svg>
+                                            Circle
                                         </Button>
                                     </div>
-                                </>
-                            )}
-                        </AccordionItem>
+                                </div>
 
-                        {/* Border */}
-                        <AccordionItem
-                            title="Border"
-                            subtitle="Change QR Border Style & Color">
-                            <Input
-                                className="item"
-                                type="range"
-                                label={"Thickness"}
-                                min="0"
-                                max="100"
-                                value={State.QRPluginOptions.thickness.toString()}
-                                onChange={(e) =>
-                                    handleChangePlugin(
-                                        "thickness",
-                                        parseInt(e.target.value)
-                                    )
-                                }
-                            />
-
-                            <div className="item-Download">
-                                <label
-                                    className="item"
-                                    style={{
-                                        backgroundColor:
-                                            State.QRPluginOptions.color,
-                                        width: "50px",
-                                        height: "50px"
-                                    }}>
-                                    <input
-                                        className="Hide"
-                                        type="color"
-                                        value={State.QRPluginOptions.color}
-                                        onChange={(e) =>
-                                            handleChangePlugin(
-                                                "color",
-                                                e.target.value
-                                            )
-                                        }
-                                    />
-                                </label>
-                            </div>
-
-                            <Input
-                                className="item"
-                                type="text"
-                                label={"Top Text"}
-                                value={
-                                    State.QRPluginOptions.decorations.top.value
-                                }
-                                onChange={(e) =>
-                                    handleChangePlugin("decorations", {
-                                        ...State.QRPluginOptions.decorations,
-                                        top: {
-                                            ...State.QRPluginOptions.decorations
-                                                .top,
-                                            value: e.target.value
-                                        }
-                                    })
-                                }
-                            />
-
-                            <Input
-                                className="item"
-                                type="text"
-                                label={"Bottom Text"}
-                                value={
-                                    State.QRPluginOptions.decorations.bottom
-                                        .value
-                                }
-                                onChange={(e) =>
-                                    handleChangePlugin("decorations", {
-                                        ...State.QRPluginOptions.decorations,
-                                        bottom: {
-                                            ...State.QRPluginOptions.decorations
-                                                .bottom,
-                                            value: e.target.value
-                                        }
-                                    })
-                                }
-                            />
-
-                            <Input
-                                className="item"
-                                type="text"
-                                label={"Left Text"}
-                                value={
-                                    State.QRPluginOptions.decorations.left.value
-                                }
-                                onChange={(e) =>
-                                    handleChangePlugin("decorations", {
-                                        ...State.QRPluginOptions.decorations,
-                                        left: {
-                                            ...State.QRPluginOptions.decorations
-                                                .left,
-                                            value: e.target.value
-                                        }
-                                    })
-                                }
-                            />
-
-                            <Input
-                                className="item"
-                                type="text"
-                                label={"Right Text"}
-                                value={
-                                    State.QRPluginOptions.decorations.right
-                                        .value
-                                }
-                                onChange={(e) =>
-                                    handleChangePlugin("decorations", {
-                                        ...State.QRPluginOptions.decorations,
-                                        right: {
-                                            ...State.QRPluginOptions.decorations
-                                                .right,
-                                            value: e.target.value
-                                        }
-                                    })
-                                }
-                            />
-                        </AccordionItem>
-
-                        {/* Security & Accuracy  */}
-                        <AccordionItem
-                            title="Security & Accuracy"
-                            subtitle="Change QR Error Correction Level">
-                            <StyledToggleButtonGroup
-                                className="item-CenterToggleButtons"
-                                value={
-                                    State.QROptions.qrOptions
-                                        ?.errorCorrectionLevel
-                                }
-                                exclusive
-                                sx={{
-                                    // ? Modify All the Items Border-Radius
-                                    "& .MuiToggleButtonGroup-firstButton": {
-                                        borderRadius: "10px 0 0 10px"
-                                    },
-                                    "& .MuiToggleButtonGroup-lastButton": {
-                                        borderRadius: "0 10px 10px 0"
-                                    }
-                                }}
-                                onChange={(e, value) => {
-                                    if (value === null) {
-                                        return;
-                                    }
-                                    return handleChange("qrOptions", {
-                                        ...State.QROptions.qrOptions,
-                                        errorCorrectionLevel: value
-                                    });
-                                }}>
-                                <ToggleButton value="L">Low</ToggleButton>
-                                <ToggleButton value="M">Medium</ToggleButton>
-                                <ToggleButton value="Q">Quartile</ToggleButton>
-                                <ToggleButton value="H">High</ToggleButton>
-                            </StyledToggleButtonGroup>
-                        </AccordionItem>
-                        {/* @Settings */}
-                        <AccordionItem
-                            title="Settings"
-                            subtitle="QR Additional Settings">
-                            <Checkbox
-                                className="item"
-                                checked={
-                                    State.QROptions.imageOptions
-                                        ?.hideBackgroundDots
-                                }
-                                onChange={(e) =>
-                                    handleChange("imageOptions", {
-                                        ...State.QROptions.imageOptions,
-                                        hideBackgroundDots: e.target.checked
-                                    })
-                                }>
-                                Hide Background Dots
-                            </Checkbox>
-                            <Checkbox
-                                className="item"
-                                checked={
-                                    State.QROptions.imageOptions?.saveAsBlob
-                                }
-                                onChange={(e) =>
-                                    handleChange("imageOptions", {
-                                        ...State.QROptions.imageOptions,
-                                        saveAsBlob: e.target.checked
-                                    })
-                                }>
-                                Save as Blob
-                            </Checkbox>
-                            <Checkbox
-                                className="item"
-                                checked={State.BorderDesign}
-                                onChange={(e) =>
-                                    setState({
-                                        ...State,
-                                        BorderDesign: e.target.checked
-                                    })
-                                }>
-                                Apply Border Style
-                            </Checkbox>
-                        </AccordionItem>
-                        <AccordionItem
-                            title="License"
-                            subtitle="License Key of QR Border Plugin">
-                            <div className="flex flex-col gap-1">
+                                {/* Dots Style */}
                                 <div>
-                                    <p className="item-description">
-                                        Disclaimer: This License Key is
-                                        generated for the Demo Purpose only.
-                                        Please Purchase the License Key from the
-                                        Official Website &nbsp;
-                                        <Link
-                                            className="text-accent"
-                                            href="https://www.lefe.dev/marketplace/qr-border-plugin#pricing">
-                                            Lefe
-                                        </Link>
-                                        .
-                                    </p>
-                                    <p className="item-description">
-                                        This License Key is used to Activate the
-                                        QR Border Plugin for the QR Code if you
-                                        want to use on your website.
+                                    <label className="text-sm font-medium text-gray-300 mb-2 block">Dots Style</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { value: "square", label: "Square", icon: "⬜" },
+                                            { value: "rounded", label: "Rounded", icon: "🔘" },
+                                            { value: "extra-rounded", label: "Extra Round", icon: "🟫" },
+                                            { value: "classy", label: "Classy", icon: "💎" },
+                                            { value: "classy-rounded", label: "Classy Round", icon: "✨" },
+                                            { value: "dots", label: "Dots", icon: "⚫" }
+                                        ].map((style) => (
+                                            <Button
+                                                key={style.value}
+                                                variant={State.QROptions.dotsOptions?.type === style.value ? "solid" : "ghost"}
+                                                color={State.QROptions.dotsOptions?.type === style.value ? "primary" : "default"}
+                                                onClick={() => handleChange("dotsOptions", {
+                                                    ...State.QROptions.dotsOptions,
+                                                    type: style.value
+                                                })}
+                                                className="h-14 flex flex-col items-center justify-center"
+                                                size="sm"
+                                            >
+                                                <span className="text-sm">{style.icon}</span>
+                                                <span className="text-xs">{style.label}</span>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Color/Gradient Toggle */}
+                                <div>
+                                    <label className="text-sm font-medium text-gray-300 mb-2 block">Dots Color</label>
+                                    <div className="grid grid-cols-2 gap-2 mb-3">
+                                        <Button
+                                            variant={State.QRToggleOptions?.dotsBackground === "color" ? "solid" : "ghost"}
+                                            color={State.QRToggleOptions?.dotsBackground === "color" ? "primary" : "default"}
+                                            onClick={() => {
+                                                setState({
+                                                    ...State,
+                                                    QRToggleOptions: {
+                                                        ...State.QRToggleOptions,
+                                                        dotsBackground: "color"
+                                                    },
+                                                    QROptions: {
+                                                        ...State.QROptions,
+                                                        dotsOptions: {
+                                                            ...State.QROptions.dotsOptions,
+                                                            gradient: undefined,
+                                                            color: PredefinedColour
+                                                        }
+                                                    }
+                                                });
+                                            }}
+                                            className="h-10"
+                                        >
+                                            🎨 Solid Color
+                                        </Button>
+                                        
+                                        <Button
+                                            variant={State.QRToggleOptions?.dotsBackground === "gradient" ? "solid" : "ghost"}
+                                            color={State.QRToggleOptions?.dotsBackground === "gradient" ? "primary" : "default"}
+                                            onClick={() => {
+                                                setState({
+                                                    ...State,
+                                                    QRToggleOptions: {
+                                                        ...State.QRToggleOptions,
+                                                        dotsBackground: "gradient"
+                                                    },
+                                                    QROptions: {
+                                                        ...State.QROptions,
+                                                        dotsOptions: {
+                                                            ...State.QROptions.dotsOptions,
+                                                            gradient: PreDefinedGredient,
+                                                            color: undefined
+                                                        }
+                                                    }
+                                                });
+                                            }}
+                                            className="h-10"
+                                        >
+                                            🌈 Gradient
+                                        </Button>
+                                    </div>
+
+                                    {/* Color Picker */}
+                                    {State.QRToggleOptions?.dotsBackground === "color" && (
+                                        <div className="flex items-center gap-3">
+                                            <label className="flex items-center justify-center w-12 h-12 rounded-lg border-2 border-white/20 cursor-pointer overflow-hidden">
+                                                <input
+                                                    type="color"
+                                                    value={State.QROptions.dotsOptions?.color}
+                                                    onChange={(e) =>
+                                                        handleChange("dotsOptions", {
+                                                            ...State.QROptions.dotsOptions,
+                                                            color: e.target.value
+                                                        })
+                                                    }
+                                                    className="w-full h-full border-0 cursor-pointer"
+                                                />
+                                            </label>
+                                            <Input
+                                                type="text"
+                                                value={State.QROptions.dotsOptions?.color}
+                                                onChange={(e) =>
+                                                    handleChange("dotsOptions", {
+                                                        ...State.QROptions.dotsOptions,
+                                                        color: e.target.value
+                                                    })
+                                                }
+                                                className="flex-1"
+                                                variant="bordered"
+                                                size="sm"
+                                            />
+                                        </div>
+                                    )}
+
+                                    {/* Gradient Controls */}
+                                    {State.QRToggleOptions?.dotsBackground === "gradient" && (
+                                        <div className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <Button
+                                                    variant={State.QROptions.dotsOptions?.gradient?.type === "linear" ? "solid" : "ghost"}
+                                                    color={State.QROptions.dotsOptions?.gradient?.type === "linear" ? "primary" : "default"}
+                                                    onClick={() => handleChange("dotsOptions", {
+                                                        ...State.QROptions.dotsOptions,
+                                                        gradient: {
+                                                            ...State.QROptions.dotsOptions?.gradient,
+                                                            type: "linear"
+                                                        }
+                                                    })}
+                                                    size="sm"
+                                                >
+                                                    Linear
+                                                </Button>
+                                                
+                                                <Button
+                                                    variant={State.QROptions.dotsOptions?.gradient?.type === "radial" ? "solid" : "ghost"}
+                                                    color={State.QROptions.dotsOptions?.gradient?.type === "radial" ? "primary" : "default"}
+                                                    onClick={() => handleChange("dotsOptions", {
+                                                        ...State.QROptions.dotsOptions,
+                                                        gradient: {
+                                                            ...State.QROptions.dotsOptions?.gradient,
+                                                            type: "radial"
+                                                        }
+                                                    })}
+                                                    size="sm"
+                                                >
+                                                    Radial
+                                                </Button>
+                                            </div>
+
+                                            {State.QROptions.dotsOptions?.gradient?.type === "linear" && (
+                                                <Input
+                                                    type="range"
+                                                    label={`Rotation: ${State.QROptions.dotsOptions?.gradient?.rotation || 0}°`}
+                                                    min="0"
+                                                    max="360"
+                                                    value={(State.QROptions.dotsOptions?.gradient?.rotation || 0).toString()}
+                                                    onChange={(e) =>
+                                                        handleChange("dotsOptions", {
+                                                            ...State.QROptions.dotsOptions,
+                                                            gradient: {
+                                                                ...State.QROptions.dotsOptions?.gradient,
+                                                                rotation: parseInt(e.target.value)
+                                                            }
+                                                        })
+                                                    }
+                                                    variant="bordered"
+                                                    size="sm"
+                                                />
+                                            )}
+
+                                            {/* Color Stops */}
+                                            <div>
+                                                <div className="flex justify-between items-center mb-2">
+                                                    <span className="text-sm text-gray-300">Color Stops</span>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="ghost"
+                                                        onClick={() =>
+                                                            handleChange("dotsOptions", {
+                                                                ...State.QROptions.dotsOptions,
+                                                                gradient: {
+                                                                    ...State.QROptions.dotsOptions?.gradient,
+                                                                    colorStops: [
+                                                                        ...(State.QROptions.dotsOptions?.gradient?.colorStops ?? []),
+                                                                        {
+                                                                            offset: 0.5,
+                                                                            color: "#888888"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            })
+                                                        }
+                                                    >
+                                                        + Add
+                                                    </Button>
+                                                </div>
+                                                
+                                                <div className="space-y-2">
+                                                    {(State.QROptions.dotsOptions?.gradient?.colorStops || []).map((stop, index) => (
+                                                        <div key={index} className="flex items-center gap-2">
+                                                            <label className="flex items-center justify-center w-8 h-8 rounded border border-white/20 cursor-pointer overflow-hidden">
+                                                                <input
+                                                                    type="color"
+                                                                    value={stop.color}
+                                                                    onChange={(e) =>
+                                                                        handleChange("dotsOptions", {
+                                                                            ...State.QROptions.dotsOptions,
+                                                                            gradient: {
+                                                                                ...State.QROptions.dotsOptions?.gradient,
+                                                                                colorStops: (State.QROptions.dotsOptions?.gradient?.colorStops || []).map((s, i) =>
+                                                                                    i === index ? { ...s, color: e.target.value } : s
+                                                                                )
+                                                                            }
+                                                                        })
+                                                                    }
+                                                                    className="w-full h-full border-0 cursor-pointer"
+                                                                />
+                                                            </label>
+                                                            
+                                                            <Input
+                                                                type="range"
+                                                                min="0"
+                                                                max="100"
+                                                                value={(stop.offset * 100).toString()}
+                                                                onChange={(e) =>
+                                                                    handleChange("dotsOptions", {
+                                                                        ...State.QROptions.dotsOptions,
+                                                                        gradient: {
+                                                                            ...State.QROptions.dotsOptions?.gradient,
+                                                                            colorStops: (State.QROptions.dotsOptions?.gradient?.colorStops || []).map((s, i) =>
+                                                                                i === index ? { ...s, offset: parseInt(e.target.value) / 100 } : s
+                                                                            )
+                                                                        }
+                                                                    })
+                                                                }
+                                                                className="flex-1"
+                                                                size="sm"
+                                                                variant="bordered"
+                                                            />
+                                                            
+                                                            {(State.QROptions.dotsOptions?.gradient?.colorStops?.length || 0) > 2 && (
+                                                                <Button
+                                                                    size="sm"
+                                                                    variant="light"
+                                                                    color="danger"
+                                                                    onClick={() =>
+                                                                        handleChange("dotsOptions", {
+                                                                            ...State.QROptions.dotsOptions,
+                                                                            gradient: {
+                                                                                ...State.QROptions.dotsOptions?.gradient,
+                                                                                colorStops: (State.QROptions.dotsOptions?.gradient?.colorStops || []).filter((_, i) => i !== index)
+                                                                            }
+                                                                        })
+                                                                    }
+                                                                    isIconOnly
+                                                                >
+                                                                    ×
+                                                                </Button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </AccordionItem>
+
+                        {/* Image & Logo */}
+                        <AccordionItem
+                            key="image"
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <Image className="text-orange-400" />
+                                    <span>Logo & Image</span>
+                                </div>
+                            }
+                            subtitle="Add a custom image or logo to your QR code"
+                            className="bg-white/5 border border-white/10 rounded-lg !mb-0"
+                        >
+                            <div className="space-y-4">
+                                <Input
+                                    type="text"
+                                    label="Image URL"
+                                    placeholder="https://example.com/logo.png or /favicon.ico"
+                                    value={State.QROptions.image || ""}
+                                    onChange={(e) => handleChange("image", e.target.value)}
+                                    variant="bordered"
+                                    className="bg-white/5"
+                                    isClearable
+                                    onClear={() => handleChange("image", "")}
+                                />
+                                
+                                <Input
+                                    type="range"
+                                    label={`Image Size: ${State.QROptions.imageOptions?.imageSize || 0.4}`}
+                                    min="0.1"
+                                    max="1"
+                                    step="0.1"
+                                    value={(State.QROptions.imageOptions?.imageSize || 0.4).toString()}
+                                    onChange={(e) =>
+                                        handleChange("imageOptions", {
+                                            ...State.QROptions.imageOptions,
+                                            imageSize: parseFloat(e.target.value)
+                                        })
+                                    }
+                                    variant="bordered"
+                                    className="bg-white/5"
+                                />
+                                
+                                <Input
+                                    type="range"
+                                    label={`Image Margin: ${State.QROptions.imageOptions?.margin || 5}px`}
+                                    min="0"
+                                    max="20"
+                                    value={(State.QROptions.imageOptions?.margin || 5).toString()}
+                                    onChange={(e) =>
+                                        handleChange("imageOptions", {
+                                            ...State.QROptions.imageOptions,
+                                            margin: parseInt(e.target.value)
+                                        })
+                                    }
+                                    variant="bordered"
+                                    className="bg-white/5"
+                                />
+                            </div>
+                        </AccordionItem>
+
+                        {/* Border & Decorations */}
+                        <AccordionItem
+                            key="border"
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <BorderOuter className="text-red-400" />
+                                    <span>Border & Decorations</span>
+                                </div>
+                            }
+                            subtitle="Add decorative borders and text around your QR code"
+                            className="bg-white/5 border border-white/10 rounded-lg !mb-0"
+                        >
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <Checkbox
+                                        isSelected={State.BorderDesign}
+                                        onValueChange={(checked) =>
+                                            setState({
+                                                ...State,
+                                                BorderDesign: checked
+                                            })
+                                        }
+                                    >
+                                        Enable Border Design
+                                    </Checkbox>
+                                </div>
+
+                                {/* QR Background Color Control */}
+                                <div>
+                                    <label className="text-sm font-medium text-gray-300 mb-2 block">QR Background Color</label>
+                                    <div className="flex items-center gap-3">
+                                        <label className="flex items-center justify-center w-12 h-12 rounded-lg border-2 border-white/20 cursor-pointer overflow-hidden">
+                                            <input
+                                                type="color"
+                                                value={State.QROptions.backgroundOptions?.color || "#ffffff"}
+                                                onChange={(e) =>
+                                                    handleChange("backgroundOptions", {
+                                                        ...State.QROptions.backgroundOptions,
+                                                        color: e.target.value
+                                                    })
+                                                }
+                                                className="w-full h-full border-0 cursor-pointer"
+                                            />
+                                        </label>
+                                        <Input
+                                            type="text"
+                                            value={State.QROptions.backgroundOptions?.color || "#ffffff"}
+                                            onChange={(e) =>
+                                                handleChange("backgroundOptions", {
+                                                    ...State.QROptions.backgroundOptions,
+                                                    color: e.target.value
+                                                })
+                                            }
+                                            className="flex-1"
+                                            variant="bordered"
+                                            size="sm"
+                                        />
+                                    </div>
+                                </div>
+
+                                {/* Corner Style */}
+                                <div>
+                                    <label className="text-sm font-medium text-gray-300 mb-2 block">Corner Style</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {[
+                                            { value: "square", label: "Square", icon: "⬜" },
+                                            { value: "extra-rounded", label: "Rounded", icon: "🔘" },
+                                            { value: "circle", label: "Circle", icon: "⚫" }
+                                        ].map((style) => (
+                                            <Button
+                                                key={style.value}
+                                                variant={State.QROptions.cornersSquareOptions?.type === style.value ? "solid" : "ghost"}
+                                                color={State.QROptions.cornersSquareOptions?.type === style.value ? "primary" : "default"}
+                                                onClick={() => {
+                                                    handleChange("cornersSquareOptions", {
+                                                        ...State.QROptions.cornersSquareOptions,
+                                                        type: style.value as CornerSquareType
+                                                    });
+                                                    handleChange("cornersDotOptions", {
+                                                        ...State.QROptions.cornersDotOptions,
+                                                        type: style.value as CornerDotType
+                                                    });
+                                                }}
+                                                className="h-12 flex flex-col items-center justify-center"
+                                                size="sm"
+                                            >
+                                                <span className="text-sm">{style.icon}</span>
+                                                <span className="text-xs">{style.label}</span>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {State.BorderDesign && (
+                                    <>
+                                        <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-3">
+                                            <h5 className="text-sm font-medium text-orange-400 mb-2">Border Plugin Settings</h5>
+                                            
+                                            <Input
+                                                type="range"
+                                                label={`Border Thickness: ${State.QRPluginOptions.thickness}px`}
+                                                min="0"
+                                                max="100"
+                                                value={State.QRPluginOptions.thickness.toString()}
+                                                onChange={(e) =>
+                                                    handleChangePlugin("thickness", parseInt(e.target.value))
+                                                }
+                                                variant="bordered"
+                                                className="bg-white/5 mb-3"
+                                            />
+
+                                            <div className="mb-3">
+                                                <label className="text-sm font-medium text-gray-300 mb-2 block">Border Color</label>
+                                                <div className="flex items-center gap-3">
+                                                    <label className="flex items-center justify-center w-12 h-12 rounded-lg border-2 border-white/20 cursor-pointer overflow-hidden">
+                                                        <input
+                                                            type="color"
+                                                            value={State.QRPluginOptions.color}
+                                                            onChange={(e) =>
+                                                                handleChangePlugin("color", e.target.value)
+                                                            }
+                                                            className="w-full h-full border-0 cursor-pointer"
+                                                        />
+                                                    </label>
+                                                    <Input
+                                                        type="text"
+                                                        value={State.QRPluginOptions.color}
+                                                        onChange={(e) =>
+                                                            handleChangePlugin("color", e.target.value)
+                                                        }
+                                                        className="flex-1"
+                                                        variant="bordered"
+                                                        size="sm"
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                <Input
+                                                    type="text"
+                                                    label="Top Text"
+                                                    placeholder="Scan Here"
+                                                    value={State.QRPluginOptions.decorations.top.value}
+                                                    onChange={(e) =>
+                                                        handleChangePlugin("decorations", {
+                                                            ...State.QRPluginOptions.decorations,
+                                                            top: {
+                                                                ...State.QRPluginOptions.decorations.top,
+                                                                value: e.target.value
+                                                            }
+                                                        })
+                                                    }
+                                                    variant="bordered"
+                                                    className="bg-white/5"
+                                                    isClearable
+                                                />
+                                                
+                                                <Input
+                                                    type="text"
+                                                    label="Bottom Text"
+                                                    placeholder="Try Me"
+                                                    value={State.QRPluginOptions.decorations.bottom.value}
+                                                    onChange={(e) =>
+                                                        handleChangePlugin("decorations", {
+                                                            ...State.QRPluginOptions.decorations,
+                                                            bottom: {
+                                                                ...State.QRPluginOptions.decorations.bottom,
+                                                                value: e.target.value
+                                                            }
+                                                        })
+                                                    }
+                                                    variant="bordered"
+                                                    className="bg-white/5"
+                                                    isClearable
+                                                />
+                                            </div>
+
+                                            <div className="mt-3 flex items-center gap-3">
+                                                <Button
+                                                    variant="ghost"
+                                                    color="warning"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        setState({
+                                                            ...State,
+                                                            BorderDesign: false
+                                                        });
+                                                    }}
+                                                >
+                                                    🚫 Remove Border
+                                                </Button>
+                                                
+                                                <Button
+                                                    variant="ghost"
+                                                    color="primary"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                        handleChangePlugin("thickness", 60);
+                                                        handleChangePlugin("color", "#000000");
+                                                        handleChangePlugin("decorations", {
+                                                            ...State.QRPluginOptions.decorations,
+                                                            top: { ...State.QRPluginOptions.decorations.top, value: "Scan Here" },
+                                                            bottom: { ...State.QRPluginOptions.decorations.bottom, value: "Try Me" }
+                                                        });
+                                                    }}
+                                                >
+                                                    🔄 Reset Border
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                        </AccordionItem>
+
+                        {/* Quality & Security */}
+                        <AccordionItem
+                            key="security"
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <Security className="text-yellow-400" />
+                                    <span>Quality & Security</span>
+                                </div>
+                            }
+                            subtitle="Configure error correction and other security settings"
+                            className="bg-white/5 border border-white/10 rounded-lg !mb-0"
+                        >
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-sm font-medium text-gray-300 mb-2 block">Error Correction Level</label>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {[
+                                            { value: "L", label: "Low", desc: "~7%" },
+                                            { value: "M", label: "Medium", desc: "~15%" },
+                                            { value: "Q", label: "Quartile", desc: "~25%" },
+                                            { value: "H", label: "High", desc: "~30%" }
+                                        ].map((level) => (
+                                            <Button
+                                                key={level.value}
+                                                variant={State.QROptions.qrOptions?.errorCorrectionLevel === level.value ? "solid" : "ghost"}
+                                                color={State.QROptions.qrOptions?.errorCorrectionLevel === level.value ? "primary" : "default"}
+                                                onClick={() => handleChange("qrOptions", {
+                                                    ...State.QROptions.qrOptions,
+                                                    errorCorrectionLevel: level.value
+                                                })}
+                                                className="h-16 flex flex-col items-center justify-center"
+                                                size="sm"
+                                            >
+                                                <span className="font-semibold">{level.label}</span>
+                                                <span className="text-xs opacity-70">{level.desc}</span>
+                                            </Button>
+                                        ))}
+                                    </div>
+                                    <p className="text-xs text-gray-400 mt-2">
+                                        Higher error correction allows the QR code to be read even when partially damaged or obscured.
                                     </p>
                                 </div>
-                                <div className="item-License">
-                                    <Input
-                                        type="text"
-                                        label={"License Key"}
-                                        value={State.LicenseKey}
-                                        onChange={(e) =>
-                                            setState({
-                                                ...State,
-                                                LicenseKey: e.target.value
+
+                                {/* QR Size Controls */}
+                                <div className="space-y-3">
+                                    <label className="text-sm font-medium text-gray-300 block">QR Code Size</label>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <Input
+                                            type="number"
+                                            label="Width"
+                                            value={State.QROptions.width?.toString()}
+                                            onChange={(e) =>
+                                                handleChange("width", parseInt(e.target.value) || 400)
+                                            }
+                                            variant="bordered"
+                                            size="sm"
+                                            min="100"
+                                            max="2000"
+                                            className="bg-white/5"
+                                        />
+                                        <Input
+                                            type="number"
+                                            label="Height"
+                                            value={State.QROptions.height?.toString()}
+                                            onChange={(e) =>
+                                                handleChange("height", parseInt(e.target.value) || 400)
+                                            }
+                                            variant="bordered"
+                                            size="sm"
+                                            min="100"
+                                            max="2000"
+                                            className="bg-white/5"
+                                        />
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                handleChange("width", 300);
+                                                handleChange("height", 300);
+                                            }}
+                                        >
+                                            300×300
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                handleChange("width", 512);
+                                                handleChange("height", 512);
+                                            }}
+                                        >
+                                            512×512
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                                handleChange("width", 1024);
+                                                handleChange("height", 1024);
+                                            }}
+                                        >
+                                            1024×1024
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                    <Checkbox
+                                        isSelected={State.QROptions.imageOptions?.hideBackgroundDots}
+                                        onValueChange={(checked) =>
+                                            handleChange("imageOptions", {
+                                                ...State.QROptions.imageOptions,
+                                                hideBackgroundDots: checked
                                             })
                                         }
-                                        isClearable
-                                        onClear={() =>
-                                            setState({
-                                                ...State,
-                                                LicenseKey: ""
+                                    >
+                                        Hide Background Dots Behind Image
+                                    </Checkbox>
+                                    
+                                    <Checkbox
+                                        isSelected={State.QROptions.imageOptions?.saveAsBlob}
+                                        onValueChange={(checked) =>
+                                            handleChange("imageOptions", {
+                                                ...State.QROptions.imageOptions,
+                                                saveAsBlob: checked
                                             })
                                         }
-                                    />
+                                    >
+                                        Save as Blob (for better performance)
+                                    </Checkbox>
+                                </div>
+                            </div>
+                        </AccordionItem>
+
+                        {/* Advanced Settings */}
+                        <AccordionItem
+                            key="advanced"
+                            title={
+                                <div className="flex items-center gap-2">
+                                    <Settings className="text-purple-400" />
+                                    <span>Advanced Settings</span>
+                                </div>
+                            }
+                            subtitle="License key and advanced configuration options"
+                            className="bg-white/5 border border-white/10 rounded-lg !mb-0"
+                        >
+                            <div className="space-y-4">
+                                <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4">
+                                    <h4 className="text-sm font-semibold text-orange-400 mb-2">QR Border Plugin License</h4>
+                                    <p className="text-xs text-gray-300 mb-3">
+                                        This license key is generated for demo purposes only. For production use, purchase a license from{" "}
+                                        <Link href="https://www.lefe.dev/marketplace/qr-border-plugin#pricing" className="text-blue-400 hover:underline">
+                                            Lefe Marketplace
+                                        </Link>.
+                                    </p>
+                                    
+                                    <div className="flex gap-2">
+                                        <Input
+                                            type="text"
+                                            label="License Key"
+                                            value={State.LicenseKey || ""}
+                                            onChange={(e) =>
+                                                setState({
+                                                    ...State,
+                                                    LicenseKey: e.target.value
+                                                })
+                                            }
+                                            variant="bordered"
+                                            className="flex-1 bg-white/5"
+                                            size="sm"
+                                            isClearable
+                                        />
+                                        
+                                        <Button
+                                            color="warning"
+                                            variant="ghost"
+                                            onClick={RotateLicenseKey}
+                                            isIconOnly
+                                            className="shrink-0"
+                                        >
+                                            <WifiProtectedSetup />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
                                     <Button
-                                        isIconOnly
-                                        color="danger"
-                                        aria-label="Like"
-                                        onClick={RotateLicenseKey}>
-                                        <WifiProtectedSetup />
+                                        variant="ghost"
+                                        className="h-12"
+                                        onClick={() => {
+                                            // TODO: Implement import functionality
+                                            alert("Import functionality coming soon!");
+                                        }}
+                                    >
+                                        📁 Import Settings
+                                    </Button>
+                                    
+                                    <Button
+                                        variant="ghost"
+                                        className="h-12"
+                                        onClick={() => {
+                                            // TODO: Implement export functionality
+                                            const settings = {
+                                                QROptions: State.QROptions,
+                                                QRPluginOptions: State.QRPluginOptions,
+                                                BorderDesign: State.BorderDesign
+                                            };
+                                            const blob = new Blob([JSON.stringify(settings, null, 2)], {
+                                                type: "application/json"
+                                            });
+                                            const url = URL.createObjectURL(blob);
+                                            const a = document.createElement("a");
+                                            a.href = url;
+                                            a.download = "qr-settings.json";
+                                            a.click();
+                                            URL.revokeObjectURL(url);
+                                        }}
+                                    >
+                                        💾 Export Settings
                                     </Button>
                                 </div>
-                            </div>
-                        </AccordionItem>
-
-                        {/* @Import & Export */}
-                        <AccordionItem
-                            title="Import & Export"
-                            subtitle="Import & Export QR Code Settings in JSON Format">
-                            <ButtonGroup className="item-ImportExport">
-                                <Button variant="light">Import</Button>
-                                <Button variant="light">Export</Button>
-                            </ButtonGroup>
-                        </AccordionItem>
-
-                        {/* @Download */}
-                        <AccordionItem
-                            title="Download"
-                            subtitle="Download QR Code in Different Formats">
-                            <div className="item-Download">
-                                <StyledToggleButtonGroup
-                                    value={State.FileExt}
-                                    exclusive
-                                    onChange={(e, value) =>
-                                        setState({ ...State, FileExt: value })
-                                    }
-                                    sx={{
-                                        // ? Modify All the Items Border-Radius
-                                        "& .MuiToggleButtonGroup-firstButton": {
-                                            borderRadius: "10px 0 0 10px"
-                                        },
-                                        "& .MuiToggleButtonGroup-lastButton": {
-                                            borderRadius: "0 10px 10px 0"
-                                        }
-                                    }}>
-                                    <ToggleButton value="svg">SVG</ToggleButton>
-                                    <ToggleButton value="png">PNG</ToggleButton>
-                                    <ToggleButton value="jpeg">
-                                        JPEG
-                                    </ToggleButton>
-                                    <ToggleButton value="webp">
-                                        WEBP
-                                    </ToggleButton>
-                                </StyledToggleButtonGroup>
-                                <Button
-                                    onClick={onDownloadClick}
-                                    variant="light">
-                                    <CloudDownload />
-                                    Download
-                                </Button>
                             </div>
                         </AccordionItem>
                     </Accordion>

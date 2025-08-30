@@ -18,7 +18,9 @@ import {
     Compress,
     Image,
     Tag,
-    PictureAsPdf
+    PictureAsPdf,
+    MergeType,
+    PhotoLibrary
 } from "@mui/icons-material";
 
 // Tool definitions
@@ -44,13 +46,13 @@ export const Tools = [
         Description: "Convert between JSON and JavaScript objects",
         Category: "data"
     },
-    // {
-    //     Query: "ColourPalette",
-    //     Title: "Colour Picker",
-    //     Icon: <Colorize sx={{ width: 32, height: 32 }} />,
-    //     Description: "Pick and manage colors",
-    //     Category: 'color'
-    // },
+    {
+        Query: "ColourPalette",
+        Title: "Colour Palette",
+        Icon: <Palette sx={{ width: 32, height: 32 }} />,
+        Description: "Create and manage custom color palettes",
+        Category: "color"
+    },
     {
         Query: "Colour",
         Title: "Colour Picker",
@@ -58,13 +60,13 @@ export const Tools = [
         Description: "Pick and manage colors",
         Category: "color"
     },
-    // {
-    // 	Query: "Case",
-    // 	Title: "Case Changer",
-    // 	Icon: <TextFields sx={{ width: 32, height: 32 }} />,
-    // 	Description: "Convert text between different cases",
-    // 	Category: "text",
-    // },
+    {
+        Query: "Case",
+        Title: "Case Changer",
+        Icon: <TextFields sx={{ width: 32, height: 32 }} />,
+        Description: "Convert text between different cases",
+        Category: "text"
+    },
     {
         Query: "CRX",
         Title: "CRX Downloader",
@@ -133,7 +135,7 @@ export const Tools = [
         Title: "Image to PDF",
         Icon: <PictureAsPdf sx={{ width: 32, height: 32 }} />,
         Description:
-            "Convert images to PDF with customizable settings (max 20 files)",
+            "Convert images to PDF with smart scaling options - no more white spaces (max 20 files)",
         Category: "image"
     },
     {
@@ -142,6 +144,20 @@ export const Tools = [
         Icon: <Tag sx={{ width: 32, height: 32 }} />,
         Description: "Generate hash values for text using various algorithms",
         Category: "security"
+    },
+    {
+        Query: "MergePDFs",
+        Title: "Merge PDFs",
+        Icon: <MergeType sx={{ width: 32, height: 32 }} />,
+        Description: "Combine multiple PDF files into a single document",
+        Category: "utility"
+    },
+    {
+        Query: "PDFToImage",
+        Title: "PDF to Image",
+        Icon: <PhotoLibrary sx={{ width: 32, height: 32 }} />,
+        Description: "Convert PDF pages to image files (PNG, JPEG, WebP)",
+        Category: "image"
     }
 ];
 

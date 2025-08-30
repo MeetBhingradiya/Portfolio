@@ -51,9 +51,8 @@ export default function ImageToPDF() {
     const [viewMode, setViewMode] = useState<"list" | "grid">("list");
     const [pdfSettings, setPdfSettings] = useState({
         pageSize: "A4" as "A4" | "Letter" | "A3" | "A5",
-        orientation: "portrait" as "portrait" | "landscape",
         margin: 0,
-        fitToPage: true,
+        imageScaling: "fit" as "fit" | "fill" | "stretch",
         filename: "images-to-pdf"
     });
     const [isDragOver, setIsDragOver] = useState(false);
@@ -395,17 +394,17 @@ export default function ImageToPDF() {
 
                         <div className="flex flex-col gap-2">
                             <label className="text-white font-medium text-sm">
-                                Orientation:
+                                Image Scaling:
                             </label>
                             <Select
-                                selectedKeys={[pdfSettings.orientation]}
+                                selectedKeys={[pdfSettings.imageScaling]}
                                 onSelectionChange={(keys) => {
                                     const selectedKey = Array.from(
                                         keys
                                     )[0] as string;
                                     setPdfSettings((prev) => ({
                                         ...prev,
-                                        orientation: selectedKey as any
+                                        imageScaling: selectedKey as any
                                     }));
                                 }}
                                 variant="bordered"
@@ -414,10 +413,9 @@ export default function ImageToPDF() {
                                     trigger:
                                         "bg-white/10 border-white/20 text-white"
                                 }}>
-                                <SelectItem key="portrait">Portrait</SelectItem>
-                                <SelectItem key="landscape">
-                                    Landscape
-                                </SelectItem>
+                                <SelectItem key="fit">Fit (Keep Aspect Ratio)</SelectItem>
+                                <SelectItem key="fill">Fill Page (Crop if needed)</SelectItem>
+                                <SelectItem key="stretch">Stretch to Fill</SelectItem>
                             </Select>
                         </div>
 
@@ -437,6 +435,24 @@ export default function ImageToPDF() {
                                 className="px-3 py-2 border border-white/20 rounded-md bg-white/10 text-white text-sm transition-all duration-300 focus:outline-none focus:border-accent focus:bg-white/15 placeholder:text-gray-400"
                                 placeholder="Enter PDF filename"
                             />
+                        </div>
+                    </div>
+                    
+                    {/* Image Scaling Descriptions */}
+                    <div className="mt-4 p-3 bg-white/5 rounded-lg">
+                        <p className="text-xs text-gray-300 mb-2">
+                            <strong>Image Scaling Options:</strong>
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-gray-400">
+                            <div>
+                                <strong className="text-blue-300">Fit:</strong> Maintains aspect ratio, fits within page bounds
+                            </div>
+                            <div>
+                                <strong className="text-green-300">Fill:</strong> Fills entire page, may crop image to maintain ratio
+                            </div>
+                            <div>
+                                <strong className="text-orange-300">Stretch:</strong> Stretches image to fill page exactly
+                            </div>
                         </div>
                     </div>
                 </div>

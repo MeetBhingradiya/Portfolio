@@ -91,7 +91,7 @@
         "@types/jszip": "^3.4.1",
         "@types/luxon": "^3.6.2",
         "@types/node": "^24.1.0",
-        "@types/nodemailer": "^6.4.17",
+        "@types/nodemailer": "^7.0.1",
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
         "@types/three": "^0.178.1",

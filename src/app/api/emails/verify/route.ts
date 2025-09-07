@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@Utils/dbConnect";
-import { Users_Model } from "@Models/Users";
+import { Users_Model } from "@/Models/Willbe/Users";
 import { OTPs_Model, OTPs } from "@Models/OneTimePass";
 import { verifyJWT } from "@Utils/JWT";
 import { log } from "@Utils";

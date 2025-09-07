@@ -1,4 +1,4 @@
-import { Schema, model, models, Document } from 'mongoose';
+import mongoose, { Schema, model, models, Document } from 'mongoose';
 import {
     SubjectSlotType,
     DayOfWeek,
@@ -527,6 +527,8 @@ TimetableSchema.pre('save', function (next) {
 });
 
 // Create the model
-export const TimetableModel = models.Timetable || model<ITimetable>('Timetable', TimetableSchema);
+export const TimetableModel = 
+    (mongoose.models?.Timetable as mongoose.Model<ITimetable>) ||
+    mongoose.model<ITimetable>('Timetable', TimetableSchema);
 
 export default TimetableModel;

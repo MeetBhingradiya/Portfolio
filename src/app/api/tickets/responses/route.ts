@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@Utils/dbConnect";
 import { Tickets_Model } from "@Models/Tickets";
-import { Users_Model } from "@Models/Users";
+import { Users_Model } from "@/Models/Willbe/Users";
 import { Sessions_Model } from "@Models/Sessions";
 import { v4 } from "uuid";
 import { createEmailTransport } from "@Utils/EmailSend";

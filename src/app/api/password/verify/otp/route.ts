@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Users_Model } from "@Models/Users";
+import { Users_Model } from "@/Models/Willbe/Users";
 import { OTPs_Model, OTPs } from "@Models/OneTimePass";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
 import { dbConnect } from "@Utils/dbConnect";

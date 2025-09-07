@@ -111,6 +111,16 @@ export interface Timetable extends Document {
     availableSubjects: SubjectOption[];
     availableClassrooms: ClassroomOption[];
     availableFaculty: FacultyOption[];
+    
+    // Methods
+    getSubjectsByDay(day: DayOfWeek): Subject[];
+    getSubjectByTimeAndDay(timeSlot: TimeSlot, day: DayOfWeek): Subject | null;
+    canEdit(userId?: string): boolean;
+    canDelete(userId?: string): boolean;
+    lock(userId: string, reason?: string, unlockCode?: string, allowedEditors?: string[]): Promise<void>;
+    unlock(userId?: string, unlockCode?: string): boolean;
+    canUnlock(userId?: string, unlockCode?: string): boolean;
+    generateGrid(): TimetableGrid;
 }
 
 export interface TimetableCell {

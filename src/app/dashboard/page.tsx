@@ -54,7 +54,9 @@ import {
     Delete,
     Add,
     Key,
-    Fingerprint
+    Fingerprint,
+    AccountBalance as BanknotesIcon,
+    Wallet as WalletIcon
 } from "@mui/icons-material";
 import { 
     FaDiscord, 
@@ -228,15 +230,15 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+        <div className="min-h-screen bg-gray-50/30 dark:bg-gray-900/30">
             <motion.div
-                className="container mx-auto px-4 py-8"
+                className="max-w-7xl mx-auto px-6 py-8"
                 variants={containerVariants}
                 initial="hidden"
                 animate="visible"
             >
                 {/* Header */}
-                <motion.div variants={itemVariants} className="mb-8">
+                <motion.div variants={itemVariants} className="mb-12">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                             <Avatar
@@ -244,13 +246,14 @@ export default function DashboardPage() {
                                 alt={user.name}
                                 size="lg"
                                 fallback={<Person />}
+                                className="ring-2 ring-gray-200 dark:ring-gray-700"
                             />
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                                    Welcome, {user.firstName || user.name?.split(" ")[0] || user.username}!
+                                <h1 className="text-2xl font-semibold text-gray-900 dark:text-white tracking-tight">
+                                    Welcome, {user.firstName || user.name?.split(" ")[0] || user.username}
                                 </h1>
                                 <div className="flex items-center gap-2 mt-1">
-                                    <p className="text-gray-600 dark:text-gray-400">
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
                                         @{user.username}
                                     </p>
                                     {user.isEmailVerified && (
@@ -259,6 +262,7 @@ export default function DashboardPage() {
                                             variant="flat"
                                             color="success"
                                             startContent={<Verified className="w-3 h-3" />}
+                                            className="bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400"
                                         >
                                             Verified
                                         </Chip>
@@ -269,6 +273,7 @@ export default function DashboardPage() {
                                             variant="flat"
                                             color="warning"
                                             startContent={<AdminPanelSettings className="w-3 h-3" />}
+                                            className="bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400"
                                         >
                                             Admin
                                         </Chip>
@@ -278,9 +283,10 @@ export default function DashboardPage() {
                         </div>
                         <Button
                             color="danger"
-                            variant="light"
+                            variant="ghost"
                             onPress={onSignOutOpen}
                             startContent={<ExitToApp />}
+                            className="hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
                             Sign Out
                         </Button>
@@ -303,64 +309,68 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* User Information */}
                     <motion.div variants={itemVariants} className="lg:col-span-2">
-                        <Card>
-                            <CardHeader>
+                        <Card className="border-0 shadow-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
                                 <div className="flex items-center gap-2">
-                                    <Person />
-                                    <h2 className="text-xl font-semibold">Profile Information</h2>
+                                    <Person className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">Profile Information</h2>
                                 </div>
                             </CardHeader>
-                            <CardBody className="space-y-4">
+                            <CardBody className="space-y-4 pt-0">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                             First Name
                                         </label>
-                                        <p className="text-gray-900 dark:text-white">
+                                        <p className="text-sm text-gray-900 dark:text-white mt-1">
                                             {user.firstName || "Not set"}
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                             Last Name
                                         </label>
-                                        <p className="text-gray-900 dark:text-white">
+                                        <p className="text-sm text-gray-900 dark:text-white mt-1">
                                             {user.lastName || "Not set"}
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                             Email
                                         </label>
-                                        <p className="text-gray-900 dark:text-white">
+                                        <p className="text-sm text-gray-900 dark:text-white mt-1">
                                             {user.email}
                                         </p>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        <label className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                             Username
                                         </label>
-                                        <p className="text-gray-900 dark:text-white">
+                                        <p className="text-sm text-gray-900 dark:text-white mt-1">
                                             @{user.username}
                                         </p>
                                     </div>
                                 </div>
-                                <Divider />
+                                <Divider className="bg-gray-200 dark:bg-gray-700" />
                                 <div className="flex justify-end">
                                     <div className="flex gap-2">
                                         <Button
                                             color="primary"
-                                            variant="flat"
-                                            startContent={<Settings />}
+                                            variant="ghost"
+                                            size="sm"
+                                            startContent={<Settings className="w-4 h-4" />}
                                             onPress={() => router.push("/profile")}
+                                            className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                         >
                                             Edit Profile
                                         </Button>
                                         <Button
                                             color="secondary"
-                                            variant="flat"
-                                            startContent={<Settings />}
+                                            variant="ghost"
+                                            size="sm"
+                                            startContent={<Settings className="w-4 h-4" />}
                                             onPress={() => router.push("/settings")}
+                                            className="hover:bg-purple-50 dark:hover:bg-purple-900/20"
                                         >
                                             Settings
                                         </Button>
@@ -372,49 +382,53 @@ export default function DashboardPage() {
 
                     {/* Security Overview */}
                     <motion.div variants={itemVariants}>
-                        <Card>
-                            <CardHeader>
+                        <Card className="border-0 shadow-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
                                 <div className="flex items-center gap-2">
-                                    <Security />
-                                    <h2 className="text-xl font-semibold">Security</h2>
+                                    <Security className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">Security</h2>
                                 </div>
                             </CardHeader>
-                            <CardBody className="space-y-4">
+                            <CardBody className="space-y-4 pt-0">
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="font-medium">Two-Factor Auth</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">Two-Factor Auth</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
                                             Extra security layer
                                         </p>
                                     </div>
                                     <Switch
                                         isSelected={user.isMFAEnabled}
                                         color="success"
+                                        size="sm"
                                     />
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div>
-                                        <p className="font-medium">Passkey</p>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        <p className="text-sm font-medium text-gray-900 dark:text-white">Passkey</p>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400">
                                             Biometric authentication
                                         </p>
                                     </div>
                                     <Button
                                         size="sm"
-                                        variant="flat"
+                                        variant="ghost"
                                         color="primary"
-                                        startContent={<Fingerprint />}
+                                        startContent={<Fingerprint className="w-4 h-4" />}
+                                        className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                     >
                                         Setup
                                     </Button>
                                 </div>
-                                <Divider />
+                                <Divider className="bg-gray-200 dark:bg-gray-700" />
                                 <Button
                                     color="primary"
-                                    variant="flat"
+                                    variant="ghost"
+                                    size="sm"
                                     fullWidth
-                                    startContent={<Shield />}
+                                    startContent={<Shield className="w-4 h-4" />}
                                     onPress={() => router.push("/dashboard/security")}
+                                    className="hover:bg-blue-50 dark:hover:bg-blue-900/20 justify-center"
                                 >
                                     Security Settings
                                 </Button>
@@ -424,19 +438,20 @@ export default function DashboardPage() {
 
                     {/* Connected Accounts */}
                     <motion.div variants={itemVariants} className="lg:col-span-2">
-                        <Card>
-                            <CardHeader>
+                        <Card className="border-0 shadow-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
                                 <div className="flex items-center justify-between w-full">
                                     <div className="flex items-center gap-2">
-                                        <DeviceHub />
-                                        <h2 className="text-xl font-semibold">Connected Accounts</h2>
+                                        <DeviceHub className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                        <h2 className="text-lg font-medium text-gray-900 dark:text-white">Connected Accounts</h2>
                                     </div>
                                     <Button
                                         size="sm"
                                         color="primary"
-                                        variant="flat"
-                                        startContent={<Add />}
+                                        variant="ghost"
+                                        startContent={<Add className="w-4 h-4" />}
                                         onPress={() => router.push("/dashboard/connect")}
+                                        className="hover:bg-blue-50 dark:hover:bg-blue-900/20"
                                     >
                                         Connect More
                                     </Button>
@@ -495,14 +510,14 @@ export default function DashboardPage() {
 
                     {/* Active Sessions */}
                     <motion.div variants={itemVariants}>
-                        <Card>
-                            <CardHeader>
+                        <Card className="border-0 shadow-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+                            <CardHeader className="pb-3">
                                 <div className="flex items-center gap-2">
-                                    <Schedule />
-                                    <h2 className="text-xl font-semibold">Active Sessions</h2>
+                                    <Schedule className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <h2 className="text-lg font-medium text-gray-900 dark:text-white">Active Sessions</h2>
                                 </div>
                             </CardHeader>
-                            <CardBody>
+                            <CardBody className="pt-0">
                                 {dashboardData?.activeSessions?.length ? (
                                     <div className="space-y-3">
                                         {dashboardData.activeSessions.slice(0, 3).map((session, index) => (
@@ -562,45 +577,61 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Quick Actions */}
-                <motion.div variants={itemVariants} className="mt-8">
-                    <Card>
-                        <CardHeader>
-                            <h2 className="text-xl font-semibold">Quick Actions</h2>
+                <motion.div variants={itemVariants} className="mt-12">
+                    <Card className="border-0 shadow-sm bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm">
+                        <CardHeader className="pb-3">
+                            <h2 className="text-lg font-medium text-gray-900 dark:text-white">Quick Actions</h2>
                         </CardHeader>
-                        <CardBody>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <CardBody className="pt-0">
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
                                 <Button
-                                    variant="flat"
-                                    className="h-20 flex-col"
+                                    variant="ghost"
+                                    className="h-20 flex-col hover:bg-gray-50 dark:hover:bg-gray-700/50"
                                     onPress={() => router.push("/profile")}
                                 >
-                                    <Person className="mb-2" />
-                                    <span className="text-sm">Edit Profile</span>
+                                    <Person className="mb-2 w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <span className="text-xs text-gray-700 dark:text-gray-300">Edit Profile</span>
                                 </Button>
                                 <Button
-                                    variant="flat"
-                                    className="h-20 flex-col"
+                                    variant="ghost"
+                                    className="h-20 flex-col hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                    onPress={() => router.push("/wallet")}
+                                >
+                                    <WalletIcon className="mb-2 w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <span className="text-xs text-gray-700 dark:text-gray-300">Wallets</span>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    className="h-20 flex-col hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                                    onPress={() => router.push("/financial")}
+                                >
+                                    <BanknotesIcon className="mb-2 w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <span className="text-xs text-gray-700 dark:text-gray-300">Financial</span>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    className="h-20 flex-col hover:bg-gray-50 dark:hover:bg-gray-700/50"
                                     onPress={() => router.push("/dashboard/security")}
                                 >
-                                    <Security className="mb-2" />
-                                    <span className="text-sm">Security</span>
+                                    <Security className="mb-2 w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <span className="text-xs text-gray-700 dark:text-gray-300">Security</span>
                                 </Button>
                                 <Button
-                                    variant="flat"
-                                    className="h-20 flex-col"
+                                    variant="ghost"
+                                    className="h-20 flex-col hover:bg-gray-50 dark:hover:bg-gray-700/50"
                                     onPress={() => router.push("/dashboard/connect")}
                                 >
-                                    <DeviceHub className="mb-2" />
-                                    <span className="text-sm">Connect Apps</span>
+                                    <DeviceHub className="mb-2 w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                    <span className="text-xs text-gray-700 dark:text-gray-300">Connect Apps</span>
                                 </Button>
                                 {user.isAdmin && (
                                     <Button
-                                        variant="flat"
-                                        className="h-20 flex-col"
+                                        variant="ghost"
+                                        className="h-20 flex-col hover:bg-gray-50 dark:hover:bg-gray-700/50"
                                         onPress={() => router.push("/admin")}
                                     >
-                                        <AdminPanelSettings className="mb-2" />
-                                        <span className="text-sm">Admin Panel</span>
+                                        <AdminPanelSettings className="mb-2 w-5 h-5 text-gray-600 dark:text-gray-400" />
+                                        <span className="text-xs text-gray-700 dark:text-gray-300">Admin Panel</span>
                                     </Button>
                                 )}
                             </div>

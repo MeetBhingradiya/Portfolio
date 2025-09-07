@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { useEmptyFields } from "@Hooks/useEmptyFields";
-import { Users_Model } from "@Models/Users";
+import { Users_Model } from "@/Models/Willbe/Users";
 import { Sessions_Model } from "@Models/Sessions";
 import { Decrypt } from "@Utils/Crypto";
 import { IPData, log } from "@Utils";

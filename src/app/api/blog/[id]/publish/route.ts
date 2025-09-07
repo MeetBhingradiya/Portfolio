@@ -90,7 +90,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         }
 
         // Check permissions (author or admin)
-        if (existingBlog.AuthorID !== user.UserID && !user.isAdmin) {
+        if (existingBlog.AuthorID !== user.UserID && user.role !== 'admin') {
             return NextResponse.json(
                 {
                     Status: 0,

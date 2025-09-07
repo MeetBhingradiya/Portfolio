@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@Utils/dbConnect";
 import { Blogs_Model } from "@Models/Blogs";
 import { BlogsContents_Model } from "@Models/BlogsContent";
-import { Users_Model } from "@Models/Users";
+import { Users_Model } from "@/Models/Willbe/Users";
 
 // Move the generateSlug function to a separate utility file or keep it internal
 function generateSlugInternal(title: string): string {

@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
     try {
         const user = await getUserFromToken(request);
 
-        if (!user || !user.isAdmin) {
+        if (!user || user.role !== 'admin') {
             return NextResponse.json(
                 {
                     Status: 0,

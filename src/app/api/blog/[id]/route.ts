@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@Utils/dbConnect";
 import { Blogs_Model, BlogVisibility } from "@Models/Blogs";
 import { BlogsContents_Model } from "@Models/BlogsContent";
-import { Users_Model } from "@Models/Users";
+import { Users_Model } from "@/Models/Willbe/Users";
 import { Sessions_Model } from "@Models/Sessions";
 import { log } from "@Utils";
 import { v4 } from "uuid";

@@ -12,11 +12,7 @@ import {
     Divider,
     Spinner,
     Alert,
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    useDisclosure
+    Chip
 } from "@heroui/react";
 import {
     Visibility,
@@ -34,11 +30,14 @@ import {
     Apple,
     X as TwitterIcon,
     Email,
-    Key
+    Key,
+    Home,
+    ArrowBack
 } from "@mui/icons-material";
 import { FaDiscord, FaInstagram, FaPatreon, FaPinterest, FaReddit, FaSlack, FaSpotify, FaGitlab } from "react-icons/fa";
 import { Config } from "@Config";
 import { useAuth } from "@contexts/NextAuthContext";
+import Link from "next/link";
 
 // Provider Icons Mapping
 const providerIcons: Record<string, React.ReactNode> = {
@@ -85,34 +84,27 @@ const providerColors: Record<string, string> = {
 interface SignInState {
     email: string;
     password: string;
-    magicLinkEmail: string;
     isLoading: boolean;
     showPassword: boolean;
     error: string;
     success: string;
-    rememberMe: boolean;
     isPasskeySupported: boolean;
-    usePasskey: boolean;
 }
 
 function SignInContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const { credentialLogin, isAuthenticated, loading: authLoading } = useAuth();
-    const { isOpen, onOpen, onClose } = useDisclosure();
 
     const [providers, setProviders] = useState<any>(null);
     const [state, setState] = useState<SignInState>({
         email: "",
         password: "",
-        magicLinkEmail: "",
         isLoading: false,
         showPassword: false,
         error: "",
         success: "",
-        rememberMe: false,
-        isPasskeySupported: false,
-        usePasskey: false
+        isPasskeySupported: false
     });
 
     const redirectUrl = React.useMemo(() => {
@@ -122,7 +114,10 @@ function SignInContent() {
 
     // Get available providers
     useEffect(() => {
-        getProviders().then(setProviders);
+        getProviders().then((providerData) => {
+            console.log("Available providers:", providerData);
+            setProviders(providerData);
+        });
     }, []);
 
     // Check for passkey support
@@ -173,13 +168,6 @@ function SignInContent() {
             }));
         }
     }, [searchParams]);
-
-    // Auto-open modal if not authenticated
-    useEffect(() => {
-        if (!authLoading && !isAuthenticated) {
-            onOpen();
-        }
-    }, [authLoading, isAuthenticated, onOpen]);
 
     const getErrorMessage = (error: string): string => {
         switch (error) {
@@ -248,11 +236,51 @@ function SignInContent() {
         setState(prev => ({ ...prev, isLoading: true, error: "" }));
 
         try {
+            // For email provider, prompt for email address
+            if (providerId === "email") {
+                const email = prompt("Enter your email address for the magic link:");
+                if (!email) {
+                    setState(prev => ({ ...prev, isLoading: false }));
+                    return;
+                }
+
+                // Validate email format
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    setState(prev => ({
+                        ...prev,
+                        error: "Please enter a valid email address",
+                        isLoading: false
+                    }));
+                    return;
+                }
+                
+                const result = await signIn(providerId, {
+                    email: email,
+                    callbackUrl: redirectUrl,
+                    redirect: false
+                });
+
+                if (result?.error) {
+                    setState(prev => ({
+                        ...prev,
+                        error: result.error || "Failed to send magic link",
+                        isLoading: false
+                    }));
+                } else {
+                    setState(prev => ({
+                        ...prev,
+                        success: "Magic link sent! Check your email to continue.",
+                        isLoading: false
+                    }));
+                }
+                return;
+            }
+
+            // For other OAuth providers
             const result = await signIn(providerId, {
                 callbackUrl: redirectUrl,
-                redirect: false, // Don't redirect immediately, handle response
-                // For email provider, pass the email as identifier
-                ...(providerId === "email" && { email: state.magicLinkEmail })
+                redirect: false
             });
 
             if (result?.error) {
@@ -262,20 +290,9 @@ function SignInContent() {
                     isLoading: false
                 }));
             } else if (result?.url) {
-                // Successful signin, redirect
                 window.location.href = result.url;
             } else {
-                // For email provider, show success message
-                if (providerId === "email") {
-                    setState(prev => ({
-                        ...prev,
-                        success: "Magic link sent! Check your email.",
-                        isLoading: false
-                    }));
-                } else {
-                    // Fallback redirect
-                    router.push(redirectUrl);
-                }
+                router.push(redirectUrl);
             }
         } catch (error: any) {
             setState(prev => ({
@@ -290,8 +307,6 @@ function SignInContent() {
         setState(prev => ({ ...prev, isLoading: true, error: "" }));
 
         try {
-            // Implement WebAuthn/Passkey logic here
-            // This would integrate with your existing passkey implementation
             console.log("Passkey signin not yet implemented");
             setState(prev => ({
                 ...prev,
@@ -307,7 +322,7 @@ function SignInContent() {
         }
     };
 
-    // Filter enabled providers (exclude credentials and email as they have separate forms)
+    // Filter enabled providers
     const enabledProviders = providers ? Object.values(providers).filter((provider: any) => {
         const configProvider = Config.AuthProviders[provider.id];
         return configProvider?.enabled && provider.id !== "credentials" && provider.id !== "email";
@@ -327,224 +342,250 @@ function SignInContent() {
 
     if (authLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
                 <Spinner size="lg" />
             </div>
         );
     }
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            size="2xl"
-            classNames={{
-                backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20"
-            }}
-            hideCloseButton
-            isDismissable={false}
-        >
-            <ModalContent>
-                <ModalHeader className="flex flex-col gap-1">
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Welcome back
-                    </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Sign in to your account to continue
-                    </p>
-                </ModalHeader>
-                <ModalBody className="pb-6">
-                    <div className="space-y-6">
-                        {/* Error/Success Messages */}
-                        <AnimatePresence>
-                            {state.error && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                >
-                                    <Alert
-                                        color="danger"
-                                        variant="flat"
-                                        startContent={<ErrorOutline />}
-                                        title="Error"
-                                        description={state.error}
-                                    />
-                                </motion.div>
-                            )}
+        <div className="min-h-screen relative overflow-hidden">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-5 dark:opacity-10">
+                <div
+                    className="absolute inset-0"
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='7'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+                    }}
+                />
+            </div>
 
-                            {state.success && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -10 }}
-                                >
-                                    <Alert
-                                        color="success"
-                                        variant="flat"
-                                        startContent={<CheckCircle />}
-                                        title="Success"
-                                        description={state.success}
-                                    />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* OAuth Providers */}
-                        {filteredProviders.length > 0 && (
-                            <div className="space-y-3">
-                                <div className="grid grid-cols-1 gap-3">
-                                    {filteredProviders.map((provider: any) => (
-                                        <Button
-                                            key={provider.id}
-                                            variant="bordered"
-                                            className={`h-12 justify-start text-left ${providerColors[provider.id] || 'border-gray-200 hover:bg-gray-50'}`}
-                                            onPress={() => handleProviderSignIn(provider.id)}
-                                            isDisabled={state.isLoading}
-                                            startContent={providerIcons[provider.id]}
-                                        >
-                                            Continue with {provider.name}
-                                        </Button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Passkey Option */}
-                        {state.isPasskeySupported && Config.AuthProviders.Passkeys?.enabled && (
-                            <>
-                                <Divider />
-                                <Button
-                                    variant="bordered"
-                                    className="h-12 justify-start text-left border-purple-200 hover:bg-purple-50 dark:border-purple-500/30 dark:hover:bg-purple-900/20"
-                                    onPress={handlePasskeySignIn}
-                                    isDisabled={state.isLoading}
-                                    startContent={<Fingerprint className="text-purple-500" />}
-                                >
-                                    Sign in with Passkey
-                                </Button>
-                            </>
-                        )}
-
-                        {/* Email Magic Link Form */}
-                        {Config.AuthProviders.email?.enabled && (
-                            <>
-                                <Divider />
-                                <div className="space-y-4">
-                                    <Input
-                                        type="email"
-                                        label="Email"
-                                        placeholder="Enter your email for magic link"
-                                        value={state.magicLinkEmail}
-                                        onChange={(e) => setState(prev => ({
-                                            ...prev,
-                                            magicLinkEmail: e.target.value
-                                        }))}
-                                        isRequired
-                                        startContent={<Email className="text-gray-400" />}
-                                    />
-                                    <Button
-                                        color="primary"
-                                        className="w-full h-12"
-                                        isDisabled={!state.magicLinkEmail || state.isLoading}
-                                        onPress={() => handleProviderSignIn("email")}
-                                        startContent={<Email />}
-                                    >
-                                        Send Magic Link
-                                    </Button>
-                                </div>
-                            </>
-                        )}
-
-                        {/* Credentials Form */}
-                        {Config.AuthProviders.credentials?.enabled && (
-                            <>
-                                <Divider />
-                                <form onSubmit={handleCredentialSignIn} className="space-y-4">
-                                    <Input
-                                        type="email"
-                                        label="Email"
-                                        placeholder="Enter your email"
-                                        value={state.email}
-                                        onChange={(e) => setState(prev => ({
-                                            ...prev,
-                                            email: e.target.value
-                                        }))}
-                                        isRequired
-                                        startContent={<Email className="text-gray-400" />}
-                                    />
-
-                                    <Input
-                                        type={state.showPassword ? "text" : "password"}
-                                        label="Password"
-                                        placeholder="Enter your password"
-                                        value={state.password}
-                                        onChange={(e) => setState(prev => ({
-                                            ...prev,
-                                            password: e.target.value
-                                        }))}
-                                        isRequired
-                                        startContent={<Key className="text-gray-400" />}
-                                        endContent={
-                                            <button
-                                                type="button"
-                                                onClick={() => setState(prev => ({
-                                                    ...prev,
-                                                    showPassword: !prev.showPassword
-                                                }))}
-                                            >
-                                                {state.showPassword ?
-                                                    <VisibilityOff className="text-gray-400" /> :
-                                                    <Visibility className="text-gray-400" />
-                                                }
-                                            </button>
-                                        }
-                                    />
-
-                                    <Button
-                                        type="submit"
-                                        color="primary"
-                                        className="w-full h-12"
-                                        isLoading={state.isLoading}
-                                        startContent={!state.isLoading && <Login />}
-                                    >
-                                        {state.isLoading ? "Signing in..." : "Sign in"}
-                                    </Button>
-                                </form>
-                            </>
-                        )}
-
-                        <div className="text-center space-y-2">
-                            <Button
-                                variant="light"
-                                size="sm"
-                                onPress={() => router.push("/auth/forgot-password")}
-                            >
-                                Forgot your password?
-                            </Button>
-                            <div className="text-sm text-gray-600 dark:text-gray-400">
-                                Don&apos;t have an account?{" "}
-                                <Button
-                                    variant="light"
-                                    size="sm"
-                                    onPress={() => router.push("/auth/signup")}
-                                    className="p-0 h-auto text-primary"
-                                >
-                                    Sign up
-                                </Button>
-                            </div>
+            {/* Main Content */}
+            <div className="relative z-10 flex items-center justify-center min-h-[calc(100vh-4rem)] pb-12 px-4 sm:px-6 lg:px-8">
+                <div className="w-full max-w-md">
+                    {/* Header */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6 }}
+                        className="text-center mb-8"
+                    >
+                        <div className="inline-flex items-center space-x-2 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 px-4 py-2 rounded-full text-sm font-medium border border-blue-200 dark:border-blue-800 mb-6">
+                            <Security className="h-4 w-4" />
+                            <span>Currently only for Admins</span>
                         </div>
-                    </div>
-                </ModalBody>
-            </ModalContent>
-        </Modal>
+
+                        <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 dark:from-white dark:via-gray-100 dark:to-gray-300 bg-clip-text text-transparent mb-3">
+                            Welcome back
+                        </h1>
+                        <p className="text-lg text-gray-600 dark:text-gray-400">
+                            Sign in to your account to continue
+                        </p>
+                    </motion.div>
+
+                    {/* Sign In Card */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, delay: 0.1 }}
+                    >
+                        <Card className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-0 shadow-xl">
+                            <CardBody className="p-8">
+                                <div className="space-y-6">
+                                    {/* Error/Success Messages */}
+                                    <AnimatePresence>
+                                        {state.error && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                            >
+                                                <Alert
+                                                    color="danger"
+                                                    variant="flat"
+                                                    startContent={<ErrorOutline />}
+                                                    title="Error"
+                                                    description={state.error}
+                                                />
+                                            </motion.div>
+                                        )}
+
+                                        {state.success && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                            >
+                                                <Alert
+                                                    color="success"
+                                                    variant="flat"
+                                                    startContent={<CheckCircle />}
+                                                    title="Success"
+                                                    description={state.success}
+                                                />
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* OAuth Providers */}
+                                    {filteredProviders.length > 0 && (
+                                        <div className="space-y-3">
+                                            <div className="grid grid-cols-1 gap-3">
+                                                {filteredProviders.map((provider: any) => (
+                                                    <Button
+                                                        key={provider.id}
+                                                        variant="bordered"
+                                                        className={`h-12 justify-start text-left transition-all hover:scale-[1.02] ${providerColors[provider.id] || 'border-gray-200 hover:bg-gray-50'}`}
+                                                        onPress={() => handleProviderSignIn(provider.id)}
+                                                        isDisabled={state.isLoading}
+                                                        startContent={providerIcons[provider.id]}
+                                                    >
+                                                        Continue with {provider.name}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <div className="space-x-3">
+                                        {/* Passkey Option */}
+                                        {state.isPasskeySupported && Config.AuthProviders.Passkeys?.enabled && (
+                                            <>
+                                                <Button
+                                                    variant="bordered"
+                                                    className="h-12 justify-start text-left border-purple-200 hover:bg-purple-50 dark:border-purple-500/30 dark:hover:bg-purple-900/20 transition-all hover:scale-[1.02]"
+                                                    onPress={handlePasskeySignIn}
+                                                    isDisabled={state.isLoading}
+                                                    startContent={<Fingerprint className="text-purple-500" />}
+                                                >
+                                                    Passkey
+                                                </Button>
+                                            </>
+                                        )}
+
+                                        {/* Email Magic Link Button */}
+                                        {Config.AuthProviders.email?.enabled && (
+                                            <>
+                                                <Button
+                                                    variant="bordered"
+                                                    className="h-12 justify-start text-left border-blue-200 hover:bg-blue-50 dark:border-blue-500/30 dark:hover:bg-blue-900/20 transition-all hover:scale-[1.02]"
+                                                    onPress={() => {
+                                                        console.log("Magic link clicked, email config:", Config.AuthProviders.email);
+                                                        handleProviderSignIn("email");
+                                                    }}
+                                                    isDisabled={state.isLoading}
+                                                    startContent={<Email className="text-blue-500" />}
+                                                >
+                                                    Magic Link
+                                                </Button>
+                                            </>
+                                        )}
+
+                                    </div>
+
+                                    {/* Credentials Form */}
+                                    {Config.AuthProviders.credentials?.enabled && (
+                                        <>
+                                            <Divider />
+                                            <form onSubmit={handleCredentialSignIn} className="space-y-4">
+                                                <Input
+                                                    type="email"
+                                                    label="Email"
+                                                    placeholder="Enter your email"
+                                                    value={state.email}
+                                                    onChange={(e) => setState(prev => ({
+                                                        ...prev,
+                                                        email: e.target.value
+                                                    }))}
+                                                    isRequired
+                                                    startContent={<Email className="text-gray-400" />}
+                                                    classNames={{
+                                                        input: "transition-all",
+                                                        inputWrapper: "hover:border-blue-300 focus-within:border-blue-500"
+                                                    }}
+                                                />
+
+                                                <Input
+                                                    type={state.showPassword ? "text" : "password"}
+                                                    label="Password"
+                                                    placeholder="Enter your password"
+                                                    value={state.password}
+                                                    onChange={(e) => setState(prev => ({
+                                                        ...prev,
+                                                        password: e.target.value
+                                                    }))}
+                                                    isRequired
+                                                    startContent={<Key className="text-gray-400" />}
+                                                    endContent={
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setState(prev => ({
+                                                                ...prev,
+                                                                showPassword: !prev.showPassword
+                                                            }))}
+                                                            className="focus:outline-none"
+                                                        >
+                                                            {state.showPassword ?
+                                                                <VisibilityOff className="text-gray-400 hover:text-gray-600" /> :
+                                                                <Visibility className="text-gray-400 hover:text-gray-600" />
+                                                            }
+                                                        </button>
+                                                    }
+                                                    classNames={{
+                                                        input: "transition-all",
+                                                        inputWrapper: "hover:border-blue-300 focus-within:border-blue-500"
+                                                    }}
+                                                />
+
+                                                <Button
+                                                    type="submit"
+                                                    color="primary"
+                                                    className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 transition-all hover:scale-[1.02]"
+                                                    isLoading={state.isLoading}
+                                                    startContent={!state.isLoading && <Login />}
+                                                >
+                                                    {state.isLoading ? "Signing in..." : "Sign in"}
+                                                </Button>
+                                            </form>
+                                        </>
+                                    )}
+
+                                    {/* Footer Links */}
+                                    <div className="text-center space-y-3 pt-4">
+                                        <Button
+                                            variant="light"
+                                            size="sm"
+                                            onPress={() => router.push("/auth/forgot-password")}
+                                            className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                                        >
+                                            Forgot your password?
+                                        </Button>
+                                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                                            Don&apos;t have an account?{" "}
+                                            <Button
+                                                variant="light"
+                                                size="sm"
+                                                onPress={() => router.push("/auth/signup")}
+                                                className="p-0 h-auto text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                                            >
+                                                Sign up
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </CardBody>
+                        </Card>
+                    </motion.div>
+                </div>
+            </div>
+        </div>
     );
 }
 
 export default function SignInPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
+            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
                 <Spinner size="lg" />
             </div>
         }>

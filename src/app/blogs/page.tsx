@@ -17,7 +17,6 @@ import {
     ChevronRight
 } from "@mui/icons-material";
 import { useRouter, useSearchParams } from "next/navigation";
-import GitHubStyleHeader from "@Components/HomePage/Header";
 import { Axios } from "@Utils/Axios";
 
 interface Blog {
@@ -262,8 +261,6 @@ function BlogListPage() {
     };
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900">
-            {/* Header */}
-            <GitHubStyleHeader />
             {/* Hero Section */}
             <section className="pt-20 pb-16 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -765,7 +762,6 @@ function BlogListPage() {
 function BlogListLoading() {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900">
-            <GitHubStyleHeader />
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
                 <div className="flex justify-center items-center py-16">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

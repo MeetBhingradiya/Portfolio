@@ -66,8 +66,8 @@ const providerConfigs: Record<string, ProviderConfig> = {
     },
     email: {
         enabled: Config.AuthProviders?.email?.enabled || false,
-        server: Config.AuthProviders?.email?.server,
-        from: Config.AuthProviders?.email?.from,
+        server: Config.AuthProviders?.email?.server || process.env.EMAIL_SERVER || `smtp://${process.env.SMTP_EMAIL}:${process.env.SMTP_APP_PASS}@${process.env.SMTP_HOST}:587`,
+        from: Config.AuthProviders?.email?.from || process.env.EMAIL_FROM || process.env.SMTP_EMAIL,
     },
 };
 
@@ -226,15 +226,106 @@ const buildProviders = () => {
     }
 
     // Email (Magic Links & OTP)
-    if (providerConfigs.email.enabled && providerConfigs.email.server) {
+    if (providerConfigs.email.enabled && (providerConfigs.email.server || process.env.SMTP_EMAIL)) {
         providers.push(
             Nodemailer({
-                server: providerConfigs.email.server,
-                from: providerConfigs.email.from,
+                server: providerConfigs.email.server || `smtp://${process.env.SMTP_EMAIL}:${process.env.SMTP_APP_PASS}@${process.env.SMTP_HOST || 'smtp.gmail.com'}:587`,
+                from: providerConfigs.email.from || process.env.SMTP_EMAIL,
                 sendVerificationRequest: async ({ identifier, url, provider }) => {
-                    // Custom email sending logic here
-                    // You can implement both magic links and OTP
-                    console.log("Send verification email to:", identifier, "URL:", url);
+                    try {
+                        console.log("Sending verification email to:", identifier);
+                        console.log("Magic link URL:", url);
+                        
+                        const { createTransport } = await import("nodemailer");
+                        
+                        const transport = createTransport({
+                            host: process.env.SMTP_HOST || 'smtp.gmail.com',
+                            port: 587,
+                            secure: false,
+                            auth: {
+                                user: process.env.SMTP_EMAIL,
+                                pass: process.env.SMTP_APP_PASS,
+                            },
+                        });
+
+                        const emailHtml = `
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="utf-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>Sign in to ${Config.Name}</title>
+                        </head>
+                        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f6f9fc;">
+                            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+                                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; text-align: center;">
+                                    <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">
+                                        Welcome back!
+                                    </h1>
+                                    <p style="color: #e6efff; margin: 10px 0 0 0; font-size: 16px;">
+                                        Sign in to your ${Config.Name} account
+                                    </p>
+                                </div>
+                                
+                                <div style="padding: 40px 30px;">
+                                    <p style="color: #333333; font-size: 16px; line-height: 24px; margin: 0 0 30px 0;">
+                                        Click the button below to sign in to your account. This link will expire in 24 hours for security reasons.
+                                    </p>
+                                    
+                                    <div style="text-align: center; margin: 40px 0;">
+                                        <a href="${url}" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px rgba(102, 126, 234, 0.25);">
+                                            Sign In
+                                        </a>
+                                    </div>
+                                    
+                                    <p style="color: #666666; font-size: 14px; line-height: 20px; margin: 30px 0 0 0;">
+                                        If you didn't request this email, you can safely ignore it. If you're having trouble clicking the button, copy and paste this link into your browser:
+                                    </p>
+                                    
+                                    <div style="background-color: #f8f9fa; padding: 16px; border-radius: 6px; margin: 16px 0; word-break: break-all;">
+                                        <code style="color: #495057; font-size: 14px;">${url}</code>
+                                    </div>
+                                </div>
+                                
+                                <div style="background-color: #f8f9fa; padding: 20px 30px; border-top: 1px solid #e9ecef;">
+                                    <p style="color: #666666; font-size: 12px; margin: 0; text-align: center;">
+                                        This email was sent to ${identifier} for ${Config.Name}.
+                                        <br>
+                                        If you have any questions, please contact our support team.
+                                    </p>
+                                </div>
+                            </div>
+                        </body>
+                        </html>
+                        `;
+
+                        const emailText = `
+                        Sign in to ${Config.Name}
+                        
+                        Click this link to sign in to your account:
+                        ${url}
+                        
+                        This link will expire in 24 hours for security reasons.
+                        
+                        If you didn't request this email, you can safely ignore it.
+                        
+                        This email was sent to ${identifier} for ${Config.Name}.
+                        `;
+
+                        const result = await transport.sendMail({
+                            to: identifier,
+                            from: providerConfigs.email.from || process.env.SMTP_EMAIL,
+                            subject: `Sign in to ${Config.Name}`,
+                            text: emailText,
+                            html: emailHtml,
+                        });
+
+                        console.log("Email sent successfully:", result.messageId);
+                        // Don't return result - NextAuth expects void
+                    } catch (error) {
+                        console.error("Failed to send verification email:", error);
+                        throw error;
+                    }
                 }
             })
         );

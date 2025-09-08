@@ -5,6 +5,7 @@ import { Providers } from "@Components/Providers";
 import { Config } from "@Config";
 import { ThemeProvider } from "@Hooks/useTheme";
 import Footer from "@Components/Footer";
+import Header from "@Components/HomePage/Header";
 import { ToastContainer } from "react-toastify";
 import { muiXTelemetrySettings } from "@mui/x-license";
 import { generateLicense, LicenseInfo } from "@mui/x-license";
@@ -126,7 +127,7 @@ export default function RootLayout({
                     stacked
                 />
                 <ThemeProvider>
-                    {/* <Header /> */}
+                    <Header />
 
                     <Providers>{children}</Providers>
 

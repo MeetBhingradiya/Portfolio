@@ -39,7 +39,9 @@ const config: Config = {
                 "admin-glow": "adminGlow 2.5s ease-in-out infinite",
                 "admin-shimmer": "adminShimmer 3s ease-in-out infinite",
                 "admin-badge-pulse": "adminBadgePulse 2s ease-in-out infinite",
-                "slow-spin": "spin 20s linear infinite"
+                "slow-spin": "spin 20s linear infinite",
+                "fade-in": "fadeIn 0.6s ease-out",
+                "slide-up": "slideUp 0.8s ease-out"
             },
             keyframes: {
                 float: {
@@ -98,6 +100,26 @@ const config: Config = {
                     },
                     "100%": {
                         transform: "scale(1)"
+                    }
+                },
+                fadeIn: {
+                    "0%": {
+                        opacity: "0",
+                        transform: "translateY(10px)"
+                    },
+                    "100%": {
+                        opacity: "1",
+                        transform: "translateY(0)"
+                    }
+                },
+                slideUp: {
+                    "0%": {
+                        opacity: "0",
+                        transform: "translateY(30px)"
+                    },
+                    "100%": {
+                        opacity: "1",
+                        transform: "translateY(0)"
                     }
                 }
             }

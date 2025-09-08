@@ -95,7 +95,7 @@ const footerSections: FooterSection[] = [
             {
                 label: "Blogs",
                 icon: <Article className="text-xs" />,
-                href: "/blog"
+                href: "/blogs"
             },
             { 
                 label: "Timeline", 

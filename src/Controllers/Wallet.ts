@@ -18,7 +18,7 @@ export class WalletController {
             const mappedWallets = await Promise.all(wallets.map(async wallet => {
                 let balance = wallet.Balance;
                 let linkedPocketId = null;
-                
+
                 // For UPI wallets, use the linked wallet's balance and find the linked wallet's _id
                 if (wallet.Type === "UPI" && wallet.LinkedWalletID) {
                     const linkedWallet = await Wallets_Model.findOne({
@@ -27,13 +27,13 @@ export class WalletController {
                         "Members.isRemoved": { $ne: true },
                         isDeleted: false
                     });
-                    
+
                     if (linkedWallet) {
                         balance = linkedWallet.Balance;
                         linkedPocketId = (linkedWallet._id as any).toString(); // Use the _id for frontend compatibility
                     }
                 }
-                
+
                 return {
                     _id: (wallet._id as any).toString(),
                     walletID: wallet.WalletID, // Add the WalletID field for frontend
@@ -152,7 +152,7 @@ export class WalletController {
             // Check permissions
             const userMember = fromWallet.Members.find(m => m.UserID === data.userID);
             const requiredPermission = data.financialType === "INCOME" ? "CREDIT" : "DEBIT";
-            
+
             if (!userMember?.Permissions.includes(requiredPermission as any)) {
                 return {
                     Status: 0,
@@ -163,7 +163,7 @@ export class WalletController {
             // Check balance for debit transactions
             if (data.financialType === "EXPENSE" || data.financialType === "TRANSFER") {
                 let availableBalance = fromWallet.Balance;
-                
+
                 // For UPI wallets, check the linked wallet's balance
                 if (fromWallet.Type === "UPI" && fromWallet.LinkedWalletID) {
                     const linkedWallet = await Wallets_Model.findOne({
@@ -172,7 +172,7 @@ export class WalletController {
                         "Members.isRemoved": { $ne: true },
                         isDeleted: false
                     });
-                    
+
                     if (linkedWallet) {
                         availableBalance = linkedWallet.Balance;
                     } else {
@@ -182,7 +182,7 @@ export class WalletController {
                         };
                     }
                 }
-                
+
                 if (availableBalance < data.amount) {
                     return {
                         Status: 0,
@@ -220,13 +220,13 @@ export class WalletController {
 
             // Update wallet balance
             const balanceChange = data.financialType === "INCOME" ? data.amount : -data.amount;
-            
+
             // For UPI wallets, update the linked wallet's balance instead
             let walletToUpdate = fromWallet.WalletID;
             if (fromWallet.Type === "UPI" && fromWallet.LinkedWalletID) {
                 walletToUpdate = fromWallet.LinkedWalletID;
             }
-            
+
             await Wallets_Model.updateOne(
                 { WalletID: walletToUpdate },
                 { $inc: { Balance: balanceChange } }
@@ -370,7 +370,7 @@ export class WalletController {
                 let upiWalletUsed = null;
                 const fromUpiWallet = allUpiWallets.find(upi => upi.WalletID === t.FromWalletID);
                 const toUpiWallet = allUpiWallets.find(upi => upi.WalletID === t.ToWalletID);
-                
+
                 if (fromUpiWallet) {
                     upiWalletUsed = {
                         _id: (fromUpiWallet._id as any).toString(),
@@ -644,6 +644,14 @@ export class WalletController {
                 };
             }
 
+            // Prevent UPI wallets from changing their type
+            if (wallet.Type === "UPI" && data.type && data.type !== "UPI") {
+                return {
+                    Status: 0,
+                    Message: "UPI wallet type cannot be changed. UPI wallets are designed specifically for transfers between accounts."
+                };
+            }
+
             const updateData: any = {};
             if (data.name) updateData.Name = data.name;
             if (data.type) updateData.Type = data.type;
@@ -737,8 +745,8 @@ export class WalletController {
             const updateData: any = {};
             if (data.type) {
                 updateData.Type = data.type === 'INCOME' || data.type === 'TRANSFER_IN' ? 'CREDIT' : 'DEBIT';
-                updateData.FinancialType = data.type === 'TRANSFER_IN' || data.type === 'TRANSFER_OUT' ? 'TRANSFER' : 
-                                          data.type === 'INCOME' ? 'INCOME' : 'EXPENSE';
+                updateData.FinancialType = data.type === 'TRANSFER_IN' || data.type === 'TRANSFER_OUT' ? 'TRANSFER' :
+                    data.type === 'INCOME' ? 'INCOME' : 'EXPENSE';
             }
             if (data.amount) updateData.Amount = data.amount;
             if (data.description) updateData.Description = data.description;
@@ -867,12 +875,12 @@ export class WalletController {
                 } else {
                     type = 'EXPENSE';
                 }
-                
+
                 // Check if this transaction was made through a UPI wallet
                 let upiWalletUsed = null;
                 const fromUpiWallet = linkedUpiWallets.find(upi => upi.WalletID === t.FromWalletID);
                 const toUpiWallet = linkedUpiWallets.find(upi => upi.WalletID === t.ToWalletID);
-                
+
                 if (fromUpiWallet) {
                     upiWalletUsed = {
                         _id: (fromUpiWallet._id as any).toString(),
@@ -886,7 +894,7 @@ export class WalletController {
                         type: 'UPI'
                     };
                 }
-                
+
                 return {
                     _id: t._id,
                     walletID: walletId,
@@ -952,9 +960,9 @@ export class WalletController {
                     { ToWalletID: { $in: walletIDs } }
                 ]
             })
-            .sort({ Date: -1 })
-            .limit(10)
-            .lean();
+                .sort({ Date: -1 })
+                .limit(10)
+                .lean();
 
             // Calculate totals - exclude UPI wallets to avoid double counting with linked wallets
             const totalBalance = wallets.reduce((sum, wallet) => {
@@ -964,12 +972,12 @@ export class WalletController {
                 }
                 return sum + (wallet.Balance || 0);
             }, 0);
-            
+
             // Calculate income and expenses from transactions
-            const incomeTransactions = recentTransactions.filter(t => 
+            const incomeTransactions = recentTransactions.filter(t =>
                 t.FinancialType === 'INCOME' || t.Type === 'CREDIT'
             );
-            const expenseTransactions = recentTransactions.filter(t => 
+            const expenseTransactions = recentTransactions.filter(t =>
                 t.FinancialType === 'EXPENSE' || t.Type === 'DEBIT'
             );
 
@@ -981,7 +989,7 @@ export class WalletController {
             const walletBreakdown = await Promise.all(wallets.map(async wallet => {
                 let balance = wallet.Balance || 0;
                 let linkedPocketId = null;
-                
+
                 // For UPI wallets, show the linked wallet's balance and find the linked wallet's _id
                 if (wallet.Type === 'UPI' && wallet.LinkedWalletID) {
                     const linkedWallet = await Wallets_Model.findOne({
@@ -990,13 +998,13 @@ export class WalletController {
                         "Members.isRemoved": { $ne: true },
                         isDeleted: false
                     });
-                    
+
                     if (linkedWallet) {
                         balance = linkedWallet.Balance || 0;
                         linkedPocketId = (linkedWallet._id as any).toString();
                     }
                 }
-                
+
                 return {
                     walletID: (wallet._id as any).toString(),
                     name: wallet.Name,
@@ -1015,7 +1023,7 @@ export class WalletController {
             const mappedTransactions = recentTransactions.map(t => {
                 const isFromTransaction = walletIDs.some(id => (id as any).toString() === (t.FromWalletID as any)?.toString());
                 let type: 'INCOME' | 'EXPENSE' | 'TRANSFER_IN' | 'TRANSFER_OUT' = 'EXPENSE';
-                
+
                 if (t.FinancialType === 'INCOME') {
                     type = 'INCOME';
                 } else if (t.FinancialType === 'EXPENSE') {
@@ -1028,7 +1036,7 @@ export class WalletController {
                 let upiWalletUsed = null;
                 const fromUpiWallet = allUpiWallets.find(upi => upi.WalletID === t.FromWalletID);
                 const toUpiWallet = allUpiWallets.find(upi => upi.WalletID === t.ToWalletID);
-                
+
                 if (fromUpiWallet) {
                     upiWalletUsed = {
                         _id: (fromUpiWallet._id as any).toString(),

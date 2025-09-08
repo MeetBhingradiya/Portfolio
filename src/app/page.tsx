@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import GitHubStyleHeader from "@Components/HomePage/Header";
+// import GitHubStyleHeader from "@Components/HomePage/Header";
 import GitHubStyleHero from "@Components/HomePage/Hero";
 import HorizontalShowcase from "@Components/HomePage/Showcase";
 import BlogsSection from "@Components/HomePage/Blog";
@@ -12,7 +12,7 @@ export default function HomePage() {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900">
             {/* Header */}
-            <GitHubStyleHeader />
+            {/* <GitHubStyleHeader /> */}
 
             {/* Hero Section */}
             <GitHubStyleHero />

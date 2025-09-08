@@ -15,14 +15,17 @@ import {
     LinkedIn,
     Code,
     Star,
-    Visibility
+    Visibility,
+    Timeline,
+    Shield,
+    Description
 } from "@mui/icons-material";
-import Image from "next/image";
 
 interface NavLink {
     href: string;
     label: string;
     icon: React.ReactNode;
+    privacy?: boolean;
 }
 
 function Header() {
@@ -31,21 +34,64 @@ function Header() {
     const [isScrolled, setIsScrolled] = useState(false);
 
     const navLinks: NavLink[] = [
-        { href: "/", label: "Home", icon: <HomeIcon className="text-lg" /> },
-        // {
-        //     href: "#showcase",
-        //     label: "Projects",
-        //     icon: <Work className="text-lg" />
-        // },
+        {
+            href: "/",
+            label: "Home",
+            icon: <HomeIcon className="text-lg" />,
+            privacy: false
+        },
+        {
+            href: "/timeline",
+            label: "Timeline",
+            icon: <Timeline className="text-lg" />,
+            privacy: true
+        },
+        {
+            href: "#showcase",
+            label: "Projects",
+            icon: <Work className="text-lg" />,
+            privacy: true
+        },
         {
             href: "/blogs",
             label: "Blogs",
-            icon: <Article className="text-lg" />
+            icon: <Article className="text-lg" />,
+            privacy: true
+        },
+        {
+            href: "/tickets",
+            label: "Tickets",
+            icon: <Code className="text-lg" />,
+            privacy: true
         },
         {
             href: "/contact",
             label: "Contact",
             icon: <ContactMail className="text-lg" />
+        },
+        {
+            href: "/privacy",
+            label: "Privacy",
+            icon: <Shield className="text-lg" />,
+            privacy: true,
+        },
+        {
+            href: "/terms",
+            label: "Terms",
+            icon: <Description className="text-lg" />,
+            privacy: true
+        },
+        {
+            href: "/auth/signin",
+            label: "Sign In",
+            icon: <Visibility className="text-lg" />,
+            privacy: true
+        },
+        {
+            href: "/auth/signup",
+            label: "Sign Up",
+            icon: <Star className="text-lg" />,
+            privacy: true
         }
     ];
 
@@ -71,8 +117,8 @@ function Header() {
             )}
             <motion.header
                 className={`fixed ${!isScrolled ? 'top-8' : 'top-0'} left-0 right-0 z-50 transition-all duration-300 ${isScrolled
-                        ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm"
-                        : "bg-transparent"
+                    ? "bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-700 shadow-sm"
+                    : "bg-transparent"
                     }`}
                 initial={{ y: -100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -96,8 +142,8 @@ function Header() {
                                 </div>
                                 <span
                                     className={`font-bold text-lg transition-colors duration-300 ${isScrolled
-                                            ? "text-gray-900 dark:text-white"
-                                            : "text-white"
+                                        ? "text-gray-900 dark:text-white"
+                                        : "text-white"
                                         }`}>
                                     Meet Bhingradiya
                                 </span>
@@ -106,29 +152,38 @@ function Header() {
 
                         {/* Desktop Navigation */}
                         <nav className="hidden md:flex items-center space-x-1">
-                            {navLinks.map((link) => {
-                                const isActive = pathname === link.href;
-                                return (
-                                    <motion.div
-                                        key={link.href}
-                                        whileHover={{ y: -1 }}
-                                        whileTap={{ y: 0 }}>
-                                        <Link
-                                            href={link.href}
-                                            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive
+                            {navLinks
+                                .filter((link) => {
+                                    // If privacy is enabled, only show the link on its own path
+                                    if (link.privacy) {
+                                        return pathname === link.href;
+                                    }
+                                    // Show all non-privacy links on all pages
+                                    return true;
+                                })
+                                .map((link) => {
+                                    const isActive = pathname === link.href;
+                                    return (
+                                        <motion.div
+                                            key={link.href}
+                                            whileHover={{ y: -1 }}
+                                            whileTap={{ y: 0 }}>
+                                            <Link
+                                                href={link.href}
+                                                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${isActive
                                                     ? isScrolled
                                                         ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                                         : "bg-white/20 text-white"
                                                     : isScrolled
                                                         ? "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
                                                         : "text-gray-200 hover:text-white hover:bg-white/10"
-                                                }`}>
-                                            {link.icon}
-                                            <span>{link.label}</span>
-                                        </Link>
-                                    </motion.div>
-                                );
-                            })}
+                                                    }`}>
+                                                {link.icon}
+                                                <span>{link.label}</span>
+                                            </Link>
+                                        </motion.div>
+                                    );
+                                })}
                         </nav>
 
                         {/* Social Links & Mobile Menu */}
@@ -142,8 +197,8 @@ function Header() {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     className={`transition-colors duration-300 ${isScrolled
-                                            ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                            : "text-gray-200 hover:text-white"
+                                        ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                        : "text-gray-200 hover:text-white"
                                         }`}>
                                     <GitHub className="text-xl" />
                                 </motion.a>
@@ -154,8 +209,8 @@ function Header() {
                                     whileHover={{ scale: 1.1 }}
                                     whileTap={{ scale: 0.9 }}
                                     className={`transition-colors duration-300 ${isScrolled
-                                            ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                            : "text-gray-200 hover:text-white"
+                                        ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                        : "text-gray-200 hover:text-white"
                                         }`}>
                                     <LinkedIn className="text-xl" />
                                 </motion.a>
@@ -164,8 +219,8 @@ function Header() {
                             {/* Mobile Menu Button */}
                             <motion.button
                                 className={`md:hidden transition-colors duration-300 ${isScrolled
-                                        ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
-                                        : "text-gray-200 hover:text-white"
+                                    ? "text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white"
+                                    : "text-gray-200 hover:text-white"
                                     }`}
                                 onClick={() =>
                                     setIsMobileMenuOpen(!isMobileMenuOpen)
@@ -202,26 +257,35 @@ function Header() {
                             exit={{ opacity: 0, height: 0 }}
                             transition={{ duration: 0.3 }}>
                             <div className="px-4 py-4 space-y-2">
-                                {navLinks.map((link, index) => {
-                                    const isActive = pathname === link.href;
-                                    return (
-                                        <motion.div
-                                            key={link.href}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: index * 0.1 }}>
-                                            <Link
-                                                href={link.href}
-                                                className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${isActive
+                                {navLinks
+                                    .filter((link) => {
+                                        // If privacy is enabled, only show the link on its own path
+                                        if (link.privacy) {
+                                            return pathname === link.href;
+                                        }
+                                        // Show all non-privacy links on all pages
+                                        return true;
+                                    })
+                                    .map((link, index) => {
+                                        const isActive = pathname === link.href;
+                                        return (
+                                            <motion.div
+                                                key={link.href}
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: index * 0.1 }}>
+                                                <Link
+                                                    href={link.href}
+                                                    className={`flex items-center space-x-3 px-3 py-2 rounded-md text-base font-medium transition-colors duration-200 ${isActive
                                                         ? "bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
                                                         : "text-gray-600 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
-                                                    }`}>
-                                                {link.icon}
-                                                <span>{link.label}</span>
-                                            </Link>
-                                        </motion.div>
-                                    );
-                                })}
+                                                        }`}>
+                                                    {link.icon}
+                                                    <span>{link.label}</span>
+                                                </Link>
+                                            </motion.div>
+                                        );
+                                    })}
                             </div>
                         </motion.div>
                     )}

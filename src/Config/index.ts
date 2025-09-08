@@ -64,6 +64,11 @@ interface IConfig {
         INSTAGRAM_CLIENT_SECRET?: string;
         DISCORD_CLIENT_ID?: string;
         DISCORD_CLIENT_SECRET?: string;
+        SMTP_HOST?: string;
+        SMTP_EMAIL?: string;
+        SMTP_APP_PASS?: string;
+        EMAIL_SERVER?: string;
+        EMAIL_FROM?: string;
     };
     AuthProviders: {
         [key: string]: {
@@ -159,7 +164,12 @@ const Config: IConfig = {
         INSTAGRAM_CLIENT_ID: process.env.INSTAGRAM_CLIENT_ID,
         INSTAGRAM_CLIENT_SECRET: process.env.INSTAGRAM_CLIENT_SECRET,
         DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
-        DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET
+        DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
+        SMTP_HOST: process.env.SMTP_HOST,
+        SMTP_EMAIL: process.env.SMTP_EMAIL,
+        SMTP_APP_PASS: process.env.SMTP_APP_PASS,
+        EMAIL_SERVER: process.env.EMAIL_SERVER,
+        EMAIL_FROM: process.env.EMAIL_FROM
     },
     DigitalResume: {
         ExcludingPhone: "https://rxresu.me/meetbhingradiya/resume",
@@ -247,8 +257,8 @@ const Config: IConfig = {
         },
         email: {
             enabled: true,
-            server: process.env.EMAIL_SERVER,
-            from: process.env.EMAIL_FROM
+            server: process.env.EMAIL_SERVER || `smtp://${process.env.SMTP_EMAIL}:${process.env.SMTP_APP_PASS}@${process.env.SMTP_HOST || 'smtp.gmail.com'}:587`,
+            from: process.env.EMAIL_FROM || process.env.SMTP_EMAIL
         },
         Passkeys: {
             enabled: true,

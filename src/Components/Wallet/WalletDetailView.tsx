@@ -92,7 +92,7 @@ interface WalletDetailViewProps {
 
 const categories = [
     'Food & Dining',
-    'Transportation', 
+    'Transportation',
     'Shopping',
     'Entertainment',
     'Bills & Utilities',
@@ -107,7 +107,7 @@ const categories = [
 
 const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, onWalletSwitch }) => {
     const { data: session } = useSession();
-    
+
     // Consolidated state for better performance
     const [walletData, setWalletData] = useState({
         wallet: null as Wallet | null,
@@ -116,7 +116,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         loading: true,
         error: null as string | null,
     });
-    
+
     // UI state consolidated
     const [modals, setModals] = useState({
         editWallet: false,
@@ -124,7 +124,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         editTransaction: false,
         deleteTransaction: false,
     });
-    
+
     // Table and filter state
     const [tableState, setTableState] = useState({
         search: '',
@@ -133,9 +133,9 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         sortConfig: { key: 'createdAt' as keyof WalletTransaction, direction: 'desc' as 'asc' | 'desc' },
         currentPage: 1,
     });
-    
+
     const itemsPerPage = 10;
-    
+
     // Form states
     const [editWalletForm, setEditWalletForm] = useState({
         name: '',
@@ -143,14 +143,14 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         currency: 'USD',
         isActive: true
     });
-    
+
     const [transactionForm, setTransactionForm] = useState({
         type: 'EXPENSE' as 'INCOME' | 'EXPENSE',
         amount: 0,
         description: '',
         category: 'Other'
     });
-    
+
     const [selectedTransaction, setSelectedTransaction] = useState<WalletTransaction | null>(null);
 
     // Memoized utility functions
@@ -186,7 +186,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         const totalExpenses = transactions
             .filter(t => t.type === 'EXPENSE' || t.type === 'TRANSFER_OUT')
             .reduce((sum, t) => sum + t.amount, 0);
-        
+
         return {
             totalIncome,
             totalExpenses,
@@ -202,7 +202,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         // Apply search filter
         if (tableState.search) {
             const searchLower = tableState.search.toLowerCase();
-            filtered = filtered.filter(t => 
+            filtered = filtered.filter(t =>
                 (t.description || '').toLowerCase().includes(searchLower) ||
                 (t.category || '').toLowerCase().includes(searchLower)
             );
@@ -222,19 +222,19 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         filtered.sort((a, b) => {
             const aVal = a[tableState.sortConfig.key];
             const bVal = b[tableState.sortConfig.key];
-            
+
             if (typeof aVal === 'string' && typeof bVal === 'string') {
-                return tableState.sortConfig.direction === 'asc' 
+                return tableState.sortConfig.direction === 'asc'
                     ? aVal.localeCompare(bVal)
                     : bVal.localeCompare(aVal);
             }
-            
+
             if (typeof aVal === 'number' && typeof bVal === 'number') {
-                return tableState.sortConfig.direction === 'asc' 
+                return tableState.sortConfig.direction === 'asc'
                     ? aVal - bVal
                     : bVal - aVal;
             }
-            
+
             return 0;
         });
 
@@ -254,7 +254,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
         const transactions = Array.isArray(walletData.transactions) ? walletData.transactions : [];
         const availableCategories = [...new Set(transactions.map(t => t.category))].filter(Boolean);
         const availableTypes = ['INCOME', 'EXPENSE', 'TRANSFER_IN', 'TRANSFER_OUT'];
-        
+
         return {
             categories: availableCategories,
             types: availableTypes,
@@ -264,12 +264,12 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
     // Reset invalid filters when options change
     useEffect(() => {
         const { categories: availableCategories, types: availableTypes } = filterOptions;
-        
+
         // Reset category filter if current selection is not available
         if (tableState.categoryFilter !== 'all' && !availableCategories.includes(tableState.categoryFilter)) {
             setTableState(prev => ({ ...prev, categoryFilter: 'all' }));
         }
-        
+
         // Reset type filter if current selection is not available
         if (tableState.typeFilter !== 'all' && !availableTypes.includes(tableState.typeFilter)) {
             setTableState(prev => ({ ...prev, typeFilter: 'all' }));
@@ -289,7 +289,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
             ]);
 
             const foundWallet = walletResponse.data.Data?.find((w: Wallet) => w._id === walletId);
-            
+
             if (!foundWallet) {
                 throw new Error('Wallet not found');
             }
@@ -329,15 +329,15 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
 
     // Event handlers
     const handleModalToggle = useCallback((modalType: keyof typeof modals, isOpen?: boolean) => {
-        setModals(prev => ({ 
-            ...prev, 
-            [modalType]: isOpen !== undefined ? isOpen : !prev[modalType] 
+        setModals(prev => ({
+            ...prev,
+            [modalType]: isOpen !== undefined ? isOpen : !prev[modalType]
         }));
     }, []);
 
     const handleTableStateChange = useCallback((key: keyof typeof tableState, value: any) => {
-        setTableState(prev => ({ 
-            ...prev, 
+        setTableState(prev => ({
+            ...prev,
             [key]: value,
             // Reset page when filters change
             ...(key !== 'currentPage' ? { currentPage: 1 } : {})
@@ -356,10 +356,10 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
 
     const handleEditWallet = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         try {
             console.log('Submitting wallet update:', editWalletForm); // Debug log
-            
+
             const response = await Axios.put(`/api/wallets/${walletId}`, {
                 ...editWalletForm,
                 userID: session?.user?.id
@@ -372,24 +372,24 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                 fetchWalletData();
             } else {
                 console.error('Update failed:', response.data.Message);
-                setWalletData(prev => ({ 
-                    ...prev, 
-                    error: response.data.Message || 'Failed to update wallet' 
+                setWalletData(prev => ({
+                    ...prev,
+                    error: response.data.Message || 'Failed to update wallet'
                 }));
             }
         } catch (err: any) {
             console.error('Error updating wallet:', err);
             console.error('Error response:', err.response?.data);
-            setWalletData(prev => ({ 
-                ...prev, 
-                error: err.response?.data?.Message || err.response?.data?.message || err.message || 'Failed to update wallet' 
+            setWalletData(prev => ({
+                ...prev,
+                error: err.response?.data?.Message || err.response?.data?.message || err.message || 'Failed to update wallet'
             }));
         }
     }, [editWalletForm, session?.user?.id, walletId, handleModalToggle, fetchWalletData]);
 
     const handleAddTransaction = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         try {
             const response = await Axios.post('/api/wallet-transactions', {
                 userID: session?.user?.id,
@@ -412,25 +412,25 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                 });
                 fetchWalletData();
             } else {
-                setWalletData(prev => ({ 
-                    ...prev, 
-                    error: response.data.Message || 'Failed to add transaction' 
+                setWalletData(prev => ({
+                    ...prev,
+                    error: response.data.Message || 'Failed to add transaction'
                 }));
             }
         } catch (err: any) {
             console.error('Error adding transaction:', err);
-            setWalletData(prev => ({ 
-                ...prev, 
-                error: err.response?.data?.Message || 'Failed to add transaction' 
+            setWalletData(prev => ({
+                ...prev,
+                error: err.response?.data?.Message || 'Failed to add transaction'
             }));
         }
     }, [transactionForm, session?.user?.id, walletId, handleModalToggle, fetchWalletData]);
 
     const handleEditTransaction = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();
-        
+
         if (!selectedTransaction) return;
-        
+
         try {
             const response = await Axios.put(`/api/wallet-transactions/${selectedTransaction._id}`, {
                 ...transactionForm,
@@ -442,23 +442,23 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                 setSelectedTransaction(null);
                 fetchWalletData();
             } else {
-                setWalletData(prev => ({ 
-                    ...prev, 
-                    error: response.data.Message || 'Failed to update transaction' 
+                setWalletData(prev => ({
+                    ...prev,
+                    error: response.data.Message || 'Failed to update transaction'
                 }));
             }
         } catch (err: any) {
             console.error('Error updating transaction:', err);
-            setWalletData(prev => ({ 
-                ...prev, 
-                error: err.response?.data?.Message || 'Failed to update transaction' 
+            setWalletData(prev => ({
+                ...prev,
+                error: err.response?.data?.Message || 'Failed to update transaction'
             }));
         }
     }, [selectedTransaction, transactionForm, session?.user?.id, handleModalToggle, fetchWalletData]);
 
     const handleDeleteTransaction = useCallback(async () => {
         if (!selectedTransaction) return;
-        
+
         try {
             const response = await Axios.delete(`/api/wallet-transactions/${selectedTransaction._id}?userID=${session?.user?.id}`);
 
@@ -467,16 +467,16 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                 setSelectedTransaction(null);
                 fetchWalletData();
             } else {
-                setWalletData(prev => ({ 
-                    ...prev, 
-                    error: response.data.Message || 'Failed to delete transaction' 
+                setWalletData(prev => ({
+                    ...prev,
+                    error: response.data.Message || 'Failed to delete transaction'
                 }));
             }
         } catch (err: any) {
             console.error('Error deleting transaction:', err);
-            setWalletData(prev => ({ 
-                ...prev, 
-                error: err.response?.data?.Message || 'Failed to delete transaction' 
+            setWalletData(prev => ({
+                ...prev,
+                error: err.response?.data?.Message || 'Failed to delete transaction'
             }));
         }
     }, [selectedTransaction, session?.user?.id, handleModalToggle, fetchWalletData]);
@@ -544,21 +544,21 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
             {/* Clean Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                    <Button 
-                        isIconOnly 
-                        variant="light" 
+                    <Button
+                        isIconOnly
+                        variant="light"
                         onClick={onBack}
                         size="sm"
                         className="hover:bg-gray-100 dark:hover:bg-gray-800"
                     >
                         <ArrowLeftIcon className="w-4 h-4" />
                     </Button>
-                    
+
                     {/* Simple Wallet Switcher */}
                     <Dropdown>
                         <DropdownTrigger>
-                            <Button 
-                                variant="light" 
+                            <Button
+                                variant="light"
                                 className="h-auto py-2 px-3 hover:bg-gray-100 dark:hover:bg-gray-800"
                                 endContent={<ChevronDownIcon className="w-3 h-3 text-gray-400" />}
                             >
@@ -573,23 +573,22 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                                 </div>
                             </Button>
                         </DropdownTrigger>
-                        <DropdownMenu 
+                        <DropdownMenu
                             aria-label="Switch wallet"
                             className="min-w-64"
                         >
                             {walletData.allWallets.map((wallet) => {
                                 const isSelected = wallet._id === walletId;
-                                
+
                                 return (
                                     <DropdownItem
                                         key={wallet._id}
                                         onClick={() => handleWalletSwitch(wallet._id)}
                                         className={isSelected ? "bg-gray-50 dark:bg-gray-800" : ""}
                                         startContent={
-                                            <div className={`w-2 h-2 rounded-full ${
-                                                wallet.type === 'BANK' ? 'bg-blue-500' : 
-                                                wallet.type === 'UPI' ? 'bg-purple-500' : 'bg-green-500'
-                                            }`}></div>
+                                            <div className={`w-2 h-2 rounded-full ${wallet.type === 'BANK' ? 'bg-blue-500' :
+                                                    wallet.type === 'UPI' ? 'bg-purple-500' : 'bg-green-500'
+                                                }`}></div>
                                         }
                                         endContent={isSelected ? <CheckIcon className="w-3 h-3" /> : null}
                                     >
@@ -605,7 +604,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                         </DropdownMenu>
                     </Dropdown>
                 </div>
-                
+
                 <Button
                     variant="light"
                     size="sm"
@@ -667,7 +666,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                         </Button>
                     </div>
                 </div>
-                
+
                 <div className="p-6">
                     {/* Simple Filters */}
                     <div className="flex gap-3 mb-6">
@@ -680,7 +679,7 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                             value={tableState.search}
                             onChange={(e) => handleTableStateChange('search', e.target.value)}
                         />
-                        
+
                         <Select
                             size="sm"
                             placeholder="Type"
@@ -729,10 +728,10 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                         <div className="space-y-3">
                             {paginatedTransactions.map((transaction) => {
                                 const isIncome = transaction.type === 'INCOME' || transaction.type === 'TRANSFER_IN';
-                                
+
                                 return (
-                                    <div 
-                                        key={transaction._id} 
+                                    <div
+                                        key={transaction._id}
                                         className="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-colors cursor-pointer group"
                                         onClick={() => openEditTransaction(transaction)}
                                     >
@@ -822,8 +821,8 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
             </div>
 
             {/* Clean Modals */}
-            <Modal 
-                isOpen={modals.editWallet} 
+            <Modal
+                isOpen={modals.editWallet}
                 onClose={() => handleModalToggle('editWallet', false)}
                 size="md"
                 classNames={{
@@ -841,10 +840,17 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                                 <p className="text-sm text-gray-500 mt-1">
                                     Current type: {editWalletForm.type} | Name: {editWalletForm.name}
                                 </p>
-                                {walletStats.transactionCount > 0 && (
+                                {walletData.wallet?.type === 'UPI' && (
+                                    <div className="mt-2 p-2 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+                                        <p className="text-xs text-blue-700 dark:text-blue-300">
+                                            🔒 UPI Wallet Type Locked: UPI wallets are specifically designed for transfers between accounts and cannot be converted to other wallet types.
+                                        </p>
+                                    </div>
+                                )}
+                                {walletData.wallet?.type !== 'UPI' && walletStats.transactionCount > 0 && (
                                     <div className="mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
                                         <p className="text-xs text-amber-700 dark:text-amber-300">
-                                            ⚠️ Cannot convert to UPI: This wallet has {walletStats.transactionCount} transactions. 
+                                            ⚠️ Cannot convert to UPI: This wallet has {walletStats.transactionCount} transactions.
                                             You can freely switch between Bank and Digital Wallet types. UPI is only for transfers between accounts.
                                         </p>
                                     </div>
@@ -887,16 +893,19 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                                         variant="bordered"
                                         placeholder="Select wallet type"
                                         disallowEmptySelection
+                                        isDisabled={walletData.wallet?.type === 'UPI'}
                                         description={
-                                            walletStats.transactionCount > 0 
-                                                ? "UPI cannot be selected - wallet has transactions. UPI wallets are only for transfers between accounts."
-                                                : "You can freely switch between Bank and Digital Wallet. UPI is only for transfers between accounts."
+                                            walletData.wallet?.type === 'UPI'
+                                                ? "UPI wallet type cannot be changed. UPI wallets are designed specifically for transfers between accounts."
+                                                : walletStats.transactionCount > 0
+                                                    ? "UPI cannot be selected - wallet has transactions. UPI wallets are only for transfers between accounts."
+                                                    : "You can freely switch between Bank and Digital Wallet. UPI is only for transfers between accounts."
                                         }
                                     >
                                         <SelectItem key="WALLET">Digital Wallet</SelectItem>
                                         <SelectItem key="BANK">Bank Account</SelectItem>
-                                        <SelectItem 
-                                            key="UPI" 
+                                        <SelectItem
+                                            key="UPI"
                                             isDisabled={walletStats.transactionCount > 0}
                                         >
                                             UPI (Transfer Only)
@@ -920,14 +929,14 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                             </div>
                         </ModalBody>
                         <ModalFooter>
-                            <Button 
-                                variant="light" 
+                            <Button
+                                variant="light"
                                 onClick={() => handleModalToggle('editWallet', false)}
                             >
                                 Cancel
                             </Button>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 color="primary"
                                 className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
                             >
@@ -938,8 +947,8 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                 </ModalContent>
             </Modal>
 
-            <Modal 
-                isOpen={modals.addTransaction} 
+            <Modal
+                isOpen={modals.addTransaction}
                 onClose={() => handleModalToggle('addTransaction', false)}
                 size="md"
                 classNames={{
@@ -1031,14 +1040,14 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                             </div>
                         </ModalBody>
                         <ModalFooter>
-                            <Button 
-                                variant="light" 
+                            <Button
+                                variant="light"
                                 onClick={() => handleModalToggle('addTransaction', false)}
                             >
                                 Cancel
                             </Button>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
                             >
                                 Add
@@ -1049,8 +1058,8 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
             </Modal>
 
             {/* Edit Transaction Modal */}
-            <Modal 
-                isOpen={modals.editTransaction} 
+            <Modal
+                isOpen={modals.editTransaction}
                 onClose={() => handleModalToggle('editTransaction', false)}
                 size="md"
                 classNames={{
@@ -1142,14 +1151,14 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                             </div>
                         </ModalBody>
                         <ModalFooter>
-                            <Button 
-                                variant="light" 
+                            <Button
+                                variant="light"
                                 onClick={() => handleModalToggle('editTransaction', false)}
                             >
                                 Cancel
                             </Button>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 className="bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
                             >
                                 Save
@@ -1160,8 +1169,8 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
             </Modal>
 
             {/* Delete Transaction Modal */}
-            <Modal 
-                isOpen={modals.deleteTransaction} 
+            <Modal
+                isOpen={modals.deleteTransaction}
                 onClose={() => handleModalToggle('deleteTransaction', false)}
                 size="sm"
                 classNames={{
@@ -1191,13 +1200,13 @@ const WalletDetailView: React.FC<WalletDetailViewProps> = ({ walletId, onBack, o
                         )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button 
-                            variant="light" 
+                        <Button
+                            variant="light"
                             onClick={() => handleModalToggle('deleteTransaction', false)}
                         >
                             Cancel
                         </Button>
-                        <Button 
+                        <Button
                             color="danger"
                             onClick={handleDeleteTransaction}
                             className="bg-red-600 text-white"

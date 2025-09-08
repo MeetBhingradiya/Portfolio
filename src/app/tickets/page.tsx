@@ -23,7 +23,6 @@ import {
     // Priority
     ResetTv as Priority
 } from "@mui/icons-material";
-import GitHubStyleHeader from "@Components/HomePage/Header";
 
 interface Ticket {
     id: string;
@@ -202,8 +201,6 @@ function TicketStatusPage() {
 
     return (
         <div className="min-h-screen bg-white dark:bg-gray-900">
-            {/* Header */}
-            <GitHubStyleHeader />
 
             {/* Hero Section */}
             <section className="pt-20 pb-16 bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">

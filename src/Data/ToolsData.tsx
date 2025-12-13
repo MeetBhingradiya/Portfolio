@@ -20,7 +20,8 @@ import {
     Tag,
     PictureAsPdf,
     MergeType,
-    PhotoLibrary
+    PhotoLibrary,
+    VideoLibrary
 } from "@mui/icons-material";
 
 // Tool definitions
@@ -158,6 +159,13 @@ export const Tools = [
         Icon: <PhotoLibrary sx={{ width: 32, height: 32 }} />,
         Description: "Convert PDF pages to image files (PNG, JPEG, WebP)",
         Category: "image"
+    },
+    {
+        Query: "VideoDownloader",
+        Title: "Video Downloader",
+        Icon: <VideoLibrary sx={{ width: 32, height: 32 }} />,
+        Description: "Extract video information from YouTube, Instagram, TikTok and more platforms",
+        Category: "utility"
     }
 ];
 

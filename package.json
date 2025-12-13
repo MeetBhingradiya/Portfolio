@@ -22,6 +22,7 @@
     "dependencies": {
         "@auth/core": "^0.40.0",
         "@auth/mongodb-adapter": "^3.10.0",
+        "@distube/ytdl-core": "^4.16.12",
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
         "@heroicons/react": "^2.2.0",
@@ -57,6 +58,7 @@
         "gl-matrix": "^3.4.3",
         "gsap": "^3.13.0",
         "html2canvas": "^1.4.1",
+        "instagram-url-direct": "^2.0.7",
         "jose": "^6.0.12",
         "jspdf": "^3.0.1",
         "jspdf-autotable": "^5.0.2",
@@ -83,6 +85,8 @@
         "sass": "^1.89.2",
         "sharp": "^0.34.3",
         "three": "^0.178.0",
+        "tiktok-scraper-ts": "^1.4.1",
+        "twitter-api-v2": "^1.27.0",
         "uuid": "^11.1.0"
     },
     "devDependencies": {

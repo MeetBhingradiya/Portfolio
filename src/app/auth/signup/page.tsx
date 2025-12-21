@@ -51,9 +51,10 @@ function SignUpContent() {
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
-    // Redirect if already logged in
+    // Redirect if already logged in (unless adding new account)
     useEffect(() => {
-        if (!isPending && session) {
+        const addingAccount = searchParams.get("addAccount") === "true";
+        if (!isPending && session && !addingAccount) {
             const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
             router.push(callbackUrl);
         }

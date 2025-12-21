@@ -57,8 +57,8 @@ export const footerSections: FooterSection[] = [
     {
         title: "Agreements & Legal",
         links: [
-            { label: "Privacy", href: "/privacy", icon: <Policy className="text-base" /> },
-            { label: "Terms of Service", href: "/terms", icon: <Description className="text-base" /> },
+            { label: "Privacy", href: "/agreements/privacy", icon: <Policy className="text-base" /> },
+            { label: "Terms of Service", href: "/agreements/terms", icon: <Description className="text-base" /> },
             { label: "Security", href: "/agreements/security", icon: <Policy className="text-base" /> },
             { label: "", href: "", icon: <></> },
             { label: "Products Privacy", href: "/agreements/covered-products-privacy", icon: <Policy className="text-base" /> },

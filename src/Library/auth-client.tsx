@@ -7,9 +7,12 @@
 
 import React from "react";
 import { createAuthClient } from "better-auth/react";
+import { twoFactorClient, usernameClient, multiSessionClient } from "better-auth/client/plugins";
+import { passkeyClient } from "@better-auth/passkey/client";
 
 export const authClient = createAuthClient({
     baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
+    plugins: [usernameClient(), twoFactorClient(), passkeyClient(), multiSessionClient()],
 });
 
 // Export all auth methods for easy access
@@ -27,6 +30,9 @@ export const {
     linkSocial,
     unlinkAccount,
     listAccounts,
+    isUsernameAvailable,
+    twoFactor,
+    passkey,
 } = authClient;
 
 // Custom hooks
@@ -50,6 +56,9 @@ export function useAuth() {
         linkSocial,
         unlinkAccount,
         listAccounts,
+        isUsernameAvailable,
+        twoFactor,
+        passkey,
     };
 }
 

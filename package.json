@@ -16,6 +16,7 @@
         "prepare": "husky"
     },
     "dependencies": {
+        "@better-auth/passkey": "^1.4.7",
         "@distube/ytdl-core": "^4.16.12",
         "@emotion/react": "^11.14.0",
         "@emotion/styled": "^11.14.1",
@@ -65,11 +66,11 @@
         "ogl": "^1.0.11",
         "password-managers": "git+https://github.com/agektmr/passkey-authenticator-aaguids.git",
         "pdf-lib": "^1.17.1",
-        "react-bits": "git+https://github.com/DavidHDev/react-bits.git",
         "pdfjs-dist": "^5.4.449",
         "qr-border-plugin": "^0.1.1",
         "qr-code-styling": "^1.9.2",
         "react": "^19.2.3",
+        "react-bits": "git+https://github.com/DavidHDev/react-bits.git",
         "react-chartjs-2": "^5.3.1",
         "react-dom": "19.2.3",
         "react-grid-dnd": "^2.1.2",

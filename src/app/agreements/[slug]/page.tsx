@@ -1,4 +1,3 @@
-import React from "react";
 import AgreementContent from "@/Components/Agreements/AgreementContent";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -8,12 +7,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     const { slug } = await params;
 
     const titles: Record<string, string> = {
+        "privacy": "Privacy Policy",
+        "terms": "Terms of Service",
         "covered-products-privacy": "Covered Products Privacy Policy",
         "covered-products-terms": "Covered Products Terms of Service",
         "security": "Product Security Policy"
     };
 
     const descriptions: Record<string, string> = {
+        "privacy": "Privacy policy explaining how we collect, use, and protect your data",
+        "terms": "Terms and conditions for using this portfolio website",
         "covered-products-privacy": "Privacy policy for products and services covered under our database management system",
         "covered-products-terms": "Terms and conditions for using our covered products and services",
         "security": "Security policies and best practices for our product ecosystem"
@@ -34,6 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 // Generate static params for known agreement slugs
 export async function generateStaticParams() {
     return [
+        { slug: "privacy" },
+        { slug: "terms" },
         { slug: "covered-products-privacy" },
         { slug: "covered-products-terms" },
         { slug: "security" }
@@ -42,7 +47,7 @@ export async function generateStaticParams() {
 
 export default async function AgreementPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = await params;
-    const validSlugs = ["covered-products-privacy", "covered-products-terms", "security"];
+    const validSlugs = ["privacy", "terms", "covered-products-privacy", "covered-products-terms", "security"];
 
     if (!validSlugs.includes(slug)) {
         notFound();

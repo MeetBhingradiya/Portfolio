@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import Link from "next/link";
+import { Config } from "@Config/Client";
 import {
     Policy,
     Description,
@@ -23,9 +24,19 @@ import {
     AdminPanelSettings,
     BugReport,
     Backup,
-    VerifiedUser
+    VerifiedUser,
+    ChildCare,
+    Delete,
+    Public,
+    MobileFriendly,
+    Payment,
+    Block,
+    Warning,
+    PersonAdd,
+    CheckCircle
 } from "@mui/icons-material";
 import ReactMarkdown from "react-markdown";
+import { EmailConfig } from "@Config/type";
 
 interface AgreementSection {
     icon: string;
@@ -65,12 +76,14 @@ interface AgreementContentProps {
 
 // Static agreement content based on slug
 function getStaticAgreement(slug: string, allProducts: any[]): Agreement {
+    const emailConfig = Config.Emails as EmailConfig;
+    
     const agreements: Record<string, Omit<Agreement, "products">> = {
-        "covered-products-privacy": {
-            AgreementID: "static-privacy",
-            Type: "covered_products_privacy",
-            Title: "Covered Products Privacy Policy",
-            Slug: "covered-products-privacy",
+        "privacy": {
+            AgreementID: "static-main-privacy",
+            Type: "privacy_policy",
+            Title: "Privacy Policy",
+            Slug: "privacy",
             Content: JSON.stringify([
                 {
                     icon: "DataUsage",
@@ -106,34 +119,34 @@ function getStaticAgreement(slug: string, allProducts: any[]): Agreement {
             Version: "1.0.0",
             ProductIDs: [],
             Status: "published",
-            EffectiveDate: "2024-12-14",
-            PublishDate: "2024-12-14",
+            EffectiveDate: "2024-11-21",
+            PublishDate: "2024-11-21",
             Metadata: {
-                Description: "Privacy policy for products and services covered under our database management system",
-                Keywords: ["privacy", "data protection", "GDPR", "personal information"],
-                Author: "Legal Team"
+                Description: "Privacy policy for this portfolio website explaining how we collect, use, and protect your data",
+                Keywords: ["privacy", "data protection", "portfolio", "website"],
+                Author: "Meet Bhingradiya"
             }
         },
-        "covered-products-terms": {
-            AgreementID: "static-terms",
-            Type: "covered_products_terms",
-            Title: "Covered Products Terms of Service",
-            Slug: "covered-products-terms",
+        "terms": {
+            AgreementID: "static-main-terms",
+            Type: "terms_of_service",
+            Title: "Terms of Service",
+            Slug: "terms",
             Content: JSON.stringify([
                 {
                     icon: "Gavel",
                     title: "Terms of Use",
-                    content: "By accessing and using our covered products, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, please do not use these products or services."
+                    content: "By accessing and using this portfolio website, you accept and agree to be bound by the terms and provisions of this agreement. If you do not agree to these terms, please do not use this site."
                 },
                 {
                     icon: "Security",
                     title: "Intellectual Property",
-                    content: "All content, code, designs, graphics, and materials related to our products are protected by copyright laws. Unauthorized use or reproduction is prohibited without explicit written permission."
+                    content: "All content, code, designs, graphics, and materials on this website are the property of Meet Bhingradiya and are protected by copyright laws. Unauthorized use or reproduction is prohibited."
                 },
                 {
                     icon: "Update",
                     title: "Updates & Changes",
-                    content: "We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting. Your continued use of the products constitutes acceptance of the modified terms."
+                    content: "We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting to the website. Your continued use of the site constitutes acceptance of the modified terms."
                 },
                 {
                     icon: "ContactSupport",
@@ -144,12 +157,183 @@ function getStaticAgreement(slug: string, allProducts: any[]): Agreement {
             Version: "1.0.0",
             ProductIDs: [],
             Status: "published",
-            EffectiveDate: "2024-12-14",
-            PublishDate: "2024-12-14",
+            EffectiveDate: "2024-11-21",
+            PublishDate: "2024-11-21",
             Metadata: {
-                Description: "Terms and conditions for using our covered products and services",
-                Keywords: ["terms", "conditions", "agreement", "legal"],
-                Author: "Legal Team"
+                Description: "Terms and conditions for using this portfolio website",
+                Keywords: ["terms", "conditions", "portfolio", "website"],
+                Author: "Meet Bhingradiya"
+            }
+        },
+        "covered-products-privacy": {
+            AgreementID: "static-privacy",
+            Type: "covered_products_privacy",
+            Title: "Covered Products Privacy Policy",
+            Slug: "covered-products-privacy",
+            Content: JSON.stringify([
+                {
+                    icon: "Info",
+                    title: "Developer Information",
+                    content: `Developer: Meet Bhingradiya • Email: ${emailConfig.contact} • Privacy Email: ${emailConfig.privacy} • Location: India • This privacy policy applies to all applications, extensions, and services developed by Meet Bhingradiya, including those distributed through Google Play Store, Chrome Web Store, and other platforms.`
+                },
+                {
+                    icon: "DataUsage",
+                    title: "Information We Collect",
+                    content: "We collect minimal information necessary for functionality: • Personal Information: Email addresses, names (when you create an account or contact us) • Usage Data: IP addresses for analytics, device information (OS, browser, screen size), app usage statistics, crash reports • User Content: Data you create or upload within our applications • Device Permissions: Only permissions explicitly requested and approved by you (storage, camera, location when applicable) • We do not sell or share your personal information with third parties for marketing purposes."
+                },
+                {
+                    icon: "Category",
+                    title: "How We Use Your Data",
+                    content: "Your data is used to: • Provide and maintain our services • Improve user experience and app functionality • Send important updates and notifications (if opted-in) • Analyze usage patterns to fix bugs and improve performance • Comply with legal obligations • Prevent fraud and abuse • We process data only for legitimate purposes and with your consent where required by law."
+                },
+                {
+                    icon: "Cookie",
+                    title: "Cookies & Local Storage",
+                    content: "We use cookies and local storage to: • Save your preferences (theme, language, settings) • Maintain login sessions • Collect anonymous analytics data • Cache data for offline functionality • You can disable cookies in your browser/device settings. Note: Disabling cookies may limit certain features. We use Google Analytics with IP anonymization enabled."
+                },
+                {
+                    icon: "Visibility",
+                    title: "Third-Party Services & SDKs",
+                    content: "Our services may integrate with: • Google Analytics (analytics) - https://policies.google.com/privacy • Google Firebase (authentication, database, storage) - https://firebase.google.com/support/privacy • Google Ads (advertising) - https://policies.google.com/technologies/ads • Vercel (hosting) - https://vercel.com/legal/privacy-policy • These services have their own privacy policies. We only share data necessary for their operation and require them to maintain strict confidentiality."
+                },
+                {
+                    icon: "AdminPanelSettings",
+                    title: "Mobile App & Extension Permissions",
+                    content: "Our mobile apps and browser extensions may request: • Storage: To save user preferences and offline data • Internet: To sync data and provide online features • Camera/Photos: Only for features that explicitly require media upload • Location: Only for location-based features (with your explicit permission) • Notifications: To send updates (can be disabled in settings) • Permissions are requested only when needed and can be revoked anytime through your device settings."
+                },
+                {
+                    icon: "Lock",
+                    title: "Data Security & Retention",
+                    content: "We implement industry-standard security measures: • All data transmission uses HTTPS/TLS encryption • Passwords are hashed using bcrypt with salt • Database access is restricted and monitored • Regular security audits and vulnerability assessments • Data Retention: Active account data is retained while your account is active. Inactive accounts may be deleted after 2 years. Analytics data is retained for 14 months. You can request immediate deletion at any time."
+                },
+                {
+                    icon: "ChildCare",
+                    title: "Children's Privacy (COPPA Compliance)",
+                    content: `Our services are not intended for children under 13 years of age. We do not knowingly collect personal information from children under 13. If you are a parent/guardian and believe your child has provided us with personal information, please contact us immediately at ${emailConfig.contact}, and we will delete such information within 30 days.`
+                },
+                {
+                    icon: "Shield",
+                    title: "Your Rights & Data Control",
+                    content: `You have the right to: • Access: Request a copy of your personal data • Rectification: Correct inaccurate data • Deletion: Request deletion of your data (Right to be Forgotten) • Portability: Receive your data in a structured format • Opt-out: Disable analytics, marketing communications • Object: Object to data processing • To exercise these rights, email ${emailConfig.contact} with subject "Data Request". We will respond within 30 days.`
+                },
+                {
+                    icon: "Delete",
+                    title: "Account & Data Deletion",
+                    content: `To delete your account and all associated data: • Log into your account and go to Settings > Account > Delete Account, OR • Email ${emailConfig.contact} with subject "Account Deletion Request" • Upon deletion: All personal data will be permanently removed within 30 days. Anonymized analytics data may be retained. Backups are deleted within 90 days. This action is irreversible.`
+                },
+                {
+                    icon: "Public",
+                    title: "International Data Transfers",
+                    content: "Your data may be transferred to and processed in countries outside your residence, including India and the United States. We ensure adequate protection through: • Standard Contractual Clauses (SCCs) • Compliance with GDPR, CCPA, and local regulations • By using our services, you consent to these transfers."
+                },
+                {
+                    icon: "Gavel",
+                    title: "Legal Compliance & Disclosure",
+                    content: "We may disclose your data when required by law: • Court orders or legal processes • Protecting rights and safety of users • Preventing fraud or illegal activities • Compliance with Google Play Store, Chrome Web Store policies • We will notify you of such disclosures unless prohibited by law."
+                },
+                {
+                    icon: "Security",
+                    title: "Policy Updates",
+                    content: "We may update this privacy policy periodically. Material changes will be notified via: • Email notification (if you have an account) • In-app notification • Banner on our website/app • Effective date of changes will be clearly stated. Continued use after updates constitutes acceptance. Last updated: December 21, 2025."
+                },
+                {
+                    icon: "ContactSupport",
+                    title: "Contact & Privacy Inquiries",
+                    content: `For privacy questions, concerns, or data requests, contact us: • Email: ${emailConfig.contact} (Primary) • Privacy Email: ${emailConfig.privacy} • Website: https://${emailConfig.domain}/contact • Response Time: Within 48 hours for general inquiries, 30 days for data requests • Physical address available upon request for legal purposes.`
+                }
+            ]),
+            Version: "2.0.0",
+            ProductIDs: [],
+            Status: "published",
+            EffectiveDate: "2024-12-21",
+            PublishDate: "2024-12-21",
+            Metadata: {
+                Description: "Comprehensive privacy policy for covered products compliant with GDPR, CCPA, COPPA, Google Play Store, and Chrome Web Store requirements",
+                Keywords: ["privacy", "data protection", "GDPR", "COPPA", "Google Play", "Chrome Web Store", "mobile apps", "extensions"],
+                Author: "Meet Bhingradiya"
+            }
+        },
+        "covered-products-terms": {
+            AgreementID: "static-terms",
+            Type: "covered_products_terms",
+            Title: "Covered Products Terms of Service",
+            Slug: "covered-products-terms",
+            Content: JSON.stringify([
+                {
+                    icon: "Info",
+                    title: "Service Provider Information",
+                    content: `Service Provider: Meet Bhingradiya • Email: ${emailConfig.contact} • Legal Email: ${emailConfig.legal} • Location: India • These terms apply to all applications, extensions, and services developed by Meet Bhingradiya, including those available on Google Play Store, Chrome Web Store, and other platforms.`
+                },
+                {
+                    icon: "Gavel",
+                    title: "Acceptance of Terms",
+                    content: "By accessing, installing, or using our services, you agree to be bound by these Terms of Service and our Privacy Policy. If you do not agree with any part of these terms, you must not use our services. For mobile apps and extensions, installing the software constitutes acceptance. For minors under 18, parental/guardian consent is required."
+                },
+                {
+                    icon: "PersonAdd",
+                    title: "User Accounts & Eligibility",
+                    content: "To use certain features, you may need to create an account. You must: • Be at least 13 years old (18 in some jurisdictions) • Provide accurate and complete information • Maintain the security of your account credentials • Not share your account with others • Notify us immediately of any unauthorized access • We reserve the right to suspend or terminate accounts that violate these terms."
+                },
+                {
+                    icon: "CheckCircle",
+                    title: "Acceptable Use Policy",
+                    content: "You agree NOT to: • Violate any laws or regulations • Infringe on intellectual property rights • Upload malicious code or viruses • Attempt to hack, reverse engineer, or compromise our services • Use the service for spam, phishing, or fraud • Impersonate others or provide false information • Harass, abuse, or harm other users • Use automated tools (bots) without permission • Distribute or resell our services without authorization • Violations may result in immediate termination."
+                },
+                {
+                    icon: "Security",
+                    title: "Intellectual Property Rights",
+                    content: "All content, code, designs, logos, trademarks, and materials are owned by Meet Bhingradiya and protected by copyright and intellectual property laws. You are granted a limited, non-exclusive, non-transferable license to use our services. You may not: • Copy, modify, or create derivative works • Sell, rent, lease, or sublicense our software • Remove copyright or proprietary notices • User-generated content remains yours, but you grant us a license to use, display, and distribute it as needed to provide our services."
+                },
+                {
+                    icon: "MobileFriendly",
+                    title: "Mobile Apps & Browser Extensions",
+                    content: "For apps on Google Play Store and extensions on Chrome Web Store: • Installation grants you a personal, revocable license • Updates may be installed automatically • Features may require in-app purchases or subscriptions • We are not responsible for third-party app store policies • Device compatibility is not guaranteed • Uninstalling removes the license • Google Play and Chrome Web Store have additional terms that also apply."
+                },
+                {
+                    icon: "Payment",
+                    title: "Payments & Subscriptions",
+                    content: "Some services may require payment: • Prices are displayed clearly before purchase • Payments are processed through secure third-party providers (Google Play Billing, Stripe, etc.) • Subscriptions auto-renew unless canceled 24 hours before renewal • Refunds follow our Refund Policy and applicable store policies • We reserve the right to change pricing with 30 days notice • Taxes may apply based on your location • Promotional offers may have additional terms."
+                },
+                {
+                    icon: "Block",
+                    title: "Termination & Suspension",
+                    content: "We may suspend or terminate your access: • For violation of these terms • For illegal or fraudulent activity • For prolonged inactivity (after notice) • If required by law or regulation • You may terminate your account at any time through account settings or by contacting us. Upon termination: Access to paid features ends immediately. Your data will be deleted per our Privacy Policy. Outstanding payments remain due."
+                },
+                {
+                    icon: "Warning",
+                    title: "Disclaimers & Limitations",
+                    content: "OUR SERVICES ARE PROVIDED \"AS IS\" WITHOUT WARRANTIES: • We do not guarantee uninterrupted or error-free service • We are not responsible for data loss (maintain backups) • Third-party services and links are not under our control • Features may change or be discontinued with notice • TO THE MAXIMUM EXTENT PERMITTED BY LAW: We are not liable for indirect, incidental, or consequential damages. Total liability is limited to the amount you paid in the last 12 months. Some jurisdictions do not allow these limitations."
+                },
+                {
+                    icon: "Gavel",
+                    title: "Google Play & Chrome Web Store Compliance",
+                    content: "Our mobile apps and extensions comply with: • Google Play Developer Program Policies • Chrome Web Store Developer Agreement • User Data Privacy requirements • Content Rating guidelines • We collect and handle data according to Google's policies. Store-specific terms may override these terms where applicable. Violations can be reported to the respective platform."
+                },
+                {
+                    icon: "Public",
+                    title: "Governing Law & Disputes",
+                    content: "These terms are governed by the laws of India. Disputes will be resolved through: • Good faith negotiation (30 days) • Binding arbitration in India (if negotiation fails) • Small claims court for eligible disputes • You waive the right to class action lawsuits. European users have additional rights under EU law. California users have rights under CCPA."
+                },
+                {
+                    icon: "Update",
+                    title: "Changes to Terms",
+                    content: "We may update these terms at any time. You will be notified of material changes via: • Email (if you have an account) • In-app/website notification • Updated effective date on this page • Continued use after changes constitutes acceptance. If you disagree with changes, you must stop using our services. We recommend reviewing these terms periodically."
+                },
+                {
+                    icon: "ContactSupport",
+                    title: "Contact Information",
+                    content: `For questions, support, or legal inquiries: • Email: ${emailConfig.contact} (General) • Legal Email: ${emailConfig.legal} • Website: https://${emailConfig.domain}/contact • Response Time: 48-72 hours for general inquiries • For DMCA takedown requests, email ${emailConfig.dmca} • Physical address available upon request for legal purposes.`
+                }
+            ]),
+            Version: "2.0.0",
+            ProductIDs: [],
+            Status: "published",
+            EffectiveDate: "2024-12-21",
+            PublishDate: "2024-12-21",
+            Metadata: {
+                Description: "Comprehensive terms of service for covered products compliant with Google Play Store and Chrome Web Store requirements",
+                Keywords: ["terms", "conditions", "agreement", "legal", "Google Play", "Chrome Web Store", "mobile apps", "extensions"],
+                Author: "Meet Bhingradiya"
             }
         },
         "security": {
@@ -161,42 +345,62 @@ function getStaticAgreement(slug: string, allProducts: any[]): Agreement {
                 {
                     icon: "Lock",
                     title: "Data Encryption",
-                    content: "All data in transit is encrypted using TLS 1.3 protocol. Sensitive data at rest is encrypted using industry-standard AES-256 encryption algorithms to ensure maximum protection."
+                    content: "All data in transit is encrypted using TLS 1.3 protocol. Sensitive data at rest is encrypted using industry-standard AES-256 encryption algorithms to ensure maximum protection. We regularly review and update our encryption standards to maintain the highest level of security."
                 },
                 {
                     icon: "AdminPanelSettings",
                     title: "Access Controls",
-                    content: "We implement multi-factor authentication (MFA), role-based access control (RBAC), and conduct regular access reviews and security audits to prevent unauthorized access."
+                    content: "We implement multi-factor authentication (MFA), role-based access control (RBAC), and conduct regular access reviews and security audits to prevent unauthorized access. Administrative access is strictly limited and logged for audit purposes."
                 },
                 {
                     icon: "Security",
                     title: "Infrastructure Security",
-                    content: "Our infrastructure includes regular security patches, continuous monitoring and threat detection, DDoS protection, and rate limiting to maintain service integrity."
+                    content: "Our infrastructure includes: • Regular security patches and updates • Continuous monitoring and threat detection • DDoS protection and rate limiting • Firewall and intrusion prevention systems • Network segmentation and isolation • Regular penetration testing and security assessments"
+                },
+                {
+                    icon: "Warning",
+                    title: "Data Breach Response Protocol",
+                    content: "In the event of a detected data breach, we implement immediate protective measures: • IMMEDIATE: All user sessions are instantly revoked across all devices • SECURE: Password hashes are regenerated using non-similar cryptographic salts for all accounts to prevent credential stuffing attacks • MANDATORY: All users are required to change their passwords upon next login • UPGRADE: Encryption algorithms and security keys are rotated immediately • NOTIFY: Affected users are notified within 72 hours via email and in-app notifications • INVESTIGATE: Full forensic analysis is conducted to identify the breach source and extent • REPORT: Regulatory authorities are notified as required by GDPR, CCPA, and applicable laws"
+                },
+                {
+                    icon: "Shield",
+                    title: "Account Protection Measures",
+                    content: "To protect your account during and after a security incident: • Automatic session termination on all devices • Account temporarily locked until password reset is completed • Login attempts are monitored and suspicious activity is flagged • Two-factor authentication is strongly recommended and may be enforced • Account recovery requires additional verification steps • Security notifications are sent for all critical account changes"
                 },
                 {
                     icon: "BugReport",
                     title: "Vulnerability Reporting",
-                    content: "If you discover a security vulnerability, please report it responsibly to security@meetbhingradiya.com. Do not publicly disclose the issue and allow reasonable time for remediation. We may offer rewards for qualifying vulnerabilities."
+                    content: `If you discover a security vulnerability, please report it responsibly to ${emailConfig.security}. • Do not publicly disclose the issue • Allow reasonable time (90 days) for remediation • Provide detailed reproduction steps • Note: We do not provide rewards or public security credits as this is not a corporate website`
                 },
                 {
                     icon: "Backup",
                     title: "Data Backup & Recovery",
-                    content: "We maintain regular automated backups, disaster recovery procedures, and documented data retention policies to ensure business continuity and data availability."
+                    content: "Important: We currently do not maintain regular backup systems. Users are responsible for maintaining their own backups of important data. We recommend regularly exporting your data and storing it securely. In the event of data loss, we may not be able to recover your information. Future updates may include automated backup capabilities."
+                },
+                {
+                    icon: "Category",
+                    title: "Incident Response",
+                    content: "As these are hobby and startup projects, we do not maintain formal incident response timelines. However, we take security seriously and will: • Investigate reported issues as quickly as possible • Notify affected users when we become aware of security incidents • Implement fixes and security patches on a best-effort basis • Communicate updates through email and in-app notifications when applicable"
                 },
                 {
                     icon: "VerifiedUser",
                     title: "Compliance & Standards",
-                    content: "We comply with GDPR, CCPA, and are working towards SOC 2 certification. Our security practices align with industry standards and regulatory requirements."
+                    content: "We strive to follow security best practices including GDPR and CCPA guidelines, and OWASP Top 10 security recommendations. However, as hobby and startup projects, we do not currently maintain: • ISO 27001 certification • SOC 2 compliance • PCI DSS certification (payment processing handled by third-party providers) • Formal third-party security audits • We follow industry best practices on a voluntary basis and continuously improve our security posture."
+                },
+                {
+                    icon: "ContactSupport",
+                    title: "Security Contact & Reporting",
+                    content: `For security concerns, incidents, or questions: • Security Email: ${emailConfig.security} • General Contact: ${emailConfig.contact} • Response Time: Best effort, typically within 48-72 hours for general issues • Note: This is a hobby/startup project without 24/7 support or dedicated security team • We appreciate responsible disclosure and will address security issues as resources permit`
                 }
             ]),
-            Version: "1.0.0",
+            Version: "2.0.0",
             ProductIDs: [],
             Status: "published",
-            EffectiveDate: "2024-12-14",
-            PublishDate: "2024-12-14",
+            EffectiveDate: "2024-12-21",
+            PublishDate: "2024-12-21",
             Metadata: {
-                Description: "Security policies and best practices for our product ecosystem",
-                Keywords: ["security", "encryption", "vulnerability", "compliance"],
+                Description: "Comprehensive security policies including data breach response protocol and user protection measures",
+                Keywords: ["security", "encryption", "vulnerability", "compliance", "data breach", "incident response"],
                 Author: "Security Team"
             }
         }
@@ -261,6 +465,7 @@ export default function AgreementContent({ slug }: AgreementContentProps) {
 
     const getIconComponent = (iconName: string) => {
         const iconMap: Record<string, React.ReactElement> = {
+            Info: <Info />,
             DataUsage: <DataUsage />,
             Cookie: <Cookie />,
             Lock: <Lock />,
@@ -273,7 +478,17 @@ export default function AgreementContent({ slug }: AgreementContentProps) {
             AdminPanelSettings: <AdminPanelSettings />,
             BugReport: <BugReport />,
             Backup: <Backup />,
-            VerifiedUser: <VerifiedUser />
+            VerifiedUser: <VerifiedUser />,
+            ChildCare: <ChildCare />,
+            Delete: <Delete />,
+            Public: <Public />,
+            MobileFriendly: <MobileFriendly />,
+            Payment: <Payment />,
+            Block: <Block />,
+            Warning: <Warning />,
+            PersonAdd: <PersonAdd />,
+            CheckCircle: <CheckCircle />,
+            Category: <Category />
         };
         return iconMap[iconName] || <Policy />;
     };
@@ -571,17 +786,29 @@ export default function AgreementContent({ slug }: AgreementContentProps) {
                                     </div>
                                     <div className="flex-1">
                                         <h2
-                                            className={`${isApple ? "text-2xl font-bold" : "text-3xl font-black"} mb-3`}
+                                            className={`${isApple ? "text-xl sm:text-2xl font-bold" : "text-2xl sm:text-3xl font-black"} mb-3`}
                                             style={{ color: palette.textPrimary }}
                                         >
                                             {section.title}
                                         </h2>
-                                        <p
-                                            className={`${isApple ? "text-base leading-relaxed" : "text-lg font-medium leading-relaxed"}`}
+                                        <div
+                                            className={`${isApple ? "text-sm sm:text-base leading-relaxed" : "text-base sm:text-lg font-medium leading-relaxed"}`}
                                             style={{ color: palette.textSecondary }}
                                         >
-                                            {section.content}
-                                        </p>
+                                            {section.content.split('•').map((part, idx) => {
+                                                if (idx === 0) {
+                                                    // First part (before any bullet)
+                                                    return part.trim() ? <p key={idx} className="mb-2">{part.trim()}</p> : null;
+                                                }
+                                                // Bullet points
+                                                return (
+                                                    <div key={idx} className="flex gap-2 mt-1.5 ml-1">
+                                                        <span style={{ color: palette.accent }} className="font-bold">•</span>
+                                                        <span className="flex-1">{part.trim()}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

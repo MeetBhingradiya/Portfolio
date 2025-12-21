@@ -20,9 +20,11 @@ import {
     GitHub,
     CheckCircle,
     Error as ErrorIcon,
-    ArrowBack
+    ArrowBack,
+    Fingerprint,
+    Info
 } from "@mui/icons-material";
-import { signIn, useSession } from "@/Library/auth-client";
+import { signIn, useSession, passkey } from "@/Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
@@ -44,13 +46,15 @@ function SignInContent() {
 
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [passkeyLoading, setPasskeyLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
 
-    // Redirect if already logged in
+    // Redirect if already logged in (unless adding new account)
     useEffect(() => {
-        if (!isPending && session) {
-            const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+        const addingAccount = searchParams.get("addAccount") === "true";
+        if (!isPending && session && !addingAccount) {
+            const callbackUrl = searchParams.get("callbackUrl") || "/settings";
             router.push(callbackUrl);
         }
     }, [isPending, session, router, searchParams]);
@@ -71,7 +75,7 @@ function SignInContent() {
                 setError(result.error.message || "Invalid email or password");
             } else {
                 setSuccess("Login successful! Redirecting...");
-                const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+                const callbackUrl = searchParams.get("callbackUrl") || "/settings";
                 setTimeout(() => router.push(callbackUrl), 1000);
             }
         } catch (err: any) {
@@ -88,11 +92,33 @@ function SignInContent() {
         try {
             await signIn.social({
                 provider: provider as any,
-                callbackURL: searchParams.get("callbackUrl") || "/dashboard"
+                callbackURL: searchParams.get("callbackUrl") || "/settings"
             });
         } catch (err: any) {
             setError(`Failed to sign in with ${provider}`);
             setLoading(false);
+        }
+    };
+
+    const handlePasskeySignIn = async () => {
+        setPasskeyLoading(true);
+        setError("");
+        setSuccess("");
+
+        try {
+            const result = await signIn.passkey();
+
+            if (result?.error) {
+                setError(result.error.message || "Passkey authentication failed");
+            } else {
+                setSuccess("Signed in with passkey! Redirecting...");
+                const callbackUrl = searchParams.get("callbackUrl") || "/settings";
+                setTimeout(() => router.push(callbackUrl), 1000);
+            }
+        } catch (err: any) {
+            setError(err.message || "No passkeys found on this device. Please use email/password or register a passkey on this device.");
+        } finally {
+            setPasskeyLoading(false);
         }
     };
 
@@ -155,6 +181,29 @@ function SignInContent() {
                     intensity={isApple ? "strong" : undefined}
                     elevated={!isApple}
                 >
+                    {/* Add Account Notice */}
+                    {searchParams.get("addAccount") === "true" && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 rounded-xl flex items-center gap-3"
+                            style={{
+                                background: isDark ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.08)",
+                                border: `1px solid ${isDark ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.15)"}`
+                            }}
+                        >
+                            <Info style={{ color: "#3b82f6" }} />
+                            <div>
+                                <p className="text-sm font-semibold" style={{ color: "#3b82f6" }}>
+                                    Adding Another Account
+                                </p>
+                                <p className="text-xs" style={{ color: palette.textSecondary }}>
+                                    Sign in with a different account to switch between them
+                                </p>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* Header */}
                     <div className="text-center mb-8">
                         <motion.h1
@@ -184,16 +233,45 @@ function SignInContent() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
                     >
+                        {/* Passkey Button */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            <Button
+                                onClick={handlePasskeySignIn}
+                                disabled={passkeyLoading || loading}
+                                variant="secondary"
+                                className="w-full flex items-center justify-center gap-3"
+                            >
+                                {passkeyLoading ? (
+                                    <>
+                                        <div 
+                                            className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                                            style={{ borderColor: palette.accent }}
+                                        />
+                                        <span>Authenticating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Fingerprint />
+                                        <span>Sign in with Passkey</span>
+                                    </>
+                                )}
+                            </Button>
+                        </motion.div>
+
                         {oauthProviders.map((provider, index) => (
                             <motion.div
                                 key={provider.id}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.3 + index * 0.1 }}
+                                transition={{ delay: 0.4 + index * 0.1 }}
                             >
                                 <Button
                                     onClick={() => handleOAuthSignIn(provider.id)}
-                                    disabled={loading}
+                                    disabled={loading || passkeyLoading}
                                     variant="secondary"
                                     className="w-full flex items-center justify-center gap-3"
                                 >

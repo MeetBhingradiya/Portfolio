@@ -11,5 +11,13 @@ export const Config: Client_Config_Type = {
             href: "/blogs"
         },
         dismissible: true
+    },
+    Emails: {
+        domain: "meetbhingradiya.shop",
+        contact: "contact@meetbhingradiya.shop",
+        privacy: "privacy@meetbhingradiya.shop",
+        security: "security@meetbhingradiya.shop",
+        legal: "legal@meetbhingradiya.shop",
+        dmca: "dmca@meetbhingradiya.shop"
     }
 }

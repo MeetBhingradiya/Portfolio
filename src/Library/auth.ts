@@ -4,7 +4,11 @@
  */
 
 import { betterAuth } from "better-auth";
+import { GoogleOptions } from "better-auth/social-providers";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
+import { twoFactor } from "better-auth/plugins/two-factor";
+import { username, multiSession } from "better-auth/plugins";
+import { passkey } from "@better-auth/passkey";
 import { MongoClient } from "mongodb";
 
 // Skip database initialization during build time
@@ -26,33 +30,85 @@ export const auth = betterAuth({
         enabled: true,
     },
 
+    // Plugins configuration
+    plugins: [
+        username({
+            minUsernameLength: 3,
+            maxUsernameLength: 30,
+        }),
+        twoFactor({
+            issuer: "Meet Bhingradiya Portfolio",
+        }),
+        passkey({
+            rpName: "Meet Bhingradiya Portfolio",
+            rpID: process.env.NODE_ENV === "production"
+                ? "meetbhingradiya.shop"
+                : "localhost",
+            origin: process.env.NODE_ENV === "production"
+                ? process.env.BETTER_AUTH_URL || "https://meetbhingradiya.shop"
+                : "http://localhost:3000",
+        }),
+        multiSession(),
+    ],
+
     // Social providers configuration
     socialProviders: {
         google: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
             ? {
+                prompt: "select_account",
                 clientId: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            }
+                mapProfileToUser: (profile) => {
+                    console.log("Google profile mapping:", profile);
+                    return {
+                        name: profile.name,
+                        email: profile.email,
+                        image: profile.picture,
+                        emailVerified: profile.email_verified,
+                    };
+                },
+                // Capture profile data during linking too
+                scope: ["email", "profile"],
+            } as GoogleOptions
             : undefined,
 
         github: process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
             ? {
                 clientId: process.env.GITHUB_CLIENT_ID,
                 clientSecret: process.env.GITHUB_CLIENT_SECRET,
+                mapProfileToUser: (profile) => ({
+                    name: profile.name || profile.login,
+                    image: profile.avatar_url,
+                }),
             }
             : undefined,
 
-        discord: process.env.DISCORD_CLIENT_ID && process.env.DISCORD_CLIENT_SECRET
+        microsoft: process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET
             ? {
-                clientId: process.env.DISCORD_CLIENT_ID,
-                clientSecret: process.env.DISCORD_CLIENT_SECRET,
+                clientId: process.env.MICROSOFT_CLIENT_ID,
+                clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+                mapProfileToUser: (profile) => ({
+                    name: profile.displayName || profile.name,
+                    image: profile.picture,
+                }),
+            }
+            : undefined,
+
+        apple: process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
+            ? {
+                clientId: process.env.APPLE_CLIENT_ID,
+                clientSecret: process.env.APPLE_CLIENT_SECRET,
+                mapProfileToUser: (profile: any) => ({
+                    name: profile.name || profile.email?.split('@')[0] || "Trash",
+                    image: undefined, // Apple doesn't provide profile images
+                }),
             }
             : undefined,
     },
 
     // Session configuration
     session: {
-        expiresIn: 60 * 60 * 24 * 30, // 30 days
+        expiresIn: 60 * 60 * 24 * 7, // 7 days
     },
 
     // Base URL and secret
@@ -74,7 +130,35 @@ export const auth = betterAuth({
             enabled: false
         },
         useSecureCookies: process.env.NODE_ENV === "production",
-    }
+    },
+
+    // Account settings
+    account: {
+        fields: {
+            userId: "user_id",
+        },
+        updateAccountOnSignIn: true,
+        encryptOAuthTokens: true,
+        storeAccountCookie: true,
+        accountLinking: {
+            enabled: true,
+            trustedProviders: ["google", "github", "microsoft"],
+            allowDifferentEmails: false
+        }
+    },
+
+    // User fields configuration - ensure image is stored
+    user: {
+        fields: {
+            email: "email",
+            name: "name",
+            image: "image",
+            emailVerified: "emailVerified",
+        },
+        changeEmail: {
+            enabled: true,
+        },
+    },
 });
 
 // Export helper functions

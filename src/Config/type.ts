@@ -1,5 +1,15 @@
 interface Common_Config_Type {
     Environment?: "development" | "production" | "test";
+    Emails: EmailConfig;
+}
+
+export interface EmailConfig {
+    domain: string;
+    contact: string;
+    privacy: string;
+    security: string;
+    legal: string;
+    dmca: string;
 }
 
 export interface NotificationConfig {

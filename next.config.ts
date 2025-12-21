@@ -1,7 +1,7 @@
 import path from "path";
 import fs from "fs";
 import { NextConfig } from "next";
-import { CSPGenerator, CSPDirectiveOptions } from "./src/Utils/CSP";
+import { CSPGenerator, CSPDirectiveOptions } from "@Library/CSP";
 import { jsonc } from "jsonc";
 
 let tsconfig: any = jsonc.parse(
@@ -64,7 +64,7 @@ const nextConfig: NextConfig = {
     // Enhanced images config for dev performance
     images: {
         loader: "custom",
-        loaderFile: "./src/Utils/RemoteImageLoader.ts",
+        loaderFile: "./src/Utils/Load_Remote_Images.ts",
         minimumCacheTTL: isDev ? 3600 : 60,
         unoptimized: true,
         remotePatterns: [

@@ -1,33 +1,21 @@
 "use client";
 
 import React from "react";
-// import GitHubStyleHeader from "@Components/HomePage/Header";
-import GitHubStyleHero from "@Components/HomePage/Hero";
-import HorizontalShowcase from "@Components/HomePage/Showcase";
-import BlogsSection from "@Components/HomePage/Blog";
-import TechnologyGroups from "@Components/HomePage/TechnologyGroups";
-import ContactSection from "@Components/HomePage/Contact";
+
+import HeroSection from "@Components/Organisms/Home/Hero";
+// import {
+//     ProjectsSection,
+//     SkillsSection,
+//     ExperienceSection
+// } from "../Components/NewLanding/LandingSections";
 
 export default function HomePage() {
     return (
-        <div className="min-h-screen bg-white dark:bg-gray-900">
-            {/* Header */}
-            {/* <GitHubStyleHeader /> */}
-
-            {/* Hero Section */}
-            <GitHubStyleHero />
-
-            {/* Technology Groups */}
-            <TechnologyGroups />
-
-            {/* Horizontal Showcase */}
-            <HorizontalShowcase />
-
-            {/* Blogs Section */}
-            <BlogsSection />
-
-            {/* Contact Section */}
-            <ContactSection />
+        <div className="min-h-screen">
+            <HeroSection />
+            {/* <ProjectsSection />
+            <SkillsSection />
+            <ExperienceSection /> */}
         </div>
     );
 }

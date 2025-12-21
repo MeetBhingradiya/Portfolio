@@ -14,7 +14,7 @@
         "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
-        "jsx": "preserve",
+        "jsx": "react-jsx",
         "incremental": true,
         "plugins": [
             {
@@ -81,8 +81,8 @@
                 "./src/Hooks/*"
             ],
             // ? Contexts Aliases
-            "@contexts/*": [
-                "./src/contexts/*"
+            "@Contexts/*": [
+                "./src/Contexts/*"
             ],
             // ? Custom Hooks Aliases
             "@hooks/*": [
@@ -137,19 +137,27 @@
             ],
             "@Utils/*": [
                 "./src/Utils/*"
+            ],
+            "@react-bits/*": [
+                "./node_modules/react-bits/src/ts-tailwind/*"
+            ],
+            "@Static/*": [
+                "./src/Static/*"
             ]
         },
         "target": "ES2017"
     },
     "include": [
         "next-env.d.ts",
-        "**/*.ts",
-        "**/*.tsx",
+        "src/**/*.ts",
+        "src/**/*.tsx",
         ".next/types/**/*.ts",
         "Scripts/TestProxyServer.mjs",
-        "prettier.configcjs"
+        "prettier.configcjs",
+        ".next/dev/types/**/*.ts"
     ],
     "exclude": [
-        "node_modules"
+        "node_modules",
+        "Partials"
     ]
 }

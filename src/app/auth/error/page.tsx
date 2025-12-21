@@ -1,93 +1,224 @@
+/**
+ * Authentication Error Page
+ * Enhanced with dual-theme support
+ */
+
 "use client";
 
-import React, { Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { Card, CardBody, CardHeader, Button, Spinner } from "@heroui/react";
-import { FaExclamationTriangle, FaHome, FaArrowLeft } from "react-icons/fa";
+import React, { useEffect, useState, Suspense } from "react";
 import { motion } from "motion/react";
+import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
+import { OneUICard } from "@Components/Atoms/OneUI";
+import {
+    Error as ErrorIcon,
+    Warning,
+    ArrowBack,
+    Home
+} from "@mui/icons-material";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 
-const errorMessages: Record<string, string> = {
-    Configuration: "There is a problem with the server configuration.",
-    AccessDenied: "You do not have permission to sign in.",
-    Verification: "The verification token has expired or has already been used.",
-    Default: "An unexpected error occurred during authentication."
+const errorMessages: Record<string, { title: string; description: string }> = {
+    Configuration: {
+        title: "Configuration Error",
+        description: "There is a problem with the server configuration. Please contact support."
+    },
+    AccessDenied: {
+        title: "Access Denied",
+        description: "You do not have permission to access this resource."
+    },
+    Verification: {
+        title: "Verification Failed",
+        description: "The verification link is invalid or has expired."
+    },
+    Default: {
+        title: "Authentication Error",
+        description: "An unexpected error occurred during authentication. Please try again."
+    }
 };
 
-function AuthErrorContent() {
+function ErrorContent() {
+    const { designTheme, palette, actualColorMode } = useDesignTheme();
+    const isApple = designTheme === "apple";
+    const isDark = actualColorMode === "dark";
+    const Card = isApple ? LiquidGlassCard : OneUICard;
     const searchParams = useSearchParams();
-    const router = useRouter();
-    const error = searchParams.get("error") || "Default";
-    
-    const errorMessage = errorMessages[error] || errorMessages.Default;
+
+    const [errorType, setErrorType] = useState("Default");
+    const [errorInfo, setErrorInfo] = useState(errorMessages.Default);
+
+    useEffect(() => {
+        const error = searchParams.get("error") || "Default";
+        setErrorType(error);
+        setErrorInfo(errorMessages[error] || errorMessages.Default);
+    }, [searchParams]);
 
     return (
-        <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-            className="w-full max-w-md"
+        <div
+            className="min-h-screen flex items-center justify-center py-12 px-6"
+            style={{ 
+                background: isApple && isDark
+                    ? `linear-gradient(180deg, ${palette.background} 0%, ${palette.backgroundSecondary} 100%)`
+                    : palette.background
+            }}
         >
-            <Card className="bg-black/40 backdrop-blur-lg border border-white/10">
-                <CardHeader className="text-center pb-4">
-                    <div className="flex flex-col items-center space-y-3">
-                        <div className="p-3 rounded-full bg-danger/20 border border-danger">
-                            <FaExclamationTriangle className="text-danger text-2xl" />
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="w-full max-w-md"
+            >
+                <Card
+                    className={isApple ? "p-8" : "p-10"}
+                    intensity={isApple ? "strong" : undefined}
+                    elevated={!isApple}
+                >
+                    {/* Error Icon */}
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                        className="flex justify-center mb-6"
+                    >
+                        <div
+                            className={`${isApple ? "p-4 rounded-2xl" : "p-5 rounded-3xl"}`}
+                            style={{
+                                background: "rgba(239, 68, 68, 0.1)",
+                                border: "2px solid rgba(239, 68, 68, 0.3)"
+                            }}
+                        >
+                            {errorType === "AccessDenied" ? (
+                                <Warning 
+                                    style={{ 
+                                        fontSize: 60,
+                                        color: "rgb(234, 179, 8)"
+                                    }} 
+                                />
+                            ) : (
+                                <ErrorIcon 
+                                    style={{ 
+                                        fontSize: 60,
+                                        color: "rgb(239, 68, 68)"
+                                    }} 
+                                />
+                            )}
                         </div>
-                        <h1 className="text-2xl font-bold text-white">Authentication Error</h1>
-                    </div>
-                </CardHeader>
-                <CardBody className="text-center space-y-6">
-                    <div>
-                        <p className="text-gray-300 text-lg">{errorMessage}</p>
-                        {error !== "Default" && (
-                            <p className="text-gray-500 text-sm mt-2">Error Code: {error}</p>
-                        )}
-                    </div>
-                    
-                    <div className="space-y-3">
-                        <Button
-                            color="primary"
-                            variant="shadow"
-                            fullWidth
-                            onClick={() => router.push("/auth/signin")}
-                            startContent={<FaArrowLeft />}
+                    </motion.div>
+
+                    {/* Error Message */}
+                    <div className="text-center mb-8">
+                        <motion.h1
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className={`${isApple ? "text-3xl font-bold" : "text-4xl font-black"} mb-3`}
+                            style={{ color: palette.textPrimary }}
                         >
-                            Try Again
-                        </Button>
-                        <Button
-                            color="secondary"
-                            variant="flat"
-                            fullWidth
-                            onClick={() => router.push("/")}
-                            startContent={<FaHome />}
+                            {errorInfo.title}
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.4 }}
+                            className={`${isApple ? "text-sm" : "text-base font-medium"}`}
+                            style={{ color: palette.textSecondary }}
                         >
-                            Go Home
-                        </Button>
+                            {errorInfo.description}
+                        </motion.p>
                     </div>
 
-                    <div className="pt-4 border-t border-white/10">
-                        <p className="text-gray-500 text-sm">
-                            If this problem persists, please contact support.
+                    {/* Error Code */}
+                    {errorType !== "Default" && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.5 }}
+                            className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} mb-6`}
+                            style={{
+                                background: palette.surfaceSecondary,
+                                border: `1px solid ${palette.border}`
+                            }}
+                        >
+                            <p
+                                className={`${isApple ? "text-xs" : "text-sm"} font-mono text-center`}
+                                style={{ color: palette.textTertiary }}
+                            >
+                                Error Code: <strong style={{ color: palette.textPrimary }}>{errorType}</strong>
+                            </p>
+                        </motion.div>
+                    )}
+
+                    {/* Action Buttons */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        className="space-y-3"
+                    >
+                        <Link href="/auth/signin">
+                            <button
+                                className={`w-full flex items-center justify-center gap-2 ${isApple ? "px-6 py-3 rounded-xl" : "px-8 py-4 rounded-2xl"} font-semibold transition-all hover:opacity-90`}
+                                style={{
+                                    background: palette.accent,
+                                    color: palette.textOnAccent
+                                }}
+                            >
+                                <ArrowBack />
+                                <span>Back to Sign In</span>
+                            </button>
+                        </Link>
+
+                        <Link href="/">
+                            <button
+                                className={`w-full flex items-center justify-center gap-2 ${isApple ? "px-6 py-3 rounded-xl" : "px-8 py-4 rounded-2xl"} font-semibold transition-all`}
+                                style={{
+                                    background: palette.surfaceSecondary,
+                                    color: palette.textPrimary,
+                                    border: `2px solid ${palette.border}`
+                                }}
+                            >
+                                <Home />
+                                <span>Go to Home</span>
+                            </button>
+                        </Link>
+                    </motion.div>
+
+                    {/* Help Text */}
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
+                        className="mt-6 text-center"
+                    >
+                        <p
+                            className={`${isApple ? "text-xs" : "text-sm font-medium"}`}
+                            style={{ color: palette.textTertiary }}
+                        >
+                            If this problem persists, please{" "}
+                            <Link
+                                href="/contact"
+                                className="underline hover:opacity-70"
+                                style={{ color: palette.accent }}
+                            >
+                                contact support
+                            </Link>
                         </p>
-                    </div>
-                </CardBody>
-            </Card>
-        </motion.div>
+                    </motion.div>
+                </Card>
+            </motion.div>
+        </div>
     );
 }
 
-export default function AuthErrorPage() {
+export default function ErrorPage() {
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center p-6">
-            <Suspense 
-                fallback={
-                    <div className="flex items-center justify-center">
-                        <Spinner size="lg" />
-                    </div>
-                }
-            >
-                <AuthErrorContent />
-            </Suspense>
-        </div>
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-pulse text-white text-xl">Loading...</div>
+            </div>
+        }>
+            <ErrorContent />
+        </Suspense>
     );
 }

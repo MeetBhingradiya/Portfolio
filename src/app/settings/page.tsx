@@ -9,6 +9,7 @@ import React from "react";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import { useAuth } from "@Library/auth-client";
+import { UserAvatar } from "@Components/Common/UserAvatar";
 import Link from "next/link";
 import {
     Settings,
@@ -139,15 +140,13 @@ export default function SettingsPage() {
                     }}
                 >
                     <div className="flex items-center gap-4">
-                        <div 
-                            className="w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold"
-                            style={{
-                                background: `${palette.accent}20`,
-                                color: palette.accent
-                            }}
-                        >
-                            {user?.name?.charAt(0).toUpperCase() || user?.email?.charAt(0).toUpperCase() || "U"}
-                        </div>
+                        <UserAvatar
+                            userId={user?.id || ""}
+                            name={user?.name}
+                            email={user?.email}
+                            image={user?.image}
+                            size={64}
+                        />
                         <div className="flex-1">
                             <h3 className="text-xl font-bold" style={{ color: palette.textPrimary }}>
                                 {user?.name || "User"}

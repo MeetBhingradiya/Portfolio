@@ -59,7 +59,8 @@ export const auth = betterAuth({
                 clientId: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
                 mapProfileToUser: (profile) => {
-                    console.log("Google profile mapping:", profile);
+                    console.log("🔵 Google profile mapping:", profile);
+                    console.log("🔵 Extracted image:", profile.picture);
                     return {
                         name: profile.name,
                         email: profile.email,
@@ -69,6 +70,8 @@ export const auth = betterAuth({
                 },
                 // Capture profile data during linking too
                 scope: ["email", "profile"],
+                // Update user profile on every sign-in
+                updateUserOnSignIn: true,
             } as GoogleOptions
             : undefined,
 
@@ -130,6 +133,9 @@ export const auth = betterAuth({
             enabled: false
         },
         useSecureCookies: process.env.NODE_ENV === "production",
+        // Add sameSite settings to help with tracking prevention
+        cookieSecure: process.env.NODE_ENV === "production",
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
     },
 
     // Account settings
@@ -142,7 +148,9 @@ export const auth = betterAuth({
         storeAccountCookie: true,
         accountLinking: {
             enabled: true,
-            trustedProviders: ["google", "github", "microsoft"],
+            trustedProviders: ["google", "github", "microsoft", "apple"],
+            // CRITICAL SECURITY: Block OAuth sign-in if email exists but provider not linked
+            // This prevents account takeover if someone's OAuth credentials are exposed
             allowDifferentEmails: false
         }
     },

@@ -5,6 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/Library/auth";
+import { MongoClient, ObjectId } from "mongodb";
 
 export async function POST(request: NextRequest) {
     try {
@@ -25,14 +26,35 @@ export async function POST(request: NextRequest) {
 
         console.log("Syncing avatar for provider:", providerId);
 
-        // Get linked accounts
-        const accounts = await auth.api.listUserAccounts({
-            headers: request.headers,
-        });
+        // Query MongoDB directly for linked accounts
+        if (!process.env.MONGODB_01) {
+            return NextResponse.json(
+                { error: "Database not configured" },
+                { status: 500 }
+            );
+        }
 
-        console.log("Found accounts:", accounts);
-
-        const account = accounts.find((acc: any) => acc.providerId === providerId);
+        const client = new MongoClient(process.env.MONGODB_01);
+        let account: any = null;
+        
+        try {
+            await client.connect();
+            const db = client.db("PRODUCTION_MeetBhingradiya");
+            
+            // Find the account with user_id (ObjectId format)
+            const userId = session.user.id;
+            account = await db.collection("account").findOne({
+                $or: [
+                    { user_id: userId },
+                    { user_id: new ObjectId(userId) }
+                ],
+                providerId: providerId
+            });
+            
+            console.log("Found account:", account);
+        } finally {
+            await client.close();
+        }
 
         if (!account) {
             return NextResponse.json(
@@ -41,29 +63,23 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        console.log("Found account:", account);
-
         let imageUrl: string | null = null;
 
         // Fetch profile image based on provider
         if (providerId === "google") {
-            // Google: The easiest way is to have the user sign out and sign in with Google
-            // This will automatically capture the profile picture via mapProfileToUser
-            // 
-            // For now, we'll check if there's stored profile data from initial link
-            console.log("Full account object:", JSON.stringify(account, null, 2));
+            // Google requires OAuth re-authentication to get fresh profile data
+            console.log("⚠️ Google profile sync requires re-authentication");
             
             return NextResponse.json(
                 { 
-                    error: "To get your Google profile picture:\n\n1. Sign out completely\n2. Click 'Continue with Google' to sign in\n3. Your profile picture will be automatically set!\n\nNote: This is the most reliable method since Google requires fresh OAuth tokens to fetch profile data." 
+                    error: "GOOGLE_REQUIRES_SIGNIN",
+                    message: "Google profile sync requires fresh authentication. Please:\n\n1. Sign out\n2. Sign in with 'Continue with Google'\n3. Your avatar will be captured automatically\n\nAlternatively, you can manually set an image URL in your profile settings." 
                 },
                 { status: 400 }
             );
         } else if (providerId === "github") {
-            // GitHub API - get user by login name
-            // accountId from Better Auth is the numeric GitHub ID
+            // GitHub API - get user by accountId (numeric GitHub user ID)
             try {
-                // Use the numeric ID to fetch user data
                 const response = await fetch(`https://api.github.com/user/${account.accountId}`, {
                     headers: {
                         "Accept": "application/vnd.github.v3+json",
@@ -77,19 +93,32 @@ export async function POST(request: NextRequest) {
                 }
 
                 const userData = await response.json();
-                console.log("GitHub user data:", userData);
+                console.log("✅ GitHub user data:", userData);
                 imageUrl = userData.avatar_url;
             } catch (error) {
-                console.error("Failed to fetch GitHub avatar:", error);
+                console.error("❌ Failed to fetch GitHub avatar:", error);
                 return NextResponse.json(
                     { error: "Failed to fetch from GitHub API. Please try again later." },
                     { status: 500 }
                 );
             }
         } else if (providerId === "microsoft") {
+            // Microsoft requires OAuth re-authentication to get fresh profile data
+            console.log("⚠️ Microsoft profile sync requires re-authentication");
+            
             return NextResponse.json(
                 { 
-                    error: "To get your Microsoft profile picture, please:\n1. Sign out completely\n2. Sign in again using 'Continue with Microsoft'\n3. Your profile picture will be automatically updated" 
+                    error: "MICROSOFT_REQUIRES_SIGNIN",
+                    message: "Microsoft profile sync requires fresh authentication. Please:\n\n1. Sign out completely\n2. Sign in with 'Continue with Microsoft'\n3. Your profile picture will be automatically updated\n\nAlternatively, you can manually set an image URL in your profile settings." 
+                },
+                { status: 400 }
+            );
+        } else if (providerId === "apple") {
+            // Apple doesn't provide profile pictures
+            return NextResponse.json(
+                { 
+                    error: "APPLE_NO_AVATAR",
+                    message: "Apple Sign In does not provide profile pictures. You can manually set an image URL in your profile settings." 
                 },
                 { status: 400 }
             );

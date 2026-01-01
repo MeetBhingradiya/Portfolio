@@ -38,7 +38,7 @@ interface LinkedAccount {
 
 export default function LinkedAccountsPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
-    const { user, isAuthenticated } = useAuth();
+    const { user, isAuthenticated, session } = useAuth();
     const [accounts, setAccounts] = useState<LinkedAccount[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -88,48 +88,87 @@ export default function LinkedAccountsPage() {
         const hasOAuthCallback = urlParams.has('code') || urlParams.has('state');
         
         if (hasOAuthCallback && isAuthenticated) {
-            console.log("🔄 Detected OAuth callback, syncing profile...");
+            console.log("🔄 Detected OAuth callback, waiting for account to sync...");
             
-            // Try to sync profile for newly linked accounts
+            // Wait for the database to sync the newly linked account
             setTimeout(async () => {
                 try {
-                    // Try both Google and GitHub
-                    for (const provider of ['google', 'github']) {
-                        const syncResponse = await fetch("/api/auth/post-link-sync", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ providerId: provider }),
-                        });
-                        
-                        const result = await syncResponse.json();
-                        if (syncResponse.ok && result.image) {
-                            console.log(`✅ Profile picture synced from ${provider}!`);
-                            alert(`✅ Account linked successfully! Profile picture updated. Refreshing...`);
-                            // Clean URL and reload
-                            window.history.replaceState({}, '', '/settings/linked-accounts');
-                            window.location.reload();
-                            break;
-                        }
+                    // Reload accounts first to get the newly linked one
+                    console.log("🔄 Reloading accounts after OAuth...");
+                    await loadAccounts();
+                    
+                    // Small delay to ensure loadAccounts completed
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // Try GitHub first (works reliably)
+                    const githubSync = await fetch("/api/auth/post-link-sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ providerId: 'github' }),
+                    });
+                    
+                    const githubResult = await githubSync.json();
+                    if (githubSync.ok && githubResult.image) {
+                        console.log("✅ GitHub profile picture synced!");
+                        alert("✅ GitHub account linked and profile picture updated! Refreshing...");
+                        window.history.replaceState({}, '', '/settings/linked-accounts');
+                        window.location.reload();
+                        return;
                     }
+                    
+                    // Try Google (usually requires re-signin)
+                    const googleSync = await fetch("/api/auth/post-link-sync", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ providerId: 'google' }),
+                    });
+                    
+                    const googleResult = await googleSync.json();
+                    if (googleResult.error === 'GOOGLE_REQUIRES_SIGNIN') {
+                        // Google linked but avatar needs re-signin
+                        alert("✅ Google account linked!\n\n⚠️ To get your Google profile picture:\n1. Sign out\n2. Sign in with 'Continue with Google'\n3. Your avatar will be automatically set");
+                        window.history.replaceState({}, '', '/settings/linked-accounts');
+                        window.location.reload();
+                    } else if (googleSync.ok && googleResult.image) {
+                        console.log("✅ Google profile picture synced!");
+                        alert("✅ Google account linked and profile picture updated! Refreshing...");
+                        window.history.replaceState({}, '', '/settings/linked-accounts');
+                        window.location.reload();
+                        return;
+                    }
+                    
+                    // If neither worked, just reload accounts and clean URL
+                    await loadAccounts();
+                    window.history.replaceState({}, '', '/settings/linked-accounts');
                 } catch (error) {
                     console.error("Post-OAuth sync failed:", error);
+                    // Still clean URL and reload accounts
+                    await loadAccounts();
+                    window.history.replaceState({}, '', '/settings/linked-accounts');
                 }
-                
-                // Clean URL params even if sync failed
-                window.history.replaceState({}, '', '/settings/linked-accounts');
-            }, 1000); // Wait 1 second for account to be fully linked
+            }, 1500); // Wait 1.5 seconds for account to be fully written to DB
         }
     }, [isAuthenticated]);
 
     const loadAccounts = async () => {
         setLoading(true);
         try {
-            const result = await listAccounts();
-            if (result.data) {
+            // Use custom endpoint that queries DB directly
+            const response = await fetch("/api/auth/list-linked-accounts");
+            const result = await response.json();
+            
+            console.log("📋 Raw listAccounts result:", result);
+            
+            if (result.success && result.data) {
+                console.log("📋 Linked accounts found:", result.data);
                 setAccounts(result.data as any);
+            } else {
+                console.log("⚠️ No accounts data in result");
+                setAccounts([]);
             }
         } catch (error) {
-            console.error("Failed to load accounts:", error);
+            console.error("❌ Failed to load accounts:", error);
+            setAccounts([]);
         } finally {
             setLoading(false);
         }
@@ -138,6 +177,8 @@ export default function LinkedAccountsPage() {
     const handleLinkAccount = async (provider: string) => {
         try {
             console.log(`🔗 Starting link process for ${provider}...`);
+            console.log("Current user:", user);
+            console.log("Current session:", session);
             
             // linkSocial triggers an OAuth redirect, it doesn't return immediately
             // The user will be redirected to the OAuth provider and back
@@ -146,12 +187,17 @@ export default function LinkedAccountsPage() {
                 callbackURL: "/settings/linked-accounts"
             });
             
-            console.log("Link result:", result);
+            console.log("🔗 Link result:", result);
             
             // This code won't run immediately - the redirect happens first
             // After OAuth callback, the page reloads
         } catch (error: any) {
-            console.error("Failed to link account:", error);
+            console.error("❌ Failed to link account:", error);
+            console.error("Error details:", {
+                message: error.message,
+                stack: error.stack,
+                response: error.response
+            });
             alert(`Failed to link account: ${error.message || "Please try again."}`);
         }
     };

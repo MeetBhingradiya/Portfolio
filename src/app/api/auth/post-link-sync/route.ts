@@ -57,40 +57,18 @@ export async function POST(request: NextRequest) {
 
         // Fetch profile image based on provider
         if (providerId === "google") {
-            // For Google, we need to query the account table in MongoDB for any stored profile data
-            // Or use the Google API with a fresh token (which we don't have)
+            console.log("⚠️ Google profile pictures require fresh OAuth authentication");
+            console.log("User should sign out and sign in with Google to capture the avatar");
             
-            // Best approach: Check if account table has any profile data stored
-            if (process.env.MONGODB_01) {
-                const client = new MongoClient(process.env.MONGODB_01);
-                try {
-                    await client.connect();
-                    const db = client.db("PRODUCTION_MeetBhingradiya");
-                    const accountDoc = await db.collection("account").findOne({
-                        userId: session.user.id,
-                        providerId: "google"
-                    });
-                    
-                    console.log("Account document from DB:", accountDoc);
-                    
-                    // Check if there's any profile data
-                    // Better Auth might store this in a metadata field
-                    if (accountDoc && (accountDoc as any).picture) {
-                        imageUrl = (accountDoc as any).picture;
-                    }
-                } finally {
-                    await client.close();
-                }
-            }
-
-            if (!imageUrl) {
-                return NextResponse.json(
-                    { 
-                        error: "Profile picture not found in account data. Please sign out and sign in with Google to refresh your profile." 
-                    },
-                    { status: 404 }
-                );
-            }
+            // Google doesn't store the profile picture in the account table during linking
+            // It only captures it during initial OAuth sign-in via mapProfileToUser
+            return NextResponse.json(
+                { 
+                    error: "GOOGLE_REQUIRES_SIGNIN",
+                    message: "Google profile sync requires re-authentication. Please sign out and sign in with Google." 
+                },
+                { status: 400 }
+            );
         } else if (providerId === "github") {
             // GitHub - fetch from API
             try {

@@ -11,8 +11,15 @@ import { twoFactorClient, usernameClient, multiSessionClient } from "better-auth
 import { passkeyClient } from "@better-auth/passkey/client";
 
 export const authClient = createAuthClient({
-    baseURL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-    plugins: [usernameClient(), twoFactorClient(), passkeyClient(), multiSessionClient()],
+    baseURL: (process.env.VERCEL_PROJECT_PRODUCTION_URL 
+        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` 
+        : process.env.VERCEL_URL || "http://localhost:3000") as string,
+    plugins: [
+        usernameClient(),
+        twoFactorClient(),
+        passkeyClient(),
+        multiSessionClient()
+    ],
 });
 
 // Export all auth methods for easy access
@@ -60,11 +67,4 @@ export function useAuth() {
         twoFactor,
         passkey,
     };
-}
-
-// Provider component for the app
-// Better Auth doesn't need a provider - it works out of the box
-// This is exported for backward compatibility with code that uses SessionProvider
-export function SessionProvider({ children }: { children: React.ReactNode }) {
-    return <>{children}</>;
 }

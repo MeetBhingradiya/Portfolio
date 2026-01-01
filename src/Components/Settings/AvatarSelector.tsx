@@ -30,7 +30,12 @@ export function AvatarSelector() {
     useEffect(() => {
         // Determine current selection based on whether user has image
         if (user?.image) {
-            setSelectedSource("oauth");
+            // Check if it's an OAuth image (contains http/https) vs initials
+            if (user.image.startsWith('http')) {
+                setSelectedSource("oauth");
+            } else {
+                setSelectedSource("initials");
+            }
         } else {
             setSelectedSource("initials");
         }

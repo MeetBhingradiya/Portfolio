@@ -3,6 +3,7 @@
 import React from "react";
 
 import HeroSection from "@Components/Organisms/Home/Hero";
+import ContactSection from "@Components/Organisms/Home/Contact";
 // import {
 //     ProjectsSection,
 //     SkillsSection,
@@ -16,6 +17,7 @@ export default function HomePage() {
             {/* <ProjectsSection />
             <SkillsSection />
             <ExperienceSection /> */}
+            <ContactSection />
         </div>
     );
 }

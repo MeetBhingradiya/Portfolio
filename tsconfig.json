@@ -141,6 +141,9 @@
             "@react-bits/*": [
                 "./node_modules/react-bits/src/ts-tailwind/*"
             ],
+            "@Static": [
+                "./src/Static/index.ts"
+            ],
             "@Static/*": [
                 "./src/Static/*"
             ]

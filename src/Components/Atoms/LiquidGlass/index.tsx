@@ -107,6 +107,7 @@ export const LiquidGlassCard: React.FC<LiquidGlassCardProps> = ({
                     ? "0.5px solid rgba(255, 255, 255, 0.18)"
                     : "0.5px solid rgba(255, 255, 255, 0.8)",
                 borderRadius: "20px",
+                padding: "24px",
                 overflow: "hidden",
                 transformStyle: "preserve-3d",
                 rotateX: enableTilt ? rotateX : 0,

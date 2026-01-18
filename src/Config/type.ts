@@ -7,15 +7,22 @@ export interface EmailConfig {
     dmca: string;
 }
 
+export type Date_Time_Format = `${number | string}-${number | string}-${number | string} ${number | string}:${number | string} ${"AM" | "PM"}`;
+
 export interface NotificationConfig {
     enabled: boolean;
     message: string;
+    storageValue?: string;
     type?: "info" | "warning" | "error" | "success";
     link?: {
         text: string;
         href: string;
     };
     dismissible?: boolean;
+    schedule?: {
+        start: Date_Time_Format;
+        end: Date_Time_Format;
+    };
 }
 
 
@@ -25,7 +32,7 @@ interface Common_Config_Type {
 }
 
 export interface Client_Config_Type extends Common_Config_Type {
-    Notification?: NotificationConfig;
+    Notifications?: NotificationConfig[];
     Emails: EmailConfig;
 }
 

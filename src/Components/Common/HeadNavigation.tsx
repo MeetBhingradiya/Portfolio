@@ -30,6 +30,7 @@ import {
     Logout
 } from "@mui/icons-material";
 import { Config } from "@Config/Client";
+import { NotificationConfig } from "@Config/type";
 import SwitchAccountModal from "./SwitchAccountModal";
 
 interface MenuItem {
@@ -129,13 +130,87 @@ export default function HeadNavigation() {
     const [showSwitchAccountModal, setShowSwitchAccountModal] = useState(false);
     const menuTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
     const navRef = useRef<HTMLElement>(null);
-    
+
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
-    const showNotification = Config.Notification?.enabled && !uiState.notificationDismissed;
 
-    const notificationIcon = useMemo(() => {
-        switch (Config.Notification?.type) {
+    // Parse date string in format "dd-mm-yyyy hh:mm AM/PM" (IST timezone +5:30)
+    const parseScheduleDate = (dateStr: string): Date => {
+        const parts = dateStr.trim().split(' ');
+        const dateParts = parts[0].split('-'); // dd-mm-yyyy
+        const timeParts = parts[1].split(':'); // hh:mm
+        const ampm = parts[2]?.toUpperCase(); // AM/PM
+
+        const day = parseInt(dateParts[0], 10);
+        const month = parseInt(dateParts[1], 10) - 1; // JS months are 0-indexed
+        const year = parseInt(dateParts[2], 10);
+        let hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+
+        // Convert to 24-hour format
+        if (ampm === 'PM' && hours !== 12) {
+            hours += 12;
+        } else if (ampm === 'AM' && hours === 12) {
+            hours = 0;
+        }
+
+        // Create date in UTC by treating input as IST (UTC+5:30)
+        const utcDate = new Date(Date.UTC(year, month, day, hours, minutes));
+        // Subtract IST offset to get the actual UTC time
+        utcDate.setMinutes(utcDate.getMinutes() - (5 * 60 + 30));
+
+        return utcDate;
+    };
+
+    // Get current time in IST for comparison
+    const getCurrentIST = (): Date => {
+        const now = new Date();
+        // Convert current time to IST by adding 5:30 offset
+        const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
+        return new Date(now.getTime() + istOffset);
+    };
+
+    // Get active notifications that are enabled and not dismissed
+    const activeNotifications = useMemo(() => {
+        if (!Config.Notifications) return [];
+
+        const dismissedValue = typeof window !== 'undefined'
+            ? localStorage.getItem("Notification_Dismissed")
+            : null;
+
+        const now = getCurrentIST();
+
+        return Config.Notifications.filter(notification => {
+            // Check if enabled
+            if (!notification.enabled) return false;
+
+            // Check if dismissed
+            if (notification.storageValue && dismissedValue === notification.storageValue) {
+                return false;
+            }
+
+            // Check schedule if provided
+            if (notification.schedule) {
+                try {
+                    const start = parseScheduleDate(notification.schedule.start);
+                    const end = parseScheduleDate(notification.schedule.end);
+
+                    // Only show if current time is between start and end
+                    if (now < start || now > end) {
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Invalid schedule format for notification:', notification.message, error);
+                    return false;
+                }
+            }
+
+            return true;
+        });
+    }, [uiState.notificationDismissed]);
+
+    const notificationIcon = useMemo(() => (notification: NotificationConfig) => {
+        switch (notification?.type) {
             case "warning":
                 return <WarningAmber className="text-lg" />;
             case "error":
@@ -145,10 +220,9 @@ export default function HeadNavigation() {
             default:
                 return <InfoOutlined className="text-lg" />;
         }
-    }, [Config.Notification?.type]);
+    }, []);
 
-    const notificationColors = useMemo(() => {
-        const type = Config.Notification?.type || "info";
+    const notificationColors = useMemo(() => (type: string) => {
         if (isDark) {
             return {
                 info: { bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)", text: "#93c5fd" },
@@ -163,7 +237,7 @@ export default function HeadNavigation() {
             error: { bg: "rgba(239, 68, 68, 0.1)", border: "rgba(239, 68, 68, 0.2)", text: "#dc2626" },
             success: { bg: "rgba(34, 197, 94, 0.1)", border: "rgba(34, 197, 94, 0.2)", text: "#16a34a" }
         }[type];
-    }, [isDark, Config.Notification?.type]);
+    }, [isDark]);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -172,7 +246,7 @@ export default function HeadNavigation() {
             if (!nav) return;
 
             const isScrolled = scrollY > 20;
-            
+
             // Use CSS classes for visual effects
             if (isScrolled) {
                 nav.classList.add('scrolled');
@@ -222,7 +296,11 @@ export default function HeadNavigation() {
         setUiState(prev => ({ ...prev, mobileMenuOpen: false }));
     }, []);
 
-    const dismissNotification = useCallback(() => {
+    const dismissNotification = useCallback((storageValue?: string) => {
+        // Persist dismissal state to localStorage with storageValue as the value
+        if (storageValue) {
+            localStorage.setItem("Notification_Dismissed", storageValue);
+        }
         setUiState(prev => ({ ...prev, notificationDismissed: true }));
     }, []);
 
@@ -237,67 +315,131 @@ export default function HeadNavigation() {
 
     return (
         <>
-            {/* Top Notification Banner */}
+            {/* Top Notification Banners */}
             <AnimatePresence>
-                {showNotification && (
-                    <motion.div
-                        className="fixed top-0 left-0 right-0 z-[100] overflow-hidden"
-                        style={{
-                            backdropFilter: isApple ? "blur(40px) saturate(180%)" : "blur(20px)",
-                            WebkitBackdropFilter: isApple ? "blur(40px) saturate(180%)" : "blur(20px)",
-                            background: notificationColors?.bg,
-                            borderBottom: `1px solid ${notificationColors?.border}`
-                        }}
-                        initial={{ y: -100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: -100, opacity: 0 }}
-                        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                    >
-                        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3">
-                            <div className="flex items-center justify-between gap-4">
-                                <div className="flex items-center gap-3 flex-1 min-w-0">
-                                    <div style={{ color: notificationColors?.text }}>
-                                        {notificationIcon}
+                {activeNotifications.map((notification, index) => {
+                    const colors = notificationColors(notification.type || "info");
+                    const icon = notificationIcon(notification);
+                    const uniqueKey = notification.storageValue ? `notification-${notification.storageValue}` : `notification-${index}-${notification.message.substring(0, 20)}`;
+
+                    return (
+                        <motion.div
+                            key={uniqueKey}
+                            className="fixed left-0 right-0 z-[100] overflow-hidden"
+                            style={{
+                                top: `${index * 64}px`,
+                                backdropFilter: isApple ? "blur(60px) saturate(200%)" : "blur(30px)",
+                                WebkitBackdropFilter: isApple ? "blur(60px) saturate(200%)" : "blur(30px)",
+                                background: colors?.bg,
+                                borderBottom: `1px solid ${colors?.border}`,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "0 4px 24px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                                        : "0 2px 16px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6)"
+                                    : isDark
+                                        ? "0 4px 24px rgba(0, 0, 0, 0.4)"
+                                        : "0 2px 16px rgba(0, 0, 0, 0.1)"
+                            }}
+                            initial={{ y: -100, opacity: 0, scale: 0.95 }}
+                            animate={{ y: 0, opacity: 1, scale: 1 }}
+                            exit={{ y: -100, opacity: 0, scale: 0.95 }}
+                            transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                        >
+                            {/* Subtle shimmer effect overlay */}
+                            <motion.div
+                                className="absolute inset-0 pointer-events-none"
+                                style={{
+                                    background: `linear-gradient(90deg, transparent 0%, ${colors?.border}40 50%, transparent 100%)`,
+                                    backgroundSize: "200% 100%"
+                                }}
+                                animate={{
+                                    backgroundPosition: ["200% 0%", "-200% 0%"]
+                                }}
+                                transition={{
+                                    duration: 8,
+                                    repeat: Infinity,
+                                    ease: "linear"
+                                }}
+                            />
+
+                            <div className="max-w-7xl mx-auto px-4 md:px-6 py-3.5 pb-4">
+                                <div className="flex items-center relative z-10" style={{ justifyContent: notification.dismissible ? 'space-between' : 'flex-start' }}>
+                                    <div className="flex items-center gap-3.5" style={{ maxWidth: notification.dismissible ? 'calc(100% - 56px)' : '100%' }}>
+                                        <motion.div
+                                            style={{ color: colors?.text }}
+                                            animate={{
+                                                scale: [1, 1.1, 1],
+                                                rotate: [0, 5, -5, 0]
+                                            }}
+                                            transition={{
+                                                duration: 2,
+                                                repeat: Infinity,
+                                                repeatDelay: 3
+                                            }}
+                                        >
+                                            {icon}
+                                        </motion.div>
+                                        <p
+                                            className="text-sm md:text-base font-medium truncate"
+                                            style={{ color: colors?.text }}
+                                        >
+                                            {notification.message}
+                                        </p>
+                                        {notification.link && (
+                                            <Link href={notification.link.href}>
+                                                <motion.span
+                                                    className="text-sm font-semibold whitespace-nowrap hidden sm:inline relative px-3 py-1.5 rounded-lg overflow-hidden"
+                                                    style={{
+                                                        color: colors?.text,
+                                                        border: `1px solid ${colors?.border}`
+                                                    }}
+                                                    whileHover={{
+                                                        scale: 1.05,
+                                                        backgroundColor: isDark
+                                                            ? "rgba(255, 255, 255, 0.08)"
+                                                            : "rgba(0, 0, 0, 0.05)",
+                                                        boxShadow: `0 4px 12px ${colors?.border}60`
+                                                    }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    transition={{ duration: 0.2 }}
+                                                >
+                                                    <span className="relative z-10">
+                                                        {notification.link.text} →
+                                                    </span>
+                                                </motion.span>
+                                            </Link>
+                                        )}
                                     </div>
-                                    <p
-                                        className="text-sm md:text-base font-medium truncate"
-                                        style={{ color: notificationColors?.text }}
-                                    >
-                                        {Config.Notification?.message}
-                                    </p>
-                                    {Config.Notification?.link && (
-                                        <Link href={Config.Notification.link.href}>
-                                            <motion.span
-                                                className="text-sm font-semibold whitespace-nowrap hidden sm:inline"
-                                                style={{ color: notificationColors?.text }}
-                                                whileHover={{ scale: 1.05 }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                {Config.Notification.link.text} →
-                                            </motion.span>
-                                        </Link>
+                                    {notification.dismissible && (
+                                        <motion.button
+                                            onClick={() => dismissNotification(notification.storageValue)}
+                                            className="p-2 rounded-xl shrink-0 relative overflow-hidden"
+                                            style={{
+                                                color: colors?.text,
+                                                border: `1px solid ${colors?.border}`,
+                                                background: isDark
+                                                    ? "rgba(255, 255, 255, 0.03)"
+                                                    : "rgba(0, 0, 0, 0.02)"
+                                            }}
+                                            whileHover={{
+                                                backgroundColor: isDark
+                                                    ? "rgba(255, 255, 255, 0.12)"
+                                                    : "rgba(0, 0, 0, 0.08)",
+                                                scale: 1.08,
+                                                rotate: 90,
+                                                boxShadow: `0 4px 12px ${colors?.border}60`
+                                            }}
+                                            whileTap={{ scale: 0.92 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <Close className="text-lg" />
+                                        </motion.button>
                                     )}
                                 </div>
-                                {Config.Notification?.dismissible && (
-                                    <motion.button
-                                        onClick={dismissNotification}
-                                        className="p-1.5 rounded-lg shrink-0"
-                                        style={{ color: notificationColors?.text }}
-                                        whileHover={{
-                                            backgroundColor: isDark
-                                                ? "rgba(255, 255, 255, 0.1)"
-                                                : "rgba(0, 0, 0, 0.1)",
-                                            scale: 1.05
-                                        }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        <Close className="text-lg" />
-                                    </motion.button>
-                                )}
                             </div>
-                        </div>
-                    </motion.div>
-                )}
+                        </motion.div>
+                    );
+                })}
             </AnimatePresence>
 
             {/* Desktop Navigation */}
@@ -305,7 +447,7 @@ export default function HeadNavigation() {
                 ref={navRef}
                 className="fixed left-0 right-0 z-50 hidden md:block overflow-visible"
                 style={{
-                    top: showNotification ? "52px" : "0",
+                    top: activeNotifications.length > 0 ? `${activeNotifications.length * 64}px` : "0",
                     transition: "top 0.3s ease",
                     backdropFilter: isApple
                         ? uiState.scrolled
@@ -400,7 +542,7 @@ export default function HeadNavigation() {
                                                     : "transparent",
                                             backdropFilter: activeMenu === category.label && isApple ? "blur(10px)" : "none",
                                             WebkitBackdropFilter: activeMenu === category.label && isApple ? "blur(10px)" : "none",
-                                            border: activeMenu === category.label 
+                                            border: activeMenu === category.label
                                                 ? isApple
                                                     ? `0.5px solid ${palette.accent}30`
                                                     : `1.5px solid ${palette.accent}40`
@@ -408,7 +550,7 @@ export default function HeadNavigation() {
                                         }}
                                         whileHover={{
                                             scale: 1.02,
-                                            backgroundColor: activeMenu !== category.label 
+                                            backgroundColor: activeMenu !== category.label
                                                 ? isApple
                                                     ? isDark ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.03)"
                                                     : isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)"
@@ -638,104 +780,160 @@ export default function HeadNavigation() {
                                     </Link>
                                 </>
                             )}
-                            
+
                             {/* User Menu Dropdown */}
                             {isAuthenticated && (
-                            <div
-                                className="relative"
-                                onMouseEnter={() => handleMenuEnter("user-menu")}
-                                onMouseLeave={handleMenuLeave}
-                            >
-                                <motion.button
-                                    className={`${isApple ? "p-2.5" : "p-3"} rounded-xl relative overflow-hidden`}
-                                    style={{
-                                        color: activeMenu === "user-menu" ? palette.accent : palette.textSecondary,
-                                        background: activeMenu === "user-menu"
-                                            ? isApple
-                                                ? isDark
-                                                    ? `linear-gradient(135deg, ${palette.accent}20 0%, ${palette.accent}15 100%)`
-                                                    : `linear-gradient(135deg, ${palette.accent}15 0%, ${palette.accent}10 100%)`
-                                                : `linear-gradient(135deg, ${palette.accent}20 0%, ${palette.accent}15 100%)`
-                                            : "transparent",
-                                        border: activeMenu === "user-menu" 
-                                            ? isApple
-                                                ? `0.5px solid ${palette.accent}30`
-                                                : `1.5px solid ${palette.accent}40`
-                                            : "0.5px solid transparent"
-                                    }}
-                                    whileHover={{
-                                        backgroundColor: activeMenu !== "user-menu" 
-                                            ? isApple
-                                                ? isDark
-                                                    ? `${palette.accent}20`
-                                                    : `${palette.accent}15`
-                                                : `${palette.accent}20`
-                                            : undefined,
-                                        color: palette.accent,
-                                        scale: 1.08
-                                    }}
-                                    whileTap={{ scale: 0.92 }}
-                                    transition={{ duration: 0.2 }}
+                                <div
+                                    className="relative"
+                                    onMouseEnter={() => handleMenuEnter("user-menu")}
+                                    onMouseLeave={handleMenuLeave}
                                 >
-                                    <AccountCircle />
-                                </motion.button>
+                                    <motion.button
+                                        className={`${isApple ? "p-2.5" : "p-3"} rounded-xl relative overflow-hidden`}
+                                        style={{
+                                            color: activeMenu === "user-menu" ? palette.accent : palette.textSecondary,
+                                            background: activeMenu === "user-menu"
+                                                ? isApple
+                                                    ? isDark
+                                                        ? `linear-gradient(135deg, ${palette.accent}20 0%, ${palette.accent}15 100%)`
+                                                        : `linear-gradient(135deg, ${palette.accent}15 0%, ${palette.accent}10 100%)`
+                                                    : `linear-gradient(135deg, ${palette.accent}20 0%, ${palette.accent}15 100%)`
+                                                : "transparent",
+                                            border: activeMenu === "user-menu"
+                                                ? isApple
+                                                    ? `0.5px solid ${palette.accent}30`
+                                                    : `1.5px solid ${palette.accent}40`
+                                                : "0.5px solid transparent"
+                                        }}
+                                        whileHover={{
+                                            backgroundColor: activeMenu !== "user-menu"
+                                                ? isApple
+                                                    ? isDark
+                                                        ? `${palette.accent}20`
+                                                        : `${palette.accent}15`
+                                                    : `${palette.accent}20`
+                                                : undefined,
+                                            color: palette.accent,
+                                            scale: 1.08
+                                        }}
+                                        whileTap={{ scale: 0.92 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
+                                        <AccountCircle />
+                                    </motion.button>
 
-                                {/* User Dropdown Menu */}
-                                <AnimatePresence>
-                                    {activeMenu === "user-menu" && (
-                                        <motion.div
-                                            className="absolute top-full right-0 mt-2 min-w-[240px] overflow-hidden"
-                                            style={{
-                                                zIndex: 9999,
-                                                backdropFilter: isApple
-                                                    ? "blur(60px) saturate(200%)"
-                                                    : "none",
-                                                WebkitBackdropFilter: isApple
-                                                    ? "blur(60px) saturate(200%)"
-                                                    : "none",
-                                                background: isApple
-                                                    ? isDark
-                                                        ? "linear-gradient(135deg, rgba(38, 38, 42, 0.88) 0%, rgba(28, 28, 32, 0.85) 100%)"
-                                                        : "linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(250, 250, 252, 0.85) 100%)"
-                                                    : isDark
-                                                        ? "linear-gradient(135deg, rgba(40, 40, 45, 0.95) 0%, rgba(30, 30, 35, 0.9) 100%)"
-                                                        : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 250, 252, 0.9) 100%)",
-                                                border: isApple
-                                                    ? isDark
-                                                        ? "0.5px solid rgba(255, 255, 255, 0.15)"
-                                                        : "0.5px solid rgba(255, 255, 255, 0.8)"
-                                                    : `1.5px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)"}`,
-                                                borderRadius: isApple ? "18px" : "32px",
-                                                boxShadow: isApple
-                                                    ? isDark
-                                                        ? "0 16px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.1) inset"
-                                                        : "0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(255, 255, 255, 1) inset"
-                                                    : isDark
-                                                        ? "0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                                                        : "0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
-                                            }}
-                                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                                            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
-                                        >
-                                            {/* Top glass reflection */}
-                                            {isApple && (
-                                                <div
-                                                    className="absolute inset-x-0 top-0 pointer-events-none"
-                                                    style={{
-                                                        height: "40%",
-                                                        background: isDark
-                                                            ? "linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%)"
-                                                            : "linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, transparent 100%)",
-                                                        borderRadius: "50% 50% 0 0 / 100% 100% 0 0"
-                                                    }}
-                                                />
-                                            )}
-                                            <div className={`${isApple ? "p-2.5" : "p-3"} relative z-10`}>
-                                                <Link href="/profile">
+                                    {/* User Dropdown Menu */}
+                                    <AnimatePresence>
+                                        {activeMenu === "user-menu" && (
+                                            <motion.div
+                                                className="absolute top-full right-0 mt-2 min-w-[240px] overflow-hidden"
+                                                style={{
+                                                    zIndex: 9999,
+                                                    backdropFilter: isApple
+                                                        ? "blur(60px) saturate(200%)"
+                                                        : "none",
+                                                    WebkitBackdropFilter: isApple
+                                                        ? "blur(60px) saturate(200%)"
+                                                        : "none",
+                                                    background: isApple
+                                                        ? isDark
+                                                            ? "linear-gradient(135deg, rgba(38, 38, 42, 0.88) 0%, rgba(28, 28, 32, 0.85) 100%)"
+                                                            : "linear-gradient(135deg, rgba(255, 255, 255, 0.88) 0%, rgba(250, 250, 252, 0.85) 100%)"
+                                                        : isDark
+                                                            ? "linear-gradient(135deg, rgba(40, 40, 45, 0.95) 0%, rgba(30, 30, 35, 0.9) 100%)"
+                                                            : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 250, 252, 0.9) 100%)",
+                                                    border: isApple
+                                                        ? isDark
+                                                            ? "0.5px solid rgba(255, 255, 255, 0.15)"
+                                                            : "0.5px solid rgba(255, 255, 255, 0.8)"
+                                                        : `1.5px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)"}`,
+                                                    borderRadius: isApple ? "18px" : "32px",
+                                                    boxShadow: isApple
+                                                        ? isDark
+                                                            ? "0 16px 48px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.1) inset"
+                                                            : "0 12px 40px rgba(0, 0, 0, 0.12), 0 4px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(255, 255, 255, 1) inset"
+                                                        : isDark
+                                                            ? "0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                                                            : "0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                                                }}
+                                                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                                transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+                                            >
+                                                {/* Top glass reflection */}
+                                                {isApple && (
+                                                    <div
+                                                        className="absolute inset-x-0 top-0 pointer-events-none"
+                                                        style={{
+                                                            height: "40%",
+                                                            background: isDark
+                                                                ? "linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%)"
+                                                                : "linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, transparent 100%)",
+                                                            borderRadius: "50% 50% 0 0 / 100% 100% 0 0"
+                                                        }}
+                                                    />
+                                                )}
+                                                <div className={`${isApple ? "p-2.5" : "p-3"} relative z-10`}>
+                                                    <Link href="/profile">
+                                                        <motion.div
+                                                            className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                            whileHover={{
+                                                                backgroundColor: isApple
+                                                                    ? isDark
+                                                                        ? "rgba(255, 255, 255, 0.08)"
+                                                                        : "rgba(0, 0, 0, 0.04)"
+                                                                    : isDark
+                                                                        ? "rgba(255, 255, 255, 0.08)"
+                                                                        : "rgba(0, 0, 0, 0.05)",
+                                                                scale: 1.01
+                                                            }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                        >
+                                                            <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
+                                                                <AccountCircle />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
+                                                                    Profile
+                                                                </div>
+                                                                <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
+                                                                    View your profile
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    </Link>
+                                                    <Link href="/settings">
+                                                        <motion.div
+                                                            className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                            whileHover={{
+                                                                backgroundColor: isApple
+                                                                    ? isDark
+                                                                        ? "rgba(255, 255, 255, 0.08)"
+                                                                        : "rgba(0, 0, 0, 0.04)"
+                                                                    : isDark
+                                                                        ? "rgba(255, 255, 255, 0.08)"
+                                                                        : "rgba(0, 0, 0, 0.05)",
+                                                                scale: 1.01
+                                                            }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                        >
+                                                            <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
+                                                                <Settings />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
+                                                                    Settings
+                                                                </div>
+                                                                <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
+                                                                    Manage preferences
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    </Link>
                                                     <motion.div
                                                         className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                        onClick={() => setShowSwitchAccountModal(true)}
                                                         whileHover={{
                                                             backgroundColor: isApple
                                                                 ? isDark
@@ -749,106 +947,50 @@ export default function HeadNavigation() {
                                                         whileTap={{ scale: 0.98 }}
                                                     >
                                                         <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
-                                                            <AccountCircle />
+                                                            <SwapHoriz />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
-                                                                Profile
+                                                                Switch Account
                                                             </div>
                                                             <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
-                                                                View your profile
+                                                                Change active account
                                                             </div>
                                                         </div>
                                                     </motion.div>
-                                                </Link>
-                                                <Link href="/settings">
-                                                    <motion.div
-                                                        className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                    <div className={`${isApple ? "my-2 mx-3" : "my-2.5 mx-4"} h-px`} style={{ background: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)" }} />
+                                                    <motion.button
+                                                        onClick={handleSignOut}
+                                                        className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3 w-full`}
                                                         whileHover={{
                                                             backgroundColor: isApple
                                                                 ? isDark
-                                                                    ? "rgba(255, 255, 255, 0.08)"
-                                                                    : "rgba(0, 0, 0, 0.04)"
+                                                                    ? "rgba(255, 68, 68, 0.12)"
+                                                                    : "rgba(239, 68, 68, 0.08)"
                                                                 : isDark
-                                                                    ? "rgba(255, 255, 255, 0.08)"
-                                                                    : "rgba(0, 0, 0, 0.05)",
+                                                                    ? "rgba(255, 68, 68, 0.12)"
+                                                                    : "rgba(239, 68, 68, 0.08)",
                                                             scale: 1.01
                                                         }}
                                                         whileTap={{ scale: 0.98 }}
                                                     >
-                                                        <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
-                                                            <Settings />
+                                                        <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: isDark ? "#ff4444" : "#ef4444" }}>
+                                                            <Logout />
                                                         </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
-                                                                Settings
+                                                        <div className="flex-1 min-w-0 text-left">
+                                                            <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: isDark ? "#ff4444" : "#ef4444" }}>
+                                                                Sign Out
                                                             </div>
                                                             <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
-                                                                Manage preferences
+                                                                Log out of your account
                                                             </div>
                                                         </div>
-                                                    </motion.div>
-                                                </Link>
-                                                <motion.div
-                                                    className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
-                                                    onClick={() => setShowSwitchAccountModal(true)}
-                                                    whileHover={{
-                                                        backgroundColor: isApple
-                                                            ? isDark
-                                                                ? "rgba(255, 255, 255, 0.08)"
-                                                                : "rgba(0, 0, 0, 0.04)"
-                                                            : isDark
-                                                                ? "rgba(255, 255, 255, 0.08)"
-                                                                : "rgba(0, 0, 0, 0.05)",
-                                                        scale: 1.01
-                                                    }}
-                                                    whileTap={{ scale: 0.98 }}
-                                                >
-                                                    <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
-                                                        <SwapHoriz />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
-                                                            Switch Account
-                                                        </div>
-                                                        <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
-                                                            Change active account
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                                <div className={`${isApple ? "my-2 mx-3" : "my-2.5 mx-4"} h-px`} style={{ background: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)" }} />
-                                                <motion.button
-                                                    onClick={handleSignOut}
-                                                    className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3 w-full`}
-                                                    whileHover={{
-                                                        backgroundColor: isApple
-                                                            ? isDark
-                                                                ? "rgba(255, 68, 68, 0.12)"
-                                                                : "rgba(239, 68, 68, 0.08)"
-                                                            : isDark
-                                                                ? "rgba(255, 68, 68, 0.12)"
-                                                                : "rgba(239, 68, 68, 0.08)",
-                                                        scale: 1.01
-                                                    }}
-                                                    whileTap={{ scale: 0.98 }}
-                                                >
-                                                    <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: isDark ? "#ff4444" : "#ef4444" }}>
-                                                        <Logout />
-                                                    </div>
-                                                    <div className="flex-1 min-w-0 text-left">
-                                                        <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: isDark ? "#ff4444" : "#ef4444" }}>
-                                                            Sign Out
-                                                        </div>
-                                                        <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
-                                                            Log out of your account
-                                                        </div>
-                                                    </div>
-                                                </motion.button>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
+                                                    </motion.button>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
                             )}
                         </div>
                     </div>
@@ -859,7 +1001,7 @@ export default function HeadNavigation() {
             <motion.nav
                 className="fixed left-0 right-0 z-50 md:hidden overflow-visible"
                 style={{
-                    top: showNotification ? "52px" : "0",
+                    top: activeNotifications.length > 0 ? `${activeNotifications.length * 64}px` : "0",
                     transition: "top 0.3s ease",
                     backdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
                     WebkitBackdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
@@ -972,8 +1114,8 @@ export default function HeadNavigation() {
                         >
                             <div className="p-5 space-y-5">
                                 {menuCategories.map((category, catIndex) => (
-                                    <motion.div 
-                                        key={category.label} 
+                                    <motion.div
+                                        key={category.label}
                                         className="space-y-2.5"
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -1063,17 +1205,17 @@ export default function HeadNavigation() {
             </motion.nav>
 
             {/* Spacer */}
-            <div 
+            <div
                 style={{
-                    height: showNotification ? "116px" : "64px",
+                    height: activeNotifications.length > 0 ? `${(activeNotifications.length * 64) + 64}px` : "64px",
                     transition: "height 0.3s ease"
                 }}
             />
 
             {/* Switch Account Modal */}
-            <SwitchAccountModal 
-                isOpen={showSwitchAccountModal} 
-                onClose={() => setShowSwitchAccountModal(false)} 
+            <SwitchAccountModal
+                isOpen={showSwitchAccountModal}
+                onClose={() => setShowSwitchAccountModal(false)}
             />
         </>
     );

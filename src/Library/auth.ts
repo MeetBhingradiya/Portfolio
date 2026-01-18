@@ -28,6 +28,8 @@ export const auth = betterAuth({
     // Email and password authentication
     emailAndPassword: {
         enabled: true,
+        requireEmailVerification: true,
+
     },
 
     // Plugins configuration
@@ -45,7 +47,7 @@ export const auth = betterAuth({
                 ? "meetbhingradiya.shop"
                 : "localhost",
             origin: process.env.NODE_ENV === "production"
-                ? process.env.BETTER_AUTH_URL || "https://meetbhingradiya.shop"
+                ? "https://beta.meetbhingradiya.shop"
                 : "http://localhost:3000",
         }),
         multiSession(),
@@ -115,15 +117,13 @@ export const auth = betterAuth({
     },
 
     // Base URL and secret
-    baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
+    // baseURL: process.env.VERCEL_PROJECT_PRODUCTION_URL || "http://localhost:3000",
+    baseURL: "https://beta.meetbhingradiya.shop",
     secret: process.env.BETTER_AUTH_SECRET!,
 
     // CORS and trusted origins configuration
     trustedOrigins: [
-        "http://localhost:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3000",
-        process.env.BETTER_AUTH_URL,
+        "https://beta.meetbhingradiya.shop",
     ].filter(Boolean) as string[],
 
     // Advanced security options

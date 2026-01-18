@@ -43,12 +43,8 @@ export const auth = betterAuth({
         }),
         passkey({
             rpName: "Meet Bhingradiya Portfolio",
-            rpID: process.env.NODE_ENV === "production"
-                ? "meetbhingradiya.shop"
-                : "localhost",
-            origin: process.env.NODE_ENV === "production"
-                ? "https://beta.meetbhingradiya.shop"
-                : "http://localhost:3000",
+            rpID: "meetbhingradiya.shop",
+            origin: "https://beta.meetbhingradiya.shop"
         }),
         multiSession(),
     ],

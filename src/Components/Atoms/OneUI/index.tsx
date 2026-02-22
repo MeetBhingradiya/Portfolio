@@ -198,7 +198,7 @@ export const OneUIHeader: React.FC<OneUIHeaderProps> = ({
 
 interface OneUIBadgeProps {
     children: React.ReactNode;
-    variant?: "accent" | "neutral" | "success" | "warning";
+    variant?: "accent" | "neutral" | "success" | "warning" | "info";
     className?: string;
 }
 
@@ -242,6 +242,14 @@ export const OneUIBadge: React.FC<OneUIBadgeProps> = ({
             text: "#FF9500",
             border: "rgba(255, 149, 0, 0.4)",
             shadow: "0 2px 8px rgba(255, 149, 0, 0.2)"
+        },
+        info: {
+            bg: isDark
+                ? "linear-gradient(135deg, rgba(90, 200, 250, 0.25) 0%, rgba(90, 200, 250, 0.2) 100%)"
+                : "linear-gradient(135deg, rgba(90, 200, 250, 0.15) 0%, rgba(90, 200, 250, 0.1) 100%)",
+            text: "#5AC8FA",
+            border: "rgba(90, 200, 250, 0.4)",
+            shadow: "0 2px 8px rgba(90, 200, 250, 0.2)"
         }
     }), [palette, isDark]);
 

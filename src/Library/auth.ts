@@ -55,7 +55,7 @@ export const auth = betterAuth({
         passkey({
             rpName: "Meet Bhingradiya Portfolio",
             rpID: "meetbhingradiya.shop",
-            origin: process.env.VERCEL_PROJECT_PRODUCTION_URL
+            origin: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
         }),
         multiSession(),
     ],
@@ -162,13 +162,13 @@ export const auth = betterAuth({
     },
 
     // Base URL and secret
-    // baseURL: process.env.VERCEL_PROJECT_PRODUCTION_URL || "http://localhost:3000",
-    baseURL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    // baseURL: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` || "http://localhost:3000",
+    baseURL: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
     secret: process.env.BETTER_AUTH_SECRET!,
 
     // CORS and trusted origins configuration
     trustedOrigins: [
-        process.env.VERCEL_PROJECT_PRODUCTION_URL,
+        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
     ].filter(Boolean) as string[],
 
     // Advanced security options

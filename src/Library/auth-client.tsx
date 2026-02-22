@@ -11,7 +11,7 @@ import { twoFactorClient, usernameClient, multiSessionClient } from "better-auth
 import { passkeyClient } from "@better-auth/passkey/client";
 
 export const authClient = createAuthClient({
-    baseURL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
+    baseURL: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
     plugins: [
         usernameClient(),
         twoFactorClient(),

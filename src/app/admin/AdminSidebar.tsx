@@ -24,7 +24,8 @@ import {
     ChevronLeft,
     ChevronRight,
     AdminPanelSettings,
-    Folder
+    Folder,
+    Build
 } from "@mui/icons-material";
 
 const navItems = [
@@ -38,6 +39,7 @@ const navItems = [
     { href: "/admin/certificates", label: "Certificates", icon: <WorkspacePremium fontSize="small" /> },
     { href: "/admin/test-scores", label: "Test Scores", icon: <EmojiEvents fontSize="small" /> },
     { href: "/admin/resume", label: "Resume Builder", icon: <PictureAsPdf fontSize="small" /> },
+    { href: "/admin/tool-settings", label: "Tool Settings", icon: <Build fontSize="small" /> },
 ];
 
 export default function AdminSidebar() {

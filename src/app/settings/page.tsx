@@ -22,12 +22,21 @@ import {
     Warning,
     ChevronRight,
     Email,
-    Password
+    Password,
+    AdminPanelSettings
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const { user, isAuthenticated } = useAuth();
+    const [isAdmin, setIsAdmin] = React.useState(false);
+
+    React.useEffect(() => {
+        fetch("/api/admin/is-admin")
+            .then(r => r.json())
+            .then(j => setIsAdmin(j.isAdmin === true))
+            .catch(() => setIsAdmin(false));
+    }, []);
 
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
@@ -82,6 +91,8 @@ export default function SettingsPage() {
             badge: null
         }
     ];
+
+    // isAdmin is fetched server-side via /api/admin/is-admin
 
     if (!isAuthenticated) {
         return (
@@ -214,6 +225,53 @@ export default function SettingsPage() {
                             </motion.div>
                         </Link>
                     ))}
+
+                    {/* Admin Portal — only for ADMIN_EMAIL env var owner */}
+                    {isAdmin && (
+                        <>
+                            <div className="pt-2 pb-1">
+                                <p className="text-xs font-semibold uppercase tracking-widest"
+                                    style={{ color: palette.textTertiary }}>
+                                    Administration
+                                </p>
+                            </div>
+                            <Link href="/admin">
+                                <motion.div
+                                    className="p-6 rounded-2xl cursor-pointer"
+                                    style={{
+                                        background: isApple
+                                            ? isDark ? "rgba(220, 50, 50, 0.18)" : "rgba(220, 50, 50, 0.10)"
+                                            : `${palette.accent}12`,
+                                        border: `1.5px solid ${isDark ? "rgba(220,50,50,0.35)" : "rgba(220,50,50,0.25)"}`
+                                    }}
+                                    whileHover={{ scale: 1.01 }}
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex gap-4 flex-1">
+                                            <div className="p-3 rounded-xl" style={{ background: "rgba(220,50,50,0.15)" }}>
+                                                <AdminPanelSettings style={{ color: "#DC3232" }} />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                        Admin Portal
+                                                    </h3>
+                                                    <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                                        style={{ background: "rgba(220,50,50,0.2)", color: "#DC3232" }}>
+                                                        Owner Only
+                                                    </span>
+                                                </div>
+                                                <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                                    Manage portfolio content, users, sitemap, and resume builder
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <ChevronRight style={{ color: "#DC3232" }} />
+                                    </div>
+                                </motion.div>
+                            </Link>
+                        </>
+                    )}
                 </div>
             </div>
         </div>

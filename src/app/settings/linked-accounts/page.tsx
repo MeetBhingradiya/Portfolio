@@ -41,6 +41,8 @@ export default function LinkedAccountsPage() {
     const { user, isAuthenticated, session } = useAuth();
     const [accounts, setAccounts] = useState<LinkedAccount[]>([]);
     const [loading, setLoading] = useState(true);
+    const [syncingProvider, setSyncingProvider] = useState<string | null>(null);
+    const [syncStatus, setSyncStatus] = useState<Record<string, { ok: boolean; message: string } | null>>({});
 
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
@@ -249,27 +251,33 @@ export default function LinkedAccountsPage() {
     };
 
     const handleSyncAvatar = async (providerId: string) => {
+        setSyncingProvider(providerId);
+        setSyncStatus(prev => ({ ...prev, [providerId]: null }));
         try {
             const response = await fetch("/api/auth/sync-avatar", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ providerId }),
             });
 
             const result = await response.json();
 
             if (response.ok) {
-                alert("✅ Profile picture synced successfully! The page will refresh to show your new avatar.");
-                window.location.reload();
+                setSyncStatus(prev => ({ ...prev, [providerId]: { ok: true, message: "Avatar synced! Refreshing…" } }));
+                setTimeout(() => window.location.reload(), 1200);
             } else {
-                // Show more helpful error messages
-                alert(`❌ ${result.error || "Failed to sync profile picture"}\n\nNote: If this doesn't work, the easiest solution is to:\n1. Sign out completely\n2. Sign in using 'Continue with ${providerId.charAt(0).toUpperCase() + providerId.slice(1)}'\n3. Your profile picture will be automatically captured!`);
+                const providerName = providerId.charAt(0).toUpperCase() + providerId.slice(1);
+                let msg = result.message || result.error || "Failed to sync profile picture";
+                if (result.error === "GOOGLE_TOKEN_EXPIRED" || result.error === "MICROSOFT_TOKEN_EXPIRED") {
+                    msg = `Your ${providerName} token expired. Sign out and sign back in with ${providerName} to refresh it.`;
+                }
+                setSyncStatus(prev => ({ ...prev, [providerId]: { ok: false, message: msg } }));
             }
         } catch (error: any) {
             console.error("Failed to sync avatar:", error);
-            alert(`Failed to sync avatar: ${error.message || "Please try again."}`);
+            setSyncStatus(prev => ({ ...prev, [providerId]: { ok: false, message: error.message || "Network error. Please try again." } }));
+        } finally {
+            setSyncingProvider(null);
         }
     };
 
@@ -430,10 +438,15 @@ export default function LinkedAccountsPage() {
                                                         Linked on {new Date(account.createdAt).toLocaleDateString()}
                                                     </p>
                                                 )}
+                                                {syncStatus[provider.id] && (
+                                                    <p className="text-xs mt-2 font-medium" style={{ color: syncStatus[provider.id]!.ok ? "#22c55e" : "#ef4444" }}>
+                                                        {syncStatus[provider.id]!.ok ? "✅" : "❌"} {syncStatus[provider.id]!.message}
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            {linked && (provider.id === "google" || provider.id === "github") && (
+                                            {linked && (provider.id === "google" || provider.id === "github" || provider.id === "microsoft") && (
                                                 <motion.button
                                                     className="px-4 py-2 rounded-xl font-semibold flex items-center gap-2"
                                                     style={{
@@ -444,9 +457,13 @@ export default function LinkedAccountsPage() {
                                                     whileHover={{ scale: 1.05 }}
                                                     whileTap={{ scale: 0.95 }}
                                                     onClick={() => handleSyncAvatar(provider.id)}
+                                                    disabled={syncingProvider === provider.id}
                                                 >
-                                                    <Sync className="text-sm" />
-                                                    Sync Avatar
+                                                    <Sync
+                                                        className="text-sm"
+                                                        style={syncingProvider === provider.id ? { animation: "spin 1s linear infinite" } : {}}
+                                                    />
+                                                    {syncingProvider === provider.id ? "Syncing…" : "Sync Avatar"}
                                                 </motion.button>
                                             )}
                                             {linked ? (

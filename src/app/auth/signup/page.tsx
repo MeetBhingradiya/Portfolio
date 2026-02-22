@@ -23,9 +23,10 @@ import {
     ArrowBack,
     Person
 } from "@mui/icons-material";
-import { signUp, useSession } from "@/Library/auth-client";
+import { signUp, signIn, useSession } from "@/Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { CookieWarning } from "@Components/Common/CookieWarning";
 
 function SignUpContent() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
@@ -108,6 +109,21 @@ function SignUpContent() {
         }));
     };
 
+    const handleOAuthSignIn = async (provider: string) => {
+        setLoading(true);
+        setError("");
+
+        try {
+            await signIn.social({
+                provider: provider as any,
+                callbackURL: searchParams.get("callbackUrl") || "/dashboard"
+            });
+        } catch (err: any) {
+            setError(`Failed to sign up with ${provider}`);
+            setLoading(false);
+        }
+    };
+
     const oauthProviders = [
         { name: "Google", icon: <Google />, id: "google" },
         { name: "GitHub", icon: <GitHub />, id: "github" }
@@ -155,6 +171,9 @@ function SignUpContent() {
                     </motion.button>
                 </Link>
 
+                {/* Cookie blocked warning */}
+                <CookieWarning />
+
                 <Card
                     className={isApple ? "p-8" : "p-10"}
                     intensity={isApple ? "strong" : undefined}
@@ -197,7 +216,7 @@ function SignUpContent() {
                                 transition={{ delay: 0.3 + index * 0.1 }}
                             >
                                 <Button
-                                    onClick={() => {/* OAuth handler */}}
+                                    onClick={() => handleOAuthSignIn(provider.id)}
                                     disabled={loading}
                                     variant="secondary"
                                     className="w-full flex items-center justify-center gap-3"

@@ -27,6 +27,7 @@ import {
 import { signIn, useSession, passkey } from "@/Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { CookieWarning } from "@Components/Common/CookieWarning";
 
 function SignInContent() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
@@ -175,6 +176,9 @@ function SignInContent() {
                         <span>Back to Home</span>
                     </motion.button>
                 </Link>
+
+                {/* Cookie blocked warning */}
+                <CookieWarning />
 
                 <Card
                     className={isApple ? "p-8" : "p-10"}

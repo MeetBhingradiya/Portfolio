@@ -30,6 +30,12 @@ const useTurbopack = process.env.TURBOPACK === "1";
 
 const nextConfig: NextConfig = {
     reactStrictMode: false,
+    typedRoutes: false,
+    typescript: {
+        // TypeScript OOMs the build worker on this project size.
+        // Run `bun typecheck` separately for full TS validation.
+        ignoreBuildErrors: true
+    },
     devIndicators: {
         position: "bottom-right"
     },

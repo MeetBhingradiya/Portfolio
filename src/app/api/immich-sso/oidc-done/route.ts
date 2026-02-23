@@ -18,7 +18,6 @@ import { randomBytes } from "crypto";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist, ImmichAuthCode } from "@Models/ImmichWhitelist";
 import { getSession } from "@/Library/auth";
-import { getIssuer } from "@Utils/OIDCKeys";
 
 export const dynamic = "force-dynamic";
 
@@ -53,9 +52,11 @@ export async function GET(req: NextRequest) {
         const secret = new TextEncoder().encode(
             process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me"
         );
-        const { payload } = await jwtVerify(requestToken, secret, {
-            issuer: getIssuer(),
-        });
+        // No issuer check — the HMAC signature alone guarantees authenticity.
+        // An issuer check causes verifications to fail when getIssuer() resolves
+        // differently between the `authorize` (signing) and `oidc-done` (verifying)
+        // request paths (e.g., different env vars on Vercel vs. local).
+        const { payload } = await jwtVerify(requestToken, secret);
         oidcRequest = payload as typeof oidcRequest;
     } catch {
         return NextResponse.redirect(

@@ -14,6 +14,7 @@ import {
     exportJWK,
     importJWK,
 } from "jose";
+import { Config } from "@Config/Client";
 
 interface OIDCKeySet {
     privateKey: any;
@@ -77,11 +78,7 @@ export async function getOIDCKeys(): Promise<OIDCKeySet> {
 
 /** The OIDC issuer base URL (no trailing slash) */
 export function getIssuer(): string {
-    const base =
-        process.env.NEXT_PUBLIC_APP_URL ||
-        process.env.NEXTAUTH_URL ||
-        "http://localhost:3000";
-    return `${base}/api/immich-sso`;
+    return `${Config.Origin}/api/immich-sso`;
 }
 
 /** Validate OIDC client credentials */

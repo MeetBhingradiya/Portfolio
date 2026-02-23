@@ -110,6 +110,27 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // ── If email-only, try to auto-link to a matching BA account ──────────
+        if (!userId && resolvedEmail && process.env.MONGODB_01) {
+            const emailClient = new MongoClient(process.env.MONGODB_01);
+            try {
+                await emailClient.connect();
+                const db = emailClient.db("PRODUCTION_MeetBhingradiya");
+                const baUser = await db.collection("user").findOne({
+                    email: { $regex: new RegExp(`^${resolvedEmail}$`, "i") },
+                });
+                if (baUser) {
+                    resolvedUserId = ((baUser._id ?? baUser.id) as string);
+                    resolvedLabel = resolvedLabel || (baUser.name as string) || resolvedEmail;
+                    linkedAccount = true;
+                }
+            } catch {
+                // proceed as email-only if lookup fails
+            } finally {
+                await emailClient.close();
+            }
+        }
+
         if (!resolvedEmail || !resolvedLabel) {
             return NextResponse.json(
                 { success: false, error: "email (or userId) and label are required" },

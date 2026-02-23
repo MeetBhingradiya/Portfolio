@@ -15,6 +15,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { randomBytes } from "crypto";
+import { MongoClient } from "mongodb";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist, ImmichAuthCode } from "@Models/ImmichWhitelist";
 import { getSession } from "@/Library/auth";
@@ -90,16 +91,49 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    // Update last access stats
+    // Update last access stats + auto-upgrade email-only entry with userId
+    if (!entry.userId && userId) {
+        entry.userId = userId;
+        entry.linkedAccount = true;
+    }
     entry.lastAccess = new Date();
     entry.accessCount = (entry.accessCount || 0) + 1;
     await entry.save();
 
-    // ── 4. Generate auth code ───────────────────────────────────────────────
+    // ── 4. Resolve `sub` — must match what Immich already stored as oauthId ──
+    // BA stores each provider's account in its `account` collection with
+    // `providerAccountId` = the provider's own user ID (e.g. Google's numeric ID).
+    // Immich saved that same ID as `oauthId` when the user first signed in with
+    // Google directly. We must return the same value or Immich rejects the login.
+    let sub = userEmail; // safe fallback
+    if (process.env.MONGODB_01) {
+        const mongoClient = new MongoClient(process.env.MONGODB_01);
+        try {
+            await mongoClient.connect();
+            const db = mongoClient.db("PRODUCTION_MeetBhingradiya");
+            // BA account collection stores: userId, providerId, providerAccountId
+            const oauthAccount = await db.collection("account").findOne({
+                $or: [
+                    { userId: userId },
+                    { user_id: userId },
+                ],
+                providerId: "google",
+            });
+            if (oauthAccount?.providerAccountId) {
+                sub = oauthAccount.providerAccountId as string;
+            }
+        } catch {
+            // keep email fallback
+        } finally {
+            await mongoClient.close();
+        }
+    }
+
+    // ── 5. Generate auth code ───────────────────────────────────────────────
     const code = randomBytes(32).toString("hex");
     await ImmichAuthCode.create({
         code,
-        sub: userEmail,          // use email as sub — stable across provider changes
+        sub,
         email: userEmail,
         name: session.user.name || "",
         clientId: oidcRequest.clientId,
@@ -109,7 +143,7 @@ export async function GET(req: NextRequest) {
         expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
     });
 
-    // ── 5. Redirect to Immich with code ─────────────────────────────────────
+    // ── 6. Redirect to Immich with code ─────────────────────────────────────
     const redirectUrl = new URL(oidcRequest.redirectUri);
     redirectUrl.searchParams.set("code", code);
     if (oidcRequest.state) redirectUrl.searchParams.set("state", oidcRequest.state);

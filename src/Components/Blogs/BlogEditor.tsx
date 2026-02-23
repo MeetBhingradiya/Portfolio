@@ -81,7 +81,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
         title: "",
         slug: "",
         excerpt: "",
-        content: "# Hello World\n\nStart writing your blog post here...\n\n```mermaid\nflowchart LR\n  A[Write] --> B[Review] --> C[Publish]\n```\n",
+        content: "# Hello World\n\nStart writing your blog post here...\n",
         category: BlogCategory.Development,
         tags: [],
         featuredImage: "",
@@ -312,16 +312,24 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                 onChange={(v) => set("content", v || "")}
                                 height="calc(100vh - 120px)"
                                 preview="live"
+                                hideToolbar
                                 style={{ background: "transparent" }}
                                 previewOptions={{
                                     components: {
                                         code: ({ children, className: cls }: any) => {
                                             const lang = /language-(\w+)/.exec(cls || "")?.[1] || "";
-                                            const code = String(children).replace(/\n$/, "");
+                                            // MDEditor passes children as React nodes, not plain strings—extract text safely
+                                            const extractText = (node: any): string => {
+                                                if (typeof node === "string") return node;
+                                                if (Array.isArray(node)) return node.map(extractText).join("");
+                                                if (node?.props?.children) return extractText(node.props.children);
+                                                return "";
+                                            };
+                                            const code = extractText(children).replace(/\n$/, "");
                                             if (lang === "mermaid") {
                                                 return (
                                                     <Suspense fallback={<div className="py-4 opacity-40 text-sm text-center">Rendering…</div>}>
-                                                        <MermaidBlock code={code} />
+                                                        <MermaidBlock code={code} silent />
                                                     </Suspense>
                                                 );
                                             }
@@ -340,15 +348,67 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                 language="markdown"
                                 value={draft.content}
                                 onChange={(v) => set("content", v || "")}
-                                theme={isDark ? "vs-dark" : "light"}
+                                theme={isDark ? "portfolio-dark" : "portfolio-light"}
+                                beforeMount={(monaco) => {
+                                    monaco.editor.defineTheme("portfolio-dark", {
+                                        base: "vs-dark",
+                                        inherit: true,
+                                        rules: [
+                                            { token: "keyword", foreground: "c084fc" },
+                                            { token: "string", foreground: "86efac" },
+                                            { token: "comment", foreground: "6b7280", fontStyle: "italic" },
+                                            { token: "heading", foreground: "93c5fd", fontStyle: "bold" }
+                                        ],
+                                        colors: {
+                                            "editor.background": "#0d0d12",
+                                            "editor.foreground": "#e2e8f0",
+                                            "editor.lineHighlightBackground": "#ffffff08",
+                                            "editor.selectionBackground": "#6366f140",
+                                            "editorLineNumber.foreground": "#4b5563",
+                                            "editorLineNumber.activeForeground": "#9ca3af",
+                                            "editorCursor.foreground": "#818cf8",
+                                            "editorGutter.background": "#0d0d12",
+                                            "scrollbarSlider.background": "#ffffff14",
+                                            "scrollbarSlider.hoverBackground": "#ffffff22"
+                                        }
+                                    });
+                                    monaco.editor.defineTheme("portfolio-light", {
+                                        base: "vs",
+                                        inherit: true,
+                                        rules: [
+                                            { token: "keyword", foreground: "7c3aed" },
+                                            { token: "string", foreground: "16a34a" },
+                                            { token: "comment", foreground: "9ca3af", fontStyle: "italic" },
+                                            { token: "heading", foreground: "2563eb", fontStyle: "bold" }
+                                        ],
+                                        colors: {
+                                            "editor.background": "#f8f8fc",
+                                            "editor.foreground": "#1e293b",
+                                            "editor.lineHighlightBackground": "#00000008",
+                                            "editor.selectionBackground": "#6366f130",
+                                            "editorLineNumber.foreground": "#d1d5db",
+                                            "editorLineNumber.activeForeground": "#6b7280",
+                                            "editorCursor.foreground": "#6366f1",
+                                            "editorGutter.background": "#f8f8fc",
+                                            "scrollbarSlider.background": "#00000014",
+                                            "scrollbarSlider.hoverBackground": "#00000022"
+                                        }
+                                    });
+                                }}
                                 options={{
                                     wordWrap: "on",
                                     minimap: { enabled: false },
                                     lineNumbers: "on",
                                     scrollBeyondLastLine: false,
-                                    fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                                    fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
+                                    fontLigatures: true,
                                     fontSize: 14,
-                                    padding: { top: 16, bottom: 16 }
+                                    lineHeight: 22,
+                                    padding: { top: 20, bottom: 20 },
+                                    renderLineHighlight: "gutter",
+                                    smoothScrolling: true,
+                                    cursorSmoothCaretAnimation: "on",
+                                    bracketPairColorization: { enabled: true }
                                 }}
                             />
                         </div>
@@ -549,6 +609,40 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                     )}
                 </div>
             </div>
+
+            {/* ── MDEditor preview gap overrides ───────── */}
+            <style jsx global>{`
+                .w-md-editor-preview .wmde-markdown h1,
+                .w-md-editor-preview .wmde-markdown h2,
+                .w-md-editor-preview .wmde-markdown h3,
+                .w-md-editor-preview .wmde-markdown h4 {
+                    margin-top: 0.8rem !important;
+                    margin-bottom: 0.25rem !important;
+                    padding-bottom: 0 !important;
+                    border: none !important;
+                }
+                .w-md-editor-preview .wmde-markdown p {
+                    margin-top: 0.35rem !important;
+                    margin-bottom: 0.35rem !important;
+                }
+                .w-md-editor-preview .wmde-markdown ul,
+                .w-md-editor-preview .wmde-markdown ol {
+                    margin-top: 0.3rem !important;
+                    margin-bottom: 0.3rem !important;
+                }
+                .w-md-editor-preview .wmde-markdown li {
+                    margin-top: 0.1rem !important;
+                    margin-bottom: 0.1rem !important;
+                }
+                .w-md-editor-preview .wmde-markdown pre {
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                }
+                .w-md-editor-preview .wmde-markdown blockquote {
+                    margin-top: 0.5rem !important;
+                    margin-bottom: 0.5rem !important;
+                }
+            `}</style>
         </div>
     );
 }

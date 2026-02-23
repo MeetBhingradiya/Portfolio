@@ -76,7 +76,7 @@ export default function AdminBlogsPage() {
             const res = await fetch(`/api/admin/blogs${params}`);
             const data = await res.json();
             if (data.success) {
-                setBlogs(data.blogs || []);
+                setBlogs(data.data || data.blogs || []);
                 if (data.counts) setCounts(data.counts);
             }
         } catch {}
@@ -285,14 +285,14 @@ export default function AdminBlogsPage() {
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-1">
                                                     {/* View */}
-                                                    <Link href={`/blogs/${blog.slug}`} target="_blank">
+                                                    <Link href={`/blogs/${blog.slug || blog._id}`} target="_blank">
                                                         <motion.button whileTap={{ scale: 0.9 }} className="p-1.5 rounded-lg"
                                                             style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" }}>
                                                             <OpenInNewIcon style={{ fontSize: 14, color: palette.textSecondary }} />
                                                         </motion.button>
                                                     </Link>
                                                     {/* Edit */}
-                                                    <Link href={`/blogs/${blog.slug}/edit`}>
+                                                    <Link href={`/blogs/${blog.slug || blog._id}/edit`}>
                                                         <motion.button whileTap={{ scale: 0.9 }} className="p-1.5 rounded-lg"
                                                             style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" }}>
                                                             <EditIcon style={{ fontSize: 14, color: palette.textSecondary }} />

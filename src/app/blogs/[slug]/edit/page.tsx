@@ -6,7 +6,8 @@ import { useSession } from "@Library/auth-client";
 import BlogEditor, { BlogDraft } from "@/Components/Blogs/BlogEditor";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 
-export default function EditBlogPage({ params }: { params: { slug: string } }) {
+export default function EditBlogPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = React.use(params);
     const router = useRouter();
     const { data: session } = useSession();
     const { palette } = useDesignTheme();
@@ -17,30 +18,34 @@ export default function EditBlogPage({ params }: { params: { slug: string } }) {
     const [notFoundFlag, setNotFoundFlag] = useState(false);
 
     useEffect(() => {
-        fetch(`/api/blogs?slug=${params.slug}`)
+        // The URL param may be a slug or a MongoDB ObjectId (24 hex chars) — admin edit links use _id as fallback
+        const isObjectId = /^[a-f\d]{24}$/i.test(slug);
+        const url = isObjectId ? `/api/blogs?id=${slug}` : `/api/blogs?slug=${slug}`;
+        fetch(url)
             .then((r) => r.json())
             .then((data) => {
-                if (data.success && data.blog) {
-                    setBlogId(data.blog._id);
+                const blog = data.blog || data.data;
+                if (data.success && blog) {
+                    setBlogId(blog._id);
                     setInitial({
-                        _id: data.blog._id,
-                        title: data.blog.title,
-                        slug: data.blog.slug,
-                        excerpt: data.blog.excerpt || "",
-                        content: data.blog.content || "",
-                        category: data.blog.category,
-                        tags: data.blog.tags || [],
-                        featuredImage: data.blog.featuredImage || "",
-                        status: data.blog.status,
-                        metaTitle: data.blog.metaTitle || "",
-                        metaDescription: data.blog.metaDescription || ""
+                        _id: blog._id,
+                        title: blog.title,
+                        slug: blog.slug,
+                        excerpt: blog.excerpt || "",
+                        content: blog.content || "",
+                        category: blog.category,
+                        tags: blog.tags || [],
+                        featuredImage: blog.featuredImage || "",
+                        status: blog.status,
+                        metaTitle: blog.metaTitle || "",
+                        metaDescription: blog.metaDescription || ""
                     });
                 } else {
                     setNotFoundFlag(true);
                 }
             })
             .finally(() => setLoading(false));
-    }, [params.slug]);
+    }, [slug]);
 
     const handleSave = useCallback(async (data: BlogDraft) => {
         const res = await fetch(`/api/blogs?id=${blogId}`, {
@@ -50,8 +55,9 @@ export default function EditBlogPage({ params }: { params: { slug: string } }) {
         });
         const result = await res.json();
         if (!result.success) throw new Error(result.error || "Failed to update");
-        router.push(`/blogs/${result.blog?.slug || result.data?.slug || params.slug}`);
-    }, [blogId, router, params.slug]);
+        const finalSlug = result.blog?.slug || result.data?.slug || (!/^[a-f\d]{24}$/i.test(slug) ? slug : "");
+        router.push(finalSlug ? `/blogs/${finalSlug}` : "/dashboard");
+    }, [blogId, router, slug]);
 
     if (loading) {
         return (

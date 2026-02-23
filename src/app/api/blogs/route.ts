@@ -49,8 +49,18 @@ export async function GET(req: NextRequest) {
         const session = await getSession(req.headers).catch(() => null);
         const userEmail = session?.user?.email;
         const admin = isAdmin(userEmail);
+        const id = p.get("id");
 
-        // ── Single blog ──
+        // ── Single blog by _id (admin/author edit flow) ──
+        if (id) {
+            const blog = await Blog.findById(id).lean();
+            if (!blog) return NextResponse.json({ success: false, error: "Blog not found" }, { status: 404 });
+            const isAuthor = blog.authorId === session?.user?.id;
+            if (!admin && !isAuthor) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+            return NextResponse.json({ success: true, data: blog });
+        }
+
+        // ── Single blog by slug ──
         if (slug) {
             const blog = await Blog.findOne({ slug }).lean();
             if (!blog) {

@@ -152,7 +152,7 @@ const menuCategories: MenuCategory[] = [
             },
             {
                 label: "Shop",
-                href: "https://shop.meetbhingradiya.shop",
+                href: "/shop",
                 description: "Digital products & merch",
                 icon: <Store />
             }

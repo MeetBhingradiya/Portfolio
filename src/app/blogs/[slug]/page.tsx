@@ -35,7 +35,8 @@ interface BlogData {
     metaDescription?: string;
 }
 
-export default function BlogDetailPage({ params }: { params: { slug: string } }) {
+export default function BlogDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+    const { slug } = React.use(params);
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
@@ -48,18 +49,21 @@ export default function BlogDetailPage({ params }: { params: { slug: string } })
     const [likes, setLikes] = useState(0);
 
     useEffect(() => {
-        fetch(`/api/blogs?slug=${params.slug}`)
+        const isObjectId = /^[a-f\d]{24}$/i.test(slug);
+        const url = isObjectId ? `/api/blogs?id=${slug}` : `/api/blogs?slug=${slug}`;
+        fetch(url)
             .then((r) => r.json())
             .then((data) => {
-                if (data.success && data.blog) {
-                    setBlog(data.blog);
-                    setLikes(data.blog.likes || 0);
+                const blog = data.data || data.blog;
+                if (data.success && blog) {
+                    setBlog(blog);
+                    setLikes(blog.likes || 0);
                 } else {
                     setBlog(null);
                 }
             })
             .finally(() => setLoading(false));
-    }, [params.slug]);
+    }, [slug]);
 
     const handleLike = async () => {
         if (liked || !blog) return;

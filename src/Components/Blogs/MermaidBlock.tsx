@@ -9,9 +9,11 @@ import { useDesignTheme } from "@Hooks/useDesignTheme";
 
 interface MermaidBlockProps {
     code: string;
+    /** Silently returns null on error instead of showing the error box */
+    silent?: boolean;
 }
 
-export default function MermaidBlock({ code }: MermaidBlockProps) {
+export default function MermaidBlock({ code, silent }: MermaidBlockProps) {
     const { actualColorMode } = useDesignTheme();
     const isDark = actualColorMode === "dark";
     const ref = useRef<HTMLDivElement>(null);
@@ -39,6 +41,10 @@ export default function MermaidBlock({ code }: MermaidBlockProps) {
         render();
         return () => { mounted = false; };
     }, [code, isDark, uid]);
+
+    // Silently skip rendering if code is clearly invalid (e.g. [object Object] from React node serialization)
+    const isInvalidCode = !code || code.startsWith("[object") || code.trim().length < 3;
+    if (isInvalidCode || (error && silent)) return null;
 
     if (error) {
         return (

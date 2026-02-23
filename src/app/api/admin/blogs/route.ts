@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
         const statusCounts = await Blog.aggregate([
             { $group: { _id: "$status", count: { $sum: 1 } } }
         ]);
-        const counts: Record<string, number> = {};
+        const counts: Record<string, number> = { all: total };
         statusCounts.forEach((s) => (counts[s._id] = s.count));
 
         return NextResponse.json({ success: true, data: blogs, pagination: { total, limit, skip }, counts });

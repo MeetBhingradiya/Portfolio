@@ -88,7 +88,14 @@ export default function BlogRenderer({ content, className = "" }: BlogRendererPr
                     code: ({ children, className: cls, ...props }: any) => {
                         const match = /language-(\w+)/.exec(cls || "");
                         const language = match?.[1] || "";
-                        const code = String(children).replace(/\n$/, "");
+                        // children is React node tree, not a plain string — extract text safely
+                        const extractText = (node: any): string => {
+                            if (typeof node === "string") return node;
+                            if (Array.isArray(node)) return node.map(extractText).join("");
+                            if (node?.props?.children) return extractText(node.props.children);
+                            return "";
+                        };
+                        const code = extractText(children).replace(/\n$/, "");
 
                         if (language === "mermaid") {
                             return (
@@ -133,10 +140,13 @@ export default function BlogRenderer({ content, className = "" }: BlogRendererPr
                     border: none !important;
                     padding-bottom: 0 !important;
                 }
-                .blog-renderer .wmde-markdown h1 { font-size: 2rem; margin-top: 2rem; }
-                .blog-renderer .wmde-markdown h2 { font-size: 1.5rem; margin-top: 1.8rem; }
-                .blog-renderer .wmde-markdown h3 { font-size: 1.25rem; margin-top: 1.5rem; }
-                .blog-renderer .wmde-markdown p { color: ${palette.textSecondary} !important; }
+                .blog-renderer .wmde-markdown h1 { font-size: 2rem; margin-top: 1.2rem; margin-bottom: 0.4rem; }
+                .blog-renderer .wmde-markdown h2 { font-size: 1.5rem; margin-top: 1rem; margin-bottom: 0.3rem; }
+                .blog-renderer .wmde-markdown h3 { font-size: 1.25rem; margin-top: 0.8rem; margin-bottom: 0.25rem; }
+                .blog-renderer .wmde-markdown p { color: ${palette.textSecondary} !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+                .blog-renderer .wmde-markdown ul,
+                .blog-renderer .wmde-markdown ol { margin-top: 0.4rem; margin-bottom: 0.4rem; padding-left: 1.5rem; }
+                .blog-renderer .wmde-markdown li { margin-top: 0.15rem; margin-bottom: 0.15rem; }
                 .blog-renderer .wmde-markdown a { color: ${palette.accent} !important; }
                 .blog-renderer .wmde-markdown blockquote {
                     border-left: 3px solid ${palette.accent} !important;

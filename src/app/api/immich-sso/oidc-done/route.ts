@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
     const code = randomBytes(32).toString("hex");
     await ImmichAuthCode.create({
         code,
-        sub: session.user.id,
+        sub: userEmail,          // use email as sub — stable across provider changes
         email: userEmail,
         name: session.user.name || "",
         clientId: oidcRequest.clientId,

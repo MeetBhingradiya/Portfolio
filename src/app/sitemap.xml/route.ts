@@ -11,17 +11,17 @@ const BASE_URL =
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://meetbhingradiya.shop");
 
 const routes: { path: string; changefreq: string; priority: string }[] = [
+    // Main
     { path: "/",                                     changefreq: "weekly",  priority: "1.0" },
     { path: "/projects",                             changefreq: "weekly",  priority: "0.9" },
     { path: "/blogs",                                changefreq: "daily",   priority: "0.9" },
     { path: "/timeline",                             changefreq: "monthly", priority: "0.7" },
-    { path: "/tools",                                changefreq: "weekly",  priority: "0.8" },
-    { path: "/timetable",                            changefreq: "weekly",  priority: "0.6" },
-    { path: "/bookmarks",                            changefreq: "weekly",  priority: "0.6" },
-    { path: "/contact",                              changefreq: "yearly",  priority: "0.7" },
     { path: "/experience",                           changefreq: "monthly", priority: "0.7" },
+    { path: "/contact",                              changefreq: "yearly",  priority: "0.7" },
+    { path: "/dashboard",                            changefreq: "weekly",  priority: "0.6" },
     { path: "/sitemap",                              changefreq: "monthly", priority: "0.4" },
     // Tools
+    { path: "/tools",                                changefreq: "weekly",  priority: "0.8" },
     { path: "/tools/colour",                         changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/encrypt",                        changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/image",                          changefreq: "yearly",  priority: "0.5" },
@@ -30,12 +30,13 @@ const routes: { path: string; changefreq: string; priority: string }[] = [
     { path: "/tools/markdown",                       changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/password",                       changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/pdf",                            changefreq: "yearly",  priority: "0.5" },
+    { path: "/tools/qr",                             changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/regexp",                         changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/todo",                           changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/uuid",                           changefreq: "yearly",  priority: "0.5" },
     // Legal
-    { path: "/agreements/privacy",                   changefreq: "yearly",  priority: "0.3" },
-    { path: "/agreements/terms",                     changefreq: "yearly",  priority: "0.3" },
+    { path: "/privacy",                              changefreq: "yearly",  priority: "0.3" },
+    { path: "/terms",                                changefreq: "yearly",  priority: "0.3" },
     { path: "/agreements/security",                  changefreq: "yearly",  priority: "0.3" },
     { path: "/agreements/covered-products-privacy",  changefreq: "yearly",  priority: "0.3" },
     { path: "/agreements/covered-products-terms",    changefreq: "yearly",  priority: "0.3" },

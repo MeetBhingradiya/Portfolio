@@ -10,27 +10,50 @@ import {
     Article,
     Timeline,
     Build,
-    CalendarMonth,
     Dashboard,
     Settings,
     ContactMail,
     Person,
-    ConfirmationNumber,
     Policy,
     Description,
-    AccountBalanceWallet,
     AdminPanelSettings,
     Search,
     ExpandMore,
     ExpandLess,
     OpenInNew,
     Language,
-    Category,
     GridView,
     ViewList,
     ViewModule,
-    FilterList,
-    Sort
+    Palette,
+    Lock,
+    Image,
+    DataObject,
+    VpnKey,
+    PictureAsPdf,
+    QrCode,
+    Task,
+    Tag,
+    Password,
+    School,
+    CloudUpload,
+    PhotoCamera,
+    Tune,
+    Group,
+    AccountTree,
+    Security,
+    Key,
+    Devices,
+    PhonelinkLock,
+    ErrorOutline,
+    LockReset,
+    WorkHistory,
+    Star,
+    Badge,
+    Map,
+    MenuBook,
+    Code,
+    BorderColor
 } from "@mui/icons-material";
 
 interface SitemapLink {
@@ -51,7 +74,7 @@ interface SitemapSection {
 // Define your sitemap structure here - just add pages to this object!
 const sitemapData: SitemapSection[] = [
     {
-        title: "Main Navigation",
+        title: "Main",
         icon: <Home />,
         description: "Primary pages and main sections of the website",
         links: [
@@ -71,7 +94,15 @@ const sitemapData: SitemapSection[] = [
                 label: "Blog",
                 href: "/blogs",
                 icon: <Article />,
-                description: "Articles, tutorials, and thoughts"
+                description: "Articles, tutorials, and thoughts",
+                children: [
+                    {
+                        label: "New Blog",
+                        href: "/blogs/new",
+                        icon: <BorderColor />,
+                        description: "Write a new blog post"
+                    }
+                ]
             },
             {
                 label: "Timeline",
@@ -80,87 +111,11 @@ const sitemapData: SitemapSection[] = [
                 description: "Professional journey and milestones"
             },
             {
-                label: "New Landing",
-                href: "/new-landing",
-                icon: <Language />,
-                description: "Alternative landing page design"
-            }
-        ]
-    },
-    {
-        title: "Tools & Utilities",
-        icon: <Build />,
-        description: "Development tools, calculators, and utilities",
-        links: [
-            {
-                label: "Tools Hub",
-                href: "/Tools",
-                icon: <Build />,
-                description: "Collection of development utilities"
+                label: "Experience",
+                href: "/experience",
+                icon: <WorkHistory />,
+                description: "Work experience and career history"
             },
-            {
-                label: "Timetable",
-                href: "/timetable",
-                icon: <CalendarMonth />,
-                description: "Schedule and time management"
-            },
-            {
-                label: "Dashboard",
-                href: "/dashboard",
-                icon: <Dashboard />,
-                description: "Personal dashboard and analytics"
-            }
-        ]
-    },
-    {
-        title: "User & Account",
-        icon: <Person />,
-        description: "Profile, settings, and account management",
-        links: [
-            {
-                label: "Profile",
-                href: "/profile",
-                icon: <Person />,
-                description: "User profile and information"
-            },
-            {
-                label: "Settings",
-                href: "/settings",
-                icon: <Settings />,
-                description: "Account preferences and configuration"
-            },
-            {
-                label: "Bookmarks",
-                href: "/bookmarks",
-                icon: <Category />,
-                description: "Saved articles and resources"
-            },
-            {
-                label: "Wallet",
-                href: "/wallet",
-                icon: <AccountBalanceWallet />,
-                description: "Digital wallet and transactions"
-            }
-        ]
-    },
-    {
-        title: "Financial",
-        icon: <AccountBalanceWallet />,
-        description: "Financial management and tracking",
-        links: [
-            {
-                label: "Financial Dashboard",
-                href: "/financial",
-                icon: <AccountBalanceWallet />,
-                description: "Financial overview and management"
-            }
-        ]
-    },
-    {
-        title: "Support & Contact",
-        icon: <ContactMail />,
-        description: "Get in touch and support resources",
-        links: [
             {
                 label: "Contact",
                 href: "/contact",
@@ -168,15 +123,293 @@ const sitemapData: SitemapSection[] = [
                 description: "Get in touch with me"
             },
             {
-                label: "Tickets",
-                href: "/tickets",
-                icon: <ConfirmationNumber />,
-                description: "Support tickets and requests"
+                label: "Dashboard",
+                href: "/dashboard",
+                icon: <Dashboard />,
+                description: "Personal dashboard and analytics"
+            },
+            {
+                label: "Sitemap",
+                href: "/sitemap",
+                icon: <Map />,
+                description: "Full site navigation map"
             }
         ]
     },
     {
-        title: "Legal & Policies",
+        title: "Tools",
+        icon: <Build />,
+        description: "Developer tools and utilities",
+        links: [
+            {
+                label: "Tools Hub",
+                href: "/tools",
+                icon: <Build />,
+                description: "Collection of development utilities"
+            },
+            {
+                label: "Colour Picker",
+                href: "/tools/colour",
+                icon: <Palette />,
+                description: "Color picker and converter"
+            },
+            {
+                label: "Encrypt / Decrypt",
+                href: "/tools/encrypt",
+                icon: <Lock />,
+                description: "Text encryption and decryption"
+            },
+            {
+                label: "Image Tools",
+                href: "/tools/image",
+                icon: <Image />,
+                description: "Image manipulation and conversion"
+            },
+            {
+                label: "JSON Formatter",
+                href: "/tools/json",
+                icon: <DataObject />,
+                description: "Format, validate and minify JSON"
+            },
+            {
+                label: "JWT Decoder",
+                href: "/tools/jwt",
+                icon: <VpnKey />,
+                description: "Decode and inspect JWT tokens"
+            },
+            {
+                label: "Markdown Editor",
+                href: "/tools/markdown",
+                icon: <MenuBook />,
+                description: "Live markdown editor and preview"
+            },
+            {
+                label: "Password Generator",
+                href: "/tools/password",
+                icon: <Password />,
+                description: "Secure password generator"
+            },
+            {
+                label: "PDF Tools",
+                href: "/tools/pdf",
+                icon: <PictureAsPdf />,
+                description: "PDF viewing and manipulation"
+            },
+            {
+                label: "QR Code",
+                href: "/tools/qr",
+                icon: <QrCode />,
+                description: "Generate and scan QR codes"
+            },
+            {
+                label: "RegExp Tester",
+                href: "/tools/regexp",
+                icon: <Code />,
+                description: "Test and debug regular expressions"
+            },
+            {
+                label: "Todo List",
+                href: "/tools/todo",
+                icon: <Task />,
+                description: "Quick todo list manager"
+            },
+            {
+                label: "UUID Generator",
+                href: "/tools/uuid",
+                icon: <Tag />,
+                description: "Generate UUIDs / GUIDs"
+            }
+        ]
+    },
+    {
+        title: "Profile & Settings",
+        icon: <Person />,
+        description: "Profile, settings, and account management",
+        links: [
+            {
+                label: "Profile",
+                href: "/profile",
+                icon: <Person />,
+                description: "Public profile page"
+            },
+            {
+                label: "Settings",
+                href: "/settings",
+                icon: <Settings />,
+                description: "Account preferences and configuration",
+                children: [
+                    {
+                        label: "Profile Settings",
+                        href: "/settings/profile",
+                        icon: <Person />,
+                        description: "Update your personal information"
+                    },
+                    {
+                        label: "Linked Accounts",
+                        href: "/settings/linked-accounts",
+                        icon: <AccountTree />,
+                        description: "Manage connected OAuth accounts"
+                    },
+                    {
+                        label: "Security",
+                        href: "/settings/security",
+                        icon: <Security />,
+                        description: "Password and security options",
+                        children: [
+                            {
+                                label: "Passkeys",
+                                href: "/settings/security/passkeys",
+                                icon: <Key />,
+                                description: "Manage passkey authentication"
+                            },
+                            {
+                                label: "Sessions",
+                                href: "/settings/security/sessions",
+                                icon: <Devices />,
+                                description: "View and manage active sessions"
+                            },
+                            {
+                                label: "Two-Factor Auth",
+                                href: "/settings/security/two-factor",
+                                icon: <PhonelinkLock />,
+                                description: "Set up two-factor authentication"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        title: "Authentication",
+        icon: <Lock />,
+        description: "Sign in, sign up, and account recovery",
+        links: [
+            {
+                label: "Sign In",
+                href: "/auth/signin",
+                icon: <Person />,
+                description: "Log in to your account"
+            },
+            {
+                label: "Sign Up",
+                href: "/auth/signup",
+                icon: <Person />,
+                description: "Create a new account"
+            },
+            {
+                label: "Forgot Password",
+                href: "/auth/forgot-password",
+                icon: <LockReset />,
+                description: "Reset your password"
+            },
+            {
+                label: "Auth Error",
+                href: "/auth/error",
+                icon: <ErrorOutline />,
+                description: "Authentication error page"
+            }
+        ]
+    },
+    {
+        title: "Admin Panel",
+        icon: <AdminPanelSettings />,
+        description: "Administrative management pages",
+        links: [
+            {
+                label: "Admin Dashboard",
+                href: "/admin",
+                icon: <AdminPanelSettings />,
+                description: "Main admin control panel"
+            },
+            {
+                label: "Blogs",
+                href: "/admin/blogs",
+                icon: <Article />,
+                description: "Manage blog posts"
+            },
+            {
+                label: "CDN",
+                href: "/admin/cdn",
+                icon: <CloudUpload />,
+                description: "Manage CDN assets and files"
+            },
+            {
+                label: "Certificates",
+                href: "/admin/certificates",
+                icon: <Badge />,
+                description: "Manage certificates and credentials"
+            },
+            {
+                label: "Education",
+                href: "/admin/education",
+                icon: <School />,
+                description: "Manage education entries"
+            },
+            {
+                label: "Experience",
+                href: "/admin/experience",
+                icon: <WorkHistory />,
+                description: "Manage work experience entries"
+            },
+            {
+                label: "Immich Access",
+                href: "/admin/immich-access",
+                icon: <PhotoCamera />,
+                description: "Manage Immich SSO access"
+            },
+            {
+                label: "Maintenance",
+                href: "/admin/maintenance",
+                icon: <Settings />,
+                description: "Site maintenance mode control"
+            },
+            {
+                label: "Projects",
+                href: "/admin/projects",
+                icon: <Work />,
+                description: "Manage portfolio projects"
+            },
+            {
+                label: "Resume",
+                href: "/admin/resume",
+                icon: <Description />,
+                description: "Manage resume content"
+            },
+            {
+                label: "Sitemap",
+                href: "/admin/sitemap",
+                icon: <Map />,
+                description: "Manage sitemap entries"
+            },
+            {
+                label: "Skills",
+                href: "/admin/skills",
+                icon: <Star />,
+                description: "Manage skills and technologies"
+            },
+            {
+                label: "Test Scores",
+                href: "/admin/test-scores",
+                icon: <School />,
+                description: "Manage academic test scores"
+            },
+            {
+                label: "Tool Settings",
+                href: "/admin/tool-settings",
+                icon: <Tune />,
+                description: "Configure tool visibility and defaults"
+            },
+            {
+                label: "Users",
+                href: "/admin/users",
+                icon: <Group />,
+                description: "Manage registered users"
+            }
+        ]
+    },
+    {
+        title: "Legal & Agreements",
         icon: <Policy />,
         description: "Terms, policies, and legal information",
         links: [
@@ -190,19 +423,7 @@ const sitemapData: SitemapSection[] = [
                 label: "Terms of Service",
                 href: "/terms",
                 icon: <Description />,
-                description: "Terms and conditions"
-            },
-            {
-                label: "Code of Conduct",
-                href: "/code-of-conduct",
-                icon: <Description />,
-                description: "Community guidelines"
-            },
-            {
-                label: "Security",
-                href: "/security",
-                icon: <Policy />,
-                description: "Security policies and practices"
+                description: "Terms and conditions of use"
             },
             {
                 label: "Covered Products Privacy",
@@ -219,58 +440,33 @@ const sitemapData: SitemapSection[] = [
             {
                 label: "Product Security Policy",
                 href: "/agreements/security",
-                icon: <Policy />,
-                description: "Security policies for our products"
+                icon: <Security />,
+                description: "Security policies for products"
             }
         ]
     },
     {
-        title: "Authentication",
-        icon: <AdminPanelSettings />,
-        description: "Login, signup, and authentication pages",
-        links: [
-            {
-                label: "Sign In",
-                href: "/auth/signin",
-                icon: <Person />,
-                description: "User login page"
-            },
-            {
-                label: "Admin Panel",
-                href: "/admin",
-                icon: <AdminPanelSettings />,
-                description: "Administrative dashboard"
-            }
-        ]
-    },
-    {
-        title: "System Pages",
+        title: "System",
         icon: <Settings />,
-        description: "Maintenance and system status pages",
+        description: "System and special pages",
         links: [
             {
                 label: "Maintenance",
                 href: "/maintenance",
                 icon: <Settings />,
-                description: "Maintenance mode page"
+                description: "Site maintenance mode page"
             },
             {
-                label: "Unsupported Browser",
-                href: "/UnSupportedBrowser",
-                icon: <Language />,
-                description: "Browser compatibility notice"
+                label: "Immich SSO",
+                href: "/immich-sso",
+                icon: <PhotoCamera />,
+                description: "Immich single sign-on integration"
             },
             {
-                label: "Unsupported Network",
-                href: "/UnSupportedNetwork",
+                label: "Sitemap XML",
+                href: "/sitemap.xml",
                 icon: <Language />,
-                description: "Network requirements notice"
-            },
-            {
-                label: "Unsupported Platform",
-                href: "/UnSupportedPlatform",
-                icon: <Language />,
-                description: "Platform compatibility notice"
+                description: "Machine-readable XML sitemap"
             }
         ]
     }

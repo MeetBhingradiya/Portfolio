@@ -69,7 +69,7 @@ export function getAvatarFromAccounts(accounts: any[], selectedProviderId?: stri
 
     // Otherwise, prioritize OAuth providers in order: Google, GitHub, Discord
     const priority = ["google", "github", "discord"];
-    
+
     for (const provider of priority) {
         const account = accounts.find(acc => acc.providerId === provider);
         if (account?.image) return account.image;

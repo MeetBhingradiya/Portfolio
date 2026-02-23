@@ -170,6 +170,7 @@ export default function HeadNavigation() {
         scrolled: false
     });
     const [showSwitchAccountModal, setShowSwitchAccountModal] = useState(false);
+    const [maintenanceBanner, setMaintenanceBanner] = useState<{ message: string } | null>(null);
     const menuTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
     const navRef = useRef<HTMLElement>(null);
 
@@ -346,6 +347,23 @@ export default function HeadNavigation() {
         setUiState(prev => ({ ...prev, notificationDismissed: true }));
     }, []);
 
+    // Fetch maintenance status and poll every 60s
+    useEffect(() => {
+        const fetchMaintenance = () => {
+            fetch("/api/maintenance-status")
+                .then((r) => r.json())
+                .then((d) => {
+                    setMaintenanceBanner(
+                        d.maintenanceMode ? { message: d.maintenanceMessage || "" } : null
+                    );
+                })
+                .catch(() => {});
+        };
+        fetchMaintenance();
+        const interval = setInterval(fetchMaintenance, 60_000);
+        return () => clearInterval(interval);
+    }, []);
+
     const handleSignOut = useCallback(async () => {
         try {
             await signOut();
@@ -355,8 +373,57 @@ export default function HeadNavigation() {
         }
     }, [signOut]);
 
+    const totalBannerOffset = (maintenanceBanner ? 1 : 0) + activeNotifications.length;
+
     return (
         <>
+            {/* Maintenance Banner — non-dismissable, always on top */}
+            <AnimatePresence>
+                {maintenanceBanner && (
+                    <motion.div
+                        key="maintenance-banner"
+                        className="fixed left-0 right-0 z-[100] overflow-hidden"
+                        style={{
+                            top: 0,
+                            backdropFilter: isApple ? "blur(60px) saturate(200%)" : "blur(30px)",
+                            WebkitBackdropFilter: isApple ? "blur(60px) saturate(200%)" : "blur(30px)",
+                            background: isDark ? "rgba(234,88,12,0.18)" : "rgba(234,88,12,0.12)",
+                            borderBottom: `1px solid ${isDark ? "rgba(251,146,60,0.35)" : "rgba(234,88,12,0.25)"}`
+                        }}
+                        initial={{ y: -80, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: -80, opacity: 0 }}
+                        transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    >
+                        <div className="max-w-7xl mx-auto px-4 md:px-6 py-3">
+                            <div className="flex items-center gap-3">
+                                <motion.span
+                                    style={{ color: isDark ? "#fb923c" : "#ea580c", fontSize: 20 }}
+                                    animate={{ rotate: [0, -10, 10, -10, 0] }}
+                                    transition={{ duration: 2, repeat: Infinity, repeatDelay: 4 }}
+                                >
+                                    <Build style={{ fontSize: 20 }} />
+                                </motion.span>
+                                <span
+                                    className="text-sm font-semibold"
+                                    style={{ color: isDark ? "#fed7aa" : "#9a3412" }}
+                                >
+                                    🚧 Site Under Maintenance
+                                </span>
+                                {maintenanceBanner.message && (
+                                    <span
+                                        className="text-sm hidden sm:block"
+                                        style={{ color: isDark ? "#fdba74" : "#c2410c" }}
+                                    >
+                                        — {maintenanceBanner.message}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Top Notification Banners */}
             <AnimatePresence>
                 {activeNotifications.map((notification, index) => {
@@ -369,7 +436,7 @@ export default function HeadNavigation() {
                             key={uniqueKey}
                             className="fixed left-0 right-0 z-[100] overflow-hidden"
                             style={{
-                                top: `${index * 64}px`,
+                                top: `${(index + (maintenanceBanner ? 1 : 0)) * 64}px`,
                                 backdropFilter: isApple ? "blur(60px) saturate(200%)" : "blur(30px)",
                                 WebkitBackdropFilter: isApple ? "blur(60px) saturate(200%)" : "blur(30px)",
                                 background: colors?.bg,
@@ -489,7 +556,7 @@ export default function HeadNavigation() {
                 ref={navRef}
                 className="fixed left-0 right-0 z-50 hidden md:block overflow-visible"
                 style={{
-                    top: activeNotifications.length > 0 ? `${activeNotifications.length * 64}px` : "0",
+                    top: totalBannerOffset > 0 ? `${totalBannerOffset * 64}px` : "0",
                     transition: "top 0.3s ease",
                     backdropFilter: isApple
                         ? uiState.scrolled
@@ -1102,7 +1169,7 @@ export default function HeadNavigation() {
             <motion.nav
                 className="fixed left-0 right-0 z-50 md:hidden overflow-visible"
                 style={{
-                    top: activeNotifications.length > 0 ? `${activeNotifications.length * 64}px` : "0",
+                    top: totalBannerOffset > 0 ? `${totalBannerOffset * 64}px` : "0",
                     transition: "top 0.3s ease",
                     backdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
                     WebkitBackdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",

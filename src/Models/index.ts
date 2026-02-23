@@ -11,3 +11,6 @@ export * from "./ImmichWhitelist";
 
 // ? GitHub CDN Storage
 export * from "./CDNAsset";
+
+// ? Site-wide Settings (maintenance mode, etc.)
+export * from "./SiteSettings";

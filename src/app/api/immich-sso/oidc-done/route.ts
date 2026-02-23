@@ -101,12 +101,14 @@ export async function GET(req: NextRequest) {
     await entry.save();
 
     // ── 4. Resolve `sub` — must match what Immich already stored as oauthId ──
-    // BA stores each provider's account in its `account` collection with
-    // `providerAccountId` = the provider's own user ID (e.g. Google's numeric ID).
-    // Immich saved that same ID as `oauthId` when the user first signed in with
-    // Google directly. We must return the same value or Immich rejects the login.
+    // Priority: 1) manual subOverride on whitelist entry (admin-set)
+    //           2) Google providerAccountId from BA account collection
+    //           3) email fallback
     let sub = userEmail; // safe fallback
-    if (process.env.MONGODB_01) {
+    if ((entry as any).subOverride) {
+        // Admin explicitly overrode the sub — use it directly, skip any lookup
+        sub = (entry as any).subOverride as string;
+    } else if (process.env.MONGODB_01) {
         const mongoClient = new MongoClient(process.env.MONGODB_01);
         try {
             await mongoClient.connect();
@@ -128,7 +130,6 @@ export async function GET(req: NextRequest) {
             await mongoClient.close();
         }
     }
-
     // ── 5. Generate auth code ───────────────────────────────────────────────
     const code = randomBytes(32).toString("hex");
     await ImmichAuthCode.create({

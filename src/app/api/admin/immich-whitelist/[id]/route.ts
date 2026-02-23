@@ -26,6 +26,9 @@ export async function PATCH(
         if (typeof body.enabled === "boolean") entry.enabled = body.enabled;
         if (body.label !== undefined) entry.label = body.label.trim();
         if (body.note !== undefined) entry.note = body.note?.trim() || undefined;
+        // subOverride: empty string clears it, any other string sets it
+        if (body.subOverride !== undefined)
+            (entry as any).subOverride = body.subOverride?.trim() || undefined;
 
         await entry.save();
         return NextResponse.json({ success: true, data: entry });

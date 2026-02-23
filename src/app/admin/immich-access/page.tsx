@@ -40,6 +40,7 @@ interface WhitelistEntry {
     accessCount: number;
     userId?: string;
     linkedAccount: boolean;
+    subOverride?: string;
     account?: { _id: string; name?: string; image?: string; email?: string; emailVerified?: boolean } | null;
 }
 
@@ -74,6 +75,7 @@ export default function ImmichAccessPage() {
     const [editId, setEditId] = useState<string | null>(null);
     const [editLabel, setEditLabel] = useState("");
     const [editNote, setEditNote] = useState("");
+    const [editSubOverride, setEditSubOverride] = useState("");
 
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [showSetup, setShowSetup] = useState(false);
@@ -171,12 +173,19 @@ export default function ImmichAccessPage() {
         try {
             const res = await fetch(`/api/admin/immich-whitelist/${id}`, {
                 method: "PATCH", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ label: editLabel, note: editNote }),
+                body: JSON.stringify({ label: editLabel, note: editNote, subOverride: editSubOverride }),
             });
             const json = await res.json();
             if (json.success) { setEditId(null); fetchEntries(); flash("Updated"); }
             else flash(json.error || "Failed", true);
         } catch { flash("Network error", true); }
+    };
+
+    const startEdit = (entry: WhitelistEntry) => {
+        setEditId(entry._id);
+        setEditLabel(entry.label);
+        setEditNote(entry.note || "");
+        setEditSubOverride(entry.subOverride || "");
     };
 
     const handleDelete = async (id: string) => {
@@ -576,6 +585,15 @@ export default function ImmichAccessPage() {
                                         placeholder="Note (optional)"
                                         className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                                         style={{ background: inputBg, border: `1px solid ${borderColor}`, color: palette.textPrimary }} />
+                                    <div>
+                                        <input type="text" value={editSubOverride} onChange={(e) => setEditSubOverride(e.target.value)}
+                                            placeholder="Immich oauthId override (sub) — leave blank for auto"
+                                            className="w-full px-3 py-2 rounded-xl text-sm outline-none"
+                                            style={{ background: inputBg, border: `1px solid ${borderColor}`, color: palette.textPrimary }} />
+                                        <p className="text-xs mt-1 px-1" style={{ color: palette.textTertiary }}>
+                                            Paste the <code style={{ background: inputBg, padding: "0 3px", borderRadius: 4 }}>oauthId</code> from Immich’s DB to force this sub value.
+                                        </p>
+                                    </div>
                                     <div className="flex gap-2">
                                         <button onClick={() => setEditId(null)}
                                             className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs"
@@ -636,6 +654,14 @@ export default function ImmichAccessPage() {
                                             {entry.note && (
                                                 <span className="text-xs" style={{ color: palette.textTertiary }}>{entry.note}</span>
                                             )}
+                                            {entry.subOverride && (
+                                                <span className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-mono"
+                                                    style={{ background: `${palette.accent}12`, color: palette.textTertiary }}
+                                                    title={`sub override: ${entry.subOverride}`}>
+                                                    <Key style={{ fontSize: 10 }} />
+                                                    {entry.subOverride.length > 16 ? entry.subOverride.slice(0, 16) + "…" : entry.subOverride}
+                                                </span>
+                                            )}
                                             {entry.lastAccess && (
                                                 <span className="flex items-center gap-0.5 text-xs" style={{ color: palette.textTertiary }}>
                                                     <AccessTime style={{ fontSize: 11 }} />
@@ -658,7 +684,7 @@ export default function ImmichAccessPage() {
                                             style={{ color: entry.enabled ? "#34c759" : palette.textTertiary }}>
                                             {entry.enabled ? <ToggleOn /> : <ToggleOff />}
                                         </button>
-                                        <button onClick={() => { setEditId(entry._id); setEditLabel(entry.label); setEditNote(entry.note || ""); }}
+                                        <button onClick={() => startEdit(entry)}
                                             className="p-1.5 rounded-lg" style={{ color: palette.textTertiary }}>
                                             <Edit style={{ fontSize: 16 }} />
                                         </button>

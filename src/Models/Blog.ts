@@ -1,27 +1,11 @@
 /**
- * Blog Model
- * Mongoose schema for blog posts
+ * Blog Model — Extended with approval workflow
+ * Status lifecycle: draft → pending_review → published | unlisted | private | rejected
  */
 
 import mongoose, { Schema, Document, Model } from "mongoose";
-
-export enum BlogVisibility {
-    Public = "public",
-    Private = "private",
-    Draft = "draft",
-    Scheduled = "scheduled"
-}
-
-export enum BlogCategory {
-    Technology = "technology",
-    Development = "development",
-    Design = "design",
-    Career = "career",
-    Tutorial = "tutorial",
-    News = "news",
-    Personal = "personal",
-    Other = "other"
-}
+export { BlogStatus, BlogVisibility, BlogCategory } from "@/Types/Blog";
+import { BlogStatus, BlogVisibility, BlogCategory } from "@/Types/Blog";
 
 export interface IBlog extends Document {
     slug: string;
@@ -30,6 +14,13 @@ export interface IBlog extends Document {
     content: string;
     contentPreview?: string;
     
+    // Approval workflow
+    status: BlogStatus;
+    submittedAt?: Date;
+    approvedBy?: string;
+    approvedAt?: Date;
+    rejectionReason?: string;
+
     // Status
     visibility: BlogVisibility;
     featured: boolean;
@@ -48,6 +39,7 @@ export interface IBlog extends Document {
     // Author
     authorId: string;
     authorName: string;
+    authorImage?: string;
     
     // Engagement
     views: number;
@@ -103,6 +95,17 @@ const BlogSchema = new Schema<IBlog>(
             type: String,
             maxlength: 1000
         },
+        // Approval workflow
+        status: {
+            type: String,
+            enum: Object.values(BlogStatus),
+            default: BlogStatus.Draft,
+            index: true
+        },
+        submittedAt: { type: Date },
+        approvedBy: { type: String },
+        approvedAt: { type: Date },
+        rejectionReason: { type: String },
         visibility: {
             type: String,
             enum: Object.values(BlogVisibility),
@@ -153,6 +156,7 @@ const BlogSchema = new Schema<IBlog>(
             type: String,
             required: true
         },
+        authorImage: { type: String },
         views: {
             type: Number,
             default: 0

@@ -28,7 +28,8 @@ import {
     Build,
     PhotoCamera,
     CloudUpload,
-    Construction
+    Construction,
+    Article
 } from "@mui/icons-material";
 
 const navItems = [
@@ -43,6 +44,7 @@ const navItems = [
     { href: "/admin/test-scores", label: "Test Scores", icon: <EmojiEvents fontSize="small" /> },
     { href: "/admin/resume", label: "Resume Builder", icon: <PictureAsPdf fontSize="small" /> },
     { href: "/admin/tool-settings", label: "Tool Settings", icon: <Build fontSize="small" /> },
+    { href: "/admin/blogs", label: "Blogs", icon: <Article fontSize="small" /> },
     { href: "/admin/maintenance", label: "Maintenance", icon: <Construction fontSize="small" /> },
     { href: "/admin/immich-access", label: "Immich Access", icon: <PhotoCamera fontSize="small" /> },
     { href: "/admin/cdn", label: "CDN Assets", icon: <CloudUpload fontSize="small" /> },

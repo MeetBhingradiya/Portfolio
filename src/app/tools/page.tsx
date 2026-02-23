@@ -16,7 +16,6 @@ import ToolCard from "@Components/Organisms/Tools/ToolCard";
 import {
     TOOLS,
     TOOL_CATEGORIES,
-    getToolsByCategory,
     type ToolCategory,
     type ToolDefinition
 } from "@/Static/ToolsDashboard";
@@ -196,8 +195,19 @@ export default function ToolsDashboardPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<ToolCategory | "all">("all");
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
-    const [adminTools, setAdminTools] = useState<string[]>([]); // IDs enabled by admin
+    const [visibilityData, setVisibilityData] = useState<Array<{toolId: string; enabled: boolean; featured: boolean; publicAccess: boolean}>>([]);
     const [showFilters, setShowFilters] = useState(false);
+
+    // ── Helpers for admin visibility ─────────────────────────────────────────
+    const getVis = useCallback((toolId: string) => {
+        const found = visibilityData.find((v) => v.toolId === toolId);
+        // If no admin config yet, default to enabled + public, not featured
+        return found ?? { toolId, enabled: true, featured: false, publicAccess: true };
+    }, [visibilityData]);
+
+    const isToolEnabled  = useCallback((id: string) => getVis(id).enabled,      [getVis]);
+    const isToolPublic   = useCallback((id: string) => getVis(id).publicAccess,  [getVis]);
+    const isToolFeatured = useCallback((id: string) => getVis(id).featured,      [getVis]);
 
     // ── Load prefs from localStorage (before DB sync) ────────────────────────
     useEffect(() => {
@@ -211,6 +221,18 @@ export default function ToolsDashboardPage() {
         setSyncStatus("syncing");
         const t = setTimeout(() => setSyncStatus("synced"), 2200);
         return () => clearTimeout(t);
+    }, []);
+
+    // ── Fetch admin visibility settings ──────────────────────────────────────
+    useEffect(() => {
+        fetch("/api/tools/visibility")
+            .then((r) => r.json())
+            .then((json) => {
+                if (json.success && Array.isArray(json.visibility)) {
+                    setVisibilityData(json.visibility);
+                }
+            })
+            .catch(() => { /* graceful fallback — static defaults apply */ });
     }, []);
 
     const savePrefs = useCallback((next: UserToolPrefs) => {
@@ -235,7 +257,7 @@ export default function ToolsDashboardPage() {
 
     // ── Filtered + ordered tools ─────────────────────────────────────────────
     const filteredTools = useMemo(() => {
-        let list = [...TOOLS];
+        let list = TOOLS.filter((t) => isToolEnabled(t.id) && isToolPublic(t.id));
 
         // Category filter
         if (activeCategory !== "all") {
@@ -262,18 +284,31 @@ export default function ToolsDashboardPage() {
         });
 
         return list;
-    }, [searchQuery, activeCategory, prefs.pinned]);
+    }, [searchQuery, activeCategory, prefs.pinned, isToolEnabled, isToolPublic]);
 
     const featuredTools = useMemo(
-        () => TOOLS.filter((t) => t.badges.includes("featured")),
-        []
+        () => TOOLS.filter((t) => isToolFeatured(t.id) && isToolEnabled(t.id)),
+        [isToolFeatured, isToolEnabled]
     );
 
-    const toolsByCategory = useMemo(() => getToolsByCategory(), []);
+    const toolsByCategory = useMemo(() => {
+        const result: Partial<Record<ToolCategory, ToolDefinition[]>> = {};
+        for (const tool of TOOLS) {
+            if (!isToolEnabled(tool.id) || !isToolPublic(tool.id)) continue;
+            if (!result[tool.category]) result[tool.category] = [];
+            result[tool.category]!.push(tool);
+        }
+        return result;
+    }, [isToolEnabled, isToolPublic]);
 
     const totalSynced = useMemo(
         () => TOOLS.filter((t) => t.syncToDb).length,
         []
+    );
+
+    const totalEnabled = useMemo(
+        () => TOOLS.filter((t) => isToolEnabled(t.id) && isToolPublic(t.id)).length,
+        [isToolEnabled, isToolPublic]
     );
 
     // ── Category tabs ────────────────────────────────────────────────────────
@@ -383,7 +418,7 @@ export default function ToolsDashboardPage() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <StatCard
                         label="Total Tools"
-                        value={TOOLS.length}
+                        value={totalEnabled}
                         icon={<GridView sx={{ fontSize: 20 }} />}
                         accent={palette.accent}
                         delay={0}
@@ -434,7 +469,7 @@ export default function ToolsDashboardPage() {
                                     tool={tool}
                                     isPinned={prefs.pinned.includes(tool.id)}
                                     usageCount={prefs.usageCount[tool.id] ?? 0}
-                                    isEnabled={!prefs.disabled.includes(tool.id)}
+                                    isEnabled={isToolEnabled(tool.id)}
                                     onTogglePin={togglePin}
                                     index={i}
                                 />
@@ -581,7 +616,7 @@ export default function ToolsDashboardPage() {
                                             tool={tool}
                                             isPinned={prefs.pinned.includes(tool.id)}
                                             usageCount={prefs.usageCount[tool.id] ?? 0}
-                                            isEnabled={!prefs.disabled.includes(tool.id)}
+                                            isEnabled={isToolEnabled(tool.id)}
                                             onTogglePin={togglePin}
                                             index={i}
                                         />
@@ -620,7 +655,7 @@ export default function ToolsDashboardPage() {
                                                     tool={tool!}
                                                     isPinned={true}
                                                     usageCount={prefs.usageCount[tool!.id] ?? 0}
-                                                    isEnabled={!prefs.disabled.includes(tool!.id)}
+                                                    isEnabled={isToolEnabled(tool!.id)}
                                                     onTogglePin={togglePin}
                                                     index={i}
                                                 />
@@ -656,7 +691,7 @@ export default function ToolsDashboardPage() {
                                                     tool={tool}
                                                     isPinned={prefs.pinned.includes(tool.id)}
                                                     usageCount={prefs.usageCount[tool.id] ?? 0}
-                                                    isEnabled={!prefs.disabled.includes(tool.id)}
+                                                    isEnabled={isToolEnabled(tool.id)}
                                                     onTogglePin={togglePin}
                                                     index={i}
                                                 />

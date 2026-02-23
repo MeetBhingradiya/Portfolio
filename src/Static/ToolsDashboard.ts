@@ -221,8 +221,23 @@ export const TOOLS: ToolDefinition[] = [
         ],
         syncToDb: false,
         shortcut: "F"
-    },
-    // ── Security ──────────────────────────────────────────────────────────────
+    },    // ── Dev Tools (continued) ────────────────────────────────────────────────────────────
+    {
+        id: "todo",
+        name: "Todo List",
+        description: "A minimal, fast task manager with filter and sync",
+        longDescription:
+            "Manage tasks with a clean, distraction-free interface. Supports active/completed filtering, bulk clear and cloud sync when signed in.",
+        category: "dev-tools",
+        iconName: "ChecklistRtl",
+        accentColor: "#FF9500",
+        route: "/tools/todo",
+        badges: ["db-sync", "admin-managed"],
+        isPublic: true,
+        adminManaged: true,
+        syncToDb: true,
+        shortcut: "T"
+    },    // ── Security ──────────────────────────────────────────────────────────────
     {
         id: "encrypt",
         name: "Encrypt / Decrypt",

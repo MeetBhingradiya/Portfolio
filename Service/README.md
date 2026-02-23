@@ -1,6 +1,7 @@
 # Encryption Service
 
-A secure, production-ready encryption/decryption microservice built with Express and TypeScript.
+A secure, production-ready encryption/decryption microservice built with Express
+and TypeScript.
 
 ## 🔒 Security Features
 
@@ -44,13 +45,13 @@ bun run start
 
 ## 📋 Environment Variables
 
-| Variable | Description | Required | Example |
-|----------|-------------|----------|---------|
-| `ENCRYPTION_KEY` | 64 hex characters (32 bytes) | ✅ | Generated with `openssl rand -hex 32` |
-| `SERVICE_SIGNING_SECRET` | Base64 encoded secret | ✅ | Generated with `openssl rand -base64 32` |
-| `ALLOWED_ORIGINS` | Comma-separated allowed origins | ✅ | `https://example.com,https://www.example.com` |
-| `PORT` | Local development port | ❌ | `3000` (default) |
-| `NODE_ENV` | Environment | ❌ | `production` or `development` |
+| Variable                 | Description                     | Required | Example                                       |
+| ------------------------ | ------------------------------- | -------- | --------------------------------------------- |
+| `ENCRYPTION_KEY`         | 64 hex characters (32 bytes)    | ✅       | Generated with `openssl rand -hex 32`         |
+| `SERVICE_SIGNING_SECRET` | Base64 encoded secret           | ✅       | Generated with `openssl rand -base64 32`      |
+| `ALLOWED_ORIGINS`        | Comma-separated allowed origins | ✅       | `https://example.com,https://www.example.com` |
+| `PORT`                   | Local development port          | ❌       | `3000` (default)                              |
+| `NODE_ENV`               | Environment                     | ❌       | `production` or `development`                 |
 
 ## 🔑 Generating Secrets
 
@@ -65,24 +66,30 @@ openssl rand -base64 32
 ## 📡 API Endpoints
 
 ### Health Check
+
 ```bash
 GET /
 ```
+
 Response:
+
 ```json
 {
-  "status": "online",
-  "service": "encryption-service",
-  "version": "2.0.0",
-  "timestamp": 1702638000000
+    "status": "online",
+    "service": "encryption-service",
+    "version": "2.0.0",
+    "timestamp": 1702638000000
 }
 ```
 
 ### Detailed Health
+
 ```bash
 GET /health
 ```
+
 Response:
+
 ```json
 {
   "status": "healthy",
@@ -95,6 +102,7 @@ Response:
 ```
 
 ### Encrypt
+
 ```bash
 POST /encrypt
 Headers:
@@ -110,14 +118,16 @@ Body:
 ```
 
 Response:
+
 ```json
 {
-  "success": true,
-  "result": "iv:authTag:encryptedData"
+    "success": true,
+    "result": "iv:authTag:encryptedData"
 }
 ```
 
 ### Decrypt
+
 ```bash
 POST /decrypt
 Headers:
@@ -133,6 +143,7 @@ Body:
 ```
 
 Response:
+
 ```json
 {
   "success": true,
@@ -149,34 +160,37 @@ The service requires HMAC-SHA256 signatures for all encrypt/decrypt operations.
 **Node.js/TypeScript Example:**
 
 ```typescript
-import crypto from 'crypto';
+import crypto from "crypto";
 
 function createSignature(payload: any, signingSecret: string) {
     const timestamp = Date.now().toString();
-    const nonce = crypto.randomBytes(16).toString('hex'); // Optional but recommended
-    
+    const nonce = crypto.randomBytes(16).toString("hex"); // Optional but recommended
+
     const dataToSign = `${JSON.stringify(payload)}::${timestamp}`;
     const signature = crypto
-        .createHmac('sha256', signingSecret)
+        .createHmac("sha256", signingSecret)
         .update(dataToSign)
-        .digest('hex');
-    
+        .digest("hex");
+
     return { signature, timestamp, nonce };
 }
 
 // Usage
 const payload = { data: "Hello, World!" };
-const { signature, timestamp, nonce } = createSignature(payload, process.env.SERVICE_SIGNING_SECRET);
+const { signature, timestamp, nonce } = createSignature(
+    payload,
+    process.env.SERVICE_SIGNING_SECRET
+);
 
-const response = await fetch('https://your-service.vercel.app/encrypt', {
-    method: 'POST',
+const response = await fetch("https://your-service.vercel.app/encrypt", {
+    method: "POST",
     headers: {
-        'Content-Type': 'application/json',
-        'x-signature': signature,
-        'x-timestamp': timestamp,
-        'x-nonce': nonce,
+        "Content-Type": "application/json",
+        "x-signature": signature,
+        "x-timestamp": timestamp,
+        "x-nonce": nonce
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(payload)
 });
 ```
 
@@ -192,33 +206,33 @@ import secrets
 def create_signature(payload, signing_secret):
     timestamp = str(int(time.time() * 1000))
     nonce = secrets.token_hex(16)
-    
+
     data_to_sign = f"{json.dumps(payload)}::{timestamp}"
     signature = hmac.new(
         signing_secret.encode(),
         data_to_sign.encode(),
         hashlib.sha256
     ).hexdigest()
-    
+
     return signature, timestamp, nonce
 ```
 
 ## 📊 Scripts
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Start development server with hot reload |
-| `bun run dev:node` | Start with Node.js runtime |
-| `bun run build` | Build for production (Bun) |
-| `bun run build:node` | Build for production (Node.js) |
-| `bun run start` | Start production server |
-| `bun run type-check` | TypeScript type checking |
-| `bun run lint` | Lint code |
-| `bun run lint:fix` | Fix linting issues |
-| `bun run format` | Format code with Prettier |
-| `bun run test` | Run tests |
-| `bun run deploy` | Deploy to Vercel production |
-| `bun run deploy:preview` | Deploy to Vercel preview |
+| Command                  | Description                              |
+| ------------------------ | ---------------------------------------- |
+| `bun run dev`            | Start development server with hot reload |
+| `bun run dev:node`       | Start with Node.js runtime               |
+| `bun run build`          | Build for production (Bun)               |
+| `bun run build:node`     | Build for production (Node.js)           |
+| `bun run start`          | Start production server                  |
+| `bun run type-check`     | TypeScript type checking                 |
+| `bun run lint`           | Lint code                                |
+| `bun run lint:fix`       | Fix linting issues                       |
+| `bun run format`         | Format code with Prettier                |
+| `bun run test`           | Run tests                                |
+| `bun run deploy`         | Deploy to Vercel production              |
+| `bun run deploy:preview` | Deploy to Vercel preview                 |
 
 ## 🏗️ Project Structure
 
@@ -273,11 +287,13 @@ vercel --prod
 ## 🔍 Monitoring
 
 ### Check Production Logs
+
 ```bash
 vercel logs --prod
 ```
 
 ### Monitor Health
+
 ```bash
 # Basic health check
 curl https://your-service.vercel.app/
@@ -291,21 +307,25 @@ curl https://your-service.vercel.app/health
 ### Common Issues
 
 **CORS Errors**
+
 - Verify origin is in `ALLOWED_ORIGINS`
 - Check protocol (http vs https)
 - Ensure CORS headers are sent
 
 **Invalid Signature**
+
 - Check timestamp (30-second window)
 - Verify signing secret matches
 - Ensure payload matches exactly
 
 **Rate Limited**
+
 - Implement exponential backoff
 - Consider dedicated rate limiting (Redis)
 - Monitor abuse patterns
 
 **Encryption Failures**
+
 - Verify key is 64 hex characters
 - Check data size (<10MB)
 - Validate input format

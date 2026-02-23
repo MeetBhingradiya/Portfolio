@@ -80,7 +80,7 @@ const menuCategories: MenuCategory[] = [
             },
             {
                 label: "Tools",
-                href: "/Tools",
+                href: "/tools",
                 description: "Useful utilities",
                 icon: <Settings />
             }

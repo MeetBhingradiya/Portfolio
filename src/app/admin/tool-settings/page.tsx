@@ -6,7 +6,8 @@
 
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import {
@@ -24,11 +25,16 @@ import {
     Article,
     Palette,
     ChecklistRtl,
+    Tag,
     Check,
     Settings,
     ExpandMore,
     VisibilityOff,
-    Visibility
+    Visibility,
+    Star,
+    StarBorder,
+    Public,
+    PublicOff
 } from "@mui/icons-material";
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -139,6 +145,7 @@ const TOOL_SECTIONS = [
     { id: "markdown", name: "Markdown Preview", icon: <Article fontSize="small" />, color: "#007AFF" },
     { id: "colour", name: "Colour Studio", icon: <Palette fontSize="small" />, color: "#FF2D55" },
     { id: "encrypt", name: "Encrypt / Decrypt", icon: <Lock fontSize="small" />, color: "#FF9500" },
+    { id: "hash", name: "Hash Generator", icon: <Tag fontSize="small" />, color: "#FFCC00" },
 ];
 
 export default function ToolSettingsPage() {
@@ -152,6 +159,26 @@ export default function ToolSettingsPage() {
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState("");
     const [expandedTool, setExpandedTool] = useState<string | null>("qr");
+    const [visibilityOpen, setVisibilityOpen] = useState(false);
+
+    // ── Ensure every tool has a visibility entry ────────────────
+    const getVisibility = (toolId: string) => {
+        const found = defaults.visibility?.find((v) => v.toolId === toolId);
+        return found ?? { toolId, enabled: true, featured: false, publicAccess: true };
+    };
+
+    const updateVisibility = (toolId: string, patch: Partial<{ enabled: boolean; featured: boolean; publicAccess: boolean }>) => {
+        setDefaults((prev) => {
+            const existing = prev.visibility ?? [];
+            const idx = existing.findIndex((v) => v.toolId === toolId);
+            const base = idx >= 0 ? existing[idx] : { toolId, enabled: true, featured: false, publicAccess: true };
+            const updated = { ...base, ...patch };
+            const next = idx >= 0
+                ? existing.map((v, i) => (i === idx ? updated : v))
+                : [...existing, updated];
+            return { ...prev, visibility: next };
+        });
+    };
 
     // ── Fetch current settings ──────────────────────────────────
     const fetchSettings = useCallback(async () => {
@@ -285,6 +312,120 @@ export default function ToolSettingsPage() {
                 </div>
             ) : (
                 <div className="p-6 space-y-3 max-w-4xl">
+
+                    {/* ── Featured & Visibility ────────────────────── */}
+                    <motion.div
+                        className="rounded-2xl overflow-hidden"
+                        style={{ background: cardBg, border: `1px solid ${borderColor}` }}
+                        layout
+                    >
+                        <motion.button
+                            onClick={() => setVisibilityOpen((p) => !p)}
+                            className="w-full flex items-center gap-3 px-5 py-4 text-left"
+                            whileHover={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.03)" }}
+                        >
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "#FFD60020" }}>
+                                <Star sx={{ fontSize: 18, color: "#FFD600" }} />
+                            </div>
+                            <div className="flex-1">
+                                <span className="text-sm font-bold block" style={{ color: palette.textPrimary }}>Tool Visibility &amp; Featured</span>
+                                <span className="text-[11px]" style={{ color: palette.textTertiary }}>Control which tools are enabled, public, or featured on the homepage</span>
+                            </div>
+                            <motion.div animate={{ rotate: visibilityOpen ? 180 : 0 }}>
+                                <ExpandMore sx={{ fontSize: 18, color: palette.textTertiary }} />
+                            </motion.div>
+                        </motion.button>
+
+                        <AnimatePresence>
+                            {visibilityOpen && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    transition={{ duration: 0.25 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="px-5 pb-5 pt-1">
+                                        {/* Legend */}
+                                        <div className="flex items-center gap-4 mb-3 text-[11px] font-bold" style={{ color: palette.textTertiary }}>
+                                            <span className="ml-auto flex items-center gap-1"><Visibility sx={{ fontSize: 13 }} /> Enabled</span>
+                                            <span className="flex items-center gap-1"><Star sx={{ fontSize: 13 }} /> Featured</span>
+                                            <span className="flex items-center gap-1"><Public sx={{ fontSize: 13 }} /> Public</span>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {TOOL_SECTIONS.map((tool) => {
+                                                const vis = getVisibility(tool.id);
+                                                return (
+                                                    <div
+                                                        key={tool.id}
+                                                        className="flex items-center gap-3 px-4 py-3 rounded-xl"
+                                                        style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border: `1px solid ${borderColor}` }}
+                                                    >
+                                                        <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${tool.color}20` }}>
+                                                            <span style={{ color: tool.color }}>{tool.icon}</span>
+                                                        </div>
+                                                        <span className="flex-1 text-sm font-semibold" style={{ color: vis.enabled ? palette.textPrimary : palette.textTertiary }}>
+                                                            {tool.name}
+                                                        </span>
+                                                        {/* Enabled toggle */}
+                                                        <motion.button
+                                                            type="button"
+                                                            onClick={() => updateVisibility(tool.id, { enabled: !vis.enabled })}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            title={vis.enabled ? "Disable tool" : "Enable tool"}
+                                                            style={{
+                                                                width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+                                                                background: vis.enabled ? "#34C75920" : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+                                                                border: `1.5px solid ${vis.enabled ? "#34C759" : borderColor}`,
+                                                            }}
+                                                        >
+                                                            {vis.enabled
+                                                                ? <Visibility sx={{ fontSize: 15, color: "#34C759" }} />
+                                                                : <VisibilityOff sx={{ fontSize: 15, color: palette.textTertiary }} />}
+                                                        </motion.button>
+                                                        {/* Featured toggle */}
+                                                        <motion.button
+                                                            type="button"
+                                                            onClick={() => updateVisibility(tool.id, { featured: !vis.featured })}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            title={vis.featured ? "Remove from featured" : "Mark as featured"}
+                                                            style={{
+                                                                width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+                                                                background: vis.featured ? "#FFD60020" : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+                                                                border: `1.5px solid ${vis.featured ? "#FFD600" : borderColor}`,
+                                                            }}
+                                                        >
+                                                            {vis.featured
+                                                                ? <Star sx={{ fontSize: 15, color: "#FFD600" }} />
+                                                                : <StarBorder sx={{ fontSize: 15, color: palette.textTertiary }} />}
+                                                        </motion.button>
+                                                        {/* Public toggle */}
+                                                        <motion.button
+                                                            type="button"
+                                                            onClick={() => updateVisibility(tool.id, { publicAccess: !vis.publicAccess })}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            title={vis.publicAccess ? "Make private" : "Make public"}
+                                                            style={{
+                                                                width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+                                                                background: vis.publicAccess ? "#007AFF20" : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
+                                                                border: `1.5px solid ${vis.publicAccess ? "#007AFF" : borderColor}`,
+                                                            }}
+                                                        >
+                                                            {vis.publicAccess
+                                                                ? <Public sx={{ fontSize: 15, color: "#007AFF" }} />
+                                                                : <PublicOff sx={{ fontSize: 15, color: palette.textTertiary }} />}
+                                                        </motion.button>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.div>
+
+                    {/* ── Per-tool default settings ─────────────────── */}
                     {TOOL_SECTIONS.map((tool) => (
                         <motion.div
                             key={tool.id}
@@ -354,19 +495,33 @@ function renderToolSettings(
                         <input type="number" value={d.size} min={100} max={2048} onChange={(e) => updateTool("qr", { size: Number(e.target.value) })} style={inputStyle} />
                     </Field>
                     <Field label="Error Correction">
-                        <select value={d.errorCorrection} onChange={(e) => updateTool("qr", { errorCorrection: e.target.value })} style={selectStyle}>
-                            {["L", "M", "Q", "H"].map((v) => <option key={v} value={v}>{v} — {({ L: "Low (7%)", M: "Medium (15%)", Q: "Quartile (25%)", H: "High (30%)" } as any)[v]}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.errorCorrection}
+                            onChange={(v) => updateTool("qr", { errorCorrection: v })}
+                            options={[
+                                { value: "L", label: "L — Low (7%)" },
+                                { value: "M", label: "M — Medium (15%)" },
+                                { value: "Q", label: "Q — Quartile (25%)" },
+                                { value: "H", label: "H — High (30%)" },
+                            ]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Dot Style">
-                        <select value={d.dotStyle} onChange={(e) => updateTool("qr", { dotStyle: e.target.value })} style={selectStyle}>
-                            {["rounded", "dots", "classy", "classy-rounded", "square", "extra-rounded"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.dotStyle}
+                            onChange={(v) => updateTool("qr", { dotStyle: v })}
+                            options={["rounded", "dots", "classy", "classy-rounded", "square", "extra-rounded"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Corner Style">
-                        <select value={d.cornerStyle} onChange={(e) => updateTool("qr", { cornerStyle: e.target.value })} style={selectStyle}>
-                            {["square", "dot", "extra-rounded"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.cornerStyle}
+                            onChange={(v) => updateTool("qr", { cornerStyle: v })}
+                            options={["square", "dot", "extra-rounded"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Foreground Color">
                         <div className="flex gap-2 items-center">
@@ -389,9 +544,12 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Version">
-                        <select value={d.version} onChange={(e) => updateTool("uuid", { version: e.target.value })} style={selectStyle}>
-                            {["v1", "v4", "v5", "nil"].map((v) => <option key={v} value={v}>{v.toUpperCase()}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.version}
+                            onChange={(v) => updateTool("uuid", { version: v })}
+                            options={["v1", "v4", "v5", "nil"].map((v) => ({ value: v, label: v.toUpperCase() }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Default Bulk Count">
                         <input type="number" value={d.bulkCount} min={1} max={100} onChange={(e) => updateTool("uuid", { bulkCount: Number(e.target.value) })} style={inputStyle} />
@@ -412,9 +570,12 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Mode">
-                        <select value={d.mode} onChange={(e) => updateTool("password", { mode: e.target.value })} style={selectStyle}>
-                            {["random", "passphrase", "pin"].map((v) => <option key={v} value={v}>{v === "pin" ? "PIN" : v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.mode}
+                            onChange={(v) => updateTool("password", { mode: v })}
+                            options={[{ value: "random", label: "random" }, { value: "passphrase", label: "passphrase" }, { value: "pin", label: "PIN" }]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Password Length">
                         <input type="number" value={d.length} min={4} max={128} onChange={(e) => updateTool("password", { length: Number(e.target.value) })} style={inputStyle} />
@@ -426,9 +587,18 @@ function renderToolSettings(
                         <input type="number" value={d.pinLength} min={4} max={12} onChange={(e) => updateTool("password", { pinLength: Number(e.target.value) })} style={inputStyle} />
                     </Field>
                     <Field label="Separator">
-                        <select value={d.separator} onChange={(e) => updateTool("password", { separator: e.target.value })} style={selectStyle}>
-                            {["-", "_", ".", " ", ""].map((s) => <option key={s} value={s}>{s === "" ? "none" : s === " " ? "space" : `"${s}"`}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.separator}
+                            onChange={(v) => updateTool("password", { separator: v })}
+                            options={[
+                                { value: "-", label: '"-"' },
+                                { value: "_", label: '"_"' },
+                                { value: ".", label: '"."' },
+                                { value: " ", label: "space" },
+                                { value: "", label: "none" },
+                            ]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Character Types">
                         <div className="flex flex-col gap-2">
@@ -448,9 +618,12 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Filter">
-                        <select value={d.defaultFilter} onChange={(e) => updateTool("todo", { defaultFilter: e.target.value })} style={selectStyle}>
-                            {["all", "active", "completed"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.defaultFilter}
+                            onChange={(v) => updateTool("todo", { defaultFilter: v })}
+                            options={["all", "active", "completed"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                 </div>
             );
@@ -464,9 +637,12 @@ function renderToolSettings(
                         <input type="text" value={d.defaultFlags} onChange={(e) => updateTool("regexp", { defaultFlags: e.target.value })} placeholder="g, gi, gm…" style={inputStyle} />
                     </Field>
                     <Field label="Default Tab">
-                        <select value={d.defaultTab} onChange={(e) => updateTool("regexp", { defaultTab: e.target.value })} style={selectStyle}>
-                            {["match", "replace"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.defaultTab}
+                            onChange={(v) => updateTool("regexp", { defaultTab: v })}
+                            options={["match", "replace"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Options">
                         <Toggle label="Show presets by default" checked={d.showPresets} onChange={(v) => updateTool("regexp", { showPresets: v })} palette={palette} isDark={isDark} />
@@ -480,14 +656,20 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Tab">
-                        <select value={d.defaultTab} onChange={(e) => updateTool("jwt", { defaultTab: e.target.value })} style={selectStyle}>
-                            {["decode", "build", "reference"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.defaultTab}
+                            onChange={(v) => updateTool("jwt", { defaultTab: v })}
+                            options={["decode", "build", "reference"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Default Algorithm">
-                        <select value={d.defaultAlgorithm} onChange={(e) => updateTool("jwt", { defaultAlgorithm: e.target.value })} style={selectStyle}>
-                            {["HS256", "HS384", "HS512", "RS256", "ES256", "EdDSA"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.defaultAlgorithm}
+                            onChange={(v) => updateTool("jwt", { defaultAlgorithm: v })}
+                            options={["HS256", "HS384", "HS512", "RS256", "ES256", "EdDSA"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                 </div>
             );
@@ -498,10 +680,15 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Direction">
-                        <select value={d.direction} onChange={(e) => updateTool("json", { direction: e.target.value })} style={selectStyle}>
-                            <option value="json-to-js">JSON → JS Object</option>
-                            <option value="js-to-json">JS Object → JSON</option>
-                        </select>
+                        <CustomSelect
+                            value={d.direction}
+                            onChange={(v) => updateTool("json", { direction: v })}
+                            options={[
+                                { value: "json-to-js", label: "JSON → JS Object" },
+                                { value: "js-to-json", label: "JS Object → JSON" },
+                            ]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Options">
                         <Toggle label="Auto-format on load" checked={d.autoFormat} onChange={(v) => updateTool("json", { autoFormat: v })} palette={palette} isDark={isDark} />
@@ -515,10 +702,15 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Mode">
-                        <select value={d.mode} onChange={(e) => updateTool("image", { mode: e.target.value })} style={selectStyle}>
-                            <option value="compress">Compress</option>
-                            <option value="to-pdf">Images → PDF</option>
-                        </select>
+                        <CustomSelect
+                            value={d.mode}
+                            onChange={(v) => updateTool("image", { mode: v })}
+                            options={[
+                                { value: "compress", label: "Compress" },
+                                { value: "to-pdf", label: "Images → PDF" },
+                            ]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Compression Quality">
                         <div className="flex items-center gap-2">
@@ -530,15 +722,23 @@ function renderToolSettings(
                         <input type="number" value={d.maxWidth} min={320} max={3840} step={160} onChange={(e) => updateTool("image", { maxWidth: Number(e.target.value) })} style={inputStyle} />
                     </Field>
                     <Field label="Output Format">
-                        <select value={d.outputFormat} onChange={(e) => updateTool("image", { outputFormat: e.target.value })} style={selectStyle}>
-                            {["jpeg", "png", "webp"].map((v) => <option key={v} value={v}>{v.toUpperCase()}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.outputFormat}
+                            onChange={(v) => updateTool("image", { outputFormat: v })}
+                            options={["jpeg", "png", "webp"].map((v) => ({ value: v, label: v.toUpperCase() }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="PDF Orientation">
-                        <select value={d.pdfOrientation} onChange={(e) => updateTool("image", { pdfOrientation: e.target.value })} style={selectStyle}>
-                            <option value="portrait">Portrait</option>
-                            <option value="landscape">Landscape</option>
-                        </select>
+                        <CustomSelect
+                            value={d.pdfOrientation}
+                            onChange={(v) => updateTool("image", { pdfOrientation: v })}
+                            options={[
+                                { value: "portrait", label: "Portrait" },
+                                { value: "landscape", label: "Landscape" },
+                            ]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                 </div>
             );
@@ -549,10 +749,15 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Mode">
-                        <select value={d.mode} onChange={(e) => updateTool("pdf", { mode: e.target.value })} style={selectStyle}>
-                            <option value="merge">Merge</option>
-                            <option value="split">Split / Extract</option>
-                        </select>
+                        <CustomSelect
+                            value={d.mode}
+                            onChange={(v) => updateTool("pdf", { mode: v })}
+                            options={[
+                                { value: "merge", label: "Merge" },
+                                { value: "split", label: "Split / Extract" },
+                            ]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                 </div>
             );
@@ -563,9 +768,12 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default View Mode">
-                        <select value={d.viewMode} onChange={(e) => updateTool("markdown", { viewMode: e.target.value })} style={selectStyle}>
-                            {["split", "editor", "preview"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.viewMode}
+                            onChange={(v) => updateTool("markdown", { viewMode: v })}
+                            options={["split", "editor", "preview"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                 </div>
             );
@@ -576,14 +784,20 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Tab">
-                        <select value={d.defaultTab} onChange={(e) => updateTool("colour", { defaultTab: e.target.value })} style={selectStyle}>
-                            {["picker", "palette", "contrast"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.defaultTab}
+                            onChange={(v) => updateTool("colour", { defaultTab: v })}
+                            options={["picker", "palette", "contrast"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Default Harmony">
-                        <select value={d.harmony} onChange={(e) => updateTool("colour", { harmony: e.target.value })} style={selectStyle}>
-                            {["complementary", "analogous", "triadic", "split-comp", "tetradic"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.harmony}
+                            onChange={(v) => updateTool("colour", { harmony: v })}
+                            options={["complementary", "analogous", "triadic", "split-comp", "tetradic"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Default Hue">
                         <div className="flex items-center gap-2">
@@ -612,15 +826,23 @@ function renderToolSettings(
             return (
                 <div className={grid}>
                     <Field label="Default Algorithm">
-                        <select value={d.algorithm} onChange={(e) => updateTool("encrypt", { algorithm: e.target.value })} style={selectStyle}>
-                            {["AES", "DES", "TripleDES", "Rabbit", "RC4"].map((v) => <option key={v} value={v}>{v}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={d.algorithm}
+                            onChange={(v) => updateTool("encrypt", { algorithm: v })}
+                            options={["AES", "DES", "TripleDES", "Rabbit", "RC4"].map((v) => ({ value: v, label: v }))}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                     <Field label="Default Direction">
-                        <select value={d.direction} onChange={(e) => updateTool("encrypt", { direction: e.target.value })} style={selectStyle}>
-                            <option value="encrypt">Encrypt</option>
-                            <option value="decrypt">Decrypt</option>
-                        </select>
+                        <CustomSelect
+                            value={d.direction}
+                            onChange={(v) => updateTool("encrypt", { direction: v })}
+                            options={[
+                                { value: "encrypt", label: "Encrypt" },
+                                { value: "decrypt", label: "Decrypt" },
+                            ]}
+                            style={selectStyle} palette={palette} isDark={isDark}
+                        />
                     </Field>
                 </div>
             );
@@ -661,6 +883,122 @@ function Toggle({ label, checked, onChange, palette, isDark }: { label: string; 
             </span>
             {label}
         </motion.button>
+    );
+}
+
+function CustomSelect({
+    value, onChange, options, style, palette, isDark
+}: {
+    value: string;
+    onChange: (v: string) => void;
+    options: Array<{ value: string; label: string }>;
+    style?: React.CSSProperties;
+    palette: any;
+    isDark: boolean;
+}) {
+    const [open, setOpen] = React.useState(false);
+    const [dropPos, setDropPos] = React.useState<{ top: number; left: number; width: number } | null>(null);
+    const triggerRef = React.useRef<HTMLButtonElement>(null);
+    const portalRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent) => {
+            if (
+                triggerRef.current && !triggerRef.current.contains(e.target as Node) &&
+                portalRef.current && !portalRef.current.contains(e.target as Node)
+            ) setOpen(false);
+        };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [open]);
+
+    const handleOpen = () => {
+        if (!triggerRef.current) return;
+        const rect = triggerRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const dropHeight = Math.min(options.length * 38, 220);
+        const showAbove = spaceBelow < dropHeight + 8 && rect.top > dropHeight + 8;
+        setDropPos({
+            top: showAbove ? rect.top - dropHeight - 4 : rect.bottom + 4,
+            left: rect.left,
+            width: rect.width,
+        });
+        setOpen((p) => !p);
+    };
+
+    const selected = options.find((o) => o.value === value);
+
+    const dropdown = open && dropPos ? ReactDOM.createPortal(
+        <div
+            ref={portalRef}
+            style={{
+                position: "fixed",
+                top: dropPos.top,
+                left: dropPos.left,
+                width: dropPos.width,
+                borderRadius: 12,
+                background: isDark ? "#1c1c1e" : "#ffffff",
+                border: `1.5px solid ${isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.10)"}`,
+                boxShadow: isDark ? "0 12px 32px rgba(0,0,0,0.65)" : "0 8px 24px rgba(0,0,0,0.14)",
+                overflow: "hidden",
+                zIndex: 99999,
+                maxHeight: 220,
+                overflowY: "auto",
+            }}
+        >
+            {options.map((o) => (
+                <button
+                    key={o.value}
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => { onChange(o.value); setOpen(false); }}
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        textAlign: "left",
+                        padding: "9px 14px",
+                        fontSize: 13,
+                        fontWeight: o.value === value ? 700 : 400,
+                        background: o.value === value ? `${palette.accent}18` : "transparent",
+                        color: o.value === value ? palette.accent : palette.textPrimary,
+                        cursor: "pointer",
+                        border: "none",
+                        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"}`,
+                    }}
+                >
+                    {o.label}
+                </button>
+            ))}
+        </div>,
+        document.body
+    ) : null;
+
+    return (
+        <div style={{ position: "relative", width: "100%" }}>
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={handleOpen}
+                style={{
+                    ...style,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 8,
+                    cursor: "pointer",
+                    textAlign: "left",
+                }}
+            >
+                <span style={{ color: palette.textPrimary, fontSize: 13, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {selected?.label ?? value}
+                </span>
+                <ExpandMore
+                    sx={{ fontSize: 16, color: palette.textTertiary, flexShrink: 0, transition: "transform .2s", transform: open ? "rotate(180deg)" : "none" }}
+                />
+            </button>
+            {dropdown}
+        </div>
     );
 }
 

@@ -19,6 +19,7 @@ export interface IImmichWhitelist extends Document {
     userId?: string;         // Better Auth user._id — match takes priority over email
     linkedAccount: boolean;  // true when userId is set
     subOverride?: string;    // Manual Immich oauthId override — if set, sent as `sub` in OIDC token
+    lastIssuedSub?: string;  // Last `sub` value actually sent to Immich (auto-recorded)
 }
 
 const ImmichWhitelistSchema = new Schema<IImmichWhitelist>(
@@ -43,6 +44,7 @@ const ImmichWhitelistSchema = new Schema<IImmichWhitelist>(
         userId: { type: String, index: true, sparse: true }, // unique per BA user
         linkedAccount: { type: Boolean, default: false },
         subOverride: { type: String, trim: true }, // manual oauthId to send as OIDC sub
+        lastIssuedSub: { type: String, trim: true }, // auto-recorded — last sub sent to Immich
     },
     { timestamps: true }
 );

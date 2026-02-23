@@ -131,6 +131,10 @@ export async function GET(req: NextRequest) {
         }
     }
     // ── 5. Generate auth code ───────────────────────────────────────────────
+    // Record the sub we actually issued so the admin can see/copy it
+    (entry as any).lastIssuedSub = sub;
+    await entry.save();
+
     const code = randomBytes(32).toString("hex");
     await ImmichAuthCode.create({
         code,

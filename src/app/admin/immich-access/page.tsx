@@ -41,6 +41,7 @@ interface WhitelistEntry {
     userId?: string;
     linkedAccount: boolean;
     subOverride?: string;
+    lastIssuedSub?: string;
     account?: { _id: string; name?: string; image?: string; email?: string; emailVerified?: boolean } | null;
 }
 
@@ -185,7 +186,7 @@ export default function ImmichAccessPage() {
         setEditId(entry._id);
         setEditLabel(entry.label);
         setEditNote(entry.note || "");
-        setEditSubOverride(entry.subOverride || "");
+        setEditSubOverride(entry.subOverride || entry.lastIssuedSub || "");
     };
 
     const handleDelete = async (id: string) => {
@@ -661,6 +662,16 @@ export default function ImmichAccessPage() {
                                                     <Key style={{ fontSize: 10 }} />
                                                     {entry.subOverride.length > 16 ? entry.subOverride.slice(0, 16) + "…" : entry.subOverride}
                                                 </span>
+                                            )}
+                                            {entry.lastIssuedSub && !entry.subOverride && (
+                                                <button
+                                                    onClick={() => { copy(entry.lastIssuedSub!); }}
+                                                    title={`Last issued sub: ${entry.lastIssuedSub} — click to copy`}
+                                                    className="flex items-center gap-1 text-xs px-1.5 py-0.5 rounded-full font-mono transition-opacity hover:opacity-80"
+                                                    style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", color: palette.textTertiary }}>
+                                                    <Key style={{ fontSize: 10 }} />
+                                                    {entry.lastIssuedSub.length > 16 ? entry.lastIssuedSub.slice(0, 16) + "…" : entry.lastIssuedSub}
+                                                </button>
                                             )}
                                             {entry.lastAccess && (
                                                 <span className="flex items-center gap-0.5 text-xs" style={{ color: palette.textTertiary }}>

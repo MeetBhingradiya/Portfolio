@@ -10,6 +10,7 @@ import { twoFactor } from "better-auth/plugins/two-factor";
 import { username, multiSession } from "better-auth/plugins";
 import { passkey } from "@better-auth/passkey";
 import { MongoClient } from "mongodb";
+import { Config } from "@Config/Client";
 
 // Skip database initialization during build time
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
@@ -20,6 +21,7 @@ if (!isBuildTime && process.env.MONGODB_01) {
     try {
         const client = new MongoClient(process.env.MONGODB_01);
         const db = client.db("PRODUCTION_MeetBhingradiya");
+
         // Disable transactions for standalone MongoDB (local dev).
         // Transactions require a replica set; Atlas in production supports them.
         const isLocalMongo = process.env.MONGODB_01.includes("localhost") || process.env.MONGODB_01.includes("127.0.0.1");
@@ -41,6 +43,8 @@ export const auth = betterAuth({
         enabled: true,
         requireEmailVerification: false, // Set to false for OAuth compatibility
         // OAuth users are auto-verified via their provider
+        disableSignUp: false, // Allow sign-up for email/password users
+        autoSignIn: true, // Auto sign-in after sign-up
     },
 
     // Plugins configuration
@@ -55,7 +59,7 @@ export const auth = betterAuth({
         passkey({
             rpName: "Meet Bhingradiya Portfolio",
             rpID: "meetbhingradiya.shop",
-            origin: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+            origin: Config.Origin,
         }),
         multiSession(),
     ],
@@ -162,13 +166,12 @@ export const auth = betterAuth({
     },
 
     // Base URL and secret
-    // baseURL: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` || "http://localhost:3000",
-    baseURL: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+    baseURL: Config.Origin,
     secret: process.env.BETTER_AUTH_SECRET!,
 
     // CORS and trusted origins configuration
     trustedOrigins: [
-        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+        Config.Origin,
     ].filter(Boolean) as string[],
 
     // Advanced security options

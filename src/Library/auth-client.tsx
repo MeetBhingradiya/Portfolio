@@ -9,9 +9,10 @@ import React from "react";
 import { createAuthClient } from "better-auth/react";
 import { twoFactorClient, usernameClient, multiSessionClient } from "better-auth/client/plugins";
 import { passkeyClient } from "@better-auth/passkey/client";
+import { Config } from "@Config/Client";
 
 export const authClient = createAuthClient({
-    baseURL: `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+    baseURL: Config.Origin,
     plugins: [
         usernameClient(),
         twoFactorClient(),

@@ -34,6 +34,7 @@ interface Common_Config_Type {
 export interface Client_Config_Type extends Common_Config_Type {
     Notifications?: NotificationConfig[];
     Emails: EmailConfig;
+    Origin: string;
 }
 
 export interface Server_Config_Type extends Common_Config_Type {

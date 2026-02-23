@@ -22,5 +22,6 @@ export const Config: Client_Config_Type = {
         security: "security@meetbhingradiya.shop",
         legal: "legal@meetbhingradiya.shop",
         dmca: "dmca@meetbhingradiya.shop"
-    }
+    },
+    Origin: "https://beta.meetbhingradiya.shop"
 }

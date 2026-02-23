@@ -42,7 +42,7 @@ interface WhitelistEntry {
     linkedAccount: boolean;
     subOverride?: string;
     lastIssuedSub?: string;
-    account?: { _id: string; name?: string; image?: string; email?: string; emailVerified?: boolean } | null;
+    account?: { _id: string; name?: string; image?: string; email?: string; emailVerified?: boolean; googleAvatar?: string; githubAvatar?: string; microsoftAvatar?: string } | null;
 }
 
 type AddMode = "account" | "email";
@@ -562,7 +562,11 @@ export default function ImmichAccessPage() {
             {/* List */}
             <div className="space-y-2">
                 {entries.map((entry) => {
-                    const avatarSrc = entry.account?.image;
+                    const avatarSrc = entry.account?.image
+                        || entry.account?.googleAvatar
+                        || entry.account?.githubAvatar
+                        || entry.account?.microsoftAvatar
+                        || undefined;
                     const displayEmail = entry.account?.email || entry.email;
                     const initial = (entry.account?.name || entry.label || entry.email || "?").charAt(0).toUpperCase();
 
@@ -613,8 +617,10 @@ export default function ImmichAccessPage() {
                                     {/* Avatar + link badge */}
                                     <div className="relative flex-shrink-0">
                                         {avatarSrc ? (
-                                            <Image src={avatarSrc} alt={entry.label} width={40} height={40}
-                                                className="rounded-xl object-cover" />
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img src={avatarSrc} alt={entry.label} width={40} height={40}
+                                                className="rounded-xl object-cover w-10 h-10"
+                                                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
                                         ) : (
                                             <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold"
                                                 style={{ background: `${palette.accent}20`, color: palette.accent }}>

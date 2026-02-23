@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
                 const baUsers = linkedIds.length
                     ? await userCol
                         .find({ $or: [{ id: { $in: linkedIds as any } }, { _id: { $in: linkedIds as any } }] })
-                        .project({ _id: 1, id: 1, name: 1, image: 1, emailVerified: 1, email: 1 })
+                        .project({ _id: 1, id: 1, name: 1, image: 1, emailVerified: 1, email: 1, googleAvatar: 1, githubAvatar: 1, microsoftAvatar: 1 })
                         .toArray()
                     : [];
 

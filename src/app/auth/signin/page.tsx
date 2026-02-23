@@ -1,962 +1,543 @@
+/**
+ * Sign In Page
+ * Enhanced with dual-theme support and Better Auth integration
+ */
+
 "use client";
 
-import React, { Suspense } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState, useEffect, Suspense } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { LiquidGlassCard, LiquidGlassButton } from "@Components/Atoms/LiquidGlass";
+import { OneUICard, OneUIButton } from "@Components/Atoms/OneUI";
 import {
-    Modal,
-    ModalContent,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Button,
-    useDisclosure,
-    Input,
-    Alert,
-    Divider,
-    Card,
-    CardBody,
-    Spinner,
-    CircularProgress
-} from "@heroui/react";
-import {
-    PersonAdd,
-    AlternateEmail,
+    Email,
+    Lock,
     Visibility,
     VisibilityOff,
-    Lock,
-    Security,
     Login,
-    ErrorOutline,
+    Google,
+    GitHub,
     CheckCircle,
+    Error as ErrorIcon,
     ArrowBack,
-    AccountBox,
-    Key,
-    Shield,
     Fingerprint,
-    FaceRetouchingNatural,
-    CloudSync,
-    Warning,
-    Block,
-    Pause
+    Info
 } from "@mui/icons-material";
-import { Axios } from "@Utils/Axios";
+import { signIn, useSession, passkey } from "@/Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useAccountSwitcher } from "@Hooks/useAccountSwitcher";
-import { AccountSwitcher } from "@Components/AccountSwitcher";
+import Link from "next/link";
+import { CookieWarning } from "@Components/Common/CookieWarning";
 
-interface SigninState {
-    username: string;
-    password: string;
-    isLoading: boolean;
-    showPassword: boolean;
-    error: string;
-    success: string;
-    accountStatus: "active" | "suspended" | "blocked" | null;
-    rememberMe: boolean;
-    isPasskeySupported: boolean;
-    usePasskey: boolean;
-}
+function SignInContent() {
+    const { designTheme, palette, actualColorMode } = useDesignTheme();
+    const isApple = designTheme === "apple";
+    const isDark = actualColorMode === "dark";
+    const Card = isApple ? LiquidGlassCard : OneUICard;
+    const Button = isApple ? LiquidGlassButton : OneUIButton;
 
-function SignInForm() {
-    const { isOpen, onOpen } = useDisclosure();
     const router = useRouter();
     const searchParams = useSearchParams();
-    const { AddAccount, Accounts, ActiveAccount } = useAccountSwitcher();
-    const [state, setState] = React.useState<SigninState>({
-        username: "",
-        password: "",
-        isLoading: false,
-        showPassword: false,
-        error: "",
-        success: "",
-        accountStatus: null,
-        rememberMe: false,
-        isPasskeySupported: false,
-        usePasskey: false
+    const { data: session, isPending } = useSession();
+
+    const [formData, setFormData] = useState({
+        email: "",
+        password: ""
     });
 
-    const shouldShowAccountSwitcher = React.useMemo(() => {
-        const acsParam = searchParams.get("acs");
-        return acsParam === "1" || Accounts.length > 0;
-    }, [searchParams, Accounts.length]);
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [passkeyLoading, setPasskeyLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-    const redirectUrl = React.useMemo(() => {
-        const ref = searchParams.get("ref");
-        return ref ? decodeURIComponent(ref) : "/dashboard";
-    }, [searchParams]);
-
-    const shouldShowBackButton = React.useMemo(() => {
-        return Accounts.length > 0;
-    }, [Accounts.length]);
-
-    // Check for passkey support
-    React.useEffect(() => {
-        const checkPasskeySupport = async () => {
-            try {
-                const isSupported =
-                    typeof window !== "undefined" &&
-                    window.PublicKeyCredential &&
-                    typeof window.PublicKeyCredential
-                        .isUserVerifyingPlatformAuthenticatorAvailable ===
-                        "function";
-
-                if (isSupported) {
-                    const available =
-                        await window.PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-                    setState((prev) => ({
-                        ...prev,
-                        isPasskeySupported: available
-                    }));
-                }
-            } catch (error) {
-                console.warn("Passkey support check failed:", error);
-            }
-        };
-
-        checkPasskeySupport();
-    }, []);
-
-    // Check for existing authentication and auto-redirect
-    React.useEffect(() => {
-        const checkExistingAuth = async () => {
-            // Skip auto-redirect if user is explicitly adding another account
-            if (searchParams.get("acs") === "1") {
-                onOpen();
-                return;
-            }
-
-            // If user already has an active account, redirect immediately
-            if (ActiveAccount) {
-                setState((prev) => ({
-                    ...prev,
-                    success: "Already signed in! Redirecting..."
-                }));
-                setTimeout(() => {
-                    router.push(redirectUrl);
-                }, 1000);
-                return;
-            }
-
-            // Check if there's a valid token in storage
-            try {
-                const token = localStorage.getItem("auth-token");
-                if (token) {
-                    // Verify token validity with dashboard endpoint
-                    const response = await Axios.get("/api/dashboard");
-
-                    if (response.data.Status === 1) {
-                        // Token is valid, try to restore the session
-                        const userData = response.data.Data.user;
-
-                        await AddAccount({
-                            UserID: userData.UserID,
-                            Username: userData.Username,
-                            FName: userData.FirstName,
-                            LName: userData.LastName,
-                            PrimaryEmail:
-                                userData.Emails?.find(
-                                    (email: any) => email.isPrimary
-                                )?.Email || "",
-                            Session: {
-                                Token: token,
-                                ID: userData.sessionID || ""
-                            },
-                            isAdmin: userData.isAdmin || false,
-                            isVerified_forCurrentSession: true,
-                            Avatar: userData.Avatar || ""
-                        });
-
-                        setState((prev) => ({
-                            ...prev,
-                            success: "Session restored! Redirecting..."
-                        }));
-
-                        setTimeout(() => {
-                            router.push(redirectUrl);
-                        }, 1000);
-                        return;
-                    }
-                }
-            } catch (error) {
-                // Token is invalid or expired, clear it
-                localStorage.removeItem("auth-token");
-                document.cookie =
-                    "auth-token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
-            }
-
-            // No valid authentication found, show login form
-            onOpen();
-        };
-
-        checkExistingAuth();
-    }, [searchParams, ActiveAccount, AddAccount, router, redirectUrl, onOpen]);
-
-    React.useEffect(() => {
-        // Check for success message from signup
-        const message = searchParams.get("message");
-        if (message) {
-            setState((prev) => ({ ...prev, success: message }));
+    // Redirect if already logged in (unless adding new account)
+    useEffect(() => {
+        const addingAccount = searchParams.get("addAccount") === "true";
+        if (!isPending && session && !addingAccount) {
+            const callbackUrl = searchParams.get("callbackUrl") || "/settings";
+            router.push(callbackUrl);
         }
-    }, [searchParams]);
+    }, [isPending, session, router, searchParams]);
 
-    const handleInputChange = (field: keyof SigninState, value: string) => {
-        setState((prev) => ({
-            ...prev,
-            [field]: value,
-            error: "", // Clear error when user types
-            success: ""
-        }));
-    };
-
-    const validateForm = (): boolean => {
-        if (!state.username.trim()) {
-            setState((prev) => ({ ...prev, error: "Username is required" }));
-            return false;
-        }
-
-        if (!state.password.trim()) {
-            setState((prev) => ({ ...prev, error: "Password is required" }));
-            return false;
-        }
-
-        if (state.password.length < 6) {
-            setState((prev) => ({
-                ...prev,
-                error: "Password must be at least 6 characters"
-            }));
-            return false;
-        }
-
-        return true;
-    };
-    const handleSignin = async () => {
-        if (!validateForm()) return;
-
-        setState((prev) => ({
-            ...prev,
-            isLoading: true,
-            error: "",
-            success: "",
-            accountStatus: null
-        }));
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setError("");
+        setSuccess("");
 
         try {
-            // Prepare signin request
-            const signinData = {
-                username: state.username.trim(),
-                password: state.password,
-                rememberMe: state.rememberMe,
-                usePasskey: state.usePasskey
-            };
+            const result = await signIn.email({
+                email: formData.email,
+                password: formData.password,
+            });
 
-            // Send signin request
-            const response = await Axios.post("/api/signin", signinData);
-
-            if (response.data.Status === 1) {
-                // Success - store the encrypted token
-                const encryptedToken = response.data.Data.AuthorisedToken;
-                const sessionData = response.data.Data.SessionID;
-
-                // Store token in localStorage and cookies
-                localStorage.setItem("auth-token", encryptedToken);
-                const maxAge = state.rememberMe
-                    ? 30 * 24 * 60 * 60
-                    : 24 * 60 * 60; // 30 days or 1 day
-                document.cookie = `auth-token=${encryptedToken}; path=/; max-age=${maxAge}; secure; samesite=strict`;
-
-                // Get user data for account switcher
-                try {
-                    const dashboardResponse = await Axios.get(
-                        "/api/dashboard",
-                        {
-                            headers: {
-                                Authorization: `Bearer ${encryptedToken}`
-                            }
-                        }
-                    );
-
-                    if (dashboardResponse.data.Status === 1) {
-                        const userData = dashboardResponse.data.Data.user;
-
-                        // Add account to account switcher
-                        await AddAccount({
-                            UserID: userData.UserID,
-                            Username: userData.Username,
-                            FName: userData.FirstName,
-                            LName: userData.LastName,
-                            PrimaryEmail:
-                                userData.Emails?.find(
-                                    (email: any) => email.isPrimary
-                                )?.Email || "",
-                            Session: {
-                                Token: encryptedToken,
-                                ID: sessionData
-                            },
-                            isAdmin: userData.isAdmin || false,
-                            isVerified_forCurrentSession: true,
-                            Avatar: userData.Avatar || ""
-                        });
-                    }
-                } catch (accountError) {
-                    console.warn(
-                        "Failed to add account to switcher:",
-                        accountError
-                    );
-                    // Continue with signin even if account switcher fails
-                }
-                setState((prev) => ({
-                    ...prev,
-                    success: "Signin successful! Redirecting...",
-                    isLoading: false
-                }));
-
-                // Redirect to specified URL or dashboard after a short delay
-                setTimeout(() => {
-                    router.push(redirectUrl);
-                }, 1500);
+            if (result?.error) {
+                setError(result.error.message || "Invalid email or password");
             } else {
-                // Handle specific error codes for account status
-                let errorMessage = response.data.Message || "Signin failed";
-                let accountStatus: "active" | "suspended" | "blocked" | null =
-                    null;
-
-                // Check for specific status codes
-                if (response.data.StatusCode === 403) {
-                    if (
-                        response.data.Message.toLowerCase().includes(
-                            "suspended"
-                        )
-                    ) {
-                        accountStatus = "suspended";
-                        errorMessage =
-                            "Your account has been suspended. Please contact support for assistance.";
-                    } else if (
-                        response.data.Message.toLowerCase().includes("blocked")
-                    ) {
-                        accountStatus = "blocked";
-                        errorMessage =
-                            "Your account has been blocked due to security concerns. Please contact support.";
-                    }
-                }
-
-                setState((prev) => ({
-                    ...prev,
-                    error: errorMessage,
-                    accountStatus: accountStatus,
-                    isLoading: false
-                }));
+                setSuccess("Login successful! Redirecting...");
+                const callbackUrl = searchParams.get("callbackUrl") || "/settings";
+                setTimeout(() => router.push(callbackUrl), 1000);
             }
-        } catch (error: any) {
-            console.error("Signin error:", error);
-            let errorMessage = "An unexpected error occurred";
-            let accountStatus: "active" | "suspended" | "blocked" | null = null;
+        } catch (err: any) {
+            setError(err.message || "An error occurred during login");
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            if (error.response?.data?.Message) {
-                errorMessage = error.response.data.Message;
+    const handleOAuthSignIn = async (provider: string) => {
+        setLoading(true);
+        setError("");
 
-                // Check for account status in error response
-                if (error.response.status === 403) {
-                    if (errorMessage.toLowerCase().includes("suspended")) {
-                        accountStatus = "suspended";
-                    } else if (errorMessage.toLowerCase().includes("blocked")) {
-                        accountStatus = "blocked";
-                    }
-                }
-            } else if (error.message) {
-                errorMessage = error.message;
+        try {
+            await signIn.social({
+                provider: provider as any,
+                callbackURL: searchParams.get("callbackUrl") || "/settings"
+            });
+        } catch (err: any) {
+            setError(`Failed to sign in with ${provider}`);
+            setLoading(false);
+        }
+    };
+
+    const handlePasskeySignIn = async () => {
+        setPasskeyLoading(true);
+        setError("");
+        setSuccess("");
+
+        try {
+            const result = await signIn.passkey();
+
+            if (result?.error) {
+                setError(result.error.message || "Passkey authentication failed");
+            } else {
+                setSuccess("Signed in with passkey! Redirecting...");
+                const callbackUrl = searchParams.get("callbackUrl") || "/settings";
+                setTimeout(() => router.push(callbackUrl), 1000);
             }
-
-            setState((prev) => ({
-                ...prev,
-                error: errorMessage,
-                accountStatus: accountStatus,
-                isLoading: false
-            }));
-        }
-    };
-    const handleKeyPress = (event: React.KeyboardEvent) => {
-        if (event.key === "Enter" && !state.isLoading) {
-            handleSignin();
+        } catch (err: any) {
+            setError(err.message || "No passkeys found on this device. Please use email/password or register a passkey on this device.");
+        } finally {
+            setPasskeyLoading(false);
         }
     };
 
-    const handleBackToDashboard = () => {
-        if (ActiveAccount) {
-            router.push("/dashboard");
-        } else if (Accounts.length > 0) {
-            // Switch to the most recent account if no active account
-            const mostRecentAccount = Accounts.sort(
-                (a, b) =>
-                    new Date(b.LastUsed || 0).getTime() -
-                    new Date(a.LastUsed || 0).getTime()
-            )[0];
-            router.push("/dashboard");
-        }
-    };
-    const getErrorIcon = () => {
-        switch (state.accountStatus) {
-            case "suspended":
-                return <Pause className="text-warning text-xl" />;
-            case "blocked":
-                return <Block className="text-danger text-xl" />;
-            default:
-                return <ErrorOutline className="text-danger text-xl" />;
-        }
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prev => ({
+            ...prev,
+            [e.target.name]: e.target.value
+        }));
     };
 
-    const getErrorColor = () => {
-        switch (state.accountStatus) {
-            case "suspended":
-                return "warning";
-            case "blocked":
-                return "danger";
-            default:
-                return "danger";
-        }
-    };
+    const oauthProviders = [
+        { name: "Google", icon: <Google />, id: "google" },
+        { name: "GitHub", icon: <GitHub />, id: "github" }
+    ];
+
+    if (isPending) {
+        return (
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: palette.background }}
+            >
+                <div
+                    className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin"
+                    style={{ borderColor: palette.accent }}
+                />
+            </div>
+        );
+    }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 relative overflow-hidden">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-5 dark:opacity-10">
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='7'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                    }}
-                />
-            </div>
-
-            {/* Floating Background Elements */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none w-full h-full">
-                <motion.div
-                    className="absolute top-20 left-10 w-32 h-32 bg-blue-400/10 rounded-full blur-xl"
-                    animate={{
-                        y: [0, -20, 0],
-                        scale: [1, 1.1, 1]
-                    }}
-                    transition={{
-                        duration: 6,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                    }}
-                />
-                <motion.div
-                    className="absolute top-40 right-20 w-24 h-24 bg-purple-400/10 rounded-full blur-xl"
-                    animate={{
-                        y: [0, 15, 0],
-                        scale: [1, 0.9, 1]
-                    }}
-                    transition={{
-                        duration: 4,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 1
-                    }}
-                />
-                <motion.div
-                    className="absolute bottom-20 left-1/4 w-40 h-40 bg-pink-400/10 rounded-full blur-xl"
-                    animate={{
-                        y: [0, -25, 0],
-                        x: [0, 10, 0]
-                    }}
-                    transition={{
-                        duration: 8,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 2
-                    }}
-                />
-            </div>
-
-            <Modal
-                isOpen={isOpen}
-                size="lg"
-                onClose={() => {}}
-                isDismissable={false}
-                isKeyboardDismissDisabled={false}
-                closeButton={false}
-                classNames={{
-                    backdrop:
-                        "bg-gradient-to-t from-zinc-900/50 to-zinc-900/50 backdrop-blur-sm",
-                    base: "border-[1px] border-white/20 bg-white/10 dark:bg-gray-900/10 backdrop-blur-md"
-                }}>
-                <ModalContent>
-                    <motion.div
-                        initial={{ scale: 0.9, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{
-                            type: "spring",
-                            stiffness: 300,
-                            damping: 30,
-                            duration: 0.5
-                        }}>
-                        <ModalHeader className="flex flex-row items-center gap-4 justify-center relative bg-gradient-to-r from-blue-600/10 to-purple-600/10 backdrop-blur-sm rounded-t-lg border-b border-white/10">
-                            {shouldShowBackButton && (
-                                <motion.div
-                                    className="absolute left-4"
-                                    whileHover={{ scale: 1.1 }}
-                                    whileTap={{ scale: 0.9 }}>
-                                    <Button
-                                        isIconOnly
-                                        variant="light"
-                                        onPress={handleBackToDashboard}
-                                        isDisabled={state.isLoading}
-                                        className="hover:bg-white/20 dark:hover:bg-gray-800/50">
-                                        <ArrowBack />
-                                    </Button>
-                                </motion.div>
-                            )}
-                            <motion.div
-                                className="flex items-center gap-3"
-                                initial={{ opacity: 0, y: -10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.2 }}>
-                                <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg">
-                                    <Login className="text-white text-xl" />
-                                </div>
-                                <div className="text-center">
-                                    <h1 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                        Welcome Back
-                                    </h1>
-                                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                                        Sign in to your account
-                                    </p>
-                                </div>
-                            </motion.div>
-                        </ModalHeader>
-
-                        <ModalBody className="flex flex-col gap-6 p-8 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-                            {/* Error Messages with Enhanced Styling */}
-                            <AnimatePresence>
-                                {state.error && (
-                                    <motion.div
-                                        initial={{
-                                            opacity: 0,
-                                            y: -20,
-                                            height: 0
-                                        }}
-                                        animate={{
-                                            opacity: 1,
-                                            y: 0,
-                                            height: "auto"
-                                        }}
-                                        exit={{ opacity: 0, y: -20, height: 0 }}
-                                        transition={{ duration: 0.3 }}>
-                                        <Alert
-                                            description={
-                                                <div className="flex items-center gap-2">
-                                                    {getErrorIcon()}
-                                                    <span>{state.error}</span>
-                                                </div>
-                                            }
-                                            title={
-                                                state.accountStatus ===
-                                                "suspended"
-                                                    ? "Account Suspended"
-                                                    : state.accountStatus ===
-                                                        "blocked"
-                                                      ? "Account Blocked"
-                                                      : "Sign In Error"
-                                            }
-                                            color={getErrorColor()}
-                                            variant="bordered"
-                                            className="border-l-4"
-                                        />
-                                        {state.accountStatus && (
-                                            <div className="mt-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                                                <p className="text-sm text-gray-600 dark:text-gray-300">
-                                                    Need help? Contact our{" "}
-                                                    <a
-                                                        href="/contact"
-                                                        className="text-blue-600 hover:underline">
-                                                        support team
-                                                    </a>{" "}
-                                                    for assistance.
-                                                </p>
-                                            </div>
-                                        )}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Success Messages */}
-                            <AnimatePresence>
-                                {state.success && (
-                                    <motion.div
-                                        initial={{
-                                            opacity: 0,
-                                            y: -20,
-                                            height: 0
-                                        }}
-                                        animate={{
-                                            opacity: 1,
-                                            y: 0,
-                                            height: "auto"
-                                        }}
-                                        exit={{ opacity: 0, y: -20, height: 0 }}
-                                        transition={{ duration: 0.3 }}>
-                                        <Alert
-                                            description={
-                                                <div className="flex items-center gap-2">
-                                                    <CheckCircle className="text-success text-xl" />
-                                                    <span>{state.success}</span>
-                                                </div>
-                                            }
-                                            title="Success"
-                                            color="success"
-                                            variant="bordered"
-                                            className="border-l-4"
-                                        />
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-
-                            {/* Account Switcher Section */}
-                            {shouldShowAccountSwitcher && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{ delay: 0.3 }}
-                                    className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-4 border border-blue-200/50 dark:border-blue-700/50">
-                                    <div className="text-center mb-3">
-                                        <div className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 mb-2">
-                                            <AccountBox className="text-lg" />
-                                            <span className="text-sm font-medium">
-                                                Quick Access
-                                            </span>
-                                        </div>
-                                        <p className="text-xs text-gray-600 dark:text-gray-400">
-                                            Switch to an existing account
-                                        </p>
-                                    </div>
-                                    <div className="flex justify-center">
-                                        <AccountSwitcher
-                                            variant="compact"
-                                            showAddAccount={false}
-                                            onAccountChange={(account) => {
-                                                router.push(redirectUrl);
-                                            }}
-                                        />
-                                    </div>
-                                    <Divider className="my-4" />
-                                </motion.div>
-                            )}
-
-                            {/* Authentication Options */}
-                            {state.isPasskeySupported && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.4 }}
-                                    className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl p-4 border border-green-200/50 dark:border-green-700/50">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-lg">
-                                                <Fingerprint className="text-white text-sm" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-sm font-medium text-gray-900 dark:text-white">
-                                                    Use Passkey
-                                                </h3>
-                                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                                    Secure biometric
-                                                    authentication
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <Button
-                                            size="sm"
-                                            variant={
-                                                state.usePasskey
-                                                    ? "solid"
-                                                    : "bordered"
-                                            }
-                                            color="primary"
-                                            onPress={() =>
-                                                setState((prev) => ({
-                                                    ...prev,
-                                                    usePasskey: !prev.usePasskey
-                                                }))
-                                            }
-                                            startContent={
-                                                state.usePasskey ? (
-                                                    <FaceRetouchingNatural />
-                                                ) : (
-                                                    <Fingerprint />
-                                                )
-                                            }>
-                                            {state.usePasskey
-                                                ? "Enabled"
-                                                : "Enable"}
-                                        </Button>
-                                    </div>
-                                </motion.div>
-                            )}
-
-                            {/* Username Input */}
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.5 }}>
-                                <Input
-                                    label="Username or Email"
-                                    placeholder="Enter your username or email"
-                                    startContent={
-                                        <AlternateEmail className="text-gray-400 text-xl" />
-                                    }
-                                    value={state.username}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            "username",
-                                            e.target.value
-                                        )
-                                    }
-                                    onKeyPress={handleKeyPress}
-                                    isDisabled={state.isLoading}
-                                    variant="bordered"
-                                    size="lg"
-                                    className="text-base"
-                                    classNames={{
-                                        input: "text-base",
-                                        inputWrapper:
-                                            "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 focus-within:border-blue-500 dark:focus-within:border-blue-400 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
-                                    }}
-                                    autoComplete="username"
-                                />
-                            </motion.div>
-
-                            {/* Password Input */}
-                            <motion.div
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.6 }}>
-                                <Input
-                                    label="Password"
-                                    placeholder="Enter your password"
-                                    type={
-                                        state.showPassword ? "text" : "password"
-                                    }
-                                    startContent={
-                                        <Lock className="text-gray-400 text-xl" />
-                                    }
-                                    endContent={
-                                        <motion.button
-                                            className="focus:outline-none p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                                            type="button"
-                                            onClick={() =>
-                                                setState((prev) => ({
-                                                    ...prev,
-                                                    showPassword:
-                                                        !prev.showPassword
-                                                }))
-                                            }
-                                            disabled={state.isLoading}
-                                            whileHover={{ scale: 1.1 }}
-                                            whileTap={{ scale: 0.9 }}>
-                                            {state.showPassword ? (
-                                                <VisibilityOff className="text-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                                            ) : (
-                                                <Visibility className="text-xl text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" />
-                                            )}
-                                        </motion.button>
-                                    }
-                                    value={state.password}
-                                    onChange={(e) =>
-                                        handleInputChange(
-                                            "password",
-                                            e.target.value
-                                        )
-                                    }
-                                    onKeyPress={handleKeyPress}
-                                    isDisabled={state.isLoading}
-                                    variant="bordered"
-                                    size="lg"
-                                    className="text-base"
-                                    classNames={{
-                                        input: "text-base",
-                                        inputWrapper:
-                                            "border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 focus-within:border-blue-500 dark:focus-within:border-blue-400 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm"
-                                    }}
-                                    autoComplete="current-password"
-                                />
-                            </motion.div>
-
-                            {/* Additional Options */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.7 }}
-                                className="flex items-center justify-between">
-                                <label className="flex items-center gap-2 cursor-pointer group">
-                                    <input
-                                        type="checkbox"
-                                        checked={state.rememberMe}
-                                        onChange={(e) =>
-                                            setState((prev) => ({
-                                                ...prev,
-                                                rememberMe: e.target.checked
-                                            }))
-                                        }
-                                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                                    />
-                                    <span className="text-sm text-gray-600 dark:text-gray-300 group-hover:text-gray-800 dark:group-hover:text-gray-100 transition-colors">
-                                        Remember me for 30 days
-                                    </span>
-                                </label>
-                                <Button
-                                    variant="light"
-                                    size="sm"
-                                    className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-                                    onPress={() =>
-                                        router.push("/auth/forgot-password")
-                                    }>
-                                    Forgot password?
-                                </Button>
-                            </motion.div>
-
-                            {/* Sign Up Link */}
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.8 }}
-                                className="text-center">
-                                <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                                    <span>Don&apos;t have an account?</span>
-                                    <Button
-                                        variant="light"
-                                        color="primary"
-                                        size="sm"
-                                        onPress={() => {
-                                            const signupUrl = new URL(
-                                                "/auth/signup",
-                                                window.location.origin
-                                            );
-                                            if (searchParams.get("ref")) {
-                                                signupUrl.searchParams.set(
-                                                    "ref",
-                                                    searchParams.get("ref")!
-                                                );
-                                            }
-                                            router.push(signupUrl.toString());
-                                        }}
-                                        isDisabled={state.isLoading}
-                                        className="font-medium">
-                                        Create account
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        </ModalBody>
-
-                        <ModalFooter className="flex justify-center p-6 bg-gradient-to-r from-blue-600/5 to-purple-600/5 backdrop-blur-sm rounded-b-lg border-t border-white/10">
-                            <motion.div
-                                className="w-full"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}>
-                                <Button
-                                    color="primary"
-                                    size="lg"
-                                    onPress={handleSignin}
-                                    isLoading={state.isLoading}
-                                    isDisabled={
-                                        state.isLoading ||
-                                        !state.username.trim() ||
-                                        (!state.usePasskey &&
-                                            !state.password.trim())
-                                    }
-                                    className="w-full font-medium text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-500/25"
-                                    startContent={
-                                        !state.isLoading &&
-                                        (state.usePasskey ? (
-                                            <Fingerprint />
-                                        ) : (
-                                            <PersonAdd />
-                                        ))
-                                    }
-                                    spinner={
-                                        <CircularProgress
-                                            size="sm"
-                                            color="primary"
-                                        />
-                                    }>
-                                    {state.isLoading
-                                        ? state.usePasskey
-                                            ? "Authenticating..."
-                                            : "Signing In..."
-                                        : state.usePasskey
-                                          ? "Sign In with Passkey"
-                                          : "Sign In"}
-                                </Button>
-                            </motion.div>
-                        </ModalFooter>
-                    </motion.div>
-                </ModalContent>
-            </Modal>
-        </div>
-    );
-}
-
-// Loading component for Suspense fallback
-function SignInLoading() {
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900 relative overflow-hidden flex items-center justify-center">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-5 dark:opacity-10">
-                <div
-                    className="absolute inset-0"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='0.1'%3E%3Ccircle cx='7' cy='7' r='7'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
-                    }}
-                />
-            </div>
-
+        <div
+            className="min-h-screen flex items-center justify-center py-12 px-6"
+            style={{
+                background: isApple && isDark
+                    ? `linear-gradient(180deg, ${palette.background} 0%, ${palette.backgroundSecondary} 100%)`
+                    : palette.background
+            }}
+        >
             <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="relative">
-                <Card className="w-[400px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-md border border-white/20">
-                    <CardBody className="flex flex-col items-center gap-6 p-8">
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6 }}
+                className="w-full max-w-md"
+            >
+                {/* Back Button */}
+                <Link href="/">
+                    <motion.button
+                        className={`flex items-center gap-2 mb-6 ${isApple ? "text-sm" : "text-base font-semibold"}`}
+                        style={{ color: palette.textSecondary }}
+                        whileHover={{ x: -4, opacity: 0.7 }}
+                        transition={{ duration: 0.2 }}
+                    >
+                        <ArrowBack fontSize="small" />
+                        <span>Back to Home</span>
+                    </motion.button>
+                </Link>
+
+                {/* Cookie blocked warning */}
+                <CookieWarning />
+
+                <Card
+                    className={isApple ? "p-8" : "p-10"}
+                    intensity={isApple ? "strong" : undefined}
+                    elevated={!isApple}
+                >
+                    {/* Add Account Notice */}
+                    {searchParams.get("addAccount") === "true" && (
                         <motion.div
-                            className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"
-                            animate={{ rotate: 360 }}
-                            transition={{
-                                duration: 2,
-                                repeat: Infinity,
-                                ease: "linear"
-                            }}>
-                            <Login className="text-white text-2xl" />
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-6 p-4 rounded-xl flex items-center gap-3"
+                            style={{
+                                background: isDark ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.08)",
+                                border: `1px solid ${isDark ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.15)"}`
+                            }}
+                        >
+                            <Info style={{ color: "#3b82f6" }} />
+                            <div>
+                                <p className="text-sm font-semibold" style={{ color: "#3b82f6" }}>
+                                    Adding Another Account
+                                </p>
+                                <p className="text-xs" style={{ color: palette.textSecondary }}>
+                                    Sign in with a different account to switch between them
+                                </p>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Header */}
+                    <div className="text-center mb-8">
+                        <motion.h1
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.1 }}
+                            className={`${isApple ? "text-3xl font-bold" : "text-4xl font-black"} mb-2`}
+                            style={{ color: palette.textPrimary }}
+                        >
+                            Welcome Back
+                        </motion.h1>
+                        <motion.p
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className={`${isApple ? "text-sm" : "text-base font-medium"}`}
+                            style={{ color: palette.textSecondary }}
+                        >
+                            Sign in to your account to continue
+                        </motion.p>
+                    </div>
+
+                    {/* OAuth Providers */}
+                    <motion.div
+                        className="space-y-3 mb-6"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
+                    >
+                        <div className="flex items-center justify-center gap-3">
+                        {/* Passkey Button */}
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            <Button
+                                onClick={handlePasskeySignIn}
+                                disabled={passkeyLoading || loading}
+                                variant="secondary"
+                                className="w-full flex items-center justify-center gap-3"
+                            >
+                                {passkeyLoading ? (
+                                    <>
+                                        <div
+                                            className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                                            style={{ borderColor: palette.accent }}
+                                        />
+                                        <span>Authenticating...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Fingerprint />
+                                    </>
+                                )}
+                            </Button>
                         </motion.div>
 
-                        <div className="text-center space-y-2">
-                            <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                Welcome Back
-                            </h2>
-                            <p className="text-gray-600 dark:text-gray-300">
-                                Loading sign in page...
-                            </p>
+                        
+                            {oauthProviders.map((provider, index) => (
+                                <motion.div
+                                    key={provider.id}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: 0.4 + index * 0.1 }}
+                                >
+                                    <Button
+                                        onClick={() => handleOAuthSignIn(provider.id)}
+                                        disabled={loading || passkeyLoading}
+                                        variant="secondary"
+                                        className="flex flex-row items-center justify-center gap-3"
+                                    >
+                                        {provider.icon}
+                                    </Button>
+                                </motion.div>
+                            ))}
                         </div>
+                    </motion.div>
 
-                        <div className="flex items-center gap-2">
-                            <Spinner
-                                size="sm"
-                                color="primary"
+                    {/* Divider */}
+                    <div className="relative my-6">
+                        <div className="absolute inset-0 flex items-center">
+                            <div
+                                className="w-full border-t"
+                                style={{ borderColor: palette.border }}
                             />
-                            <span className="text-sm text-gray-500 dark:text-gray-400">
-                                Preparing authentication
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                            <span
+                                className={`px-4 ${isApple ? "text-xs" : "text-sm font-semibold"}`}
+                                style={{
+                                    background: palette.surface,
+                                    color: palette.textTertiary
+                                }}
+                            >
+                                Or continue with email
                             </span>
                         </div>
-                    </CardBody>
+                    </div>
+
+                    {/* Status Messages */}
+                    <AnimatePresence>
+                        {(error || success) && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                                animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
+                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            >
+                                <div
+                                    className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} flex items-center gap-3`}
+                                    style={{
+                                        background: error
+                                            ? "rgba(239, 68, 68, 0.1)"
+                                            : "rgba(34, 197, 94, 0.1)",
+                                        border: `1px solid ${error
+                                            ? "rgba(239, 68, 68, 0.3)"
+                                            : "rgba(34, 197, 94, 0.3)"}`
+                                    }}
+                                >
+                                    {error ? (
+                                        <ErrorIcon style={{ color: "rgb(239, 68, 68)" }} />
+                                    ) : (
+                                        <CheckCircle style={{ color: "rgb(34, 197, 94)" }} />
+                                    )}
+                                    <span
+                                        className={isApple ? "text-sm" : "text-base font-semibold"}
+                                        style={{
+                                            color: error
+                                                ? "rgb(239, 68, 68)"
+                                                : "rgb(34, 197, 94)"
+                                        }}
+                                    >
+                                        {error || success}
+                                    </span>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Login Form */}
+                    <form onSubmit={handleSubmit} className="space-y-5">
+                        {/* Email */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4 }}
+                        >
+                            <label
+                                className={`block ${isApple ? "text-sm font-medium" : "text-base font-bold"} mb-2`}
+                                style={{ color: palette.textSecondary }}
+                            >
+                                Email Address
+                            </label>
+                            <div className="relative">
+                                <Email
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                                    style={{ color: palette.textTertiary }}
+                                    fontSize="small"
+                                />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={loading}
+                                    className={`w-full ${isApple ? "pl-12 pr-4 py-3 rounded-xl" : "pl-14 pr-5 py-4 rounded-2xl"} outline-none transition-all focus:ring-2`}
+                                    style={{
+                                        background: palette.surfaceSecondary,
+                                        color: palette.textPrimary,
+                                        border: `2px solid ${palette.border}`
+                                    }}
+                                    placeholder="your.email@example.com"
+                                />
+                            </div>
+                        </motion.div>
+
+                        {/* Password */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                        >
+                            <label
+                                className={`block ${isApple ? "text-sm font-medium" : "text-base font-bold"} mb-2`}
+                                style={{ color: palette.textSecondary }}
+                            >
+                                Password
+                            </label>
+                            <div className="relative">
+                                <Lock
+                                    className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"
+                                    style={{ color: palette.textTertiary }}
+                                    fontSize="small"
+                                />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    name="password"
+                                    value={formData.password}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={loading}
+                                    className={`w-full ${isApple ? "pl-12 pr-12 py-3 rounded-xl" : "pl-14 pr-14 py-4 rounded-2xl"} outline-none transition-all focus:ring-2`}
+                                    style={{
+                                        background: palette.surfaceSecondary,
+                                        color: palette.textPrimary,
+                                        border: `2px solid ${palette.border}`
+                                    }}
+                                    placeholder="Enter your password"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-4 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
+                                    disabled={loading}
+                                >
+                                    {showPassword ? (
+                                        <VisibilityOff
+                                            style={{ color: palette.textTertiary }}
+                                            fontSize="small"
+                                        />
+                                    ) : (
+                                        <Visibility
+                                            style={{ color: palette.textTertiary }}
+                                            fontSize="small"
+                                        />
+                                    )}
+                                </button>
+                            </div>
+                        </motion.div>
+
+                        {/* Forgot Password Link */}
+                        <div className="flex justify-end">
+                            <Link
+                                href="/auth/forgot-password"
+                                className={`${isApple ? "text-sm" : "text-base font-semibold"} hover:underline transition-opacity hover:opacity-70`}
+                                style={{ color: palette.accent }}
+                            >
+                                Forgot password?
+                            </Link>
+                        </div>
+
+                        {/* Submit Button */}
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.6 }}
+                        >
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className={`w-full flex items-center justify-center gap-2 ${isApple ? "px-6 py-3 rounded-xl" : "px-8 py-4 rounded-2xl"} font-semibold transition-all`}
+                                style={{
+                                    background: loading ? palette.textTertiary : palette.accent,
+                                    color: palette.textOnAccent,
+                                    cursor: loading ? "not-allowed" : "pointer",
+                                    opacity: loading ? 0.6 : 1
+                                }}
+                            >
+                                {loading ? (
+                                    <>
+                                        <div
+                                            className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
+                                            style={{ borderColor: "#ffffff" }}
+                                        />
+                                        <span>Signing in...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Login />
+                                        <span>Sign In</span>
+                                    </>
+                                )}
+                            </button>
+                        </motion.div>
+                    </form>
+
+                    {/* Sign Up Link */}
+                    <motion.div
+                        className="mt-6 text-center"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.7 }}
+                    >
+                        <p
+                            className={isApple ? "text-sm" : "text-base font-medium"}
+                            style={{ color: palette.textSecondary }}
+                        >
+                            Don&apos;t have an account?{" "}
+                            <Link
+                                href="/auth/signup"
+                                className="font-bold hover:underline transition-opacity hover:opacity-70"
+                                style={{ color: palette.accent }}
+                            >
+                                Sign up
+                            </Link>
+                        </p>
+                    </motion.div>
                 </Card>
+
+                {/* Terms & Privacy */}
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.8 }}
+                    className={`text-center mt-6 ${isApple ? "text-xs" : "text-sm font-medium"}`}
+                    style={{ color: palette.textTertiary }}
+                >
+                    By signing in, you agree to our{" "}
+                    <Link href="/terms" className="underline hover:opacity-70">
+                        Terms of Service
+                    </Link>
+                    {" "}and{" "}
+                    <Link href="/privacy" className="underline hover:opacity-70">
+                        Privacy Policy
+                    </Link>
+                </motion.p>
             </motion.div>
         </div>
     );
 }
 
-export default function SignIn() {
+export default function SignInPage() {
     return (
-        <Suspense fallback={<SignInLoading />}>
-            <SignInForm />
+        <Suspense fallback={
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="animate-pulse text-white text-xl">Loading...</div>
+            </div>
+        }>
+            <SignInContent />
         </Suspense>
     );
 }

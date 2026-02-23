@@ -1,26 +1,25 @@
 import type { Metadata } from "next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import "@Styles/globals.sass";
+// import "@Styles/liquidGlass.css";
 import { Inter } from "next/font/google";
-import { Providers } from "@Components/Providers";
-import { Config } from "@Config";
-import { ThemeProvider } from "@Hooks/useTheme";
-import Header from "@Components/Header";
-import Footer from "@Components/Footer";
+import { Providers } from "@Contexts/Providers";
+import { Config } from "@Config/Client";
 import { ToastContainer } from "react-toastify";
-import { muiXTelemetrySettings } from "@mui/x-license";
-import { generateLicense, LicenseInfo } from "@mui/x-license";
+// import { muiXTelemetrySettings } from "@mui/x-license";
+// import { generateLicense, LicenseInfo } from "@mui/x-license";
+import HeadNavigation from "@Components/Common/HeadNavigation";
+import FootNavigation from "@Components/Common/FootNavigation";
 
-muiXTelemetrySettings.disableTelemetry();
-LicenseInfo.setLicenseKey(
-    generateLicense({
-        expiryDate: new Date(`${new Date().getFullYear() + 1}-12-31`),
-        orderNumber: "MUI-123",
-        planScope: "premium",
-        licenseModel: "subscription",
-        planVersion: "initial"
-    })
-);
+// muiXTelemetrySettings.disableTelemetry();
+// LicenseInfo.setLicenseKey(
+//     generateLicense({
+//         expiryDate: new Date(`${new Date().getFullYear() + 1}-12-31`),
+//         orderNumber: "MUI-123",
+//         planScope: "premium",
+//         licenseModel: "subscription",
+//         planVersion: "initial"
+//     })
+// );
 
 const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
@@ -38,6 +37,7 @@ export const metadata: Metadata = {
         // ? Job Profile
         "Full Stack Developer",
         "Full Stack",
+        "Expert Full Stack Developer",
 
         // ? Location
         "Surat, Gujarat",
@@ -51,10 +51,10 @@ export const metadata: Metadata = {
         "meetbhingradiya.dev",
         "meetbhingradiya.live",
         "meetbhingradiya.site",
-        "meetbhingradiya.shop",
         "meetbhingradiya.co.in",
         "meetbhingradiya.in",
         "meetbhingradiya.tech",
+        "meetbhingradiya.shop",
 
         // ? This Domain is not owned by me
         "meetbhingradiya.in"
@@ -63,7 +63,7 @@ export const metadata: Metadata = {
         name: "Meet Bhingradiya",
         url: "https://github.com/MeetBhingradiya"
     },
-    
+
 };
 
 // @ File
@@ -89,33 +89,23 @@ export default function RootLayout({
                     content="#000"
                 />
 
-                {/* Google Search Console Verification */}
-                <meta
-                    name="google-site-verification"
-                    content="-eIAp0-BRCYjfoSuMDWpQTpgjQHadfvBbnf4le5IWBk"
-                />
-
                 {/* Google ADS Monetization */}
-                {Config.Environment === "production" && Config.GoogleADS && (
+                {/* {Config.Environment === "production" && Config.GoogleADS && (
                     <>
-                        <meta name="google-adsense-account" content="ca-pub-1096073946887913"/>
+                        <meta name="google-adsense-account" content="ca-pub-1096073946887913" />
                         <script
                             async
                             src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1096073946887913"
                             crossOrigin="anonymous"></script>
                     </>
-                )}
-
-                {/* ? Vercel Speed Insights */}
-                {Config.Environment === "production" &&
-                    Config.VercelSpeedInsight && <SpeedInsights />}
+                )} */}
 
                 {/* ? React Scan */}
-                {Config.Environment === "development" && Config.ReactScan && (
+                {/* {Config.Environment === "development" && Config.ReactScan && (
                     <>
                         <script src="https://unpkg.com/react-scan/dist/auto.global.js" />
                     </>
-                )}
+                )} */}
             </head>
             <body className={inter.className}>
                 <ToastContainer
@@ -132,13 +122,12 @@ export default function RootLayout({
                     hideProgressBar={false}
                     stacked
                 />
-                <ThemeProvider>
-                    {/* <Header /> */}
 
-                    <Providers>{children}</Providers>
-
-                    <Footer />
-                </ThemeProvider>
+                <Providers>
+                    <HeadNavigation />
+                    {children}
+                    <FootNavigation />
+                </Providers>
             </body>
         </html>
     );

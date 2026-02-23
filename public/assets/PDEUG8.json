@@ -1,0 +1,875 @@
+{
+    "_id": {
+        "$oid": "68a1a5433f66e38f0c6ca9d4"
+    },
+    "title": "✔️ PDEU CE G8",
+    "metadata": {
+        "programName": "B.Tech Computer Engineering",
+        "semester": "1",
+        "batch": "G8",
+        "programType": "Regular",
+        "publishDate": {
+            "$date": "2025-08-17T00:00:00.000Z"
+        },
+        "validFrom": {
+            "$date": "2025-08-17T00:00:00.000Z"
+        },
+        "validTo": {
+            "$date": "2025-12-01T00:00:00.000Z"
+        },
+        "academicYear": "2025"
+    },
+    "subjects": [
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "10:55 AM",
+                "endTime": "11:10 AM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "24ME101T",
+            "name": "Workshop Practices",
+            "type": "Lab",
+            "faculty": "NIS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 0,
+                "roomNumber": "14A"
+            },
+            "timeSlot": {
+                "startTime": "11:10 AM",
+                "endTime": "12:05 PM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "24ME101T",
+            "name": "Workshop Practices",
+            "type": "Lab",
+            "faculty": "NIS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 0,
+                "roomNumber": "14A"
+            },
+            "timeSlot": {
+                "startTime": "12:10 PM",
+                "endTime": "01:05 PM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:10 PM",
+                "endTime": "02:05 PM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "24HS102T",
+            "name": "Universal Human Values",
+            "type": "Lecture",
+            "faculty": "KIK",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/3"
+            },
+            "timeSlot": {
+                "startTime": "03:10 PM",
+                "endTime": "04:05 PM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "04:05 PM",
+                "endTime": "04:15 PM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "24HS103T",
+            "name": "Indian Knowledge System",
+            "type": "Lecture",
+            "faculty": "ANLA",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "04:15 PM",
+                "endTime": "05:10 PM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "24MA101T",
+            "name": "Mathematics - I",
+            "type": "Lecture",
+            "faculty": "BHV",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "05:15 PM",
+                "endTime": "06:10 PM"
+            },
+            "day": "Monday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "10:55 AM",
+                "endTime": "11:10 AM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "24PH101P",
+            "name": "Applied Physics Laboratory",
+            "type": "Lab",
+            "faculty": "ANKS",
+            "room": {
+                "buildingCode": "E",
+                "floorNumber": 2,
+                "roomNumber": "09"
+            },
+            "timeSlot": {
+                "startTime": "11:10 AM",
+                "endTime": "12:05 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "24PH101P",
+            "name": "Applied Physics Laboratory",
+            "type": "Lab",
+            "faculty": "ANKS",
+            "room": {
+                "buildingCode": "E",
+                "floorNumber": 2,
+                "roomNumber": "09"
+            },
+            "timeSlot": {
+                "startTime": "12:10 PM",
+                "endTime": "01:05 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:10 PM",
+                "endTime": "02:05 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "24PH101T",
+            "name": "Applied Physics",
+            "type": "Lecture",
+            "faculty": "ANKS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/3"
+            },
+            "timeSlot": {
+                "startTime": "03:10 PM",
+                "endTime": "04:05 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "04:05 PM",
+                "endTime": "04:15 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "24MA101T",
+            "name": "Mathematics - I",
+            "type": "Lecture",
+            "faculty": "BHV",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "04:15 PM",
+                "endTime": "05:10 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "24CV101T",
+            "name": "Environmental Science",
+            "type": "Lecture",
+            "faculty": "NSB",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "05:15 PM",
+                "endTime": "06:10 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "10:55 AM",
+                "endTime": "11:10 AM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "24ME102T",
+            "name": "Engineering Graphics",
+            "type": "Lab",
+            "faculty": "AKN",
+            "room": {
+                "buildingCode": "E",
+                "floorNumber": 1,
+                "roomNumber": "11A"
+            },
+            "timeSlot": {
+                "startTime": "11:10 AM",
+                "endTime": "12:05 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "24ME102T",
+            "name": "Engineering Graphics",
+            "type": "Lab",
+            "faculty": "AKN",
+            "room": {
+                "buildingCode": "E",
+                "floorNumber": 1,
+                "roomNumber": "11A"
+            },
+            "timeSlot": {
+                "startTime": "12:10 PM",
+                "endTime": "01:05 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:10 PM",
+                "endTime": "02:05 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "24MA101T",
+            "name": "Mathematics - I",
+            "type": "Lecture",
+            "faculty": "STK",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/3"
+            },
+            "timeSlot": {
+                "startTime": "03:10 PM",
+                "endTime": "04:05 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "04:05 PM",
+                "endTime": "04:15 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "24HS101T",
+            "name": "English Communication",
+            "type": "Lecture",
+            "faculty": "HRV",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "04:15 PM",
+                "endTime": "05:10 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "24CP101T",
+            "name": "Computer Programing - I",
+            "type": "Lecture",
+            "faculty": "DAS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "05:15 PM",
+                "endTime": "06:10 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "10:55 AM",
+                "endTime": "11:10 AM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "24ME102T",
+            "name": "Engineering Graphics",
+            "type": "Lab",
+            "faculty": "HRD",
+            "room": {
+                "buildingCode": "D",
+                "floorNumber": 0,
+                "roomNumber": "06A"
+            },
+            "timeSlot": {
+                "startTime": "11:10 AM",
+                "endTime": "12:05 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "24ME102T",
+            "name": "Engineering Graphics",
+            "type": "Lab",
+            "faculty": "HRD",
+            "room": {
+                "buildingCode": "D",
+                "floorNumber": 0,
+                "roomNumber": "06A"
+            },
+            "timeSlot": {
+                "startTime": "12:10 PM",
+                "endTime": "01:05 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:10 PM",
+                "endTime": "02:05 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "24PH101T",
+            "name": "Applied Physics",
+            "type": "Lecture",
+            "faculty": "ANKS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/3"
+            },
+            "timeSlot": {
+                "startTime": "03:10 PM",
+                "endTime": "04:05 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "04:05 PM",
+                "endTime": "04:15 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "24HS103T",
+            "name": "Indian Knowledge System",
+            "type": "Lecture",
+            "faculty": "ANLA",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "04:15 PM",
+                "endTime": "05:10 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "24MA101T",
+            "name": "Mathematics - I",
+            "type": "Lecture",
+            "faculty": "BHV",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/1"
+            },
+            "timeSlot": {
+                "startTime": "05:15 PM",
+                "endTime": "06:10 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "24HS101T",
+            "name": "English Communication",
+            "type": "Lecture",
+            "faculty": "HRV",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/3"
+            },
+            "timeSlot": {
+                "startTime": "09:00 AM",
+                "endTime": "09:55 AM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "24CV101T",
+            "name": "Environmental Science",
+            "type": "Lecture",
+            "faculty": "NSB",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/3"
+            },
+            "timeSlot": {
+                "startTime": "10:00 AM",
+                "endTime": "10:55 AM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "10:55 AM",
+                "endTime": "11:10 AM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "24PH101T",
+            "name": "Applied Physics",
+            "type": "Lecture",
+            "faculty": "ANKS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "01/3"
+            },
+            "timeSlot": {
+                "startTime": "11:10 AM",
+                "endTime": "12:05 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:10 PM",
+                "endTime": "02:05 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "24CP101P",
+            "name": "Computer Programing - I Laboratory",
+            "type": "Lab",
+            "faculty": "DAS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 0,
+                "roomNumber": "08"
+            },
+            "timeSlot": {
+                "startTime": "02:10 PM",
+                "endTime": "03:05 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "24CP101P",
+            "name": "Computer Programing - I Laboratory",
+            "type": "Lab",
+            "faculty": "DAS",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 0,
+                "roomNumber": "08"
+            },
+            "timeSlot": {
+                "startTime": "03:10 PM",
+                "endTime": "04:05 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "",
+            "name": "",
+            "type": "Short Break",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "04:05 PM",
+                "endTime": "04:15 PM"
+            },
+            "day": "Friday"
+        }
+    ],
+    "visibleDays": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+    ],
+    "timeSlots": [
+        {
+            "startTime": "09:00 AM",
+            "endTime": "09:55 AM"
+        },
+        {
+            "startTime": "10:00 AM",
+            "endTime": "10:55 AM"
+        },
+        {
+            "startTime": "10:55 AM",
+            "endTime": "11:10 AM"
+        },
+        {
+            "startTime": "11:10 AM",
+            "endTime": "12:05 PM"
+        },
+        {
+            "startTime": "12:10 PM",
+            "endTime": "01:05 PM"
+        },
+        {
+            "startTime": "01:10 PM",
+            "endTime": "02:05 PM"
+        },
+        {
+            "startTime": "02:10 PM",
+            "endTime": "03:05 PM"
+        },
+        {
+            "startTime": "03:10 PM",
+            "endTime": "04:05 PM"
+        },
+        {
+            "startTime": "04:05 PM",
+            "endTime": "04:15 PM"
+        },
+        {
+            "startTime": "04:15 PM",
+            "endTime": "05:10 PM"
+        },
+        {
+            "startTime": "05:15 PM",
+            "endTime": "06:10 PM"
+        }
+    ],
+    "isActive": true,
+    "userId": "anonymous",
+    "availableSubjects": [
+        {
+            "code": "24CP101P",
+            "name": "Computer Programing - I Laboratory"
+        },
+        {
+            "code": "24CP101T",
+            "name": "Computer Programing - I"
+        },
+        {
+            "code": "24CV101T",
+            "name": "Environmental Science"
+        },
+        {
+            "code": "24HS101T",
+            "name": "English Communication"
+        },
+        {
+            "code": "24HS102T",
+            "name": "Universal Human Values"
+        },
+        {
+            "code": "24HS103T",
+            "name": "Indian Knowledge System"
+        },
+        {
+            "code": "24MA101T",
+            "name": "Mathematics - I"
+        },
+        {
+            "code": "24ME101T",
+            "name": "Workshop Practices"
+        },
+        {
+            "code": "24ME102T",
+            "name": "Engineering Graphics"
+        },
+        {
+            "code": "24PH101P",
+            "name": "Applied Physics Laboratory"
+        },
+        {
+            "code": "24PH101T",
+            "name": "Applied Physics"
+        }
+    ],
+    "availableClassrooms": [
+        {
+            "buildingCode": "C",
+            "floorNumber": 0,
+            "roomNumber": "08",
+            "displayName": "C008"
+        },
+        {
+            "buildingCode": "C",
+            "floorNumber": 0,
+            "roomNumber": "14A",
+            "displayName": "C014A"
+        },
+        {
+            "buildingCode": "C",
+            "floorNumber": 2,
+            "roomNumber": "01/1",
+            "displayName": "C201/1"
+        },
+        {
+            "buildingCode": "C",
+            "floorNumber": 2,
+            "roomNumber": "01/3",
+            "displayName": "C201/3"
+        },
+        {
+            "buildingCode": "E",
+            "floorNumber": 1,
+            "roomNumber": "11A",
+            "displayName": "E111A"
+        },
+        {
+            "buildingCode": "D",
+            "floorNumber": 0,
+            "roomNumber": "06A",
+            "displayName": "D006A"
+        },
+        {
+            "buildingCode": "E",
+            "floorNumber": 2,
+            "roomNumber": "09",
+            "displayName": "E209"
+        }
+    ],
+    "availableFaculty": [
+        {
+            "shortName": "AKN",
+            "longName": "Anirudh Kulkarni"
+        },
+        {
+            "shortName": "ANKS",
+            "longName": "Ankur Solanki"
+        },
+        {
+            "shortName": "ANLA",
+            "longName": "Dr Anju Lalwani - VF"
+        },
+        {
+            "shortName": "APT",
+            "longName": "Ashish Patel"
+        },
+        {
+            "shortName": "BHV",
+            "longName": "Bhasha Vachharajani"
+        },
+        {
+            "shortName": "DAS",
+            "longName": "Darshit Shah"
+        },
+        {
+            "shortName": "HRD",
+            "longName": "Hiren Dave"
+        },
+        {
+            "shortName": "HRV",
+            "longName": "Harmik Vaishnav"
+        },
+        {
+            "shortName": "KIK",
+            "longName": "Kinnari K"
+        },
+        {
+            "shortName": "KRU",
+            "longName": "Krunal Mehta"
+        },
+        {
+            "shortName": "NIS",
+            "longName": "Nilav Jyoti Sarmah"
+        },
+        {
+            "shortName": "NSB",
+            "longName": "Naimish Bhatt"
+        },
+        {
+            "shortName": "RSX",
+            "longName": "Rajat Saxena"
+        },
+        {
+            "shortName": "STK",
+            "longName": "Sarthak Tilwankar"
+        }
+    ],
+    "dayGroupedSubjects": [],
+    "createdAt": {
+        "$date": "2025-08-17T09:47:47.177Z"
+    },
+    "updatedAt": {
+        "$date": "2025-08-17T12:39:42.550Z"
+    },
+    "__v": 0
+}

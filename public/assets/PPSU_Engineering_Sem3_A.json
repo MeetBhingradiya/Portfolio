@@ -1,0 +1,641 @@
+{
+    "_id": {
+        "$oid": "68a1a5433f66e38f0c6ca9d6"
+    },
+    "title": "PPSU - School of Engineering Semester 3 CE_CSE_D2D3 - A",
+    "metadata": {
+        "programName": "School of Engineering - CE_CSE_D2D3",
+        "semester": "3",
+        "batch": "A",
+        "programType": "D2D",
+        "publishDate": {
+            "$date": "2025-08-18T00:00:00.000Z"
+        },
+        "validFrom": {
+            "$date": "2025-08-18T00:00:00.000Z"
+        },
+        "validTo": {
+            "$date": "2025-12-31T00:00:00.000Z"
+        },
+        "academicYear": "2025"
+    },
+    "subjects": [
+        {
+            "code": "SECE2210",
+            "name": "Database Management System",
+            "type": "Lab",
+            "faculty": "HARSHITA",
+            "room": {
+                "buildingCode": "C",
+                "floorNumber": 2,
+                "roomNumber": "11a"
+            },
+            "timeSlot": {
+                "startTime": "09:50 AM",
+                "endTime": "10:45 AM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "SESH2130",
+            "name": "Discrete Structures & Graph Theory",
+            "type": "Lecture",
+            "faculty": "RRD",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "11:40 AM",
+                "endTime": "12:35 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "SECE2221",
+            "name": "Data Structures",
+            "type": "Lecture",
+            "faculty": "QBAL",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "12:35 PM",
+                "endTime": "01:30 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "Lunch",
+            "name": "Lunch",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:30 PM",
+                "endTime": "02:25 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "CLSC2020",
+            "name": "Integrated Personality Development Course - I",
+            "type": "Lecture",
+            "faculty": "PRAHARSHA",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 5,
+                "roomNumber": "01"
+            },
+            "timeSlot": {
+                "startTime": "02:25 PM",
+                "endTime": "03:20 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "CLSC2020",
+            "name": "Integrated Personality Development Course - I",
+            "type": "Lecture",
+            "faculty": "PRAHARSHA",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 5,
+                "roomNumber": "01"
+            },
+            "timeSlot": {
+                "startTime": "03:20 PM",
+                "endTime": "04:15 PM"
+            },
+            "day": "Tuesday"
+        },
+        {
+            "code": "SEIT2220",
+            "name": "Software Engineering",
+            "type": "Lecture",
+            "faculty": "KHUSHI",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "09:50 AM",
+                "endTime": "10:45 AM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "SEIT2220",
+            "name": "Software Engineering",
+            "type": "Tutorial",
+            "faculty": "KHUSHI",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "10:45 AM",
+                "endTime": "11:40 AM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "SECE2221",
+            "name": "Data Structures",
+            "type": "Lecture",
+            "faculty": "QBAL",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "11:40 AM",
+                "endTime": "12:35 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "SESH2130",
+            "name": "Discrete Structures & Graph Theory",
+            "type": "Lecture",
+            "faculty": "RRD",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "12:35 PM",
+                "endTime": "01:30 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "Lunch",
+            "name": "Lunch",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:30 PM",
+                "endTime": "02:25 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "SESH2130",
+            "name": "Discrete Structures & Graph Theory",
+            "type": "Tutorial",
+            "faculty": "VISHANT",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "02:25 PM",
+                "endTime": "03:20 PM"
+            },
+            "day": "Wednesday"
+        },
+        {
+            "code": "CFLS2140",
+            "name": "Upper Intermediate Communicative English",
+            "type": "Lecture",
+            "faculty": "SRJ",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "09:50 AM",
+                "endTime": "10:45 AM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "CFLS2140",
+            "name": "Upper Intermediate Communicative English",
+            "type": "Lecture",
+            "faculty": "SRJ",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "10:45 AM",
+                "endTime": "11:40 AM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "SEIT2210",
+            "name": "Object Oriented Programming with Java",
+            "type": "Lab",
+            "faculty": "DEEPA",
+            "room": {
+                "buildingCode": "B",
+                "floorNumber": 2,
+                "roomNumber": "008a"
+            },
+            "timeSlot": {
+                "startTime": "11:40 AM",
+                "endTime": "12:35 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "Lunch",
+            "name": "Lunch",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "12:35 PM",
+                "endTime": "01:30 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "SECE2210",
+            "name": "Database Management System",
+            "type": "Lecture",
+            "faculty": "DMK",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "01:30 PM",
+                "endTime": "02:25 PM"
+            },
+            "day": "Thursday"
+        },
+        {
+            "code": "SEIT2210",
+            "name": "Object Oriented Programming with Java",
+            "type": "Lecture",
+            "faculty": "AKHIL",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "11:40 AM",
+                "endTime": "12:35 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "SESH2130",
+            "name": "Discrete Structures & Graph Theory",
+            "type": "Lecture",
+            "faculty": "RRD",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "12:35 PM",
+                "endTime": "01:30 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "Lunch",
+            "name": "Lunch",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:30 PM",
+                "endTime": "02:25 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "SEIT2210",
+            "name": "Object Oriented Programming with Java",
+            "type": "Lecture",
+            "faculty": "AKHIL",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "02:25 PM",
+                "endTime": "03:20 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "SECE2221",
+            "name": "Data Structures",
+            "type": "Lecture",
+            "faculty": "QBAL",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 6,
+                "roomNumber": "10"
+            },
+            "timeSlot": {
+                "startTime": "10:45 AM",
+                "endTime": "11:40 AM"
+            },
+            "day": "Saturday"
+        },
+        {
+            "code": "SEIT2210",
+            "name": "Object Oriented Programming with Java",
+            "type": "Lecture",
+            "faculty": "AKHIL",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 6,
+                "roomNumber": "10"
+            },
+            "timeSlot": {
+                "startTime": "11:40 AM",
+                "endTime": "12:35 PM"
+            },
+            "day": "Saturday"
+        },
+        {
+            "code": "SEIT2210",
+            "name": "Object Oriented Programming with Java",
+            "type": "Lecture",
+            "faculty": "AKHIL",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 6,
+                "roomNumber": "10"
+            },
+            "timeSlot": {
+                "startTime": "12:35 PM",
+                "endTime": "01:30 PM"
+            },
+            "day": "Saturday"
+        },
+        {
+            "code": "Lunch",
+            "name": "Lunch",
+            "type": "Lunch",
+            "faculty": "",
+            "room": {
+                "buildingCode": "",
+                "floorNumber": 0,
+                "roomNumber": ""
+            },
+            "timeSlot": {
+                "startTime": "01:30 PM",
+                "endTime": "02:25 PM"
+            },
+            "day": "Saturday"
+        },
+        {
+            "code": "SECE2210",
+            "name": "Database Management System",
+            "type": "Lecture",
+            "faculty": "DMK",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "02:25 PM",
+                "endTime": "03:20 PM"
+            },
+            "day": "Saturday"
+        },
+        {
+            "code": "SECE2221",
+            "name": "Data Structures",
+            "type": "Lab",
+            "faculty": "RKT",
+            "room": {
+                "buildingCode": "B",
+                "floorNumber": 2,
+                "roomNumber": "007c"
+            },
+            "timeSlot": {
+                "startTime": "02:25 PM",
+                "endTime": "03:20 PM"
+            },
+            "day": "Friday"
+        },
+        {
+            "code": "SECE2210",
+            "name": "Database Management System",
+            "type": "Lecture",
+            "faculty": "DMK",
+            "room": {
+                "buildingCode": "H",
+                "floorNumber": 8,
+                "roomNumber": "11"
+            },
+            "timeSlot": {
+                "startTime": "03:20 PM",
+                "endTime": "04:15 PM"
+            },
+            "day": "Saturday"
+        }
+    ],
+    "visibleDays": [
+        "Tuesday",
+        "Wednesday", 
+        "Thursday",
+        "Friday",
+        "Saturday"
+    ],
+    "timeSlots": [
+        {
+            "startTime": "08:55 AM",
+            "endTime": "09:50 AM"
+        },
+        {
+            "startTime": "09:50 AM",
+            "endTime": "10:45 AM"
+        },
+        {
+            "startTime": "10:45 AM",
+            "endTime": "11:40 AM"
+        },
+        {
+            "startTime": "11:40 AM",
+            "endTime": "12:35 PM"
+        },
+        {
+            "startTime": "12:35 PM",
+            "endTime": "01:30 PM"
+        },
+        {
+            "startTime": "01:30 PM",
+            "endTime": "02:25 PM"
+        },
+        {
+            "startTime": "02:25 PM",
+            "endTime": "03:20 PM"
+        },
+        {
+            "startTime": "03:20 PM",
+            "endTime": "04:15 PM"
+        },
+        {
+            "startTime": "04:15 PM",
+            "endTime": "05:10 PM"
+        }
+    ],
+    "isActive": true,
+    "userId": "meet-bhingradiya",
+    "availableSubjects": [
+        {
+            "code": "SECE2210",
+            "name": "Database Management System"
+        },
+        {
+            "code": "SECE2221",
+            "name": "Data Structures"
+        },
+        {
+            "code": "SESH2130",
+            "name": "Discrete Structures & Graph Theory"
+        },
+        {
+            "code": "SEIT2210",
+            "name": "Object Oriented Programming with Java"
+        },
+        {
+            "code": "SEIT2220",
+            "name": "Software Engineering"
+        },
+        {
+            "code": "CFLS2140",
+            "name": "Upper Intermediate Communicative English"
+        },
+        {
+            "code": "CLSC2020",
+            "name": "Integrated Personality Development Course - I"
+        }
+    ],
+    "availableClassrooms": [
+        {
+            "buildingCode": "H",
+            "floorNumber": 8,
+            "roomNumber": "11",
+            "displayName": "H811"
+        },
+        {
+            "buildingCode": "H",
+            "floorNumber": 6,
+            "roomNumber": "10",
+            "displayName": "H610"
+        },
+        {
+            "buildingCode": "H",
+            "floorNumber": 5,
+            "roomNumber": "01",
+            "displayName": "H501"
+        },
+        {
+            "buildingCode": "C",
+            "floorNumber": 2,
+            "roomNumber": "11a",
+            "displayName": "C211a"
+        },
+        {
+            "buildingCode": "B",
+            "floorNumber": 2,
+            "roomNumber": "008a",
+            "displayName": "B2008a"
+        },
+        {
+            "buildingCode": "B",
+            "floorNumber": 2,
+            "roomNumber": "007c",
+            "displayName": "B2007c"
+        }
+    ],
+    "availableFaculty": [
+        {
+            "shortName": "HARSHITA",
+            "longName": "Prof. Harshita"
+        },
+        {
+            "shortName": "RRD",
+            "longName": "Prof. RRD"
+        },
+        {
+            "shortName": "QBAL",
+            "longName": "Prof. Qbal"
+        },
+        {
+            "shortName": "PRAHARSHA",
+            "longName": "Prof. Praharsha"
+        },
+        {
+            "shortName": "KHUSHI",
+            "longName": "Prof. Khushi"
+        },
+        {
+            "shortName": "VISHANT",
+            "longName": "Prof. Vishant"
+        },
+        {
+            "shortName": "SRJ",
+            "longName": "Prof. SRJ"
+        },
+        {
+            "shortName": "DEEPA",
+            "longName": "Prof. Deepa"
+        },
+        {
+            "shortName": "DMK",
+            "longName": "Prof. DMK"
+        },
+        {
+            "shortName": "AKHIL",
+            "longName": "Prof. Akhil"
+        },
+        {
+            "shortName": "RKT",
+            "longName": "Prof. RKT"
+        }
+    ],
+    "dayGroupedSubjects": [],
+    "createdAt": {
+        "$date": "2025-08-18T10:30:00.000Z"
+    },
+    "updatedAt": {
+        "$date": "2025-08-18T10:30:00.000Z"
+    },
+    "__v": 0
+}

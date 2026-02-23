@@ -371,43 +371,48 @@ function TimelineItem({ event, palette, isDark, isApple, index }: EventCardProps
             viewport={{ once: true, margin: "-40px" }}
             transition={{ duration: 0.45, delay: Math.min(index * 0.04, 0.3) }}>
 
-            {/* Stem column */}
-            <div className="flex flex-col items-center flex-shrink-0">
+            {/* Stem column: icon + continuous line */}
+            <div className="flex flex-col items-center flex-shrink-0 w-10">
                 {/* Icon bubble */}
-                <div className="w-10 h-10 rounded-full flex items-center justify-center z-10 shadow-lg"
-                    style={{ background: meta.color, color: "#fff", boxShadow: `0 0 0 4px ${meta.color}20` }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center z-10 shrink-0"
+                    style={{ background: meta.color, color: "#fff", boxShadow: `0 0 0 5px ${meta.color}22` }}>
                     {meta.icon}
                 </div>
-                {/* Vertical line */}
+                {/* Vertical line — full height: card + spacer */}
                 <div className="flex-1 w-px mt-2"
-                    style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }} />
+                    style={{ background: `linear-gradient(to bottom, ${meta.color}50, ${isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.06)"})` }} />
             </div>
 
-            {/* Card */}
-            <div className="flex-1 pb-8" style={cardBg}>
-                {/* Card header */}
-                <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b"
-                    style={{ borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
-                    <span className="text-xs font-bold uppercase tracking-widest" style={{ color: meta.color }}>
-                        {meta.label}
-                    </span>
-                    {event.current && (
-                        <span className="text-xs px-2 py-0.5 rounded-full font-bold animate-pulse"
-                            style={{ background: "#30D15820", color: "#30D158" }}>
-                            ● Current
+            {/* Card + inter-card spacer (line runs through both) */}
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Card */}
+                <div style={cardBg}>
+                    {/* Card header */}
+                    <div className="flex items-center gap-2 px-5 pt-4 pb-3 border-b"
+                        style={{ borderColor: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
+                        <span className="text-xs font-bold uppercase tracking-widest" style={{ color: meta.color }}>
+                            {meta.label}
                         </span>
-                    )}
-                    <span className="text-xs ml-auto pl-3" style={{ color: palette.textTertiary }}>
-                        {fmtRange(event.date, event.endDate, event.current)}
-                    </span>
+                        {event.current && (
+                            <span className="text-xs px-2 py-0.5 rounded-full font-bold"
+                                style={{ background: "#30D15820", color: "#30D158" }}>
+                                ● Current
+                            </span>
+                        )}
+                        <span className="text-xs ml-auto" style={{ color: palette.textTertiary }}>
+                            {fmtRange(event.date, event.endDate, event.current)}
+                        </span>
+                    </div>
+                    {/* Card content */}
+                    <div className="px-5 py-4">
+                        {event.kind === "experience"  && <ExperienceEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
+                        {event.kind === "education"   && <EducationEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
+                        {event.kind === "certificate" && <CertificateEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
+                        {event.kind === "testscore"   && <TestScoreEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
+                    </div>
                 </div>
-                {/* Card content */}
-                <div className="px-5 py-4">
-                    {event.kind === "experience"  && <ExperienceEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
-                    {event.kind === "education"   && <EducationEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
-                    {event.kind === "certificate" && <CertificateEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
-                    {event.kind === "testscore"   && <TestScoreEventCard event={event} palette={palette} isDark={isDark} isApple={isApple} />}
-                </div>
+                {/* Spacer below card — line runs through this in the stem column */}
+                <div className="h-8" />
             </div>
         </motion.div>
     );

@@ -11,8 +11,8 @@ const fields: FieldDef[] = [
     { key: "CredentialURL", label: "Credential URL", type: "url", colSpan: 2 },
     { key: "Description", label: "Description", type: "textarea", colSpan: 2, tableVisible: false },
     { key: "Skills", label: "Skills", type: "tags", colSpan: 2, tableVisible: false },
-    { key: "Image", label: "Certificate Image URL", type: "url", tableVisible: false },
-    { key: "Logo", label: "Issuer Logo URL", type: "url", tableVisible: false },
+    { key: "Image", label: "Certificate Image", type: "cdn-image", cdnType: "document", cdnContext: "cert", tableVisible: true },
+    { key: "Logo", label: "Issuer Logo", type: "cdn-image", cdnType: "icon", cdnContext: "company", tableVisible: false },
     { key: "Order", label: "Order", type: "number" },
 ];
 

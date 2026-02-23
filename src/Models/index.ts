@@ -8,3 +8,6 @@ export * from "./Portfolio";
 
 // ? Immich SSO Whitelist
 export * from "./ImmichWhitelist";
+
+// ? GitHub CDN Storage
+export * from "./CDNAsset";

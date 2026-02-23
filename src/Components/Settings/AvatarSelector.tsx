@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useDesignTheme } from "@Hooks";
 import { useSession } from "@Library/auth-client";
 import { UserAvatar } from "@Components/Common/UserAvatar";
-import { Check, Google, GitHub, Microsoft } from "@mui/icons-material";
+import { Check, Google, GitHub, Microsoft, CloudUpload } from "@mui/icons-material";
 import Image from "next/image";
+import { CDNAvatarUpload } from "./CDNAvatarUpload";
 
 interface LinkedAccountInfo {
     id: string;
@@ -23,7 +24,7 @@ interface AccountsInfoResponse {
     currentImage: string | null;
 }
 
-type AvatarSource = "google" | "github" | "microsoft" | "initials";
+type AvatarSource = "google" | "github" | "microsoft" | "initials" | "custom";
 
 function providerIcon(providerId: string) {
     switch (providerId) {
@@ -48,6 +49,7 @@ export function AvatarSelector() {
     const [selectedSource, setSelectedSource] = useState<AvatarSource>("initials");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [showCDNUpload, setShowCDNUpload] = useState(false);
 
     // Fetch linked accounts with per-provider images
     useEffect(() => {
@@ -255,6 +257,64 @@ export function AvatarSelector() {
                     </p>
                 </div>
             )}
+
+            {/* CDN Custom Upload */}
+            <AnimatePresence>
+                {showCDNUpload ? (
+                    <motion.div
+                        key="cdn-upload"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="p-4 rounded-xl border-2"
+                        style={{ borderColor: palette.accent, background: `${palette.accent}08` }}
+                    >
+                        <p className="font-semibold text-sm mb-3" style={{ color: palette.textPrimary }}>
+                            Upload Custom Avatar
+                        </p>
+                        <CDNAvatarUpload
+                            sessionUserId={user?.id || ""}
+                            onSuccess={(cdnUrl) => {
+                                setSelectedSource("custom");
+                                setShowCDNUpload(false);
+                                window.location.reload();
+                            }}
+                            onCancel={() => setShowCDNUpload(false)}
+                        />
+                    </motion.div>
+                ) : (
+                    <motion.button
+                        key="cdn-btn"
+                        onClick={() => setShowCDNUpload(true)}
+                        className="w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left"
+                        style={{
+                            borderColor: selectedSource === "custom" ? palette.accent : palette.border,
+                            background: selectedSource === "custom" ? `${palette.accent}15` : "transparent",
+                        }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                    >
+                        <div
+                            style={{
+                                width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
+                                background: `${palette.accent}20`,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                            }}
+                        >
+                            <CloudUpload style={{ color: palette.accent }} />
+                        </div>
+                        <div className="flex-1">
+                            <p className="font-medium" style={{ color: palette.textPrimary }}>
+                                Upload Custom Avatar
+                            </p>
+                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                Upload your own image with crop &amp; rotate
+                            </p>
+                        </div>
+                        {selectedSource === "custom" && <Check style={{ color: palette.accent }} />}
+                    </motion.button>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

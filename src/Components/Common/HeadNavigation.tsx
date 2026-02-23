@@ -27,11 +27,19 @@ import {
     ErrorOutline,
     CheckCircleOutline,
     SwapHoriz,
-    Logout
+    Logout,
+    PhotoCamera,
+    Bookmark,
+    SpaceDashboard,
+    CalendarMonth,
+    Build,
+    Description,
+    Store,
 } from "@mui/icons-material";
 import { Config } from "@Config/Client";
 import { NotificationConfig } from "@Config/type";
 import SwitchAccountModal from "./SwitchAccountModal";
+import { generateAvatarGradient, getInitials } from "@Utils/AvatarUtils";
 
 interface MenuItem {
     label: string;
@@ -70,7 +78,7 @@ const menuCategories: MenuCategory[] = [
         ]
     },
     {
-        label: "Content",
+        label: "Explore",
         items: [
             {
                 label: "Blog",
@@ -82,7 +90,19 @@ const menuCategories: MenuCategory[] = [
                 label: "Tools",
                 href: "/tools",
                 description: "Useful utilities",
-                icon: <Settings />
+                icon: <Build />
+            },
+            {
+                label: "Timetable",
+                href: "/timetable",
+                description: "Weekly schedule",
+                icon: <CalendarMonth />
+            },
+            {
+                label: "Bookmarks",
+                href: "/bookmarks",
+                description: "Curated links",
+                icon: <Bookmark />
             }
         ]
     },
@@ -95,7 +115,6 @@ const menuCategories: MenuCategory[] = [
                 description: "Grab my attention",
                 icon: <ContactMail />
             },
-            // ? Github & LinkedIn heare
             {
                 label: "GitHub",
                 href: "https://github.com/MeetBhingradiya",
@@ -108,12 +127,35 @@ const menuCategories: MenuCategory[] = [
                 description: "Connect me on LinkedIn",
                 icon: <LinkedIn />
             }
-            // {
-            //     label: "Profile",
-            //     href: "/profile",
-            //     description: "View my profile",
-            //     icon: <AccountCircle />
-            // }
+        ]
+    },
+    {
+        label: "Personal",
+        items: [
+            {
+                label: "Dashboard",
+                href: "/dashboard",
+                description: "Personal overview",
+                icon: <SpaceDashboard />
+            },
+            {
+                label: "Photos",
+                href: "https://photos.meetbhingradiya.shop",
+                description: "Private photo library",
+                icon: <PhotoCamera />
+            },
+            {
+                label: "Resume",
+                href: "/resume.pdf",
+                description: "Download my CV",
+                icon: <Description />
+            },
+            {
+                label: "Shop",
+                href: "https://shop.meetbhingradiya.shop",
+                description: "Digital products & merch",
+                icon: <Store />
+            }
         ]
     }
 ];
@@ -557,6 +599,7 @@ export default function HeadNavigation() {
                                                 : undefined
                                         }}
                                         whileTap={{ scale: 0.97 }}
+                                        onClick={() => setActiveMenu(activeMenu === category.label ? null : category.label)}
                                     >
                                         {activeMenu === category.label && (
                                             <div
@@ -818,8 +861,23 @@ export default function HeadNavigation() {
                                         }}
                                         whileTap={{ scale: 0.92 }}
                                         transition={{ duration: 0.2 }}
+                                        onClick={() => setActiveMenu(activeMenu === "user-menu" ? null : "user-menu")}
                                     >
-                                        <AccountCircle />
+                                        {user?.image ? (
+                                            <img
+                                                src={user.image}
+                                                alt={user.name || "avatar"}
+                                                className="w-7 h-7 rounded-full object-cover"
+                                                style={{ border: `2px solid ${palette.accent}60` }}
+                                            />
+                                        ) : (
+                                            <div
+                                                className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                                                style={{ background: generateAvatarGradient(user?.id || "default") }}
+                                            >
+                                                {getInitials(user?.name, user?.email)}
+                                            </div>
+                                        )}
                                     </motion.button>
 
                                     {/* User Dropdown Menu */}
@@ -875,6 +933,40 @@ export default function HeadNavigation() {
                                                     />
                                                 )}
                                                 <div className={`${isApple ? "p-2.5" : "p-3"} relative z-10`}>
+                                                    {/* User Info Header */}
+                                                    <div
+                                                        className={`${isApple ? "p-3 mb-2 rounded-xl" : "p-3.5 mb-2 rounded-2xl"} flex items-center gap-3`}
+                                                        style={{
+                                                            background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+                                                            border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`
+                                                        }}
+                                                    >
+                                                        {user?.image ? (
+                                                            <img
+                                                                src={user.image}
+                                                                alt={user.name || "avatar"}
+                                                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                                                style={{ border: `2px solid ${palette.accent}50` }}
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                                                                style={{ background: generateAvatarGradient(user?.id || "default"), border: `2px solid ${palette.accent}50` }}
+                                                            >
+                                                                {getInitials(user?.name, user?.email)}
+                                                            </div>
+                                                        )}
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className={`${isApple ? "text-sm font-semibold" : "text-sm font-bold"} truncate`} style={{ color: palette.textPrimary }}>
+                                                                {user?.name || "User"}
+                                                            </div>
+                                                            {user?.email && (
+                                                                <div className="text-xs truncate mt-0.5" style={{ color: palette.textSecondary }}>
+                                                                    {user.email}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                     <Link href="/profile">
                                                         <motion.div
                                                             className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
@@ -890,8 +982,17 @@ export default function HeadNavigation() {
                                                             }}
                                                             whileTap={{ scale: 0.98 }}
                                                         >
-                                                            <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
-                                                                <AccountCircle />
+                                                            <div className="flex-shrink-0" style={{ color: palette.accent }}>
+                                                                {user?.image ? (
+                                                                    <img src={user.image} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
+                                                                ) : (
+                                                                    <div
+                                                                        className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                                                                        style={{ background: generateAvatarGradient(user?.id || "default") }}
+                                                                    >
+                                                                        {getInitials(user?.name, user?.email)}
+                                                                    </div>
+                                                                )}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
@@ -1047,36 +1148,61 @@ export default function HeadNavigation() {
                         </motion.div>
                     </Link>
 
+                    <div className="flex items-center gap-2">
+                        {/* User Avatar - mobile top bar */}
+                        {isAuthenticated && (
+                            <Link href="/profile" onClick={closeMobileMenu}>
+                                <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.05 }}>
+                                    {user?.image ? (
+                                        <img
+                                            src={user.image}
+                                            alt={user.name || "avatar"}
+                                            className="w-8 h-8 rounded-full object-cover"
+                                            style={{ border: `2px solid ${palette.accent}60` }}
+                                        />
+                                    ) : (
+                                        <div
+                                            className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                                            style={{ background: generateAvatarGradient(user?.id || "default"), border: `2px solid ${palette.accent}50` }}
+                                        >
+                                            {getInitials(user?.name, user?.email)}
+                                        </div>
+                                    )}
+                                </motion.div>
+                            </Link>
+                        )}
+
                     <motion.button
-                        onClick={toggleMobileMenu}
-                        className="p-2 rounded-lg"
-                        style={{ color: palette.textPrimary }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        <div className="space-y-1.5">
-                            <motion.div
-                                className="w-6 h-0.5 bg-current rounded-full"
-                                animate={{
-                                    rotate: uiState.mobileMenuOpen ? 45 : 0,
-                                    y: uiState.mobileMenuOpen ? 8 : 0
-                                }}
-                                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                            />
-                            <motion.div
-                                className="w-6 h-0.5 bg-current rounded-full"
-                                animate={{ opacity: uiState.mobileMenuOpen ? 0 : 1 }}
-                                transition={{ duration: 0.15 }}
-                            />
-                            <motion.div
-                                className="w-6 h-0.5 bg-current rounded-full"
-                                animate={{
-                                    rotate: uiState.mobileMenuOpen ? -45 : 0,
-                                    y: uiState.mobileMenuOpen ? -8 : 0
-                                }}
-                                transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-                            />
-                        </div>
-                    </motion.button>
+                            onClick={toggleMobileMenu}
+                            className="p-2 rounded-lg"
+                            style={{ color: palette.textPrimary }}
+                            whileTap={{ scale: 0.95 }}
+                        >
+                            <div className="space-y-1.5">
+                                <motion.div
+                                    className="w-6 h-0.5 bg-current rounded-full"
+                                    animate={{
+                                        rotate: uiState.mobileMenuOpen ? 45 : 0,
+                                        y: uiState.mobileMenuOpen ? 8 : 0
+                                    }}
+                                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                                />
+                                <motion.div
+                                    className="w-6 h-0.5 bg-current rounded-full"
+                                    animate={{ opacity: uiState.mobileMenuOpen ? 0 : 1 }}
+                                    transition={{ duration: 0.15 }}
+                                />
+                                <motion.div
+                                    className="w-6 h-0.5 bg-current rounded-full"
+                                    animate={{
+                                        rotate: uiState.mobileMenuOpen ? -45 : 0,
+                                        y: uiState.mobileMenuOpen ? -8 : 0
+                                    }}
+                                    transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+                                />
+                            </div>
+                        </motion.button>
+                    </div>
                 </div>
 
                 {/* Mobile Menu Overlay */}
@@ -1198,6 +1324,98 @@ export default function HeadNavigation() {
                                         ))}
                                     </motion.div>
                                 ))}
+
+                                {/* Account section */}
+                                {isAuthenticated && (
+                                    <motion.div
+                                        className="space-y-2"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: menuCategories.length * 0.1 }}
+                                    >
+                                        <div
+                                            className={`${isApple ? "text-xs font-semibold" : "text-xs font-black"} uppercase tracking-[0.15em]`}
+                                            style={{ color: palette.textTertiary }}
+                                        >
+                                            Account
+                                        </div>
+                                        {/* User Info */}
+                                        <div
+                                            className={`p-4 ${isApple ? "rounded-2xl" : "rounded-3xl"} flex items-center gap-3`}
+                                            style={{
+                                                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+                                                border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}`
+                                            }}
+                                        >
+                                            {user?.image ? (
+                                                <img
+                                                    src={user.image}
+                                                    alt={user.name || "avatar"}
+                                                    className="w-12 h-12 rounded-full object-cover flex-shrink-0"
+                                                    style={{ border: `2px solid ${palette.accent}50` }}
+                                                />
+                                            ) : (
+                                                <div
+                                                    className="w-12 h-12 rounded-full flex items-center justify-center text-base font-bold text-white flex-shrink-0"
+                                                    style={{ background: generateAvatarGradient(user?.id || "default"), border: `2px solid ${palette.accent}50` }}
+                                                >
+                                                    {getInitials(user?.name, user?.email)}
+                                                </div>
+                                            )}
+                                            <div className="flex-1 min-w-0">
+                                                <div className={`${isApple ? "font-semibold" : "font-black"} truncate`} style={{ color: palette.textPrimary }}>
+                                                    {user?.name || "User"}
+                                                </div>
+                                                {user?.email && (
+                                                    <div className="text-xs truncate mt-0.5" style={{ color: palette.textSecondary }}>
+                                                        {user.email}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        {/* Quick links */}
+                                        {[
+                                            { label: "Settings", href: "/settings", icon: <Settings className="text-xl" /> },
+                                            { label: "Profile", href: "/profile", icon: <AccountCircle className="text-xl" /> },
+                                        ].map((item) => (
+                                            <Link key={item.href} href={item.href}>
+                                                <motion.div
+                                                    className={`p-4 ${isApple ? "rounded-2xl" : "rounded-3xl"} flex items-center gap-3.5 relative overflow-hidden`}
+                                                    style={{
+                                                        background: isApple
+                                                            ? isDark
+                                                                ? "linear-gradient(135deg, rgba(44, 44, 48, 0.5) 0%, rgba(36, 36, 40, 0.45) 100%)"
+                                                                : "linear-gradient(135deg, rgba(242, 242, 247, 0.7) 0%, rgba(235, 235, 240, 0.65) 100%)"
+                                                            : isDark
+                                                                ? "linear-gradient(135deg, rgba(45, 45, 50, 0.6) 0%, rgba(35, 35, 40, 0.55) 100%)"
+                                                                : "linear-gradient(135deg, rgba(248, 248, 250, 0.8) 0%, rgba(240, 240, 245, 0.75) 100%)",
+                                                        border: isApple
+                                                            ? `0.5px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)"}`
+                                                            : `1.5px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)"}`
+                                                    }}
+                                                    onClick={closeMobileMenu}
+                                                    whileTap={{ scale: 0.97 }}
+                                                >
+                                                    <div className="text-xl" style={{ color: palette.accent }}>{item.icon}</div>
+                                                    <div className={isApple ? "font-semibold" : "font-black"} style={{ color: palette.textPrimary }}>{item.label}</div>
+                                                </motion.div>
+                                            </Link>
+                                        ))}
+                                        {/* Sign Out */}
+                                        <motion.button
+                                            className={`w-full p-4 ${isApple ? "rounded-2xl" : "rounded-3xl"} flex items-center gap-3.5`}
+                                            style={{
+                                                background: isDark ? "rgba(255,68,68,0.08)" : "rgba(239,68,68,0.06)",
+                                                border: `1px solid ${isDark ? "rgba(255,68,68,0.2)" : "rgba(239,68,68,0.15)"}`
+                                            }}
+                                            onClick={handleSignOut}
+                                            whileTap={{ scale: 0.97 }}
+                                        >
+                                            <Logout className="text-xl" style={{ color: isDark ? "#ff4444" : "#ef4444" }} />
+                                            <span className={isApple ? "font-semibold" : "font-black"} style={{ color: isDark ? "#ff4444" : "#ef4444" }}>Sign Out</span>
+                                        </motion.button>
+                                    </motion.div>
+                                )}
                             </div>
                         </motion.div>
                     )}

@@ -368,88 +368,335 @@ function WebAppLayout({ project, palette, isDarkMode, isApple }: LayoutProps) {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// Layout 3 — CHROME EXTENSION  (Chrome Web Store style)
+// Layout 3 — CHROME EXTENSION  (Chrome Web Store inspired)
 // ═══════════════════════════════════════════════════════════════════
 function ChromeExtensionLayout({ project, palette, isDarkMode, isApple }: LayoutProps) {
     const glass = useGlass(isDarkMode, isApple);
+    const [screenshotIdx, setScreenshotIdx] = useState(0);
+    const CWS_BLUE = "#1A73E8";
+    const CWS_PURPLE = "#BF5AF2";
+    const accentColor = palette.accent ?? CWS_PURPLE;
+    const allImages = [
+        ...(project.Screenshots.length > 0 ? project.Screenshots : []),
+        ...(project.Thumbnail && !project.Screenshots.includes(project.Thumbnail) ? [project.Thumbnail] : [])
+    ];
+
+    // Feature highlights extracted from tech stack / tags as fallback
+    const featureHighlights = project.Tags.length > 0 ? project.Tags.slice(0, 6) : project.TechStack.slice(0, 6);
+
+    // Star rating display (fake 5 based on status)
+    const starsValue = project.Stats.playstoreRating ?? (project.Status === "active" ? 4.5 : 4.0);
+    const fullStars = Math.floor(starsValue);
+    const halfStar = starsValue % 1 >= 0.5;
 
     return (
         <div>
             <BackButton palette={palette} />
 
-            {/* Store-style header */}
-            <motion.div style={glass} className="p-6 md:p-8 mb-8 grid md:grid-cols-[auto_1fr] gap-6 items-start"
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                {/* Extension icon */}
-                <div className="w-24 h-24 rounded-2xl flex items-center justify-center shrink-0"
-                    style={{ background: "linear-gradient(135deg,#BF5AF2,#7C3AED)" }}>
-                    {project.Thumbnail ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={project.Thumbnail} alt="" className="w-full h-full rounded-2xl object-cover" />
-                    ) : (
-                        <Extension style={{ fontSize: 48, color: "#fff" }} />
-                    )}
-                </div>
+            {/* ── CWS-style top bar ── */}
+            <motion.div
+                className="mb-0 flex items-center gap-3 px-4 py-2.5 rounded-t-2xl border-b"
+                style={{
+                    background: isDarkMode
+                        ? "linear-gradient(90deg,rgba(26,115,232,0.18) 0%,rgba(26,115,232,0.08) 100%)"
+                        : "linear-gradient(90deg,rgba(26,115,232,0.10) 0%,rgba(26,115,232,0.04) 100%)",
+                    borderColor: isDarkMode ? "rgba(26,115,232,0.25)" : "rgba(26,115,232,0.18)"
+                }}
+                initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+            >
+                <Extension style={{ fontSize: 18, color: CWS_BLUE }} />
+                <span className="text-xs font-semibold tracking-wide" style={{ color: CWS_BLUE }}>Chrome Web Store</span>
+                <span className="mx-1 text-xs" style={{ color: palette.textTertiary }}>/</span>
+                <span className="text-xs" style={{ color: palette.textSecondary }}>Extension</span>
+                <span className="mx-1 text-xs" style={{ color: palette.textTertiary }}>/</span>
+                <span className="text-xs font-semibold truncate" style={{ color: palette.textPrimary }}>{project.Title}</span>
+            </motion.div>
 
-                <div>
-                    <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: "#BF5AF2" }}>Chrome Extension</p>
-                    <h1 className={isApple ? "text-3xl font-bold mb-2" : "text-4xl font-black mb-2"}
-                        style={{ color: palette.textPrimary }}>{project.Title}</h1>
-                    <p className="text-base mb-4" style={{ color: palette.textSecondary }}>{project.Description}</p>
-
-                    {/* Stats row */}
-                    <div className="flex flex-wrap gap-5 mb-5">
-                        {project.Stats.chromeInstalls != null && (
-                            <div>
-                                <p className="text-xl font-bold" style={{ color: "#BF5AF2" }}>{fmt(project.Stats.chromeInstalls)}</p>
-                                <p className="text-xs" style={{ color: palette.textTertiary }}>Users</p>
-                            </div>
+            {/* ── Screenshot strip (horizontal CWS promo carousel) ── */}
+            {allImages.length > 0 && (
+                <motion.div
+                    className="overflow-hidden rounded-b-2xl mb-6"
+                    style={{
+                        background: isDarkMode ? "rgba(15,15,18,0.98)" : "rgba(240,240,245,0.98)",
+                        border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
+                        borderTop: "none"
+                    }}
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.1 }}
+                >
+                    {/* Main screenshot */}
+                    <div className="relative aspect-[16/9] max-h-[440px] w-full overflow-hidden">
+                        <AnimatePresence mode="wait">
+                            <motion.img
+                                key={screenshotIdx}
+                                src={allImages[screenshotIdx]}
+                                alt={`Screenshot ${screenshotIdx + 1}`}
+                                className="w-full h-full object-cover"
+                                initial={{ opacity: 0, scale: 1.02 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.3 }}
+                            />
+                        </AnimatePresence>
+                        {allImages.length > 1 && (
+                            <>
+                                <button onClick={() => setScreenshotIdx(i => (i - 1 + allImages.length) % allImages.length)}
+                                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110"
+                                    style={{ background: isDarkMode ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.85)", border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}` }}>
+                                    <ChevronLeft style={{ color: palette.textPrimary }} />
+                                </button>
+                                <button onClick={() => setScreenshotIdx(i => (i + 1) % allImages.length)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm transition-all hover:scale-110"
+                                    style={{ background: isDarkMode ? "rgba(0,0,0,0.6)" : "rgba(255,255,255,0.85)", border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}` }}>
+                                    <ChevronRight style={{ color: palette.textPrimary }} />
+                                </button>
+                                <span className="absolute bottom-3 right-3 text-xs px-2.5 py-1 rounded-full font-semibold"
+                                    style={{ background: "rgba(0,0,0,0.55)", color: "#fff", backdropFilter: "blur(8px)" }}>
+                                    {screenshotIdx + 1} / {allImages.length}
+                                </span>
+                            </>
                         )}
-                        <StatusStat status={project.Status} />
+                    </div>
+                    {/* Thumbnail strip */}
+                    {allImages.length > 1 && (
+                        <div className="flex gap-2 p-3 overflow-x-auto">
+                            {allImages.map((s, i) => (
+                                <button key={i} onClick={() => setScreenshotIdx(i)}
+                                    className="shrink-0 rounded-lg overflow-hidden transition-all hover:scale-105"
+                                    style={{
+                                        outline: i === screenshotIdx ? `2.5px solid ${accentColor}` : "2px solid transparent",
+                                        outlineOffset: i === screenshotIdx ? "2px" : "0",
+                                        opacity: i === screenshotIdx ? 1 : 0.55
+                                    }}>
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={s} alt="" className="w-24 h-16 object-cover" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </motion.div>
+            )}
+
+            {/* ── Extension info header (CWS card layout) ── */}
+            <motion.div style={glass} className="p-6 md:p-8 mb-6"
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, delay: 0.15 }}>
+                <div className="flex flex-col md:flex-row gap-6 items-start">
+                    {/* Extension icon */}
+                    <div className="shrink-0">
+                        <div className="w-28 h-28 rounded-3xl overflow-hidden flex items-center justify-center shadow-2xl"
+                            style={{ background: `linear-gradient(135deg, ${accentColor}cc 0%, ${accentColor}80 100%)`, boxShadow: `0 12px 40px ${accentColor}40` }}>
+                            {project.Thumbnail ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={project.Thumbnail} alt="" className="w-full h-full object-cover rounded-3xl" />
+                            ) : (
+                                <Extension style={{ fontSize: 56, color: "#fff" }} />
+                            )}
+                        </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-3">
-                        {project.Links.chromeWebstore && (
-                            <a href={project.Links.chromeWebstore} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-5 py-2.5 rounded-full font-bold"
-                                style={{ background: "#BF5AF2", color: "#fff" }}>
-                                <Extension fontSize="small" /> Add to Chrome
-                            </a>
-                        )}
-                        {project.Links.github && (
-                            <a href={project.Links.github} target="_blank" rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-full font-semibold"
-                                style={{ background: isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)", color: palette.textPrimary }}>
-                                <GitHub fontSize="small" /> Source
-                            </a>
-                        )}
+                    {/* Title + meta */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <StatusBadge status={project.Status} featured={project.Featured} />
+                        </div>
+                        <h1 className={`${isApple ? "text-3xl font-bold" : "text-4xl font-black"} mb-1`}
+                            style={{ color: palette.textPrimary }}>{project.Title}</h1>
+
+                        {/* Developer info row */}
+                        <div className="flex items-center gap-2 mb-3">
+                            {project.Links.github && (
+                                <a href={project.Links.github} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-sm font-semibold hover:underline"
+                                    style={{ color: CWS_BLUE }}>
+                                    <GitHub style={{ fontSize: 14 }} />
+                                    View on GitHub
+                                </a>
+                            )}
+                            {project.Category && (
+                                <>
+                                    <span className="text-xs" style={{ color: palette.textTertiary }}>·</span>
+                                    <span className="text-sm" style={{ color: palette.textSecondary }}>{project.Category}</span>
+                                </>
+                            )}
+                        </div>
+
+                        {/* Stars + installs row (CWS-style) */}
+                        <div className="flex flex-wrap items-center gap-5 mb-5">
+                            {/* Star rating */}
+                            <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-0.5">
+                                    {Array.from({ length: 5 }).map((_, i) => (
+                                        <Star key={i} style={{
+                                            fontSize: 18,
+                                            color: i < fullStars ? "#FF9F0A" : (i === fullStars && halfStar) ? "#FF9F0A" : (isDarkMode ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.15)")
+                                        }} />
+                                    ))}
+                                </div>
+                                <span className="text-sm font-semibold" style={{ color: palette.textPrimary }}>{starsValue.toFixed(1)}</span>
+                            </div>
+
+                            {/* Install count */}
+                            {project.Stats.chromeInstalls != null && (
+                                <div className="flex items-center gap-2">
+                                    <Download style={{ fontSize: 16, color: palette.textTertiary }} />
+                                    <span className="text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                        {fmt(project.Stats.chromeInstalls)}
+                                    </span>
+                                    <span className="text-sm" style={{ color: palette.textSecondary }}>users</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* CTA Buttons */}
+                        <div className="flex flex-wrap gap-3">
+                            {project.Links.chromeWebstore && (
+                                <a href={project.Links.chromeWebstore} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-6 py-3 rounded-full font-bold text-sm transition-all hover:opacity-90 hover:shadow-lg"
+                                    style={{ background: CWS_BLUE, color: "#fff", boxShadow: `0 4px 16px ${CWS_BLUE}50` }}>
+                                    <Extension fontSize="small" /> Add to Chrome
+                                </a>
+                            )}
+                            {project.Links.github && (
+                                <a href={project.Links.github} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-5 py-3 rounded-full font-semibold text-sm transition-all hover:opacity-80"
+                                    style={{ background: isDarkMode ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.07)", color: palette.textPrimary, border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}` }}>
+                                    <GitHub fontSize="small" /> Source Code
+                                </a>
+                            )}
+                            {project.Links.live && (
+                                <a href={project.Links.live} target="_blank" rel="noopener noreferrer"
+                                    className="flex items-center gap-2 px-5 py-3 rounded-full font-semibold text-sm transition-all hover:opacity-80"
+                                    style={{ background: isDarkMode ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.07)", color: palette.textPrimary, border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}` }}>
+                                    <OpenInNew fontSize="small" /> Live Demo
+                                </a>
+                            )}
+                        </div>
                     </div>
                 </div>
             </motion.div>
 
-            <div className="grid lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 flex flex-col gap-7">
-                    {project.Screenshots.length > 0 && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}>
-                            <SectionLabel label="Preview" palette={palette} isApple={isApple} />
-                            <ScreenshotsGallery screenshots={project.Screenshots} palette={palette} isDarkMode={isDarkMode} isApple={isApple} />
-                        </motion.div>
-                    )}
-                    {project.LongDescription && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.15 }}>
+            {/* ── Main 3-col layout: Overview + Sidebar ── */}
+            <div className="grid lg:grid-cols-[1fr_280px] gap-6">
+                {/* Left: main content */}
+                <div className="flex flex-col gap-7">
+                    {/* Overview */}
+                    {(project.Description || project.LongDescription) && (
+                        <motion.div style={glass} className="p-6"
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.2 }}>
                             <SectionLabel label="Overview" palette={palette} isApple={isApple} />
-                            <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: palette.textSecondary }}>
-                                {project.LongDescription}
+                            <p className="text-base leading-relaxed" style={{ color: palette.textSecondary }}>
+                                {project.Description}
                             </p>
+                            {project.LongDescription && (
+                                <p className="mt-4 text-base leading-relaxed whitespace-pre-line" style={{ color: palette.textSecondary }}>
+                                    {project.LongDescription}
+                                </p>
+                            )}
                         </motion.div>
                     )}
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}>
-                        <SectionLabel label="Tech Stack" palette={palette} isApple={isApple} />
-                        <TechStack stack={project.TechStack} color="#BF5AF2" palette={palette} />
-                    </motion.div>
-                    <Tags tags={project.Tags} palette={palette} />
+
+                    {/* Feature highlights grid (CWS-style 3-col feature tiles) */}
+                    {featureHighlights.length > 0 && (
+                        <motion.div style={glass} className="p-6"
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.25 }}>
+                            <SectionLabel label="Features" palette={palette} isApple={isApple} />
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {featureHighlights.map((feat, i) => {
+                                    const featureIcons = [Extension, Star, Code, Language, Schedule, Public];
+                                    const FeatIcon = featureIcons[i % featureIcons.length];
+                                    return (
+                                        <div key={i} className={`flex flex-col gap-2 p-4 ${isApple ? "rounded-2xl" : "rounded-2xl"}`}
+                                            style={{
+                                                background: isDarkMode ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+                                                border: `1px solid ${isDarkMode ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)"}`
+                                            }}>
+                                            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                                                style={{ background: `${accentColor}20` }}>
+                                                <FeatIcon style={{ fontSize: 18, color: accentColor }} />
+                                            </div>
+                                            <span className="text-sm font-semibold" style={{ color: palette.textPrimary }}>{feat}</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* Tech Stack */}
+                    {project.TechStack.length > 0 && (
+                        <motion.div style={glass} className="p-6"
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.45, delay: 0.3 }}>
+                            <SectionLabel label="Tech Stack" palette={palette} isApple={isApple} />
+                            <TechStack stack={project.TechStack} color={accentColor} palette={palette} />
+                        </motion.div>
+                    )}
+
+                    {/* Tags */}
+                    {project.Tags.length > 0 && (
+                        <div className="px-1">
+                            <Tags tags={project.Tags} palette={palette} />
+                        </div>
+                    )}
                 </div>
-                <Sidebar project={project} palette={palette} isDarkMode={isDarkMode} isApple={isApple} color="#BF5AF2" />
+
+                {/* Right sidebar — CWS info panel */}
+                <div className="flex flex-col gap-4">
+                    {/* Store stats */}
+                    <motion.div style={glass} className="p-5"
+                        initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.2 }}>
+                        <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: palette.textTertiary }}>Store Info</p>
+                        <div className="flex flex-col gap-4">
+                            {project.Stats.chromeInstalls != null && (
+                                <div>
+                                    <p className="text-2xl font-black" style={{ color: accentColor }}>{fmt(project.Stats.chromeInstalls)}</p>
+                                    <p className="text-xs mt-0.5" style={{ color: palette.textTertiary }}>Total users</p>
+                                </div>
+                            )}
+                            <div className="h-px" style={{ background: isDarkMode ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }} />
+                            <InfoRow label="Status" palette={palette}>
+                                <span className="text-xs font-bold capitalize px-2 py-0.5 rounded-full"
+                                    style={{ background: project.Status === "active" ? "#30D15820" : "#FF9F0A20", color: project.Status === "active" ? "#30D158" : "#FF9F0A" }}>
+                                    {project.Status === "active" ? "● Active" : project.Status === "wip" ? "⚙ In Progress" : "Archived"}
+                                </span>
+                            </InfoRow>
+                            {project.Category && <InfoRow label="Category" value={project.Category} palette={palette} />}
+                            {project.StartDate && (
+                                <InfoRow label="Published"
+                                    value={new Date(project.StartDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                                    palette={palette} />
+                            )}
+                            {project.EndDate && (
+                                <InfoRow label="Updated"
+                                    value={new Date(project.EndDate).toLocaleDateString("en-IN", { month: "short", year: "numeric" })}
+                                    palette={palette} />
+                            )}
+                        </div>
+                    </motion.div>
+
+                    {/* Links */}
+                    {(() => {
+                        const links = buildProjectLinks(project);
+                        if (!links.length) return null;
+                        return (
+                            <motion.div style={glass} className="p-5"
+                                initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.45, delay: 0.3 }}>
+                                <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: palette.textTertiary }}>Links</p>
+                                <div className="flex flex-col gap-2">
+                                    {links.map((l, i) => (
+                                        <a key={i} href={l.href} target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all hover:opacity-80"
+                                            style={{
+                                                background: i === 0 ? CWS_BLUE : "transparent",
+                                                color: i === 0 ? "#fff" : palette.textSecondary,
+                                                border: i !== 0 ? `1px solid ${isDarkMode ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.09)"}` : "none"
+                                            }}>
+                                            {l.icon}{l.label}
+                                        </a>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        );
+                    })()}
+                </div>
             </div>
         </div>
     );

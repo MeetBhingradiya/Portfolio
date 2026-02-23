@@ -14,7 +14,7 @@ const fields: FieldDef[] = [
     { key: "Location", label: "Location", type: "text" },
     { key: "Description", label: "Description", type: "textarea", colSpan: 2, tableVisible: false },
     { key: "Achievements", label: "Achievements", type: "tags", colSpan: 2, tableVisible: false },
-    { key: "Logo", label: "Institution Logo URL", type: "url", tableVisible: false },
+    { key: "Logo", label: "Institution Logo", type: "cdn-image", cdnType: "icon", cdnContext: "institute", tableVisible: true },
     { key: "Order", label: "Order", type: "number" },
 ];
 

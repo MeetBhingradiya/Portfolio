@@ -16,7 +16,7 @@ const fields: FieldDef[] = [
     { key: "Links.chromeWebstore", label: "Chrome Web Store URL", type: "url", tableVisible: false },
     { key: "Links.playstore", label: "Play Store URL", type: "url", tableVisible: false },
     { key: "Links.demo", label: "Demo URL", type: "url", tableVisible: false },
-    { key: "Thumbnail", label: "Thumbnail URL", type: "url", tableVisible: false },
+    { key: "Thumbnail", label: "Thumbnail", type: "cdn-image", cdnType: "banner", cdnContext: "project", tableVisible: true },
     { key: "Featured", label: "Featured", type: "boolean" },
     { key: "Order", label: "Order", type: "number" },
     { key: "StartDate", label: "Start Date", type: "date", tableVisible: false },

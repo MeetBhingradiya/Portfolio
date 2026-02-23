@@ -15,7 +15,7 @@ const fields: FieldDef[] = [
     { key: "Responsibilities", label: "Responsibilities", type: "tags", colSpan: 2, tableVisible: false },
     { key: "Achievements", label: "Achievements", type: "tags", colSpan: 2, tableVisible: false },
     { key: "TechStack", label: "Tech Stack", type: "tags", colSpan: 2, tableVisible: false },
-    { key: "CompanyLogo", label: "Company Logo URL", type: "url", tableVisible: false },
+    { key: "CompanyLogo", label: "Company Logo", type: "cdn-image", cdnType: "icon", cdnContext: "company", tableVisible: true },
     { key: "CompanyWebsite", label: "Company Website", type: "url", tableVisible: false },
     { key: "Order", label: "Order", type: "number" },
 ];

@@ -56,7 +56,11 @@ export interface IProject extends Document {
 
     // Media
     Thumbnail?: string;
+    Icon?: string;
     Screenshots: string[];
+
+    // Visibility
+    Published: boolean;
 
     // Metadata
     StartDate?: Date;
@@ -101,7 +105,9 @@ const ProjectSchema = new Schema<IProject>(
             playstoreRating: { type: Number }
         },
         Thumbnail: { type: String },
+        Icon: { type: String },
         Screenshots: [{ type: String }],
+        Published: { type: Boolean, default: true },
         StartDate: { type: Date },
         EndDate: { type: Date },
         Order: { type: Number, default: 0 },
@@ -175,6 +181,7 @@ export interface IEducation extends Document {
     Description?: string;
     Achievements: string[];
     Logo?: string;
+    Published: boolean;
     Order: number;
     isDeleted: boolean;
     createdAt: Date;
@@ -201,6 +208,7 @@ const EducationSchema = new Schema<IEducation>(
         Description: { type: String },
         Achievements: [{ type: String }],
         Logo: { type: String },
+        Published: { type: Boolean, default: true },
         Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
@@ -234,6 +242,7 @@ export interface IExperience extends Document {
     TechStack: string[];
     CompanyLogo?: string;
     CompanyWebsite?: string;
+    Published: boolean;
     Order: number;
     isDeleted: boolean;
     createdAt: Date;
@@ -265,6 +274,7 @@ const ExperienceSchema = new Schema<IExperience>(
         TechStack: [{ type: String }],
         CompanyLogo: { type: String },
         CompanyWebsite: { type: String },
+        Published: { type: Boolean, default: true },
         Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
@@ -286,6 +296,7 @@ export interface ICertificate extends Document {
     Skills: string[];
     Image?: string;   // Certificate image URL
     Logo?: string;    // Issuer logo URL
+    Published: boolean;
     Order: number;
     isDeleted: boolean;
     createdAt: Date;
@@ -306,6 +317,7 @@ const CertificateSchema = new Schema<ICertificate>(
         Skills: [{ type: String }],
         Image: { type: String },
         Logo: { type: String },
+        Published: { type: Boolean, default: true },
         Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },

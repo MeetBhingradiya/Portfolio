@@ -140,10 +140,73 @@ export async function listCDNRepos(forceRefresh = false): Promise<RepoInfo[]> {
 }
 
 /**
+ * Determine the next sequential repo name, e.g.:
+ *   existing: ["PrivateCloud-1", "PrivateCloud-2"]  →  "PrivateCloud-3"
+ *   existing: []                                     →  "PrivateCloud-1"
+ */
+function nextRepoName(existing: RepoInfo[]): string {
+    const pfx = getPrefix();
+    let max = 0;
+    for (const r of existing) {
+        const suffix = r.name.slice(pfx.length).replace(/^-/, "");
+        const n = parseInt(suffix, 10);
+        if (!isNaN(n) && n > max) max = n;
+    }
+    return `${pfx}-${max + 1}`;
+}
+
+/**
+ * Create a new private CDN repository on GitHub, initialise it with a
+ * README so it has at least one commit and upload targets work immediately.
+ * Returns the new RepoInfo and invalids the local cache.
+ */
+async function createNextCDNRepo(existing: RepoInfo[]): Promise<RepoInfo> {
+    const tk = getToken();
+    const ow = getOwner();
+    const name = nextRepoName(existing);
+
+    console.info(`[GitHub CDN] All repos at capacity — creating new repo: ${ow}/${name}`);
+
+    const res = await fetch(`${BASE}/user/repos`, {
+        method: "POST",
+        headers: ghHeaders(tk),
+        body: JSON.stringify({
+            name,
+            description: "Private CDN storage repository — managed automatically",
+            private: true,
+            auto_init: true,   // creates initial commit so the repo is ready immediately
+            has_issues: false,
+            has_projects: false,
+            has_wiki: false,
+        }),
+    });
+
+    if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`[GitHub CDN] Failed to create new repo "${name}" (${res.status}): ${body}`);
+    }
+
+    const data = await res.json();
+    const info: RepoInfo = {
+        name: data.name as string,
+        fullName: data.full_name as string,
+        sizeKb: 0,
+        private: true,
+    };
+
+    // Invalidate cache so subsequent calls see the new repo
+    _repoCache = null;
+
+    console.info(`[GitHub CDN] Successfully created ${info.fullName} — it will be used for future uploads.`);
+    return info;
+}
+
+/**
  * Return the best repo for uploading:
  * - Must be under the size soft-cap
- * - Prefer smallest (most free space)
- * Falls back to the smallest overall if ALL are over the cap (and warns).
+ * - Prefer smallest repo (most free space)
+ * - If ALL repos are over the cap, automatically creates the next
+ *   "PrivateCloud-N" repo so uploads never fail.
  */
 export async function resolveBestRepo(): Promise<RepoInfo> {
     const repos = await listCDNRepos();
@@ -152,11 +215,8 @@ export async function resolveBestRepo(): Promise<RepoInfo> {
 
     if (available.length > 0) return available[0];
 
-    console.warn(
-        `[GitHub CDN] All repos exceed the ${limit} KB soft cap. ` +
-        `Consider creating another "${getPrefix()}-N" repository.`
-    );
-    return repos[0];
+    // All repos are full — spin up a new one automatically
+    return createNextCDNRepo(repos);
 }
 
 // ---------------------------------------------------------------------------

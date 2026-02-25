@@ -15,6 +15,7 @@ const fields: FieldDef[] = [
     { key: "Description", label: "Description", type: "textarea", colSpan: 2, tableVisible: false },
     { key: "Achievements", label: "Achievements", type: "tags", colSpan: 2, tableVisible: false },
     { key: "Logo", label: "Institution Logo", type: "cdn-image", cdnType: "icon", cdnContext: "institute", tableVisible: true },
+    { key: "Published", label: "Published (visible on portfolio)", type: "boolean" },
     { key: "Order", label: "Order", type: "number" },
 ];
 
@@ -26,7 +27,7 @@ export default function EducationPage() {
             apiBase="/api/admin/education"
             idField="EducationID"
             fields={fields}
-            defaultValues={{ GradeType: "percentage", CurrentlyStudying: false, Order: 0, Achievements: [] }}
+            defaultValues={{ GradeType: "percentage", CurrentlyStudying: false, Published: true, Order: 0, Achievements: [] }}
         />
     );
 }

@@ -27,14 +27,14 @@ import {
 export interface FieldDef {
     key: string;
     label: string;
-    type: "text" | "textarea" | "number" | "date" | "select" | "multiline" | "url" | "boolean" | "tags" | "cdn-image";
+    type: "text" | "textarea" | "number" | "date" | "select" | "multiline" | "url" | "boolean" | "tags" | "cdn-image" | "cdn-image-list";
     options?: string[];          // for select
     required?: boolean;
     placeholder?: string;
     colSpan?: 1 | 2;            // grid column span in form
     tableVisible?: boolean;     // show in table? default true
-    cdnType?: string;           // cdn-image: asset type e.g. "icon" | "banner"
-    cdnContext?: string;        // cdn-image: context prefix e.g. "company" | "project"
+    cdnType?: string;           // cdn-image / cdn-image-list: asset type e.g. "icon" | "banner"
+    cdnContext?: string;        // cdn-image / cdn-image-list: context prefix e.g. "company" | "project"
 }
 
 interface AdminCRUDPageProps {
@@ -49,7 +49,61 @@ interface AdminCRUDPageProps {
 const PAGE_SIZE = 15;
 
 // ---------------------------------------------------------------------------
-// CDN Image Field — inline upload for any image field
+// Shared CDN uploader helper
+// ---------------------------------------------------------------------------
+function useCDNUploader(cdnType: string, cdnContext?: string) {
+    const [uploading, setUploading] = useState(false);
+    const [progress, setProgress] = useState(0);
+    const [uploadError, setUploadError] = useState("");
+
+    const uploadFile = async (file: File, onSuccess: (url: string) => void) => {
+        setUploading(true);
+        setUploadError("");
+        setProgress(0);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            fd.append("type", cdnType);
+            if (cdnContext) fd.append("context", cdnContext);
+
+            await new Promise<void>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/api/cdn/upload");
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+                };
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            const data = JSON.parse(xhr.responseText);
+                            onSuccess(data.cdnUrl);
+                            resolve();
+                        } catch { reject(new Error("Invalid response")); }
+                    } else {
+                        try { reject(new Error(JSON.parse(xhr.responseText).error || "Upload failed")); }
+                        catch { reject(new Error(`Upload failed (${xhr.status})`)); }
+                    }
+                };
+                xhr.onerror = () => reject(new Error("Network error"));
+                xhr.send(fd);
+            });
+        } catch (e: any) {
+            setUploadError(e.message || "Upload failed");
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return { uploading, progress, uploadError, uploadFile };
+}
+
+// Detect if a URL came from CDN upload (has /api/cdn/ path segment)
+function isCdnUrl(url: string) {
+    return url.includes("/api/cdn/");
+}
+
+// ---------------------------------------------------------------------------
+// CDN Image Field — single image upload with Ctrl+V paste + locked URL
 // ---------------------------------------------------------------------------
 function CDNImageField({
     value,
@@ -72,54 +126,48 @@ function CDNImageField({
     borderColor: string;
     isApple: boolean;
 }) {
-    const [uploading, setUploading] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [uploadError, setUploadError] = useState("");
+    const { uploading, progress, uploadError, uploadFile } = useCDNUploader(cdnType, cdnContext);
+    // Track if value was set via file upload or paste (lock URL input in that case)
+    const [isLocked, setIsLocked] = useState(() => Boolean(value && isCdnUrl(value)));
     const fileRef = useRef<HTMLInputElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Keep lock in sync when form value changes externally (e.g. opening edit modal)
+    const prevValueRef = useRef(value);
+    if (prevValueRef.current !== value) {
+        prevValueRef.current = value;
+        // If cleared, unlock; if re-populated with cdn url, lock
+        if (!value) setIsLocked(false);
+        else if (isCdnUrl(value)) setIsLocked(true);
+    }
 
     const handleFile = async (file: File) => {
-        setUploading(true);
-        setUploadError("");
-        setProgress(0);
-        try {
-            const fd = new FormData();
-            fd.append("file", file);
-            fd.append("type", cdnType);
-            if (cdnContext) fd.append("context", cdnContext);
+        await uploadFile(file, (url) => { onChange(url); setIsLocked(true); });
+    };
 
-            await new Promise<void>((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", "/api/cdn/upload");
-                xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
-                };
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            onChange(data.cdnUrl);
-                            resolve();
-                        } catch { reject(new Error("Invalid response")); }
-                    } else {
-                        try { reject(new Error(JSON.parse(xhr.responseText).error || "Upload failed")); }
-                        catch { reject(new Error(`Upload failed (${xhr.status})`)); }
-                    }
-                };
-                xhr.onerror = () => reject(new Error("Network error"));
-                xhr.send(fd);
-            });
-        } catch (e: any) {
-            setUploadError(e.message || "Upload failed");
-        } finally {
-            setUploading(false);
+    // Ctrl+V / right-click paste from clipboard
+    const handlePaste = (e: React.ClipboardEvent) => {
+        const items = Array.from(e.clipboardData.items);
+        const imgItem = items.find(i => i.type.startsWith("image/"));
+        if (imgItem) {
+            e.preventDefault();
+            const file = imgItem.getAsFile();
+            if (file) handleFile(file);
         }
     };
+
+    const handleClear = () => { onChange(""); setIsLocked(false); };
 
     const bg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)";
     const r = isApple ? "12px" : "16px";
 
     return (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div
+            ref={containerRef}
+            onPaste={handlePaste}
+            tabIndex={0}
+            style={{ display: "flex", flexDirection: "column", gap: 8, outline: "none" }}
+        >
             {/* Preview + Upload button row */}
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 {/* Thumbnail */}
@@ -131,7 +179,7 @@ function CDNImageField({
                 }}>
                     {value ? (
                         <img
-                            src={value.startsWith("/api/cdn/") ? value : value}
+                            src={value}
                             alt="preview"
                             style={{ width: "100%", height: "100%", objectFit: "cover" }}
                             onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
@@ -163,11 +211,8 @@ function CDNImageField({
                 {value && !uploading && (
                     <button
                         type="button"
-                        onClick={() => onChange("")}
-                        style={{
-                            background: "none", border: "none", cursor: "pointer",
-                            color: palette.textTertiary, padding: 4,
-                        }}
+                        onClick={handleClear}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary, padding: 4 }}
                         title="Clear"
                     >
                         <Close style={{ fontSize: 16 }} />
@@ -183,28 +228,167 @@ function CDNImageField({
             )}
 
             {/* Error */}
-            {uploadError && (
-                <p style={{ fontSize: 12, color: "#ef4444" }}>{uploadError}</p>
-            )}
+            {uploadError && <p style={{ fontSize: 12, color: "#ef4444" }}>{uploadError}</p>}
 
-            {/* Manual URL input */}
-            <input
-                type="url"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder="Or paste image URL…"
-                style={{
+            {/* URL display: read-only when CDN-uploaded, editable for manual paste */}
+            {isLocked ? (
+                <div style={{
+                    display: "flex", alignItems: "center", gap: 6,
                     background: bg, border: `1px solid ${borderColor}`,
-                    borderRadius: r, color: palette.textPrimary,
-                    padding: "8px 12px", outline: "none", width: "100%", fontSize: 12,
-                    fontFamily: "monospace",
-                }}
-            />
+                    borderRadius: r, padding: "8px 12px",
+                }}>
+                    <span style={{ flex: 1, fontSize: 11, fontFamily: "monospace", color: palette.textSecondary, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {value}
+                    </span>
+                    <span style={{ fontSize: 10, color: palette.textTertiary, fontWeight: 600, flexShrink: 0 }}>
+                        CDN
+                    </span>
+                </div>
+            ) : (
+                <>
+                    <input
+                        type="url"
+                        value={value}
+                        onChange={(e) => { onChange(e.target.value); setIsLocked(false); }}
+                        placeholder="Paste image URL or use Ctrl+V to paste screenshot…"
+                        style={{
+                            background: bg, border: `1px solid ${borderColor}`,
+                            borderRadius: r, color: palette.textPrimary,
+                            padding: "8px 12px", outline: "none", width: "100%", fontSize: 12,
+                            fontFamily: "monospace",
+                        }}
+                    />
+                    <p style={{ fontSize: 11, color: palette.textTertiary, margin: 0 }}>
+                        Tip: Ctrl+V to paste a screenshot directly
+                    </p>
+                </>
+            )}
 
             <input
                 ref={fileRef}
                 type="file"
                 accept="image/*,video/*,.pdf,.svg"
+                style={{ display: "none" }}
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
+            />
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// CDN Image List Field — multi-image upload (e.g. project screenshots)
+// ---------------------------------------------------------------------------
+function CDNImageListField({
+    value,
+    onChange,
+    cdnType = "banner",
+    cdnContext,
+    palette,
+    isDark,
+    borderColor,
+    isApple,
+}: {
+    value: string[];
+    onChange: (urls: string[]) => void;
+    cdnType?: string;
+    cdnContext?: string;
+    palette: any;
+    isDark: boolean;
+    borderColor: string;
+    isApple: boolean;
+}) {
+    const { uploading, progress, uploadError, uploadFile } = useCDNUploader(cdnType, cdnContext);
+    const fileRef = useRef<HTMLInputElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const urls: string[] = Array.isArray(value) ? value : [];
+
+    const handleFile = async (file: File) => {
+        await uploadFile(file, (url) => onChange([...urls, url]));
+    };
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+        const items = Array.from(e.clipboardData.items);
+        const imgItem = items.find(i => i.type.startsWith("image/"));
+        if (imgItem) {
+            e.preventDefault();
+            const file = imgItem.getAsFile();
+            if (file) handleFile(file);
+        }
+    };
+
+    const removeAt = (i: number) => onChange(urls.filter((_, j) => j !== i));
+
+    const bg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)";
+    const r = isApple ? "12px" : "16px";
+
+    return (
+        <div
+            ref={containerRef}
+            onPaste={handlePaste}
+            tabIndex={0}
+            style={{ display: "flex", flexDirection: "column", gap: 8, outline: "none" }}
+        >
+            {/* Image grid */}
+            {urls.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                    {urls.map((url, i) => (
+                        <div key={i} style={{ position: "relative", width: 72, height: 72, borderRadius: 10, overflow: "hidden", background: bg, border: `1px solid ${borderColor}` }}>
+                            <img src={url} alt={`screenshot-${i}`} style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                onError={(e) => { (e.target as HTMLImageElement).style.opacity = "0.3"; }} />
+                            <button
+                                type="button"
+                                onClick={() => removeAt(i)}
+                                style={{
+                                    position: "absolute", top: 2, right: 2,
+                                    background: "rgba(0,0,0,0.6)", border: "none", borderRadius: "50%",
+                                    width: 18, height: 18, cursor: "pointer",
+                                    display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
+                                }}
+                                title="Remove"
+                            >
+                                <Close style={{ fontSize: 12, color: "#fff" }} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Add button */}
+            <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
+                style={{
+                    background: bg, border: `1px dashed ${borderColor}`,
+                    borderRadius: r, padding: "8px 14px",
+                    color: uploading ? palette.textTertiary : palette.accent,
+                    cursor: uploading ? "not-allowed" : "pointer",
+                    fontSize: 13, fontWeight: 700,
+                    display: "flex", alignItems: "center", gap: 6, width: "fit-content",
+                }}
+            >
+                <CloudUpload style={{ fontSize: 16 }} />
+                {uploading ? `Uploading… ${progress}%` : `Add Screenshot (${urls.length})`}
+            </button>
+
+            {/* Progress */}
+            {uploading && (
+                <div style={{ height: 4, borderRadius: 4, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${progress}%`, background: palette.accent, transition: "width 0.3s ease", borderRadius: 4 }} />
+                </div>
+            )}
+
+            {uploadError && <p style={{ fontSize: 12, color: "#ef4444" }}>{uploadError}</p>}
+
+            <p style={{ fontSize: 11, color: palette.textTertiary, margin: 0 }}>
+                Ctrl+V to paste screenshot · Click button to browse files
+            </p>
+
+            <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
                 style={{ display: "none" }}
                 onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
             />
@@ -240,7 +424,7 @@ export default function AdminCRUDPage({
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
-    const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
+    const searchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const fetchData = useCallback(async () => {
         setLoading(true);
@@ -417,6 +601,21 @@ export default function AdminCRUDPage({
                 />
             );
         }
+        if (field.type === "cdn-image-list") {
+            return (
+                <CDNImageListField
+                    key={field.key}
+                    value={Array.isArray(val) ? val : []}
+                    onChange={update}
+                    cdnType={field.cdnType || "banner"}
+                    cdnContext={field.cdnContext}
+                    palette={palette}
+                    isDark={isDark}
+                    borderColor={borderColor}
+                    isApple={isApple}
+                />
+            );
+        }
         if (field.type === "tags") {
             const tags: string[] = Array.isArray(val) ? val : [];
             return (
@@ -471,6 +670,20 @@ export default function AdminCRUDPage({
             return (
                 <div style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", flexShrink: 0 }}>
                     <img src={val} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                </div>
+            );
+        }
+        if (field.type === "cdn-image-list") {
+            const imgs: string[] = Array.isArray(val) ? val : [];
+            if (imgs.length === 0) return <span style={{ color: palette.textTertiary }}>—</span>;
+            return (
+                <div className="flex gap-1">
+                    {imgs.slice(0, 3).map((url, i) => (
+                        <div key={i} style={{ width: 28, height: 28, borderRadius: 6, overflow: "hidden", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
+                            <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                        </div>
+                    ))}
+                    {imgs.length > 3 && <span style={{ color: palette.textTertiary, fontSize: 11, alignSelf: "center" }}>+{imgs.length - 3}</span>}
                 </div>
             );
         }

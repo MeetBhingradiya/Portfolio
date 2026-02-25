@@ -17,6 +17,7 @@ const fields: FieldDef[] = [
     { key: "TechStack", label: "Tech Stack", type: "tags", colSpan: 2, tableVisible: false },
     { key: "CompanyLogo", label: "Company Logo", type: "cdn-image", cdnType: "icon", cdnContext: "company", tableVisible: true },
     { key: "CompanyWebsite", label: "Company Website", type: "url", tableVisible: false },
+    { key: "Published", label: "Published (visible on portfolio)", type: "boolean" },
     { key: "Order", label: "Order", type: "number" },
 ];
 
@@ -28,7 +29,7 @@ export default function ExperiencePage() {
             apiBase="/api/admin/experience"
             idField="ExperienceID"
             fields={fields}
-            defaultValues={{ EmploymentType: "full_time", LocationType: "onsite", CurrentlyWorking: false, Order: 0, TechStack: [], Achievements: [], Responsibilities: [] }}
+            defaultValues={{ EmploymentType: "full_time", LocationType: "onsite", CurrentlyWorking: false, Published: true, Order: 0, TechStack: [], Achievements: [], Responsibilities: [] }}
         />
     );
 }

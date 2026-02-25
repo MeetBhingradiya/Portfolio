@@ -15,10 +15,10 @@ const config = [
     ...compat.extends("next/core-web-vitals"),
     {
         rules: {
-            "react-hooks/exhaustive-deps": "off",
+            "react-hooks/exhaustive-deps": "warn",
             "@next/next/no-img-element": "off",
-            "jsx-a11y/alt-text": "off",
-            "react-hooks/rules-of-hooks": "off",
+            "jsx-a11y/alt-text": "warn",
+            "react-hooks/rules-of-hooks": "warn",
             "@next/next/no-sync-scripts": "off"
         }
     }

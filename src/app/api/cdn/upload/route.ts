@@ -17,6 +17,7 @@ import path from "path";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAsset, AssetType } from "@Models/CDNAsset";
 import { githubUpload } from "@Utils/GitHubCDN";
+import { Config } from "@Config/Client";
 
 // Categorise by MIME type if the caller didn't specify
 function inferType(mime: string): AssetType {
@@ -106,12 +107,7 @@ export async function POST(req: NextRequest) {
             altText,
         });
 
-        const appBase =
-            process.env.NEXT_PUBLIC_APP_URL ||
-            process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-            (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-
-        const cdnUrl = `${appBase}/api/cdn/${assetId}`;
+        const cdnUrl = `${Config.Origin}/api/cdn/${assetId}`;
 
         return NextResponse.json({
             assetId: doc.assetId,

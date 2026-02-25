@@ -16,8 +16,13 @@ const fields: FieldDef[] = [
     { key: "Links.chromeWebstore", label: "Chrome Web Store URL", type: "url", tableVisible: false },
     { key: "Links.playstore", label: "Play Store URL", type: "url", tableVisible: false },
     { key: "Links.demo", label: "Demo URL", type: "url", tableVisible: false },
+    // Media
     { key: "Thumbnail", label: "Thumbnail", type: "cdn-image", cdnType: "banner", cdnContext: "project", tableVisible: true },
+    { key: "Icon", label: "Icon (128×128 square, e.g. Chrome extension)", type: "cdn-image", cdnType: "icon", cdnContext: "project", tableVisible: false },
+    { key: "Screenshots", label: "Screenshots", type: "cdn-image-list", cdnType: "banner", cdnContext: "project", colSpan: 2, tableVisible: true },
+    // Metadata
     { key: "Featured", label: "Featured", type: "boolean" },
+    { key: "Published", label: "Published (visible on portfolio)", type: "boolean" },
     { key: "Order", label: "Order", type: "number" },
     { key: "StartDate", label: "Start Date", type: "date", tableVisible: false },
     { key: "EndDate", label: "End Date", type: "date", tableVisible: false },
@@ -31,7 +36,7 @@ export default function ProjectsPage() {
             apiBase="/api/admin/projects"
             idField="ProjectID"
             fields={fields}
-            defaultValues={{ Status: "active", Type: "webapp", Featured: false, Order: 0, TechStack: [], Tags: [] }}
+            defaultValues={{ Status: "active", Type: "webapp", Featured: false, Published: true, Order: 0, TechStack: [], Tags: [], Screenshots: [] }}
         />
     );
 }

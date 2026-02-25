@@ -1,7 +1,13 @@
 /**
  * Generic Admin CRUD Page
- * Provides search, paginated table, create/edit modal, and delete for any
+ * Provides search, paginated table, create/edit modal (with duplicate), and delete for any
  * resource that follows the standard admin API pattern.
+ *
+ * Form improvements:
+ *  - Custom calendar date picker (no native <input type="date">)
+ *  - iOS-style toggle switch for boolean fields
+ *  - Proper focus-ring / accent styling on every input type
+ *  - Duplicate entry button in the actions column
  */
 
 "use client";
@@ -10,6 +16,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
+import dayjs, { Dayjs } from "dayjs";
 import {
     Add,
     Search,
@@ -22,6 +29,10 @@ import {
     Refresh,
     CloudUpload,
     Image as ImageIcon,
+    ContentCopy,
+    CalendarToday,
+    KeyboardArrowLeft,
+    KeyboardArrowRight,
 } from "@mui/icons-material";
 
 export interface FieldDef {
@@ -396,6 +407,239 @@ function CDNImageListField({
     );
 }
 
+// ============================================================
+// Custom Calendar Date Picker
+// ============================================================
+const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+const MONTHS = ["January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"];
+
+interface AdminDatePickerProps {
+    value: string;
+    onChange: (iso: string) => void;
+    placeholder?: string;
+    palette: any;
+    isDark: boolean;
+    isApple: boolean;
+    borderColor: string;
+    inputStyle: React.CSSProperties;
+}
+
+function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette, isDark, isApple, borderColor, inputStyle }: AdminDatePickerProps) {
+    const [open, setOpen] = useState(false);
+    const [view, setView] = useState<"day" | "month" | "year">("day");
+    const parsed = value ? dayjs(value) : null;
+    const [cursor, setCursor] = useState<Dayjs>(parsed ?? dayjs());
+    const ref = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [open]);
+
+    useEffect(() => {
+        if (!open) return;
+        const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+        document.addEventListener("keydown", handler);
+        return () => document.removeEventListener("keydown", handler);
+    }, [open]);
+
+    const popupBg = isDark ? "rgba(24, 24, 28, 0.98)" : "rgba(255,255,255,0.99)";
+    const r = isApple ? "16px" : "20px";
+    const accentColor = palette.accent;
+
+    const startOfMonth = cursor.startOf("month");
+    const daysInMonth = cursor.daysInMonth();
+    const startWeekday = startOfMonth.day();
+    const totalCells = Math.ceil((startWeekday + daysInMonth) / 7) * 7;
+    const cells: (Dayjs | null)[] = Array.from({ length: totalCells }, (_, i) => {
+        const dayNum = i - startWeekday + 1;
+        if (dayNum < 1 || dayNum > daysInMonth) return null;
+        return cursor.date(dayNum);
+    });
+
+    const selectDay = (d: Dayjs) => { onChange(d.toISOString()); setOpen(false); };
+
+    const toggleOpen = () => { setOpen(v => !v); setCursor(parsed ?? dayjs()); setView("day"); };
+
+    return (
+        <div ref={ref} style={{ position: "relative" }}>
+            {/* Trigger input */}
+            <div
+                role="button" tabIndex={0}
+                onClick={toggleOpen}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleOpen(); }}
+                style={{
+                    ...inputStyle,
+                    display: "flex", alignItems: "center", gap: 8,
+                    cursor: "pointer", userSelect: "none",
+                    boxShadow: open ? `0 0 0 3px ${accentColor}30` : undefined,
+                    border: open ? `1px solid ${accentColor}` : inputStyle.border,
+                    transition: "border 0.15s, box-shadow 0.15s",
+                }}
+            >
+                <CalendarToday style={{ fontSize: 15, color: palette.textTertiary, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 14, color: parsed ? palette.textPrimary : palette.textTertiary }}>
+                    {parsed ? parsed.format("MMM D, YYYY") : placeholder}
+                </span>
+                {parsed && (
+                    <button type="button"
+                        onClick={(e) => { e.stopPropagation(); onChange(""); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary, fontSize: 16, lineHeight: 1, padding: 0, display: "flex" }}>
+                        ×
+                    </button>
+                )}
+            </div>
+
+            {/* Calendar popup */}
+            <AnimatePresence>
+                {open && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -6, scale: 0.97 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                        transition={{ duration: 0.15 }}
+                        style={{
+                            position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200,
+                            background: popupBg, borderRadius: r,
+                            border: `1px solid ${borderColor}`,
+                            boxShadow: isDark ? "0 20px 60px rgba(0,0,0,0.65)" : "0 12px 40px rgba(0,0,0,0.15)",
+                            padding: 16, minWidth: 284,
+                            backdropFilter: isApple ? "blur(24px) saturate(160%)" : undefined,
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Navigation header */}
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                            <button type="button" onClick={() => setCursor(c => c.subtract(1, "month"))}
+                                style={{ background: "none", border: "none", cursor: "pointer", color: palette.textSecondary, padding: "4px 6px", borderRadius: 8, display: "flex" }}>
+                                <KeyboardArrowLeft style={{ fontSize: 20 }} />
+                            </button>
+                            <div style={{ display: "flex", gap: 4 }}>
+                                <button type="button" onClick={() => setView(v => v === "month" ? "day" : "month")}
+                                    style={{ fontWeight: 700, fontSize: 14, color: palette.textPrimary, padding: "3px 8px", borderRadius: 8, border: "none", cursor: "pointer",
+                                        background: view === "month" ? `${accentColor}20` : "transparent" }}>
+                                    {MONTHS[cursor.month()]}
+                                </button>
+                                <button type="button" onClick={() => setView(v => v === "year" ? "day" : "year")}
+                                    style={{ fontWeight: 700, fontSize: 14, color: palette.textPrimary, padding: "3px 8px", borderRadius: 8, border: "none", cursor: "pointer",
+                                        background: view === "year" ? `${accentColor}20` : "transparent" }}>
+                                    {cursor.year()}
+                                </button>
+                            </div>
+                            <button type="button" onClick={() => setCursor(c => c.add(1, "month"))}
+                                style={{ background: "none", border: "none", cursor: "pointer", color: palette.textSecondary, padding: "4px 6px", borderRadius: 8, display: "flex" }}>
+                                <KeyboardArrowRight style={{ fontSize: 20 }} />
+                            </button>
+                        </div>
+
+                        {/* Month picker */}
+                        {view === "month" && (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4 }}>
+                                {MONTHS.map((m, i) => (
+                                    <button key={m} type="button" onClick={() => { setCursor(c => c.month(i)); setView("day"); }}
+                                        style={{ padding: "8px 4px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+                                            background: cursor.month() === i ? accentColor : "transparent",
+                                            color: cursor.month() === i ? "#fff" : palette.textSecondary }}>
+                                        {m.slice(0, 3)}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Year picker */}
+                        {view === "year" && (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, maxHeight: 200, overflowY: "auto" }}>
+                                {Array.from({ length: 50 }, (_, i) => dayjs().year() - 30 + i).map(y => (
+                                    <button key={y} type="button" onClick={() => { setCursor(c => c.year(y)); setView("day"); }}
+                                        style={{ padding: "6px 2px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
+                                            background: cursor.year() === y ? accentColor : "transparent",
+                                            color: cursor.year() === y ? "#fff" : palette.textSecondary }}>
+                                        {y}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Day grid */}
+                        {view === "day" && (
+                            <>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
+                                    {WEEKDAYS.map(w => (
+                                        <div key={w} style={{ textAlign: "center", fontSize: 11, fontWeight: 700, color: palette.textTertiary, padding: "3px 0" }}>{w}</div>
+                                    ))}
+                                </div>
+                                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+                                    {cells.map((d, i) => {
+                                        if (!d) return <div key={i} />;
+                                        const isSelected = parsed && d.isSame(parsed, "day");
+                                        const isToday = d.isSame(dayjs(), "day");
+                                        return (
+                                            <button key={i} type="button" onClick={() => selectDay(d)}
+                                                style={{
+                                                    padding: "7px 0", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "center",
+                                                    border: isToday && !isSelected ? `1px solid ${accentColor}55` : "1px solid transparent",
+                                                    fontWeight: isSelected ? 700 : 400,
+                                                    background: isSelected ? accentColor : "transparent",
+                                                    color: isSelected ? "#fff" : isToday ? accentColor : palette.textPrimary,
+                                                    transition: "background 0.1s",
+                                                }}>
+                                                {d.date()}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </>
+                        )}
+
+                        {/* Bottom actions */}
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, borderTop: `1px solid ${borderColor}`, paddingTop: 10 }}>
+                            <button type="button" onClick={() => { setCursor(dayjs()); setView("day"); }}
+                                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, color: accentColor }}>
+                                Today
+                            </button>
+                            {parsed && (
+                                <button type="button" onClick={() => { onChange(""); setOpen(false); }}
+                                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: palette.textTertiary }}>
+                                    Clear
+                                </button>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+}
+
+// ============================================================
+// iOS-style Toggle Switch (boolean fields)
+// ============================================================
+function ToggleSwitch({ checked, onChange, label, palette }: { checked: boolean; onChange: (v: boolean) => void; label: string; palette: any; }) {
+    return (
+        <div style={{ display: "flex", alignItems: "center", gap: 12, cursor: "pointer", userSelect: "none", padding: "4px 0" }}
+            onClick={() => onChange(!checked)}>
+            <div style={{
+                width: 44, height: 26, borderRadius: 13, padding: 3,
+                background: checked ? palette.accent : (palette.textTertiary + "44"),
+                transition: "background 0.2s",
+                position: "relative", flexShrink: 0,
+            }}>
+                <div style={{
+                    width: 20, height: 20, borderRadius: 10, background: "#fff",
+                    position: "absolute", top: 3,
+                    left: checked ? "calc(100% - 23px)" : 3,
+                    transition: "left 0.18s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    boxShadow: "0 1px 5px rgba(0,0,0,0.3)",
+                }} />
+            </div>
+            <span style={{ fontSize: 14, color: palette.textSecondary, fontWeight: 500 }}>{label}</span>
+        </div>
+    );
+}
+
 // ---------------------------------------------------------------------------
 
 export default function AdminCRUDPage({
@@ -420,9 +664,11 @@ export default function AdminCRUDPage({
     // Modal
     const [modalOpen, setModalOpen] = useState(false);
     const [editItem, setEditItem] = useState<any | null>(null);
+    const [isDuplicate, setIsDuplicate] = useState(false);
     const [form, setForm] = useState<Record<string, any>>({});
     const [saving, setSaving] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [focusedKey, setFocusedKey] = useState<string | null>(null);
 
     const searchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
@@ -455,15 +701,32 @@ export default function AdminCRUDPage({
 
     const openCreate = () => {
         setEditItem(null);
+        setIsDuplicate(false);
         setForm({ ...defaultValues });
         setModalOpen(true);
     };
 
     const openEdit = (item: any) => {
         setEditItem(item);
+        setIsDuplicate(false);
+        const initial: Record<string, any> = {};
+        fields.forEach(f => { initial[f.key] = item[f.key] ?? defaultValues[f.key] ?? ""; });
+        setForm(initial);
+        setModalOpen(true);
+    };
+
+    /** Duplicate: opens the Create modal pre-filled with an existing entry's data */
+    const openDuplicate = (item: any) => {
+        setEditItem(null);
+        setIsDuplicate(true);
         const initial: Record<string, any> = {};
         fields.forEach(f => {
-            initial[f.key] = item[f.key] ?? defaultValues[f.key] ?? "";
+            let val = item[f.key] ?? defaultValues[f.key] ?? "";
+            // Append "(Copy)" to the first required text field
+            if (f.type === "text" && f.required && typeof val === "string" && val && !val.endsWith(" (Copy)")) {
+                val = val + " (Copy)";
+            }
+            initial[f.key] = val;
         });
         setForm(initial);
         setModalOpen(true);
@@ -472,6 +735,7 @@ export default function AdminCRUDPage({
     const closeModal = () => {
         setModalOpen(false);
         setEditItem(null);
+        setIsDuplicate(false);
         setForm({});
     };
 
@@ -479,17 +743,17 @@ export default function AdminCRUDPage({
         setSaving(true);
         try {
             let res: Response;
-            if (editItem) {
+            if (editItem && !isDuplicate) {
                 res = await fetch(`${apiBase}/${editItem[idField]}`, {
                     method: "PATCH",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(form)
+                    body: JSON.stringify(form),
                 });
             } else {
                 res = await fetch(apiBase, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(form)
+                    body: JSON.stringify(form),
                 });
             }
             const json = await res.json();
@@ -524,53 +788,57 @@ export default function AdminCRUDPage({
 
     // Style helpers
     const cardBg = isApple
-        ? isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)"
-        : isDark ? "rgba(24,24,28,0.95)" : "rgba(255,255,255,0.95)";
-    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+        ? isDark ? "rgba(28,28,32,0.80)" : "rgba(255,255,255,0.80)"
+        : isDark ? "rgba(22,22,26,0.97)" : "rgba(255,255,255,0.97)";
+    const borderColor = isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.09)";
     const cardRadius = isApple ? "20px" : "28px";
-    const inputStyle: React.CSSProperties = {
+    const fieldRadius = isApple ? "12px" : "14px";
+
+    const inputBase: React.CSSProperties = {
         background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
         border: `1px solid ${borderColor}`,
-        borderRadius: isApple ? "12px" : "16px",
+        borderRadius: fieldRadius,
         color: palette.textPrimary,
-        padding: "10px 14px",
+        padding: "11px 14px",
         outline: "none",
         width: "100%",
-        fontSize: "14px"
+        fontSize: "14px",
+        transition: "border 0.15s, box-shadow 0.15s",
     };
+
+    // inputStyle alias for table-search compatibility
+    const inputStyle = inputBase;
+
+    const getInputStyle = (key: string): React.CSSProperties => ({
+        ...inputBase,
+        ...(focusedKey === key
+            ? { border: `1px solid ${palette.accent}`, boxShadow: `0 0 0 3px ${palette.accent}25` }
+            : {}),
+    });
 
     const renderField = (field: FieldDef) => {
         const val = form[field.key];
         const update = (v: any) => setForm(prev => ({ ...prev, [field.key]: v }));
 
+        if (field.type === "boolean") {
+            return <ToggleSwitch checked={!!val} onChange={update} label={field.label} palette={palette} />;
+        }
+
         if (field.type === "textarea") {
             return (
                 <textarea
-                    key={field.key}
                     placeholder={field.placeholder || field.label}
                     value={val || ""}
                     onChange={e => update(e.target.value)}
-                    rows={3}
-                    style={{ ...inputStyle, resize: "vertical" }}
+                    rows={4}
+                    onFocus={() => setFocusedKey(field.key)}
+                    onBlur={() => setFocusedKey(null)}
+                    style={{ ...getInputStyle(field.key), resize: "vertical", lineHeight: 1.6 }}
                     required={field.required}
                 />
             );
         }
-        if (field.type === "boolean") {
-            return (
-                <div key={field.key} className="flex items-center gap-2">
-                    <input
-                        type="checkbox"
-                        id={field.key}
-                        checked={!!val}
-                        onChange={e => update(e.target.checked)}
-                    />
-                    <label htmlFor={field.key} style={{ color: palette.textSecondary, fontSize: 14 }}>
-                        {field.label}
-                    </label>
-                </div>
-            );
-        }
+
         if (field.type === "select" && field.options) {
             return (
                 <CustomSelect
@@ -579,12 +847,28 @@ export default function AdminCRUDPage({
                     onChange={update}
                     options={[
                         { value: "", label: `Select ${field.label}` },
-                        ...field.options.map(opt => ({ value: opt, label: opt }))
+                        ...field.options.map(opt => ({ value: opt, label: opt })),
                     ]}
                     placeholder={`Select ${field.label}`}
                 />
             );
         }
+
+        if (field.type === "date") {
+            return (
+                <AdminDatePicker
+                    value={val || ""}
+                    onChange={update}
+                    placeholder={field.placeholder || `Select ${field.label}`}
+                    palette={palette}
+                    isDark={isDark}
+                    isApple={isApple}
+                    borderColor={borderColor}
+                    inputStyle={getInputStyle(field.key)}
+                />
+            );
+        }
+
         if (field.type === "cdn-image") {
             return (
                 <CDNImageField
@@ -601,6 +885,7 @@ export default function AdminCRUDPage({
                 />
             );
         }
+
         if (field.type === "cdn-image-list") {
             return (
                 <CDNImageListField
@@ -616,47 +901,69 @@ export default function AdminCRUDPage({
                 />
             );
         }
+
         if (field.type === "tags") {
             const tags: string[] = Array.isArray(val) ? val : [];
+            const isFocused = focusedKey === field.key;
             return (
-                <div key={field.key}>
-                    <div className="flex flex-wrap gap-1 mb-2">
+                <div>
+                    <div
+                        onClick={(e) => { (e.currentTarget as HTMLElement).querySelector("input")?.focus(); }}
+                        style={{
+                            ...inputBase,
+                            ...(isFocused ? { border: `1px solid ${palette.accent}`, boxShadow: `0 0 0 3px ${palette.accent}25` } : {}),
+                            minHeight: 46,
+                            display: "flex", flexWrap: "wrap", gap: 6,
+                            alignItems: "center", cursor: "text", padding: "8px 12px",
+                        }}
+                    >
                         {tags.map((tag, i) => (
-                            <span
-                                key={i}
-                                className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
-                                style={{ background: `${palette.accent}20`, color: palette.accent }}
-                            >
+                            <span key={i} style={{
+                                display: "inline-flex", alignItems: "center", gap: 4,
+                                padding: "2px 8px 2px 10px", borderRadius: 99,
+                                background: `${palette.accent}20`, color: palette.accent,
+                                fontSize: 12, fontWeight: 600,
+                            }}>
                                 {tag}
-                                <button type="button" onClick={() => update(tags.filter((_, j) => j !== i))}>
+                                <button type="button" onClick={() => update(tags.filter((_, j) => j !== i))}
+                                    style={{ background: "none", border: "none", cursor: "pointer", color: palette.accent, lineHeight: 1, padding: 0, display: "flex" }}>
                                     <Close style={{ fontSize: 12 }} />
                                 </button>
                             </span>
                         ))}
+                        <input
+                            placeholder={tags.length === 0 ? (field.placeholder || `Add ${field.label}…`) : ""}
+                            onFocus={() => setFocusedKey(field.key)}
+                            onBlur={() => setFocusedKey(null)}
+                            style={{ flex: 1, minWidth: 80, background: "none", border: "none", outline: "none", color: palette.textPrimary, fontSize: 14, padding: "2px 0" }}
+                            onKeyDown={e => {
+                                if (e.key === "Enter" || e.key === ",") {
+                                    e.preventDefault();
+                                    const v = (e.target as HTMLInputElement).value.trim();
+                                    if (v && !tags.includes(v)) update([...tags, v]);
+                                    (e.target as HTMLInputElement).value = "";
+                                }
+                                if (e.key === "Backspace" && (e.target as HTMLInputElement).value === "" && tags.length > 0) {
+                                    update(tags.slice(0, -1));
+                                }
+                            }}
+                        />
                     </div>
-                    <input
-                        placeholder={`Type ${field.label} and press Enter`}
-                        style={inputStyle}
-                        onKeyDown={e => {
-                            if (e.key === "Enter" || e.key === ",") {
-                                e.preventDefault();
-                                const v = (e.target as HTMLInputElement).value.trim();
-                                if (v && !tags.includes(v)) update([...tags, v]);
-                                (e.target as HTMLInputElement).value = "";
-                            }
-                        }}
-                    />
+                    <p style={{ fontSize: 11, color: palette.textTertiary, marginTop: 4 }}>Press Enter or comma to add a tag</p>
                 </div>
             );
         }
+
+        // text / number / url
         return (
             <input
-                key={field.key}
-                type={field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "url" ? "url" : "text"}
+                type={field.type === "number" ? "number" : field.type === "url" ? "url" : "text"}
                 placeholder={field.placeholder || field.label}
-                value={field.type === "date" ? (val ? new Date(val).toISOString().split("T")[0] : "") : (val ?? "")}
+                value={val ?? ""}
                 onChange={e => update(field.type === "number" ? Number(e.target.value) : e.target.value)}
-                style={inputStyle}
+                onFocus={() => setFocusedKey(field.key)}
+                onBlur={() => setFocusedKey(null)}
+                style={getInputStyle(field.key)}
                 required={field.required}
             />
         );
@@ -665,7 +972,13 @@ export default function AdminCRUDPage({
     const renderCellValue = (item: any, field: FieldDef) => {
         const val = item[field.key];
         if (val === undefined || val === null || val === "") return <span style={{ color: palette.textTertiary }}>—</span>;
-        if (field.type === "boolean") return val ? "✓" : "✗";
+        if (field.type === "boolean") return (
+            <span style={{ fontSize: 12, fontWeight: 700, padding: "2px 8px", borderRadius: 6,
+                background: val ? `${palette.accent}18` : (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"),
+                color: val ? palette.accent : palette.textTertiary }}>
+                {val ? "Yes" : "No"}
+            </span>
+        );
         if (field.type === "cdn-image" || (field.type === "url" && typeof val === "string" && /\.(png|jpg|jpeg|gif|webp|svg)$/i.test(val))) {
             return (
                 <div style={{ width: 36, height: 36, borderRadius: 8, overflow: "hidden", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)", flexShrink: 0 }}>
@@ -701,7 +1014,7 @@ export default function AdminCRUDPage({
                 </div>
             );
         }
-        if (field.type === "date") return val ? new Date(val).toLocaleDateString() : "—";
+        if (field.type === "date") return <span style={{ fontSize: 13 }}>{val ? dayjs(val).format("MMM D, YYYY") : "—"}</span>;
         if (field.type === "url") return (
             <a href={val} target="_blank" rel="noopener noreferrer"
                 className="text-xs underline truncate max-w-[120px] block"
@@ -745,10 +1058,12 @@ export default function AdminCRUDPage({
 
             {/* Search */}
             <div className="mb-4 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: palette.textTertiary, fontSize: 18 }} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: palette.textTertiary, fontSize: 18 }} />
                 <input
                     placeholder={`Search ${title}...`}
-                    style={{ ...inputStyle, paddingLeft: "38px" }}
+                    style={{ ...inputBase, paddingLeft: "38px" }}
+                    onFocus={() => setFocusedKey("__search")}
+                    onBlur={() => setFocusedKey(null)}
                     onChange={e => handleSearchChange(e.target.value)}
                 />
             </div>
@@ -812,46 +1127,42 @@ export default function AdminCRUDPage({
                                             </td>
                                         ))}
                                         <td className="px-4 py-3">
-                                            <div className="flex items-center justify-end gap-2">
-                                                <motion.button
-                                                    whileHover={{ scale: 1.1 }}
-                                                    whileTap={{ scale: 0.9 }}
-                                                    className="p-1.5 rounded-lg"
+                                            <div className="flex items-center justify-end gap-1.5">
+                                                {/* Edit */}
+                                                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                                                    className="p-1.5 rounded-lg" title="Edit"
                                                     style={{ background: `${palette.accent}15`, color: palette.accent }}
-                                                    onClick={() => openEdit(item)}
-                                                    title="Edit"
-                                                >
-                                                    <Edit style={{ fontSize: 16 }} />
+                                                    onClick={() => openEdit(item)}>
+                                                    <Edit style={{ fontSize: 15 }} />
+                                                </motion.button>
+                                                {/* Duplicate */}
+                                                <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                                                    className="p-1.5 rounded-lg" title="Duplicate entry"
+                                                    style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: palette.textSecondary }}
+                                                    onClick={() => openDuplicate(item)}>
+                                                    <ContentCopy style={{ fontSize: 15 }} />
                                                 </motion.button>
                                                 {deleteConfirm === (item[idField] || item._id) ? (
                                                     <div className="flex gap-1">
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.05 }}
+                                                        <motion.button whileHover={{ scale: 1.05 }}
                                                             className="px-2 py-1 rounded-lg text-xs font-bold"
                                                             style={{ background: "rgba(220,50,50,0.15)", color: "#DC3232" }}
-                                                            onClick={() => handleDelete(item[idField] || item._id)}
-                                                        >
+                                                            onClick={() => handleDelete(item[idField] || item._id)}>
                                                             Confirm
                                                         </motion.button>
-                                                        <motion.button
-                                                            whileHover={{ scale: 1.05 }}
+                                                        <motion.button whileHover={{ scale: 1.05 }}
                                                             className="px-2 py-1 rounded-lg text-xs"
                                                             style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
-                                                            onClick={() => setDeleteConfirm(null)}
-                                                        >
+                                                            onClick={() => setDeleteConfirm(null)}>
                                                             Cancel
                                                         </motion.button>
                                                     </div>
                                                 ) : (
-                                                    <motion.button
-                                                        whileHover={{ scale: 1.1 }}
-                                                        whileTap={{ scale: 0.9 }}
-                                                        className="p-1.5 rounded-lg"
+                                                    <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                                                        className="p-1.5 rounded-lg" title="Delete"
                                                         style={{ background: "rgba(220,50,50,0.1)", color: "#DC3232" }}
-                                                        onClick={() => setDeleteConfirm(item[idField] || item._id)}
-                                                        title="Delete"
-                                                    >
-                                                        <Delete style={{ fontSize: 16 }} />
+                                                        onClick={() => setDeleteConfirm(item[idField] || item._id)}>
+                                                        <Delete style={{ fontSize: 15 }} />
                                                     </motion.button>
                                                 )}
                                             </div>
@@ -899,57 +1210,61 @@ export default function AdminCRUDPage({
                 )}
             </div>
 
-            {/* Create / Edit Modal */}
+            {/* ── Create / Edit / Duplicate Modal ── */}
             <AnimatePresence>
                 {modalOpen && (
                     <>
-                        <motion.div
-                            className="fixed inset-0 z-50"
-                            style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(6px)" }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={closeModal}
-                        />
-                        <motion.div
-                            className="fixed z-50 inset-0 flex items-center justify-center p-4"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                        >
+                        <motion.div className="fixed inset-0 z-50"
+                            style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            onClick={closeModal} />
+                        <motion.div className="fixed z-50 inset-0 flex items-center justify-center p-4"
+                            initial={{ opacity: 0, scale: 0.96, y: 10 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.96, y: 6 }}
+                            transition={{ type: "spring", stiffness: 380, damping: 30 }}>
                             <div
-                                className="w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-                                style={{ background: cardBg, borderRadius: cardRadius, border: `1px solid ${borderColor}` }}
-                                onClick={e => e.stopPropagation()}
-                            >
+                                className="w-full max-w-3xl max-h-[92vh] flex flex-col"
+                                style={{
+                                    background: cardBg, borderRadius: cardRadius,
+                                    border: `1px solid ${borderColor}`,
+                                    boxShadow: isDark ? "0 32px 80px rgba(0,0,0,0.7)" : "0 20px 60px rgba(0,0,0,0.16)",
+                                }}
+                                onClick={e => e.stopPropagation()}>
+
                                 {/* Modal header */}
-                                <div className="flex items-center justify-between p-6 border-b" style={{ borderColor }}>
-                                    <h2 className="text-lg font-black" style={{ color: palette.textPrimary }}>
-                                        {editItem ? `Edit ${title.replace(/s$/, "")}` : `Add ${title.replace(/s$/, "")}`}
-                                    </h2>
-                                    <motion.button
-                                        whileHover={{ scale: 1.1 }}
-                                        whileTap={{ scale: 0.9 }}
-                                        className="p-1.5 rounded-xl"
+                                <div className="flex items-center justify-between px-7 py-5 border-b flex-shrink-0" style={{ borderColor }}>
+                                    <div>
+                                        <h2 className="text-lg font-black" style={{ color: palette.textPrimary }}>
+                                            {isDuplicate ? `Duplicate ${title.replace(/ies$/, "y").replace(/s$/, "")}`
+                                                : editItem ? `Edit ${title.replace(/ies$/, "y").replace(/s$/, "")}`
+                                                : `Add ${title.replace(/ies$/, "y").replace(/s$/, "")}`}
+                                        </h2>
+                                        {isDuplicate && (
+                                            <p className="text-xs mt-0.5" style={{ color: palette.textTertiary }}>
+                                                Creating a copy — adjust fields before saving
+                                            </p>
+                                        )}
+                                    </div>
+                                    <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                                        className="p-2 rounded-xl"
                                         style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
-                                        onClick={closeModal}
-                                    >
+                                        onClick={closeModal}>
                                         <Close fontSize="small" />
                                     </motion.button>
                                 </div>
 
-                                {/* Form */}
-                                <div className="p-6">
-                                    <div className="grid grid-cols-2 gap-4">
+                                {/* Scrollable form body */}
+                                <div className="overflow-y-auto flex-1 px-7 py-6">
+                                    <div className="grid grid-cols-2 gap-x-5 gap-y-5">
                                         {fields.map(field => (
-                                            <div
-                                                key={field.key}
-                                                className={field.colSpan === 2 ? "col-span-2" : "col-span-2 sm:col-span-1"}
-                                            >
+                                            <div key={field.key}
+                                                className={field.colSpan === 2 ? "col-span-2" : "col-span-2 sm:col-span-1"}>
                                                 {field.type !== "boolean" && (
-                                                    <label className="block text-xs font-semibold mb-1.5 uppercase tracking-wide"
-                                                        style={{ color: palette.textTertiary }}>
-                                                        {field.label} {field.required && <span style={{ color: "#DC3232" }}>*</span>}
+                                                    <label className="block text-sm font-semibold mb-2"
+                                                        style={{ color: palette.textSecondary }}>
+                                                        {field.label}
+                                                        {field.required && <span style={{ color: "#ef4444", marginLeft: 4 }}>*</span>}
                                                     </label>
                                                 )}
                                                 {renderField(field)}
@@ -959,27 +1274,25 @@ export default function AdminCRUDPage({
                                 </div>
 
                                 {/* Modal footer */}
-                                <div className="flex items-center justify-end gap-3 px-6 pb-6">
-                                    <motion.button
-                                        whileHover={{ scale: 1.03 }}
-                                        whileTap={{ scale: 0.97 }}
-                                        className="px-5 py-2.5 rounded-xl text-sm font-semibold"
-                                        style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
-                                        onClick={closeModal}
-                                    >
-                                        Cancel
-                                    </motion.button>
-                                    <motion.button
-                                        whileHover={{ scale: 1.03 }}
-                                        whileTap={{ scale: 0.97 }}
-                                        className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold"
-                                        style={{ background: palette.accent, color: "#fff", opacity: saving ? 0.7 : 1 }}
-                                        onClick={handleSave}
-                                        disabled={saving}
-                                    >
-                                        <Save fontSize="small" />
-                                        {saving ? "Saving…" : "Save"}
-                                    </motion.button>
+                                <div className="flex items-center justify-between gap-3 px-7 py-5 border-t flex-shrink-0" style={{ borderColor }}>
+                                    <span style={{ fontSize: 12, color: palette.textTertiary }}>
+                                        {fields.filter(f => f.required).length} required fields
+                                    </span>
+                                    <div className="flex gap-3">
+                                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                                            className="px-5 py-2.5 rounded-xl text-sm font-semibold"
+                                            style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
+                                            onClick={closeModal}>
+                                            Cancel
+                                        </motion.button>
+                                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                                            className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold"
+                                            style={{ background: palette.accent, color: "#fff", opacity: saving ? 0.7 : 1 }}
+                                            onClick={handleSave} disabled={saving}>
+                                            {isDuplicate ? <ContentCopy fontSize="small" /> : <Save fontSize="small" />}
+                                            {saving ? "Saving…" : isDuplicate ? "Save Copy" : "Save"}
+                                        </motion.button>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

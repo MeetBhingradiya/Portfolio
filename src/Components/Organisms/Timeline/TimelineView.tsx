@@ -102,6 +102,20 @@ function fmtRange(start?: string | Date, end?: string | Date, current?: boolean)
     return `${fmtDate(start)} – ${current ? "Present" : fmtDate(end)}`;
 }
 
+/** Render the date string appropriate to each event kind */
+function fmtEventDate(event: TimelineEvent): string {
+    if (event.kind === "certificate") {
+        const cert = event.data as Certificate;
+        const issued = fmtDate(event.date);
+        if (cert.NoExpiry || !event.endDate) return `Issued ${issued}`;
+        return `${issued} · Expires ${fmtDate(event.endDate)}`;
+    }
+    if (event.kind === "testscore") {
+        return fmtDate(event.date);
+    }
+    return fmtRange(event.date, event.endDate, event.current);
+}
+
 function employmentLabel(t: string) {
     return ({
         full_time: "Full-time", part_time: "Part-time", contract: "Contract",
@@ -400,7 +414,7 @@ function TimelineItem({ event, palette, isDark, isApple, index }: EventCardProps
                             </span>
                         )}
                         <span className="text-xs ml-auto" style={{ color: palette.textTertiary }}>
-                            {fmtRange(event.date, event.endDate, event.current)}
+                            {fmtEventDate(event)}
                         </span>
                     </div>
                     {/* Card content */}

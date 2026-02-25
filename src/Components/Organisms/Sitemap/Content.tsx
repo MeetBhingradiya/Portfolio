@@ -228,7 +228,7 @@ const sitemapData: SitemapSection[] = [
         links: [
             {
                 label: "Profile",
-                href: "/profile",
+                href: "/settings/profile",
                 icon: <Person />,
                 description: "Public profile page"
             },

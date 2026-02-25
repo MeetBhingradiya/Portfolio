@@ -183,7 +183,7 @@ function DashboardContent() {
         {
             label: "Profile",
             icon: <Person />,
-            href: "/profile",
+            href: "/settings/profile",
             color: "#3b82f6"
         },
         {
@@ -351,7 +351,7 @@ function DashboardContent() {
                                 </div>
 
                                 {/* Edit Profile Button */}
-                                <Link href="/profile">
+                                <Link href="/settings/profile">
                                     <Button
                                         variant="secondary"
                                         className="flex items-center gap-2"

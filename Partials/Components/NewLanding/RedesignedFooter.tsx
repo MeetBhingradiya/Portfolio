@@ -56,7 +56,7 @@ const footerSections: FooterSection[] = [
         title: "Connect",
         links: [
             { label: "Contact", href: "/contact" },
-            { label: "Profile", href: "/profile" },
+            { label: "Profile", href: "/settings/profile" },
             { label: "Tickets", href: "/tickets" }
         ]
     },

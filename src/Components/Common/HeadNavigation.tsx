@@ -29,6 +29,7 @@ import {
     SwapHoriz,
     Logout,
     PhotoCamera,
+    AdminPanelSettings,
     Bookmark,
     SpaceDashboard,
     CalendarMonth,
@@ -176,6 +177,7 @@ export default function HeadNavigation() {
 
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
+    const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || (user as any)?.role === "admin";
 
     // Parse date string in format "dd-mm-yyyy hh:mm AM/PM" (IST timezone +5:30)
     const parseScheduleDate = (dateStr: string): Date => {
@@ -1034,7 +1036,7 @@ export default function HeadNavigation() {
                                                             )}
                                                         </div>
                                                     </div>
-                                                    <Link href="/profile">
+                                                    <Link href="/settings/profile">
                                                         <motion.div
                                                             className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
                                                             whileHover={{
@@ -1071,6 +1073,32 @@ export default function HeadNavigation() {
                                                             </div>
                                                         </motion.div>
                                                     </Link>
+                                                    {isAdmin && (
+                                                        <Link href="/admin">
+                                                            <motion.div
+                                                                className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                                whileHover={{
+                                                                    backgroundColor: isApple
+                                                                        ? isDark ? "rgba(234, 179, 8, 0.12)" : "rgba(234, 179, 8, 0.08)"
+                                                                        : isDark ? "rgba(234, 179, 8, 0.12)" : "rgba(234, 179, 8, 0.08)",
+                                                                    scale: 1.01
+                                                                }}
+                                                                whileTap={{ scale: 0.98 }}
+                                                            >
+                                                                <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: "#eab308" }}>
+                                                                    <AdminPanelSettings />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
+                                                                        Admin Panel
+                                                                    </div>
+                                                                    <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
+                                                                        Manage site content
+                                                                    </div>
+                                                                </div>
+                                                            </motion.div>
+                                                        </Link>
+                                                    )}
                                                     <Link href="/settings">
                                                         <motion.div
                                                             className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
@@ -1218,7 +1246,7 @@ export default function HeadNavigation() {
                     <div className="flex items-center gap-2">
                         {/* User Avatar - mobile top bar */}
                         {isAuthenticated && (
-                            <Link href="/profile" onClick={closeMobileMenu}>
+                            <Link href="/settings/profile" onClick={closeMobileMenu}>
                                 <motion.div whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.05 }}>
                                     {user?.image ? (
                                         <img
@@ -1443,7 +1471,8 @@ export default function HeadNavigation() {
                                         {/* Quick links */}
                                         {[
                                             { label: "Settings", href: "/settings", icon: <Settings className="text-xl" /> },
-                                            { label: "Profile", href: "/profile", icon: <AccountCircle className="text-xl" /> },
+                                            { label: "Profile", href: "/settings/profile", icon: <AccountCircle className="text-xl" /> },
+                                            ...(isAdmin ? [{ label: "Admin Panel", href: "/admin", icon: <AdminPanelSettings className="text-xl" /> }] : []),
                                         ].map((item) => (
                                             <Link key={item.href} href={item.href}>
                                                 <motion.div

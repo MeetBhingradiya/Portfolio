@@ -9,6 +9,7 @@ import { ToastContainer } from "react-toastify";
 // import { generateLicense, LicenseInfo } from "@mui/x-license";
 import HeadNavigation from "@Components/Common/HeadNavigation";
 import FootNavigation from "@Components/Common/FootNavigation";
+import AntiDebuggerShield from "@Components/Common/AntiDebuggerShield";
 
 // muiXTelemetrySettings.disableTelemetry();
 // LicenseInfo.setLicenseKey(
@@ -253,6 +254,9 @@ export default function RootLayout({
                     hideProgressBar={false}
                     stacked
                 />
+
+                {/* Anti-Debugger Shield — client-only, production-only */}
+                <AntiDebuggerShield />
 
                 <Providers>
                     <HeadNavigation />

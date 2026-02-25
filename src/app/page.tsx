@@ -5,7 +5,9 @@
  */
 
 import React from "react";
+import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
+import { Config } from "@Config/Client";
 
 import HeroSection from "@Components/Organisms/Home/Hero";
 import ContactSection from "@Components/Organisms/Home/Contact";
@@ -15,6 +17,51 @@ import { Project_Model, Skill_Model, Experience_Model } from "@Models/Portfolio"
 
 // Vercel ISR — page is statically generated and revalidated every 12 hours.
 export const revalidate = 43200;
+
+export const metadata: Metadata = {
+    title: "Meet Bhingradiya — Full Stack Developer & Portfolio",
+    description:
+        "Welcome to Meet Bhingradiya's portfolio. Full Stack Developer from Surat, India specialising in React, Next.js, TypeScript and Node.js. Explore projects, tools and blog.",
+    keywords: [
+        "Meet Bhingradiya",
+        "Full Stack Developer",
+        "React Developer",
+        "Next.js Developer",
+        "TypeScript Developer",
+        "Node.js Developer",
+        "Software Engineer",
+        "Portfolio",
+        "Surat Gujarat",
+        "Web Developer India",
+        "Open Source",
+        "JavaScript Developer",
+        "Frontend Developer",
+        "Backend Developer"
+    ],
+    alternates: { canonical: Config.Origin },
+    openGraph: {
+        type: "website",
+        url: Config.Origin,
+        title: "Meet Bhingradiya — Full Stack Developer",
+        description:
+            "Full Stack Developer from Surat, India. Explore projects, open-source work, developer tools and blog.",
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Meet Bhingradiya — Full Stack Developer Portfolio"
+            }
+        ]
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Meet Bhingradiya — Full Stack Developer",
+        description:
+            "Full Stack Developer from Surat, India. Projects, tools, blog and more.",
+        images: ["/assets/og-image.png"]
+    }
+};
 
 // ---------------------------------------------------------------------------
 // Cached DB fetchers — results are memoised at the React-cache layer and

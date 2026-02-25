@@ -8,6 +8,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { Config } from "@Config/Client";
 import {
     PictureAsPdf,
     Refresh,
@@ -92,7 +93,7 @@ export default function ResumeBuilderPage() {
         email: "",
         phone: "",
         location: "Surat, Gujarat, India",
-        website: "https://meetbhingradiya.com",
+        website: Config.Origin,
         github: "https://github.com/MeetBhingradiya",
         linkedin: "",
         summary: "Passionate full-stack developer with expertise in modern web technologies and a focus on building scalable, user-centric applications."

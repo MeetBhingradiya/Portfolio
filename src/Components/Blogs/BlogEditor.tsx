@@ -12,6 +12,7 @@ import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { BlogStatus, BlogCategory } from "@/Types/Blog";
+import { Config } from "@Config/Client";
 import BuildIcon from "@mui/icons-material/Build";
 import SaveIcon from "@mui/icons-material/Save";
 import SendIcon from "@mui/icons-material/Send";
@@ -577,7 +578,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                             </div>
                             <div className="p-3 rounded-xl text-xs" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}>
                                 <div className="font-semibold mb-1" style={{ color: "#1a0dab" }}>{draft.metaTitle || draft.title || "Post Title"}</div>
-                                <div className="text-green-600 text-xs mb-1">meetbhingradiya.com/blogs/{draft.slug || "slug"}</div>
+                                <div className="text-green-600 text-xs mb-1">{new URL(Config.Origin).hostname}/blogs/{draft.slug || "slug"}</div>
                                 <div style={{ color: palette.textSecondary }}>{draft.metaDescription || draft.excerpt || "Description…"}</div>
                             </div>
                         </div>

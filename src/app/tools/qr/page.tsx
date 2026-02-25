@@ -13,6 +13,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
+import { Config } from "@Config/Client";
 import {
     QrCode2,
     ContentCopy,
@@ -367,7 +368,7 @@ const defaultGradient = (c1 = "#000000", c2 = "#ffffff"): Gradient => ({
 
 const DEFAULT_STATE: QRState = {
     dataType: "url",
-    text: "https://meetbhingradiya.com",
+    text: Config.Origin,
     upi: {
         pa: "meetbhingradiya@pingpay", pn: "Buy a Coffee to Meet Bhingradiya",
         am: "100", mc: "", tr: "", url: "", cu: "INR", tid: "", tn: "", gstBrkUp: "",
@@ -378,7 +379,7 @@ const DEFAULT_STATE: QRState = {
     vcard: {
         name: "Meet Bhingradiya", phone: "+911234567890", email: "meet@example.com",
         org: "Tech Company", title: "Software Engineer",
-        address: "123 Tech Street, Mumbai, India", url: "https://meetbhingradiya.com",
+        address: "123 Tech Street, Mumbai, India", url: Config.Origin,
     },
     email: { to: "meet@example.com", subject: "Hello from QR Code", body: "This is a message from a QR code!" },
     drawType: "svg",

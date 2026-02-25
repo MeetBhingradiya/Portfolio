@@ -4,6 +4,7 @@
  */
 
 import type { Metadata } from "next";
+import { Config } from "@Config/Client";
 import {
     cachedExperience,
     cachedSkills,
@@ -15,17 +16,38 @@ import ExperienceView from "@Components/Organisms/Experience/ExperienceView";
 export const revalidate = 43200;
 
 export const metadata: Metadata = {
-    title: "Experience | Meet Bhingradiya",
+    title: "Experience & Skills | Meet Bhingradiya",
     description:
-        "Full work experience, skills, education and certifications of Meet Bhingradiya.",
+        "Full work experience, technical skills, education and professional certifications of Meet Bhingradiya — Full Stack Developer from Surat, Gujarat, India.",
     keywords: [
-        "experience",
+        "Meet Bhingradiya experience",
+        "Full Stack Developer experience",
         "work history",
-        "skills",
-        "certificates",
-        "software engineer",
-        "portfolio"
-    ]
+        "technical skills",
+        "React skills",
+        "Next.js skills",
+        "TypeScript skills",
+        "Node.js skills",
+        "professional certifications",
+        "software engineer portfolio",
+        "developer skills list",
+        "GitHub contributions"
+    ],
+    alternates: { canonical: `${Config.Origin}/experience` },
+    openGraph: {
+        type: "website",
+        url: `${Config.Origin}/experience`,
+        title: "Experience & Skills | Meet Bhingradiya",
+        description:
+            "Work experience, technical skills, education and certifications of Meet Bhingradiya.",
+        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Meet Bhingradiya Experience" }]
+    },
+    twitter: {
+        card: "summary_large_image",
+        title: "Experience & Skills | Meet Bhingradiya",
+        description: "Work experience, skills, education and certifications.",
+        images: ["/assets/og-image.png"]
+    }
 };
 
 export default async function ExperiencePage() {

@@ -4,11 +4,9 @@
  *   https://meetbhingradiya.shop/sitemap.xml
  */
 import { NextResponse } from "next/server";
+import { Config } from "@Config/Client";
 
-const BASE_URL =
-    process.env.NEXT_PUBLIC_APP_URL ||
-    process.env.VERCEL_PROJECT_PRODUCTION_URL ||
-    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "https://meetbhingradiya.shop");
+const BASE_URL = Config.Origin;
 
 const routes: { path: string; changefreq: string; priority: string }[] = [
     // Main

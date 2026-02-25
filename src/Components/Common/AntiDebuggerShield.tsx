@@ -11,12 +11,13 @@
  *
  * COUNTERMEASURES APPLIED ON DETECTION
  * ──────────────────────────────────────
- *  1. Redirect to the maintenance page so the UI disappears.
+ *  1. Emit an obfuscated beacon to /api/security/debugger-trap (server log).
  *  2. Clear sensitive values from localStorage / sessionStorage.
  *  3. Freeze the page (document.documentElement.innerHTML = "") so scrapers
  *     can't harvest content after bypassing the redirect.
- *  4. Emit an obfuscated beacon to the /api/security/debugger-trap endpoint
- *     (server-side rate-limit / logging).
+ *  4. Check /api/security/site-status:
+ *       • Maintenance ON  → redirect to /maintenance.
+ *       • Maintenance OFF → redirect to the referrer (back page) or / (home).
  *
  * PRODUCTION ONLY
  * ───────────────
@@ -72,6 +73,40 @@ async function emitBeacon(detail: string): Promise<void> {
     }
 }
 
+/**
+ * Resolve where to send the user after a threat is confirmed.
+ *  • Maintenance ON  → /maintenance
+ *  • Maintenance OFF → referrer (the page they came from) or / (home)
+ */
+async function resolveRedirectTarget(): Promise<string> {
+    try {
+        const res = await fetch("/api/security/site-status", {
+            method: "GET",
+            cache: "no-store",
+        });
+        if (res.ok) {
+            const data = (await res.json()) as { maintenanceMode: boolean };
+            if (data.maintenanceMode) return "/maintenance";
+        }
+    } catch {
+        /* network error — fall through to home */
+    }
+
+    // Not in maintenance — go back to the previous page or home
+    const referrer = document.referrer;
+    if (referrer) {
+        try {
+            const ref = new URL(referrer);
+            // Only use the referrer if it is same-origin (security)
+            if (ref.origin === location.origin) return ref.pathname + ref.search;
+        } catch {
+            /* malformed referrer */
+        }
+    }
+
+    return "/";
+}
+
 /** React to a confirmed threat. */
 function handleThreat(detail: string): void {
     // 1. Emit beacon FIRST (survives redirect)
@@ -88,14 +123,16 @@ function handleThreat(detail: string): void {
         /* already navigating */
     }
 
-    // 4. Navigate away — small timeout so beacon can be sent
-    setTimeout(() => {
-        try {
-            location.replace("/maintenance");
-        } catch {
-            location.href = "/maintenance";
-        }
-    }, 200);
+    // 4. Resolve target then navigate — small timeout so beacon can be sent
+    resolveRedirectTarget().then((target) => {
+        setTimeout(() => {
+            try {
+                location.replace(target);
+            } catch {
+                location.href = target;
+            }
+        }, 200);
+    });
 }
 
 /* ─────────────────────────────────────────────────────────────────────────── */

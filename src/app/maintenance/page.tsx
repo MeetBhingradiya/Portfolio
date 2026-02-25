@@ -18,18 +18,45 @@ function MaintenanceContent() {
 
     useEffect(() => {
         const queryMsg = searchParams.get("message");
-        if (queryMsg) {
-            setMessage(decodeURIComponent(queryMsg));
-            return;
-        }
+
         fetch("/api/maintenance-status")
             .then((r) => r.json())
             .then((d) => {
-                if (d.maintenanceMode && d.maintenanceMessage) {
+                // ── Maintenance is OFF — redirect the user away ───────────
+                if (!d.maintenanceMode) {
+                    const referrer = document.referrer;
+                    let target = "/";
+
+                    if (referrer) {
+                        try {
+                            const ref = new URL(referrer);
+                            // Only follow same-origin referrers (security)
+                            if (
+                                ref.origin === location.origin &&
+                                ref.pathname !== "/maintenance"
+                            ) {
+                                target = ref.pathname + ref.search;
+                            }
+                        } catch {
+                            /* malformed referrer — fall back to home */
+                        }
+                    }
+
+                    location.replace(target);
+                    return;
+                }
+
+                // ── Maintenance is ON — show the message ─────────────────
+                if (queryMsg) {
+                    setMessage(decodeURIComponent(queryMsg));
+                } else if (d.maintenanceMessage) {
                     setMessage(d.maintenanceMessage);
                 }
             })
-            .catch(() => {});
+            .catch(() => {
+                // API unreachable — show page normally with query message if any
+                if (queryMsg) setMessage(decodeURIComponent(queryMsg));
+            });
     }, [searchParams]);
 
     useEffect(() => {

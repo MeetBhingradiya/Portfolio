@@ -35,6 +35,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     const [isOpen, setIsOpen] = useState(false);
     const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0, width: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
     const [mounted, setMounted] = useState(false);
 
     const isApple = designTheme === "apple";
@@ -46,7 +47,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+            const target = event.target as Node;
+            const insideContainer = containerRef.current?.contains(target);
+            const insideDropdown = dropdownRef.current?.contains(target);
+            if (!insideContainer && !insideDropdown) {
                 setIsOpen(false);
             }
         };
@@ -89,6 +93,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
                 transition={{ duration: 0.15 }}
+                ref={dropdownRef}
                 style={{
                     position: "fixed",
                     top: dropdownPos.top,

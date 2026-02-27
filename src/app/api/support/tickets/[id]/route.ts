@@ -118,7 +118,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
 
         await ticket.save();
-        return NextResponse.json({ success: true, data: ticket });
+        return NextResponse.json({ success: true, data: ticket.toObject() });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 400 });
     }

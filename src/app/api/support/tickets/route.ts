@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
             tags: body.tags || [],
         });
 
-        return NextResponse.json({ success: true, data: ticket }, { status: 201 });
+        return NextResponse.json({ success: true, data: ticket.toObject() }, { status: 201 });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 400 });
     }

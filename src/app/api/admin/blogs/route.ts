@@ -61,16 +61,19 @@ export async function PUT(req: NextRequest) {
 
         const session = await getSession(req.headers);
         const body = await req.json();
-        const { _id, action, rejectionReason, ...fields } = body;
+        const { _id: bodyId, action, rejectionReason, ...fields } = body;
 
-        if (!_id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
-        const blog = await Blog.findById(_id);
+        // Accept id from query param (?id=) or from request body (_id / id)
+        const id = req.nextUrl.searchParams.get("id") || bodyId || body.id;
+        if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+
+        const blog = await Blog.findById(id);
         if (!blog) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
         let update: any = { ...fields };
 
         if (action === "approve") {
-            const targetStatus = fields.status || BlogStatus.Published;
+            const targetStatus = fields.status || body.status || BlogStatus.Published;
             update = {
                 ...update,
                 status: targetStatus,
@@ -85,13 +88,13 @@ export async function PUT(req: NextRequest) {
         } else if (action === "reject") {
             update = {
                 status: BlogStatus.Rejected,
-                rejectionReason: rejectionReason || "Did not meet publishing standards.",
+                rejectionReason: rejectionReason || body.rejectionReason || "Did not meet publishing standards.",
                 approvedBy: undefined,
                 approvedAt: undefined
             };
         }
 
-        const updated = await Blog.findByIdAndUpdate(_id, update, { new: true, runValidators: true });
+        const updated = await Blog.findByIdAndUpdate(id, update, { new: true, runValidators: true });
         return NextResponse.json({ success: true, data: updated });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") {

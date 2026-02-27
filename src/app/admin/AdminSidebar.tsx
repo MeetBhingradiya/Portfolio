@@ -29,25 +29,55 @@ import {
     PhotoCamera,
     CloudUpload,
     Construction,
-    Article
+    Article,
+    ConfirmationNumber,
+    ShoppingBag,
+    Receipt,
+    AssignmentReturn,
+    HelpOutline,
+    ManageAccounts,
+    SupportAgent,
+    LocalOffer,
+    ToggleOn,
 } from "@mui/icons-material";
 
 const navItems = [
-    { href: "/admin", label: "Dashboard", icon: <Dashboard fontSize="small" />, exact: true },
-    { href: "/admin/users", label: "Users", icon: <People fontSize="small" /> },
-    { href: "/admin/sitemap", label: "Sitemap", icon: <MapOutlined fontSize="small" /> },
-    { href: "/admin/projects", label: "Projects", icon: <Folder fontSize="small" /> },
-    { href: "/admin/skills", label: "Skills", icon: <Code fontSize="small" /> },
-    { href: "/admin/education", label: "Education", icon: <School fontSize="small" /> },
-    { href: "/admin/experience", label: "Experience", icon: <Work fontSize="small" /> },
-    { href: "/admin/certificates", label: "Certificates", icon: <WorkspacePremium fontSize="small" /> },
-    { href: "/admin/test-scores", label: "Test Scores", icon: <EmojiEvents fontSize="small" /> },
-    { href: "/admin/resume", label: "Resume Builder", icon: <PictureAsPdf fontSize="small" /> },
-    { href: "/admin/tool-settings", label: "Tool Settings", icon: <Build fontSize="small" /> },
-    { href: "/admin/blogs", label: "Blogs", icon: <Article fontSize="small" /> },
-    { href: "/admin/maintenance", label: "Maintenance", icon: <Construction fontSize="small" /> },
-    { href: "/admin/immich-access", label: "Immich Access", icon: <PhotoCamera fontSize="small" /> },
-    { href: "/admin/cdn", label: "CDN Assets", icon: <CloudUpload fontSize="small" /> },
+    // ── Core ──────────────────────────────────────────────────────────────
+    { href: "/admin", label: "Dashboard", icon: <Dashboard fontSize="small" />, exact: true, group: "core" },
+    { href: "/admin/users", label: "Users", icon: <People fontSize="small" />, group: "core" },
+    { href: "/admin/roles", label: "Roles & Perms", icon: <ManageAccounts fontSize="small" />, group: "core" },
+    // ── Support ───────────────────────────────────────────────────────────
+    { href: "/admin/tickets", label: "Tickets", icon: <ConfirmationNumber fontSize="small" />, group: "support" },
+    { href: "/admin/faq", label: "FAQ / Help", icon: <HelpOutline fontSize="small" />, group: "support" },
+    { href: "/employee", label: "Employee Hub", icon: <SupportAgent fontSize="small" />, group: "support" },
+    // ── Shop ──────────────────────────────────────────────────────────────
+    { href: "/admin/products", label: "Products", icon: <LocalOffer fontSize="small" />, group: "shop" },
+    { href: "/admin/orders", label: "Orders", icon: <ShoppingBag fontSize="small" />, group: "shop" },
+    { href: "/admin/refunds", label: "Refunds", icon: <AssignmentReturn fontSize="small" />, group: "shop" },
+    // ── Portfolio ─────────────────────────────────────────────────────────
+    { href: "/admin/sitemap", label: "Sitemap", icon: <MapOutlined fontSize="small" />, group: "portfolio" },
+    { href: "/admin/projects", label: "Projects", icon: <Folder fontSize="small" />, group: "portfolio" },
+    { href: "/admin/skills", label: "Skills", icon: <Code fontSize="small" />, group: "portfolio" },
+    { href: "/admin/education", label: "Education", icon: <School fontSize="small" />, group: "portfolio" },
+    { href: "/admin/experience", label: "Experience", icon: <Work fontSize="small" />, group: "portfolio" },
+    { href: "/admin/certificates", label: "Certificates", icon: <WorkspacePremium fontSize="small" />, group: "portfolio" },
+    { href: "/admin/test-scores", label: "Test Scores", icon: <EmojiEvents fontSize="small" />, group: "portfolio" },
+    { href: "/admin/resume", label: "Resume Builder", icon: <PictureAsPdf fontSize="small" />, group: "portfolio" },
+    { href: "/admin/blogs", label: "Blogs", icon: <Article fontSize="small" />, group: "portfolio" },
+    // ── System ────────────────────────────────────────────────────────────
+    { href: "/admin/features", label: "Features", icon: <ToggleOn fontSize="small" />, group: "system" },
+    { href: "/admin/tool-settings", label: "Tool Settings", icon: <Build fontSize="small" />, group: "system" },
+    { href: "/admin/maintenance", label: "Maintenance", icon: <Construction fontSize="small" />, group: "system" },
+    { href: "/admin/immich-access", label: "Immich Access", icon: <PhotoCamera fontSize="small" />, group: "system" },
+    { href: "/admin/cdn", label: "CDN Assets", icon: <CloudUpload fontSize="small" />, group: "system" },
+];
+
+const groups: { key: string; label: string }[] = [
+    { key: "core", label: "Core" },
+    { key: "support", label: "Support" },
+    { key: "shop", label: "Shop" },
+    { key: "portfolio", label: "Portfolio" },
+    { key: "system", label: "System" },
 ];
 
 export default function AdminSidebar() {
@@ -114,45 +144,67 @@ export default function AdminSidebar() {
             </div>
 
             {/* Nav Items */}
-            <nav className="flex-1 overflow-y-auto py-3 space-y-1 px-2">
-                {navItems.map((item) => {
-                    const active = isActive(item.href, item.exact);
+            <nav className="flex-1 overflow-y-auto py-3 px-2">
+                {groups.map(group => {
+                    const items = navItems.filter(n => n.group === group.key);
                     return (
-                        <Link key={item.href} href={item.href}>
-                            <motion.div
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer select-none"
-                                style={{
-                                    background: active
-                                        ? isApple
-                                            ? `${palette.accent}22`
-                                            : `${palette.accent}18`
-                                        : "transparent",
-                                    color: active ? palette.accent : palette.textSecondary,
-                                    fontWeight: active ? 700 : 500
-                                }}
-                                whileHover={{
-                                    background: active
-                                        ? `${palette.accent}22`
-                                        : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
-                                }}
-                            >
-                                <div className="flex-shrink-0" style={{ color: active ? palette.accent : palette.textTertiary }}>
-                                    {item.icon}
-                                </div>
-                                <AnimatePresence>
-                                    {!collapsed && (
-                                        <motion.span
-                                            initial={{ opacity: 0 }}
-                                            animate={{ opacity: 1 }}
-                                            exit={{ opacity: 0 }}
-                                            className="text-sm whitespace-nowrap"
-                                        >
-                                            {item.label}
-                                        </motion.span>
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        </Link>
+                        <div key={group.key} className="mb-2">
+                            <AnimatePresence>
+                                {!collapsed && (
+                                    <motion.p
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="text-xs font-black uppercase tracking-widest px-3 py-1.5"
+                                        style={{ color: palette.textTertiary }}
+                                    >
+                                        {group.label}
+                                    </motion.p>
+                                )}
+                            </AnimatePresence>
+                            <div className="space-y-0.5">
+                                {items.map((item) => {
+                                    const active = isActive(item.href, item.exact);
+                                    return (
+                                        <Link key={item.href} href={item.href}>
+                                            <motion.div
+                                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer select-none"
+                                                style={{
+                                                    background: active
+                                                        ? isApple
+                                                            ? `${palette.accent}22`
+                                                            : `${palette.accent}18`
+                                                        : "transparent",
+                                                    color: active ? palette.accent : palette.textSecondary,
+                                                    fontWeight: active ? 700 : 500
+                                                }}
+                                                whileHover={{
+                                                    background: active
+                                                        ? `${palette.accent}22`
+                                                        : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
+                                                }}
+                                            >
+                                                <div className="flex-shrink-0" style={{ color: active ? palette.accent : palette.textTertiary }}>
+                                                    {item.icon}
+                                                </div>
+                                                <AnimatePresence>
+                                                    {!collapsed && (
+                                                        <motion.span
+                                                            initial={{ opacity: 0 }}
+                                                            animate={{ opacity: 1 }}
+                                                            exit={{ opacity: 0 }}
+                                                            className="text-sm whitespace-nowrap"
+                                                        >
+                                                            {item.label}
+                                                        </motion.span>
+                                                    )}
+                                                </AnimatePresence>
+                                            </motion.div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     );
                 })}
             </nav>

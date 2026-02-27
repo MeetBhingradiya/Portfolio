@@ -372,3 +372,148 @@ export async function githubDelete(
         throw new Error(`GitHub delete failed in "${repo}" (${res.status}): ${body}`);
     }
 }
+
+// ---------------------------------------------------------------------------
+// Commit History — list all commits that touched a specific file path
+// ---------------------------------------------------------------------------
+
+export interface GitHubCommit {
+    sha: string;
+    shortSha: string;
+    message: string;
+    authorName: string;
+    authorEmail: string;
+    authorDate: string;   // ISO 8601
+    htmlUrl: string;
+}
+
+/**
+ * List all commits in a repo that touched the given file path.
+ * Returns newest-first (GitHub default).
+ * @param repo   Short repo name, e.g. "PrivateCloud-1"
+ * @param path   Path inside the repo, e.g. "uploads/banners/abc123.png"
+ * @param perPage Max commits to return (default 50)
+ */
+export async function githubListCommits(
+    repo: string,
+    path: string,
+    perPage = 50
+): Promise<GitHubCommit[]> {
+    const tk = getToken();
+    const ow = getOwner();
+    const br = getBranch();
+
+    const url =
+        `${BASE}/repos/${ow}/${repo}/commits` +
+        `?path=${encodeURIComponent(path)}&sha=${br}&per_page=${perPage}`;
+
+    const res = await fetch(url, { headers: ghHeaders(tk), cache: "no-store" });
+
+    if (!res.ok) {
+        const body = await res.text();
+        throw new Error(`GitHub commit list failed in "${repo}" (${res.status}): ${body}`);
+    }
+
+    const commits: any[] = await res.json();
+    return commits.map((c) => ({
+        sha: c.sha as string,
+        shortSha: (c.sha as string).slice(0, 7),
+        message: (c.commit?.message as string) || "",
+        authorName: (c.commit?.author?.name as string) || "",
+        authorEmail: (c.commit?.author?.email as string) || "",
+        authorDate: (c.commit?.author?.date as string) || "",
+        htmlUrl: (c.html_url as string) || "",
+    }));
+}
+
+// ---------------------------------------------------------------------------
+// Restore — re-upload the blob from a specific historical commit
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch the raw file content of `path` at a specific commit SHA and
+ * re-upload it to the HEAD of the same repo, returning the new blob SHA.
+ *
+ * @param repo        Short repo name, e.g. "PrivateCloud-1"
+ * @param path        Path inside the repo
+ * @param commitSha   The commit whose tree should be read (full SHA)
+ * @returns           New blob SHA after re-upload
+ */
+export async function githubRestoreFromCommit(
+    repo: string,
+    path: string,
+    commitSha: string
+): Promise<{ newSha: string; size: number }> {
+    const tk = getToken();
+    const ow = getOwner();
+    const br = getBranch();
+
+    // 1. Get the tree SHA for this commit
+    const commitRes = await fetch(`${BASE}/repos/${ow}/${repo}/commits/${commitSha}`, {
+        headers: ghHeaders(tk),
+        cache: "no-store",
+    });
+    if (!commitRes.ok) {
+        const body = await commitRes.text();
+        throw new Error(`Cannot fetch commit ${commitSha} (${commitRes.status}): ${body}`);
+    }
+    const commitData = await commitRes.json();
+    const treeSha = commitData.commit?.tree?.sha as string;
+    if (!treeSha) throw new Error("Commit has no tree SHA");
+
+    // 2. Find the blob SHA for the specific file in that tree (recursive)
+    const treeRes = await fetch(
+        `${BASE}/repos/${ow}/${repo}/git/trees/${treeSha}?recursive=1`,
+        { headers: ghHeaders(tk), cache: "no-store" }
+    );
+    if (!treeRes.ok) {
+        const body = await treeRes.text();
+        throw new Error(`Cannot read tree ${treeSha} (${treeRes.status}): ${body}`);
+    }
+    const treeData = await treeRes.json();
+    const entry = (treeData.tree as any[]).find((e: any) => e.path === path);
+    if (!entry) {
+        throw new Error(`File "${path}" not found in commit ${commitSha}`);
+    }
+    const blobSha = entry.sha as string;
+
+    // 3. Download the blob bytes
+    const blobRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/blobs/${blobSha}`, {
+        headers: { ...ghHeaders(tk), Accept: "application/vnd.github.raw+json" },
+        cache: "no-store",
+    });
+    if (!blobRes.ok) {
+        const body = await blobRes.text();
+        throw new Error(`Cannot download blob ${blobSha} (${blobRes.status}): ${body}`);
+    }
+    const buffer = Buffer.from(await blobRes.arrayBuffer());
+
+    // 4. Check if the file still exists at HEAD so we can provide the correct SHA for the update
+    const headMeta = await githubStat(repo, path);
+
+    const putBody: Record<string, any> = {
+        message: `cdn: restore "${path}" from commit ${commitSha.slice(0, 7)}`,
+        content: buffer.toString("base64"),
+        branch: br,
+    };
+    if (headMeta) putBody.sha = headMeta.sha;  // required to overwrite existing file
+
+    // 5. Re-upload to HEAD
+    const putUrl = `${BASE}/repos/${ow}/${repo}/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}`;
+    const putRes = await fetch(putUrl, {
+        method: "PUT",
+        headers: ghHeaders(tk),
+        body: JSON.stringify(putBody),
+    });
+
+    if (!putRes.ok) {
+        const body = await putRes.text();
+        throw new Error(`Cannot restore file to HEAD (${putRes.status}): ${body}`);
+    }
+
+    const putData = await putRes.json();
+    return {
+        newSha: putData.content.sha as string,
+        size: buffer.length,
+    };
+}

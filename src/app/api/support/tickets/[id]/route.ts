@@ -5,9 +5,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
+import mongoose from "mongoose";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket } from "@Models/SupportTicket";
 import { getResolvedUser } from "@Utils/RolePermissions";
+
+/** Build a query that matches by ticketId string OR _id (only when id is a valid ObjectId). */
+function ticketQuery(id: string) {
+    return mongoose.isValidObjectId(id)
+        ? { $or: [{ _id: id }, { ticketId: id }] }
+        : { ticketId: id };
+}
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     try {
@@ -17,7 +25,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const ticket = await SupportTicket.findOne({
-            $or: [{ _id: params.id }, { ticketId: params.id }],
+            ...ticketQuery(params.id),
             isDeleted: false,
         }).lean();
 
@@ -49,7 +57,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
         const body = await req.json();
         const ticket = await SupportTicket.findOne({
-            $or: [{ _id: params.id }, { ticketId: params.id }],
+            ...ticketQuery(params.id),
             isDeleted: false,
         });
 
@@ -124,7 +132,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         if (!user?.isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 
         await SupportTicket.findOneAndUpdate(
-            { $or: [{ _id: params.id }, { ticketId: params.id }] },
+            ticketQuery(params.id),
             { isDeleted: true }
         );
         return NextResponse.json({ success: true });

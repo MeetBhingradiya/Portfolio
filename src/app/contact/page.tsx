@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { contactMethods, quickActions, contactTemplates, personalInfo } from "@Static/Contact_Data";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 interface ContactFormData {
     name: string;
@@ -409,28 +410,20 @@ function ContactPageContent() {
                                         >
                                             Project Type *
                                         </label>
-                                        <select
-                                            name="projectType"
+                                        <CustomSelect
                                             value={formData.projectType}
-                                            onChange={handleInputChange}
-                                            required
-                                            className="w-full px-4 py-3 rounded-2xl border-none outline-none"
-                                            style={{
-                                                background: isDark
-                                                    ? "rgba(255, 255, 255, 0.05)"
-                                                    : "rgba(0, 0, 0, 0.03)",
-                                                color: palette.textPrimary,
-                                                fontSize: "16px"
-                                            }}
-                                        >
-                                            <option value="general">General Inquiry</option>
-                                            <option value="staff-engineer">Hiring - Full Stack Role</option>
-                                            <option value="collaboration">Project Collaboration</option>
-                                            <option value="technical-consultation">Technical Consultation</option>
-                                            <option value="custom-development">Custom Development</option>
-                                            <option value="security-audit">Security Audit</option>
-                                            <option value="mentorship">Mentorship</option>
-                                        </select>
+                                            onChange={v => setFormData(prev => ({ ...prev, projectType: v }))}
+                                            options={[
+                                                { value: "general", label: "General Inquiry" },
+                                                { value: "staff-engineer", label: "Hiring - Full Stack Role" },
+                                                { value: "collaboration", label: "Project Collaboration" },
+                                                { value: "technical-consultation", label: "Technical Consultation" },
+                                                { value: "custom-development", label: "Custom Development" },
+                                                { value: "security-audit", label: "Security Audit" },
+                                                { value: "mentorship", label: "Mentorship" },
+                                            ]}
+                                            placeholder="Select Project Type"
+                                        />
                                     </div>
                                 </div>
 
@@ -651,6 +644,61 @@ function ContactPageContent() {
                         ))}
                     </motion.div>
                 </div>
+
+                {/* Support Hub Banner */}
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.45 }}
+                    className="mb-8"
+                >
+                    <div
+                        className="rounded-3xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4"
+                        style={{
+                            background: isApple
+                                ? `linear-gradient(135deg, ${palette.accent}18 0%, ${palette.accent}08 100%)`
+                                : `${palette.accent}12`,
+                            border: `1px solid ${palette.accent}30`,
+                            backdropFilter: isApple ? "blur(20px)" : "none",
+                        }}
+                    >
+                        <div>
+                            <p
+                                className={`${isApple ? "text-lg font-semibold" : "text-xl font-black"} mb-1`}
+                                style={{ color: palette.textPrimary }}
+                            >
+                                Need product support?
+                            </p>
+                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                Visit the Help Center for FAQs, or open a tracked support ticket for faster assistance.
+                            </p>
+                        </div>
+                        <div className="flex gap-3 flex-shrink-0">
+                            <Link href="/support">
+                                <motion.button
+                                    whileTap={{ scale: 0.96 }}
+                                    className="px-4 py-2.5 rounded-xl text-sm font-bold"
+                                    style={{
+                                        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                                        color: palette.textPrimary,
+                                        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
+                                    }}
+                                >
+                                    Help Center
+                                </motion.button>
+                            </Link>
+                            <Link href="/support/tickets/new">
+                                <motion.button
+                                    whileTap={{ scale: 0.96 }}
+                                    className="px-4 py-2.5 rounded-xl text-sm font-bold"
+                                    style={{ background: palette.accent, color: "#fff" }}
+                                >
+                                    Open a Ticket
+                                </motion.button>
+                            </Link>
+                        </div>
+                    </div>
+                </motion.div>
 
                 {/* Quick Templates */}
                 <motion.div

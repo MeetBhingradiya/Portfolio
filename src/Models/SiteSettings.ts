@@ -5,6 +5,16 @@
 
 import mongoose from "mongoose";
 
+const PaymentProviderSchema = new mongoose.Schema(
+    {
+        enabled:   { type: Boolean, default: false },
+        publicKey: { type: String, default: "" },
+        secretKey: { type: String, default: "" },
+        extra:     { type: mongoose.Schema.Types.Mixed, default: {} },
+    },
+    { _id: false }
+);
+
 const SiteSettings_Schema = new mongoose.Schema(
     {
         ConfigID: {
@@ -13,6 +23,7 @@ const SiteSettings_Schema = new mongoose.Schema(
             unique: true,
             index: true
         },
+        // ── Maintenance ─────────────────────────────────────────────────
         maintenanceMode: {
             type: Boolean,
             default: false
@@ -24,6 +35,23 @@ const SiteSettings_Schema = new mongoose.Schema(
         maintenanceUpdatedBy: {
             type: String,
             default: ""
+        },
+        // ── Feature Flags ────────────────────────────────────────────────
+        allowSignup: {
+            type: Boolean,
+            default: true
+        },
+        shopEnabled: {
+            type: Boolean,
+            default: false
+        },
+        // ── Payment Providers ────────────────────────────────────────────
+        paymentProviders: {
+            stripe: { type: PaymentProviderSchema, default: () => ({}) },
+            razorpay: { type: PaymentProviderSchema, default: () => ({}) },
+            paypal: { type: PaymentProviderSchema, default: () => ({}) },
+            lemonSqueezy: { type: PaymentProviderSchema, default: () => ({}) },
+            paddle: { type: PaymentProviderSchema, default: () => ({}) },
         }
     },
     {
@@ -32,11 +60,27 @@ const SiteSettings_Schema = new mongoose.Schema(
     }
 );
 
+export interface IPaymentProvider {
+    enabled: boolean;
+    publicKey: string;
+    secretKey: string;
+    extra: Record<string, unknown>;
+}
+
 export interface ISiteSettings extends mongoose.Document {
     ConfigID: string;
     maintenanceMode: boolean;
     maintenanceMessage: string;
     maintenanceUpdatedBy: string;
+    allowSignup: boolean;
+    shopEnabled: boolean;
+    paymentProviders: {
+        stripe: IPaymentProvider;
+        razorpay: IPaymentProvider;
+        paypal: IPaymentProvider;
+        lemonSqueezy: IPaymentProvider;
+        paddle: IPaymentProvider;
+    };
     createdAt: Date;
     updatedAt: Date;
 }

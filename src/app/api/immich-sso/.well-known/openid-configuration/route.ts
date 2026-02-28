@@ -4,6 +4,7 @@
  *
  * In Immich Admin Settings → OAuth, set:
  *   Issuer URL: https://<your-domain>/api/immich-sso
+ *   (do NOT include /authorize or ?_gate= — Immich discovers those from this document)
  */
 import { NextResponse } from "next/server";
 import { getIssuer } from "@Utils/OIDCKeys";
@@ -12,10 +13,13 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
     const issuer = getIssuer();
+    const gateKey = process.env.IMMICH_SSO_GATE_KEY ?? "";
 
     const config = {
         issuer,
-        authorization_endpoint: `${issuer}/authorize`,
+        authorization_endpoint: gateKey
+            ? `${issuer}/authorize?_gate=${encodeURIComponent(gateKey)}`
+            : `${issuer}/authorize`,
         token_endpoint: `${issuer}/token`,
         userinfo_endpoint: `${issuer}/userinfo`,
         jwks_uri: `${issuer}/jwks`,

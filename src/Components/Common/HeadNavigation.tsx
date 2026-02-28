@@ -141,7 +141,7 @@ const menuCategories: MenuCategory[] = [
             },
             {
                 label: "Photos",
-                href: "https://photos.meetbhingradiya.shop",
+                href: "/api/photos",
                 description: "Private photo library",
                 icon: <PhotoCamera />
             },

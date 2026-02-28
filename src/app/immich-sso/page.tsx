@@ -5,14 +5,25 @@
  * Shown after Immich redirects the user to this OIDC provider.
  * User picks a social provider → better-auth handles the OAuth flow
  * → better-auth redirects to /api/immich-sso/oidc-done
+ *
+ * Security:
+ *  - Must originate from https://photos.meetbhingradiya.shop with OIDC params.
+ *  - If the user is already authenticated, their immich whitelist access is
+ *    checked directly — if granted they are forwarded without re-auth.
+ *  - Otherwise the page shows provider buttons.
  */
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
+import { useRouter } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { authClient } from "@Library/auth-client";
 import Image from "next/image";
+
+const IMMICH_ORIGIN = "https://photos.meetbhingradiya.shop";
+const REQUIRED_PARAMS = ["client_id", "redirect_uri", "response_type"];
+const IMMICH_LOGO_CDN = "https://meetbhingradiya.shop/api/cdn/74b7b2736908460fb8ea6b1bf5d2df8e";
 
 interface Provider {
     id: "google" | "github" | "microsoft" | "apple";
@@ -55,18 +66,67 @@ const PROVIDERS: Provider[] = [
 
 export default function ImmichSSOPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
+    const router = useRouter();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
     const [loading, setLoading] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [authorized, setAuthorized] = useState(false);
+    const [checking, setChecking] = useState(true);
 
     useEffect(() => {
-        // Grab any error from URL params (e.g. access_denied from upstream)
         const params = new URLSearchParams(window.location.search);
+
+        // Grab any upstream OIDC errors first
         const err = params.get("error");
         const desc = params.get("error_description");
-        if (err) setError(desc || err);
-    }, []);
+        if (err) {
+            setError(desc || err);
+        }
+
+        // ── Security gate ────────────────────────────────────────────────────
+        // 1. Must come from the Immich origin (referrer or explicit ref param)
+        const ref = params.get("ref");
+        const referrer = document.referrer;
+        const fromImmich =
+            ref === IMMICH_ORIGIN ||
+            referrer.startsWith(IMMICH_ORIGIN);
+
+        // 2. Must carry at least one OIDC parameter
+        const hasOidcParams = REQUIRED_PARAMS.some((p) => params.has(p));
+
+        if (!fromImmich && !hasOidcParams) {
+            // Not a legitimate OIDC redirect — bounce to home with denial message
+            router.replace("/?notice=immich_access_denied");
+            return;
+        }
+
+        // ── Fast path for already-authenticated users ─────────────────────────
+        // If they are signed in, check their whitelist access server-side.
+        (async () => {
+            try {
+                const session = await authClient.getSession();
+                if (session?.data?.user?.email) {
+                    const res = await fetch("/api/immich-sso/check-access", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email: session.data.user.email }),
+                    });
+                    const json = await res.json();
+                    if (json.granted) {
+                        // Rebuild the OIDC redirect — pass params along to the done handler
+                        const qs = params.toString();
+                        window.location.href = `/api/immich-sso/oidc-done${qs ? `?${qs}` : ""}`;
+                        return;
+                    }
+                }
+            } catch {
+                // ignore — fall through to provider picker
+            }
+            setAuthorized(true);
+            setChecking(false);
+        })();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleProvider = async (provider: Provider) => {
         setLoading(provider.id);
@@ -91,6 +151,23 @@ export default function ImmichSSOPage() {
             : "#fff";
 
     const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
+
+    // While we're performing the security/session check, show a neutral spinner
+    if (checking) {
+        return (
+            <div
+                className="min-h-screen flex items-center justify-center p-4"
+                style={{ background: palette.background }}
+            >
+                <div
+                    className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
+                    style={{ borderColor: `${palette.accent} transparent transparent transparent` }}
+                />
+            </div>
+        );
+    }
+
+    if (!authorized) return null;
 
     return (
         <div
@@ -126,10 +203,15 @@ export default function ImmichSSOPage() {
                             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
                             style={{ background: `${palette.accent}18` }}
                         >
-                            {/* Immich camera icon SVG */}
-                            <svg width="32" height="32" viewBox="0 0 32 32" fill={palette.accent}>
-                                <path d="M27 8h-4.27L21 5H11L9.27 8H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h22a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2zm-11 14a6 6 0 1 1 0-12 6 6 0 0 1 0 12zm0-10a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" />
-                            </svg>
+                            {/* Immich logo from CDN */}
+                            <Image
+                                src={IMMICH_LOGO_CDN}
+                                alt="Immich"
+                                width={36}
+                                height={36}
+                                className="rounded-lg"
+                                unoptimized
+                            />
                         </div>
                         <h1
                             className={`${isApple ? "text-2xl font-bold" : "text-3xl font-black"} mb-1`}

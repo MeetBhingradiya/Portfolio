@@ -173,17 +173,28 @@ export default function CDNAdminPage() {
     // Detail drawer
     const [detailAsset, setDetailAsset] = useState<CDNAsset | null>(null);
 
+    // Pagination
+    const PAGE_SIZE = 20;
+    const [page, setPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
     // Repos
     const [repos, setRepos] = useState<RepoInfo[]>([]);
     const [reposLoading, setReposLoading] = useState(false);
     const [filterRepo, setFilterRepo] = useState("");
 
     // ── Fetch ────────────────────────────────────────────────────────────────
-    const fetchAssets = useCallback(async () => {
+    const fetchAssets = useCallback(async (pageOverride?: number) => {
         setLoading(true);
         setError("");
+        const activePage = pageOverride ?? page;
         try {
-            const params = new URLSearchParams({ search, limit: "100" });
+            const params = new URLSearchParams({
+                search,
+                limit: String(PAGE_SIZE),
+                page: String(activePage),
+            });
             if (filterType) params.set("type", filterType);
             if (filterStatus) params.set("status", filterStatus);
             if (filterRepo) params.set("repo", filterRepo);
@@ -193,12 +204,16 @@ export default function CDNAdminPage() {
             if (!res.ok) throw new Error(data.error || "Failed to load");
             setAssets(data.assets ?? []);
             setSummary(data.summary ?? { activeCount: 0, missingCount: 0, totalSize: 0 });
+            setTotalCount(data.pagination?.total ?? data.total ?? data.assets?.length ?? 0);
         } catch (e: any) {
             setError(e.message);
         } finally {
             setLoading(false);
         }
-    }, [search, filterType, filterStatus, filterRepo]);
+    }, [search, filterType, filterStatus, filterRepo, page]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Reset to page 1 whenever filters change
+    useEffect(() => { setPage(1); }, [search, filterType, filterStatus, filterRepo]);
 
     useEffect(() => { fetchAssets(); }, [fetchAssets]);
 
@@ -546,6 +561,102 @@ export default function CDNAdminPage() {
                     </div>
                 )}
             </div>
+
+            {/* ── Pagination ───────────────────────────────────────────── */}
+            {totalPages > 1 && (
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        marginTop: 16,
+                        gap: 12,
+                        flexWrap: "wrap",
+                    }}
+                >
+                    <p style={{ color: palette.textSecondary, fontSize: 13 }}>
+                        Showing{" "}
+                        <strong style={{ color: palette.textPrimary }}>
+                            {Math.min((page - 1) * PAGE_SIZE + 1, totalCount)}–{Math.min(page * PAGE_SIZE, totalCount)}
+                        </strong>{" "}
+                        of{" "}
+                        <strong style={{ color: palette.textPrimary }}>{totalCount}</strong>
+                        {" "}assets
+                    </p>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                        {/* Prev */}
+                        <button
+                            disabled={page === 1 || loading}
+                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            style={{
+                                background: inputBg,
+                                border: `1px solid ${border}`,
+                                borderRadius: radius - 8,
+                                padding: "6px 14px",
+                                color: page === 1 ? palette.textTertiary : palette.textPrimary,
+                                fontSize: 13,
+                                fontWeight: 700,
+                                cursor: page === 1 ? "not-allowed" : "pointer",
+                                opacity: page === 1 ? 0.5 : 1,
+                            }}
+                        >
+                            ← Prev
+                        </button>
+
+                        {/* Page buttons */}
+                        {Array.from({ length: totalPages }, (_, i) => i + 1)
+                            .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+                            .reduce<(number | "…")[]>((acc, p, idx, arr) => {
+                                if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
+                                acc.push(p);
+                                return acc;
+                            }, [])
+                            .map((item, idx) =>
+                                item === "…" ? (
+                                    <span key={`ellipsis-${idx}`} style={{ color: palette.textTertiary, fontSize: 13, padding: "0 4px" }}>…</span>
+                                ) : (
+                                    <button
+                                        key={item}
+                                        onClick={() => setPage(item as number)}
+                                        disabled={loading}
+                                        style={{
+                                            background: item === page ? palette.accent : inputBg,
+                                            border: `1px solid ${item === page ? palette.accent : border}`,
+                                            borderRadius: radius - 8,
+                                            padding: "6px 12px",
+                                            color: item === page ? "#fff" : palette.textPrimary,
+                                            fontSize: 13,
+                                            fontWeight: item === page ? 900 : 600,
+                                            cursor: "pointer",
+                                            minWidth: 36,
+                                        }}
+                                    >
+                                        {item}
+                                    </button>
+                                )
+                            )}
+
+                        {/* Next */}
+                        <button
+                            disabled={page === totalPages || loading}
+                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            style={{
+                                background: inputBg,
+                                border: `1px solid ${border}`,
+                                borderRadius: radius - 8,
+                                padding: "6px 14px",
+                                color: page === totalPages ? palette.textTertiary : palette.textPrimary,
+                                fontSize: 13,
+                                fontWeight: 700,
+                                cursor: page === totalPages ? "not-allowed" : "pointer",
+                                opacity: page === totalPages ? 0.5 : 1,
+                            }}
+                        >
+                            Next →
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* ── Upload modal ──────────────────────────────────────────── */}
             <AnimatePresence>

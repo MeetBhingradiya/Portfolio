@@ -2,15 +2,20 @@
  * OIDC Authorization Endpoint
  * GET /api/immich-sso/authorize
  *
- * Validates OIDC request params, stores them in a signed cookie,
- * then redirects the user to the /immich-sso login page where they
- * can pick their OAuth provider (Google, GitHub, Microsoft, Apple).
+ * Security gate (evaluated first):
+ *  1. `_gate` query param must match IMMICH_SSO_GATE_KEY env var.
+ *  2. `Origin` or `Referer` header must originate from the Immich instance.
+ *
+ * If both pass: validates OIDC request params, stores them in a signed
+ * cookie, then redirects the user to /immich-sso login page.
  */
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { getIssuer, validateClient, isRedirectUriAllowed } from "@Utils/OIDCKeys";
 
 export const dynamic = "force-dynamic";
+
+const IMMICH_ORIGIN = "https://photos.meetbhingradiya.shop";
 
 function oidcError(
     redirectUri: string | null,
@@ -44,6 +49,28 @@ export async function GET(req: NextRequest) {
     const state = searchParams.get("state");
     const nonce = searchParams.get("nonce");
     const baseUrl = req.nextUrl.origin;
+
+    // ── Gate key validation ─────────────────────────────────────────────────
+    // The Immich OIDC authorization URL must include ?_gate=<IMMICH_SSO_GATE_KEY>
+    const gateKey = searchParams.get("_gate");
+    const expectedKey = process.env.IMMICH_SSO_GATE_KEY;
+    if (!expectedKey || !gateKey || gateKey !== expectedKey) {
+        console.warn("[authorize] Gate key mismatch — rejecting request");
+        return NextResponse.redirect(new URL("/?notice=immich_access_denied", baseUrl));
+    }
+
+    // ── Origin / Referer validation ─────────────────────────────────────────
+    // Immich runs in the user's browser so the auth redirect sets Origin/Referer
+    // to the Immich instance origin.
+    const origin = req.headers.get("origin") || "";
+    const referer = req.headers.get("referer") || "";
+    const fromImmich =
+        origin.startsWith(IMMICH_ORIGIN) || referer.startsWith(IMMICH_ORIGIN);
+
+    if (!fromImmich) {
+        console.warn("[authorize] Invalid origin/referer — rejecting request", { origin, referer });
+        return NextResponse.redirect(new URL("/?notice=immich_access_denied", baseUrl));
+    }
 
     // Validate response_type
     if (responseType !== "code") {

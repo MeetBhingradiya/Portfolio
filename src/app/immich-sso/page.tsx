@@ -2,27 +2,26 @@
  * Immich SSO — Login Page
  * /immich-sso
  *
- * Shown after Immich redirects the user to this OIDC provider.
- * User picks a social provider → better-auth handles the OAuth flow
- * → better-auth redirects to /api/immich-sso/oidc-done
- *
- * Security:
- *  - Must originate from https://photos.meetbhingradiya.shop with OIDC params.
- *  - If the user is already authenticated, their immich whitelist access is
- *    checked directly — if granted they are forwarded without re-auth.
- *  - Otherwise the page shows provider buttons.
+ * Security model:
+ *  - Gate key + Origin/Referer validated server-side in /api/immich-sso/authorize
+ *    which sets a signed `immich_sso_request` cookie.
+ *  - This page calls /api/immich-sso/validate-gate on mount to verify:
+ *      a) the signed cookie exists and is unexpired (proves legitimate OIDC flow)
+ *      b) if the user is signed in, whether their email is on the whitelist
+ *  - No valid cookie → immediate redirect to home with access-denied notice
+ *  - Signed in + whitelisted → skip provider picker, go straight to oidc-done
+ *  - Signed in + NOT whitelisted → redirect home with not-whitelisted notice
+ *  - Not signed in → show provider picker
  */
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion } from "motion/react";
 import { useRouter } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { authClient } from "@Library/auth-client";
 import Image from "next/image";
 
-const IMMICH_ORIGIN = "https://photos.meetbhingradiya.shop";
-const REQUIRED_PARAMS = ["client_id", "redirect_uri", "response_type"];
 const IMMICH_LOGO_CDN = "https://meetbhingradiya.shop/api/cdn/74b7b2736908460fb8ea6b1bf5d2df8e";
 
 interface Provider {
@@ -64,72 +63,71 @@ const PROVIDERS: Provider[] = [
     },
 ];
 
+type GateState = "checking" | "show_providers" | "redirecting";
+
 export default function ImmichSSOPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const router = useRouter();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
-    const [loading, setLoading] = useState<string | null>(null);
+
+    const [gateState, setGateState] = useState<GateState>("checking");
+    const [loadingProvider, setLoadingProvider] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
-    const [authorized, setAuthorized] = useState(false);
-    const [checking, setChecking] = useState(true);
+    const [statusMsg, setStatusMsg] = useState("Verifying access…");
 
     useEffect(() => {
+        // Surface any upstream OIDC error from Immich (e.g. error=access_denied)
         const params = new URLSearchParams(window.location.search);
+        const oidcErr = params.get("error");
+        const oidcDesc = params.get("error_description");
+        if (oidcErr) setError(oidcDesc || oidcErr);
 
-        // Grab any upstream OIDC errors first
-        const err = params.get("error");
-        const desc = params.get("error_description");
-        if (err) {
-            setError(desc || err);
-        }
-
-        // ── Security gate ────────────────────────────────────────────────────
-        // 1. Must come from the Immich origin (referrer or explicit ref param)
-        const ref = params.get("ref");
-        const referrer = document.referrer;
-        const fromImmich =
-            ref === IMMICH_ORIGIN ||
-            referrer.startsWith(IMMICH_ORIGIN);
-
-        // 2. Must carry at least one OIDC parameter
-        const hasOidcParams = REQUIRED_PARAMS.some((p) => params.has(p));
-
-        if (!fromImmich && !hasOidcParams) {
-            // Not a legitimate OIDC redirect — bounce to home with denial message
-            router.replace("/?notice=immich_access_denied");
-            return;
-        }
-
-        // ── Fast path for already-authenticated users ─────────────────────────
-        // If they are signed in, check their whitelist access server-side.
+        // Call the server-side gate validator — it reads the signed cookie and
+        // the active session, so the client never has to trust URL params or
+        // referrer strings for security decisions.
         (async () => {
             try {
-                const session = await authClient.getSession();
-                if (session?.data?.user?.email) {
-                    const res = await fetch("/api/immich-sso/check-access", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email: session.data.user.email }),
-                    });
-                    const json = await res.json();
-                    if (json.granted) {
-                        // Rebuild the OIDC redirect — pass params along to the done handler
-                        const qs = params.toString();
-                        window.location.href = `/api/immich-sso/oidc-done${qs ? `?${qs}` : ""}`;
-                        return;
-                    }
+                const res = await fetch("/api/immich-sso/validate-gate", {
+                    method: "POST",
+                    credentials: "include",
+                });
+                const data = await res.json();
+
+                // ── Gate invalid (no cookie / expired / tampered) ────────────
+                if (!data.gateValid) {
+                    setGateState("redirecting");
+                    router.replace("/?notice=immich_access_denied");
+                    return;
                 }
+
+                // ── Signed-in user, already whitelisted ─────────────────────
+                if (data.hasAccess && data.email) {
+                    setStatusMsg(`Welcome back, ${data.email}. Redirecting…`);
+                    setGateState("redirecting");
+                    const qs = params.toString();
+                    window.location.href = `/api/immich-sso/oidc-done${qs ? `?${qs}` : ""}`;
+                    return;
+                }
+
+                // ── Signed-in but NOT on whitelist ──────────────────────────
+                if (!data.needsAuth && !data.hasAccess && data.reason === "not_whitelisted") {
+                    setGateState("redirecting");
+                    router.replace("/?notice=immich_not_whitelisted");
+                    return;
+                }
+
+                // ── Not signed in — show provider picker ────────────────────
+                setGateState("show_providers");
             } catch {
-                // ignore — fall through to provider picker
+                // Network error — show provider picker so user can try signing in
+                setGateState("show_providers");
             }
-            setAuthorized(true);
-            setChecking(false);
         })();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleProvider = async (provider: Provider) => {
-        setLoading(provider.id);
+        setLoadingProvider(provider.id);
         setError(null);
         try {
             await authClient.signIn.social({
@@ -138,37 +136,37 @@ export default function ImmichSSOPage() {
             });
         } catch (e: any) {
             setError(e?.message || "Sign-in failed. Please try again.");
-            setLoading(null);
+            setLoadingProvider(null);
         }
     };
 
     const cardBg = isApple
-        ? isDark
-            ? "rgba(28,28,32,0.82)"
-            : "rgba(255,255,255,0.82)"
-        : isDark
-            ? "rgba(24,24,28,0.98)"
-            : "#fff";
+        ? isDark ? "rgba(28,28,32,0.82)" : "rgba(255,255,255,0.82)"
+        : isDark ? "rgba(24,24,28,0.98)" : "#fff";
 
     const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
 
-    // While we're performing the security/session check, show a neutral spinner
-    if (checking) {
+    // ── Loading / redirecting ───────────────────────────────────────────────
+    if (gateState !== "show_providers") {
         return (
             <div
-                className="min-h-screen flex items-center justify-center p-4"
+                className="min-h-screen flex flex-col items-center justify-center gap-4 p-4"
                 style={{ background: palette.background }}
             >
                 <div
                     className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
-                    style={{ borderColor: `${palette.accent} transparent transparent transparent` }}
+                    style={{
+                        borderColor: `${palette.accent} transparent transparent transparent`,
+                    }}
                 />
+                <p className="text-sm font-medium" style={{ color: palette.textSecondary }}>
+                    {statusMsg}
+                </p>
             </div>
         );
     }
 
-    if (!authorized) return null;
-
+    // ── Provider picker ─────────────────────────────────────────────────────
     return (
         <div
             className="min-h-screen flex items-center justify-center p-4"
@@ -197,13 +195,12 @@ export default function ImmichSSOPage() {
                             : "0 24px 80px rgba(0,0,0,0.12)",
                     }}
                 >
-                    {/* Immich logo + header */}
+                    {/* Header */}
                     <div className="text-center mb-8">
                         <div
                             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
                             style={{ background: `${palette.accent}18` }}
                         >
-                            {/* Immich logo from CDN */}
                             <Image
                                 src={IMMICH_LOGO_CDN}
                                 alt="Immich"
@@ -219,15 +216,12 @@ export default function ImmichSSOPage() {
                         >
                             Immich Access
                         </h1>
-                        <p
-                            className="text-sm"
-                            style={{ color: palette.textSecondary }}
-                        >
+                        <p className="text-sm" style={{ color: palette.textSecondary }}>
                             Sign in with your account to access photos
                         </p>
                     </div>
 
-                    {/* Error */}
+                    {/* OIDC error */}
                     {error && (
                         <motion.div
                             initial={{ opacity: 0, height: 0 }}
@@ -252,22 +246,27 @@ export default function ImmichSSOPage() {
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.06, duration: 0.4 }}
                                 onClick={() => handleProvider(provider)}
-                                disabled={!!loading}
+                                disabled={!!loadingProvider}
                                 className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-semibold text-sm transition-all"
                                 style={{
-                                    background: loading === provider.id
-                                        ? `${provider.bg}cc`
-                                        : provider.bg,
+                                    background:
+                                        loadingProvider === provider.id
+                                            ? `${provider.bg}cc`
+                                            : provider.bg,
                                     color: provider.color,
-                                    border: provider.id === "google"
-                                        ? "1px solid rgba(0,0,0,0.12)"
-                                        : undefined,
-                                    opacity: loading && loading !== provider.id ? 0.5 : 1,
-                                    cursor: loading ? "not-allowed" : "pointer",
+                                    border:
+                                        provider.id === "google"
+                                            ? "1px solid rgba(0,0,0,0.12)"
+                                            : undefined,
+                                    opacity:
+                                        loadingProvider && loadingProvider !== provider.id
+                                            ? 0.5
+                                            : 1,
+                                    cursor: loadingProvider ? "not-allowed" : "pointer",
                                     minHeight: 48,
                                 }}
                             >
-                                {loading === provider.id ? (
+                                {loadingProvider === provider.id ? (
                                     <div
                                         className="w-5 h-5 rounded-full border-2 border-current border-t-transparent animate-spin"
                                         style={{ flexShrink: 0 }}
@@ -283,7 +282,9 @@ export default function ImmichSSOPage() {
                                     />
                                 )}
                                 <span className="flex-1 text-left">
-                                    {loading === provider.id ? "Signing in…" : provider.label}
+                                    {loadingProvider === provider.id
+                                        ? "Signing in…"
+                                        : provider.label}
                                 </span>
                             </motion.button>
                         ))}
@@ -294,7 +295,7 @@ export default function ImmichSSOPage() {
                         className="text-xs text-center mt-6"
                         style={{ color: palette.textTertiary }}
                     >
-                        Access is restricted to whitelisted accounts.{" "}
+                        Access is restricted to whitelisted accounts.
                         <br />
                         Contact the administrator if you need access.
                     </p>
@@ -306,9 +307,7 @@ export default function ImmichSSOPage() {
                     style={{ color: palette.textTertiary }}
                 >
                     Secured by{" "}
-                    <span style={{ color: palette.accent }}>
-                        meetbhingradiya.shop
-                    </span>
+                    <span style={{ color: palette.accent }}>meetbhingradiya.shop</span>
                 </p>
             </motion.div>
         </div>

@@ -10,6 +10,8 @@ import { ToastContainer } from "react-toastify";
 import HeadNavigation from "@Components/Common/HeadNavigation";
 import FootNavigation from "@Components/Common/FootNavigation";
 import AntiDebuggerShield from "@Components/Common/AntiDebuggerShield";
+import URLNotice from "@Components/Common/URLNotice";
+import { Suspense } from "react";
 
 // muiXTelemetrySettings.disableTelemetry();
 // LicenseInfo.setLicenseKey(
@@ -259,6 +261,10 @@ export default function RootLayout({
                 <AntiDebuggerShield />
 
                 <Providers>
+                    {/* URL-param driven toast notifications (e.g. ?notice=immich_access_denied) */}
+                    <Suspense fallback={null}>
+                        <URLNotice />
+                    </Suspense>
                     <HeadNavigation />
                     {children}
                     <FootNavigation />

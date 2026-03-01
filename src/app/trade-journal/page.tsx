@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
 import {
     AddCircleOutline,
     TrendingUp,
@@ -45,8 +46,10 @@ interface Summary {
     winRate: number;
 }
 
-const RESULTS = ["ALL", "WIN", "LOSS", "BREAKEVEN", "OPEN"];
+const RESULTS  = ["ALL", "WIN", "LOSS", "BREAKEVEN", "OPEN"];
 const SEGMENTS = ["ALL", "EQUITY", "FUTURES", "OPTIONS", "CRYPTO", "FOREX", "COMMODITY"];
+const RESULT_OPTS  = RESULTS.map(v => ({ value: v, label: v }));
+const SEGMENT_OPTS = SEGMENTS.map(v => ({ value: v, label: v }));
 
 export default function TradeJournalPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
@@ -186,22 +189,18 @@ export default function TradeJournalPage() {
                         onChange={e => setSearch(e.target.value)}
                     />
                 </div>
-                <select
-                    className="px-3 py-2 rounded-xl text-sm outline-none"
-                    style={{ background: surfaceBg, border: `1px solid ${borderColor}`, color: palette.textPrimary }}
+                <CustomSelect
                     value={result}
-                    onChange={e => setResult(e.target.value)}
-                >
-                    {RESULTS.map(r => <option key={r} value={r}>{r}</option>)}
-                </select>
-                <select
-                    className="px-3 py-2 rounded-xl text-sm outline-none"
-                    style={{ background: surfaceBg, border: `1px solid ${borderColor}`, color: palette.textPrimary }}
+                    onChange={v => setResult(v)}
+                    options={RESULT_OPTS}
+                    className="min-w-[130px]"
+                />
+                <CustomSelect
                     value={segment}
-                    onChange={e => setSegment(e.target.value)}
-                >
-                    {SEGMENTS.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
+                    onChange={v => setSegment(v)}
+                    options={SEGMENT_OPTS}
+                    className="min-w-[140px]"
+                />
             </div>
 
             {/* Trade list */}

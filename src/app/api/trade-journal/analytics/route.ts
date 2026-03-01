@@ -9,6 +9,7 @@ import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
 import { TradeJournal, TradeResult } from "@Models/TradeJournal";
+import { DailyCapital } from "@Models/DailyCapital";
 
 export async function GET(req: NextRequest) {
     try {
@@ -34,6 +35,32 @@ export async function GET(req: NextRequest) {
         if (instrument) query.Instrument = { $regex: instrument, $options: "i" };
 
         const trades: any[] = await TradeJournal.find(query).sort({ Date: 1, EntryTime: 1 }).lean();
+
+        // ── Daily capital records for Sharpe ratio ────────────────────────
+        const dailyCapitalQuery: Record<string, any> = { UserID: user.userId };
+        if (from || to) {
+            dailyCapitalQuery.Date = {};
+            if (from) dailyCapitalQuery.Date.$gte = from;
+            if (to)   dailyCapitalQuery.Date.$lte = to;
+        }
+        const dailyCapitalRecords: any[] = await DailyCapital
+            .find(dailyCapitalQuery)
+            .sort({ Date: 1 })
+            .lean();
+
+        // Sharpe = (avgDailyReturn - riskFreeDaily) / stdDev × √252
+        const RISK_FREE_DAILY = 0.06 / 252; // 6% annual India T-Bill approx
+        let sharpeRatio = 0;
+        const dailyReturns = dailyCapitalRecords.map(r => r.DailyReturn as number);
+        if (dailyReturns.length >= 2) {
+            const n   = dailyReturns.length;
+            const avg = dailyReturns.reduce((s, r) => s + r, 0) / n;
+            const variance = dailyReturns.reduce((s, r) => s + Math.pow(r - avg, 2), 0) / (n - 1);
+            const stdDev = Math.sqrt(variance);
+            sharpeRatio = stdDev > 0
+                ? parseFloat((((avg - RISK_FREE_DAILY) / stdDev) * Math.sqrt(252)).toFixed(3))
+                : 0;
+        }
 
         if (trades.length === 0) {
             return NextResponse.json({ success: true, data: emptyAnalytics() });
@@ -206,6 +233,8 @@ export async function GET(req: NextRequest) {
                     avgHoldingMinutes: parseFloat(avgHoldingMinutes.toFixed(0)),
                     edgeScore,
                     edgeScoreMax: edgeChecklist.length,
+                    sharpeRatio,
+                    dailyCapitalDays: dailyReturns.length,
                 },
                 equityCurve,
                 monthlyPnL,
@@ -231,6 +260,7 @@ function emptyAnalytics() {
             avgWin: 0, avgLoss: 0, expectancy: 0, profitFactor: 0,
             maxDrawdownPct: 0, maxConsecLosses: 0,
             avgActualRR: 0, planAdherenceAvg: 0, avgHoldingMinutes: 0,
+            sharpeRatio: 0, dailyCapitalDays: 0,
             edgeScore: 0, edgeScoreMax: 8,
         },
         equityCurve: [],

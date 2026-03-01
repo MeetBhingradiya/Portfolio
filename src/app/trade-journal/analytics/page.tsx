@@ -21,6 +21,9 @@ import {
     CheckCircle,
     Cancel,
     BarChart,
+    AddCircleOutline,
+    Delete,
+    ShowChart,
 } from "@mui/icons-material";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -47,6 +50,8 @@ interface Summary {
     avgHoldingMinutes: number;
     edgeScore: number;
     edgeScoreMax: number;
+    sharpeRatio: number;
+    dailyCapitalDays: number;
 }
 
 interface AnalyticsData {
@@ -208,6 +213,56 @@ export default function AnalyticsPage() {
     const [loading, setLoading] = useState(true);
     const [period,  setPeriod]  = useState("all");
 
+    // ── Daily Capital Logger state ─────────────────────────────────────────
+    const today = new Date().toISOString().slice(0, 10);
+    const [dcDate,    setDcDate]    = useState(today);
+    const [dcStart,   setDcStart]   = useState("");
+    const [dcEnd,     setDcEnd]     = useState("");
+    const [dcNotes,   setDcNotes]   = useState("");
+    const [dcSaving,  setDcSaving]  = useState(false);
+    const [dcSaved,   setDcSaved]   = useState(false);
+    const [dcEntries, setDcEntries] = useState<any[]>([]);
+    const [dcDeleting,setDcDeleting]= useState<string | null>(null);
+
+    const fetchDailyCapital = useCallback(async () => {
+        const res = await fetch("/api/trade-journal/daily-capital?limit=30").then(r => r.json());
+        if (res.success) setDcEntries(res.data);
+    }, []);
+
+    useEffect(() => { fetchDailyCapital(); }, [fetchDailyCapital]);
+
+    const handleLogCapital = async () => {
+        if (!dcDate || !dcStart || !dcEnd) return;
+        setDcSaving(true);
+        try {
+            await fetch("/api/trade-journal/daily-capital", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    Date: dcDate,
+                    StartingCapital: parseFloat(dcStart),
+                    EndingCapital: parseFloat(dcEnd),
+                    Notes: dcNotes,
+                }),
+            });
+            setDcSaved(true);
+            setDcStart(""); setDcEnd(""); setDcNotes("");
+            setTimeout(() => setDcSaved(false), 2000);
+            fetchDailyCapital();
+            fetchAnalytics();
+        } finally {
+            setDcSaving(false);
+        }
+    };
+
+    const handleDeleteDc = async (date: string) => {
+        setDcDeleting(date);
+        await fetch(`/api/trade-journal/daily-capital?date=${date}`, { method: "DELETE" });
+        setDcDeleting(null);
+        fetchDailyCapital();
+        fetchAnalytics();
+    };
+
     const surfaceBg   = isApple
         ? isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)"
         : palette.surface;
@@ -310,6 +365,15 @@ export default function AnalyticsPage() {
             valueColor: s.planAdherenceAvg >= 70 ? "#22c55e" : "#f59e0b",
         },
         {
+            label: "Sharpe Ratio",
+            value: s.sharpeRatio !== 0 ? s.sharpeRatio.toFixed(3) : "—",
+            sub: s.dailyCapitalDays >= 2
+                ? `${s.dailyCapitalDays}d of capital data · annualised`
+                : "Log daily capital below",
+            valueColor: s.sharpeRatio >= 2 ? "#22c55e" : s.sharpeRatio >= 1 ? "#f59e0b" : s.sharpeRatio > 0 ? palette.textPrimary : palette.textSecondary,
+            icon: <ShowChart fontSize="inherit" />,
+        },
+        {
             label: "Avg Holding",
             value: s.avgHoldingMinutes > 0
                 ? s.avgHoldingMinutes >= 60
@@ -334,7 +398,7 @@ export default function AnalyticsPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6 pt-6 pb-28">
 
             {/* ── Header ────────────────────────────────────────────────────── */}
             <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
@@ -581,6 +645,123 @@ export default function AnalyticsPage() {
                     )}
                 </motion.div>
             )}
+
+            {/* ── Daily Capital Logger (for Sharpe Ratio) ───────────────────── */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
+                className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColorStrong}` }}>
+                <div className="flex items-center gap-2 mb-1">
+                    <ShowChart style={{ color: palette.accent }} />
+                    <p className="font-bold" style={{ color: palette.textPrimary }}>Daily Capital Log</p>
+                    <span className="ml-1 text-xs px-2 py-0.5 rounded-full"
+                        style={{ background: `${palette.accent}18`, color: palette.accent }}>
+                        Sharpe Ratio input
+                    </span>
+                </div>
+                <p className="text-xs mb-4" style={{ color: palette.textSecondary }}>
+                    Log your starting and ending portfolio value each day (after market close).<br/>
+                    Sharpe = (avgDailyReturn − 6%/252) ÷ stdDev × √252 &nbsp;·&nbsp; needs ≥ 2 days to compute.
+                </p>
+
+                {/* Input row */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                    {[
+                        { label: "Date", type: "date", val: dcDate, set: setDcDate },
+                        { label: "Starting Capital (₹)", type: "number", val: dcStart, set: setDcStart },
+                        { label: "Ending Capital (₹)",  type: "number", val: dcEnd,   set: setDcEnd   },
+                        { label: "Notes (optional)",     type: "text",   val: dcNotes, set: setDcNotes  },
+                    ].map(({ label, type, val, set }) => (
+                        <div key={label} className="flex flex-col gap-1">
+                            <label className="text-xs" style={{ color: palette.textSecondary }}>{label}</label>
+                            <input
+                                type={type}
+                                value={val}
+                                onChange={e => set(e.target.value)}
+                                className="rounded-xl px-3 py-2 text-sm outline-none"
+                                style={{
+                                    background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+                                    border: `1px solid ${borderColor}`,
+                                    color: palette.textPrimary,
+                                }}
+                                step={type === "number" ? "0.01" : undefined}
+                                placeholder={type === "number" ? "e.g. 200000" : ""}
+                            />
+                        </div>
+                    ))}
+                </div>
+
+                {dcStart && dcEnd && parseFloat(dcStart) > 0 && (
+                    <p className="text-xs mb-3" style={{ color: palette.textSecondary }}>
+                        Daily Return:&nbsp;
+                        <span style={{ color: parseFloat(dcEnd) >= parseFloat(dcStart) ? "#22c55e" : "#ef4444", fontWeight: 600 }}>
+                            {(((parseFloat(dcEnd) - parseFloat(dcStart)) / parseFloat(dcStart)) * 100).toFixed(3)}%
+                        </span>
+                        &nbsp;· Net P&L: ₹{(parseFloat(dcEnd) - parseFloat(dcStart)).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                    </p>
+                )}
+
+                <motion.button
+                    onClick={handleLogCapital}
+                    disabled={dcSaving || !dcDate || !dcStart || !dcEnd}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+                    style={{
+                        background: dcSaved ? "#22c55e" : palette.accent,
+                        color: "#fff",
+                        opacity: (!dcDate || !dcStart || !dcEnd) ? 0.5 : 1,
+                    }}
+                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                >
+                    <AddCircleOutline fontSize="small" />
+                    {dcSaving ? "Saving…" : dcSaved ? "Saved ✓" : "Log Today's Capital"}
+                </motion.button>
+
+                {/* Recent entries table */}
+                {dcEntries.length > 0 && (
+                    <div className="mt-4 overflow-x-auto">
+                        <table className="w-full text-xs" style={{ borderCollapse: "collapse" }}>
+                            <thead>
+                                <tr style={{ color: palette.textTertiary, borderBottom: `1px solid ${borderColor}` }}>
+                                    {["Date","Start (₹)","End (₹)","Net P&L","Return %",""].map(h => (
+                                        <td key={h} className="pb-2 pr-3 font-semibold uppercase tracking-widest">{h}</td>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {dcEntries.map((e: any) => {
+                                    const ret = ((e.DailyReturn ?? 0) * 100);
+                                    const pos  = ret >= 0;
+                                    return (
+                                        <tr key={e.Date} style={{ borderBottom: `1px solid ${borderColor}` }}>
+                                            <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textPrimary }}>{e.Date}</td>
+                                            <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textSecondary }}>
+                                                {(e.StartingCapital as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textSecondary }}>
+                                                {(e.EndingCapital as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="py-2 pr-3 tabular-nums font-semibold" style={{ color: pos ? "#22c55e" : "#ef4444" }}>
+                                                {pos ? "+" : ""}₹{Math.abs(e.NetPnL as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                            </td>
+                                            <td className="py-2 pr-3 tabular-nums font-semibold" style={{ color: pos ? "#22c55e" : "#ef4444" }}>
+                                                {pos ? "+" : ""}{ret.toFixed(3)}%
+                                            </td>
+                                            <td className="py-2">
+                                                <motion.button
+                                                    onClick={() => handleDeleteDc(e.Date)}
+                                                    disabled={dcDeleting === e.Date}
+                                                    style={{ color: "#ef4444", opacity: dcDeleting === e.Date ? 0.4 : 1 }}
+                                                    whileHover={{ scale: 1.1 }} title="Delete"
+                                                >
+                                                    <Delete fontSize="small" />
+                                                </motion.button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </motion.div>
         </div>
     );
 }

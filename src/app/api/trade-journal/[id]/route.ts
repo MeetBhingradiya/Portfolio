@@ -41,7 +41,23 @@ export async function PUT(req: NextRequest, { params }: Ctx) {
         if (!existing) return NextResponse.json({ success: false, error: "Trade not found" }, { status: 404 });
 
         const body = await req.json();
-        const updates: Record<string, any> = { ...body };
+
+        // Map broker shorthand CE/PE → model enum CALL/PUT, strip empty-string enums
+        const optionTypeMap: Record<string, string> = { CE: "CALL", CALL: "CALL", PE: "PUT", PUT: "PUT", NA: "NA" };
+        const orUndef = (v: unknown) => (v === "" || v == null ? undefined : v);
+
+        const updates: Record<string, any> = {
+            ...body,
+            ...(body.OptionType !== undefined && {
+                OptionType: body.OptionType
+                    ? (optionTypeMap[String(body.OptionType).toUpperCase()] ?? "NA")
+                    : "NA",
+            }),
+            ...(body.SetupType        !== undefined && { SetupType:        orUndef(body.SetupType) }),
+            ...(body.MarketCondition  !== undefined && { MarketCondition:  orUndef(body.MarketCondition) }),
+            ...(body.EmotionalState   !== undefined && { EmotionalState:   orUndef(body.EmotionalState) }),
+            ...(body.MistakeType      !== undefined && { MistakeType:      orUndef(body.MistakeType) }),
+        };
 
         // Re-compute derived fields from merged values
         const EntryPrice  = body.EntryPrice  ?? existing.EntryPrice;

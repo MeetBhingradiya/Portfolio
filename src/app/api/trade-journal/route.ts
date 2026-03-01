@@ -145,20 +145,33 @@ export async function POST(req: NextRequest) {
             HoldingDurationMinutes = mins(ExitTime) - mins(EntryTime);
         }
 
+        // Map broker shorthand CE/PE → model enum CALL/PUT
+        const optionTypeMap: Record<string, string> = {
+            CE: "CALL", CALL: "CALL",
+            PE: "PUT",  PUT:  "PUT",
+            NA: "NA",
+        };
+        const resolvedOptionType = OptionType
+            ? (optionTypeMap[String(OptionType).toUpperCase()] ?? "NA")
+            : "NA";
+
+        // Strip empty-string values for optional enum fields so Mongoose skips validation
+        const orUndef = (v: unknown) => (v === "" || v == null ? undefined : v);
+
         const trade = await TradeJournal.create({
             UserID: user.userId,
             Date: tradeDate ? new Date(tradeDate) : new Date(),
             EntryTime, ExitTime,
             Instrument: String(Instrument).toUpperCase(),
             Segment, Direction,
-            OptionType, StrikePrice, Expiry,
+            OptionType: resolvedOptionType, StrikePrice, Expiry,
             EntryPrice, ExitPrice, StopLoss, Target,
             Quantity, LotSize, TotalCapital, RiskPercentage,
             PlannedRiskAmount, PlannedRewardAmount, PlannedRR, ActualRR,
             GrossPnL: GrossPnLCalc ?? 0, Brokerage, Taxes, NetPnL, Result,
             HoldingDurationMinutes,
-            SetupType, StrategyName, MarketCondition,
-            EmotionalState, FollowedPlan, MistakeType,
+            SetupType: orUndef(SetupType), StrategyName, MarketCondition: orUndef(MarketCondition),
+            EmotionalState: orUndef(EmotionalState), FollowedPlan, MistakeType: orUndef(MistakeType),
             PreTradeAnalysis, PostTradeNotes, Lessons,
             Screenshots, Tags,
             IsOpen: ExitPrice == null,

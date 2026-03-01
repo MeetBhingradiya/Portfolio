@@ -32,3 +32,4 @@ export * from "./RefundRequest";
 
 // ? Trade Journal
 export * from "./TradeJournal";
+export * from "./DailyCapital";

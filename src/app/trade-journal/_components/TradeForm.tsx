@@ -1,23 +1,32 @@
 /**
  * Shared Trade Form — used by both /new and /[id] pages.
+ * • Native <select> replaced with themed CustomSelect
+ * • OCR scanner button auto-fills fields from uploaded screenshots
  */
 
 "use client";
 
 import React, { useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
-import { Save, TrendingUp, TrendingDown, Psychology, InfoOutlined } from "@mui/icons-material";
+import { Save, TrendingUp, Psychology, InfoOutlined, DocumentScanner } from "@mui/icons-material";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
+import OcrScanner from "./OcrScanner";
 
 // ── Option lists ──────────────────────────────────────────────────────────────
-const SEGMENTS    = ["EQUITY","FUTURES","OPTIONS","CRYPTO","FOREX","COMMODITY"];
-const DIRECTIONS  = ["LONG","SHORT"];
-const OPTION_TYPES = ["CE","PE",""];
-const RESULTS     = ["WIN","LOSS","BREAKEVEN"];
-const SETUPS      = ["BREAKOUT","BREAKDOWN","REVERSAL","TREND_FOLLOW","MOMENTUM","MEAN_REVERSION","SUPPORT_RESISTANCE","OTHERS"];
-const CONDITIONS  = ["TRENDING","RANGING","VOLATILE","CONSOLIDATING","GAP_UP","GAP_DOWN"];
-const EMOTIONS    = ["CALM","CONFIDENT","ANXIOUS","FOMO","GREEDY","FEARFUL","DISCIPLINED","IMPULSIVE","NEUTRAL","FRUSTRATED"];
-const MISTAKES    = ["EARLY_ENTRY","LATE_ENTRY","EARLY_EXIT","LATE_EXIT","OVERSIZE","NO_SL","MOVED_SL","REVENGE_TRADE","FOMO_ENTRY","IGNORED_RULES",""];
+const mkOpts = (arr: string[], emptyLabel?: string) =>
+    [...(emptyLabel !== undefined ? [{ value: "", label: emptyLabel }] : []),
+     ...arr.map(v => ({ value: v, label: v.replace(/_/g, " ") }))];
+
+const SEGMENT_OPTS  = mkOpts(["EQUITY","FUTURES","OPTIONS","CRYPTO","FOREX","COMMODITY"]);
+const DIR_OPTS      = mkOpts(["LONG","SHORT"]);
+const OPTTYPE_OPTS  = mkOpts(["CE","PE"], "—");
+const RESULT_OPTS   = mkOpts(["WIN","LOSS","BREAKEVEN"], "Auto from Net P&L");
+const SETUP_OPTS    = mkOpts(["BREAKOUT","BREAKDOWN","REVERSAL","TREND_FOLLOW","MOMENTUM","MEAN_REVERSION","SUPPORT_RESISTANCE","OTHERS"], "—");
+const COND_OPTS     = mkOpts(["TRENDING","RANGING","VOLATILE","CONSOLIDATING","GAP_UP","GAP_DOWN"], "—");
+const EMOTION_OPTS  = mkOpts(["CALM","CONFIDENT","ANXIOUS","FOMO","GREEDY","FEARFUL","DISCIPLINED","IMPULSIVE","NEUTRAL","FRUSTRATED"], "—");
+const MISTAKE_OPTS  = mkOpts(["EARLY_ENTRY","LATE_ENTRY","EARLY_EXIT","LATE_EXIT","OVERSIZE","NO_SL","MOVED_SL","REVENGE_TRADE","FOMO_ENTRY","IGNORED_RULES"], "None");
+const ISOPEN_OPTS   = [{ value: "true", label: "Open (running)" }, { value: "false", label: "Closed" }];
 
 export interface TradeFormData {
     Date:           string;
@@ -92,6 +101,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit }:
     };
 
     const today = new Date().toISOString().slice(0, 10);
+    const [showOcr, setShowOcr] = useState(false);
 
     const [form, setForm] = useState<TradeFormData>({
         Date:           initialData?.Date           ?? today,
@@ -132,6 +142,17 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit }:
         setForm(prev => ({ ...prev, [key]: value }));
     }
 
+    /** Merge OCR-extracted fields into the form state */
+    function applyOcr(extracted: Partial<TradeFormData>) {
+        setForm(prev => {
+            const next = { ...prev };
+            for (const [k, v] of Object.entries(extracted)) {
+                if (v !== "" && v != null) (next as any)[k] = v;
+            }
+            return next;
+        });
+    }
+
     const sectionCard = (title: string, icon: React.ReactNode, content: React.ReactNode) => (
         <motion.div
             className="p-5 rounded-2xl mb-4"
@@ -152,7 +173,34 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit }:
     );
 
     return (
+        <>
+            {/* OCR Scanner modal */}
+            <AnimatePresence>
+                {showOcr && (
+                    <OcrScanner
+                        onExtracted={applyOcr}
+                        onClose={() => setShowOcr(false)}
+                    />
+                )}
+            </AnimatePresence>
+
         <form onSubmit={async e => { e.preventDefault(); await onSubmit(form); }}>
+            {/* OCR Button */}
+            <motion.div
+                className="flex items-center gap-2 mb-4 p-4 rounded-2xl cursor-pointer w-fit"
+                style={{ background: `${palette.accent}12`, border: `1.5px dashed ${palette.accent}50` }}
+                whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                onClick={() => setShowOcr(true)}
+            >
+                <DocumentScanner style={{ color: palette.accent, fontSize: 20 }} />
+                <span className="text-sm font-semibold" style={{ color: palette.accent }}>
+                    Auto-fill from Screenshot (OCR)
+                </span>
+                <span className="text-xs px-2 py-0.5 rounded-full"
+                    style={{ background: `${palette.accent}22`, color: palette.accent }}>
+                    Client-side · No upload
+                </span>
+            </motion.div>
             {/* Section 1: Basic Info */}
             {sectionCard("Basic Info", <InfoOutlined />, <>
                 <Field label="Date *">
@@ -168,20 +216,14 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit }:
                     <input type="text" style={inputStyle} placeholder="e.g. RELIANCE, NIFTY" value={String(form.Instrument)} onChange={e => set("Instrument", e.target.value.toUpperCase())} required />
                 </Field>
                 <Field label="Segment *">
-                    <select style={inputStyle} value={form.Segment} onChange={e => set("Segment", e.target.value)}>
-                        {SEGMENTS.map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
+                    <CustomSelect value={form.Segment} onChange={v => set("Segment", v)} options={SEGMENT_OPTS} />
                 </Field>
                 <Field label="Direction *">
-                    <select style={inputStyle} value={form.Direction} onChange={e => set("Direction", e.target.value)}>
-                        {DIRECTIONS.map(d => <option key={d} value={d}>{d}</option>)}
-                    </select>
+                    <CustomSelect value={form.Direction} onChange={v => set("Direction", v)} options={DIR_OPTS} />
                 </Field>
                 {form.Segment === "OPTIONS" && <>
                     <Field label="Option Type">
-                        <select style={inputStyle} value={form.OptionType ?? ""} onChange={e => set("OptionType", e.target.value)}>
-                            {OPTION_TYPES.map(o => <option key={o} value={o}>{o || "—"}</option>)}
-                        </select>
+                        <CustomSelect value={form.OptionType ?? ""} onChange={v => set("OptionType", v)} options={OPTTYPE_OPTS} />
                     </Field>
                     <Field label="Strike Price">
                         <input type="number" style={inputStyle} placeholder="e.g. 24000" value={String(form.Strike ?? "")} onChange={e => set("Strike", e.target.value)} />
@@ -191,10 +233,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit }:
                     </Field>
                 </>}
                 <Field label="Is Open?">
-                    <select style={inputStyle} value={form.IsOpen ? "true" : "false"} onChange={e => set("IsOpen", e.target.value === "true")}>
-                        <option value="true">Open (running)</option>
-                        <option value="false">Closed</option>
-                    </select>
+                    <CustomSelect value={form.IsOpen ? "true" : "false"} onChange={v => set("IsOpen", v === "true")} options={ISOPEN_OPTS} />
                 </Field>
             </>)}
 
@@ -234,44 +273,29 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit }:
                     <input type="number" step="0.01" style={inputStyle} placeholder="Auto-computed if blank" value={String(form.NetPnL ?? "")} onChange={e => set("NetPnL", e.target.value)} />
                 </Field>
                 <Field label="Result (override)">
-                    <select style={inputStyle} value={form.Result ?? ""} onChange={e => set("Result", e.target.value)}>
-                        <option value="">Auto from Net P&L</option>
-                        {RESULTS.map(r => <option key={r} value={r}>{r}</option>)}
-                    </select>
+                    <CustomSelect value={form.Result ?? ""} onChange={v => set("Result", v)} options={RESULT_OPTS} />
                 </Field>
             </>)}
 
             {/* Section 3: Psychology */}
             {sectionCard("Psychology & Review", <Psychology />, <>
                 <Field label="Setup Type">
-                    <select style={inputStyle} value={form.SetupType ?? ""} onChange={e => set("SetupType", e.target.value)}>
-                        <option value="">—</option>
-                        {SETUPS.map(s => <option key={s} value={s}>{s.replace(/_/g, " ")}</option>)}
-                    </select>
+                    <CustomSelect value={form.SetupType ?? ""} onChange={v => set("SetupType", v)} options={SETUP_OPTS} />
                 </Field>
                 <Field label="Strategy Name">
                     <input type="text" style={inputStyle} placeholder="e.g. EMA crossover" value={form.Strategy ?? ""} onChange={e => set("Strategy", e.target.value)} />
                 </Field>
                 <Field label="Market Condition">
-                    <select style={inputStyle} value={form.MarketCondition ?? ""} onChange={e => set("MarketCondition", e.target.value)}>
-                        <option value="">—</option>
-                        {CONDITIONS.map(c => <option key={c} value={c}>{c.replace(/_/g, " ")}</option>)}
-                    </select>
+                    <CustomSelect value={form.MarketCondition ?? ""} onChange={v => set("MarketCondition", v)} options={COND_OPTS} />
                 </Field>
                 <Field label="Emotional State">
-                    <select style={inputStyle} value={form.EmotionalState ?? ""} onChange={e => set("EmotionalState", e.target.value)}>
-                        <option value="">—</option>
-                        {EMOTIONS.map(e => <option key={e} value={e}>{e}</option>)}
-                    </select>
+                    <CustomSelect value={form.EmotionalState ?? ""} onChange={v => set("EmotionalState", v)} options={EMOTION_OPTS} />
                 </Field>
                 <Field label="Plan Adherence (0-100%)">
                     <input type="number" min={0} max={100} style={inputStyle} placeholder="e.g. 80" value={String(form.PlanAdherence ?? "")} onChange={e => set("PlanAdherence", e.target.value)} />
                 </Field>
                 <Field label="Mistake Type">
-                    <select style={inputStyle} value={form.MistakeType ?? ""} onChange={e => set("MistakeType", e.target.value)}>
-                        <option value="">None</option>
-                        {MISTAKES.filter(Boolean).map(m => <option key={m} value={m}>{m.replace(/_/g, " ")}</option>)}
-                    </select>
+                    <CustomSelect value={form.MistakeType ?? ""} onChange={v => set("MistakeType", v)} options={MISTAKE_OPTS} />
                 </Field>
                 <div className="sm:col-span-2 lg:col-span-3">
                     <Field label="Learnings">
@@ -304,5 +328,6 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit }:
                 {submitting ? "Saving…" : isEdit ? "Update Trade" : "Log Trade"}
             </motion.button>
         </form>
+        </>
     );
 }

@@ -161,6 +161,6 @@
     ],
     "exclude": [
         "node_modules",
-        "Partials"
+        "old_src"
     ]
 }

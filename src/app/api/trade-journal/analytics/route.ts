@@ -1,0 +1,253 @@
+/**
+ * GET /api/trade-journal/analytics
+ * Query params: from (YYYY-MM-DD), to (YYYY-MM-DD), segment, instrument
+ *
+ * Returns a comprehensive analytics object for the authenticated user.
+ */
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import dbConnect from "@Utils/dbConnect";
+import { getResolvedUser } from "@Utils/RolePermissions";
+import { TradeJournal, TradeResult } from "@Models/TradeJournal";
+
+export async function GET(req: NextRequest) {
+    try {
+        await dbConnect();
+        const h = await headers();
+        const user = await getResolvedUser(h);
+        if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        const { searchParams } = new URL(req.url);
+        const from      = searchParams.get("from");
+        const to        = searchParams.get("to");
+        const segment   = searchParams.get("segment");
+        const instrument = searchParams.get("instrument");
+
+        const query: Record<string, any> = { UserID: user.userId, IsOpen: false };
+
+        if (from || to) {
+            query.Date = {};
+            if (from) query.Date.$gte = from;
+            if (to)   query.Date.$lte = to;
+        }
+        if (segment)    query.Segment    = segment;
+        if (instrument) query.Instrument = { $regex: instrument, $options: "i" };
+
+        const trades: any[] = await TradeJournal.find(query).sort({ Date: 1, EntryTime: 1 }).lean();
+
+        if (trades.length === 0) {
+            return NextResponse.json({ success: true, data: emptyAnalytics() });
+        }
+
+        // ── Basic partitioning ────────────────────────────────────────────
+        const wins   = trades.filter(t => t.Result === TradeResult.WIN);
+        const losses = trades.filter(t => t.Result === TradeResult.LOSS);
+        const be     = trades.filter(t => t.Result === TradeResult.BREAKEVEN);
+
+        const total  = trades.length;
+        const winPnL  = wins.reduce((s, t)   => s + (t.NetPnL ?? 0), 0);
+        const lossPnL = losses.reduce((s, t) => s + Math.abs(t.NetPnL ?? 0), 0);
+
+        const winRate  = wins.length   / total;
+        const lossRate = losses.length / total;
+        const beRate   = be.length     / total;
+
+        const avgWin  = wins.length   ? winPnL  / wins.length   : 0;
+        const avgLoss = losses.length ? lossPnL / losses.length : 0;
+
+        // Expectancy = (WR × avgWin) − (LR × avgLoss)
+        const expectancy   = winRate * avgWin - lossRate * avgLoss;
+        const profitFactor = lossPnL > 0 ? winPnL / lossPnL : winPnL > 0 ? Infinity : 0;
+
+        // ── Equity curve & max drawdown ───────────────────────────────────
+        const equityCurve: Array<{ date: string; equity: number; tradeNo: number }> = [];
+        let equity = 0;
+        let peak = 0;
+        let maxDrawdown = 0;
+
+        for (let i = 0; i < trades.length; i++) {
+            equity += trades[i].NetPnL ?? 0;
+            if (equity > peak) peak = equity;
+            const dd = peak > 0 ? (peak - equity) / peak : 0;
+            if (dd > maxDrawdown) maxDrawdown = dd;
+            equityCurve.push({ date: trades[i].Date, equity: parseFloat(equity.toFixed(2)), tradeNo: i + 1 });
+        }
+        const maxDrawdownPct = parseFloat((maxDrawdown * 100).toFixed(2));
+
+        // ── Max consecutive losses ────────────────────────────────────────
+        let maxConsecLosses = 0;
+        let curConsec = 0;
+        for (const t of trades) {
+            if (t.Result === TradeResult.LOSS) { curConsec++; if (curConsec > maxConsecLosses) maxConsecLosses = curConsec; }
+            else curConsec = 0;
+        }
+
+        // ── Avg actual RR, plan adherence, holding duration ───────────────
+        const tradesWithRR  = trades.filter(t => t.ActualRR != null);
+        const avgActualRR   = tradesWithRR.length
+            ? tradesWithRR.reduce((s, t) => s + t.ActualRR, 0) / tradesWithRR.length
+            : 0;
+
+        const planAdherenceTrades = trades.filter(t => t.PlanAdherence != null);
+        const planAdherenceAvg    = planAdherenceTrades.length
+            ? planAdherenceTrades.reduce((s, t) => s + t.PlanAdherence, 0) / planAdherenceTrades.length
+            : 0;
+
+        const holdingTrades       = trades.filter(t => t.HoldingDurationMinutes != null);
+        const avgHoldingMinutes   = holdingTrades.length
+            ? holdingTrades.reduce((s, t) => s + t.HoldingDurationMinutes, 0) / holdingTrades.length
+            : 0;
+
+        // ── Monthly PnL breakdown ─────────────────────────────────────────
+        const monthMap: Record<string, number> = {};
+        for (const t of trades) {
+            const ym = (t.Date as string).slice(0, 7); // "YYYY-MM"
+            monthMap[ym] = (monthMap[ym] ?? 0) + (t.NetPnL ?? 0);
+        }
+        const monthlyPnL = Object.entries(monthMap)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([month, pnl]) => ({ month, pnl: parseFloat(pnl.toFixed(2)) }));
+
+        // ── By instrument ──────────────────────────────────────────────────
+        const instMap: Record<string, { trades: number; pnl: number; wins: number }> = {};
+        for (const t of trades) {
+            const k = t.Instrument ?? "Unknown";
+            if (!instMap[k]) instMap[k] = { trades: 0, pnl: 0, wins: 0 };
+            instMap[k].trades++;
+            instMap[k].pnl  += t.NetPnL ?? 0;
+            if (t.Result === TradeResult.WIN) instMap[k].wins++;
+        }
+        const byInstrument = Object.entries(instMap).map(([instrument, v]) => ({
+            instrument,
+            trades:  v.trades,
+            pnl:     parseFloat(v.pnl.toFixed(2)),
+            winRate: parseFloat(((v.wins / v.trades) * 100).toFixed(1)),
+        })).sort((a, b) => b.pnl - a.pnl);
+
+        // ── By setup type ─────────────────────────────────────────────────
+        const setupMap: Record<string, { trades: number; pnl: number; wins: number }> = {};
+        for (const t of trades) {
+            const k = t.SetupType ?? "Unknown";
+            if (!setupMap[k]) setupMap[k] = { trades: 0, pnl: 0, wins: 0 };
+            setupMap[k].trades++;
+            setupMap[k].pnl  += t.NetPnL ?? 0;
+            if (t.Result === TradeResult.WIN) setupMap[k].wins++;
+        }
+        const bySetup = Object.entries(setupMap).map(([setup, v]) => ({
+            setup,
+            trades:  v.trades,
+            pnl:     parseFloat(v.pnl.toFixed(2)),
+            winRate: parseFloat(((v.wins / v.trades) * 100).toFixed(1)),
+        })).sort((a, b) => b.pnl - a.pnl);
+
+        // ── By emotional state ────────────────────────────────────────────
+        const emotMap: Record<string, { trades: number; pnl: number; wins: number }> = {};
+        for (const t of trades) {
+            const k = t.EmotionalState ?? "Unknown";
+            if (!emotMap[k]) emotMap[k] = { trades: 0, pnl: 0, wins: 0 };
+            emotMap[k].trades++;
+            emotMap[k].pnl  += t.NetPnL ?? 0;
+            if (t.Result === TradeResult.WIN) emotMap[k].wins++;
+        }
+        const byEmotion = Object.entries(emotMap).map(([emotion, v]) => ({
+            emotion,
+            trades:  v.trades,
+            pnl:     parseFloat(v.pnl.toFixed(2)),
+            winRate: parseFloat(((v.wins / v.trades) * 100).toFixed(1)),
+        })).sort((a, b) => b.pnl - a.pnl);
+
+        // ── Mistake type breakdown ────────────────────────────────────────
+        const mistakeMap: Record<string, number> = {};
+        for (const t of trades) {
+            if (t.MistakeType) {
+                mistakeMap[t.MistakeType] = (mistakeMap[t.MistakeType] ?? 0) + 1;
+            }
+        }
+        const byMistake = Object.entries(mistakeMap)
+            .map(([mistake, count]) => ({ mistake, count }))
+            .sort((a, b) => b.count - a.count);
+
+        // ── Edge Validation (8-rule system) ──────────────────────────────
+        const netPnLTotal = trades.reduce((s, t) => s + (t.NetPnL ?? 0), 0);
+        const edgeChecklist = [
+            { rule: "Win Rate ≥ 50%",                   pass: winRate  >= 0.5 },
+            { rule: "Profit Factor ≥ 1.5",              pass: profitFactor >= 1.5 },
+            { rule: "Expectancy > 0",                   pass: expectancy > 0 },
+            { rule: "Avg Win ≥ Avg Loss",               pass: avgWin   >= avgLoss },
+            { rule: "Max Drawdown < 20%",               pass: maxDrawdownPct < 20 },
+            { rule: "Max Consec. Losses ≤ 5",           pass: maxConsecLosses <= 5 },
+            { rule: "Avg Actual RR ≥ 1",                pass: avgActualRR >= 1 },
+            { rule: "Plan Adherence ≥ 70%",             pass: planAdherenceAvg >= 70 },
+        ];
+        const edgeScore = edgeChecklist.filter(e => e.pass).length;
+
+        return NextResponse.json({
+            success: true,
+            data: {
+                summary: {
+                    total,
+                    wins:   wins.length,
+                    losses: losses.length,
+                    breakeven: be.length,
+                    winRate:  parseFloat((winRate  * 100).toFixed(2)),
+                    lossRate: parseFloat((lossRate * 100).toFixed(2)),
+                    beRate:   parseFloat((beRate   * 100).toFixed(2)),
+                    netPnL:   parseFloat(netPnLTotal.toFixed(2)),
+                    grossWin: parseFloat(winPnL.toFixed(2)),
+                    grossLoss: parseFloat(lossPnL.toFixed(2)),
+                    avgWin:   parseFloat(avgWin.toFixed(2)),
+                    avgLoss:  parseFloat(avgLoss.toFixed(2)),
+                    expectancy: parseFloat(expectancy.toFixed(2)),
+                    profitFactor: parseFloat((isFinite(profitFactor) ? profitFactor : 0).toFixed(2)),
+                    maxDrawdownPct,
+                    maxConsecLosses,
+                    avgActualRR:      parseFloat(avgActualRR.toFixed(2)),
+                    planAdherenceAvg: parseFloat(planAdherenceAvg.toFixed(1)),
+                    avgHoldingMinutes: parseFloat(avgHoldingMinutes.toFixed(0)),
+                    edgeScore,
+                    edgeScoreMax: edgeChecklist.length,
+                },
+                equityCurve,
+                monthlyPnL,
+                byInstrument,
+                bySetup,
+                byEmotion,
+                byMistake,
+                edgeChecklist,
+            },
+        });
+    } catch (err) {
+        console.error("GET /api/trade-journal/analytics:", err);
+        return NextResponse.json({ success: false, error: "Failed to compute analytics" }, { status: 500 });
+    }
+}
+
+function emptyAnalytics() {
+    return {
+        summary: {
+            total: 0, wins: 0, losses: 0, breakeven: 0,
+            winRate: 0, lossRate: 0, beRate: 0,
+            netPnL: 0, grossWin: 0, grossLoss: 0,
+            avgWin: 0, avgLoss: 0, expectancy: 0, profitFactor: 0,
+            maxDrawdownPct: 0, maxConsecLosses: 0,
+            avgActualRR: 0, planAdherenceAvg: 0, avgHoldingMinutes: 0,
+            edgeScore: 0, edgeScoreMax: 8,
+        },
+        equityCurve: [],
+        monthlyPnL: [],
+        byInstrument: [],
+        bySetup: [],
+        byEmotion: [],
+        byMistake: [],
+        edgeChecklist: [
+            { rule: "Win Rate ≥ 50%", pass: false },
+            { rule: "Profit Factor ≥ 1.5", pass: false },
+            { rule: "Expectancy > 0", pass: false },
+            { rule: "Avg Win ≥ Avg Loss", pass: false },
+            { rule: "Max Drawdown < 20%", pass: false },
+            { rule: "Max Consec. Losses ≤ 5", pass: false },
+            { rule: "Avg Actual RR ≥ 1", pass: false },
+            { rule: "Plan Adherence ≥ 70%", pass: false },
+        ],
+    };
+}

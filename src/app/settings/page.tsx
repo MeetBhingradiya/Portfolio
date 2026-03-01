@@ -23,7 +23,8 @@ import {
     ChevronRight,
     Email,
     Password,
-    AdminPanelSettings
+    AdminPanelSettings,
+    AutoStories
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
@@ -225,6 +226,51 @@ export default function SettingsPage() {
                             </motion.div>
                         </Link>
                     ))}
+
+                    {/* Trade Journal — available to all authenticated users */}
+                    <>
+                        <div className="pt-2 pb-1">
+                            <p className="text-xs font-semibold uppercase tracking-widest"
+                                style={{ color: palette.textTertiary }}>
+                                Tools
+                            </p>
+                        </div>
+                        <Link href="/trade-journal">
+                            <motion.div
+                                className="p-6 rounded-2xl cursor-pointer"
+                                style={{
+                                    background: isApple
+                                        ? isDark ? "rgba(34,197,94,0.14)" : "rgba(34,197,94,0.08)"
+                                        : `${palette.accent}12`,
+                                    border: `1.5px solid ${isDark ? "rgba(34,197,94,0.30)" : "rgba(34,197,94,0.22)"}`
+                                }}
+                                whileHover={{ scale: 1.01 }}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex gap-4 flex-1">
+                                        <div className="p-3 rounded-xl" style={{ background: "rgba(34,197,94,0.15)" }}>
+                                            <AutoStories style={{ color: "#16a34a" }} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                    Trade Journal
+                                                </h3>
+                                                <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                                    style={{ background: "rgba(34,197,94,0.18)", color: "#16a34a" }}>
+                                                    CRUD + Analytics
+                                                </span>
+                                            </div>
+                                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                                Log trades, review performance, and validate your trading edge
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight style={{ color: "#16a34a" }} />
+                                </div>
+                            </motion.div>
+                        </Link>
+                    </>
 
                     {/* Admin Portal — only for ADMIN_EMAIL env var owner */}
                     {isAdmin && (

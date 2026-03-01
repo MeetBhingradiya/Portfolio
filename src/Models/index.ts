@@ -29,3 +29,6 @@ export * from "./ShopProduct";
 export * from "./Cart";
 export * from "./Order";
 export * from "./RefundRequest";
+
+// ? Trade Journal
+export * from "./TradeJournal";

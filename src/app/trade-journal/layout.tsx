@@ -1,0 +1,172 @@
+/**
+ * Trade Journal Layout
+ * Sidebar navigation + main content area.
+ * Client component so it can consume useDesignTheme for dynamic theming.
+ */
+
+"use client";
+
+import React, { useState } from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { motion, AnimatePresence } from "motion/react";
+import { useDesignTheme } from "@Hooks";
+import {
+    Dashboard,
+    AddCircleOutline,
+    BarChart,
+    ArrowBack,
+    Menu,
+    Close,
+    AutoStories,
+} from "@mui/icons-material";
+
+const NAV_ITEMS = [
+    { label: "Dashboard",  href: "/trade-journal",            icon: <Dashboard /> },
+    { label: "New Trade",  href: "/trade-journal/new",         icon: <AddCircleOutline /> },
+    { label: "Analytics",  href: "/trade-journal/analytics",   icon: <BarChart /> },
+];
+
+export default function TradeJournalLayout({ children }: { children: React.ReactNode }) {
+    const { palette, actualColorMode, designTheme } = useDesignTheme();
+    const pathname = usePathname();
+    const isDark  = actualColorMode === "dark";
+    const isApple = designTheme === "apple";
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    const surfaceBg = isApple
+        ? isDark ? "rgba(28, 28, 30, 0.92)" : "rgba(255, 255, 255, 0.88)"
+        : palette.surface;
+
+    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+
+    function isActive(href: string) {
+        if (href === "/trade-journal") return pathname === "/trade-journal";
+        return pathname.startsWith(href);
+    }
+
+    const SidebarContent = () => (
+        <div className="flex flex-col h-full p-4 gap-1">
+            {/* Logo */}
+            <div className="flex items-center gap-3 px-3 py-4 mb-2">
+                <div className="p-2 rounded-xl" style={{ background: `${palette.accent}20` }}>
+                    <AutoStories style={{ color: palette.accent, fontSize: 22 }} />
+                </div>
+                <div>
+                    <p className="font-bold text-sm leading-tight" style={{ color: palette.textPrimary }}>
+                        Trade Journal
+                    </p>
+                    <p className="text-xs" style={{ color: palette.textSecondary }}>Meet Bhingradiya</p>
+                </div>
+            </div>
+
+            {/* Nav items */}
+            <nav className="flex flex-col gap-1 flex-1">
+                {NAV_ITEMS.map(item => {
+                    const active = isActive(item.href);
+                    return (
+                        <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)}>
+                            <motion.div
+                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer"
+                                style={{
+                                    background: active ? `${palette.accent}18` : "transparent",
+                                    color: active ? palette.accent : palette.textSecondary,
+                                    fontWeight: active ? 600 : 400,
+                                }}
+                                whileHover={{ scale: 1.02, background: `${palette.accent}12` }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <span style={{ color: active ? palette.accent : palette.textTertiary }}>
+                                    {item.icon}
+                                </span>
+                                <span className="text-sm">{item.label}</span>
+                                {active && (
+                                    <motion.div
+                                        layoutId="activeIndicator"
+                                        className="ml-auto w-1.5 h-1.5 rounded-full"
+                                        style={{ background: palette.accent }}
+                                    />
+                                )}
+                            </motion.div>
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            {/* Back to settings */}
+            <Link href="/settings">
+                <motion.div
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl cursor-pointer mt-2"
+                    style={{ color: palette.textTertiary }}
+                    whileHover={{ scale: 1.02, color: palette.textSecondary }}
+                    whileTap={{ scale: 0.98 }}
+                >
+                    <ArrowBack fontSize="small" />
+                    <span className="text-sm">Back to Settings</span>
+                </motion.div>
+            </Link>
+        </div>
+    );
+
+    return (
+        <div className="flex min-h-screen" style={{ background: palette.background }}>
+            {/* Desktop sidebar */}
+            <aside
+                className="hidden lg:flex flex-col w-60 shrink-0 sticky top-0 h-screen"
+                style={{ background: surfaceBg, borderRight: `1px solid ${borderColor}` }}
+            >
+                <SidebarContent />
+            </aside>
+
+            {/* Mobile top bar */}
+            <div
+                className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3"
+                style={{ background: surfaceBg, borderBottom: `1px solid ${borderColor}` }}
+            >
+                <div className="flex items-center gap-2">
+                    <AutoStories style={{ color: palette.accent, fontSize: 20 }} />
+                    <span className="font-bold text-sm" style={{ color: palette.textPrimary }}>
+                        Trade Journal
+                    </span>
+                </div>
+                <button
+                    onClick={() => setMobileOpen(v => !v)}
+                    style={{ color: palette.textPrimary }}
+                >
+                    {mobileOpen ? <Close /> : <Menu />}
+                </button>
+            </div>
+
+            {/* Mobile drawer */}
+            <AnimatePresence>
+                {mobileOpen && (
+                    <>
+                        <motion.div
+                            className="lg:hidden fixed inset-0 z-30"
+                            style={{ background: "rgba(0,0,0,0.4)" }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setMobileOpen(false)}
+                        />
+                        <motion.aside
+                            className="lg:hidden fixed top-0 left-0 bottom-0 w-60 z-40 flex flex-col"
+                            style={{ background: surfaceBg, borderRight: `1px solid ${borderColor}` }}
+                            initial={{ x: -240 }}
+                            animate={{ x: 0 }}
+                            exit={{ x: -240 }}
+                            transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                        >
+                            <SidebarContent />
+                        </motion.aside>
+                    </>
+                )}
+            </AnimatePresence>
+
+            {/* Main content */}
+            <main className="flex-1 overflow-y-auto lg:pt-0 pt-14">
+                {children}
+            </main>
+        </div>
+    );
+}

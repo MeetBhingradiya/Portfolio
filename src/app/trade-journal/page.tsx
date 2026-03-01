@@ -77,14 +77,16 @@ export default function TradeJournalPage() {
 
         const res  = await fetch(`/api/trade-journal?${params}`).then(r => r.json());
         if (res.success) {
-            setTrades(res.data);
-            setTotalPages(res.totalPages ?? 1);
+            setTrades(res.data.trades ?? []);
+            const pg = res.data.pagination ?? {};
+            const sm = res.data.summary   ?? {};
+            setTotalPages(pg.totalPages ?? 1);
             setSummary({
-                total:   res.total   ?? 0,
-                wins:    res.wins    ?? 0,
-                losses:  res.losses  ?? 0,
-                netPnl:  res.netPnL  ?? 0,
-                winRate: res.winRate ?? 0,
+                total:   pg.total    ?? 0,
+                wins:    sm.wins     ?? 0,
+                losses:  sm.losses   ?? 0,
+                netPnl:  sm.netPnl   ?? 0,
+                winRate: sm.winRate  ?? 0,
             });
         }
         setLoading(false);

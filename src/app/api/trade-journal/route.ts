@@ -45,16 +45,42 @@ export async function GET(req: NextRequest) {
             ];
         }
 
-        const total  = await TradeJournal.countDocuments(query);
-        const trades = await TradeJournal.find(query)
-            .sort({ Date: -1, createdAt: -1 })
-            .skip((page - 1) * limit)
-            .limit(limit)
-            .lean();
+        const [total, trades, summaryAgg] = await Promise.all([
+            TradeJournal.countDocuments(query),
+            TradeJournal.find(query)
+                .sort({ Date: -1, createdAt: -1 })
+                .skip((page - 1) * limit)
+                .limit(limit)
+                .lean(),
+            TradeJournal.aggregate([
+                { $match: query },
+                { $group: {
+                    _id: null,
+                    wins:      { $sum: { $cond: [{ $eq: ["$Result", "WIN"] },       1, 0] } },
+                    losses:    { $sum: { $cond: [{ $eq: ["$Result", "LOSS"] },      1, 0] } },
+                    breakeven: { $sum: { $cond: [{ $eq: ["$Result", "BREAKEVEN"] }, 1, 0] } },
+                    netPnl:    { $sum: "$NetPnL" },
+                } },
+            ]),
+        ]);
+
+        const sm = summaryAgg[0] ?? { wins: 0, losses: 0, breakeven: 0, netPnl: 0 };
+        const closed = sm.wins + sm.losses + sm.breakeven;
+        const summary = {
+            wins:      sm.wins,
+            losses:    sm.losses,
+            breakeven: sm.breakeven,
+            netPnl:    parseFloat((sm.netPnl ?? 0).toFixed(2)),
+            winRate:   closed > 0 ? parseFloat(((sm.wins / closed) * 100).toFixed(1)) : 0,
+        };
 
         return NextResponse.json({
             success: true,
-            data: { trades, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } },
+            data: {
+                trades,
+                summary,
+                pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+            },
         });
     } catch (err) {
         console.error("GET /api/trade-journal:", err);

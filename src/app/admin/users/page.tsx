@@ -41,6 +41,12 @@ interface User {
     hasRoleRecord?: boolean;
 }
 
+interface RoleDef {
+    key: string;
+    label: string;
+    color?: string;
+}
+
 interface RoleModal {
     user: User;
     roles: string[];
@@ -63,6 +69,14 @@ export default function UsersPage() {
     const [error, setError] = useState("");
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [modal, setModal] = useState<RoleModal | null>(null);
+    const [roleDefs, setRoleDefs] = useState<RoleDef[]>([]);
+
+    useEffect(() => {
+        fetch("/api/admin/role-definitions")
+            .then(r => r.json())
+            .then(j => { if (j.success) setRoleDefs(j.roles ?? []); })
+            .catch(() => {});
+    }, []);
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
@@ -426,29 +440,50 @@ export default function UsersPage() {
                                 })}
                             </div>
 
-                            {modal.roles.filter(r => !BUILTIN_ROLES.includes(r)).length > 0 && (
+                            {roleDefs.filter(d => !BUILTIN_ROLES.includes(d.key)).length > 0 && (
                                 <>
                                     <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>
                                         Custom Roles
                                     </p>
                                     <div className="flex flex-wrap gap-2 mb-4">
-                                        {modal.roles.filter(r => !BUILTIN_ROLES.includes(r)).map(role => (
-                                            <span key={role}
-                                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold"
-                                                style={{ background: "rgba(255,149,0,0.15)", color: "#FF9500" }}>
-                                                {role}
-                                                <button onClick={() => toggleRole(role)} className="ml-0.5 opacity-70 hover:opacity-100">
-                                                    <Close style={{ fontSize: 12 }} />
-                                                </button>
-                                            </span>
-                                        ))}
+                                        {roleDefs.filter(d => !BUILTIN_ROLES.includes(d.key)).map(def => {
+                                            const active = modal.roles.includes(def.key);
+                                            return (
+                                                <motion.button key={def.key} whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.97 }}
+                                                    onClick={() => toggleRole(def.key)}
+                                                    className="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
+                                                    style={{
+                                                        background: active ? "rgba(255,149,0,0.18)" : "transparent",
+                                                        color: active ? "#FF9500" : palette.textTertiary,
+                                                        borderColor: active ? "#FF950044" : borderColor,
+                                                    }}>
+                                                    {def.label || def.key}
+                                                </motion.button>
+                                            );
+                                        })}
                                     </div>
                                 </>
                             )}
 
+                            {/* Ad-hoc roles not in definitions */}
+                            {modal.roles.filter(r => !BUILTIN_ROLES.includes(r) && !roleDefs.some(d => d.key === r)).length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {modal.roles.filter(r => !BUILTIN_ROLES.includes(r) && !roleDefs.some(d => d.key === r)).map(role => (
+                                        <span key={role}
+                                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold"
+                                            style={{ background: "rgba(255,149,0,0.12)", color: "#FF9500", border: "1px solid #FF950033" }}>
+                                            {role}
+                                            <button onClick={() => toggleRole(role)} className="ml-0.5 opacity-70 hover:opacity-100">
+                                                <Close style={{ fontSize: 12 }} />
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                            )}
+
                             <div className="flex gap-2 mb-5">
                                 <input
-                                    placeholder="custom_role…"
+                                    placeholder="Ad-hoc role key…"
                                     value={modal.newRole}
                                     onChange={e => setModal(m => m ? { ...m, newRole: e.target.value } : m)}
                                     onKeyDown={e => { if (e.key === "Enter") addCustomRole(); }}

@@ -39,6 +39,8 @@ import {
     SupportAgent,
     LocalOffer,
     ToggleOn,
+    VpnKey,
+    Apps,
 } from "@mui/icons-material";
 
 const navItems = [
@@ -69,7 +71,9 @@ const navItems = [
     { href: "/admin/tool-settings", label: "Tool Settings", icon: <Build fontSize="small" />, group: "system" },
     { href: "/admin/maintenance", label: "Maintenance", icon: <Construction fontSize="small" />, group: "system" },
     { href: "/admin/immich-access", label: "Immich Access", icon: <PhotoCamera fontSize="small" />, group: "system" },
-    { href: "/admin/cdn", label: "CDN Assets", icon: <CloudUpload fontSize="small" />, group: "system" },
+    { href: "/admin/cdn", label: "CDN Assets", icon: <CloudUpload fontSize="small" />, exact: true, group: "system" },
+    { href: "/admin/cdn/applications", label: "CDN Requests", icon: <Apps fontSize="small" />, group: "system" },
+    { href: "/admin/cdn/api-keys", label: "CDN API Keys", icon: <VpnKey fontSize="small" />, group: "system" },
 ];
 
 const groups: { key: string; label: string }[] = [

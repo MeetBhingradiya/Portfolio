@@ -6,6 +6,58 @@
 "use client";
 
 import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
+
+// ─── Module-level pure helpers (no re-creation on render) ───────────────────
+
+function parseScheduleDate(dateStr: string): Date {
+    const parts = dateStr.trim().split(' ');
+    const dateParts = parts[0].split('-');
+    const timeParts = parts[1].split(':');
+    const ampm = parts[2]?.toUpperCase();
+
+    const day = parseInt(dateParts[0], 10);
+    const month = parseInt(dateParts[1], 10) - 1;
+    const year = parseInt(dateParts[2], 10);
+    let hours = parseInt(timeParts[0], 10);
+    const minutes = parseInt(timeParts[1], 10);
+
+    if (ampm === 'PM' && hours !== 12) hours += 12;
+    else if (ampm === 'AM' && hours === 12) hours = 0;
+
+    const utcDate = new Date(Date.UTC(year, month, day, hours, minutes));
+    utcDate.setMinutes(utcDate.getMinutes() - (5 * 60 + 30));
+    return utcDate;
+}
+
+function getCurrentIST(): Date {
+    return new Date(Date.now() + 5.5 * 60 * 60 * 1000);
+}
+
+function getNotificationIcon(notification: NotificationConfig): React.ReactNode {
+    switch (notification?.type) {
+        case "warning": return <WarningAmber className="text-lg" />;
+        case "error":   return <ErrorOutline className="text-lg" />;
+        case "success": return <CheckCircleOutline className="text-lg" />;
+        default:        return <InfoOutlined className="text-lg" />;
+    }
+}
+
+function getNotificationColors(type: string, isDark: boolean) {
+    if (isDark) {
+        return ({
+            info:    { bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)", text: "#93c5fd" },
+            warning: { bg: "rgba(251, 191, 36, 0.15)", border: "rgba(251, 191, 36, 0.3)", text: "#fcd34d" },
+            error:   { bg: "rgba(239, 68, 68, 0.15)",  border: "rgba(239, 68, 68, 0.3)",  text: "#fca5a5" },
+            success: { bg: "rgba(34, 197, 94, 0.15)",  border: "rgba(34, 197, 94, 0.3)",  text: "#86efac" },
+        } as Record<string, { bg: string; border: string; text: string }>)[type];
+    }
+    return ({
+        info:    { bg: "rgba(59, 130, 246, 0.1)", border: "rgba(59, 130, 246, 0.2)", text: "#2563eb" },
+        warning: { bg: "rgba(251, 191, 36, 0.1)", border: "rgba(251, 191, 36, 0.2)", text: "#d97706" },
+        error:   { bg: "rgba(239, 68, 68, 0.1)",  border: "rgba(239, 68, 68, 0.2)",  text: "#dc2626" },
+        success: { bg: "rgba(34, 197, 94, 0.1)",  border: "rgba(34, 197, 94, 0.2)",  text: "#16a34a" },
+    } as Record<string, { bg: string; border: string; text: string }>)[type];
+}
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import { useAuth } from "@Library/auth-client";
@@ -34,7 +86,6 @@ import {
     SpaceDashboard,
     CalendarMonth,
     Build,
-    Description,
     Store,
 } from "@mui/icons-material";
 import { Config } from "@Config/Client";
@@ -104,6 +155,12 @@ const menuCategories: MenuCategory[] = [
                 href: "/bookmarks",
                 description: "Curated links",
                 icon: <Bookmark />
+            },
+            {
+                label: "Shop",
+                href: "/shop",
+                description: "Digital products & merch",
+                icon: <Store />
             }
         ]
     },
@@ -130,92 +187,30 @@ const menuCategories: MenuCategory[] = [
             }
         ]
     },
-    {
-        label: "Personal",
-        items: [
-            {
-                label: "Dashboard",
-                href: "/dashboard",
-                description: "Personal overview",
-                icon: <SpaceDashboard />
-            },
-            {
-                label: "Photos",
-                href: "/api/photos",
-                description: "Private photo library",
-                icon: <PhotoCamera />
-            },
-            {
-                label: "Resume",
-                href: "/resume.pdf",
-                description: "Download my CV",
-                icon: <Description />
-            },
-            {
-                label: "Shop",
-                href: "/shop",
-                description: "Digital products & merch",
-                icon: <Store />
-            }
-        ]
-    }
 ];
 
 export default function HeadNavigation() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
     const { session, user, isAuthenticated, isLoading, signOut } = useAuth();
     const [activeMenu, setActiveMenu] = useState<string | null>(null);
-    const [uiState, setUiState] = useState({
-        mobileMenuOpen: false,
-        notificationDismissed: false,
-        scrolled: false
-    });
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    // Incrementing version causes activeNotifications to recompute after a dismiss
+    const [dismissVersion, setDismissVersion] = useState(0);
     const [showSwitchAccountModal, setShowSwitchAccountModal] = useState(false);
+    const [hasImmichAccess, setHasImmichAccess] = useState(false);
+    const [isAdmin, setIsAdmin] = useState(false);
     const [maintenanceBanner, setMaintenanceBanner] = useState<{ message: string } | null>(null);
+
     const menuTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
     const navRef = useRef<HTMLElement>(null);
+    // Ref for the Apple glass-reflection div so scroll can mutate it without state
+    const glassReflectionRef = useRef<HTMLDivElement>(null);
+    const scrolledRef = useRef(false);
 
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
-    const isAdmin = user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || (user as any)?.role === "admin";
 
-    // Parse date string in format "dd-mm-yyyy hh:mm AM/PM" (IST timezone +5:30)
-    const parseScheduleDate = (dateStr: string): Date => {
-        const parts = dateStr.trim().split(' ');
-        const dateParts = parts[0].split('-'); // dd-mm-yyyy
-        const timeParts = parts[1].split(':'); // hh:mm
-        const ampm = parts[2]?.toUpperCase(); // AM/PM
-
-        const day = parseInt(dateParts[0], 10);
-        const month = parseInt(dateParts[1], 10) - 1; // JS months are 0-indexed
-        const year = parseInt(dateParts[2], 10);
-        let hours = parseInt(timeParts[0], 10);
-        const minutes = parseInt(timeParts[1], 10);
-
-        // Convert to 24-hour format
-        if (ampm === 'PM' && hours !== 12) {
-            hours += 12;
-        } else if (ampm === 'AM' && hours === 12) {
-            hours = 0;
-        }
-
-        // Create date in UTC by treating input as IST (UTC+5:30)
-        const utcDate = new Date(Date.UTC(year, month, day, hours, minutes));
-        // Subtract IST offset to get the actual UTC time
-        utcDate.setMinutes(utcDate.getMinutes() - (5 * 60 + 30));
-
-        return utcDate;
-    };
-
-    // Get current time in IST for comparison
-    const getCurrentIST = (): Date => {
-        const now = new Date();
-        // Convert current time to IST by adding 5:30 offset
-        const istOffset = 5.5 * 60 * 60 * 1000; // 5 hours 30 minutes in milliseconds
-        return new Date(now.getTime() + istOffset);
-    };
-
-    // Get active notifications that are enabled and not dismissed
+    // Active notifications — only recomputed when dismiss version changes
     const activeNotifications = useMemo(() => {
         if (!Config.Notifications) return [];
 
@@ -226,127 +221,93 @@ export default function HeadNavigation() {
         const now = getCurrentIST();
 
         return Config.Notifications.filter(notification => {
-            // Check if enabled
             if (!notification.enabled) return false;
+            if (notification.storageValue && dismissedValue === notification.storageValue) return false;
 
-            // Check if dismissed
-            if (notification.storageValue && dismissedValue === notification.storageValue) {
-                return false;
-            }
-
-            // Check schedule if provided
             if (notification.schedule) {
                 try {
                     const start = parseScheduleDate(notification.schedule.start);
                     const end = parseScheduleDate(notification.schedule.end);
-
-                    // Only show if current time is between start and end
-                    if (now < start || now > end) {
-                        return false;
-                    }
+                    if (now < start || now > end) return false;
                 } catch (error) {
                     console.error('Invalid schedule format for notification:', notification.message, error);
                     return false;
                 }
             }
-
             return true;
         });
-    }, [uiState.notificationDismissed]);
+    }, [dismissVersion]);
 
-    const notificationIcon = useMemo(() => (notification: NotificationConfig) => {
-        switch (notification?.type) {
-            case "warning":
-                return <WarningAmber className="text-lg" />;
-            case "error":
-                return <ErrorOutline className="text-lg" />;
-            case "success":
-                return <CheckCircleOutline className="text-lg" />;
-            default:
-                return <InfoOutlined className="text-lg" />;
-        }
-    }, []);
-
-    const notificationColors = useMemo(() => (type: string) => {
-        if (isDark) {
-            return {
-                info: { bg: "rgba(59, 130, 246, 0.15)", border: "rgba(59, 130, 246, 0.3)", text: "#93c5fd" },
-                warning: { bg: "rgba(251, 191, 36, 0.15)", border: "rgba(251, 191, 36, 0.3)", text: "#fcd34d" },
-                error: { bg: "rgba(239, 68, 68, 0.15)", border: "rgba(239, 68, 68, 0.3)", text: "#fca5a5" },
-                success: { bg: "rgba(34, 197, 94, 0.15)", border: "rgba(34, 197, 94, 0.3)", text: "#86efac" }
-            }[type];
-        }
-        return {
-            info: { bg: "rgba(59, 130, 246, 0.1)", border: "rgba(59, 130, 246, 0.2)", text: "#2563eb" },
-            warning: { bg: "rgba(251, 191, 36, 0.1)", border: "rgba(251, 191, 36, 0.2)", text: "#d97706" },
-            error: { bg: "rgba(239, 68, 68, 0.1)", border: "rgba(239, 68, 68, 0.2)", text: "#dc2626" },
-            success: { bg: "rgba(34, 197, 94, 0.1)", border: "rgba(34, 197, 94, 0.2)", text: "#16a34a" }
-        }[type];
-    }, [isDark]);
-
+    // Scroll handler — directly mutates DOM, zero React re-renders on scroll
     useEffect(() => {
+        const nav = navRef.current;
+        if (!nav) return;
+
+        // Precompute scroll-state styles that depend on theme (re-computed when theme changes)
+        const blurScrolled  = "blur(60px) saturate(200%)";
+        const blurNormal    = "blur(40px) saturate(180%)";
+        const bgScrolled    = isApple ? (isDark
+            ? "linear-gradient(180deg, rgba(28, 28, 30, 0.85) 0%, rgba(20, 20, 22, 0.8) 100%)"
+            : "linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(250, 250, 252, 0.8) 100%)")
+            : null;
+        const bgNormal      = isApple ? (isDark
+            ? "linear-gradient(180deg, rgba(28, 28, 30, 0.7) 0%, rgba(20, 20, 22, 0.65) 100%)"
+            : "linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 252, 0.65) 100%)")
+            : null;
+        const shadowScrolled = isApple ? (isDark
+            ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
+            : "0 4px 24px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(255, 255, 255, 1) inset")
+            : null;
+        const shadowNormal   = isApple ? (isDark
+            ? "0 4px 16px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(255, 255, 255, 0.05) inset"
+            : "0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(255, 255, 255, 0.8) inset")
+            : null;
+
         const handleScroll = () => {
             const scrollY = window.scrollY;
-            const nav = navRef.current;
-            if (!nav) return;
-
             const isScrolled = scrollY > 20;
 
-            // Use CSS classes for visual effects
-            if (isScrolled) {
-                nav.classList.add('scrolled');
-            } else {
-                nav.classList.remove('scrolled');
-            }
+            nav.classList.toggle('scrolled', isScrolled);
+            nav.classList.toggle('notification-hidden', scrollY > 10);
 
-            // Handle notification bar visibility
-            if (scrollY <= 10) {
-                nav.classList.remove('notification-hidden');
-            } else {
-                nav.classList.add('notification-hidden');
-            }
-
-            // Update scrolled state only when it changes (for style calculations)
-            setUiState(prev => {
-                if (prev.scrolled !== isScrolled) {
-                    return { ...prev, scrolled: isScrolled };
+            // Only apply expensive style mutations when the state actually flips
+            if (isScrolled !== scrolledRef.current) {
+                scrolledRef.current = isScrolled;
+                if (isApple) {
+                    nav.style.backdropFilter       = isScrolled ? blurScrolled : blurNormal;
+                    (nav.style as any).webkitBackdropFilter = isScrolled ? blurScrolled : blurNormal;
+                    if (bgScrolled && bgNormal)         nav.style.background  = isScrolled ? bgScrolled  : bgNormal;
+                    if (shadowScrolled && shadowNormal) nav.style.boxShadow   = isScrolled ? shadowScrolled : shadowNormal;
+                    if (glassReflectionRef.current)
+                        glassReflectionRef.current.style.height = isScrolled ? "60%" : "50%";
                 }
-                return prev;
-            });
+            }
         };
 
-        // Passive listener for better scroll performance
         window.addEventListener("scroll", handleScroll, { passive: true });
         return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
+    }, [isApple, isDark]); // Re-register when theme changes so precomputed values stay fresh
 
     const handleMenuEnter = useCallback((label: string) => {
-        if (menuTimeout.current) {
-            clearTimeout(menuTimeout.current);
-        }
+        if (menuTimeout.current) clearTimeout(menuTimeout.current);
         setActiveMenu(label);
     }, []);
 
     const handleMenuLeave = useCallback(() => {
-        menuTimeout.current = setTimeout(() => {
-            setActiveMenu(null);
-        }, 150);
+        menuTimeout.current = setTimeout(() => setActiveMenu(null), 150);
     }, []);
 
     const toggleMobileMenu = useCallback(() => {
-        setUiState(prev => ({ ...prev, mobileMenuOpen: !prev.mobileMenuOpen }));
+        setMobileMenuOpen(prev => !prev);
     }, []);
 
     const closeMobileMenu = useCallback(() => {
-        setUiState(prev => ({ ...prev, mobileMenuOpen: false }));
+        setMobileMenuOpen(false);
     }, []);
 
     const dismissNotification = useCallback((storageValue?: string) => {
-        // Persist dismissal state to localStorage with storageValue as the value
-        if (storageValue) {
-            localStorage.setItem("Notification_Dismissed", storageValue);
-        }
-        setUiState(prev => ({ ...prev, notificationDismissed: true }));
+        if (storageValue) localStorage.setItem("Notification_Dismissed", storageValue);
+        setDismissVersion(v => v + 1);
     }, []);
 
     // Fetch maintenance status and poll every 60s
@@ -374,6 +335,23 @@ export default function HeadNavigation() {
             console.error("Sign out failed:", error);
         }
     }, [signOut]);
+
+    // Fetch Immich access + admin status when auth changes
+    useEffect(() => {
+        if (!isAuthenticated) {
+            setHasImmichAccess(false);
+            setIsAdmin(false);
+            return;
+        }
+        fetch("/api/photos/check")
+            .then(r => r.json())
+            .then(d => setHasImmichAccess(!!d.allowed))
+            .catch(() => setHasImmichAccess(false));
+        fetch("/api/admin/is-admin")
+            .then(r => r.json())
+            .then(d => setIsAdmin(!!d.isAdmin))
+            .catch(() => setIsAdmin(false));
+    }, [isAuthenticated]);
 
     const totalBannerOffset = (maintenanceBanner ? 1 : 0) + activeNotifications.length;
 
@@ -429,8 +407,8 @@ export default function HeadNavigation() {
             {/* Top Notification Banners */}
             <AnimatePresence>
                 {activeNotifications.map((notification, index) => {
-                    const colors = notificationColors(notification.type || "info");
-                    const icon = notificationIcon(notification);
+                    const colors = getNotificationColors(notification.type || "info", isDark);
+                    const icon = getNotificationIcon(notification);
                     const uniqueKey = notification.storageValue ? `notification-${notification.storageValue}` : `notification-${index}-${notification.message.substring(0, 20)}`;
 
                     return (
@@ -560,24 +538,13 @@ export default function HeadNavigation() {
                 style={{
                     top: totalBannerOffset > 0 ? `${totalBannerOffset * 64}px` : "0",
                     transition: "top 0.3s ease",
-                    backdropFilter: isApple
-                        ? uiState.scrolled
-                            ? "blur(60px) saturate(200%)"
-                            : "blur(40px) saturate(180%)"
-                        : "none",
-                    WebkitBackdropFilter: isApple
-                        ? uiState.scrolled
-                            ? "blur(60px) saturate(200%)"
-                            : "blur(40px) saturate(180%)"
-                        : "none",
+                    // Scroll-dependent Apple styles are applied directly by the scroll handler (zero re-renders).
+                    backdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
+                    WebkitBackdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
                     background: isApple
-                        ? uiState.scrolled
-                            ? isDark
-                                ? "linear-gradient(180deg, rgba(28, 28, 30, 0.85) 0%, rgba(20, 20, 22, 0.8) 100%)"
-                                : "linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(250, 250, 252, 0.8) 100%)"
-                            : isDark
-                                ? "linear-gradient(180deg, rgba(28, 28, 30, 0.7) 0%, rgba(20, 20, 22, 0.65) 100%)"
-                                : "linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 252, 0.65) 100%)"
+                        ? isDark
+                            ? "linear-gradient(180deg, rgba(28, 28, 30, 0.7) 0%, rgba(20, 20, 22, 0.65) 100%)"
+                            : "linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 252, 0.65) 100%)"
                         : isDark
                             ? "linear-gradient(135deg, rgba(30, 30, 35, 0.95) 0%, rgba(25, 25, 30, 0.9) 100%)"
                             : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 248, 250, 0.9) 100%)",
@@ -585,13 +552,9 @@ export default function HeadNavigation() {
                         ? `0.5px solid ${isDark ? "rgba(255, 255, 255, 0.12)" : "rgba(0, 0, 0, 0.08)"}`
                         : `1.5px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)"}`,
                     boxShadow: isApple
-                        ? uiState.scrolled
-                            ? isDark
-                                ? "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
-                                : "0 4px 24px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(255, 255, 255, 1) inset"
-                            : isDark
-                                ? "0 4px 16px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(255, 255, 255, 0.05) inset"
-                                : "0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(255, 255, 255, 0.8) inset"
+                        ? isDark
+                            ? "0 4px 16px rgba(0, 0, 0, 0.2), 0 0 0 0.5px rgba(255, 255, 255, 0.05) inset"
+                            : "0 2px 12px rgba(0, 0, 0, 0.06), 0 0 0 0.5px rgba(255, 255, 255, 0.8) inset"
                         : isDark
                             ? "0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                             : "0 2px 12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.7)"
@@ -603,9 +566,10 @@ export default function HeadNavigation() {
                 {/* Top glass reflection - Apple only */}
                 {isApple && (
                     <div
+                        ref={glassReflectionRef}
                         className="absolute inset-x-0 top-0 pointer-events-none"
                         style={{
-                            height: uiState.scrolled ? "60%" : "50%",
+                            height: "50%", // scroll handler updates to 60% when scrolled
                             background: isDark
                                 ? "linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%)"
                                 : "linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, transparent 100%)",
@@ -1073,6 +1037,56 @@ export default function HeadNavigation() {
                                                             </div>
                                                         </motion.div>
                                                     </Link>
+                                                    {hasImmichAccess && (
+                                                        <Link href="/api/photos">
+                                                            <motion.div
+                                                                className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                                whileHover={{
+                                                                    backgroundColor: isApple
+                                                                        ? isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)"
+                                                                        : isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+                                                                    scale: 1.01
+                                                                }}
+                                                                whileTap={{ scale: 0.98 }}
+                                                            >
+                                                                <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
+                                                                    <PhotoCamera />
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
+                                                                        Photos
+                                                                    </div>
+                                                                    <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
+                                                                        Private photo library
+                                                                    </div>
+                                                                </div>
+                                                            </motion.div>
+                                                        </Link>
+                                                    )}
+                                                    <Link href="/dashboard">
+                                                        <motion.div
+                                                            className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                            whileHover={{
+                                                                backgroundColor: isApple
+                                                                    ? isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)"
+                                                                    : isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.05)",
+                                                                scale: 1.01
+                                                            }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                        >
+                                                            <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
+                                                                <SpaceDashboard />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
+                                                                    Dashboard
+                                                                </div>
+                                                                <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
+                                                                    Personal overview
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    </Link>
                                                     {isAdmin && (
                                                         <Link href="/admin">
                                                             <motion.div
@@ -1090,7 +1104,7 @@ export default function HeadNavigation() {
                                                                 </div>
                                                                 <div className="flex-1 min-w-0">
                                                                     <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
-                                                                        Admin Panel
+                                                                        Admin Dashboard
                                                                     </div>
                                                                     <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
                                                                         Manage site content
@@ -1277,21 +1291,21 @@ export default function HeadNavigation() {
                                 <motion.div
                                     className="w-6 h-0.5 bg-current rounded-full"
                                     animate={{
-                                        rotate: uiState.mobileMenuOpen ? 45 : 0,
-                                        y: uiState.mobileMenuOpen ? 8 : 0
+                                        rotate: mobileMenuOpen ? 45 : 0,
+                                        y: mobileMenuOpen ? 8 : 0
                                     }}
                                     transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                                 />
                                 <motion.div
                                     className="w-6 h-0.5 bg-current rounded-full"
-                                    animate={{ opacity: uiState.mobileMenuOpen ? 0 : 1 }}
+                                    animate={{ opacity: mobileMenuOpen ? 0 : 1 }}
                                     transition={{ duration: 0.15 }}
                                 />
                                 <motion.div
                                     className="w-6 h-0.5 bg-current rounded-full"
                                     animate={{
-                                        rotate: uiState.mobileMenuOpen ? -45 : 0,
-                                        y: uiState.mobileMenuOpen ? -8 : 0
+                                        rotate: mobileMenuOpen ? -45 : 0,
+                                        y: mobileMenuOpen ? -8 : 0
                                     }}
                                     transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
                                 />
@@ -1302,7 +1316,7 @@ export default function HeadNavigation() {
 
                 {/* Mobile Menu Overlay */}
                 <AnimatePresence>
-                    {uiState.mobileMenuOpen && (
+                    {mobileMenuOpen && (
                         <motion.div
                             className="absolute top-full left-0 right-0 overflow-hidden"
                             style={{
@@ -1472,7 +1486,8 @@ export default function HeadNavigation() {
                                         {[
                                             { label: "Settings", href: "/settings", icon: <Settings className="text-xl" /> },
                                             { label: "Profile", href: "/settings/profile", icon: <AccountCircle className="text-xl" /> },
-                                            ...(isAdmin ? [{ label: "Admin Panel", href: "/admin", icon: <AdminPanelSettings className="text-xl" /> }] : []),
+                                            ...(hasImmichAccess ? [{ label: "Photos", href: "/api/photos", icon: <PhotoCamera className="text-xl" /> }] : []),
+                                            ...(isAdmin ? [{ label: "Admin Dashboard", href: "/admin", icon: <AdminPanelSettings className="text-xl" /> }] : []),
                                         ].map((item) => (
                                             <Link key={item.href} href={item.href}>
                                                 <motion.div

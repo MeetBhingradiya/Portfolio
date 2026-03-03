@@ -11,6 +11,9 @@ export * from "./ImmichWhitelist";
 
 // ? GitHub CDN Storage
 export * from "./CDNAsset";
+export * from "./CDNApplication";
+export * from "./CDNAPIKey";
+export * from "./CDNRateWindow";
 
 // ? Site-wide Settings (maintenance mode, etc.)
 export * from "./SiteSettings";
@@ -33,3 +36,9 @@ export * from "./RefundRequest";
 // ? Trade Journal
 export * from "./TradeJournal";
 export * from "./DailyCapital";
+
+// ? Payments (Razorpay + Stripe)
+export * from "./Payment";
+
+// ? Role Definitions (admin-editable role → permissions bundles)
+export * from "./RoleDefinition";

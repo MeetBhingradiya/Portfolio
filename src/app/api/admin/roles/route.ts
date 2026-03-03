@@ -1,12 +1,13 @@
 /**
  * GET  /api/admin/roles        → list all role records
- * POST /api/admin/roles        → grant roles to a user
+ * POST /api/admin/roles        → upsert roles for a user (looks up userId from email if needed)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { UserRole } from "@Models/UserRole";
 import { requireAdmin } from "@Utils/RolePermissions";
+import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
     try {
@@ -54,10 +55,25 @@ export async function POST(req: NextRequest) {
         const admin = await requireAdmin(h);
 
         const body = await req.json();
-        const { userId, email, roles, permissions, notes } = body;
+        let { userId, email, roles, permissions, notes } = body;
 
-        if (!userId || !email) {
-            return NextResponse.json({ success: false, error: "userId and email are required" }, { status: 400 });
+        if (!email) {
+            return NextResponse.json({ success: false, error: "email is required" }, { status: 400 });
+        }
+        // Auto-resolve userId from Better Auth user collection when not supplied
+        if (!userId) {
+            const db = mongoose.connection.db;
+            if (!db) {
+                return NextResponse.json({ success: false, error: "DB not ready" }, { status: 503 });
+            }
+            const user = await db.collection("user").findOne(
+                { email: email.toLowerCase() },
+                { projection: { _id: 1 } }
+            );
+            if (!user) {
+                return NextResponse.json({ success: false, error: "No user found with that email" }, { status: 404 });
+            }
+            userId = String(user._id);
         }
 
         const record = await UserRole.findOneAndUpdate(

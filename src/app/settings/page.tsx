@@ -24,7 +24,8 @@ import {
     Email,
     Password,
     AdminPanelSettings,
-    AutoStories
+    AutoStories,
+    CloudUpload,
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
@@ -90,6 +91,14 @@ export default function SettingsPage() {
             icon: <Notifications />,
             href: "/settings/notifications",
             badge: null
+        },
+        {
+            id: "cdn",
+            title: "CDN API Access",
+            description: "Manage your CDN API keys, view usage, and rotate keys",
+            icon: <CloudUpload />,
+            href: "/settings/cdn",
+            badge: "Developer"
         }
     ];
 

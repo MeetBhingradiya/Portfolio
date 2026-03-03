@@ -142,170 +142,149 @@ export default function AdminRolesPage() {
     const br      = isApple ? 16 : 20;
 
     // ── Shared state ──────────────────────────────────────────────────────────
-    const [tab, setTab]             = useState<Tab>("definitions");
-    const [roleDefs, setRoleDefs]   = useState<RoleDef[]>([]);
-    const [userRoles, setUserRoles] = useState<UserRoleRecord[]>([]);
-    const [loadingDefs, setLoadingDefs] = useState(true);
-    const [loadingUsers, setLoadingUsers] = useState(true);
+    const [pg, setPg] = useState<{ tab: Tab; roleDefs: RoleDef[]; userRoles: UserRoleRecord[]; loadingDefs: boolean; loadingUsers: boolean }>(
+        { tab: "definitions", roleDefs: [], userRoles: [], loadingDefs: true, loadingUsers: true }
+    );
+    const patchPg = useCallback((p: Partial<typeof pg>) => setPg(s => ({ ...s, ...p })), []);
 
     // ── Tab 1 state ───────────────────────────────────────────────────────────
-    const [activeRole, setActiveRole]       = useState<RoleDef | null>(null);
-    const [editPermsSet, setEditPermsSet]   = useState<Set<string>>(new Set());
-    const [showCreateRole, setShowCreateRole] = useState(false);
-    const [newRole, setNewRole] = useState({ key: "", label: "", description: "", color: PRESET_COLORS[0] });
-    const [savingDef, setSavingDef]         = useState(false);
-    const [defSearch, setDefSearch]         = useState("");
+    const [def, setDef] = useState<{ active: RoleDef | null; permsSet: Set<string>; showCreate: boolean; newRole: { key: string; label: string; description: string; color: string }; saving: boolean; search: string }>(
+        { active: null, permsSet: new Set(), showCreate: false, newRole: { key: "", label: "", description: "", color: PRESET_COLORS[0] }, saving: false, search: "" }
+    );
+    const patchDef = useCallback((p: Partial<typeof def>) => setDef(s => ({ ...s, ...p })), []);
 
     // ── Tab 2 state ───────────────────────────────────────────────────────────
-    const [activeUser, setActiveUser]         = useState<UserRoleRecord | null>(null);
-    const [editUserRoles, setEditUserRoles]   = useState<string[]>([]);
-    const [editUserPerms, setEditUserPerms]   = useState<{ key: string; label: string; granted: boolean }[]>([]);
-    const [editUserNotes, setEditUserNotes]   = useState("");
-    const [showAddUser, setShowAddUser]       = useState(false);
-    const [addEmail, setAddEmail]             = useState("");
-    const [addLoading, setAddLoading]         = useState(false);
-    const [addError, setAddError]             = useState("");
-    const [savingUser, setSavingUser]         = useState(false);
-    const [saveUserError, setSaveUserError]   = useState("");
-    const [userSearch, setUserSearch]         = useState("");
+    const [user, setUser] = useState<{ active: UserRoleRecord | null; roles: string[]; perms: { key: string; label: string; granted: boolean }[]; notes: string; showAdd: boolean; addEmail: string; addLoading: boolean; addError: string; saving: boolean; saveError: string; search: string }>(
+        { active: null, roles: [], perms: [], notes: "", showAdd: false, addEmail: "", addLoading: false, addError: "", saving: false, saveError: "", search: "" }
+    );
+    const patchUser = useCallback((p: Partial<typeof user>) => setUser(s => ({ ...s, ...p })), []);
 
     // ── Fetch ─────────────────────────────────────────────────────────────────
     const fetchDefs = useCallback(async () => {
-        setLoadingDefs(true);
+        patchPg({ loadingDefs: true });
         try {
             const res = await fetch("/api/admin/role-definitions");
             const json = await res.json();
-            if (json.success && Array.isArray(json.roles)) setRoleDefs(json.roles);
+            if (json.success && Array.isArray(json.roles)) patchPg({ roleDefs: json.roles });
         } catch { /* network error — keep [] */ }
-        setLoadingDefs(false);
+        patchPg({ loadingDefs: false });
     }, []);
 
     const fetchUsers = useCallback(async () => {
-        setLoadingUsers(true);
+        patchPg({ loadingUsers: true });
         try {
             const res = await fetch("/api/admin/roles?limit=100");
             const json = await res.json();
-            if (json.success && Array.isArray(json.data)) setUserRoles(json.data);
+            if (json.success && Array.isArray(json.data)) patchPg({ userRoles: json.data });
         } catch { /* network error — keep [] */ }
-        setLoadingUsers(false);
+        patchPg({ loadingUsers: false });
     }, []);
 
     useEffect(() => { fetchDefs(); fetchUsers(); }, [fetchDefs, fetchUsers]);
 
     // ── Tab 1 helpers ─────────────────────────────────────────────────────────
     const openRoleDef = (r: RoleDef) => {
-        setActiveRole(r);
-        setEditPermsSet(new Set(r.permissions));
+        patchDef({ active: r, permsSet: new Set(r.permissions) });
     };
 
     const toggleDefPerm = (key: string) => {
-        setEditPermsSet(prev => {
-            const next = new Set(prev);
+        setDef(prev => {
+            const next = new Set(prev.permsSet);
             if (next.has(key)) next.delete(key); else next.add(key);
-            return next;
+            return { ...prev, permsSet: next };
         });
     };
 
     const saveRoleDef = async () => {
-        if (!activeRole) return;
-        setSavingDef(true);
-        await fetch(`/api/admin/role-definitions/${activeRole.key}`, {
+        if (!def.active) return;
+        patchDef({ saving: true });
+        await fetch(`/api/admin/role-definitions/${def.active.key}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ permissions: Array.from(editPermsSet) }),
+            body: JSON.stringify({ permissions: Array.from(def.permsSet) }),
         });
-        setSavingDef(false);
-        setActiveRole(null);
+        patchDef({ saving: false, active: null });
         fetchDefs();
     };
 
     const deleteRoleDef = async () => {
-        if (!activeRole || activeRole.isBuiltin) return;
-        if (!confirm(`Delete role "${activeRole.label}"? This cannot be undone.`)) return;
-        await fetch(`/api/admin/role-definitions/${activeRole.key}`, { method: "DELETE" });
-        setActiveRole(null);
+        if (!def.active || def.active.isBuiltin) return;
+        if (!confirm(`Delete role "${def.active.label}"? This cannot be undone.`)) return;
+        await fetch(`/api/admin/role-definitions/${def.active.key}`, { method: "DELETE" });
+        patchDef({ active: null });
         fetchDefs();
     };
 
     const createRoleDef = async () => {
-        if (!newRole.key.trim() || !newRole.label.trim()) return;
-        setSavingDef(true);
+        if (!def.newRole.key.trim() || !def.newRole.label.trim()) return;
+        patchDef({ saving: true });
         await fetch("/api/admin/role-definitions", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(newRole),
+            body: JSON.stringify(def.newRole),
         });
-        setSavingDef(false);
-        setNewRole({ key: "", label: "", description: "", color: PRESET_COLORS[0] });
-        setShowCreateRole(false);
+        patchDef({ saving: false, newRole: { key: "", label: "", description: "", color: PRESET_COLORS[0] }, showCreate: false });
         fetchDefs();
     };
 
     // ── Tab 2 helpers ─────────────────────────────────────────────────────────
     const openUserRecord = (r: UserRoleRecord) => {
-        setActiveUser(r);
-        setSaveUserError("");
-        setEditUserRoles([...r.roles]);
-        setEditUserNotes(r.notes ?? "");
-        setEditUserPerms(
-            PERMISSIONS.map(p => {
+        patchUser({
+            active: r,
+            saveError: "",
+            roles: [...r.roles],
+            notes: r.notes ?? "",
+            perms: PERMISSIONS.map(p => {
                 const existing = r.permissions.find(ep => ep.key === p.key);
                 return { key: p.key, label: p.label, granted: existing?.granted ?? false };
-            })
-        );
+            }),
+        });
     };
 
     const toggleUserRole = (key: string) => {
-        setEditUserRoles(prev =>
-            prev.includes(key) ? prev.filter(r => r !== key) : [...prev, key]
-        );
+        patchUser({ roles: user.roles.includes(key) ? user.roles.filter(r => r !== key) : [...user.roles, key] });
     };
 
     const toggleUserPerm = (key: string) => {
-        setEditUserPerms(prev =>
-            prev.map(p => p.key === key ? { ...p, granted: !p.granted } : p)
-        );
+        patchUser({ perms: user.perms.map(p => p.key === key ? { ...p, granted: !p.granted } : p) });
     };
 
     const saveUserRecord = async () => {
-        if (!activeUser) return;
-        setSavingUser(true);
-        setSaveUserError("");
+        if (!user.active) return;
+        patchUser({ saving: true, saveError: "" });
         try {
-            const res = await fetch(`/api/admin/roles/${activeUser.userId}`, {
+            const res = await fetch(`/api/admin/roles/${user.active.userId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    roles: editUserRoles.length > 0 ? editUserRoles : ["user"],
-                    permissions: editUserPerms.filter(p => p.granted),
-                    notes: editUserNotes,
+                    roles: user.roles.length > 0 ? user.roles : ["user"],
+                    permissions: user.perms.filter(p => p.granted),
+                    notes: user.notes,
                 }),
             });
             const json = await res.json();
             if (!res.ok || !json.success) throw new Error(json.error || `HTTP ${res.status}`);
-            setActiveUser(null);
+            patchUser({ active: null });
             fetchUsers();
         } catch (e: any) {
-            setSaveUserError(e.message || "Save failed");
+            patchUser({ saveError: e.message || "Save failed" });
         }
-        setSavingUser(false);
+        patchUser({ saving: false });
     };
 
     const deleteUserRecord = async () => {
-        if (!activeUser) return;
+        if (!user.active) return;
         if (!confirm("Remove all role assignments for this user?")) return;
-        await fetch(`/api/admin/roles/${activeUser.userId}`, { method: "DELETE" });
-        setActiveUser(null);
+        await fetch(`/api/admin/roles/${user.active.userId}`, { method: "DELETE" });
+        patchUser({ active: null });
         fetchUsers();
     };
 
     const addUserByEmail = async () => {
-        if (!addEmail.trim()) return;
-        setAddLoading(true);
-        setAddError("");
+        if (!user.addEmail.trim()) return;
+        patchUser({ addLoading: true, addError: "" });
         try {
-            // Lookup existing BA user
-            const lookupRes = await fetch(`/api/admin/users/lookup?email=${encodeURIComponent(addEmail.trim())}`);
+            const lookupRes = await fetch(`/api/admin/users/lookup?email=${encodeURIComponent(user.addEmail.trim())}`);
             const lookupJson = await lookupRes.json();
             if (!lookupJson.success) throw new Error(lookupJson.error || "User not found");
 
@@ -315,17 +294,16 @@ export default function AdminRolesPage() {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ userId: id, email, roles: ["user"], permissions: [] }),
             });
-            setAddEmail("");
-            setShowAddUser(false);
+            patchUser({ addEmail: "", showAdd: false });
             await fetchUsers();
         } catch (e: any) {
-            setAddError(e.message);
+            patchUser({ addError: e.message });
         }
-        setAddLoading(false);
+        patchUser({ addLoading: false });
     };
 
-    const filteredDefs  = roleDefs.filter(r => r.label.toLowerCase().includes(defSearch.toLowerCase()) || r.key.toLowerCase().includes(defSearch.toLowerCase()));
-    const filteredUsers = userRoles.filter(r => r.email.toLowerCase().includes(userSearch.toLowerCase()));
+    const filteredDefs  = pg.roleDefs.filter(r => r.label.toLowerCase().includes(def.search.toLowerCase()) || r.key.toLowerCase().includes(def.search.toLowerCase()));
+    const filteredUsers = pg.userRoles.filter(r => r.email.toLowerCase().includes(user.search.toLowerCase()));
 
     const permCats = permissionsByCategory();
 
@@ -350,12 +328,12 @@ export default function AdminRolesPage() {
                 {(["definitions", "assignments"] as Tab[]).map(t => (
                     <motion.button
                         key={t}
-                        onClick={() => setTab(t)}
+                        onClick={() => patchPg({ tab: t })}
                         className="px-5 py-2 rounded-xl text-sm font-bold capitalize"
                         style={{
-                            background: tab === t ? (isDark ? "#2c2c30" : "#fff") : "transparent",
-                            color: tab === t ? palette.textPrimary : palette.textSecondary,
-                            boxShadow: tab === t ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
+                            background: pg.tab === t ? (isDark ? "#2c2c30" : "#fff") : "transparent",
+                            color: pg.tab === t ? palette.textPrimary : palette.textSecondary,
+                            boxShadow: pg.tab === t ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
                         }}
                     >
                         {t === "definitions" ? "Role Definitions" : "User Assignments"}
@@ -366,15 +344,15 @@ export default function AdminRolesPage() {
             {/* ═══════════════════════════════════════════════════════════════════
                 TAB 1 — Role Definitions
             ════════════════════════════════════════════════════════════════════ */}
-            {tab === "definitions" && (
+            {pg.tab === "definitions" && (
                 <div>
                     {/* Toolbar */}
                     <div className="flex gap-3 mb-4">
                         <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-2xl" style={{ background: cardBg, border }}>
                             <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
                             <input
-                                value={defSearch}
-                                onChange={e => setDefSearch(e.target.value)}
+                                value={def.search}
+                                onChange={e => patchDef({ search: e.target.value })}
                                 placeholder="Search roles…"
                                 className="flex-1 bg-transparent outline-none text-sm"
                                 style={{ color: palette.textPrimary }}
@@ -382,7 +360,7 @@ export default function AdminRolesPage() {
                         </div>
                         <motion.button
                             whileTap={{ scale: 0.96 }}
-                            onClick={() => setShowCreateRole(v => !v)}
+                            onClick={() => patchDef({ showCreate: !def.showCreate })}
                             className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm"
                             style={{ background: palette.accent, color: "#fff" }}
                         >
@@ -392,7 +370,7 @@ export default function AdminRolesPage() {
 
                     {/* Create Role Form */}
                     <AnimatePresence>
-                        {showCreateRole && (
+                        {def.showCreate && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
@@ -403,23 +381,23 @@ export default function AdminRolesPage() {
                                     <p className="text-sm font-black" style={{ color: palette.textPrimary }}>New Role</p>
                                     <div className="grid grid-cols-2 gap-3">
                                         <input
-                                            value={newRole.key}
-                                            onChange={e => setNewRole(p => ({ ...p, key: e.target.value.toLowerCase().replace(/\s+/g, "_") }))}
+                                            value={def.newRole.key}
+                                            onChange={e => patchDef({ newRole: { ...def.newRole, key: e.target.value.toLowerCase().replace(/\s+/g, "_") } })}
                                             placeholder="role_key (slug)"
                                             className="px-3 py-2 rounded-xl text-sm outline-none"
                                             style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}
                                         />
                                         <input
-                                            value={newRole.label}
-                                            onChange={e => setNewRole(p => ({ ...p, label: e.target.value }))}
+                                            value={def.newRole.label}
+                                            onChange={e => patchDef({ newRole: { ...def.newRole, label: e.target.value } })}
                                             placeholder="Display Label"
                                             className="px-3 py-2 rounded-xl text-sm outline-none"
                                             style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}
                                         />
                                     </div>
                                     <input
-                                        value={newRole.description}
-                                        onChange={e => setNewRole(p => ({ ...p, description: e.target.value }))}
+                                        value={def.newRole.description}
+                                        onChange={e => patchDef({ newRole: { ...def.newRole, description: e.target.value } })}
                                         placeholder="Description (optional)"
                                         className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                                         style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}
@@ -430,23 +408,23 @@ export default function AdminRolesPage() {
                                             {PRESET_COLORS.map(c => (
                                                 <button
                                                     key={c}
-                                                    onClick={() => setNewRole(p => ({ ...p, color: c }))}
+                                                    onClick={() => patchDef({ newRole: { ...def.newRole, color: c } })}
                                                     className="w-7 h-7 rounded-full border-2 transition-all"
-                                                    style={{ background: c, borderColor: newRole.color === c ? "#fff" : "transparent" }}
+                                                    style={{ background: c, borderColor: def.newRole.color === c ? "#fff" : "transparent" }}
                                                 />
                                             ))}
                                         </div>
                                     </div>
                                     <div className="flex justify-end gap-2 pt-1">
-                                        <button onClick={() => setShowCreateRole(false)} className="px-4 py-1.5 rounded-xl text-sm font-bold" style={{ color: palette.textSecondary }}>Cancel</button>
+                                        <button onClick={() => patchDef({ showCreate: false })} className="px-4 py-1.5 rounded-xl text-sm font-bold" style={{ color: palette.textSecondary }}>Cancel</button>
                                         <motion.button
                                             whileTap={{ scale: 0.96 }}
                                             onClick={createRoleDef}
-                                            disabled={savingDef || !newRole.key || !newRole.label}
+                                            disabled={def.saving || !def.newRole.key || !def.newRole.label}
                                             className="px-4 py-1.5 rounded-xl text-sm font-bold"
-                                            style={{ background: palette.accent, color: "#fff", opacity: (!newRole.key || !newRole.label) ? 0.5 : 1 }}
+                                            style={{ background: palette.accent, color: "#fff", opacity: (!def.newRole.key || !def.newRole.label) ? 0.5 : 1 }}
                                         >
-                                            {savingDef ? "Creating…" : "Create"}
+                                            {def.saving ? "Creating…" : "Create"}
                                         </motion.button>
                                     </div>
                                 </div>
@@ -455,7 +433,7 @@ export default function AdminRolesPage() {
                     </AnimatePresence>
 
                     {/* Role Cards */}
-                    {loadingDefs ? (
+                    {pg.loadingDefs ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {[1,2,3,4].map(i => <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }} />)}
                         </div>
@@ -501,15 +479,15 @@ export default function AdminRolesPage() {
             {/* ═══════════════════════════════════════════════════════════════════
                 TAB 2 — User Assignments
             ════════════════════════════════════════════════════════════════════ */}
-            {tab === "assignments" && (
+            {pg.tab === "assignments" && (
                 <div>
                     {/* Toolbar */}
                     <div className="flex gap-3 mb-4">
                         <div className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-2xl" style={{ background: cardBg, border }}>
                             <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
                             <input
-                                value={userSearch}
-                                onChange={e => setUserSearch(e.target.value)}
+                                value={user.search}
+                                onChange={e => patchUser({ search: e.target.value })}
                                 placeholder="Filter by email…"
                                 className="flex-1 bg-transparent outline-none text-sm"
                                 style={{ color: palette.textPrimary }}
@@ -517,7 +495,7 @@ export default function AdminRolesPage() {
                         </div>
                         <motion.button
                             whileTap={{ scale: 0.96 }}
-                            onClick={() => { setShowAddUser(v => !v); setAddError(""); }}
+                            onClick={() => patchUser({ showAdd: !user.showAdd, addError: "" })}
                             className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm"
                             style={{ background: palette.accent, color: "#fff" }}
                         >
@@ -527,7 +505,7 @@ export default function AdminRolesPage() {
 
                     {/* Add User Form */}
                     <AnimatePresence>
-                        {showAddUser && (
+                        {user.showAdd && (
                             <motion.div
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: "auto" }}
@@ -538,8 +516,8 @@ export default function AdminRolesPage() {
                                     <p className="text-sm font-black" style={{ color: palette.textPrimary }}>Add user by email</p>
                                     <div className="flex gap-2">
                                         <input
-                                            value={addEmail}
-                                            onChange={e => setAddEmail(e.target.value)}
+                                            value={user.addEmail}
+                                            onChange={e => patchUser({ addEmail: e.target.value })}
                                             onKeyDown={e => e.key === "Enter" && addUserByEmail()}
                                             placeholder="user@example.com"
                                             className="flex-1 px-3 py-2 rounded-xl text-sm outline-none"
@@ -548,28 +526,28 @@ export default function AdminRolesPage() {
                                         <motion.button
                                             whileTap={{ scale: 0.96 }}
                                             onClick={addUserByEmail}
-                                            disabled={addLoading}
+                                            disabled={user.addLoading}
                                             className="px-4 py-2 rounded-xl text-sm font-bold"
                                             style={{ background: palette.accent, color: "#fff" }}
                                         >
-                                            {addLoading ? "Looking up…" : "Add"}
+                                            {user.addLoading ? "Looking up…" : "Add"}
                                         </motion.button>
                                     </div>
-                                    {addError && <p className="text-xs" style={{ color: "#ef4444" }}>{addError}</p>}
+                                    {user.addError && <p className="text-xs" style={{ color: "#ef4444" }}>{user.addError}</p>}
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
                     {/* User List */}
-                    {loadingUsers ? (
+                    {pg.loadingUsers ? (
                         <div className="space-y-3">
                             {[1,2,3].map(i => <div key={i} className="h-16 rounded-2xl animate-pulse" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }} />)}
                         </div>
                     ) : (
                         <div className="space-y-2">
                             {filteredUsers.map(record => {
-                                const resolvedRoles = roleDefs.filter(rd => record.roles.includes(rd.key));
+                                const resolvedRoles = pg.roleDefs.filter(rd => record.roles.includes(rd.key));
                                 return (
                                     <motion.div
                                         key={record._id}
@@ -588,7 +566,7 @@ export default function AdminRolesPage() {
                                                             {rd.label}
                                                         </span>
                                                     ))}
-                                                {record.roles.filter(r => !roleDefs.find(rd => rd.key === r)).map(r => (
+                                                {record.roles.filter(r => !pg.roleDefs.find(rd => rd.key === r)).map(r => (
                                                     <span key={r} className="text-xs px-2.5 py-0.5 rounded-full font-bold" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}>
                                                         {r}
                                                     </span>
@@ -620,9 +598,9 @@ export default function AdminRolesPage() {
                 DRAWER — Role Definition
             ════════════════════════════════════════════════════════════════════ */}
             <AnimatePresence>
-                {activeRole && (
+                {def.active && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => setActiveRole(null)} />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => patchDef({ active: null })} />
                         <motion.div
                             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 28, stiffness: 300 }}
@@ -631,21 +609,21 @@ export default function AdminRolesPage() {
                         >
                             {/* Drawer Header */}
                             <div className="flex items-center gap-3 px-6 py-5 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
-                                <Circle style={{ color: activeRole.color, fontSize: 14 }} />
+                                <Circle style={{ color: def.active.color, fontSize: 14 }} />
                                 <div className="flex-1 min-w-0">
-                                    <p className="font-black text-base leading-tight" style={{ color: palette.textPrimary }}>{activeRole.label}</p>
-                                    <p className="text-xs font-mono opacity-50 mt-0.5" style={{ color: palette.textSecondary }}>{activeRole.key}</p>
+                                    <p className="font-black text-base leading-tight" style={{ color: palette.textPrimary }}>{def.active.label}</p>
+                                    <p className="text-xs font-mono opacity-50 mt-0.5" style={{ color: palette.textSecondary }}>{def.active.key}</p>
                                 </div>
-                                {activeRole.isBuiltin && (
+                                {def.active.isBuiltin && (
                                     <span className="text-xs px-2 py-0.5 rounded-full font-bold shrink-0" style={{ background: `${palette.accent}18`, color: palette.accent }}>Built-in</span>
                                 )}
-                                <button onClick={() => setActiveRole(null)}><Close style={{ color: palette.textSecondary }} /></button>
+                                <button onClick={() => patchDef({ active: null })}><Close style={{ color: palette.textSecondary }} /></button>
                             </div>
 
                             {/* Permissions by category */}
                             <div className="flex-1 overflow-y-auto p-6 space-y-6">
                                 <p className="text-xs font-black uppercase tracking-widest" style={{ color: palette.textTertiary }}>
-                                    Permissions — {editPermsSet.size} selected
+                                    Permissions — {def.permsSet.size} selected
                                 </p>
                                 {Object.entries(permCats).map(([catKey, perms]) => {
                                     const catMeta = PERMISSION_CATEGORIES[catKey];
@@ -657,7 +635,7 @@ export default function AdminRolesPage() {
                                             </div>
                                             <div className="space-y-1">
                                                 {perms.map((p: PermissionDef) => {
-                                                    const on = editPermsSet.has(p.key);
+                                                    const on = def.permsSet.has(p.key);
                                                     return (
                                                         <motion.button
                                                             key={p.key}
@@ -688,13 +666,13 @@ export default function AdminRolesPage() {
                                 <motion.button
                                     whileTap={{ scale: 0.97 }}
                                     onClick={saveRoleDef}
-                                    disabled={savingDef}
+                                    disabled={def.saving}
                                     className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2"
                                     style={{ background: palette.accent, color: "#fff" }}
                                 >
-                                    <Save fontSize="small" /> {savingDef ? "Saving…" : "Save Permissions"}
+                                    <Save fontSize="small" /> {def.saving ? "Saving…" : "Save Permissions"}
                                 </motion.button>
-                                {!activeRole.isBuiltin && (
+                                {!def.active.isBuiltin && (
                                     <motion.button
                                         whileTap={{ scale: 0.97 }}
                                         onClick={deleteRoleDef}
@@ -714,9 +692,9 @@ export default function AdminRolesPage() {
                 DRAWER — User Assignment
             ════════════════════════════════════════════════════════════════════ */}
             <AnimatePresence>
-                {activeUser && (
+                {user.active && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => setActiveUser(null)} />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => patchUser({ active: null })} />
                         <motion.div
                             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 28, stiffness: 300 }}
@@ -727,21 +705,21 @@ export default function AdminRolesPage() {
                             <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
                                 <div>
                                     <p className="font-black text-base" style={{ color: palette.textPrimary }}>Edit User</p>
-                                    <p className="text-xs opacity-50 mt-0.5" style={{ color: palette.textSecondary }}>{activeUser.email}</p>
+                                    <p className="text-xs opacity-50 mt-0.5" style={{ color: palette.textSecondary }}>{user.active.email}</p>
                                 </div>
-                                <button onClick={() => setActiveUser(null)}><Close style={{ color: palette.textSecondary }} /></button>
+                                <button onClick={() => patchUser({ active: null })}><Close style={{ color: palette.textSecondary }} /></button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-6 space-y-6">
                                 {/* Role Assignment */}
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: palette.textTertiary }}>Assigned Roles</p>
-                                    {roleDefs.length === 0
+                                    {pg.roleDefs.length === 0
                                         ? <p className="text-sm" style={{ color: palette.textSecondary }}>No roles defined yet.</p>
                                         : (
                                             <div className="space-y-1">
-                                                {roleDefs.map(rd => {
-                                                    const on = editUserRoles.includes(rd.key);
+                                                {pg.roleDefs.map(rd => {
+                                                    const on = user.roles.includes(rd.key);
                                                     return (
                                                         <motion.button
                                                             key={rd.key}
@@ -774,7 +752,7 @@ export default function AdminRolesPage() {
                                             key={catKey}
                                             catKey={catKey}
                                             perms={perms as PermissionDef[]}
-                                            editUserPerms={editUserPerms}
+                                            editUserPerms={user.perms}
                                             toggleUserPerm={toggleUserPerm}
                                             isDark={isDark}
                                             palette={palette}
@@ -786,8 +764,8 @@ export default function AdminRolesPage() {
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>Admin Notes</p>
                                     <textarea
-                                        value={editUserNotes}
-                                        onChange={e => setEditUserNotes(e.target.value)}
+                                        value={user.notes}
+                                        onChange={e => patchUser({ notes: e.target.value })}
                                         rows={3}
                                         placeholder="Internal notes about this user's access…"
                                         className="w-full rounded-xl p-3 text-sm resize-none outline-none"
@@ -798,19 +776,19 @@ export default function AdminRolesPage() {
 
                             {/* Footer */}
                             <div className="px-6 pb-6 pt-3 space-y-2 border-t" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
-                                {saveUserError && (
+                                {user.saveError && (
                                     <p className="text-xs px-3 py-2 rounded-xl font-semibold" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
-                                        {saveUserError}
+                                        {user.saveError}
                                     </p>
                                 )}
                                 <motion.button
                                     whileTap={{ scale: 0.97 }}
                                     onClick={saveUserRecord}
-                                    disabled={savingUser}
+                                    disabled={user.saving}
                                     className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2"
                                     style={{ background: palette.accent, color: "#fff" }}
                                 >
-                                    <Save fontSize="small" /> {savingUser ? "Saving…" : "Save Changes"}
+                                    <Save fontSize="small" /> {user.saving ? "Saving…" : "Save Changes"}
                                 </motion.button>
                                 <motion.button
                                     whileTap={{ scale: 0.97 }}

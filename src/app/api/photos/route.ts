@@ -50,17 +50,13 @@ export async function GET(req: NextRequest) {
             );
         }
 
-        // 3. Whitelist hit — update tracking then send the user to Immich's
-        //    login page. Immich will redirect to /api/immich-sso/authorize
+        // 3. Whitelist hit — send the user to Immich's login page.
+        //    Immich will redirect to /api/immich-sso/authorize
         //    (with the gate key configured in Immich's OIDC settings).
         //    The /immich-sso page's validate-gate will recognise the
         //    whitelisted session and immediately forward to oidc-done —
         //    no provider picker shown.
-        await ImmichWhitelist.updateOne(
-            { _id: (entry as any)._id },
-            { $inc: { accessCount: 1 }, $set: { lastAccess: new Date() } }
-        ).catch(() => {});
-
+        //    accessCount is incremented only in oidc-done (actual sign-in).
         return NextResponse.redirect(IMMICH_LOGIN_URL);
     } catch (err) {
         console.error("[photos-gateway]", err);

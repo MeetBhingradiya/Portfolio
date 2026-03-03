@@ -150,12 +150,15 @@ export default function ToolSettingsPage() {
     const isApple = designTheme === "apple";
 
     const [defaults, setDefaults] = useState<ToolDefaults>(INITIAL_DEFAULTS);
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [error, setError] = useState("");
-    const [expandedTool, setExpandedTool] = useState<string | null>(null);
-    const [visibilityOpen, setVisibilityOpen] = useState(false);
+    const [ui, setUi] = useState({
+        loading: true,
+        saving: false,
+        saved: false,
+        error: "",
+        expandedTool: null as string | null,
+        visibilityOpen: false,
+    });
+    const patchUi = useCallback((p: Partial<typeof ui>) => setUi(s => ({ ...s, ...p })), []);
 
     const getVisibility = (toolId: string) => {
         const found = defaults.visibility?.find((v) => v.toolId === toolId);
@@ -176,20 +179,19 @@ export default function ToolSettingsPage() {
     };
 
     const fetchSettings = useCallback(async () => {
-        setLoading(true);
-        setError("");
+        patchUi({ loading: true, error: "" });
         try {
             const res = await fetch("/api/admin/tool-settings");
             const json = await res.json();
             if (json.success && json.data) setDefaults((prev) => deepMerge(prev, json.data));
-        } catch { setError("Failed to load settings"); }
-        setLoading(false);
+        } catch { patchUi({ error: "Failed to load settings" }); }
+        patchUi({ loading: false });
     }, []);
 
     useEffect(() => { fetchSettings(); }, [fetchSettings]);
 
     const saveSettings = async () => {
-        setSaving(true); setSaved(false); setError("");
+        patchUi({ saving: true, saved: false, error: "" });
         try {
             const res = await fetch("/api/admin/tool-settings", {
                 method: "PUT",
@@ -197,16 +199,16 @@ export default function ToolSettingsPage() {
                 body: JSON.stringify(defaults),
             });
             const json = await res.json();
-            if (json.success) { setSaved(true); setTimeout(() => setSaved(false), 2500); }
-            else setError(json.error || "Save failed");
-        } catch { setError("Network error"); }
-        setSaving(false);
+            if (json.success) { patchUi({ saved: true }); setTimeout(() => patchUi({ saved: false }), 2500); }
+            else patchUi({ error: json.error || "Save failed" });
+        } catch { patchUi({ error: "Network error" }); }
+        patchUi({ saving: false });
     };
 
     const updateTool = <T extends keyof ToolDefaults>(tool: T, patch: Partial<ToolDefaults[T]>) =>
         setDefaults((prev) => ({ ...prev, [tool]: { ...prev[tool], ...patch } }));
 
-    const toggleAccordion = (id: string) => setExpandedTool((p) => (p === id ? null : id));
+    const toggleAccordion = (id: string) => setUi(s => ({ ...s, expandedTool: s.expandedTool === id ? null : id }));
 
     // ── "Select all" derived state ──────────────────────────────────────
     const allEnabled  = TOOL_SECTIONS.every((t) => getVisibility(t.id).enabled);
@@ -259,24 +261,24 @@ export default function ToolSettingsPage() {
                 <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={saveSettings}
-                    disabled={saving || loading}
+                    disabled={ui.saving || ui.loading}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm"
-                    style={{ background: saved ? "#34C759" : palette.accent, color: "#fff" }}
+                    style={{ background: ui.saved ? "#34C759" : palette.accent, color: "#fff" }}
                 >
-                    {saved ? <><CheckCircle fontSize="small" /> Saved</>
-                        : saving ? "Saving…"
+                    {ui.saved ? <><CheckCircle fontSize="small" /> Saved</>
+                        : ui.saving ? "Saving…"
                         : <><Save fontSize="small" /> Save All</>}
                 </motion.button>
             </div>
 
-            {error && (
+            {ui.error && (
                 <div className="mb-5 px-4 py-3 rounded-xl text-sm font-semibold"
                     style={{ background: "rgba(239,68,68,0.10)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.25)" }}>
-                    {error}
+                    {ui.error}
                 </div>
             )}
 
-            {loading ? (
+            {ui.loading ? (
                 <div className="space-y-3">
                     {[1, 2, 3, 4].map((i) => (
                         <div key={i} className="h-16 rounded-2xl animate-pulse"
@@ -294,7 +296,7 @@ export default function ToolSettingsPage() {
                         </p>
                         <div className="rounded-2xl overflow-hidden" style={{ background: cardBg, border }}>
                             <button
-                                onClick={() => setVisibilityOpen((p) => !p)}
+                                onClick={() => setUi(s => ({ ...s, visibilityOpen: !s.visibilityOpen }))}
                                 className="w-full flex items-center gap-4 px-5 py-4 text-left"
                             >
                                 <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -309,13 +311,13 @@ export default function ToolSettingsPage() {
                                         Enable / disable tools, mark as featured, and control public access
                                     </p>
                                 </div>
-                                <motion.div animate={{ rotate: visibilityOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                                <motion.div animate={{ rotate: ui.visibilityOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
                                     <ExpandMore fontSize="small" style={{ color: palette.textTertiary }} />
                                 </motion.div>
                             </button>
 
                             <AnimatePresence>
-                                {visibilityOpen && (
+                                {ui.visibilityOpen && (
                                     <motion.div
                                         initial={{ height: 0, opacity: 0 }}
                                         animate={{ height: "auto", opacity: 1 }}
@@ -415,7 +417,7 @@ export default function ToolSettingsPage() {
                         </div>
                         <div className="space-y-2">
                             {TOOL_SECTIONS.map((tool) => {
-                                const isOpen = expandedTool === tool.id;
+                                const isOpen = ui.expandedTool === tool.id;
                                 return (
                                     <div key={tool.id} className="rounded-2xl overflow-hidden"
                                         style={{ background: cardBg, border }}>

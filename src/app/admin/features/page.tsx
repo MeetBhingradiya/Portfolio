@@ -138,11 +138,14 @@ export default function AdminFeaturesPage() {
     const isDark = actualColorMode === "dark";
 
     const [state, setState] = useState<FeatureState>(defaultState());
-    const [loading, setLoading] = useState(true);
-    const [saving, setSaving] = useState(false);
-    const [saved, setSaved] = useState(false);
-    const [openProvider, setOpenProvider] = useState<string | null>(null);
-    const [showSecret, setShowSecret] = useState<Record<string, boolean>>({});
+    const [ui, setUi] = useState({
+        loading: true,
+        saving: false,
+        saved: false,
+        openProvider: null as string | null,
+        showSecret: {} as Record<string, boolean>,
+    });
+    const patchUi = useCallback((p: Partial<typeof ui>) => setUi(s => ({ ...s, ...p })), []);
 
     /* ── styles ── */
     const cardBg = isApple
@@ -157,7 +160,7 @@ export default function AdminFeaturesPage() {
 
     /* ── fetch ── */
     const fetchFeatures = useCallback(async () => {
-        setLoading(true);
+        patchUi({ loading: true });
         const res = await fetch("/api/admin/features");
         const json = await res.json();
         if (json.success) {
@@ -178,15 +181,14 @@ export default function AdminFeaturesPage() {
                 paymentProviders: providers,
             });
         }
-        setLoading(false);
+        patchUi({ loading: false });
     }, []);
 
     useEffect(() => { fetchFeatures(); }, [fetchFeatures]);
 
     /* ── save ── */
     const save = async () => {
-        setSaving(true);
-        setSaved(false);
+        patchUi({ saving: true, saved: false });
         await fetch("/api/admin/features", {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
@@ -203,9 +205,8 @@ export default function AdminFeaturesPage() {
                 ),
             }),
         });
-        setSaving(false);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2500);
+        patchUi({ saving: false, saved: true });
+        setTimeout(() => patchUi({ saved: false }), 2500);
         // re-fetch so secretKeySet flags update
         fetchFeatures();
     };
@@ -284,19 +285,19 @@ export default function AdminFeaturesPage() {
                 <motion.button
                     whileTap={{ scale: 0.96 }}
                     onClick={save}
-                    disabled={saving || loading}
+                    disabled={ui.saving || ui.loading}
                     className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm"
-                    style={{ background: saved ? "#34C759" : palette.accent, color: "#fff" }}
+                    style={{ background: ui.saved ? "#34C759" : palette.accent, color: "#fff" }}
                 >
-                    {saved
+                    {ui.saved
                         ? <><CheckCircle fontSize="small" /> Saved</>
-                        : saving
+                        : ui.saving
                         ? "Saving…"
                         : <><Save fontSize="small" /> Save Changes</>}
                 </motion.button>
             </div>
 
-            {loading ? (
+            {ui.loading ? (
                 <div className="space-y-3">
                     {[1, 2, 3].map(i => (
                         <div key={i} className="h-18 rounded-2xl animate-pulse" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }} />
@@ -349,7 +350,7 @@ export default function AdminFeaturesPage() {
                         <div className="space-y-2">
                             {PROVIDERS.map(prov => {
                                 const ps = state.paymentProviders[prov.key] ?? defaultProvider();
-                                const isOpen = openProvider === prov.key;
+                                const isOpen = ui.openProvider === prov.key;
 
                                 return (
                                     <div
@@ -406,7 +407,7 @@ export default function AdminFeaturesPage() {
                                             <motion.button
                                                 animate={{ rotate: isOpen ? 180 : 0 }}
                                                 transition={{ duration: 0.2 }}
-                                                onClick={() => setOpenProvider(isOpen ? null : prov.key)}
+                                                onClick={() => patchUi({ openProvider: isOpen ? null : prov.key })}
                                                 className="p-1.5 rounded-lg"
                                                 style={{ color: palette.textTertiary, background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }}
                                             >
@@ -460,7 +461,7 @@ export default function AdminFeaturesPage() {
                                                             </label>
                                                             <div className="relative">
                                                                 <input
-                                                                    type={showSecret[prov.key] ? "text" : "password"}
+                                                                    type={ui.showSecret[prov.key] ? "text" : "password"}
                                                                     value={ps.secretKey}
                                                                     onChange={e => setProviderField(prov.key, "secretKey", e.target.value)}
                                                                     placeholder={ps.secretKeySet ? "••••••••••••  (hidden)" : `${prov.label} ${prov.secretKeyLabel}`}
@@ -471,9 +472,9 @@ export default function AdminFeaturesPage() {
                                                                     type="button"
                                                                     className="absolute right-3 top-1/2 -translate-y-1/2"
                                                                     style={{ color: palette.textTertiary }}
-                                                                    onClick={() => setShowSecret(s => ({ ...s, [prov.key]: !s[prov.key] }))}
+                                                                    onClick={() => patchUi({ showSecret: { ...ui.showSecret, [prov.key]: !ui.showSecret[prov.key] } })}
                                                                 >
-                                                                    {showSecret[prov.key]
+                                                                    {ui.showSecret[prov.key]
                                                                         ? <VisibilityOff fontSize="small" />
                                                                         : <Visibility fontSize="small" />}
                                                                 </button>

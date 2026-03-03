@@ -73,18 +73,18 @@ export default function ResumeBuilderPage() {
     const isApple = designTheme === "apple";
     const previewRef = useRef<HTMLDivElement>(null);
 
-    const [data, setData] = useState<DataState>({
-        skills: [], education: [], experience: [],
-        certificates: [], testScores: [], projects: []
+    const [ds, setDs] = useState<{ data: DataState; loading: boolean }>({
+        data: { skills: [], education: [], experience: [], certificates: [], testScores: [], projects: [] },
+        loading: true,
     });
-    const [loadingData, setLoadingData] = useState(true);
+    const patchDs = useCallback((p: Partial<{ data: DataState; loading: boolean }>) => setDs(s => ({ ...s, ...p })), []);
     const [selection, setSelection] = useState<SelectionState>({
         skills: new Set(), education: new Set(), experience: new Set(),
         certificates: new Set(), testScores: new Set(), projects: new Set()
     });
     const [collapsed, setCollapsed] = useState<Partial<Record<Category, boolean>>>({});
-    const [generating, setGenerating] = useState(false);
-    const [previewMode, setPreviewMode] = useState(false);
+    const [ui, setUi] = useState({ generating: false, previewMode: false });
+    const patchUi = useCallback((p: Partial<{ generating: boolean; previewMode: boolean }>) => setUi(s => ({ ...s, ...p })), []);
 
     // Meta fields for the resume header
     const [meta, setMeta] = useState({
@@ -101,7 +101,7 @@ export default function ResumeBuilderPage() {
 
     /* Fetch all data */
     const fetchAll = useCallback(async () => {
-        setLoadingData(true);
+        patchDs({ loading: true });
         try {
             const results = await Promise.all(
                 SECTIONS.map(async s => {
@@ -112,7 +112,7 @@ export default function ResumeBuilderPage() {
             );
             const newData: any = {};
             results.forEach(r => { newData[r.key] = r.data; });
-            setData(newData);
+            patchDs({ data: newData });
             // default: select all
             const newSel: any = {};
             results.forEach(r => {
@@ -121,7 +121,7 @@ export default function ResumeBuilderPage() {
             });
             setSelection(newSel);
         } finally {
-            setLoadingData(false);
+            patchDs({ loading: false });
         }
     }, []);
 
@@ -144,7 +144,7 @@ export default function ResumeBuilderPage() {
     /* PDF generation via html2canvas + jsPDF */
     const handleGeneratePDF = async () => {
         if (!previewRef.current) return;
-        setGenerating(true);
+        patchUi({ generating: true });
         try {
             const [html2canvas, { jsPDF }] = await Promise.all([
                 import("html2canvas").then(m => m.default),
@@ -171,7 +171,7 @@ export default function ResumeBuilderPage() {
             }
             pdf.save(`${meta.name.replace(/\s+/g, "_")}_Resume.pdf`);
         } finally {
-            setGenerating(false);
+            patchUi({ generating: false });
         }
     };
 
@@ -193,12 +193,12 @@ export default function ResumeBuilderPage() {
 
     /* Compute selected items for preview */
     const selectedData: DataState = {
-        skills:       data.skills.filter(i => selection.skills.has(i.SkillID)),
-        education:    data.education.filter(i => selection.education.has(i.EducationID)),
-        experience:   data.experience.filter(i => selection.experience.has(i.ExperienceID)),
-        certificates: data.certificates.filter(i => selection.certificates.has(i.CertificateID)),
-        testScores:   data.testScores.filter(i => selection.testScores.has(i.TestScoreID)),
-        projects:     data.projects.filter(i => selection.projects.has(i.ProjectID)),
+        skills:       ds.data.skills.filter(i => selection.skills.has(i.SkillID)),
+        education:    ds.data.education.filter(i => selection.education.has(i.EducationID)),
+        experience:   ds.data.experience.filter(i => selection.experience.has(i.ExperienceID)),
+        certificates: ds.data.certificates.filter(i => selection.certificates.has(i.CertificateID)),
+        testScores:   ds.data.testScores.filter(i => selection.testScores.has(i.TestScoreID)),
+        projects:     ds.data.projects.filter(i => selection.projects.has(i.ProjectID)),
     };
 
     return (
@@ -223,31 +223,31 @@ export default function ResumeBuilderPage() {
                     <motion.button
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
                         style={{
-                            background: previewMode ? `${palette.accent}20` : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                            color: previewMode ? palette.accent : palette.textSecondary
+                            background: ui.previewMode ? `${palette.accent}20` : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                            color: ui.previewMode ? palette.accent : palette.textSecondary
                         }}
                         whileHover={{ scale: 1.03 }}
-                        onClick={() => setPreviewMode(!previewMode)}
+                        onClick={() => patchUi({ previewMode: !ui.previewMode })}
                     >
                         <Preview fontSize="small" /> Preview
                     </motion.button>
                     <motion.button
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
-                        style={{ background: palette.accent, color: "#fff", opacity: generating ? 0.7 : 1 }}
+                        style={{ background: palette.accent, color: "#fff", opacity: ui.generating ? 0.7 : 1 }}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={handleGeneratePDF}
-                        disabled={generating}
+                        disabled={ui.generating}
                     >
                         <PictureAsPdf fontSize="small" />
-                        {generating ? "Generating…" : "Download PDF"}
+                        {ui.generating ? "Generating…" : "Download PDF"}
                     </motion.button>
                 </div>
             </div>
 
-            <div className={`flex gap-6 ${previewMode ? "flex-col xl:flex-row" : "flex-col"}`}>
+            <div className={`flex gap-6 ${ui.previewMode ? "flex-col xl:flex-row" : "flex-col"}`}>
                 {/* Left: Controls */}
-                <div className={previewMode ? "xl:w-96 flex-shrink-0" : "w-full"}>
+                <div className={ui.previewMode ? "xl:w-96 flex-shrink-0" : "w-full"}>
                     {/* Meta info */}
                     <div className="rounded-2xl p-5 mb-4" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
                         <h2 className="text-sm font-black uppercase tracking-wide mb-4" style={{ color: palette.textTertiary }}>
@@ -280,11 +280,11 @@ export default function ResumeBuilderPage() {
                     </div>
 
                     {/* Section selectors */}
-                    {loadingData ? (
+                    {ds.loading ? (
                         <div className="text-center py-8" style={{ color: palette.textTertiary }}>Loading portfolio data…</div>
                     ) : (
                         SECTIONS.map(sec => {
-                            const items: any[] = (data as any)[sec.key];
+                            const items: any[] = (ds.data as any)[sec.key];
                             const allSelected = items.every(i => selection[sec.key].has(i[sec.idField]));
                             const isCollapsed = !!collapsed[sec.key];
                             return (
@@ -362,7 +362,7 @@ export default function ResumeBuilderPage() {
                 </div>
 
                 {/* Right: Resume Preview */}
-                {previewMode && (
+                {ui.previewMode && (
                     <div className="flex-1 min-w-0">
                         <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${borderColor}` }}>
                             <ResumePreview ref={previewRef} meta={meta} data={selectedData} />
@@ -372,15 +372,15 @@ export default function ResumeBuilderPage() {
             </div>
 
             {/* Generate PDF button (also shown at bottom when preview is hidden) */}
-            {!previewMode && (
+            {!ui.previewMode && (
                 <div className="mt-6 flex justify-end">
                     <motion.button
                         className="flex items-center gap-2 px-6 py-3 rounded-xl font-bold"
-                        style={{ background: palette.accent, color: "#fff", opacity: generating ? 0.7 : 1 }}
+                        style={{ background: palette.accent, color: "#fff", opacity: ui.generating ? 0.7 : 1 }}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
-                        onClick={() => { setPreviewMode(true); }}
-                        disabled={generating}
+                        onClick={() => { patchUi({ previewMode: true }); }}
+                        disabled={ui.generating}
                     >
                         <Preview /> Preview & Download PDF
                     </motion.button>

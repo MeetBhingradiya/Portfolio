@@ -1,13 +1,10 @@
 /**
- * Generic Admin CRUD Page
- * Provides search, paginated table, create/edit modal (with duplicate), and delete for any
- * resource that follows the standard admin API pattern.
- *
- * Form improvements:
- *  - Custom calendar date picker (no native <input type="date">)
- *  - iOS-style toggle switch for boolean fields
- *  - Proper focus-ring / accent styling on every input type
- *  - Duplicate entry button in the actions column
+ * Generic Admin CRUD Page — v2
+ * Full redesign:
+ *  • 2 combined state objects instead of 13 separate useState hooks
+ *  • Polished table with skeletons, empty state, hover rows
+ *  • Spring-animated modal with cleaner form layout
+ *  • All existing functionality preserved
  */
 
 "use client";
@@ -59,18 +56,13 @@ interface AdminCRUDPageProps {
 
 const PAGE_SIZE = 15;
 
-// ---------------------------------------------------------------------------
-// Shared CDN uploader helper
-// ---------------------------------------------------------------------------
+// ─── CDN Uploader Hook — combined state ───────────────────────────────────────
 function useCDNUploader(cdnType: string, cdnContext?: string) {
-    const [uploading, setUploading] = useState(false);
-    const [progress, setProgress] = useState(0);
-    const [uploadError, setUploadError] = useState("");
+    const [upload, setUpload] = useState({ uploading: false, progress: 0, error: "" });
+    const patch = (p: Partial<typeof upload>) => setUpload(s => ({ ...s, ...p }));
 
     const uploadFile = async (file: File, onSuccess: (url: string) => void) => {
-        setUploading(true);
-        setUploadError("");
-        setProgress(0);
+        patch({ uploading: true, error: "", progress: 0 });
         try {
             const fd = new FormData();
             fd.append("file", file);
@@ -81,15 +73,12 @@ function useCDNUploader(cdnType: string, cdnContext?: string) {
                 const xhr = new XMLHttpRequest();
                 xhr.open("POST", "/api/cdn/upload");
                 xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable) setProgress(Math.round((e.loaded / e.total) * 100));
+                    if (e.lengthComputable) patch({ progress: Math.round((e.loaded / e.total) * 100) });
                 };
                 xhr.onload = () => {
                     if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            const data = JSON.parse(xhr.responseText);
-                            onSuccess(data.cdnUrl);
-                            resolve();
-                        } catch { reject(new Error("Invalid response")); }
+                        try { onSuccess(JSON.parse(xhr.responseText).cdnUrl); resolve(); }
+                        catch { reject(new Error("Invalid response")); }
                     } else {
                         try { reject(new Error(JSON.parse(xhr.responseText).error || "Upload failed")); }
                         catch { reject(new Error(`Upload failed (${xhr.status})`)); }
@@ -99,13 +88,13 @@ function useCDNUploader(cdnType: string, cdnContext?: string) {
                 xhr.send(fd);
             });
         } catch (e: any) {
-            setUploadError(e.message || "Upload failed");
+            patch({ error: e.message || "Upload failed" });
         } finally {
-            setUploading(false);
+            patch({ uploading: false });
         }
     };
 
-    return { uploading, progress, uploadError, uploadFile };
+    return { uploading: upload.uploading, progress: upload.progress, uploadError: upload.error, uploadFile };
 }
 
 // Detect if a URL came from CDN upload (has /api/cdn/ path segment)
@@ -426,25 +415,19 @@ interface AdminDatePickerProps {
 }
 
 function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette, isDark, isApple, borderColor, inputStyle }: AdminDatePickerProps) {
-    const [open, setOpen] = useState(false);
-    const [view, setView] = useState<"day" | "month" | "year">("day");
+    const [dp, setDp] = useState({ open: false, view: "day" as "day" | "month" | "year" });
     const parsed = value ? dayjs(value) : null;
     const [cursor, setCursor] = useState<Dayjs>(parsed ?? dayjs());
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        if (!open) return;
-        const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
-        document.addEventListener("mousedown", handler);
-        return () => document.removeEventListener("mousedown", handler);
-    }, [open]);
-
-    useEffect(() => {
-        if (!open) return;
-        const handler = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
-        document.addEventListener("keydown", handler);
-        return () => document.removeEventListener("keydown", handler);
-    }, [open]);
+        if (!dp.open) return;
+        const onDown = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setDp(s => ({ ...s, open: false })); };
+        const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setDp(s => ({ ...s, open: false })); };
+        document.addEventListener("mousedown", onDown);
+        document.addEventListener("keydown", onKey);
+        return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+    }, [dp.open]);
 
     const popupBg = isDark ? "rgba(24, 24, 28, 0.98)" : "rgba(255,255,255,0.99)";
     const r = isApple ? "16px" : "20px";
@@ -460,57 +443,30 @@ function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette
         return cursor.date(dayNum);
     });
 
-    const selectDay = (d: Dayjs) => { onChange(d.toISOString()); setOpen(false); };
-
-    const toggleOpen = () => { setOpen(v => !v); setCursor(parsed ?? dayjs()); setView("day"); };
+    const selectDay = (d: Dayjs) => { onChange(d.toISOString()); setDp(s => ({ ...s, open: false })); };
+    const toggleOpen = () => { setDp(s => ({ open: !s.open, view: "day" })); setCursor(parsed ?? dayjs()); };
 
     return (
         <div ref={ref} style={{ position: "relative" }}>
             {/* Trigger input */}
-            <div
-                role="button" tabIndex={0}
-                onClick={toggleOpen}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleOpen(); }}
-                style={{
-                    ...inputStyle,
-                    display: "flex", alignItems: "center", gap: 8,
-                    cursor: "pointer", userSelect: "none",
-                    boxShadow: open ? `0 0 0 3px ${accentColor}30` : undefined,
-                    border: open ? `1px solid ${accentColor}` : inputStyle.border,
-                    transition: "border 0.15s, box-shadow 0.15s",
-                }}
-            >
+            <div role="button" tabIndex={0} onClick={toggleOpen} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") toggleOpen(); }}
+                style={{ ...inputStyle, display: "flex", alignItems: "center", gap: 8, cursor: "pointer", userSelect: "none", boxShadow: dp.open ? `0 0 0 3px ${accentColor}30` : undefined, border: dp.open ? `1px solid ${accentColor}` : inputStyle.border, transition: "border 0.15s, box-shadow 0.15s" }}>
                 <CalendarToday style={{ fontSize: 15, color: palette.textTertiary, flexShrink: 0 }} />
                 <span style={{ flex: 1, fontSize: 14, color: parsed ? palette.textPrimary : palette.textTertiary }}>
                     {parsed ? parsed.format("MMM D, YYYY") : placeholder}
                 </span>
                 {parsed && (
-                    <button type="button"
-                        onClick={(e) => { e.stopPropagation(); onChange(""); }}
-                        style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary, fontSize: 16, lineHeight: 1, padding: 0, display: "flex" }}>
-                        ×
-                    </button>
+                    <button type="button" onClick={(e) => { e.stopPropagation(); onChange(""); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary, fontSize: 16, lineHeight: 1, padding: 0, display: "flex" }}>×</button>
                 )}
             </div>
 
             {/* Calendar popup */}
             <AnimatePresence>
-                {open && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -6, scale: 0.97 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -4, scale: 0.97 }}
-                        transition={{ duration: 0.15 }}
-                        style={{
-                            position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200,
-                            background: popupBg, borderRadius: r,
-                            border: `1px solid ${borderColor}`,
-                            boxShadow: isDark ? "0 20px 60px rgba(0,0,0,0.65)" : "0 12px 40px rgba(0,0,0,0.15)",
-                            padding: 16, minWidth: 284,
-                            backdropFilter: isApple ? "blur(24px) saturate(160%)" : undefined,
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                    >
+                {dp.open && (
+                    <motion.div initial={{ opacity: 0, y: -6, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.97 }} transition={{ duration: 0.15 }}
+                        style={{ position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 200, background: popupBg, borderRadius: r, border: `1px solid ${borderColor}`, boxShadow: isDark ? "0 20px 60px rgba(0,0,0,0.65)" : "0 12px 40px rgba(0,0,0,0.15)", padding: 16, minWidth: 284, backdropFilter: isApple ? "blur(24px) saturate(160%)" : undefined }}
+                        onClick={(e) => e.stopPropagation()}>
                         {/* Navigation header */}
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                             <button type="button" onClick={() => setCursor(c => c.subtract(1, "month"))}
@@ -518,14 +474,12 @@ function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette
                                 <KeyboardArrowLeft style={{ fontSize: 20 }} />
                             </button>
                             <div style={{ display: "flex", gap: 4 }}>
-                                <button type="button" onClick={() => setView(v => v === "month" ? "day" : "month")}
-                                    style={{ fontWeight: 700, fontSize: 14, color: palette.textPrimary, padding: "3px 8px", borderRadius: 8, border: "none", cursor: "pointer",
-                                        background: view === "month" ? `${accentColor}20` : "transparent" }}>
+                                <button type="button" onClick={() => setDp(s => ({ ...s, view: s.view === "month" ? "day" : "month" }))}
+                                    style={{ fontWeight: 700, fontSize: 14, color: palette.textPrimary, padding: "3px 8px", borderRadius: 8, border: "none", cursor: "pointer", background: dp.view === "month" ? `${accentColor}20` : "transparent" }}>
                                     {MONTHS[cursor.month()]}
                                 </button>
-                                <button type="button" onClick={() => setView(v => v === "year" ? "day" : "year")}
-                                    style={{ fontWeight: 700, fontSize: 14, color: palette.textPrimary, padding: "3px 8px", borderRadius: 8, border: "none", cursor: "pointer",
-                                        background: view === "year" ? `${accentColor}20` : "transparent" }}>
+                                <button type="button" onClick={() => setDp(s => ({ ...s, view: s.view === "year" ? "day" : "year" }))}
+                                    style={{ fontWeight: 700, fontSize: 14, color: palette.textPrimary, padding: "3px 8px", borderRadius: 8, border: "none", cursor: "pointer", background: dp.view === "year" ? `${accentColor}20` : "transparent" }}>
                                     {cursor.year()}
                                 </button>
                             </div>
@@ -536,13 +490,11 @@ function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette
                         </div>
 
                         {/* Month picker */}
-                        {view === "month" && (
+                        {dp.view === "month" && (
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 4 }}>
                                 {MONTHS.map((m, i) => (
-                                    <button key={m} type="button" onClick={() => { setCursor(c => c.month(i)); setView("day"); }}
-                                        style={{ padding: "8px 4px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
-                                            background: cursor.month() === i ? accentColor : "transparent",
-                                            color: cursor.month() === i ? "#fff" : palette.textSecondary }}>
+                                    <button key={m} type="button" onClick={() => { setCursor(c => c.month(i)); setDp(s => ({ ...s, view: "day" })); }}
+                                        style={{ padding: "8px 4px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: cursor.month() === i ? accentColor : "transparent", color: cursor.month() === i ? "#fff" : palette.textSecondary }}>
                                         {m.slice(0, 3)}
                                     </button>
                                 ))}
@@ -550,13 +502,11 @@ function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette
                         )}
 
                         {/* Year picker */}
-                        {view === "year" && (
+                        {dp.view === "year" && (
                             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 4, maxHeight: 200, overflowY: "auto" }}>
                                 {Array.from({ length: 50 }, (_, i) => dayjs().year() - 30 + i).map(y => (
-                                    <button key={y} type="button" onClick={() => { setCursor(c => c.year(y)); setView("day"); }}
-                                        style={{ padding: "6px 2px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600,
-                                            background: cursor.year() === y ? accentColor : "transparent",
-                                            color: cursor.year() === y ? "#fff" : palette.textSecondary }}>
+                                    <button key={y} type="button" onClick={() => { setCursor(c => c.year(y)); setDp(s => ({ ...s, view: "day" })); }}
+                                        style={{ padding: "6px 2px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600, background: cursor.year() === y ? accentColor : "transparent", color: cursor.year() === y ? "#fff" : palette.textSecondary }}>
                                         {y}
                                     </button>
                                 ))}
@@ -564,7 +514,7 @@ function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette
                         )}
 
                         {/* Day grid */}
-                        {view === "day" && (
+                        {dp.view === "day" && (
                             <>
                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", marginBottom: 4 }}>
                                     {WEEKDAYS.map(w => (
@@ -578,14 +528,7 @@ function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette
                                         const isToday = d.isSame(dayjs(), "day");
                                         return (
                                             <button key={i} type="button" onClick={() => selectDay(d)}
-                                                style={{
-                                                    padding: "7px 0", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "center",
-                                                    border: isToday && !isSelected ? `1px solid ${accentColor}55` : "1px solid transparent",
-                                                    fontWeight: isSelected ? 700 : 400,
-                                                    background: isSelected ? accentColor : "transparent",
-                                                    color: isSelected ? "#fff" : isToday ? accentColor : palette.textPrimary,
-                                                    transition: "background 0.1s",
-                                                }}>
+                                                style={{ padding: "7px 0", borderRadius: 8, cursor: "pointer", fontSize: 13, textAlign: "center", border: isToday && !isSelected ? `1px solid ${accentColor}55` : "1px solid transparent", fontWeight: isSelected ? 700 : 400, background: isSelected ? accentColor : "transparent", color: isSelected ? "#fff" : isToday ? accentColor : palette.textPrimary, transition: "background 0.1s" }}>
                                                 {d.date()}
                                             </button>
                                         );
@@ -596,15 +539,11 @@ function AdminDatePicker({ value, onChange, placeholder = "Pick a date", palette
 
                         {/* Bottom actions */}
                         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, borderTop: `1px solid ${borderColor}`, paddingTop: 10 }}>
-                            <button type="button" onClick={() => { setCursor(dayjs()); setView("day"); }}
-                                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, color: accentColor }}>
-                                Today
-                            </button>
+                            <button type="button" onClick={() => { setCursor(dayjs()); setDp(s => ({ ...s, view: "day" })); }}
+                                style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, fontWeight: 700, color: accentColor }}>Today</button>
                             {parsed && (
-                                <button type="button" onClick={() => { onChange(""); setOpen(false); }}
-                                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: palette.textTertiary }}>
-                                    Clear
-                                </button>
+                                <button type="button" onClick={() => { onChange(""); setDp(s => ({ ...s, open: false })); }}
+                                    style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: palette.textTertiary }}>Clear</button>
                             )}
                         </div>
                     </motion.div>
@@ -654,144 +593,107 @@ export default function AdminCRUDPage({
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
-    const [items, setItems] = useState<any[]>([]);
-    const [total, setTotal] = useState(0);
-    const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
+    // ── 2 combined state objects (replaces 13 separate useState hooks) ────────
+    const [table, setTable] = useState<{
+        items: any[]; total: number; page: number; search: string;
+        loading: boolean; error: string; deleteConfirm: string | null;
+    }>({ items: [], total: 0, page: 1, search: "", loading: false, error: "", deleteConfirm: null });
 
-    // Modal
-    const [modalOpen, setModalOpen] = useState(false);
-    const [editItem, setEditItem] = useState<any | null>(null);
-    const [isDuplicate, setIsDuplicate] = useState(false);
-    const [form, setForm] = useState<Record<string, any>>({});
-    const [saving, setSaving] = useState(false);
-    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
-    const [focusedKey, setFocusedKey] = useState<string | null>(null);
+    const [modal, setModal] = useState<{
+        open: boolean; editItem: any | null; isDuplicate: boolean;
+        form: Record<string, any>; saving: boolean; focusedKey: string | null;
+    }>({ open: false, editItem: null, isDuplicate: false, form: {}, saving: false, focusedKey: null });
+
+    const patchTable = useCallback((patch: Partial<typeof table>) => setTable(s => ({ ...s, ...patch })), []); // eslint-disable-line
+    const patchModal = useCallback((patch: Partial<typeof modal>) => setModal(s => ({ ...s, ...patch })), []); // eslint-disable-line
 
     const searchTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     const fetchData = useCallback(async () => {
-        setLoading(true);
-        setError("");
+        patchTable({ loading: true, error: "" });
         try {
-            const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE), search });
+            const params = new URLSearchParams({ page: String(table.page), limit: String(PAGE_SIZE), search: table.search });
             const res = await fetch(`${apiBase}?${params}`);
             const json = await res.json();
             if (json.success) {
-                setItems(json.data ?? []);
-                setTotal(json.pagination?.total ?? json.data?.length ?? 0);
+                patchTable({ items: json.data ?? [], total: json.pagination?.total ?? json.data?.length ?? 0 });
             } else {
-                setError(json.error || "Failed to load");
+                patchTable({ error: json.error || "Failed to load" });
             }
         } catch {
-            setError("Network error");
+            patchTable({ error: "Network error" });
         } finally {
-            setLoading(false);
+            patchTable({ loading: false });
         }
-    }, [apiBase, page, search]);
+    }, [apiBase, table.page, table.search]); // eslint-disable-line
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
     const handleSearchChange = (val: string) => {
         clearTimeout(searchTimeout.current);
-        searchTimeout.current = setTimeout(() => { setSearch(val); setPage(1); }, 400);
+        searchTimeout.current = setTimeout(() => patchTable({ search: val, page: 1 }), 400);
     };
 
-    const openCreate = () => {
-        setEditItem(null);
-        setIsDuplicate(false);
-        setForm({ ...defaultValues });
-        setModalOpen(true);
-    };
+    const openCreate = () => patchModal({ open: true, editItem: null, isDuplicate: false, form: { ...defaultValues }, saving: false, focusedKey: null });
 
     const openEdit = (item: any) => {
-        setEditItem(item);
-        setIsDuplicate(false);
-        const initial: Record<string, any> = {};
-        fields.forEach(f => { initial[f.key] = item[f.key] ?? defaultValues[f.key] ?? ""; });
-        setForm(initial);
-        setModalOpen(true);
+        const form: Record<string, any> = {};
+        fields.forEach(f => { form[f.key] = item[f.key] ?? defaultValues[f.key] ?? ""; });
+        patchModal({ open: true, editItem: item, isDuplicate: false, form, saving: false, focusedKey: null });
     };
 
     /** Duplicate: opens the Create modal pre-filled with an existing entry's data */
     const openDuplicate = (item: any) => {
-        setEditItem(null);
-        setIsDuplicate(true);
-        const initial: Record<string, any> = {};
+        const form: Record<string, any> = {};
         fields.forEach(f => {
             let val = item[f.key] ?? defaultValues[f.key] ?? "";
-            // Append "(Copy)" to the first required text field
-            if (f.type === "text" && f.required && typeof val === "string" && val && !val.endsWith(" (Copy)")) {
-                val = val + " (Copy)";
-            }
-            initial[f.key] = val;
+            if (f.type === "text" && f.required && typeof val === "string" && val && !val.endsWith(" (Copy)")) val += " (Copy)";
+            form[f.key] = val;
         });
-        setForm(initial);
-        setModalOpen(true);
+        patchModal({ open: true, editItem: null, isDuplicate: true, form, saving: false, focusedKey: null });
     };
 
-    const closeModal = () => {
-        setModalOpen(false);
-        setEditItem(null);
-        setIsDuplicate(false);
-        setForm({});
-    };
+    const closeModal = () => patchModal({ open: false, editItem: null, isDuplicate: false, form: {}, saving: false, focusedKey: null });
 
     const handleSave = async () => {
-        setSaving(true);
+        patchModal({ saving: true });
+        patchTable({ error: "" });
         try {
-            let res: Response;
-            if (editItem && !isDuplicate) {
-                res = await fetch(`${apiBase}/${editItem[idField]}`, {
-                    method: "PATCH",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(form),
-                });
-            } else {
-                res = await fetch(apiBase, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(form),
-                });
-            }
+            const { editItem, isDuplicate, form } = modal;
+            const res = editItem && !isDuplicate
+                ? await fetch(`${apiBase}/${editItem[idField]}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) })
+                : await fetch(apiBase, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
             const json = await res.json();
-            if (json.success) {
-                closeModal();
-                fetchData();
-            } else {
-                setError(json.error || "Save failed");
-            }
+            if (json.success) { closeModal(); fetchData(); }
+            else patchTable({ error: json.error || "Save failed" });
         } catch {
-            setError("Network error");
+            patchTable({ error: "Network error" });
         } finally {
-            setSaving(false);
+            patchModal({ saving: false });
         }
     };
 
     const handleDelete = async (id: string) => {
+        patchTable({ deleteConfirm: null });
         try {
             const res = await fetch(`${apiBase}/${id}`, { method: "DELETE" });
             const json = await res.json();
             if (json.success) fetchData();
-            else setError(json.error || "Delete failed");
+            else patchTable({ error: json.error || "Delete failed" });
         } catch {
-            setError("Network error");
-        } finally {
-            setDeleteConfirm(null);
+            patchTable({ error: "Network error" });
         }
     };
 
     const tableFields = fields.filter(f => f.tableVisible !== false);
-    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const pages = Math.max(1, Math.ceil(table.total / PAGE_SIZE));
 
     // Style helpers
     const cardBg = isApple
-        ? isDark ? "rgba(28,28,32,0.80)" : "rgba(255,255,255,0.80)"
-        : isDark ? "rgba(22,22,26,0.97)" : "rgba(255,255,255,0.97)";
+        ? isDark ? "rgba(28,28,32,0.82)" : "rgba(255,255,255,0.82)"
+        : isDark ? "rgba(22,22,26,0.97)" : "#fff";
     const borderColor = isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.09)";
-    const cardRadius = isApple ? "20px" : "28px";
+    const cardRadius = isApple ? "20px" : "24px";
     const fieldRadius = isApple ? "12px" : "14px";
 
     const inputBase: React.CSSProperties = {
@@ -806,19 +708,18 @@ export default function AdminCRUDPage({
         transition: "border 0.15s, box-shadow 0.15s",
     };
 
-    // inputStyle alias for table-search compatibility
     const inputStyle = inputBase;
 
     const getInputStyle = (key: string): React.CSSProperties => ({
         ...inputBase,
-        ...(focusedKey === key
+        ...(modal.focusedKey === key
             ? { border: `1px solid ${palette.accent}`, boxShadow: `0 0 0 3px ${palette.accent}25` }
             : {}),
     });
 
     const renderField = (field: FieldDef) => {
-        const val = form[field.key];
-        const update = (v: any) => setForm(prev => ({ ...prev, [field.key]: v }));
+        const val = modal.form[field.key];
+        const update = (v: any) => patchModal({ form: { ...modal.form, [field.key]: v } });
 
         if (field.type === "boolean") {
             return <ToggleSwitch checked={!!val} onChange={update} label={field.label} palette={palette} />;
@@ -831,8 +732,8 @@ export default function AdminCRUDPage({
                     value={val || ""}
                     onChange={e => update(e.target.value)}
                     rows={4}
-                    onFocus={() => setFocusedKey(field.key)}
-                    onBlur={() => setFocusedKey(null)}
+                    onFocus={() => patchModal({ focusedKey: field.key })}
+                    onBlur={() => patchModal({ focusedKey: null })}
                     style={{ ...getInputStyle(field.key), resize: "vertical", lineHeight: 1.6 }}
                     required={field.required}
                 />
@@ -873,11 +774,11 @@ export default function AdminCRUDPage({
             return (
                 <CDNImageField
                     key={field.key}
+                    fieldKey={field.key}
                     value={val || ""}
                     onChange={update}
                     cdnType={field.cdnType || "icon"}
                     cdnContext={field.cdnContext}
-                    fieldKey={field.key}
                     palette={palette}
                     isDark={isDark}
                     borderColor={borderColor}
@@ -904,7 +805,7 @@ export default function AdminCRUDPage({
 
         if (field.type === "tags") {
             const tags: string[] = Array.isArray(val) ? val : [];
-            const isFocused = focusedKey === field.key;
+            const isFocused = modal.focusedKey === field.key;
             return (
                 <div>
                     <div
@@ -933,8 +834,8 @@ export default function AdminCRUDPage({
                         ))}
                         <input
                             placeholder={tags.length === 0 ? (field.placeholder || `Add ${field.label}…`) : ""}
-                            onFocus={() => setFocusedKey(field.key)}
-                            onBlur={() => setFocusedKey(null)}
+                            onFocus={() => patchModal({ focusedKey: field.key })}
+                            onBlur={() => patchModal({ focusedKey: null })}
                             style={{ flex: 1, minWidth: 80, background: "none", border: "none", outline: "none", color: palette.textPrimary, fontSize: 14, padding: "2px 0" }}
                             onKeyDown={e => {
                                 if (e.key === "Enter" || e.key === ",") {
@@ -961,8 +862,8 @@ export default function AdminCRUDPage({
                 placeholder={field.placeholder || field.label}
                 value={val ?? ""}
                 onChange={e => update(field.type === "number" ? Number(e.target.value) : e.target.value)}
-                onFocus={() => setFocusedKey(field.key)}
-                onBlur={() => setFocusedKey(null)}
+                onFocus={() => patchModal({ focusedKey: field.key })}
+                onBlur={() => patchModal({ focusedKey: null })}
                 style={getInputStyle(field.key)}
                 required={field.required}
             />
@@ -1032,7 +933,7 @@ export default function AdminCRUDPage({
                 <div>
                     <h1 className="text-2xl font-black" style={{ color: palette.textPrimary }}>{title}</h1>
                     {subtitle && <p className="text-sm mt-0.5" style={{ color: palette.textSecondary }}>{subtitle}</p>}
-                    <p className="text-xs mt-1" style={{ color: palette.textTertiary }}>{total} records</p>
+                    <p className="text-xs mt-1" style={{ color: palette.textTertiary }}>{table.total} records</p>
                 </div>
                 <div className="flex gap-2">
                     <motion.button
@@ -1062,17 +963,23 @@ export default function AdminCRUDPage({
                 <input
                     placeholder={`Search ${title}...`}
                     style={{ ...inputBase, paddingLeft: "38px" }}
-                    onFocus={() => setFocusedKey("__search")}
-                    onBlur={() => setFocusedKey(null)}
+                    onFocus={() => patchModal({ focusedKey: "__search" })}
+                    onBlur={() => patchModal({ focusedKey: null })}
                     onChange={e => handleSearchChange(e.target.value)}
                 />
             </div>
 
             {/* Error */}
-            {error && (
-                <div className="mb-4 px-4 py-3 rounded-xl text-sm"
+            {table.error && (
+                <div className="mb-4 px-4 py-3 rounded-xl text-sm flex items-center justify-between"
                     style={{ background: "rgba(220,50,50,0.1)", color: "#DC3232", border: "1px solid rgba(220,50,50,0.2)" }}>
-                    {error}
+                    <span>{table.error}</span>
+                    <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
+                        className="ml-2 p-1 rounded"
+                        style={{ color: "#DC3232" }}
+                        onClick={() => patchTable({ error: "" })}>
+                        <Close style={{ fontSize: 16 }} />
+                    </motion.button>
                 </div>
             )}
 
@@ -1095,7 +1002,7 @@ export default function AdminCRUDPage({
                             </tr>
                         </thead>
                         <tbody>
-                            {loading ? (
+                            {table.loading ? (
                                 Array.from({ length: 5 }).map((_, i) => (
                                     <tr key={i} className="border-t" style={{ borderColor }}>
                                         {tableFields.map(f => (
@@ -1107,19 +1014,32 @@ export default function AdminCRUDPage({
                                         <td className="px-4 py-3" />
                                     </tr>
                                 ))
-                            ) : items.length === 0 ? (
+                            ) : table.items.length === 0 ? (
                                 <tr>
-                                    <td colSpan={tableFields.length + 1} className="px-4 py-12 text-center"
-                                        style={{ color: palette.textTertiary }}>
-                                        No records found
+                                    <td colSpan={tableFields.length + 1} className="px-4 py-16 text-center">
+                                        <div className="flex flex-col items-center gap-3">
+                                            <div className="p-4 rounded-2xl" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }}>
+                                                <Search style={{ fontSize: 28, color: palette.textTertiary }} />
+                                            </div>
+                                            <p className="text-sm font-medium" style={{ color: palette.textSecondary }}>No records found</p>
+                                            <p className="text-xs" style={{ color: palette.textTertiary }}>Try adjusting your search or add a new entry</p>
+                                            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+                                                className="mt-1 px-4 py-1.5 rounded-xl text-xs font-bold"
+                                                style={{ background: palette.accent, color: "#fff" }}
+                                                onClick={openCreate}>
+                                                + Add New
+                                            </motion.button>
+                                        </div>
                                     </td>
                                 </tr>
                             ) : (
-                                items.map((item) => (
-                                    <tr
+                                table.items.map((item) => (
+                                    <motion.tr
                                         key={item[idField] || item._id}
-                                        className="border-t transition-colors"
+                                        className="border-t"
                                         style={{ borderColor }}
+                                        whileHover={{ backgroundColor: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}
+                                        transition={{ duration: 0.12 }}
                                     >
                                         {tableFields.map(f => (
                                             <td key={f.key} className="px-4 py-3" style={{ color: palette.textPrimary }}>
@@ -1142,7 +1062,7 @@ export default function AdminCRUDPage({
                                                     onClick={() => openDuplicate(item)}>
                                                     <ContentCopy style={{ fontSize: 15 }} />
                                                 </motion.button>
-                                                {deleteConfirm === (item[idField] || item._id) ? (
+                                                {table.deleteConfirm === (item[idField] || item._id) ? (
                                                     <div className="flex gap-1">
                                                         <motion.button whileHover={{ scale: 1.05 }}
                                                             className="px-2 py-1 rounded-lg text-xs font-bold"
@@ -1153,7 +1073,7 @@ export default function AdminCRUDPage({
                                                         <motion.button whileHover={{ scale: 1.05 }}
                                                             className="px-2 py-1 rounded-lg text-xs"
                                                             style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
-                                                            onClick={() => setDeleteConfirm(null)}>
+                                                            onClick={() => patchTable({ deleteConfirm: null })}>
                                                             Cancel
                                                         </motion.button>
                                                     </div>
@@ -1161,13 +1081,13 @@ export default function AdminCRUDPage({
                                                     <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
                                                         className="p-1.5 rounded-lg" title="Delete"
                                                         style={{ background: "rgba(220,50,50,0.1)", color: "#DC3232" }}
-                                                        onClick={() => setDeleteConfirm(item[idField] || item._id)}>
+                                                        onClick={() => patchTable({ deleteConfirm: item[idField] || item._id })}>
                                                         <Delete style={{ fontSize: 15 }} />
                                                     </motion.button>
                                                 )}
                                             </div>
                                         </td>
-                                    </tr>
+                                    </motion.tr>
                                 ))
                             )}
                         </tbody>
@@ -1178,30 +1098,30 @@ export default function AdminCRUDPage({
                 {pages > 1 && (
                     <div className="flex items-center justify-between px-4 py-3 border-t" style={{ borderColor }}>
                         <p className="text-xs" style={{ color: palette.textTertiary }}>
-                            Page {page} of {pages} ({total} total)
+                            Page {table.page} of {pages} ({table.total} total)
                         </p>
                         <div className="flex gap-2">
                             <motion.button
-                                disabled={page <= 1}
-                                whileHover={{ scale: page > 1 ? 1.05 : 1 }}
+                                disabled={table.page <= 1}
+                                whileHover={{ scale: table.page > 1 ? 1.05 : 1 }}
                                 className="p-1.5 rounded-lg"
                                 style={{
                                     background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
-                                    color: page <= 1 ? palette.textTertiary : palette.textSecondary
+                                    color: table.page <= 1 ? palette.textTertiary : palette.textSecondary
                                 }}
-                                onClick={() => setPage(p => Math.max(1, p - 1))}
+                                onClick={() => patchTable({ page: Math.max(1, table.page - 1) })}
                             >
                                 <ChevronLeft fontSize="small" />
                             </motion.button>
                             <motion.button
-                                disabled={page >= pages}
-                                whileHover={{ scale: page < pages ? 1.05 : 1 }}
+                                disabled={table.page >= pages}
+                                whileHover={{ scale: table.page < pages ? 1.05 : 1 }}
                                 className="p-1.5 rounded-lg"
                                 style={{
                                     background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
-                                    color: page >= pages ? palette.textTertiary : palette.textSecondary
+                                    color: table.page >= pages ? palette.textTertiary : palette.textSecondary
                                 }}
-                                onClick={() => setPage(p => Math.min(pages, p + 1))}
+                                onClick={() => patchTable({ page: Math.min(pages, table.page + 1) })}
                             >
                                 <ChevronRight fontSize="small" />
                             </motion.button>
@@ -1212,7 +1132,7 @@ export default function AdminCRUDPage({
 
             {/* ── Create / Edit / Duplicate Modal ── */}
             <AnimatePresence>
-                {modalOpen && (
+                {modal.open && (
                     <>
                         <motion.div className="fixed inset-0 z-50"
                             style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(8px)" }}
@@ -1236,11 +1156,11 @@ export default function AdminCRUDPage({
                                 <div className="flex items-center justify-between px-7 py-5 border-b flex-shrink-0" style={{ borderColor }}>
                                     <div>
                                         <h2 className="text-lg font-black" style={{ color: palette.textPrimary }}>
-                                            {isDuplicate ? `Duplicate ${title.replace(/ies$/, "y").replace(/s$/, "")}`
-                                                : editItem ? `Edit ${title.replace(/ies$/, "y").replace(/s$/, "")}`
+                                            {modal.isDuplicate ? `Duplicate ${title.replace(/ies$/, "y").replace(/s$/, "")}`
+                                                : modal.editItem ? `Edit ${title.replace(/ies$/, "y").replace(/s$/, "")}`
                                                 : `Add ${title.replace(/ies$/, "y").replace(/s$/, "")}`}
                                         </h2>
-                                        {isDuplicate && (
+                                        {modal.isDuplicate && (
                                             <p className="text-xs mt-0.5" style={{ color: palette.textTertiary }}>
                                                 Creating a copy — adjust fields before saving
                                             </p>
@@ -1255,7 +1175,7 @@ export default function AdminCRUDPage({
                                 </div>
 
                                 {/* Scrollable form body */}
-                                <div className="overflow-y-auto flex-1 px-7 py-6">
+                                <div className="overflow-y-auto flex-1 px-7 py-6 admin-sidebar-scroll">
                                     <div className="grid grid-cols-2 gap-x-5 gap-y-5">
                                         {fields.map(field => (
                                             <div key={field.key}
@@ -1287,10 +1207,10 @@ export default function AdminCRUDPage({
                                         </motion.button>
                                         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                                             className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-bold"
-                                            style={{ background: palette.accent, color: "#fff", opacity: saving ? 0.7 : 1 }}
-                                            onClick={handleSave} disabled={saving}>
-                                            {isDuplicate ? <ContentCopy fontSize="small" /> : <Save fontSize="small" />}
-                                            {saving ? "Saving…" : isDuplicate ? "Save Copy" : "Save"}
+                                            style={{ background: palette.accent, color: "#fff", opacity: modal.saving ? 0.7 : 1 }}
+                                            onClick={handleSave} disabled={modal.saving}>
+                                            {modal.isDuplicate ? <ContentCopy fontSize="small" /> : <Save fontSize="small" />}
+                                            {modal.saving ? "Saving…" : modal.isDuplicate ? "Save Copy" : "Save"}
                                         </motion.button>
                                     </div>
                                 </div>

@@ -140,91 +140,108 @@ export default function CDNAdminPage() {
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
-    const [assets, setAssets] = useState<CDNAsset[]>([]);
-    const [summary, setSummary] = useState<Summary>({ activeCount: 0, missingCount: 0, totalSize: 0 });
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [success, setSuccess] = useState("");
+    /* ── List state ── */
+    const [list, setList] = useState({
+        assets: [] as CDNAsset[],
+        summary: { activeCount: 0, missingCount: 0, totalSize: 0 } as Summary,
+        loading: false,
+        error: "",
+        success: "",
+        page: 1,
+        totalCount: 0,
+    });
+    const patchList = useCallback((p: Partial<typeof list>) => setList(s => ({ ...s, ...p })), []);
 
-    // Filters
-    const [search, setSearch] = useState("");
-    const [filterType, setFilterType] = useState<AssetType | "">("");
-    const [filterStatus, setFilterStatus] = useState<AssetStatus | "">("");
+    /* ── Filters state ── */
+    const [filters, setFilters] = useState({
+        search: "",
+        type: "" as AssetType | "",
+        status: "" as AssetStatus | "",
+        repo: "",
+    });
+    const patchFilters = useCallback((p: Partial<typeof filters>) => setFilters(s => ({ ...s, ...p })), []);
 
-    // Upload
-    const [showUpload, setShowUpload] = useState(false);
-    const [dragOver, setDragOver] = useState(false);
-    const [uploadFile, setUploadFile] = useState<File | null>(null);
-    const [uploadType, setUploadType] = useState<AssetType>("other");
-    const [uploadTags, setUploadTags] = useState("");
-    const [uploadAlt, setUploadAlt] = useState("");
-    const [uploading, setUploading] = useState(false);
+    /* ── Upload state ── */
+    const [upload, setUpload] = useState({
+        open: false,
+        dragOver: false,
+        file: null as File | null,
+        type: "other" as AssetType,
+        tags: "",
+        alt: "",
+        loading: false,
+    });
+    const patchUpload = useCallback((p: Partial<typeof upload>) => setUpload(s => ({ ...s, ...p })), []);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Integrity check
-    const [checking, setChecking] = useState(false);
-    const [deepCheck, setDeepCheck] = useState(false);
-    const [checkResult, setCheckResult] = useState<null | {
-        checked: number; nowMissing: number; restored: number;
-        checksumMismatch?: number; mismatchIds?: string[];
-        deep?: boolean; checkedAt: string;
-    }>(null);
+    /* ── Integrity check state ── */
+    const [integrity, setIntegrity] = useState({
+        checking: false,
+        deep: false,
+        result: null as null | {
+            checked: number; nowMissing: number; restored: number;
+            checksumMismatch?: number; mismatchIds?: string[];
+            deep?: boolean; checkedAt: string;
+        },
+    });
+    const patchIntegrity = useCallback((p: Partial<typeof integrity>) => setIntegrity(s => ({ ...s, ...p })), []);
 
-    // Detail drawer
+    /* ── Repo info state ── */
+    const [repoInfo, setRepoInfo] = useState({
+        items: [] as RepoInfo[],
+        loading: false,
+    });
+    const patchRepoInfo = useCallback((p: Partial<typeof repoInfo>) => setRepoInfo(s => ({ ...s, ...p })), []);
+
+    /* ── Detail drawer ── */
     const [detailAsset, setDetailAsset] = useState<CDNAsset | null>(null);
 
-    // Pagination
+    // Pagination derived
     const PAGE_SIZE = 20;
-    const [page, setPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
-    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-
-    // Repos
-    const [repos, setRepos] = useState<RepoInfo[]>([]);
-    const [reposLoading, setReposLoading] = useState(false);
-    const [filterRepo, setFilterRepo] = useState("");
+    const totalPages = Math.max(1, Math.ceil(list.totalCount / PAGE_SIZE));
 
     // ── Fetch ────────────────────────────────────────────────────────────────
     const fetchAssets = useCallback(async (pageOverride?: number) => {
-        setLoading(true);
-        setError("");
-        const activePage = pageOverride ?? page;
+        patchList({ loading: true, error: "" });
+        const activePage = pageOverride ?? list.page;
         try {
             const params = new URLSearchParams({
-                search,
+                search: filters.search,
                 limit: String(PAGE_SIZE),
                 page: String(activePage),
             });
-            if (filterType) params.set("type", filterType);
-            if (filterStatus) params.set("status", filterStatus);
-            if (filterRepo) params.set("repo", filterRepo);
+            if (filters.type) params.set("type", filters.type);
+            if (filters.status) params.set("status", filters.status);
+            if (filters.repo) params.set("repo", filters.repo);
 
             const res = await fetch(`/api/admin/cdn?${params}`);
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Failed to load");
-            setAssets(data.assets ?? []);
-            setSummary(data.summary ?? { activeCount: 0, missingCount: 0, totalSize: 0 });
-            setTotalCount(data.pagination?.total ?? data.total ?? data.assets?.length ?? 0);
+            patchList({
+                assets: data.assets ?? [],
+                summary: data.summary ?? { activeCount: 0, missingCount: 0, totalSize: 0 },
+                totalCount: data.pagination?.total ?? data.total ?? data.assets?.length ?? 0,
+            });
         } catch (e: any) {
-            setError(e.message);
+            patchList({ error: e.message });
         } finally {
-            setLoading(false);
+            patchList({ loading: false });
         }
-    }, [search, filterType, filterStatus, filterRepo, page]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [filters.search, filters.type, filters.status, filters.repo, list.page]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Reset to page 1 whenever filters change
-    useEffect(() => { setPage(1); }, [search, filterType, filterStatus, filterRepo]);
+    useEffect(() => { patchList({ page: 1 }); }, [filters.search, filters.type, filters.status, filters.repo]);
 
     useEffect(() => { fetchAssets(); }, [fetchAssets]);
 
     const fetchRepos = useCallback(async (force = false) => {
-        setReposLoading(true);
+        patchRepoInfo({ loading: true });
         try {
             const res = await fetch(`/api/admin/cdn/repos${force ? "?refresh=1" : ""}`);
             const data = await res.json();
-            if (res.ok) setRepos(data.repos ?? []);
+            if (res.ok) patchRepoInfo({ items: data.repos ?? [] });
         } catch {}
-        finally { setReposLoading(false); }
+        finally { patchRepoInfo({ loading: false }); }
     }, []);
 
     useEffect(() => { fetchRepos(); }, [fetchRepos]);
@@ -232,34 +249,31 @@ export default function CDNAdminPage() {
     // ── Upload ───────────────────────────────────────────────────────────────
     const handleFileDrop = (e: React.DragEvent) => {
         e.preventDefault();
-        setDragOver(false);
+        patchUpload({ dragOver: false });
         const f = e.dataTransfer.files[0];
-        if (f) { setUploadFile(f); setShowUpload(true); }
+        if (f) { patchUpload({ file: f, open: true }); }
     };
 
     const handleUpload = async () => {
-        if (!uploadFile) return;
-        setUploading(true);
-        setError("");
+        if (!upload.file) return;
+        patchUpload({ loading: true });
+        patchList({ error: "" });
         try {
             const fd = new FormData();
-            fd.append("file", uploadFile);
-            fd.append("type", uploadType);
-            fd.append("tags", uploadTags);
-            fd.append("altText", uploadAlt);
+            fd.append("file", upload.file);
+            fd.append("type", upload.type);
+            fd.append("tags", upload.tags);
+            fd.append("altText", upload.alt);
             const res = await fetch("/api/cdn/upload", { method: "POST", body: fd });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || "Upload failed");
-            setSuccess(`Uploaded! CDN URL: ${data.cdnUrl}`);
-            setShowUpload(false);
-            setUploadFile(null);
-            setUploadTags("");
-            setUploadAlt("");
+            patchList({ success: `Uploaded! CDN URL: ${data.cdnUrl}` });
+            patchUpload({ open: false, file: null, tags: "", alt: "" });
             fetchAssets();
         } catch (e: any) {
-            setError(e.message);
+            patchList({ error: e.message });
         } finally {
-            setUploading(false);
+            patchUpload({ loading: false });
         }
     };
 
@@ -270,33 +284,33 @@ export default function CDNAdminPage() {
             const res = await fetch(`/api/admin/cdn/${asset._id}`, { method: "DELETE" });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            setSuccess("Asset deleted.");
+            patchList({ success: "Asset deleted." });
             fetchAssets();
         } catch (e: any) {
-            setError(e.message);
+            patchList({ error: e.message });
         }
     };
 
     // ── Integrity check ──────────────────────────────────────────────────────
     const runCheck = async (deep = false) => {
-        setChecking(true);
-        setError("");
+        patchIntegrity({ checking: true });
+        patchList({ error: "" });
         try {
             const url = deep ? "/api/admin/cdn/check?deep=1" : "/api/admin/cdn/check";
             const res = await fetch(url, { method: "POST" });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error);
-            setCheckResult(data);
+            patchIntegrity({ result: data });
             fetchAssets();
         } catch (e: any) {
-            setError(e.message);
+            patchList({ error: e.message });
         } finally {
-            setChecking(false);
+            patchIntegrity({ checking: false });
         }
     };
 
     // ── Auto-dismiss success ─────────────────────────────────────────────────
-    useEffect(() => { if (success) { const t = setTimeout(() => setSuccess(""), 5000); return () => clearTimeout(t); } }, [success]);
+    useEffect(() => { if (list.success) { const t = setTimeout(() => patchList({ success: "" }), 5000); return () => clearTimeout(t); } }, [list.success]);
 
     // ── Styles ───────────────────────────────────────────────────────────────
     const cardBg = isApple
@@ -332,7 +346,7 @@ export default function CDNAdminPage() {
                 <div className="flex gap-2 flex-wrap">
                     <button
                         onClick={() => runCheck(true)}
-                        disabled={checking}
+                        disabled={integrity.checking}
                         title="Download each file and verify MD5 checksum (slow)"
                         style={{
                             background: isDark ? "rgba(138,43,226,0.15)" : "rgba(138,43,226,0.08)",
@@ -342,18 +356,18 @@ export default function CDNAdminPage() {
                             color: "#9b59b6",
                             fontSize: 13,
                             fontWeight: 700,
-                            cursor: checking ? "not-allowed" : "pointer",
+                            cursor: integrity.checking ? "not-allowed" : "pointer",
                             display: "flex",
                             alignItems: "center",
                             gap: 6,
                         }}
                     >
-                        <Fingerprint fontSize="small" style={{ animation: checking ? "spin 1s linear infinite" : "none" }} />
-                        {checking ? "Verifying…" : "Deep Check"}
+                        <Fingerprint fontSize="small" style={{ animation: integrity.checking ? "spin 1s linear infinite" : "none" }} />
+                        {integrity.checking ? "Verifying…" : "Deep Check"}
                     </button>
                     <button
                         onClick={() => runCheck(false)}
-                        disabled={checking}
+                        disabled={integrity.checking}
                         style={{
                             background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
                             border: `1px solid ${border}`,
@@ -362,17 +376,17 @@ export default function CDNAdminPage() {
                             color: palette.textPrimary,
                             fontSize: 13,
                             fontWeight: 700,
-                            cursor: checking ? "not-allowed" : "pointer",
+                            cursor: integrity.checking ? "not-allowed" : "pointer",
                             display: "flex",
                             alignItems: "center",
                             gap: 6,
                         }}
                     >
-                        <Refresh fontSize="small" style={{ animation: checking ? "spin 1s linear infinite" : "none" }} />
-                        {checking ? "Checking..." : "Integrity Check"}
+                        <Refresh fontSize="small" style={{ animation: integrity.checking ? "spin 1s linear infinite" : "none" }} />
+                        {integrity.checking ? "Checking..." : "Integrity Check"}
                     </button>
                     <button
-                        onClick={() => setShowUpload(true)}
+                        onClick={() => patchUpload({ open: true })}
                         style={{
                             background: palette.accent,
                             border: "none",
@@ -394,7 +408,7 @@ export default function CDNAdminPage() {
 
             {/* ── Missing-file warning banner ──────────────────────────── */}
             <AnimatePresence>
-                {summary.missingCount > 0 && (
+                {list.summary.missingCount > 0 && (
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -413,14 +427,14 @@ export default function CDNAdminPage() {
                         <Warning style={{ color: "#f59e0b", flexShrink: 0 }} />
                         <div>
                             <p className="font-black text-sm" style={{ color: "#f59e0b" }}>
-                                {summary.missingCount} asset{summary.missingCount !== 1 ? "s" : ""} missing from GitHub storage
+                                {list.summary.missingCount} asset{list.summary.missingCount !== 1 ? "s" : ""} missing from GitHub storage
                             </p>
                             <p className="text-xs mt-0.5" style={{ color: palette.textSecondary }}>
                                 These files have been removed from the repository. Re-upload them or delete the records to resolve.
                             </p>
                         </div>
                         <button
-                            onClick={() => setFilterStatus("missing")}
+                            onClick={() => patchFilters({ status: "missing" })}
                             style={{
                                 marginLeft: "auto",
                                 background: "rgba(245,158,11,0.2)",
@@ -443,9 +457,9 @@ export default function CDNAdminPage() {
             {/* ── Stats row ────────────────────────────────────────────── */}
             <div className="grid grid-cols-3 gap-4 mb-6" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
                 {[
-                    { label: "Active Assets", value: summary.activeCount, icon: <CheckCircle style={{ color: "#22c55e" }} />, color: "#22c55e" },
-                    { label: "Missing", value: summary.missingCount, icon: <ErrorOutline style={{ color: "#f59e0b" }} />, color: "#f59e0b" },
-                    { label: "Total Size", value: formatBytes(summary.totalSize), icon: <Storage style={{ color: palette.accent }} />, color: palette.accent },
+                    { label: "Active Assets", value: list.summary.activeCount, icon: <CheckCircle style={{ color: "#22c55e" }} />, color: "#22c55e" },
+                    { label: "Missing", value: list.summary.missingCount, icon: <ErrorOutline style={{ color: "#f59e0b" }} />, color: "#f59e0b" },
+                    { label: "Total Size", value: formatBytes(list.summary.totalSize), icon: <Storage style={{ color: palette.accent }} />, color: palette.accent },
                 ].map((stat) => (
                     <div key={stat.label} style={card}>
                         <div className="flex items-center gap-2 mb-1">
@@ -459,7 +473,7 @@ export default function CDNAdminPage() {
 
             {/* ── Check result toast ───────────────────────────────────── */}
             <AnimatePresence>
-                {checkResult && (
+                {integrity.result && (
                     <motion.div
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -477,16 +491,16 @@ export default function CDNAdminPage() {
                         <Verified style={{ color: "#22c55e" }} />
                         <div className="flex-1">
                             <p className="text-sm font-black" style={{ color: "#22c55e" }}>
-                                Integrity check complete — {checkResult.checked} files checked
+                                Integrity check complete — {integrity.result.checked} files checked
                             </p>
                             <p className="text-xs" style={{ color: palette.textSecondary }}>
-                                {checkResult.nowMissing} new missing · {checkResult.restored} restored
-                                {checkResult.checksumMismatch !== undefined && (
-                                    <> · <span style={{ color: checkResult.checksumMismatch > 0 ? "#f59e0b" : "#22c55e", fontWeight: 800 }}>{checkResult.checksumMismatch} checksum mismatch{checkResult.checksumMismatch !== 1 ? "es" : ""}</span></>
-                                )}{" · "}{new Date(checkResult.checkedAt).toLocaleString()}
+                                {integrity.result.nowMissing} new missing · {integrity.result.restored} restored
+                                {integrity.result.checksumMismatch !== undefined && (
+                                    <> · <span style={{ color: integrity.result.checksumMismatch > 0 ? "#f59e0b" : "#22c55e", fontWeight: 800 }}>{integrity.result.checksumMismatch} checksum mismatch{integrity.result.checksumMismatch !== 1 ? "es" : ""}</span></>
+                                )}{" · "}{new Date(integrity.result.checkedAt).toLocaleString()}
                             </p>
                         </div>
-                        <button onClick={() => setCheckResult(null)} style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary }}>
+                        <button onClick={() => patchIntegrity({ result: null })} style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary }}>
                             <Close fontSize="small" />
                         </button>
                     </motion.div>
@@ -494,14 +508,14 @@ export default function CDNAdminPage() {
             </AnimatePresence>
 
             {/* ── Error/success strip ──────────────────────────────────── */}
-            {error && (
+            {list.error && (
                 <div style={{ background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, color: "#ef4444", fontSize: 13 }}>
-                    {error}
+                    {list.error}
                 </div>
             )}
-            {success && (
+            {list.success && (
                 <div style={{ background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: 10, padding: "12px 16px", marginBottom: 16, color: "#22c55e", fontSize: 13, wordBreak: "break-all" }}>
-                    {success}
+                    {list.success}
                 </div>
             )}
 
@@ -510,24 +524,24 @@ export default function CDNAdminPage() {
                 <div style={{ flex: 1, minWidth: 180, display: "flex", alignItems: "center", gap: 8, background: inputBg, borderRadius: 10, padding: "8px 12px", border: `1px solid ${border}` }}>
                     <Search fontSize="small" style={{ color: palette.textTertiary }} />
                     <input
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        value={filters.search}
+                        onChange={(e) => patchFilters({ search: e.target.value })}
                         placeholder="Search filename, tags…"
                         style={{ background: "none", border: "none", outline: "none", color: palette.textPrimary, fontSize: 13, flex: 1 }}
                     />
                 </div>
                 <div style={{ minWidth: 160 }}>
                     <CustomSelect
-                        value={filterType}
-                        onChange={(v) => setFilterType(v as any)}
+                        value={filters.type}
+                        onChange={(v) => patchFilters({ type: v as any })}
                         options={TYPE_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
                         placeholder="All Types"
                     />
                 </div>
                 <div style={{ minWidth: 160 }}>
                     <CustomSelect
-                        value={filterStatus}
-                        onChange={(v) => setFilterStatus(v as any)}
+                        value={filters.status}
+                        onChange={(v) => patchFilters({ status: v as any })}
                         options={STATUS_OPTIONS.map(o => ({ value: o.value, label: o.label }))}
                         placeholder="All Statuses"
                     />
@@ -539,13 +553,13 @@ export default function CDNAdminPage() {
 
             {/* ── Asset list ───────────────────────────────────────────── */}
             <div style={card}>
-                {loading ? (
+                {list.loading ? (
                     <p style={{ color: palette.textSecondary, textAlign: "center", padding: 40 }}>Loading assets…</p>
-                ) : assets.length === 0 ? (
+                ) : list.assets.length === 0 ? (
                     <p style={{ color: palette.textSecondary, textAlign: "center", padding: 40 }}>No assets found.</p>
                 ) : (
                     <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                        {assets.map((asset) => (
+                        {list.assets.map((asset) => (
                             <AssetRow
                                 key={asset._id}
                                 asset={asset}
@@ -577,27 +591,27 @@ export default function CDNAdminPage() {
                     <p style={{ color: palette.textSecondary, fontSize: 13 }}>
                         Showing{" "}
                         <strong style={{ color: palette.textPrimary }}>
-                            {Math.min((page - 1) * PAGE_SIZE + 1, totalCount)}–{Math.min(page * PAGE_SIZE, totalCount)}
+                            {Math.min((list.page - 1) * PAGE_SIZE + 1, list.totalCount)}–{Math.min(list.page * PAGE_SIZE, list.totalCount)}
                         </strong>{" "}
                         of{" "}
-                        <strong style={{ color: palette.textPrimary }}>{totalCount}</strong>
+                        <strong style={{ color: palette.textPrimary }}>{list.totalCount}</strong>
                         {" "}assets
                     </p>
                     <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
                         {/* Prev */}
                         <button
-                            disabled={page === 1 || loading}
-                            onClick={() => setPage((p) => Math.max(1, p - 1))}
+                            disabled={list.page === 1 || list.loading}
+                            onClick={() => patchList({ page: Math.max(1, list.page - 1) })}
                             style={{
                                 background: inputBg,
                                 border: `1px solid ${border}`,
                                 borderRadius: radius - 8,
                                 padding: "6px 14px",
-                                color: page === 1 ? palette.textTertiary : palette.textPrimary,
+                                color: list.page === 1 ? palette.textTertiary : palette.textPrimary,
                                 fontSize: 13,
                                 fontWeight: 700,
-                                cursor: page === 1 ? "not-allowed" : "pointer",
-                                opacity: page === 1 ? 0.5 : 1,
+                                cursor: list.page === 1 ? "not-allowed" : "pointer",
+                                opacity: list.page === 1 ? 0.5 : 1,
                             }}
                         >
                             ← Prev
@@ -605,7 +619,7 @@ export default function CDNAdminPage() {
 
                         {/* Page buttons */}
                         {Array.from({ length: totalPages }, (_, i) => i + 1)
-                            .filter((p) => p === 1 || p === totalPages || Math.abs(p - page) <= 2)
+                            .filter((p) => p === 1 || p === totalPages || Math.abs(p - list.page) <= 2)
                             .reduce<(number | "…")[]>((acc, p, idx, arr) => {
                                 if (idx > 0 && p - (arr[idx - 1] as number) > 1) acc.push("…");
                                 acc.push(p);
@@ -617,16 +631,16 @@ export default function CDNAdminPage() {
                                 ) : (
                                     <button
                                         key={item}
-                                        onClick={() => setPage(item as number)}
-                                        disabled={loading}
+                                        onClick={() => patchList({ page: item as number })}
+                                        disabled={list.loading}
                                         style={{
-                                            background: item === page ? palette.accent : inputBg,
-                                            border: `1px solid ${item === page ? palette.accent : border}`,
+                                            background: item === list.page ? palette.accent : inputBg,
+                                            border: `1px solid ${item === list.page ? palette.accent : border}`,
                                             borderRadius: radius - 8,
                                             padding: "6px 12px",
-                                            color: item === page ? "#fff" : palette.textPrimary,
+                                            color: item === list.page ? "#fff" : palette.textPrimary,
                                             fontSize: 13,
-                                            fontWeight: item === page ? 900 : 600,
+                                            fontWeight: item === list.page ? 900 : 600,
                                             cursor: "pointer",
                                             minWidth: 36,
                                         }}
@@ -638,18 +652,18 @@ export default function CDNAdminPage() {
 
                         {/* Next */}
                         <button
-                            disabled={page === totalPages || loading}
-                            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                            disabled={list.page === totalPages || list.loading}
+                            onClick={() => patchList({ page: Math.min(totalPages, list.page + 1) })}
                             style={{
                                 background: inputBg,
                                 border: `1px solid ${border}`,
                                 borderRadius: radius - 8,
                                 padding: "6px 14px",
-                                color: page === totalPages ? palette.textTertiary : palette.textPrimary,
+                                color: list.page === totalPages ? palette.textTertiary : palette.textPrimary,
                                 fontSize: 13,
                                 fontWeight: 700,
-                                cursor: page === totalPages ? "not-allowed" : "pointer",
-                                opacity: page === totalPages ? 0.5 : 1,
+                                cursor: list.page === totalPages ? "not-allowed" : "pointer",
+                                opacity: list.page === totalPages ? 0.5 : 1,
                             }}
                         >
                             Next →
@@ -660,13 +674,13 @@ export default function CDNAdminPage() {
 
             {/* ── Upload modal ──────────────────────────────────────────── */}
             <AnimatePresence>
-                {showUpload && (
+                {upload.open && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 50, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
-                        onClick={(e) => { if (e.target === e.currentTarget) { setShowUpload(false); setUploadFile(null); } }}
+                        onClick={(e) => { if (e.target === e.currentTarget) { patchUpload({ open: false, file: null }); } }}
                     >
                         <motion.div
                             initial={{ scale: 0.95, opacity: 0 }}
@@ -677,33 +691,33 @@ export default function CDNAdminPage() {
                         >
                             <div className="flex items-center justify-between mb-5">
                                 <h2 className="text-lg font-black" style={{ color: palette.textPrimary }}>Upload Asset</h2>
-                                <button onClick={() => { setShowUpload(false); setUploadFile(null); }} style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary }}>
+                                <button onClick={() => { patchUpload({ open: false, file: null }); }} style={{ background: "none", border: "none", cursor: "pointer", color: palette.textTertiary }}>
                                     <Close />
                                 </button>
                             </div>
 
                             {/* Drop zone */}
                             <div
-                                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-                                onDragLeave={() => setDragOver(false)}
+                                onDragOver={(e) => { e.preventDefault(); patchUpload({ dragOver: true }); }}
+                                onDragLeave={() => patchUpload({ dragOver: false })}
                                 onDrop={handleFileDrop}
                                 onClick={() => fileInputRef.current?.click()}
                                 style={{
-                                    border: `2px dashed ${dragOver ? palette.accent : border}`,
+                                    border: `2px dashed ${upload.dragOver ? palette.accent : border}`,
                                     borderRadius: radius - 4,
                                     padding: 32,
                                     textAlign: "center",
                                     cursor: "pointer",
-                                    background: dragOver ? `${palette.accent}10` : inputBg,
+                                    background: upload.dragOver ? `${palette.accent}10` : inputBg,
                                     transition: "all 0.2s",
                                     marginBottom: 16,
                                 }}
                             >
-                                <CloudUpload style={{ fontSize: 40, color: dragOver ? palette.accent : palette.textTertiary, marginBottom: 8 }} />
-                                {uploadFile ? (
+                                <CloudUpload style={{ fontSize: 40, color: upload.dragOver ? palette.accent : palette.textTertiary, marginBottom: 8 }} />
+                                {upload.file ? (
                                     <div>
-                                        <p className="font-black text-sm" style={{ color: palette.textPrimary }}>{uploadFile.name}</p>
-                                        <p className="text-xs mt-1" style={{ color: palette.textSecondary }}>{formatBytes(uploadFile.size)} · {uploadFile.type || "unknown"}</p>
+                                        <p className="font-black text-sm" style={{ color: palette.textPrimary }}>{upload.file.name}</p>
+                                        <p className="text-xs mt-1" style={{ color: palette.textSecondary }}>{formatBytes(upload.file.size)} · {upload.file.type || "unknown"}</p>
                                     </div>
                                 ) : (
                                     <div>
@@ -711,7 +725,7 @@ export default function CDNAdminPage() {
                                         <p className="text-xs mt-1" style={{ color: palette.textTertiary }}>Images, videos, documents, icons — max 49 MB</p>
                                     </div>
                                 )}
-                                <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={(e) => e.target.files?.[0] && setUploadFile(e.target.files[0])} />
+                                <input ref={fileInputRef} type="file" style={{ display: "none" }} onChange={(e) => e.target.files?.[0] && patchUpload({ file: e.target.files[0] })} />
                             </div>
 
                             {/* Form fields */}
@@ -719,8 +733,8 @@ export default function CDNAdminPage() {
                                 <div>
                                     <label className="text-xs font-bold mb-1 block" style={{ color: palette.textSecondary }}>Asset Type</label>
                                     <CustomSelect
-                                        value={uploadType}
-                                        onChange={(v) => setUploadType(v as AssetType)}
+                                        value={upload.type}
+                                        onChange={(v) => patchUpload({ type: v as AssetType })}
                                         options={TYPE_OPTIONS.filter(o => o.value).map(o => ({ value: o.value, label: o.label }))}
                                         placeholder="Select type"
                                     />
@@ -728,8 +742,8 @@ export default function CDNAdminPage() {
                                 <div>
                                     <label className="text-xs font-bold mb-1 block" style={{ color: palette.textSecondary }}>Tags (comma-separated)</label>
                                     <input
-                                        value={uploadTags}
-                                        onChange={(e) => setUploadTags(e.target.value)}
+                                        value={upload.tags}
+                                        onChange={(e) => patchUpload({ tags: e.target.value })}
                                         placeholder="e.g. hero, homepage, dark"
                                         style={{ width: "100%", background: inputBg, border: `1px solid ${border}`, borderRadius: 10, padding: "9px 12px", color: palette.textPrimary, fontSize: 13, outline: "none" }}
                                     />
@@ -737,8 +751,8 @@ export default function CDNAdminPage() {
                                 <div>
                                     <label className="text-xs font-bold mb-1 block" style={{ color: palette.textSecondary }}>Alt Text / Description</label>
                                     <input
-                                        value={uploadAlt}
-                                        onChange={(e) => setUploadAlt(e.target.value)}
+                                        value={upload.alt}
+                                        onChange={(e) => patchUpload({ alt: e.target.value })}
                                         placeholder="Short description for accessibility"
                                         style={{ width: "100%", background: inputBg, border: `1px solid ${border}`, borderRadius: 10, padding: "9px 12px", color: palette.textPrimary, fontSize: 13, outline: "none" }}
                                     />
@@ -747,21 +761,21 @@ export default function CDNAdminPage() {
 
                             <button
                                 onClick={handleUpload}
-                                disabled={uploading || !uploadFile}
+                                disabled={upload.loading || !upload.file}
                                 style={{
                                     marginTop: 20,
                                     width: "100%",
-                                    background: uploading || !uploadFile ? palette.textTertiary : palette.accent,
+                                    background: upload.loading || !upload.file ? palette.textTertiary : palette.accent,
                                     border: "none",
                                     borderRadius: radius - 4,
                                     padding: "12px 0",
                                     color: "#fff",
                                     fontSize: 14,
                                     fontWeight: 900,
-                                    cursor: uploading || !uploadFile ? "not-allowed" : "pointer",
+                                    cursor: upload.loading || !upload.file ? "not-allowed" : "pointer",
                                 }}
                             >
-                                {uploading ? "Uploading to GitHub…" : "Upload Asset"}
+                                {upload.loading ? "Uploading to GitHub…" : "Upload Asset"}
                             </button>
                         </motion.div>
                     </motion.div>

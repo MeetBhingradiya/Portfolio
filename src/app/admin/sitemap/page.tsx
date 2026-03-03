@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { motion } from "motion/react";
 import AdminCRUDPage, { FieldDef } from "../AdminCRUDPage";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
@@ -20,25 +20,23 @@ function SeedBanner() {
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
-    const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
-    const [msg, setMsg] = useState("");
+    const [seed, setSeed] = useState<{ status: "idle" | "loading" | "success" | "error"; msg: string }>({
+        status: "idle", msg: ""
+    });
+    const patchSeed = useCallback((p: Partial<typeof seed>) => setSeed(s => ({ ...s, ...p })), []);
 
     const handleSeed = async () => {
-        setStatus("loading");
-        setMsg("");
+        patchSeed({ status: "loading", msg: "" });
         try {
             const res = await fetch("/api/admin/sitemap/seed", { method: "POST" });
             const json = await res.json();
             if (json.success) {
-                setStatus("success");
-                setMsg(json.message ?? "Seeded successfully.");
+                patchSeed({ status: "success", msg: json.message ?? "Seeded successfully." });
             } else {
-                setStatus("error");
-                setMsg(json.error ?? "Seed failed.");
+                patchSeed({ status: "error", msg: json.error ?? "Seed failed." });
             }
         } catch {
-            setStatus("error");
-            setMsg("Network error.");
+            patchSeed({ status: "error", msg: "Network error." });
         }
     };
 
@@ -62,44 +60,44 @@ function SeedBanner() {
                     One-click import of all hard-coded static routes (main, tools, legal, auth, settings).
                     Existing entries are left unchanged.
                 </p>
-                {msg && (
+                {seed.msg && (
                     <p className="text-xs mt-1 font-semibold"
-                        style={{ color: status === "success" ? "#34C759" : "#FF3B30" }}>
-                        {msg}
+                        style={{ color: seed.status === "success" ? "#34C759" : "#FF3B30" }}>
+                        {seed.msg}
                     </p>
                 )}
             </div>
             <motion.button
                 whileHover={{ scale: 1.04 }}
                 whileTap={{ scale: 0.97 }}
-                disabled={status === "loading"}
+                disabled={seed.status === "loading"}
                 onClick={handleSeed}
                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold shrink-0"
                 style={{
-                    background: status === "success"
+                    background: seed.status === "success"
                         ? "rgba(52,199,89,0.15)"
-                        : status === "error"
+                        : seed.status === "error"
                         ? "rgba(255,59,48,0.15)"
                         : `${palette.accent}18`,
-                    color: status === "success"
+                    color: seed.status === "success"
                         ? "#34C759"
-                        : status === "error"
+                        : seed.status === "error"
                         ? "#FF3B30"
                         : palette.accent,
-                    opacity: status === "loading" ? 0.7 : 1,
-                    cursor: status === "loading" ? "not-allowed" : "pointer",
+                    opacity: seed.status === "loading" ? 0.7 : 1,
+                    cursor: seed.status === "loading" ? "not-allowed" : "pointer",
                 }}
             >
-                {status === "loading" ? (
+                {seed.status === "loading" ? (
                     <Downloading fontSize="small" className="animate-pulse" />
-                ) : status === "success" ? (
+                ) : seed.status === "success" ? (
                     <CheckCircle fontSize="small" />
-                ) : status === "error" ? (
+                ) : seed.status === "error" ? (
                     <ErrorOutline fontSize="small" />
                 ) : (
                     <Downloading fontSize="small" />
                 )}
-                {status === "loading" ? "Seeding…" : status === "success" ? "Seeded!" : status === "error" ? "Retry" : "Seed Static Pages"}
+                {seed.status === "loading" ? "Seeding\u2026" : seed.status === "success" ? "Seeded!" : seed.status === "error" ? "Retry" : "Seed Static Pages"}
             </motion.button>
         </div>
     );

@@ -127,6 +127,24 @@ body:has(::-webkit-scrollbar)
     justify-content: center
     align-items: center
 
+// @AdminSidebar
+.admin-sidebar-scroll
+    scrollbar-width: thin
+    scrollbar-color: rgba(128,128,128,0.25) transparent
+
+    &::-webkit-scrollbar
+        width: 4px
+
+    &::-webkit-scrollbar-track
+        background: transparent
+
+    &::-webkit-scrollbar-thumb
+        background: rgba(128,128,128,0.25)
+        border-radius: 99px
+
+    &::-webkit-scrollbar-thumb:hover
+        background: rgba(128,128,128,0.45)
+
 // @ Components
 .SVGComponent
     svg

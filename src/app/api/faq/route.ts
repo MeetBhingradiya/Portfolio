@@ -13,13 +13,13 @@ export async function GET(req: NextRequest) {
         await dbConnect();
         const q = req.nextUrl.searchParams;
         const category = q.get("category") || "";
-        const all = q.get("all") === "true"; // admin: show unpublished too
 
+        // Admin/employee check is session-only — never trust URL params for auth
         const h = await headers();
         const user = await getResolvedUser(h);
-        const canViewAll = all && (user?.isAdmin || user?.isEmployee);
+        const isPrivileged = user?.isAdmin || user?.isEmployee;
 
-        const query: any = canViewAll ? {} : { isPublished: true };
+        const query: any = isPrivileged ? {} : { isPublished: true };
         if (category) query.category = category;
 
         const faqs = await FAQ.find(query).sort({ category: 1, order: 1 }).lean();

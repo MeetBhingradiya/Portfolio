@@ -60,14 +60,18 @@ export default function UsersPage() {
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
-    const [users, setUsers] = useState<User[]>([]);
-    const [total, setTotal] = useState(0);
-    const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
-    const [roleFilter, setRoleFilter] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState("");
-    const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+    const [table, setTable] = useState({
+        users: [] as User[],
+        total: 0,
+        page: 1,
+        search: "",
+        roleFilter: "",
+        loading: false,
+        error: "",
+        deleteConfirm: null as string | null,
+    });
+    const patchTable = useCallback((p: Partial<typeof table>) => setTable(s => ({ ...s, ...p })), []);
+
     const [modal, setModal] = useState<RoleModal | null>(null);
     const [roleDefs, setRoleDefs] = useState<RoleDef[]>([]);
 
@@ -79,29 +83,27 @@ export default function UsersPage() {
     }, []);
 
     const fetchUsers = useCallback(async () => {
-        setLoading(true);
-        setError("");
+        patchTable({ loading: true, error: "" });
         try {
             const params = new URLSearchParams({
-                page: String(page),
+                page: String(table.page),
                 limit: String(PAGE_SIZE),
-                search,
-                ...(roleFilter ? { role: roleFilter } : {}),
+                search: table.search,
+                ...(table.roleFilter ? { role: table.roleFilter } : {}),
             });
             const res = await fetch(`/api/admin/users?${params}`);
             const json = await res.json();
             if (json.success) {
-                setUsers(json.data ?? []);
-                setTotal(json.pagination?.total ?? 0);
+                patchTable({ users: json.data ?? [], total: json.pagination?.total ?? 0 });
             } else {
-                setError(json.error || "Failed to load users");
+                patchTable({ error: json.error || "Failed to load users" });
             }
         } catch {
-            setError("Network error");
+            patchTable({ error: "Network error" });
         } finally {
-            setLoading(false);
+            patchTable({ loading: false });
         }
-    }, [page, search, roleFilter]);
+    }, [table.page, table.search, table.roleFilter]);
 
     useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
@@ -110,11 +112,11 @@ export default function UsersPage() {
             const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
             const json = await res.json();
             if (json.success) fetchUsers();
-            else setError(json.error || "Delete failed");
+            else patchTable({ error: json.error || "Delete failed" });
         } catch {
-            setError("Network error");
+            patchTable({ error: "Network error" });
         } finally {
-            setDeleteConfirm(null);
+            patchTable({ deleteConfirm: null });
         }
     };
 
@@ -172,7 +174,7 @@ export default function UsersPage() {
         ? isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)"
         : isDark ? "rgba(24,24,28,0.95)" : "#fff";
     const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    const pages = Math.max(1, Math.ceil(table.total / PAGE_SIZE));
 
     return (
         <div className="p-6" style={{ minHeight: "100vh", background: palette.background }}>
@@ -181,7 +183,7 @@ export default function UsersPage() {
                 <div>
                     <h1 className="text-2xl font-black" style={{ color: palette.textPrimary }}>Users</h1>
                     <p className="text-sm mt-0.5" style={{ color: palette.textSecondary }}>All registered users with role assignments</p>
-                    <p className="text-xs mt-1" style={{ color: palette.textTertiary }}>{total} users</p>
+                    <p className="text-xs mt-1" style={{ color: palette.textTertiary }}>{table.total} users</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <Link href="/admin/roles">
@@ -216,12 +218,12 @@ export default function UsersPage() {
                             border: `1px solid ${borderColor}`,
                             color: palette.textPrimary,
                         }}
-                        onChange={e => { setSearch(e.target.value); setPage(1); }}
+                        onChange={e => { patchTable({ search: e.target.value, page: 1 }); }}
                     />
                 </div>
                 <CustomSelect
-                    value={roleFilter}
-                    onChange={v => { setRoleFilter(v); setPage(1); }}
+                    value={table.roleFilter}
+                    onChange={v => { patchTable({ roleFilter: v, page: 1 }); }}
                     options={[
                         { value: "", label: "All Roles" },
                         { value: "admin", label: "Admin" },
@@ -233,10 +235,14 @@ export default function UsersPage() {
                 />
             </div>
 
-            {error && (
-                <div className="mb-4 px-4 py-3 rounded-xl text-sm"
+            {table.error && (
+                <div className="mb-4 px-4 py-3 rounded-xl text-sm flex items-center justify-between"
                     style={{ background: "rgba(220,50,50,0.1)", color: "#DC3232", border: "1px solid rgba(220,50,50,0.2)" }}>
-                    {error}
+                    <span>{table.error}</span>
+                    <motion.button whileHover={{ scale: 1.1 }} className="ml-2 p-1 rounded" style={{ color: "#DC3232" }}
+                        onClick={() => patchTable({ error: "" })}>
+                        <Close style={{ fontSize: 16 }} />
+                    </motion.button>
                 </div>
             )}
 
@@ -254,7 +260,7 @@ export default function UsersPage() {
                         </tr>
                     </thead>
                     <tbody>
-                        {loading ? (
+                        {table.loading ? (
                             Array.from({ length: 5 }).map((_, i) => (
                                 <tr key={i} className="border-t" style={{ borderColor }}>
                                     {Array.from({ length: 6 }).map((_, j) => (
@@ -265,13 +271,13 @@ export default function UsersPage() {
                                     ))}
                                 </tr>
                             ))
-                        ) : users.length === 0 ? (
+                        ) : table.users.length === 0 ? (
                             <tr>
                                 <td colSpan={6} className="px-4 py-12 text-center" style={{ color: palette.textTertiary }}>
                                     No users found
                                 </td>
                             </tr>
-                        ) : users.map(user => (
+                        ) : table.users.map(user => (
                             <tr key={user._id} className="border-t" style={{ borderColor }}>
                                 {/* Avatar + Name */}
                                 <td className="px-4 py-3">
@@ -332,7 +338,7 @@ export default function UsersPage() {
                                 {/* Actions */}
                                 <td className="px-4 py-3">
                                     <div className="flex items-center gap-1">
-                                        {deleteConfirm === user._id ? (
+                                        {table.deleteConfirm === user._id ? (
                                             <>
                                                 <motion.button whileHover={{ scale: 1.05 }}
                                                     className="px-2 py-1 rounded-lg text-xs font-bold"
@@ -343,7 +349,7 @@ export default function UsersPage() {
                                                 <motion.button whileHover={{ scale: 1.05 }}
                                                     className="px-2 py-1 rounded-lg text-xs"
                                                     style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
-                                                    onClick={() => setDeleteConfirm(null)}>
+                                                    onClick={() => patchTable({ deleteConfirm: null })}>
                                                     Cancel
                                                 </motion.button>
                                             </>
@@ -351,7 +357,7 @@ export default function UsersPage() {
                                             <motion.button whileHover={{ scale: 1.1 }}
                                                 className="p-1.5 rounded-lg"
                                                 style={{ background: "rgba(220,50,50,0.1)", color: "#DC3232" }}
-                                                onClick={() => setDeleteConfirm(user._id)}
+                                                onClick={() => patchTable({ deleteConfirm: user._id })}
                                                 title="Delete user">
                                                 <Delete style={{ fontSize: 16 }} />
                                             </motion.button>
@@ -365,18 +371,18 @@ export default function UsersPage() {
 
                 {pages > 1 && (
                     <div className="flex items-center justify-between px-4 py-3 border-t" style={{ borderColor }}>
-                        <p className="text-xs" style={{ color: palette.textTertiary }}>Page {page} of {pages}</p>
+                        <p className="text-xs" style={{ color: palette.textTertiary }}>Page {table.page} of {pages}</p>
                         <div className="flex gap-2">
-                            <motion.button disabled={page <= 1} whileHover={{ scale: page > 1 ? 1.05 : 1 }}
+                            <motion.button disabled={table.page <= 1} whileHover={{ scale: table.page > 1 ? 1.05 : 1 }}
                                 className="p-1.5 rounded-lg"
-                                style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: page <= 1 ? palette.textTertiary : palette.textSecondary }}
-                                onClick={() => setPage(p => Math.max(1, p - 1))}>
+                                style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: table.page <= 1 ? palette.textTertiary : palette.textSecondary }}
+                                onClick={() => patchTable({ page: Math.max(1, table.page - 1) })}>
                                 <ChevronLeft fontSize="small" />
                             </motion.button>
-                            <motion.button disabled={page >= pages} whileHover={{ scale: page < pages ? 1.05 : 1 }}
+                            <motion.button disabled={table.page >= pages} whileHover={{ scale: table.page < pages ? 1.05 : 1 }}
                                 className="p-1.5 rounded-lg"
-                                style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: page >= pages ? palette.textTertiary : palette.textSecondary }}
-                                onClick={() => setPage(p => Math.min(pages, p + 1))}>
+                                style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: table.page >= pages ? palette.textTertiary : palette.textSecondary }}
+                                onClick={() => patchTable({ page: Math.min(pages, table.page + 1) })}>
                                 <ChevronRight fontSize="small" />
                             </motion.button>
                         </div>

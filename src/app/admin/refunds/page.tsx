@@ -35,12 +35,10 @@ export default function AdminRefundsPage() {
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
 
-    const [refunds, setRefunds] = useState<Refund[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
-    const [detail, setDetail] = useState<Refund | null>(null);
-    const [notes, setNotes] = useState("");
-    const [saving, setSaving] = useState(false);
+    const [list, setList] = useState({ refunds: [] as Refund[], loading: true, search: "" });
+    const patchList = useCallback((p: Partial<typeof list>) => setList(s => ({ ...s, ...p })), []);
+    const [panel, setPanel] = useState<{ detail: Refund | null; notes: string; saving: boolean }>({ detail: null, notes: "", saving: false });
+    const patchPanel = useCallback((p: Partial<typeof panel>) => setPanel(s => ({ ...s, ...p })), []);
 
     const cardBg = isApple
         ? isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)"
@@ -49,31 +47,30 @@ export default function AdminRefundsPage() {
     const br = isApple ? 16 : 20;
 
     const fetchRefunds = useCallback(async () => {
-        setLoading(true);
+        patchList({ loading: true });
         const res = await fetch("/api/shop/refunds?limit=100");
         const json = await res.json();
-        if (json.success) setRefunds(json.data);
-        setLoading(false);
+        if (json.success) patchList({ refunds: json.data });
+        patchList({ loading: false });
     }, []);
 
     useEffect(() => { fetchRefunds(); }, [fetchRefunds]);
 
-    const filtered = refunds.filter(r =>
-        r.refundId.toLowerCase().includes(search.toLowerCase()) ||
-        r.email?.toLowerCase().includes(search.toLowerCase()) ||
-        r.orderId.toLowerCase().includes(search.toLowerCase())
+    const filtered = list.refunds.filter(r =>
+        r.refundId.toLowerCase().includes(list.search.toLowerCase()) ||
+        r.email?.toLowerCase().includes(list.search.toLowerCase()) ||
+        r.orderId.toLowerCase().includes(list.search.toLowerCase())
     );
 
     const review = async (status: "approved" | "rejected" | "under_review") => {
-        if (!detail) return;
-        setSaving(true);
-        await fetch(`/api/shop/refunds/${detail._id}`, {
+        if (!panel.detail) return;
+        patchPanel({ saving: true });
+        await fetch(`/api/shop/refunds/${panel.detail._id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status, reviewNotes: notes }),
+            body: JSON.stringify({ status, reviewNotes: panel.notes }),
         });
-        setSaving(false);
-        setDetail(null);
+        patchPanel({ saving: false, detail: null });
         fetchRefunds();
     };
 
@@ -90,15 +87,15 @@ export default function AdminRefundsPage() {
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-5" style={{ background: cardBg, border }}>
                 <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
                 <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
+                    value={list.search}
+                    onChange={e => patchList({ search: e.target.value })}
                     placeholder="Search by refund ID, order, or email…"
                     className="flex-1 bg-transparent outline-none text-sm"
                     style={{ color: palette.textPrimary }}
                 />
             </div>
 
-            {loading ? (
+            {list.loading ? (
                 <div className="space-y-2">
                     {[1, 2, 3].map(i => <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }} />)}
                 </div>
@@ -111,7 +108,7 @@ export default function AdminRefundsPage() {
                             animate={{ opacity: 1 }}
                             className="flex items-center gap-4 px-5 py-4 rounded-2xl cursor-pointer"
                             style={{ background: cardBg, border, borderRadius: br }}
-                            onClick={() => { setDetail(r); setNotes(r.reviewNotes ?? ""); }}
+                            onClick={() => patchPanel({ detail: r, notes: r.reviewNotes ?? "" })}
                         >
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2 mb-1">
@@ -142,9 +139,9 @@ export default function AdminRefundsPage() {
 
             {/* Detail Panel */}
             <AnimatePresence>
-                {detail && (
+                {panel.detail && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => setDetail(null)} />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => patchPanel({ detail: null })} />
                         <motion.div
                             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 28, stiffness: 300 }}
@@ -153,29 +150,29 @@ export default function AdminRefundsPage() {
                         >
                             <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
                                 <div>
-                                    <h2 className="font-black text-lg" style={{ color: palette.textPrimary }}>{detail.refundId}</h2>
-                                    <p className="text-sm" style={{ color: palette.textSecondary }}>Order: {detail.orderId}</p>
+                                    <h2 className="font-black text-lg" style={{ color: palette.textPrimary }}>{panel.detail.refundId}</h2>
+                                    <p className="text-sm" style={{ color: palette.textSecondary }}>Order: {panel.detail.orderId}</p>
                                 </div>
-                                <button onClick={() => setDetail(null)}><Close style={{ color: palette.textSecondary }} /></button>
+                                <button onClick={() => patchPanel({ detail: null })}><Close style={{ color: palette.textSecondary }} /></button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-6 space-y-5">
                                 <div className="p-4 rounded-2xl" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)" }}>
                                     <p className="text-xs font-black uppercase tracking-widest mb-1" style={{ color: palette.textTertiary }}>Reason</p>
-                                    <p className="font-bold capitalize" style={{ color: palette.textPrimary }}>{detail.reason.replace("_", " ")}</p>
-                                    <p className="text-sm mt-2" style={{ color: palette.textSecondary }}>{detail.description}</p>
+                                    <p className="font-bold capitalize" style={{ color: palette.textPrimary }}>{panel.detail.reason.replace("_", " ")}</p>
+                                    <p className="text-sm mt-2" style={{ color: palette.textSecondary }}>{panel.detail.description}</p>
                                 </div>
 
                                 <div className="flex justify-between items-center">
                                     <span className="font-bold" style={{ color: palette.textPrimary }}>Refund Amount</span>
-                                    <span className="font-black text-lg" style={{ color: palette.accent }}>${(detail.totalRefundAmount / 100).toFixed(2)}</span>
+                                    <span className="font-black text-lg" style={{ color: palette.accent }}>${(panel.detail.totalRefundAmount / 100).toFixed(2)}</span>
                                 </div>
 
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>Review Notes</p>
                                     <textarea
-                                        value={notes}
-                                        onChange={e => setNotes(e.target.value)}
+                                        value={panel.notes}
+                                        onChange={e => patchPanel({ notes: e.target.value })}
                                         rows={3}
                                         placeholder="Internal notes about the review decision…"
                                         className="w-full text-sm px-4 py-3 rounded-xl resize-none outline-none"
@@ -185,11 +182,11 @@ export default function AdminRefundsPage() {
                             </div>
 
                             <div className="px-6 pb-6 pt-3 border-t space-y-2" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
-                                {detail.status === "pending" && (
+                                {panel.detail.status === "pending" && (
                                     <motion.button
                                         whileTap={{ scale: 0.97 }}
                                         onClick={() => review("under_review")}
-                                        disabled={saving}
+                                        disabled={panel.saving}
                                         className="w-full py-2.5 rounded-xl font-bold text-sm"
                                         style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}
                                     >
@@ -200,7 +197,7 @@ export default function AdminRefundsPage() {
                                     <motion.button
                                         whileTap={{ scale: 0.97 }}
                                         onClick={() => review("rejected")}
-                                        disabled={saving}
+                                        disabled={panel.saving}
                                         className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
                                         style={{ background: "rgba(255,59,48,0.12)", color: "#FF3B30" }}
                                     >
@@ -209,7 +206,7 @@ export default function AdminRefundsPage() {
                                     <motion.button
                                         whileTap={{ scale: 0.97 }}
                                         onClick={() => review("approved")}
-                                        disabled={saving}
+                                        disabled={panel.saving}
                                         className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
                                         style={{ background: "rgba(52,199,89,0.12)", color: "#34C759" }}
                                     >

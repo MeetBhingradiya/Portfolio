@@ -196,6 +196,7 @@ export default function HeadNavigation() {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     // Incrementing version causes activeNotifications to recompute after a dismiss
     const [dismissVersion, setDismissVersion] = useState(0);
+
     const [showSwitchAccountModal, setShowSwitchAccountModal] = useState(false);
     const [hasImmichAccess, setHasImmichAccess] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -310,22 +311,39 @@ export default function HeadNavigation() {
         setDismissVersion(v => v + 1);
     }, []);
 
-    // Fetch maintenance status and poll every 60s
+    // Fetch maintenance + auth-gated flags in parallel; maintenance re-polls every 60s
     useEffect(() => {
-        const fetchMaintenance = () => {
+        const fetchMaintenance = () =>
             fetch("/api/maintenance-status")
-                .then((r) => r.json())
-                .then((d) => {
-                    setMaintenanceBanner(
-                        d.maintenanceMode ? { message: d.maintenanceMessage || "" } : null
-                    );
-                })
+                .then(r => r.json())
+                .then(d => setMaintenanceBanner(d.maintenanceMode ? { message: d.maintenanceMessage || "" } : null))
                 .catch(() => {});
-        };
-        fetchMaintenance();
+
+        if (!isAuthenticated) {
+            setHasImmichAccess(false);
+            setIsAdmin(false);
+            // Still fetch maintenance even when logged out
+            fetchMaintenance();
+            const interval = setInterval(fetchMaintenance, 60_000);
+            return () => clearInterval(interval);
+        }
+
+        // All three fire simultaneously on mount / auth change
+        Promise.allSettled([
+            fetchMaintenance(),
+            fetch("/api/photos/check")
+                .then(r => r.json())
+                .then(d => setHasImmichAccess(!!d.allowed))
+                .catch(() => setHasImmichAccess(false)),
+            fetch("/api/admin/is-admin")
+                .then(r => r.json())
+                .then(d => setIsAdmin(!!d.isAdmin))
+                .catch(() => setIsAdmin(false)),
+        ]);
+
         const interval = setInterval(fetchMaintenance, 60_000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isAuthenticated]);
 
     const handleSignOut = useCallback(async () => {
         try {
@@ -335,23 +353,6 @@ export default function HeadNavigation() {
             console.error("Sign out failed:", error);
         }
     }, [signOut]);
-
-    // Fetch Immich access + admin status when auth changes
-    useEffect(() => {
-        if (!isAuthenticated) {
-            setHasImmichAccess(false);
-            setIsAdmin(false);
-            return;
-        }
-        fetch("/api/photos/check")
-            .then(r => r.json())
-            .then(d => setHasImmichAccess(!!d.allowed))
-            .catch(() => setHasImmichAccess(false));
-        fetch("/api/admin/is-admin")
-            .then(r => r.json())
-            .then(d => setIsAdmin(!!d.isAdmin))
-            .catch(() => setIsAdmin(false));
-    }, [isAuthenticated]);
 
     const totalBannerOffset = (maintenanceBanner ? 1 : 0) + activeNotifications.length;
 
@@ -966,13 +967,20 @@ export default function HeadNavigation() {
                                                     />
                                                 )}
                                                 <div className={`${isApple ? "p-2.5" : "p-3"} relative z-10`}>
-                                                    {/* User Info Header */}
-                                                    <div
+                                                    {/* User Info Header — click name/email to go to profile */}
+                                                    <Link href="/settings/profile">
+                                                    <motion.div
                                                         className={`${isApple ? "p-3 mb-2 rounded-xl" : "p-3.5 mb-2 rounded-2xl"} flex items-center gap-3`}
                                                         style={{
                                                             background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
-                                                            border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`
+                                                            border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`,
+                                                            cursor: "pointer"
                                                         }}
+                                                        whileHover={{
+                                                            backgroundColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                                            scale: 1.01
+                                                        }}
+                                                        whileTap={{ scale: 0.98 }}
                                                     >
                                                         {user?.image ? (
                                                             <img
@@ -999,43 +1007,25 @@ export default function HeadNavigation() {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    </div>
-                                                    <Link href="/settings/profile">
-                                                        <motion.div
-                                                            className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
-                                                            whileHover={{
-                                                                backgroundColor: isApple
-                                                                    ? isDark
-                                                                        ? "rgba(255, 255, 255, 0.08)"
-                                                                        : "rgba(0, 0, 0, 0.04)"
-                                                                    : isDark
-                                                                        ? "rgba(255, 255, 255, 0.08)"
-                                                                        : "rgba(0, 0, 0, 0.05)",
-                                                                scale: 1.01
+                                                        {/* Switch Account button beside name/email */}
+                                                        <motion.button
+                                                            className="flex-shrink-0 p-1.5 rounded-lg"
+                                                            style={{
+                                                                color: palette.textSecondary,
+                                                                background: "transparent"
                                                             }}
-                                                            whileTap={{ scale: 0.98 }}
+                                                            onClick={e => { e.preventDefault(); e.stopPropagation(); setShowSwitchAccountModal(true); }}
+                                                            whileHover={{
+                                                                backgroundColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
+                                                                color: palette.accent,
+                                                                scale: 1.1
+                                                            }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                            title="Switch Account"
                                                         >
-                                                            <div className="flex-shrink-0" style={{ color: palette.accent }}>
-                                                                {user?.image ? (
-                                                                    <img src={user.image} alt="avatar" className="w-6 h-6 rounded-full object-cover" />
-                                                                ) : (
-                                                                    <div
-                                                                        className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                                                                        style={{ background: generateAvatarGradient(user?.id || "default") }}
-                                                                    >
-                                                                        {getInitials(user?.name, user?.email)}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
-                                                                    Profile
-                                                                </div>
-                                                                <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
-                                                                    View your profile
-                                                                </div>
-                                                            </div>
-                                                        </motion.div>
+                                                            <SwapHoriz style={{ fontSize: 16 }} />
+                                                        </motion.button>
+                                                    </motion.div>
                                                     </Link>
                                                     {hasImmichAccess && (
                                                         <Link href="/api/photos">
@@ -1141,33 +1131,6 @@ export default function HeadNavigation() {
                                                             </div>
                                                         </motion.div>
                                                     </Link>
-                                                    <motion.div
-                                                        className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
-                                                        onClick={() => setShowSwitchAccountModal(true)}
-                                                        whileHover={{
-                                                            backgroundColor: isApple
-                                                                ? isDark
-                                                                    ? "rgba(255, 255, 255, 0.08)"
-                                                                    : "rgba(0, 0, 0, 0.04)"
-                                                                : isDark
-                                                                    ? "rgba(255, 255, 255, 0.08)"
-                                                                    : "rgba(0, 0, 0, 0.05)",
-                                                            scale: 1.01
-                                                        }}
-                                                        whileTap={{ scale: 0.98 }}
-                                                    >
-                                                        <div className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`} style={{ color: palette.accent }}>
-                                                            <SwapHoriz />
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`} style={{ color: palette.textPrimary }}>
-                                                                Switch Account
-                                                            </div>
-                                                            <div className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`} style={{ color: palette.textSecondary }}>
-                                                                Change active account
-                                                            </div>
-                                                        </div>
-                                                    </motion.div>
                                                     <div className={`${isApple ? "my-2 mx-3" : "my-2.5 mx-4"} h-px`} style={{ background: isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)" }} />
                                                     <motion.button
                                                         onClick={handleSignOut}

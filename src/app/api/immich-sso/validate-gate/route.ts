@@ -78,12 +78,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // Update access tracking
-        await ImmichWhitelist.updateOne(
-            { _id: (entry as any)._id },
-            { $inc: { accessCount: 1 }, $set: { lastAccess: new Date() } }
-        ).catch(() => {});
-
+        // accessCount is incremented only in oidc-done (actual sign-in completes there).
         return NextResponse.json({
             gateValid: true,
             hasAccess: true,

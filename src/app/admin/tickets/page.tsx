@@ -44,10 +44,8 @@ export default function AdminTicketsPage() {
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
 
-    const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
+    const [table, setTable] = useState({ tickets: [] as Ticket[], loading: true, search: "", statusFilter: "all" });
+    const patchTable = useCallback((p: Partial<typeof table>) => setTable(s => ({ ...s, ...p })), []);
 
     const cardBg = isApple
         ? isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)"
@@ -56,15 +54,15 @@ export default function AdminTicketsPage() {
     const br = isApple ? 16 : 20;
 
     const fetchTickets = useCallback(async () => {
-        setLoading(true);
+        patchTable({ loading: true });
         const params = new URLSearchParams({ page: "1", limit: "50" });
-        if (statusFilter !== "all") params.set("status", statusFilter);
-        if (search) params.set("q", search);
+        if (table.statusFilter !== "all") params.set("status", table.statusFilter);
+        if (table.search) params.set("q", table.search);
         const res = await fetch(`/api/support/tickets?${params}`);
         const json = await res.json();
-        if (json.success) setTickets(json.data);
-        setLoading(false);
-    }, [search, statusFilter]);
+        if (json.success) patchTable({ tickets: json.data });
+        patchTable({ loading: false });
+    }, [table.search, table.statusFilter]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => { fetchTickets(); }, [fetchTickets]);
 
@@ -90,8 +88,8 @@ export default function AdminTicketsPage() {
                 >
                     <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
                     <input
-                        value={search}
-                        onChange={e => setSearch(e.target.value)}
+                        value={table.search}
+                        onChange={e => patchTable({ search: e.target.value })}
                         placeholder="Search tickets…"
                         className="flex-1 bg-transparent outline-none text-sm"
                         style={{ color: palette.textPrimary }}
@@ -102,12 +100,12 @@ export default function AdminTicketsPage() {
                         <motion.button
                             key={s}
                             whileTap={{ scale: 0.95 }}
-                            onClick={() => setStatusFilter(s)}
+                            onClick={() => patchTable({ statusFilter: s })}
                             className="px-3 py-2 rounded-xl text-xs font-bold capitalize"
                             style={{
-                                background: statusFilter === s ? `${palette.accent}22` : cardBg,
-                                border: statusFilter === s ? `1px solid ${palette.accent}44` : border,
-                                color: statusFilter === s ? palette.accent : palette.textSecondary,
+                                background: table.statusFilter === s ? `${palette.accent}22` : cardBg,
+                                border: table.statusFilter === s ? `1px solid ${palette.accent}44` : border,
+                                color: table.statusFilter === s ? palette.accent : palette.textSecondary,
                             }}
                         >
                             {s === "all" ? "All" : s.replace("_", " ")}
@@ -116,7 +114,7 @@ export default function AdminTicketsPage() {
                 </div>
             </div>
 
-            {loading ? (
+            {table.loading ? (
                 <div className="space-y-2">
                     {[1, 2, 3, 4, 5].map(i => (
                         <div key={i} className="h-20 rounded-2xl animate-pulse" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }} />
@@ -124,7 +122,7 @@ export default function AdminTicketsPage() {
                 </div>
             ) : (
                 <div className="space-y-2">
-                    {tickets.map(t => (
+                    {table.tickets.map(t => (
                         <Link key={t._id} href={`/support/tickets/${t._id}`}>
                             <motion.div
                                 whileHover={{ y: -1 }}
@@ -160,7 +158,7 @@ export default function AdminTicketsPage() {
                             </motion.div>
                         </Link>
                     ))}
-                    {tickets.length === 0 && (
+                    {table.tickets.length === 0 && (
                         <div className="text-center py-16" style={{ color: palette.textSecondary }}>
                             No tickets found.
                         </div>

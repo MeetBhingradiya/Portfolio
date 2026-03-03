@@ -48,14 +48,12 @@ export default function AdminOrdersPage() {
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
 
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [search, setSearch] = useState("");
-    const [editOrder, setEditOrder] = useState<Order | null>(null);
-    const [newStatus, setNewStatus] = useState("");
-    const [tracking, setTracking] = useState("");
-    const [trackingUrl, setTrackingUrl] = useState("");
-    const [saving, setSaving] = useState(false);
+    const [list, setList] = useState({ orders: [] as Order[], loading: true, search: "" });
+    const patchList = useCallback((p: Partial<typeof list>) => setList(s => ({ ...s, ...p })), []);
+    const [edit, setEdit] = useState<{ order: Order | null; status: string; tracking: string; trackingUrl: string; saving: boolean }>(
+        { order: null, status: "", tracking: "", trackingUrl: "", saving: false }
+    );
+    const patchEdit = useCallback((p: Partial<typeof edit>) => setEdit(s => ({ ...s, ...p })), []);
 
     const cardBg = isApple
         ? isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)"
@@ -64,38 +62,34 @@ export default function AdminOrdersPage() {
     const br = isApple ? 16 : 20;
 
     const fetchOrders = useCallback(async () => {
-        setLoading(true);
+        patchList({ loading: true });
         const res = await fetch("/api/shop/orders?limit=100");
         const json = await res.json();
-        if (json.success) setOrders(json.data);
-        setLoading(false);
+        if (json.success) patchList({ orders: json.data });
+        patchList({ loading: false });
     }, []);
 
     useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-    const filtered = orders.filter(o =>
-        o.orderId.toLowerCase().includes(search.toLowerCase()) ||
-        o.email.toLowerCase().includes(search.toLowerCase()) ||
-        o.name.toLowerCase().includes(search.toLowerCase())
+    const filtered = list.orders.filter(o =>
+        o.orderId.toLowerCase().includes(list.search.toLowerCase()) ||
+        o.email.toLowerCase().includes(list.search.toLowerCase()) ||
+        o.name.toLowerCase().includes(list.search.toLowerCase())
     );
 
     const openEdit = (o: Order) => {
-        setEditOrder(o);
-        setNewStatus(o.status);
-        setTracking(o.trackingNumber ?? "");
-        setTrackingUrl(o.trackingUrl ?? "");
+        patchEdit({ order: o, status: o.status, tracking: o.trackingNumber ?? "", trackingUrl: o.trackingUrl ?? "" });
     };
 
     const save = async () => {
-        if (!editOrder) return;
-        setSaving(true);
-        await fetch(`/api/shop/orders/${editOrder._id}`, {
+        if (!edit.order) return;
+        patchEdit({ saving: true });
+        await fetch(`/api/shop/orders/${edit.order._id}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ status: newStatus, trackingNumber: tracking || undefined, trackingUrl: trackingUrl || undefined }),
+            body: JSON.stringify({ status: edit.status, trackingNumber: edit.tracking || undefined, trackingUrl: edit.trackingUrl || undefined }),
         });
-        setSaving(false);
-        setEditOrder(null);
+        patchEdit({ saving: false, order: null });
         fetchOrders();
     };
 
@@ -112,15 +106,15 @@ export default function AdminOrdersPage() {
             <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-5" style={{ background: cardBg, border }}>
                 <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
                 <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
+                    value={list.search}
+                    onChange={e => patchList({ search: e.target.value })}
                     placeholder="Search by order ID or customer…"
                     className="flex-1 bg-transparent outline-none text-sm"
                     style={{ color: palette.textPrimary }}
                 />
             </div>
 
-            {loading ? (
+            {list.loading ? (
                 <div className="space-y-2">
                     {[1, 2, 3].map(i => <div key={i} className="h-24 rounded-2xl animate-pulse" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }} />)}
                 </div>
@@ -166,9 +160,9 @@ export default function AdminOrdersPage() {
 
             {/* Edit Panel */}
             <AnimatePresence>
-                {editOrder && (
+                {edit.order && (
                     <>
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => setEditOrder(null)} />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 0.5 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black z-40" onClick={() => patchEdit({ order: null })} />
                         <motion.div
                             initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 28, stiffness: 300 }}
@@ -177,16 +171,16 @@ export default function AdminOrdersPage() {
                         >
                             <div className="flex items-center justify-between px-6 py-5 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }}>
                                 <div>
-                                    <h2 className="font-black text-lg" style={{ color: palette.textPrimary }}>{editOrder.orderId}</h2>
-                                    <p className="text-sm" style={{ color: palette.textSecondary }}>{editOrder.name} · {editOrder.email}</p>
+                                    <h2 className="font-black text-lg" style={{ color: palette.textPrimary }}>{edit.order.orderId}</h2>
+                                    <p className="text-sm" style={{ color: palette.textSecondary }}>{edit.order.name} · {edit.order.email}</p>
                                 </div>
-                                <button onClick={() => setEditOrder(null)}><Close style={{ color: palette.textSecondary }} /></button>
+                                <button onClick={() => patchEdit({ order: null })}><Close style={{ color: palette.textSecondary }} /></button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto p-6 space-y-5">
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>Items</p>
-                                    {editOrder.items.map((item, i) => (
+                                    {edit.order.items.map((item, i) => (
                                         <div key={i} className="flex justify-between text-sm py-1">
                                             <span style={{ color: palette.textPrimary }}>{item.productName} — {item.variantLabel}</span>
                                             <span style={{ color: palette.textSecondary }}>×{item.quantity}</span>
@@ -194,15 +188,15 @@ export default function AdminOrdersPage() {
                                     ))}
                                     <div className="flex justify-between font-black text-base mt-2 pt-2 border-t" style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)", color: palette.textPrimary }}>
                                         <span>Total</span>
-                                        <span>${(editOrder.total / 100).toFixed(2)}</span>
+                                        <span>${(edit.order.total / 100).toFixed(2)}</span>
                                     </div>
                                 </div>
 
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>Status</p>
                                     <CustomSelect
-                                        value={newStatus}
-                                        onChange={setNewStatus}
+                                        value={edit.status}
+                                        onChange={v => patchEdit({ status: v })}
                                         options={ORDER_STATUSES.map(s => ({ value: s, label: s.replace(/_/g, " ") }))}
                                         placeholder="Select status"
                                     />
@@ -211,15 +205,15 @@ export default function AdminOrdersPage() {
                                 <div>
                                     <p className="text-xs font-black uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>Tracking</p>
                                     <input
-                                        value={tracking}
-                                        onChange={e => setTracking(e.target.value)}
+                                        value={edit.tracking}
+                                        onChange={e => patchEdit({ tracking: e.target.value })}
                                         placeholder="Tracking number"
                                         className="w-full text-sm px-4 py-2.5 rounded-xl outline-none mb-2"
                                         style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", color: palette.textPrimary, border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}` }}
                                     />
                                     <input
-                                        value={trackingUrl}
-                                        onChange={e => setTrackingUrl(e.target.value)}
+                                        value={edit.trackingUrl}
+                                        onChange={e => patchEdit({ trackingUrl: e.target.value })}
                                         placeholder="Tracking URL"
                                         className="w-full text-sm px-4 py-2.5 rounded-xl outline-none"
                                         style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", color: palette.textPrimary, border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}` }}
@@ -231,11 +225,11 @@ export default function AdminOrdersPage() {
                                 <motion.button
                                     whileTap={{ scale: 0.97 }}
                                     onClick={save}
-                                    disabled={saving}
+                                    disabled={edit.saving}
                                     className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2"
                                     style={{ background: palette.accent, color: "#fff" }}
                                 >
-                                    <Save fontSize="small" /> {saving ? "Saving…" : "Update Order"}
+                                    <Save fontSize="small" /> {edit.saving ? "Saving…" : "Update Order"}
                                 </motion.button>
                             </div>
                         </motion.div>

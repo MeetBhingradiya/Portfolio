@@ -161,6 +161,12 @@ const nextConfig: NextConfig = {
                                         "*"
                                     ]
                                 },
+                                [CSPDirectiveOptions.WorkerSrc]: {
+                                    Self: true,
+                                    Domains: [
+                                        "https://meetbhingradiya.shop"
+                                    ]
+                                },
                                 [CSPDirectiveOptions.StyleSrc]: {
                                     Self: true,
                                     Inline: true

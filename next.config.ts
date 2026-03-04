@@ -135,6 +135,7 @@ const nextConfig: NextConfig = {
                                 [CSPDirectiveOptions.ImgSrc]: {
                                     Self: true,
                                     Data: true,
+                                    Blob: true,
                                     Domains: ["*"]
                                 },
                                 [CSPDirectiveOptions.ScriptSrc]: {
@@ -163,6 +164,7 @@ const nextConfig: NextConfig = {
                                 },
                                 [CSPDirectiveOptions.WorkerSrc]: {
                                     Self: true,
+                                    Blob: true,
                                     Domains: [
                                         "https://meetbhingradiya.shop"
                                     ]

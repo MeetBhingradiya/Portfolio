@@ -134,6 +134,8 @@ interface DirectiveOptions {
     Eval?: boolean;
     /** Allow 'data:' URIs for this directive. */
     Data?: boolean;
+    /** Allow 'blob:' URIs for this directive. */
+    Blob?: boolean;
     /** Use 'none' for this directive. */
     None?: boolean;
     /** Allow 'self' for this directive. */
@@ -198,7 +200,7 @@ type DirectiveOptionsMap = {
     >;
     [CSPDirectiveOptions.ImgSrc]: Pick<
         DirectiveOptions,
-        "Domains" | "None" | "Self" | "Data"
+        "Domains" | "None" | "Self" | "Data" | "Blob"
     >;
     [CSPDirectiveOptions.FontSrc]: Pick<
         DirectiveOptions,
@@ -214,7 +216,7 @@ type DirectiveOptionsMap = {
     >;
     [CSPDirectiveOptions.MediaSrc]: Pick<
         DirectiveOptions,
-        "Domains" | "None" | "Self" | "Data"
+        "Domains" | "None" | "Self" | "Data" | "Blob"
     >;
     [CSPDirectiveOptions.FrameSrc]: Pick<
         DirectiveOptions,
@@ -242,7 +244,7 @@ type DirectiveOptionsMap = {
     [CSPDirectiveOptions.ReportTo]: Pick<DirectiveOptions, "ReportConfig">;
     [CSPDirectiveOptions.WorkerSrc]: Pick<
         DirectiveOptions,
-        "Domains" | "None" | "Self"
+        "Domains" | "None" | "Self" | "Blob"
     >;
     [CSPDirectiveOptions.ManifestSrc]: Pick<
         DirectiveOptions,
@@ -626,6 +628,7 @@ function CSPGenerator(
         if (value.Inline) parts.push("'unsafe-inline'");
         if (value.Eval) parts.push("'unsafe-eval'");
         if (value.Data) parts.push("data:");
+        if (value.Blob) parts.push("blob:");
         if (value.Dynamic) parts.push("'strict-dynamic'");
         if (value.Hash) parts.push("'unsafe-hashes'");
 

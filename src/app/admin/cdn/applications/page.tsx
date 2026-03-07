@@ -95,46 +95,43 @@ export default function AdminCDNApplicationsPage() {
 
     // ── Fetch ─────────────────────────────────────────────────────────────
     const fetchApps = useCallback(async (pg = 1) => {
-        setLoading(true);
-        setError("");
+        patchList({ loading: true, error: "" });
         try {
-            const params = new URLSearchParams({ page: String(pg), limit: String(PAGE_SIZE), search });
-            if (filterStatus) params.set("status", filterStatus);
+            const params = new URLSearchParams({ page: String(pg), limit: String(PAGE_SIZE), search: list.search });
+            if (list.filterStatus) params.set("status", list.filterStatus);
             const res = await fetch(`/api/admin/cdn/applications?${params}`);
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || "Failed");
-            setApps(json.applications);
-            setTotal(json.pagination.total);
-            setStatusCounts(json.statusCounts || {});
+            patchList({ apps: json.applications ?? [], total: json.pagination?.total ?? 0, statusCounts: json.statusCounts ?? {} });
         } catch (e: any) {
-            setError(e.message);
+            patchList({ error: e.message, apps: [], total: 0 });
         } finally {
-            setLoading(false);
+            patchList({ loading: false });
         }
-    }, [search, filterStatus]);
+    }, [list.search, list.filterStatus]);
 
-    useEffect(() => { fetchApps(page); }, [fetchApps, page]);
+    useEffect(() => { fetchApps(list.page); }, [fetchApps, list.page]);
 
-    const showMsg = (msg: string) => { setSuccess(msg); setTimeout(() => setSuccess(""), 4000); };
+    const showMsg = (msg: string) => { patchList({ success: msg }); setTimeout(() => patchList({ success: "" }), 4000); };
 
     // ── Actions ───────────────────────────────────────────────────────────
     const doAction = async (id: string, action: "approve" | "reject" | "suspend" | "reopen") => {
-        setActionLoading(true);
+        patchDetail({ actionLoading: true });
         try {
             const res = await fetch(`/api/admin/cdn/applications/${id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ action, adminNotes: adminNotes || undefined, rejectionReason: rejectionReason || undefined }),
+                body: JSON.stringify({ action, adminNotes: detail.adminNotes || undefined, rejectionReason: detail.rejectionReason || undefined }),
             });
             const json = await res.json();
             if (!res.ok) throw new Error(json.error || "Failed");
             showMsg(`Application ${action}d.`);
-            setSelected(null);
-            fetchApps(page);
+            patchDetail({ selected: null });
+            fetchApps(list.page);
         } catch (e: any) {
-            setError(e.message);
+            patchList({ error: e.message });
         } finally {
-            setActionLoading(false);
+            patchDetail({ actionLoading: false });
         }
     };
 

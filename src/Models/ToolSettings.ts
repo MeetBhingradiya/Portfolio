@@ -123,6 +123,20 @@ const TodoDefaults = new mongoose.Schema(
     { _id: false }
 );
 
+const InstagramDefaults = new mongoose.Schema(
+    {
+        defaultTab: {
+            type: String,
+            default: "not-following-back",
+            enum: ["not-following-back", "close-friends", "pending-requests", "request-history", "recently-unfollowed", "blocked"]
+        },
+        showDates:          { type: Boolean, default: true },
+        useRegExpByDefault: { type: Boolean, default: false },
+        maxListHeight:      { type: String, default: "normal", enum: ["compact", "normal", "tall"] }
+    },
+    { _id: false }
+);
+
 // ── Global tool visibility ──────────────────────────────────────────────
 
 const ToolVisibility = new mongoose.Schema(
@@ -158,7 +172,8 @@ const ToolSettings_Schema = new mongoose.Schema(
         encrypt: { type: EncryptDefaults, default: () => ({}) },
         markdown: { type: MarkdownDefaults, default: () => ({}) },
         colour: { type: ColourDefaults, default: () => ({}) },
-        todo: { type: TodoDefaults, default: () => ({}) },
+        todo:   { type: TodoDefaults,   default: () => ({}) },
+        instagram: { type: InstagramDefaults, default: () => ({}) },
 
         // Global controls
         visibility: { type: [ToolVisibility], default: [] },
@@ -240,6 +255,12 @@ export interface IToolSettings extends mongoose.Document {
     };
     todo: {
         defaultFilter: string;
+    };
+    instagram: {
+        defaultTab: string;
+        showDates: boolean;
+        useRegExpByDefault: boolean;
+        maxListHeight: string;
     };
     visibility: Array<{
         toolId: string;

@@ -78,6 +78,12 @@ export interface ToolDefaultsData {
     todo?: {
         defaultFilter?: string;
     };
+    instagram?: {
+        defaultTab?: string;
+        showDates?: boolean;
+        useRegExpByDefault?: boolean;
+        maxListHeight?: string;
+    };
 }
 
 // ── In-memory cache ────────────────────────────────────────────────────

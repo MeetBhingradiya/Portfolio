@@ -32,6 +32,7 @@ const routes: { path: string; changefreq: string; priority: string }[] = [
     { path: "/tools/regexp",                         changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/todo",                           changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/uuid",                           changefreq: "yearly",  priority: "0.5" },
+    { path: "/tools/instagram",                      changefreq: "yearly",  priority: "0.5" },
     // Legal
     { path: "/privacy",                              changefreq: "yearly",  priority: "0.3" },
     { path: "/terms",                                changefreq: "yearly",  priority: "0.3" },

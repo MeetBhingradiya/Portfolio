@@ -39,6 +39,7 @@ const STATIC_PAGES: {
     { Endpoint: "/tools/regexp",                        Frequency: "yearly",  Priority: 0.5, Group: "tools" },
     { Endpoint: "/tools/todo",                          Frequency: "yearly",  Priority: 0.5, Group: "tools" },
     { Endpoint: "/tools/uuid",                          Frequency: "yearly",  Priority: 0.5, Group: "tools" },
+    { Endpoint: "/tools/instagram",                     Frequency: "yearly",  Priority: 0.5, Group: "tools" },
     // ── Legal ─────────────────────────────────────────────────────
     { Endpoint: "/privacy",                             Frequency: "yearly",  Priority: 0.3, Group: "legal" },
     { Endpoint: "/terms",                               Frequency: "yearly",  Priority: 0.3, Group: "legal" },

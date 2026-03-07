@@ -30,6 +30,7 @@ import {
     Visibility,
     Star,
     Public,
+    Instagram,
 } from "@mui/icons-material";
 
 // ── Types ──────────────────────────────────────────────────────────
@@ -102,6 +103,12 @@ interface ToolDefaults {
     todo: {
         defaultFilter: string;
     };
+    instagram: {
+        defaultTab: string;
+        showDates: boolean;
+        useRegExpByDefault: boolean;
+        maxListHeight: string;
+    };
     visibility: Array<{
         toolId: string;
         enabled: boolean;
@@ -123,6 +130,7 @@ const INITIAL_DEFAULTS: ToolDefaults = {
     markdown: { viewMode: "split" },
     colour: { defaultTab: "picker", harmony: "analogous", defaultHue: 210, defaultSaturation: 80, defaultLightness: 55 },
     todo: { defaultFilter: "all" },
+    instagram: { defaultTab: "not-following-back", showDates: true, useRegExpByDefault: false, maxListHeight: "normal" },
     visibility: []
 };
 
@@ -141,6 +149,7 @@ const TOOL_SECTIONS = [
     { id: "colour", name: "Colour Studio", icon: <Palette fontSize="small" />, color: "#FF2D55" },
     { id: "encrypt", name: "Encrypt / Decrypt", icon: <Lock fontSize="small" />, color: "#FF9500" },
     { id: "hash", name: "Hash Generator", icon: <Tag fontSize="small" />, color: "#FFCC00" },
+    { id: "instagram", name: "Instagram Analyser", icon: <Instagram fontSize="small" />, color: "#E1306C" },
 ];
 
 
@@ -795,6 +804,43 @@ function renderToolSettings(
                         <SimpleSelect value={d.direction} onChange={(v) => updateTool("encrypt", { direction: v })}
                             inputStyle={inputStyle} palette={palette} isDark={isDark}
                             options={[{ value: "encrypt", label: "Encrypt" }, { value: "decrypt", label: "Decrypt" }]} />
+                    </Field>
+                </div>
+            );
+        }
+
+        case "instagram": {
+            const d = defaults.instagram;
+            return (
+                <div className={grid}>
+                    <Field label="Default Tab" palette={palette}>
+                        <SimpleSelect value={d.defaultTab} onChange={(v) => updateTool("instagram", { defaultTab: v })}
+                            inputStyle={inputStyle} palette={palette} isDark={isDark}
+                            options={[
+                                { value: "not-following-back", label: "Not Following Back" },
+                                { value: "close-friends",      label: "Close Friends" },
+                                { value: "pending-requests",   label: "Pending Requests" },
+                                { value: "request-history",    label: "Request History" },
+                                { value: "recently-unfollowed",label: "Recently Unfollowed" },
+                                { value: "blocked",            label: "Blocked" },
+                            ]} />
+                    </Field>
+                    <Field label="List Max Height" palette={palette}>
+                        <SimpleSelect value={d.maxListHeight} onChange={(v) => updateTool("instagram", { maxListHeight: v })}
+                            inputStyle={inputStyle} palette={palette} isDark={isDark}
+                            options={[
+                                { value: "compact", label: "Compact (360 px)" },
+                                { value: "normal",  label: "Normal  (580 px)" },
+                                { value: "tall",    label: "Tall    (800 px)" },
+                            ]} />
+                    </Field>
+                    <Field label="Options" palette={palette} colSpan>
+                        <div className="flex flex-wrap gap-3">
+                            <CheckToggle label="Show follow dates" checked={d.showDates}
+                                onChange={(v) => updateTool("instagram", { showDates: v })} palette={palette} isDark={isDark} />
+                            <CheckToggle label="Enable RegExp by default" checked={d.useRegExpByDefault}
+                                onChange={(v) => updateTool("instagram", { useRegExpByDefault: v })} palette={palette} isDark={isDark} />
+                        </div>
                     </Field>
                 </div>
             );

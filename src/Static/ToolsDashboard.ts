@@ -308,6 +308,23 @@ export const TOOLS: ToolDefinition[] = [
             { label: "Palettes", route: "/tools/colour?mode=palettes" },
             { label: "Preview", route: "/tools/colour?mode=preview" }
         ]
+    },
+    // ── Social / Analytics ────────────────────────────────────────────────────
+    {
+        id: "instagram",
+        name: "Instagram Analyser",
+        description: "Analyse your Instagram export — followers, unfollowers, close friends & more",
+        longDescription:
+            "100 % client-side tool. Drop your official Instagram data export ZIP and instantly see who doesn't follow you back, your close friends list, pending & historical follow requests, recently-unfollowed accounts, and blocked profiles — all with live search and RegExp filtering.",
+        category: "dev-tools",
+        iconName: "Instagram",
+        accentColor: "#E1306C",
+        route: "/tools/instagram",
+        badges: ["new"],
+        isPublic: true,
+        adminManaged: false,
+        syncToDb: false,
+        shortcut: "G"
     }
 ];
 

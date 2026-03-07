@@ -38,6 +38,7 @@ export async function GET() {
         data: {
             allowSignup: doc.allowSignup ?? true,
             shopEnabled: doc.shopEnabled ?? false,
+            productivityEnabled: doc.productivityEnabled ?? true,
             paymentProviders: redactProviders((doc as any).paymentProviders?.toObject?.() ?? doc.paymentProviders ?? {}),
         },
     });
@@ -56,6 +57,7 @@ export async function PATCH(req: NextRequest) {
 
     if (typeof body.allowSignup === "boolean")  update.allowSignup  = body.allowSignup;
     if (typeof body.shopEnabled === "boolean")   update.shopEnabled  = body.shopEnabled;
+    if (typeof body.productivityEnabled === "boolean") update.productivityEnabled = body.productivityEnabled;
 
     // Partial payment provider updates — only update supplied fields, never overwrite all
     const PROVIDERS = ["stripe", "razorpay", "paypal", "lemonSqueezy", "paddle"];
@@ -86,6 +88,7 @@ export async function PATCH(req: NextRequest) {
         data: {
             allowSignup: doc.allowSignup,
             shopEnabled: doc.shopEnabled,
+            productivityEnabled: doc.productivityEnabled,
             paymentProviders: redactProviders((doc as any).paymentProviders?.toObject?.() ?? doc.paymentProviders ?? {}),
         },
     });

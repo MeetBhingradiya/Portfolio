@@ -45,6 +45,10 @@ const SiteSettings_Schema = new mongoose.Schema(
             type: Boolean,
             default: false
         },
+        productivityEnabled: {
+            type: Boolean,
+            default: true
+        },
         // ── Payment Providers ────────────────────────────────────────────
         paymentProviders: {
             stripe: { type: PaymentProviderSchema, default: () => ({}) },
@@ -74,6 +78,7 @@ export interface ISiteSettings extends mongoose.Document {
     maintenanceUpdatedBy: string;
     allowSignup: boolean;
     shopEnabled: boolean;
+    productivityEnabled: boolean;
     paymentProviders: {
         stripe: IPaymentProvider;
         razorpay: IPaymentProvider;

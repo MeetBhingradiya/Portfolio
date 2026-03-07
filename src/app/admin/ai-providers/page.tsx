@@ -1,0 +1,520 @@
+/**
+ * Admin — AI Provider Settings
+ * Configure GitHub Models, Google Gemini, and Perplexity AI for the productivity system.
+ */
+"use client";
+
+import React, { useEffect, useState, useCallback } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { useDesignTheme } from "@Hooks/useDesignTheme";
+import {
+    Psychology,
+    Save,
+    CheckCircle,
+    Visibility,
+    VisibilityOff,
+    ExpandMore,
+    ExpandLess,
+    Refresh,
+    Settings,
+    ToggleOn,
+    ToggleOff,
+} from "@mui/icons-material";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ProviderConfig {
+    enabled: boolean;
+    apiKey: string;             // Write-only (blank = don't overwrite)
+    hasApiKey: boolean;         // Read-only flag from server
+    activeModel: string;
+    customBaseUrl: string;
+}
+
+interface AISettings {
+    ActiveProvider: "github" | "google" | "perplexity";
+    Providers: {
+        github: ProviderConfig;
+        google: ProviderConfig;
+        perplexity: ProviderConfig;
+    };
+    Features: {
+        taskCreation: boolean;
+        intelligentSearch: boolean;
+        habitSuggestion: boolean;
+        goalBreakdown: boolean;
+        ocrExtraction: boolean;
+    };
+    RateLimitPerUser: {
+        dailyRequests: number;
+        monthlyRequests: number;
+    };
+    availableProviders: Record<string, {
+        label: string;
+        models: readonly string[];
+    }>;
+}
+
+// ─── Provider metadata ────────────────────────────────────────────────────────
+
+const PROVIDER_META: Record<string, { label: string; color: string; emoji: string; apiKeyLabel: string; apiDocsUrl: string }> = {
+    github: {
+        label: "GitHub Models (Azure AI)",
+        color: "#24292E",
+        emoji: "🐙",
+        apiKeyLabel: "GitHub Personal Access Token",
+        apiDocsUrl: "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+    },
+    google: {
+        label: "Google Gemini",
+        color: "#4285F4",
+        emoji: "✨",
+        apiKeyLabel: "Google AI Studio API Key",
+        apiDocsUrl: "https://aistudio.google.com/app/apikey",
+    },
+    perplexity: {
+        label: "Perplexity AI",
+        color: "#1F8EFA",
+        emoji: "🔍",
+        apiKeyLabel: "Perplexity API Key",
+        apiDocsUrl: "https://www.perplexity.ai/settings/api",
+    },
+};
+
+const FEATURE_META: Record<string, { label: string; description: string }> = {
+    taskCreation: { label: "AI Task Creation", description: "Create tasks from natural language descriptions" },
+    intelligentSearch: { label: "Intelligent Search", description: "AI-powered semantic search across items" },
+    habitSuggestion: { label: "Habit Suggestions", description: "Suggest habits based on goals" },
+    goalBreakdown: { label: "Goal Breakdown", description: "Break down goals into milestones automatically" },
+    ocrExtraction: { label: "OCR Text Extraction", description: "Extract task text from images using Tesseract.js" },
+};
+
+const defaultProvider = (): ProviderConfig => ({
+    enabled: false,
+    apiKey: "",
+    hasApiKey: false,
+    activeModel: "",
+    customBaseUrl: "",
+});
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function AIProvidersAdminPage() {
+    const { palette, actualColorMode } = useDesignTheme();
+    const isDark = actualColorMode === "dark";
+
+    const [settings, setSettings] = useState<AISettings>({
+        ActiveProvider: "github",
+        Providers: {
+            github: defaultProvider(),
+            google: defaultProvider(),
+            perplexity: defaultProvider(),
+        },
+        Features: {
+            taskCreation: true,
+            intelligentSearch: true,
+            habitSuggestion: true,
+            goalBreakdown: true,
+            ocrExtraction: true,
+        },
+        RateLimitPerUser: {
+            dailyRequests: 50,
+            monthlyRequests: 500,
+        },
+        availableProviders: {
+            github: { label: "GitHub Models", models: [] },
+            google: { label: "Google Gemini", models: [] },
+            perplexity: { label: "Perplexity AI", models: [] },
+        },
+    });
+
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+    const [saved, setSaved] = useState(false);
+    const [expandedProvider, setExpandedProvider] = useState<string | null>("github");
+    const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+
+    const fetchSettings = useCallback(async () => {
+        try {
+            const res = await fetch("/api/admin/ai-providers");
+            if (res.ok) {
+                const json = await res.json();
+                setSettings((prev) => ({
+                    ...prev,
+                    ...json.data,
+                    Providers: {
+                        github: { ...defaultProvider(), ...json.data?.Providers?.github },
+                        google: { ...defaultProvider(), ...json.data?.Providers?.google },
+                        perplexity: { ...defaultProvider(), ...json.data?.Providers?.perplexity },
+                    },
+                }));
+            }
+        } catch { /* ignore */ } finally {
+            setLoading(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchSettings();
+    }, [fetchSettings]);
+
+    const handleSave = async () => {
+        setSaving(true);
+        try {
+            const res = await fetch("/api/admin/ai-providers", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    ActiveProvider: settings.ActiveProvider,
+                    Providers: settings.Providers,
+                    Features: settings.Features,
+                    RateLimitPerUser: settings.RateLimitPerUser,
+                }),
+            });
+            if (res.ok) {
+                setSaved(true);
+                setTimeout(() => setSaved(false), 2500);
+                // Re-fetch to get updated hasApiKey flags
+                fetchSettings();
+            }
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const updateProvider = (key: string, field: keyof ProviderConfig, value: unknown) => {
+        setSettings((prev) => ({
+            ...prev,
+            Providers: {
+                ...prev.Providers,
+                [key]: {
+                    ...prev.Providers[key as keyof typeof prev.Providers],
+                    [field]: value,
+                },
+            },
+        }));
+    };
+
+    const inputStyle = {
+        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+        color: palette.textPrimary,
+        border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`,
+    };
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin w-8 h-8 rounded-full border-2 border-blue-500 border-t-transparent" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="p-6 max-w-3xl mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Psychology sx={{ fontSize: 28, color: "#5E97F6" }} />
+                    <div>
+                        <h1 className="text-xl font-bold" style={{ color: palette.textPrimary }}>
+                            AI Provider Settings
+                        </h1>
+                        <p className="text-sm" style={{ color: palette.textSecondary }}>
+                            Configure AI providers for the Productivity Hub
+                        </p>
+                    </div>
+                </div>
+                <div className="flex gap-2">
+                    <motion.button
+                        onClick={fetchSettings}
+                        className="p-2 rounded-lg"
+                        style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        <Refresh sx={{ fontSize: 18 }} />
+                    </motion.button>
+                    <motion.button
+                        onClick={handleSave}
+                        disabled={saving}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+                        style={{ background: saved ? "#34C759" : "#5E97F6", color: "#fff" }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        {saved ? <CheckCircle sx={{ fontSize: 16 }} /> : <Save sx={{ fontSize: 16 }} />}
+                        {saving ? "Saving…" : saved ? "Saved!" : "Save Changes"}
+                    </motion.button>
+                </div>
+            </div>
+
+            {/* Active Provider Selector */}
+            <div
+                className="p-4 rounded-2xl space-y-3"
+                style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}
+            >
+                <p className="text-sm font-bold" style={{ color: palette.textPrimary }}>
+                    Active Provider
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                    {(["github", "google", "perplexity"] as const).map((pk) => {
+                        const meta = PROVIDER_META[pk];
+                        const provConfig = settings.Providers[pk];
+                        const isActive = settings.ActiveProvider === pk;
+                        return (
+                            <motion.button
+                                key={pk}
+                                onClick={() => setSettings((prev) => ({ ...prev, ActiveProvider: pk }))}
+                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+                                style={{
+                                    background: isActive ? meta.color : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+                                    color: isActive ? "#fff" : palette.textSecondary,
+                                    opacity: !provConfig.enabled || !provConfig.hasApiKey ? 0.6 : 1,
+                                }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                {meta.emoji} {meta.label}
+                                {!provConfig.enabled && (
+                                    <span className="text-xs opacity-60">(disabled)</span>
+                                )}
+                            </motion.button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Provider configs */}
+            {(["github", "google", "perplexity"] as const).map((pk) => {
+                const meta = PROVIDER_META[pk];
+                const config = settings.Providers[pk];
+                const available = settings.availableProviders[pk];
+                const isExpanded = expandedProvider === pk;
+                const showSecret = showSecrets[pk] ?? false;
+
+                return (
+                    <div
+                        key={pk}
+                        className="rounded-2xl overflow-hidden"
+                        style={{ border: `1.5px solid ${config.enabled ? meta.color + "60" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}` }}
+                    >
+                        {/* Header row */}
+                        <div
+                            className="flex items-center gap-3 p-4 cursor-pointer"
+                            onClick={() => setExpandedProvider(isExpanded ? null : pk)}
+                            style={{ background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}
+                        >
+                            <span className="text-xl">{meta.emoji}</span>
+                            <div className="flex-1">
+                                <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>
+                                    {meta.label}
+                                </p>
+                                <p className="text-xs" style={{ color: palette.textTertiary }}>
+                                    {config.hasApiKey ? "API key configured" : "No API key"} ·
+                                    {config.activeModel ? ` ${config.activeModel}` : " No model selected"}
+                                </p>
+                            </div>
+                            {/* Toggle */}
+                            <motion.button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateProvider(pk, "enabled", !config.enabled);
+                                }}
+                                className="flex-shrink-0"
+                                style={{ color: config.enabled ? meta.color : palette.textTertiary }}
+                                whileTap={{ scale: 0.9 }}
+                            >
+                                {config.enabled ? (
+                                    <ToggleOn sx={{ fontSize: 32 }} />
+                                ) : (
+                                    <ToggleOff sx={{ fontSize: 32 }} />
+                                )}
+                            </motion.button>
+                            {isExpanded ? (
+                                <ExpandLess sx={{ fontSize: 20, color: palette.textTertiary }} />
+                            ) : (
+                                <ExpandMore sx={{ fontSize: 20, color: palette.textTertiary }} />
+                            )}
+                        </div>
+
+                        {/* Expanded config */}
+                        <AnimatePresence>
+                            {isExpanded && (
+                                <motion.div
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: "auto", opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="overflow-hidden"
+                                >
+                                    <div className="p-4 space-y-4" style={{ borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
+                                        {/* API Key */}
+                                        <div className="space-y-1.5">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                                    {meta.apiKeyLabel}
+                                                    {config.hasApiKey && (
+                                                        <span className="ml-2 text-xs font-normal text-green-500">
+                                                            ✓ Configured
+                                                        </span>
+                                                    )}
+                                                </label>
+                                                <a
+                                                    href={meta.apiDocsUrl}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="text-xs"
+                                                    style={{ color: "#5E97F6" }}
+                                                >
+                                                    Get API Key →
+                                                </a>
+                                            </div>
+                                            <div className="relative">
+                                                <input
+                                                    type={showSecret ? "text" : "password"}
+                                                    value={config.apiKey}
+                                                    onChange={(e) => updateProvider(pk, "apiKey", e.target.value)}
+                                                    placeholder={config.hasApiKey ? "Leave blank to keep existing key" : "Enter API key…"}
+                                                    className="w-full px-4 py-2.5 rounded-xl text-sm outline-none pr-10"
+                                                    style={inputStyle}
+                                                    autoComplete="off"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowSecrets((prev) => ({ ...prev, [pk]: !showSecret }))}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2"
+                                                    style={{ color: palette.textTertiary }}
+                                                >
+                                                    {showSecret ? <VisibilityOff sx={{ fontSize: 16 }} /> : <Visibility sx={{ fontSize: 16 }} />}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {/* Model selector */}
+                                        {available?.models && available.models.length > 0 && (
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                                    Active Model
+                                                </label>
+                                                <select
+                                                    value={config.activeModel}
+                                                    onChange={(e) => updateProvider(pk, "activeModel", e.target.value)}
+                                                    className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                                                    style={inputStyle}
+                                                >
+                                                    <option value="">Default ({available.models[0]})</option>
+                                                    {available.models.map((m) => (
+                                                        <option key={m} value={m}>{m}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        )}
+
+                                        {/* Custom base URL */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                                Custom Base URL (optional)
+                                            </label>
+                                            <input
+                                                type="url"
+                                                value={config.customBaseUrl}
+                                                onChange={(e) => updateProvider(pk, "customBaseUrl", e.target.value)}
+                                                placeholder="https://your-proxy.example.com"
+                                                className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                                                style={inputStyle}
+                                            />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                );
+            })}
+
+            {/* Features */}
+            <div
+                className="p-4 rounded-2xl space-y-3"
+                style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}` }}
+            >
+                <div className="flex items-center gap-2">
+                    <Settings sx={{ fontSize: 18, color: "#AF52DE" }} />
+                    <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>
+                        AI Feature Flags
+                    </p>
+                </div>
+                <div className="space-y-3">
+                    {Object.entries(settings.Features).map(([key, value]) => {
+                        const meta = FEATURE_META[key];
+                        return (
+                            <div key={key} className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                        {meta?.label ?? key}
+                                    </p>
+                                    <p className="text-xs" style={{ color: palette.textTertiary }}>
+                                        {meta?.description}
+                                    </p>
+                                </div>
+                                <motion.button
+                                    onClick={() =>
+                                        setSettings((prev) => ({
+                                            ...prev,
+                                            Features: { ...prev.Features, [key]: !value },
+                                        }))
+                                    }
+                                    style={{ color: value ? "#34C759" : palette.textTertiary }}
+                                    whileTap={{ scale: 0.9 }}
+                                >
+                                    {value ? <ToggleOn sx={{ fontSize: 32 }} /> : <ToggleOff sx={{ fontSize: 32 }} />}
+                                </motion.button>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Rate limits */}
+            <div
+                className="p-4 rounded-2xl space-y-3"
+                style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}` }}
+            >
+                <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>
+                    Per-User Rate Limits
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Daily Requests</label>
+                        <input
+                            type="number"
+                            value={settings.RateLimitPerUser.dailyRequests}
+                            onChange={(e) =>
+                                setSettings((prev) => ({
+                                    ...prev,
+                                    RateLimitPerUser: { ...prev.RateLimitPerUser, dailyRequests: parseInt(e.target.value) || 50 },
+                                }))
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                            style={inputStyle}
+                            min={1}
+                            max={1000}
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Monthly Requests</label>
+                        <input
+                            type="number"
+                            value={settings.RateLimitPerUser.monthlyRequests}
+                            onChange={(e) =>
+                                setSettings((prev) => ({
+                                    ...prev,
+                                    RateLimitPerUser: { ...prev.RateLimitPerUser, monthlyRequests: parseInt(e.target.value) || 500 },
+                                }))
+                            }
+                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                            style={inputStyle}
+                            min={1}
+                            max={10000}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

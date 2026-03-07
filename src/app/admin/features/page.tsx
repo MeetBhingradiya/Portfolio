@@ -33,6 +33,7 @@ interface ProviderState {
 interface FeatureState {
     allowSignup: boolean;
     shopEnabled: boolean;
+    productivityEnabled: boolean;
     paymentProviders: Record<string, ProviderState>;
 }
 
@@ -105,6 +106,7 @@ const defaultProvider = (): ProviderState => ({
 const defaultState = (): FeatureState => ({
     allowSignup: true,
     shopEnabled: false,
+    productivityEnabled: true,
     paymentProviders: Object.fromEntries(PROVIDERS.map(p => [p.key, defaultProvider()])),
 });
 
@@ -178,6 +180,7 @@ export default function AdminFeaturesPage() {
             setState({
                 allowSignup: json.data.allowSignup ?? true,
                 shopEnabled: json.data.shopEnabled ?? false,
+                productivityEnabled: json.data.productivityEnabled ?? true,
                 paymentProviders: providers,
             });
         }
@@ -195,6 +198,7 @@ export default function AdminFeaturesPage() {
             body: JSON.stringify({
                 allowSignup: state.allowSignup,
                 shopEnabled: state.shopEnabled,
+                productivityEnabled: state.productivityEnabled,
                 paymentProviders: Object.fromEntries(
                     Object.entries(state.paymentProviders).map(([k, v]) => [k, {
                         enabled: v.enabled,
@@ -328,6 +332,15 @@ export default function AdminFeaturesPage() {
                                 onChange={v => setState(s => ({ ...s, shopEnabled: v }))}
                                 tag={state.shopEnabled ? "Live" : "Hidden"}
                                 tagColor={state.shopEnabled ? "#34C759" : "#8E8E93"}
+                            />
+                            <FeatureRow
+                                icon={<CheckCircle fontSize="small" />}
+                                label="Productivity Hub"
+                                description="Enable the gamified task manager, habit tracker, goals, and reminders system for signed-in users."
+                                value={state.productivityEnabled}
+                                onChange={v => setState(s => ({ ...s, productivityEnabled: v }))}
+                                tag={state.productivityEnabled ? "Enabled" : "Disabled"}
+                                tagColor={state.productivityEnabled ? "#AF52DE" : "#8E8E93"}
                             />
                         </div>
                     </section>

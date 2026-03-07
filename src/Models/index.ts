@@ -42,3 +42,11 @@ export * from "./Payment";
 
 // ? Role Definitions (admin-editable role → permissions bundles)
 export * from "./RoleDefinition";
+
+// ? Productivity System (Tasks, Habits, Goals, Reminders, Stats, AI)
+export * from "./ProductivityTask";
+export * from "./ProductivityHabit";
+export * from "./ProductivityGoal";
+export * from "./ProductivityReminder";
+export * from "./UserProductivityStats";
+export * from "./AIProviderSettings";

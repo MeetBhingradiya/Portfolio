@@ -1,6 +1,10 @@
 /**
  * Admin Layout — Server Component
- * Guards /admin/** routes so only the ADMIN_EMAIL env var owner can access them.
+ * Guards /admin/** routes based on:
+ *  1. Authentication (must be logged in)
+ *  2. ADMIN_EMAIL env var (primary access)
+ *  3. Or role-based permissions for delegated access
+ *
  * Renders a responsive sidebar + main area styled with the portfolio design system.
  */
 
@@ -8,6 +12,7 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getSession } from "@/Library/auth";
+import { isAdminEmail } from "@/Library/permissions";
 import AdminSidebar from "./AdminSidebar";
 
 export const metadata = {
@@ -21,7 +26,6 @@ interface AdminLayoutProps {
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
     const session = await getSession(await headers());
-    const adminEmail = process.env.ADMIN_EMAIL;
 
     // Not logged in → send to sign-in so they can authenticate first
     if (!session?.user) {
@@ -29,7 +33,8 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     // Logged in but wrong account, OR ADMIN_EMAIL env var missing → go home (no loop)
-    if (!adminEmail || session.user.email !== adminEmail) {
+    // Note: Future versions can grant admin access via role system instead of just ADMIN_EMAIL
+    if (!isAdminEmail(session.user.email)) {
         redirect("/?error=unauthorized");
     }
 

@@ -13,11 +13,13 @@
 
 "use client";
 
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useAdminSession } from "@Hooks/useAdminSession";
+import { sidebarPermissions } from "./sidebarPermissions";
 import {
     Dashboard,
     People,
@@ -60,33 +62,42 @@ const MAX_WIDTH   = 320;
 const DEFAULT_WIDTH = 220;
 const ICON_THRESHOLD = 100; // below this → icon-only mode
 
-const navItems = [
-    { href: "/admin",                label: "Dashboard",    icon: <Dashboard fontSize="small" />,       exact: true, group: "core" },
-    { href: "/admin/users",          label: "Users",        icon: <People fontSize="small" />,          group: "core" },
-    { href: "/admin/roles",          label: "Roles & Perms",icon: <ManageAccounts fontSize="small" />,  group: "core" },
-    { href: "/admin/tickets",        label: "Tickets",      icon: <ConfirmationNumber fontSize="small" />, group: "support" },
-    { href: "/admin/faq",            label: "FAQ / Help",   icon: <HelpOutline fontSize="small" />,     group: "support" },
-    { href: "/employee",             label: "Employee Hub", icon: <SupportAgent fontSize="small" />,    group: "support" },
-    { href: "/admin/products",       label: "Products",     icon: <LocalOffer fontSize="small" />,      group: "shop" },
-    { href: "/admin/orders",         label: "Orders",       icon: <ShoppingBag fontSize="small" />,     group: "shop" },
-    { href: "/admin/refunds",        label: "Refunds",      icon: <AssignmentReturn fontSize="small" />,group: "shop" },
-    { href: "/admin/sitemap",        label: "Sitemap",      icon: <MapOutlined fontSize="small" />,     group: "portfolio" },
-    { href: "/admin/projects",       label: "Projects",     icon: <Folder fontSize="small" />,          group: "portfolio" },
-    { href: "/admin/skills",         label: "Skills",       icon: <Code fontSize="small" />,            group: "portfolio" },
-    { href: "/admin/education",      label: "Education",    icon: <School fontSize="small" />,          group: "portfolio" },
-    { href: "/admin/experience",     label: "Experience",   icon: <Work fontSize="small" />,            group: "portfolio" },
-    { href: "/admin/certificates",   label: "Certificates", icon: <WorkspacePremium fontSize="small" />,group: "portfolio" },
-    { href: "/admin/test-scores",    label: "Test Scores",  icon: <EmojiEvents fontSize="small" />,     group: "portfolio" },
-    { href: "/admin/resume",         label: "Resume Builder",icon: <PictureAsPdf fontSize="small" />,   group: "portfolio" },
-    { href: "/admin/blogs",          label: "Blogs",        icon: <Article fontSize="small" />,         group: "portfolio" },
-    { href: "/admin/features",       label: "Features",     icon: <ToggleOn fontSize="small" />,        group: "system" },
-    { href: "/admin/tool-settings",  label: "Tool Settings",icon: <Build fontSize="small" />,           group: "system" },
-    { href: "/admin/ai-providers",   label: "AI Providers", icon: <Psychology fontSize="small" />,      group: "system" },
-    { href: "/admin/maintenance",    label: "Maintenance",  icon: <Construction fontSize="small" />,    group: "system" },
-    { href: "/admin/immich-access",  label: "Immich Access",icon: <PhotoCamera fontSize="small" />,     group: "system" },
-    { href: "/admin/cdn",            label: "CDN Assets",   icon: <CloudUpload fontSize="small" />,     exact: true, group: "system" },
-    { href: "/admin/cdn/applications",label: "CDN Requests",icon: <Apps fontSize="small" />,            group: "system" },
-    { href: "/admin/cdn/api-keys",   label: "CDN API Keys", icon: <VpnKey fontSize="small" />,          group: "system" },
+interface NavItem {
+    href: string;
+    label: string;
+    icon: React.ReactNode;
+    exact?: boolean;
+    group: string;
+    permKey: "dashboard" | "users" | "roles" | "tickets" | "faq" | "employee" | "products" | "orders" | "refunds" | "sitemap" | "projects" | "skills" | "education" | "experience" | "certificates" | "test-scores" | "resume" | "blogs" | "features" | "tool-settings" | "ai-providers" | "maintenance" | "immich-access" | "cdn" | "cdn-applications" | "cdn-api-keys";
+}
+
+const allNavItems: NavItem[] = [
+    { href: "/admin",                      label: "Dashboard",    icon: <Dashboard fontSize="small" />,       exact: true, group: "core", permKey: "dashboard" },
+    { href: "/admin/users",                label: "Users",        icon: <People fontSize="small" />,          group: "core", permKey: "users" },
+    { href: "/admin/roles",                label: "Roles & Perms",icon: <ManageAccounts fontSize="small" />,  group: "core", permKey: "roles" },
+    { href: "/admin/tickets",              label: "Tickets",      icon: <ConfirmationNumber fontSize="small" />, group: "support", permKey: "tickets" },
+    { href: "/admin/faq",                  label: "FAQ / Help",   icon: <HelpOutline fontSize="small" />,     group: "support", permKey: "faq" },
+    { href: "/employee",                   label: "Employee Hub", icon: <SupportAgent fontSize="small" />,    group: "support", permKey: "employee" },
+    { href: "/admin/products",             label: "Products",     icon: <LocalOffer fontSize="small" />,      group: "shop", permKey: "products" },
+    { href: "/admin/orders",               label: "Orders",       icon: <ShoppingBag fontSize="small" />,     group: "shop", permKey: "orders" },
+    { href: "/admin/refunds",              label: "Refunds",      icon: <AssignmentReturn fontSize="small" />,group: "shop", permKey: "refunds" },
+    { href: "/admin/sitemap",              label: "Sitemap",      icon: <MapOutlined fontSize="small" />,     group: "portfolio", permKey: "sitemap" },
+    { href: "/admin/projects",             label: "Projects",     icon: <Folder fontSize="small" />,          group: "portfolio", permKey: "projects" },
+    { href: "/admin/skills",               label: "Skills",       icon: <Code fontSize="small" />,            group: "portfolio", permKey: "skills" },
+    { href: "/admin/education",            label: "Education",    icon: <School fontSize="small" />,          group: "portfolio", permKey: "education" },
+    { href: "/admin/experience",           label: "Experience",   icon: <Work fontSize="small" />,            group: "portfolio", permKey: "experience" },
+    { href: "/admin/certificates",         label: "Certificates", icon: <WorkspacePremium fontSize="small" />,group: "portfolio", permKey: "certificates" },
+    { href: "/admin/test-scores",          label: "Test Scores",  icon: <EmojiEvents fontSize="small" />,     group: "portfolio", permKey: "test-scores" },
+    { href: "/admin/resume",               label: "Resume Builder",icon: <PictureAsPdf fontSize="small" />,   group: "portfolio", permKey: "resume" },
+    { href: "/admin/blogs",                label: "Blogs",        icon: <Article fontSize="small" />,         group: "portfolio", permKey: "blogs" },
+    { href: "/admin/features",             label: "Features",     icon: <ToggleOn fontSize="small" />,        group: "system", permKey: "features" },
+    { href: "/admin/tool-settings",        label: "Tool Settings",icon: <Build fontSize="small" />,           group: "system", permKey: "tool-settings" },
+    { href: "/admin/ai-providers",         label: "AI Providers", icon: <Psychology fontSize="small" />,      group: "system", permKey: "ai-providers" },
+    { href: "/admin/maintenance",          label: "Maintenance",  icon: <Construction fontSize="small" />,    group: "system", permKey: "maintenance" },
+    { href: "/admin/immich-access",        label: "Immich Access",icon: <PhotoCamera fontSize="small" />,     group: "system", permKey: "immich-access" },
+    { href: "/admin/cdn",                  label: "CDN Assets",   icon: <CloudUpload fontSize="small" />,     exact: true, group: "system", permKey: "cdn" },
+    { href: "/admin/cdn/applications",     label: "CDN Requests", icon: <Apps fontSize="small" />,            group: "system", permKey: "cdn-applications" },
+    { href: "/admin/cdn/api-keys",         label: "CDN API Keys", icon: <VpnKey fontSize="small" />,          group: "system", permKey: "cdn-api-keys" },
 ];
 
 const groups: { key: string; label: string }[] = [
@@ -142,6 +153,8 @@ function SidebarContent({
     toggleGroup,
     isActive,
     onClose,
+    navItems,
+    hasAnyPermission,
 }: {
     iconOnly: boolean;
     palette: any;
@@ -152,6 +165,8 @@ function SidebarContent({
     toggleGroup: (key: string) => void;
     isActive: (href: string, exact?: boolean) => boolean;
     onClose?: () => void;
+    navItems: typeof allNavItems;
+    hasAnyPermission: (perms: string[]) => boolean;
 }) {
     return (
         <>
@@ -200,7 +215,18 @@ function SidebarContent({
             {/* Nav */}
             <nav className="flex-1 overflow-y-auto py-2 px-1.5 space-y-0.5 admin-sidebar-scroll">
                 {groups.map(group => {
-                    const items = navItems.filter(n => n.group === group.key);
+                    const items = navItems.filter(n => {
+                        if (n.group !== group.key) return false;
+                        // Check permissions
+                        const requiredPerms = sidebarPermissions[n.permKey];
+                        // No permissions required = accessible to all
+                        if (requiredPerms.length === 0) return true;
+                        // Check if user has any of the required permissions
+                        return hasAnyPermission(requiredPerms);
+                    });
+
+                    if (items.length === 0) return null; // Hide empty groups
+
                     const isGroupCollapsed = collapsedGroups[group.key] ?? false;
                     const hasActive = items.some(i => isActive(i.href, i.exact));
 
@@ -322,6 +348,7 @@ function SidebarContent({
 export default function AdminSidebar() {
     const pathname = usePathname();
     const { palette, actualColorMode, designTheme } = useDesignTheme();
+    const { hasAnyPermission, loading } = useAdminSession();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
@@ -337,6 +364,18 @@ export default function AdminSidebar() {
     const startWidth = useRef(DEFAULT_WIDTH);
 
     const iconOnly = width < ICON_THRESHOLD;
+
+    // Filter nav items based on permissions
+    const accessibleNavItems = useMemo(() => {
+        if (loading) return []; // Show nothing while loading
+        return allNavItems.filter(item => {
+            const requiredPerms = sidebarPermissions[item.permKey];
+            // No permissions required = accessible to all
+            if (requiredPerms.length === 0) return true;
+            // Check if user has any of the required permissions
+            return hasAnyPermission(requiredPerms);
+        });
+    }, [loading, hasAnyPermission]);
 
     const isActive = useCallback((href: string, exact?: boolean) => {
         if (exact) return pathname === href;
@@ -379,7 +418,7 @@ export default function AdminSidebar() {
     const sidebarBlur = isApple ? "blur(24px) saturate(180%)" : "none";
     const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
 
-    const sharedProps = { palette, isDark, isApple, borderColor, collapsedGroups, toggleGroup, isActive };
+    const sharedProps = { palette, isDark, isApple, borderColor, collapsedGroups, toggleGroup, isActive, navItems: accessibleNavItems, hasAnyPermission };
 
     return (
         <>

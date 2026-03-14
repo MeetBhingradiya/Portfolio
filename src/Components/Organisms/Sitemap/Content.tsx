@@ -54,9 +54,9 @@ import {
     MenuBook,
     Code,
     BorderColor,
-    Target,
+    Flag,
     BarChart,
-    Analytics,
+    TrendingUp,
     ShoppingCart,
     Payment,
     Receipt,
@@ -66,7 +66,9 @@ import {
     Apps,
     HelpOutline,
     ToggleOn,
-    EmojiEvents
+    EmojiEvents,
+    MoneyOff,
+    Shop
 } from "@mui/icons-material";
 
 interface SitemapLink {
@@ -272,7 +274,7 @@ const sitemapData: SitemapSection[] = [
             {
                 label: "Goals",
                 href: "/tools/productivity/goals",
-                icon: <Target />,
+                icon: <Flag />,
                 description: "Set and achieve your goals"
             },
             {
@@ -303,20 +305,20 @@ const sitemapData: SitemapSection[] = [
             {
                 label: "Analytics",
                 href: "/trade-journal/analytics",
-                icon: <Analytics />,
+                icon: <TrendingUp />,
                 description: "View trading analytics and statistics"
             }
         ]
     },
     {
         title: "Shop & Commerce",
-        icon: <ShoppingBag />,
+        icon: <Shop />,
         description: "Shop, products, orders, and checkout",
         links: [
             {
                 label: "Shop",
                 href: "/shop",
-                icon: <ShoppingBag />,
+                icon: <Shop />,
                 description: "Browse products and shop"
             },
             {
@@ -340,7 +342,7 @@ const sitemapData: SitemapSection[] = [
             {
                 label: "Refunds",
                 href: "/shop/refunds",
-                icon: <Refund />,
+                icon: <MoneyOff />,
                 description: "Request or check refund status"
             }
         ]
@@ -580,7 +582,7 @@ const sitemapData: SitemapSection[] = [
             {
                 label: "Shop Management",
                 href: "#",
-                icon: <ShoppingBag />,
+                icon: <Shop />,
                 description: "Manage shop and orders",
                 children: [
                     {
@@ -598,7 +600,7 @@ const sitemapData: SitemapSection[] = [
                     {
                         label: "Refunds",
                         href: "/admin/refunds",
-                        icon: <Refund />,
+                        icon: <MoneyOff />,
                         description: "Manage refund requests"
                     },
                     {

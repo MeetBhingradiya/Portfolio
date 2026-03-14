@@ -26,6 +26,7 @@ import {
     AdminPanelSettings,
     AutoStories,
     CloudUpload,
+    Rocket,
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
@@ -276,6 +277,41 @@ export default function SettingsPage() {
                                         </div>
                                     </div>
                                     <ChevronRight style={{ color: "#16a34a" }} />
+                                </div>
+                            </motion.div>
+                        </Link>
+                        <Link href="/tools/productivity">
+                            <motion.div
+                                className="p-6 rounded-2xl cursor-pointer"
+                                style={{
+                                    background: isApple
+                                        ? isDark ? "rgba(175,82,222,0.14)" : "rgba(175,82,222,0.08)"
+                                        : `${palette.accent}12`,
+                                    border: `1.5px solid ${isDark ? "rgba(175,82,222,0.30)" : "rgba(175,82,222,0.22)"}`
+                                }}
+                                whileHover={{ scale: 1.01 }}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex gap-4 flex-1">
+                                        <div className="p-3 rounded-xl" style={{ background: "rgba(175,82,222,0.15)" }}>
+                                            <Rocket style={{ color: "#AF52DE" }} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                    Productivity Hub
+                                                </h3>
+                                                <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                                    style={{ background: "rgba(175,82,222,0.18)", color: "#AF52DE" }}>
+                                                    Tasks · Habits · Goals
+                                                </span>
+                                            </div>
+                                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                                Gamified tasks, habits, goals and reminders with XP & streaks
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <ChevronRight style={{ color: "#AF52DE" }} />
                                 </div>
                             </motion.div>
                         </Link>

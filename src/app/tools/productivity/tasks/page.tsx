@@ -1,738 +1,710 @@
 /**
  * Tasks — /tools/productivity/tasks
- * Gamified todo list with priorities, due dates, subtasks, and AI creation.
+ * Full task management: create, complete, hide, duplicate, delete.
+ * Supports attachments, priorities, categories, due dates and search.
  */
 
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
-import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
-import { OneUICard } from "@Components/Atoms/OneUI";
-import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
 import {
-    CheckCircleOutline,
-    RadioButtonUnchecked,
-    Delete,
-    Add,
-    Edit,
-    Save,
-    ChecklistRtl,
-    Psychology,
-    Star,
-    FilterList,
-    ExpandMore,
-    ExpandLess,
-    CalendarToday,
-    EmojiEvents,
-    CameraAlt,
-    Close,
+    Add, CheckCircle, RadioButtonUnchecked, MoreVert, Delete, ContentCopy,
+    VisibilityOff, Visibility, Edit, Close, AttachFile, CalendarToday,
+    LocalOffer, FilterList, Search, Psychology, Star, ExpandMore, ExpandLess,
+    Upload, InsertDriveFile, Image, PictureAsPdf, Restore,
+    KeyboardReturn,
 } from "@mui/icons-material";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Types ─────────────────────────────────────────────────────────────────────
 
-interface SubTask {
-    id: string;
-    text: string;
-    completed: boolean;
-}
-
+interface Attachment { AssetID: string; URL: string; FileName: string; FileType: string; FileSize: number; }
 interface Task {
-    TaskID: string;
-    Title: string;
-    Description?: string;
-    Priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
-    Status: "PENDING" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "OVERDUE";
-    Category: string;
-    Tags: string[];
-    DueDate?: string;
-    SubTasks: SubTask[];
-    XPReward: number;
-    XPEarned: number;
-    CompletedAt?: string;
-    CompletedEarly?: boolean;
-    createdAt: string;
+    TaskID: string; Title: string; Description?: string;
+    Category: string; Tags: string[]; Status: string; Priority: string;
+    DueDate?: string; XPReward: number; XPEarned: number;
+    Attachments: Attachment[]; CompletedAt?: string; createdAt: string;
+}
+interface XPToast { xp: number; achievements: string[]; }
+
+const ACCENT      = "#AF52DE";
+const PRIORITY_COLORS = { LOW: "#6b7280", MEDIUM: "#3b82f6", HIGH: "#f59e0b", URGENT: "#ef4444" } as const;
+const CATEGORIES  = ["ALL", "PERSONAL", "WORK", "HEALTH", "EDUCATION", "FINANCE", "SOCIAL", "HOBBY", "OTHER"];
+const PRIORITIES  = ["ALL", "LOW", "MEDIUM", "HIGH", "URGENT"];
+const XP_MAP      = { LOW: 5, MEDIUM: 10, HIGH: 20, URGENT: 35 } as const;
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmtDate(d: string) {
+    const then = new Date(d), now = new Date();
+    const diff = Math.ceil((then.getTime() - now.getTime()) / 86_400_000);
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Tomorrow";
+    if (diff === -1) return "Yesterday";
+    if (Math.abs(diff) < 7) return `${Math.abs(diff)}d ${diff < 0 ? "ago" : ""}`;
+    return then.toLocaleDateString("en", { month: "short", day: "numeric" });
 }
 
-type FilterState = "all" | "active" | "completed" | "overdue";
-
-const PRIORITY_COLORS: Record<string, string> = {
-    LOW: "#34C759",
-    MEDIUM: "#5E97F6",
-    HIGH: "#FF9500",
-    URGENT: "#FF3B30",
-};
-
-const PRIORITY_XP: Record<string, number> = {
-    LOW: 5,
-    MEDIUM: 10,
-    HIGH: 20,
-    URGENT: 35,
-};
-
-// ─── AI helper ────────────────────────────────────────────────────────────────
-
-async function createTaskWithAI(prompt: string): Promise<Partial<Task> | null> {
-    try {
-        const res = await fetch("/api/productivity/ai", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ action: "create_task", prompt }),
-        });
-        if (!res.ok) return null;
-        const json = await res.json();
-        return json.data ?? null;
-    } catch {
-        return null;
-    }
+function fmtSize(b: number) {
+    if (b < 1024) return `${b} B`;
+    if (b < 1024 * 1024) return `${(b / 1024).toFixed(1)} KB`;
+    return `${(b / 1024 / 1024).toFixed(1)} MB`;
 }
 
-// ─── OCR helper ───────────────────────────────────────────────────────────────
-
-async function extractTextFromImage(file: File): Promise<string> {
-    // Tesseract.js is loaded dynamically to keep the bundle small
-    const Tesseract = await import("tesseract.js");
-    const result = await Tesseract.recognize(file, "eng");
-    return result.data.text.trim();
+function attachIcon(type: string) {
+    if (type.startsWith("image/")) return <Image style={{ fontSize: 16 }} />;
+    if (type === "application/pdf") return <PictureAsPdf style={{ fontSize: 16 }} />;
+    return <InsertDriveFile style={{ fontSize: 16 }} />;
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
+// ─── XP Toast ──────────────────────────────────────────────────────────────────
 
-export default function TasksPage() {
-    const { designTheme, palette, actualColorMode } = useDesignTheme();
-    const isApple = designTheme === "apple";
-    const isDark = actualColorMode === "dark";
-    const Card = isApple ? LiquidGlassCard : OneUICard;
+function XPToastBanner({ toast, onDone }: { toast: XPToast; onDone: () => void }) {
+    useEffect(() => { const t = setTimeout(onDone, 2800); return () => clearTimeout(t); }, [onDone]);
+    return (
+        <motion.div
+            className="fixed top-4 left-1/2 z-[100] px-5 py-3 rounded-2xl shadow-lg text-white text-sm font-bold flex items-center gap-2"
+            style={{ background: `linear-gradient(135deg, ${ACCENT} 0%, #FF6B9D 100%)`, translateX: "-50%" }}
+            initial={{ opacity: 0, y: -20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -16, scale: 0.9 }}>
+            <Star style={{ fontSize: 18 }} />
+            +{toast.xp} XP
+            {toast.achievements.length > 0 && <span className="opacity-90 font-normal text-xs">· {toast.achievements[0]}</span>}
+        </motion.div>
+    );
+}
 
-    const [tasks, setTasks] = useState<Task[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [filter, setFilter] = useState<FilterState>("all");
-    const [input, setInput] = useState("");
-    const [priority, setPriority] = useState<Task["Priority"]>("MEDIUM");
-    const [dueDate, setDueDate] = useState("");
-    const [editId, setEditId] = useState<string | null>(null);
-    const [editText, setEditText] = useState("");
-    const [expandedId, setExpandedId] = useState<string | null>(null);
-    const [aiMode, setAiMode] = useState(false);
-    const [aiPrompt, setAiPrompt] = useState("");
-    const [aiLoading, setAiLoading] = useState(false);
-    const [ocrLoading, setOcrLoading] = useState(false);
-    const [xpToast, setXpToast] = useState<{ xp: number; achievements: { id: string; emoji?: string; title?: string }[] } | null>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
+// ─── Task Row ──────────────────────────────────────────────────────────────────
 
-    const fetchTasks = useCallback(async () => {
-        try {
-            const res = await fetch("/api/productivity/tasks?limit=100");
-            if (res.status === 401) {
-                setIsAuthenticated(false);
-                return;
-            }
-            setIsAuthenticated(true);
-            if (res.ok) {
-                const json = await res.json();
-                setTasks(json.data?.tasks ?? []);
-            }
-        } catch { /* ignore */ } finally {
-            setLoading(false);
-        }
-    }, []);
+function TaskRow({
+    task, isDark, isApple, palette, border, cardBg,
+    onToggle, onHide, onRestore, onDuplicate, onDelete, onEdit, onUpload,
+}: {
+    task: Task; isDark: boolean; isApple: boolean; palette: any; border: string; cardBg: string;
+    onToggle: (t: Task) => void; onHide: (id: string) => void; onRestore: (id: string) => void;
+    onDuplicate: (t: Task) => void; onDelete: (id: string) => void; onEdit: (t: Task) => void;
+    onUpload: (id: string, files: FileList) => void;
+}) {
+    const [expanded,    setExpanded]    = useState(false);
+    const [menuOpen,    setMenuOpen]    = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const fileRef = useRef<HTMLInputElement>(null);
 
+    const done    = task.Status === "COMPLETED";
+    const hidden  = task.Status === "HIDDEN";
+    const dueDate = task.DueDate ? new Date(task.DueDate) : null;
+    const overdue = dueDate && dueDate < new Date() && !done;
+    const pColor  = PRIORITY_COLORS[task.Priority as keyof typeof PRIORITY_COLORS] ?? "#6b7280";
+
+    // Close menu on outside click
     useEffect(() => {
-        fetchTasks();
-    }, [fetchTasks]);
-
-    const showXpToast = (xp: number, achievements: { id: string; emoji?: string; title?: string }[]) => {
-        setXpToast({ xp, achievements });
-        setTimeout(() => setXpToast(null), 3500);
-    };
-
-    // ── Create task ──────────────────────────────────────────────────────────
-
-    const addTask = useCallback(async () => {
-        const text = input.trim();
-        if (!text || !isAuthenticated) return;
-
-        const xpReward = PRIORITY_XP[priority] ?? 10;
-        const optimisticTask: Task = {
-            TaskID: `temp-${Date.now()}`,
-            Title: text,
-            Priority: priority,
-            Status: "PENDING",
-            Category: "PERSONAL",
-            Tags: [],
-            DueDate: dueDate || undefined,
-            SubTasks: [],
-            XPReward: xpReward,
-            XPEarned: 0,
-            createdAt: new Date().toISOString(),
-        };
-
-        setTasks((prev) => [optimisticTask, ...prev]);
-        setInput("");
-        setDueDate("");
-
-        try {
-            const res = await fetch("/api/productivity/tasks", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    Title: text,
-                    Priority: priority,
-                    DueDate: dueDate || undefined,
-                }),
-            });
-            if (res.ok) {
-                const json = await res.json();
-                setTasks((prev) =>
-                    prev.map((t) => (t.TaskID === optimisticTask.TaskID ? json.data : t))
-                );
-            }
-        } catch { /* ignore */ }
-    }, [input, priority, dueDate, isAuthenticated]);
-
-    // ── AI create ────────────────────────────────────────────────────────────
-
-    const handleAICreate = async () => {
-        if (!aiPrompt.trim() || !isAuthenticated) return;
-        setAiLoading(true);
-        try {
-            const aiTask = await createTaskWithAI(aiPrompt);
-            if (aiTask?.Title) {
-                const res = await fetch("/api/productivity/tasks", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ ...aiTask, AIGenerated: true, AIPrompt: aiPrompt }),
-                });
-                if (res.ok) {
-                    const json = await res.json();
-                    setTasks((prev) => [json.data, ...prev]);
-                    setAiPrompt("");
-                    setAiMode(false);
-                }
-            }
-        } finally {
-            setAiLoading(false);
-        }
-    };
-
-    // ── OCR create ───────────────────────────────────────────────────────────
-
-    const handleOCR = async (file: File) => {
-        setOcrLoading(true);
-        try {
-            const text = await extractTextFromImage(file);
-            if (text) setInput(text.split("\n")[0].slice(0, 200));
-        } finally {
-            setOcrLoading(false);
-        }
-    };
-
-    // ── Complete task ─────────────────────────────────────────────────────────
-
-    const toggleTask = async (task: Task) => {
-        if (!isAuthenticated) return;
-
-        const newStatus =
-            task.Status === "COMPLETED" ? "PENDING" : "COMPLETED";
-
-        setTasks((prev) =>
-            prev.map((t) =>
-                t.TaskID === task.TaskID ? { ...t, Status: newStatus } : t
-            )
-        );
-
-        try {
-            const res = await fetch(`/api/productivity/tasks/${task.TaskID}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ Status: newStatus }),
-            });
-            if (res.ok) {
-                const json = await res.json();
-                setTasks((prev) =>
-                    prev.map((t) => (t.TaskID === task.TaskID ? json.data : t))
-                );
-                if (newStatus === "COMPLETED" && json.xp) {
-                    showXpToast(json.xp.xpAwarded, json.xp.newAchievements ?? []);
-                }
-            }
-        } catch { /* ignore */ }
-    };
-
-    // ── Delete task ───────────────────────────────────────────────────────────
-
-    const deleteTask = async (id: string) => {
-        setTasks((prev) => prev.filter((t) => t.TaskID !== id));
-        try {
-            await fetch(`/api/productivity/tasks/${id}`, { method: "DELETE" });
-        } catch { /* ignore */ }
-    };
-
-    // ── Save edit ─────────────────────────────────────────────────────────────
-
-    const saveEdit = async () => {
-        if (!editId || !editText.trim()) return;
-
-        setTasks((prev) =>
-            prev.map((t) => (t.TaskID === editId ? { ...t, Title: editText } : t))
-        );
-
-        try {
-            await fetch(`/api/productivity/tasks/${editId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ Title: editText.trim() }),
-            });
-        } catch { /* ignore */ }
-        setEditId(null);
-        setEditText("");
-    };
-
-    // ── Filter ────────────────────────────────────────────────────────────────
-
-    const filtered = tasks.filter((t) => {
-        if (filter === "active") return t.Status !== "COMPLETED" && t.Status !== "CANCELLED";
-        if (filter === "completed") return t.Status === "COMPLETED";
-        if (filter === "overdue") {
-            return (
-                t.DueDate &&
-                new Date(t.DueDate) < new Date() &&
-                t.Status !== "COMPLETED" &&
-                t.Status !== "CANCELLED"
-            );
-        }
-        return t.Status !== "CANCELLED";
-    });
-
-    const active = tasks.filter((t) => t.Status !== "COMPLETED" && t.Status !== "CANCELLED").length;
-    const done = tasks.filter((t) => t.Status === "COMPLETED").length;
-    const overdue = tasks.filter(
-        (t) =>
-            t.DueDate &&
-            new Date(t.DueDate) < new Date() &&
-            t.Status !== "COMPLETED" &&
-            t.Status !== "CANCELLED"
-    ).length;
-
-    const FILTERS: { value: FilterState; label: string }[] = [
-        { value: "all", label: `All (${tasks.length})` },
-        { value: "active", label: `Active (${active})` },
-        { value: "completed", label: `Done (${done})` },
-        { value: "overdue", label: `Overdue (${overdue})` },
-    ];
+        function handler(e: MouseEvent) { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false); }
+        if (menuOpen) document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
+    }, [menuOpen]);
 
     return (
-        <ToolPageWrapper
-            title="Tasks"
-            description="Gamified todo list — earn XP for every completion"
-            icon={<ChecklistRtl sx={{ fontSize: 24 }} />}
-            accentColor="#5E97F6"
+        <motion.div
+            className="rounded-xl overflow-hidden"
+            style={{ background: cardBg, border: `1px solid ${border}`, opacity: hidden ? 0.6 : 1 }}
+            layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: hidden ? 0.6 : 1, y: 0 }} exit={{ opacity: 0, height: 0 }}
         >
-            {/* ── XP Toast ── */}
-            <AnimatePresence>
-                {xpToast && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -40, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                        className="fixed top-6 left-1/2 z-50 -translate-x-1/2 px-5 py-3 rounded-2xl shadow-xl flex items-center gap-2"
-                        style={{ background: "linear-gradient(135deg, #AF52DE, #5E97F6)" }}
-                    >
-                        <Star sx={{ fontSize: 20, color: "#fff" }} />
-                        <span className="text-white font-bold text-sm">
-                            +{xpToast.xp} XP
-                            {xpToast.achievements.length > 0 &&
-                                ` 🏆 ${xpToast.achievements.map((a) => a.title ?? a.id).join(", ")}`}
+            {/* Main row */}
+            <div className="flex items-center gap-3 px-4 py-3">
+                {/* Checkbox */}
+                <button onClick={() => onToggle(task)} className="shrink-0" style={{ color: done ? "#22c55e" : isDark ? "rgba(255,255,255,0.25)" : "rgba(0,0,0,0.25)" }}>
+                    {done ? <CheckCircle style={{ fontSize: 22 }} /> : <RadioButtonUnchecked style={{ fontSize: 22 }} />}
+                </button>
+
+                {/* Priority dot */}
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ background: pColor }} title={task.Priority} />
+
+                {/* Title */}
+                <span
+                    className="flex-1 text-sm font-medium truncate cursor-pointer select-none"
+                    style={{
+                        color: done || hidden ? palette.textTertiary : palette.textPrimary,
+                        textDecoration: done ? "line-through" : "none",
+                    }}
+                    onClick={() => setExpanded(v => !v)}
+                >
+                    {task.Title}
+                </span>
+
+                {/* Chips */}
+                <div className="hidden sm:flex items-center gap-1.5 shrink-0">
+                    {dueDate && (
+                        <span className="text-xs px-2 py-0.5 rounded-full font-medium"
+                            style={{ background: overdue ? "#ef444418" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: overdue ? "#ef4444" : palette.textSecondary }}>
+                            {fmtDate(task.DueDate!)}
                         </span>
+                    )}
+                    {task.Attachments?.length > 0 && (
+                        <span className="text-xs px-2 py-0.5 rounded-full flex items-center gap-0.5"
+                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: palette.textTertiary }}>
+                            <AttachFile style={{ fontSize: 11 }} />{task.Attachments.length}
+                        </span>
+                    )}
+                    <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
+                        style={{ background: `${ACCENT}16`, color: ACCENT }}>
+                        +{XP_MAP[task.Priority as keyof typeof XP_MAP] ?? 10} XP
+                    </span>
+                </div>
+
+                {/* Expand toggle */}
+                <button onClick={() => setExpanded(v => !v)} style={{ color: palette.textTertiary }}>
+                    {expanded ? <ExpandLess style={{ fontSize: 18 }} /> : <ExpandMore style={{ fontSize: 18 }} />}
+                </button>
+
+                {/* 3-dot menu */}
+                <div className="relative" ref={menuRef}>
+                    <button onClick={() => setMenuOpen(v => !v)} style={{ color: palette.textTertiary }}>
+                        <MoreVert style={{ fontSize: 18 }} />
+                    </button>
+                    <AnimatePresence>
+                        {menuOpen && (
+                            <motion.div
+                                className="absolute right-0 top-full mt-1 w-44 rounded-xl shadow-xl z-50 overflow-hidden py-1"
+                                style={{ background: isDark ? "rgba(30,30,32,0.98)" : "rgba(255,255,255,0.98)", border: `1px solid ${border}`, backdropFilter: "blur(16px)" }}
+                                initial={{ opacity: 0, scale: 0.92, y: -6 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.92, y: -6 }}>
+                                {!hidden && (
+                                    <button onClick={() => { onEdit(task); setMenuOpen(false); }}
+                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-white/5"
+                                        style={{ color: palette.textPrimary }}>
+                                        <Edit style={{ fontSize: 16 }} /> Edit
+                                    </button>
+                                )}
+                                {done && (
+                                    <button onClick={() => { onToggle(task); setMenuOpen(false); }}
+                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-white/5"
+                                        style={{ color: palette.textPrimary }}>
+                                        <Restore style={{ fontSize: 16 }} /> Mark Undone
+                                    </button>
+                                )}
+                                <button onClick={() => { onDuplicate(task); setMenuOpen(false); }}
+                                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-white/5"
+                                    style={{ color: palette.textPrimary }}>
+                                    <ContentCopy style={{ fontSize: 16 }} /> Duplicate
+                                </button>
+                                {hidden ? (
+                                    <button onClick={() => { onRestore(task.TaskID); setMenuOpen(false); }}
+                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-white/5"
+                                        style={{ color: "#22c55e" }}>
+                                        <Visibility style={{ fontSize: 16 }} /> Restore
+                                    </button>
+                                ) : (
+                                    <button onClick={() => { onHide(task.TaskID); setMenuOpen(false); }}
+                                        className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-white/5"
+                                        style={{ color: palette.textSecondary }}>
+                                        <VisibilityOff style={{ fontSize: 16 }} /> Hide
+                                    </button>
+                                )}
+                                <div className="h-px mx-2 my-1" style={{ background: border }} />
+                                <button onClick={() => { onDelete(task.TaskID); setMenuOpen(false); }}
+                                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-left hover:bg-red-500/10"
+                                    style={{ color: "#ef4444" }}>
+                                    <Delete style={{ fontSize: 16 }} /> Delete Permanently
+                                </button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+            </div>
+
+            {/* Expanded panel */}
+            <AnimatePresence>
+                {expanded && (
+                    <motion.div
+                        className="px-4 pb-4 space-y-3"
+                        style={{ borderTop: `1px solid ${border}` }}
+                        initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+
+                        {/* Mobile chips */}
+                        <div className="flex flex-wrap gap-1.5 pt-3 sm:hidden">
+                            {dueDate && (
+                                <span className="text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1"
+                                    style={{ background: overdue ? "#ef444418" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: overdue ? "#ef4444" : palette.textSecondary }}>
+                                    <CalendarToday style={{ fontSize: 11 }} />{fmtDate(task.DueDate!)}
+                                </span>
+                            )}
+                            <span className="text-xs px-2 py-1 rounded-full font-semibold" style={{ background: `${ACCENT}16`, color: ACCENT }}>
+                                +{XP_MAP[task.Priority as keyof typeof XP_MAP] ?? 10} XP
+                            </span>
+                        </div>
+
+                        {/* Description */}
+                        {task.Description && (
+                            <p className="text-sm leading-relaxed" style={{ color: palette.textSecondary }}>{task.Description}</p>
+                        )}
+
+                        {/* Tags */}
+                        {task.Tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1">
+                                {task.Tags.map(t => (
+                                    <span key={t} className="text-xs px-2 py-0.5 rounded-full flex items-center gap-1"
+                                        style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: palette.textTertiary }}>
+                                        <LocalOffer style={{ fontSize: 10 }} />{t}
+                                    </span>
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Attachments */}
+                        <div>
+                            {task.Attachments?.length > 0 && (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-2">
+                                    {task.Attachments.map(a => (
+                                        <a key={a.AssetID} href={a.URL} target="_blank" rel="noopener noreferrer"
+                                            className="flex items-center gap-2 p-2 rounded-lg group"
+                                            style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", border: `1px solid ${border}` }}>
+                                            {a.FileType.startsWith("image/")
+                                                ? <img src={a.URL} alt={a.FileName} className="w-6 h-6 rounded object-cover" />
+                                                : <span style={{ color: ACCENT }}>{attachIcon(a.FileType)}</span>
+                                            }
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-xs truncate font-medium" style={{ color: palette.textPrimary }}>{a.FileName}</p>
+                                                <p className="text-xs" style={{ color: palette.textTertiary }}>{fmtSize(a.FileSize)}</p>
+                                            </div>
+                                        </a>
+                                    ))}
+                                </div>
+                            )}
+                            {!hidden && (
+                                <>
+                                    <input ref={fileRef} type="file" className="hidden" multiple
+                                        onChange={e => { if (e.target.files?.length) { onUpload(task.TaskID, e.target.files); e.target.value = ""; } }} />
+                                    <button onClick={() => fileRef.current?.click()}
+                                        className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg"
+                                        style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", color: palette.textSecondary, border: `1px dashed ${border}` }}>
+                                        <Upload style={{ fontSize: 14 }} /> Add Attachment
+                                    </button>
+                                </>
+                            )}
+                        </div>
+
+                        <p className="text-xs" style={{ color: palette.textTertiary }}>
+                            Created {new Date(task.createdAt).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" })}
+                            {task.CompletedAt && ` · Completed ${new Date(task.CompletedAt).toLocaleDateString("en", { month: "short", day: "numeric" })}`}
+                        </p>
                     </motion.div>
                 )}
             </AnimatePresence>
+        </motion.div>
+    );
+}
 
-            <div className="max-w-2xl mx-auto space-y-5">
-                {/* ── Input card ── */}
-                <Card>
-                    <div className="space-y-3">
-                        {/* AI Mode toggle */}
-                        <div className="flex items-center gap-2">
-                            <motion.button
-                                onClick={() => setAiMode((v) => !v)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
-                                style={{
-                                    background: aiMode
-                                        ? "linear-gradient(135deg, #AF52DE, #5E97F6)"
-                                        : isDark
-                                            ? "rgba(255,255,255,0.08)"
-                                            : "rgba(0,0,0,0.05)",
-                                    color: aiMode ? "#fff" : palette.textSecondary,
-                                }}
-                                whileTap={{ scale: 0.95 }}
-                            >
-                                <Psychology sx={{ fontSize: 14 }} />
-                                AI Mode
-                            </motion.button>
+// ─── Add / Edit Modal ──────────────────────────────────────────────────────────
 
-                            {/* OCR button */}
-                            <motion.button
-                                onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
-                                style={{
-                                    background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
-                                    color: palette.textSecondary,
-                                }}
-                                whileTap={{ scale: 0.95 }}
-                                disabled={ocrLoading}
-                            >
-                                <CameraAlt sx={{ fontSize: 14 }} />
-                                {ocrLoading ? "Scanning…" : "OCR"}
-                            </motion.button>
-                            <input
-                                ref={fileInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if (file) handleOCR(file);
-                                    e.target.value = "";
-                                }}
-                            />
-                        </div>
+function TaskModal({
+    initial, isDark, isApple, palette, border, onSave, onClose,
+}: {
+    initial?: Partial<Task>; isDark: boolean; isApple: boolean; palette: any; border: string;
+    onSave: (data: Partial<Task>) => void; onClose: () => void;
+}) {
+    const [title,       setTitle]       = useState(initial?.Title ?? "");
+    const [desc,        setDesc]        = useState(initial?.Description ?? "");
+    const [priority,    setPriority]    = useState(initial?.Priority ?? "MEDIUM");
+    const [category,    setCategory]    = useState(initial?.Category ?? "PERSONAL");
+    const [dueDate,     setDueDate]     = useState(initial?.DueDate ? initial.DueDate.split("T")[0] : "");
+    const [tags,        setTags]        = useState(initial?.Tags?.join(", ") ?? "");
+    const [aiMode,      setAiMode]      = useState(false);
+    const [aiPrompt,    setAiPrompt]    = useState("");
+    const [aiLoading,   setAiLoading]   = useState(false);
 
-                        <AnimatePresence mode="wait">
-                            {aiMode ? (
-                                <motion.div
-                                    key="ai"
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: "auto" }}
-                                    exit={{ opacity: 0, height: 0 }}
-                                    className="space-y-2"
-                                >
-                                    <textarea
-                                        value={aiPrompt}
-                                        onChange={(e) => setAiPrompt(e.target.value)}
-                                        placeholder="Describe your task in natural language… e.g. 'Prepare a presentation for Monday's client meeting with slides on Q4 results'"
-                                        rows={3}
-                                        className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
-                                        style={{
-                                            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
-                                            color: palette.textPrimary,
-                                            border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`,
-                                        }}
-                                    />
-                                    <motion.button
-                                        onClick={handleAICreate}
-                                        disabled={aiLoading || !aiPrompt.trim()}
-                                        className="w-full py-2.5 rounded-xl text-sm font-bold"
-                                        style={{
-                                            background: aiLoading ? palette.textTertiary : "linear-gradient(135deg, #AF52DE, #5E97F6)",
-                                            color: "#fff",
-                                        }}
-                                        whileTap={{ scale: 0.98 }}
-                                    >
-                                        {aiLoading ? "Creating with AI…" : "✨ Create Task with AI"}
-                                    </motion.button>
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key="manual"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="space-y-2"
-                                >
-                                    <div className="flex gap-2">
-                                        <input
-                                            value={input}
-                                            onChange={(e) => setInput(e.target.value)}
-                                            onKeyDown={(e) => e.key === "Enter" && addTask()}
-                                            placeholder="Add a task…"
-                                            className="flex-1 px-4 py-3 rounded-xl text-sm outline-none"
-                                            style={{
-                                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
-                                                color: palette.textPrimary,
-                                                border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`,
-                                                borderRadius: isApple ? "12px" : "16px",
-                                            }}
-                                        />
-                                        <motion.button
-                                            onClick={addTask}
-                                            disabled={!isAuthenticated}
-                                            className="flex items-center justify-center px-4 rounded-full text-sm font-bold"
-                                            style={{ background: "#5E97F6", color: "#fff", minWidth: 48 }}
-                                            whileTap={{ scale: 0.93 }}
-                                        >
-                                            <Add sx={{ fontSize: 20 }} />
-                                        </motion.button>
-                                    </div>
+    const modalBg = isApple
+        ? isDark ? "rgba(28,28,30,0.97)" : "rgba(255,255,255,0.97)"
+        : palette.surface;
 
-                                    {/* Priority & due date */}
-                                    <div className="flex items-center gap-2 flex-wrap">
-                                        {(["LOW", "MEDIUM", "HIGH", "URGENT"] as Task["Priority"][]).map((p) => (
-                                            <motion.button
-                                                key={p}
-                                                onClick={() => setPriority(p)}
-                                                className="px-2.5 py-1 rounded-full text-xs font-bold"
-                                                style={{
-                                                    background:
-                                                        priority === p
-                                                            ? PRIORITY_COLORS[p]
-                                                            : isDark
-                                                                ? "rgba(255,255,255,0.07)"
-                                                                : "rgba(0,0,0,0.05)",
-                                                    color: priority === p ? "#fff" : palette.textSecondary,
-                                                }}
-                                                whileTap={{ scale: 0.95 }}
-                                            >
-                                                {p} (+{PRIORITY_XP[p]}XP)
-                                            </motion.button>
-                                        ))}
-                                        <input
-                                            type="date"
-                                            value={dueDate}
-                                            onChange={(e) => setDueDate(e.target.value)}
-                                            className="px-2 py-1 rounded-lg text-xs outline-none"
-                                            style={{
-                                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
-                                                color: palette.textSecondary,
-                                                border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`,
-                                            }}
-                                        />
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+    async function handleAI() {
+        if (!aiPrompt.trim()) return;
+        setAiLoading(true);
+        try {
+            const r = await fetch("/api/productivity/ai", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "create_task", prompt: aiPrompt }) });
+            const j = await r.json();
+            if (j.success && j.data) {
+                setTitle(j.data.Title ?? "");
+                setDesc(j.data.Description ?? "");
+                setPriority(j.data.Priority ?? "MEDIUM");
+                setCategory(j.data.Category ?? "PERSONAL");
+                setAiMode(false);
+            }
+        } finally { setAiLoading(false); }
+    }
+
+    return (
+        <motion.div
+            className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.5)" }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={e => e.target === e.currentTarget && onClose()}>
+            <motion.div
+                className="w-full max-w-lg rounded-2xl p-6 overflow-y-auto max-h-[90vh]"
+                style={{ background: modalBg, border: `1px solid ${border}`, backdropFilter: isApple ? "blur(24px)" : "none" }}
+                initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}>
+                <div className="flex items-center justify-between mb-5">
+                    <h2 className="font-bold text-lg" style={{ color: palette.textPrimary }}>{initial?.TaskID ? "Edit Task" : "New Task"}</h2>
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setAiMode(v => !v)} className="p-1.5 rounded-lg"
+                            style={{ color: aiMode ? ACCENT : palette.textTertiary, background: aiMode ? `${ACCENT}18` : "transparent" }} title="AI Assist">
+                            <Psychology style={{ fontSize: 20 }} />
+                        </button>
+                        <button onClick={onClose}><Close style={{ color: palette.textTertiary }} /></button>
                     </div>
-                </Card>
-
-                {/* ── Filters ── */}
-                <div className="flex items-center gap-1.5 flex-wrap">
-                    {FILTERS.map((f) => (
-                        <motion.button
-                            key={f.value}
-                            onClick={() => setFilter(f.value)}
-                            className="px-3 py-1.5 rounded-full text-xs font-bold"
-                            style={{
-                                background:
-                                    filter === f.value
-                                        ? "#5E97F6"
-                                        : isDark
-                                            ? "rgba(255,255,255,0.07)"
-                                            : "rgba(0,0,0,0.05)",
-                                color: filter === f.value ? "#fff" : palette.textSecondary,
-                            }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            {f.label}
-                        </motion.button>
-                    ))}
                 </div>
 
-                {/* ── Task list ── */}
+                {aiMode && (
+                    <div className="mb-4 flex gap-2">
+                        <input value={aiPrompt} onChange={e => setAiPrompt(e.target.value)}
+                            onKeyDown={e => e.key === "Enter" && handleAI()}
+                            placeholder="Describe the task in plain language…"
+                            className="flex-1 rounded-xl px-3 py-2 text-sm outline-none border"
+                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }} />
+                        <button onClick={handleAI} disabled={aiLoading}
+                            className="px-3 py-2 rounded-xl text-sm font-semibold shrink-0"
+                            style={{ background: ACCENT, color: "#fff", opacity: aiLoading ? 0.6 : 1 }}>
+                            {aiLoading ? "…" : "Go"}
+                        </button>
+                    </div>
+                )}
+
+                <div className="space-y-3">
+                    <input value={title} onChange={e => setTitle(e.target.value)}
+                        placeholder="Task title *"
+                        className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border"
+                        style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }} />
+                    <textarea value={desc} onChange={e => setDesc(e.target.value)}
+                        placeholder="Description (optional)"
+                        rows={3}
+                        className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border resize-none"
+                        style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }} />
+
+                    {/* Priority */}
+                    <div>
+                        <p className="text-xs font-medium mb-1.5" style={{ color: palette.textSecondary }}>Priority</p>
+                        <div className="flex gap-2">
+                            {(["LOW","MEDIUM","HIGH","URGENT"] as const).map(p => (
+                                <button key={p} onClick={() => setPriority(p)}
+                                    className="flex-1 py-1.5 rounded-lg text-xs font-semibold"
+                                    style={{ background: priority === p ? `${PRIORITY_COLORS[p]}20` : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)", color: priority === p ? PRIORITY_COLORS[p] : palette.textTertiary, border: `1px solid ${priority === p ? PRIORITY_COLORS[p] : border}` }}>
+                                    {p}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Category */}
+                    <div>
+                        <p className="text-xs font-medium mb-1.5" style={{ color: palette.textSecondary }}>Category</p>
+                        <select value={category} onChange={e => setCategory(e.target.value)}
+                            className="w-full rounded-xl px-3 py-2 text-sm outline-none border"
+                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }}>
+                            {["PERSONAL","WORK","HEALTH","EDUCATION","FINANCE","SOCIAL","HOBBY","OTHER"].map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                    </div>
+
+                    {/* Due date */}
+                    <div>
+                        <p className="text-xs font-medium mb-1.5" style={{ color: palette.textSecondary }}>Due Date (optional)</p>
+                        <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)}
+                            className="w-full rounded-xl px-3 py-2 text-sm outline-none border"
+                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }} />
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                        <p className="text-xs font-medium mb-1.5" style={{ color: palette.textSecondary }}>Tags (comma separated)</p>
+                        <input value={tags} onChange={e => setTags(e.target.value)}
+                            placeholder="e.g. urgent, work, review"
+                            className="w-full rounded-xl px-3 py-2 text-sm outline-none border"
+                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }} />
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-6">
+                    <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                        style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}>Cancel</button>
+                    <button onClick={() => {
+                        if (!title.trim()) return;
+                        onSave({ Title: title.trim(), Description: desc.trim() || undefined, Priority: priority, Category: category, DueDate: dueDate || undefined, Tags: tags.split(",").map(t => t.trim()).filter(Boolean) });
+                    }}
+                        className="flex-1 py-2.5 rounded-xl text-sm font-bold"
+                        style={{ background: ACCENT, color: "#fff" }}>
+                        {initial?.TaskID ? "Save Changes" : "Add Task"}
+                    </button>
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+}
+
+// ─── Main Page ─────────────────────────────────────────────────────────────────
+
+export default function TasksPage() {
+    const { palette, actualColorMode, designTheme } = useDesignTheme();
+    const isDark  = actualColorMode === "dark";
+    const isApple = designTheme === "apple";
+
+    const cardBg = isApple ? isDark ? "rgba(44,44,46,0.72)" : "rgba(255,255,255,0.75)" : palette.surface;
+    const border = isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.08)";
+    const blur   = isApple ? "blur(16px)" : "none";
+
+    const [tasks,       setTasks]       = useState<Task[]>([]);
+    const [loading,     setLoading]     = useState(true);
+    const [tab,         setTab]         = useState<"ALL"|"PENDING"|"COMPLETED"|"HIDDEN">("ALL");
+    const [search,      setSearch]      = useState("");
+    const [catFilter,   setCatFilter]   = useState("ALL");
+    const [priFilter,   setPriFilter]   = useState("ALL");
+    const [totalPages,  setTotalPages]  = useState(1);
+    const [page,        setPage]        = useState(1);
+    const [quickTitle,  setQuickTitle]  = useState("");
+    const [showModal,   setShowModal]   = useState(false);
+    const [editTask,    setEditTask]    = useState<Task | undefined>();
+    const [toast,       setToast]       = useState<XPToast | null>(null);
+    const [uploading,   setUploading]   = useState<string | null>(null);
+
+    const fetchTasks = useCallback(async (reset = false) => {
+        setLoading(true);
+        const pg = reset ? 1 : page;
+        const params = new URLSearchParams({ page: String(pg), limit: "30" });
+        if (tab !== "ALL") params.set("status", tab);
+        if (catFilter !== "ALL") params.set("category", catFilter);
+        if (priFilter !== "ALL") params.set("priority", priFilter);
+        if (search.trim()) params.set("search", search.trim());
+        try {
+            const r = await fetch(`/api/productivity/tasks?${params}`);
+            const j = await r.json();
+            if (j.success) {
+                setTasks(j.data.tasks);
+                setTotalPages(j.data.pagination.totalPages);
+                if (reset) setPage(1);
+            }
+        } finally { setLoading(false); }
+    }, [tab, catFilter, priFilter, search, page]);
+
+    useEffect(() => { fetchTasks(true); }, [tab, catFilter, priFilter]);
+    useEffect(() => { if (search.length === 0 || search.length > 2) fetchTasks(true); }, [search]);
+    useEffect(() => { fetchTasks(); }, [page]);
+
+    async function quickAdd() {
+        if (!quickTitle.trim()) return;
+        const r = await fetch("/api/productivity/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Title: quickTitle.trim() }) });
+        const j = await r.json();
+        if (j.success) { setQuickTitle(""); fetchTasks(true); }
+    }
+
+    async function saveTask(data: Partial<Task>) {
+        if (editTask?.TaskID) {
+            await fetch(`/api/productivity/tasks/${editTask.TaskID}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+        } else {
+            await fetch("/api/productivity/tasks", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+        }
+        setShowModal(false); setEditTask(undefined); fetchTasks(true);
+    }
+
+    async function toggleTask(task: Task) {
+        const newStatus = task.Status === "COMPLETED" ? "PENDING" : "COMPLETED";
+        const r = await fetch(`/api/productivity/tasks/${task.TaskID}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Status: newStatus }) });
+        const j = await r.json();
+        if (j.success) {
+            if (j.xp) setToast({ xp: j.xp.xpAwarded, achievements: j.xp.newAchievements.map((a: any) => a.id) });
+            fetchTasks(true);
+        }
+    }
+
+    async function hideTask(id: string) {
+        await fetch(`/api/productivity/tasks/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Status: "HIDDEN" }) });
+        fetchTasks(true);
+    }
+
+    async function restoreTask(id: string) {
+        await fetch(`/api/productivity/tasks/${id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Status: "PENDING" }) });
+        fetchTasks(true);
+    }
+
+    async function deleteTask(id: string) {
+        if (!confirm("Permanently delete this task? XP earned will be revoked.")) return;
+        await fetch(`/api/productivity/tasks/${id}`, { method: "DELETE" });
+        fetchTasks(true);
+    }
+
+    async function duplicateTask(task: Task) {
+        await fetch("/api/productivity/tasks", { method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ Title: `${task.Title} (copy)`, Description: task.Description, Priority: task.Priority, Category: task.Category, Tags: task.Tags, DueDate: task.DueDate }) });
+        fetchTasks(true);
+    }
+
+    async function uploadAttachment(taskId: string, files: FileList) {
+        setUploading(taskId);
+        try {
+            const task = tasks.find(t => t.TaskID === taskId);
+            if (!task) return;
+
+            const newAttachments = [...(task.Attachments ?? [])];
+            for (const file of Array.from(files)) {
+                const fd = new FormData();
+                fd.append("file", file);
+                fd.append("type", file.type.startsWith("image/") ? "other" : "document");
+                fd.append("context", "productivity-task");
+
+                const r = await fetch("/api/cdn/upload", { method: "POST", body: fd });
+                const j = await r.json();
+                if (j.assetId) {
+                    newAttachments.push({ AssetID: j.assetId, URL: j.cdnUrl, FileName: file.name, FileType: file.type, FileSize: file.size });
+                }
+            }
+            await fetch(`/api/productivity/tasks/${taskId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ Attachments: newAttachments }) });
+            fetchTasks(true);
+        } finally { setUploading(null); }
+    }
+
+    const pendingCount   = tasks.filter(t => t.Status === "PENDING").length;
+    const completedCount = tasks.filter(t => t.Status === "COMPLETED").length;
+
+    return (
+        <div className="p-4 md:p-6 max-w-3xl mx-auto pb-24 space-y-4">
+            {/* XP Toast */}
+            <AnimatePresence>
+                {toast && <XPToastBanner toast={toast} onDone={() => setToast(null)} />}
+            </AnimatePresence>
+
+            {/* Header */}
+            <div className="pt-2">
+                <h1 className="text-2xl font-bold" style={{ color: palette.textPrimary }}>Tasks</h1>
+                <p className="text-sm" style={{ color: palette.textSecondary }}>{pendingCount} pending · {completedCount} done</p>
+            </div>
+
+            {/* Quick Add */}
+            <div className="flex gap-2">
+                <div className="flex-1 flex items-center gap-2 px-4 rounded-2xl" style={{ background: cardBg, border: `1px solid ${border}`, backdropFilter: blur }}>
+                    <Add style={{ color: ACCENT, fontSize: 20 }} />
+                    <input
+                        value={quickTitle} onChange={e => setQuickTitle(e.target.value)}
+                        onKeyDown={e => e.key === "Enter" && quickAdd()}
+                        placeholder="Add a task and press Enter…"
+                        className="flex-1 text-sm py-3 outline-none bg-transparent"
+                        style={{ color: palette.textPrimary }} />
+                    {quickTitle && (
+                        <button onClick={quickAdd}>
+                            <KeyboardReturn style={{ color: ACCENT, fontSize: 18 }} />
+                        </button>
+                    )}
+                </div>
+                <motion.button onClick={() => { setEditTask(undefined); setShowModal(true); }}
+                    className="px-4 py-3 rounded-2xl font-semibold text-sm flex items-center gap-1.5"
+                    style={{ background: ACCENT, color: "#fff" }}
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                    <Add style={{ fontSize: 18 }} />
+                    <span className="hidden sm:inline">New</span>
+                </motion.button>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex gap-1 p-1 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" }}>
+                {(["ALL","PENDING","COMPLETED","HIDDEN"] as const).map(t => (
+                    <button key={t} onClick={() => setTab(t)}
+                        className="flex-1 text-xs font-semibold py-2 rounded-lg transition-all"
+                        style={{ background: tab === t ? ACCENT : "transparent", color: tab === t ? "#fff" : palette.textTertiary }}>
+                        {t === "ALL" ? "All" : t === "PENDING" ? "Pending" : t === "COMPLETED" ? "Done" : "Hidden"}
+                    </button>
+                ))}
+            </div>
+
+            {/* Filters row */}
+            <div className="flex gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-1 min-w-36 px-3 rounded-xl" style={{ background: cardBg, border: `1px solid ${border}`, backdropFilter: blur }}>
+                    <Search style={{ color: palette.textTertiary, fontSize: 16 }} />
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search…"
+                        className="flex-1 text-sm py-2 outline-none bg-transparent" style={{ color: palette.textPrimary }} />
+                    {search && <button onClick={() => setSearch("")}><Close style={{ fontSize: 14, color: palette.textTertiary }} /></button>}
+                </div>
+                <select value={priFilter} onChange={e => setPriFilter(e.target.value)}
+                    className="px-3 py-2 rounded-xl text-xs outline-none border"
+                    style={{ background: cardBg, color: palette.textPrimary, borderColor: border }}>
+                    {PRIORITIES.map(p => <option key={p} value={p}>{p === "ALL" ? "All Priority" : p}</option>)}
+                </select>
+                <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
+                    className="px-3 py-2 rounded-xl text-xs outline-none border"
+                    style={{ background: cardBg, color: palette.textPrimary, borderColor: border }}>
+                    {CATEGORIES.map(c => <option key={c} value={c}>{c === "ALL" ? "All Category" : c}</option>)}
+                </select>
+            </div>
+
+            {/* Task List */}
+            {loading ? (
+                <div className="flex justify-center py-12">
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-7 h-7 rounded-full border-2"
+                        style={{ borderColor: `${ACCENT}30`, borderTopColor: ACCENT }} />
+                </div>
+            ) : tasks.length === 0 ? (
+                <div className="text-center py-16 space-y-3">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto" style={{ background: `${ACCENT}14` }}>
+                        <FilterList style={{ color: ACCENT, fontSize: 28 }} />
+                    </div>
+                    <p className="font-semibold" style={{ color: palette.textPrimary }}>No tasks found</p>
+                    <p className="text-sm" style={{ color: palette.textSecondary }}>
+                        {tab === "HIDDEN" ? "No hidden tasks" : "Add your first task above"}
+                    </p>
+                </div>
+            ) : (
                 <div className="space-y-2">
                     <AnimatePresence mode="popLayout">
-                        {!loading && filtered.length === 0 && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="text-center py-16"
-                                style={{ color: palette.textTertiary }}
-                            >
-                                <ChecklistRtl sx={{ fontSize: 48, opacity: 0.3 }} />
-                                <p className="mt-3 text-sm">
-                                    {filter === "all" ? "No tasks yet — add one above" : `No ${filter} tasks`}
-                                </p>
-                            </motion.div>
-                        )}
-
-                        {filtered.map((task) => {
-                            const isComplete = task.Status === "COMPLETED";
-                            const isOverdue =
-                                task.DueDate &&
-                                new Date(task.DueDate) < new Date() &&
-                                !isComplete;
-                            const isExpanded = expandedId === task.TaskID;
-
-                            return (
-                                <motion.div
-                                    key={task.TaskID}
-                                    layout
-                                    initial={{ opacity: 0, y: 12 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, x: -60 }}
-                                    transition={{ duration: 0.2 }}
-                                >
-                                    <Card>
-                                        <div className="space-y-2">
-                                            <div className="flex items-center gap-3">
-                                                {/* Checkbox */}
-                                                <motion.button
-                                                    onClick={() => toggleTask(task)}
-                                                    whileTap={{ scale: 0.85 }}
-                                                    style={{ color: isComplete ? "#34C759" : palette.textTertiary }}
-                                                >
-                                                    {isComplete ? (
-                                                        <CheckCircleOutline sx={{ fontSize: 24 }} />
-                                                    ) : (
-                                                        <RadioButtonUnchecked sx={{ fontSize: 24 }} />
-                                                    )}
-                                                </motion.button>
-
-                                                {/* Priority dot */}
-                                                <div
-                                                    className="w-2 h-2 rounded-full flex-shrink-0"
-                                                    style={{ background: PRIORITY_COLORS[task.Priority] ?? "#5E97F6" }}
-                                                />
-
-                                                {/* Title */}
-                                                {editId === task.TaskID ? (
-                                                    <input
-                                                        value={editText}
-                                                        onChange={(e) => setEditText(e.target.value)}
-                                                        onKeyDown={(e) => e.key === "Enter" && saveEdit()}
-                                                        autoFocus
-                                                        className="flex-1 px-3 py-1.5 rounded-lg text-sm outline-none"
-                                                        style={{
-                                                            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
-                                                            color: palette.textPrimary,
-                                                            border: `1px solid #5E97F6`,
-                                                        }}
-                                                    />
-                                                ) : (
-                                                    <span
-                                                        className={`flex-1 text-sm ${isComplete ? "line-through opacity-50" : ""}`}
-                                                        style={{
-                                                            color: isOverdue ? "#FF3B30" : palette.textPrimary,
-                                                        }}
-                                                    >
-                                                        {task.Title}
-                                                    </span>
-                                                )}
-
-                                                {/* XP badge */}
-                                                {isComplete && task.XPEarned > 0 && (
-                                                    <span
-                                                        className="text-xs font-bold px-2 py-0.5 rounded-full flex-shrink-0"
-                                                        style={{ background: "rgba(175,82,222,0.15)", color: "#AF52DE" }}
-                                                    >
-                                                        +{task.XPEarned}XP
-                                                    </span>
-                                                )}
-
-                                                {/* Actions */}
-                                                <div className="flex items-center gap-1 flex-shrink-0">
-                                                    <motion.button
-                                                        onClick={() => setExpandedId(isExpanded ? null : task.TaskID)}
-                                                        whileTap={{ scale: 0.9 }}
-                                                        style={{ color: palette.textTertiary }}
-                                                    >
-                                                        {isExpanded ? (
-                                                            <ExpandLess sx={{ fontSize: 18 }} />
-                                                        ) : (
-                                                            <ExpandMore sx={{ fontSize: 18 }} />
-                                                        )}
-                                                    </motion.button>
-
-                                                    {editId === task.TaskID ? (
-                                                        <motion.button onClick={saveEdit} whileTap={{ scale: 0.9 }} style={{ color: "#34C759" }}>
-                                                            <Save sx={{ fontSize: 18 }} />
-                                                        </motion.button>
-                                                    ) : (
-                                                        <motion.button
-                                                            onClick={() => { setEditId(task.TaskID); setEditText(task.Title); }}
-                                                            whileTap={{ scale: 0.9 }}
-                                                            style={{ color: palette.textTertiary }}
-                                                        >
-                                                            <Edit sx={{ fontSize: 18 }} />
-                                                        </motion.button>
-                                                    )}
-
-                                                    <motion.button
-                                                        onClick={() => deleteTask(task.TaskID)}
-                                                        whileTap={{ scale: 0.9 }}
-                                                        style={{ color: "#FF3B30" }}
-                                                    >
-                                                        <Delete sx={{ fontSize: 18 }} />
-                                                    </motion.button>
-                                                </div>
-                                            </div>
-
-                                            {/* Expanded details */}
-                                            <AnimatePresence>
-                                                {isExpanded && (
-                                                    <motion.div
-                                                        initial={{ height: 0, opacity: 0 }}
-                                                        animate={{ height: "auto", opacity: 1 }}
-                                                        exit={{ height: 0, opacity: 0 }}
-                                                        className="overflow-hidden pl-10 space-y-2"
-                                                    >
-                                                        {task.Description && (
-                                                            <p className="text-xs" style={{ color: palette.textSecondary }}>
-                                                                {task.Description}
-                                                            </p>
-                                                        )}
-                                                        {task.DueDate && (
-                                                            <div className="flex items-center gap-1 text-xs" style={{ color: isOverdue ? "#FF3B30" : palette.textTertiary }}>
-                                                                <CalendarToday sx={{ fontSize: 12 }} />
-                                                                Due {new Date(task.DueDate).toLocaleDateString()}
-                                                                {isOverdue && " (overdue)"}
-                                                            </div>
-                                                        )}
-                                                        {task.SubTasks.length > 0 && (
-                                                            <div className="space-y-1">
-                                                                {task.SubTasks.map((st) => (
-                                                                    <div key={st.id} className="flex items-center gap-2 text-xs" style={{ color: palette.textSecondary }}>
-                                                                        <span>{st.completed ? "✅" : "⬜"}</span>
-                                                                        <span className={st.completed ? "line-through opacity-50" : ""}>{st.text}</span>
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                        <div className="flex flex-wrap gap-1">
-                                                            {task.Tags.map((tag) => (
-                                                                <span
-                                                                    key={tag}
-                                                                    className="px-2 py-0.5 rounded-full text-xs"
-                                                                    style={{
-                                                                        background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                                                                        color: palette.textTertiary,
-                                                                    }}
-                                                                >
-                                                                    #{tag}
-                                                                </span>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    </Card>
-                                </motion.div>
-                            );
-                        })}
+                        {tasks.map(task => (
+                            <TaskRow key={task.TaskID} task={task}
+                                isDark={isDark} isApple={isApple} palette={palette}
+                                border={border} cardBg={cardBg}
+                                onToggle={toggleTask} onHide={hideTask} onRestore={restoreTask}
+                                onDuplicate={duplicateTask} onDelete={deleteTask}
+                                onEdit={t => { setEditTask(t); setShowModal(true); }}
+                                onUpload={uploadAttachment} />
+                        ))}
                     </AnimatePresence>
                 </div>
+            )}
 
-                {/* ── Not authenticated ── */}
-                {isAuthenticated === false && (
-                    <Card>
-                        <div className="text-center py-8 space-y-2">
-                            <p className="text-sm font-bold" style={{ color: palette.textPrimary }}>
-                                Sign in to save tasks to your account
-                            </p>
-                            <a
-                                href="/auth/login"
-                                className="inline-block px-5 py-2 rounded-full text-sm font-bold"
-                                style={{ background: "#5E97F6", color: "#fff" }}
-                            >
-                                Sign In
-                            </a>
-                        </div>
-                    </Card>
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-3 pt-2">
+                    <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
+                        className="px-4 py-2 rounded-xl text-sm"
+                        style={{ background: cardBg, border: `1px solid ${border}`, color: page === 1 ? palette.textTertiary : palette.textPrimary }}>
+                        Prev
+                    </button>
+                    <span className="text-sm" style={{ color: palette.textSecondary }}>{page} / {totalPages}</span>
+                    <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages}
+                        className="px-4 py-2 rounded-xl text-sm"
+                        style={{ background: cardBg, border: `1px solid ${border}`, color: page === totalPages ? palette.textTertiary : palette.textPrimary }}>
+                        Next
+                    </button>
+                </div>
+            )}
+
+            {/* Uploading indicator */}
+            {uploading && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-sm font-medium flex items-center gap-2"
+                    style={{ background: isDark ? "rgba(30,30,32,0.95)" : "rgba(255,255,255,0.95)", border: `1px solid ${border}`, color: palette.textPrimary, boxShadow: "0 4px 24px rgba(0,0,0,0.15)" }}>
+                    <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        className="w-4 h-4 rounded-full border-2" style={{ borderColor: `${ACCENT}30`, borderTopColor: ACCENT }} />
+                    Uploading…
+                </div>
+            )}
+
+            {/* Modal */}
+            <AnimatePresence>
+                {showModal && (
+                    <TaskModal initial={editTask} isDark={isDark} isApple={isApple} palette={palette} border={border}
+                        onSave={saveTask} onClose={() => { setShowModal(false); setEditTask(undefined); }} />
                 )}
-            </div>
-        </ToolPageWrapper>
+            </AnimatePresence>
+
+            {/* Mobile FAB */}
+            <motion.button
+                onClick={() => { setEditTask(undefined); setShowModal(true); }}
+                className="fixed bottom-6 right-6 w-14 h-14 rounded-full shadow-lg flex items-center justify-center lg:hidden z-40"
+                style={{ background: ACCENT, color: "#fff", boxShadow: `0 8px 24px ${ACCENT}60` }}
+                whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.93 }}>
+                <Add style={{ fontSize: 28 }} />
+            </motion.button>
+        </div>
     );
 }

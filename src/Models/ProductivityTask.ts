@@ -1,78 +1,75 @@
 /**
  * ProductivityTask Mongoose Model
- * Gamified task model with priorities, due dates, XP rewards, and tags.
+ * Simple task with done/undone XP, soft-delete (hidden), and hard-delete.
+ *
+ * Status lifecycle:
+ *   PENDING  → user marks done  → COMPLETED  (XP awarded)
+ *   COMPLETED→ user undoes (3-dot menu) → PENDING (XP removed)
+ *   PENDING/COMPLETED → primary delete button → HIDDEN (soft delete, XP untouched)
+ *   PENDING/COMPLETED/HIDDEN → "Delete" in 3-dot menu → record removed from DB + XP revoked
  */
 
 import mongoose from "mongoose";
 import { v4 } from "uuid";
 
-// ─── Enums ───────────────────────────────────────────────────────────────────
+// ─── Attachment sub-schema ────────────────────────────────────────────────────
 
-export enum TaskPriority {
-    LOW = "LOW",
-    MEDIUM = "MEDIUM",
-    HIGH = "HIGH",
-    URGENT = "URGENT",
-}
-
-export enum TaskStatus {
-    PENDING = "PENDING",
-    IN_PROGRESS = "IN_PROGRESS",
-    COMPLETED = "COMPLETED",
-    CANCELLED = "CANCELLED",
-    OVERDUE = "OVERDUE",
-}
-
-export enum TaskCategory {
-    PERSONAL = "PERSONAL",
-    WORK = "WORK",
-    HEALTH = "HEALTH",
-    EDUCATION = "EDUCATION",
-    FINANCE = "FINANCE",
-    SOCIAL = "SOCIAL",
-    HOBBY = "HOBBY",
-    OTHER = "OTHER",
-}
-
-export enum RepeatType {
-    NONE = "NONE",
-    DAILY = "DAILY",
-    WEEKLY = "WEEKLY",
-    MONTHLY = "MONTHLY",
-    YEARLY = "YEARLY",
-    CUSTOM = "CUSTOM",
-}
-
-// ─── XP Rewards ──────────────────────────────────────────────────────────────
-
-export const XP_REWARDS = {
-    [TaskPriority.LOW]: 5,
-    [TaskPriority.MEDIUM]: 10,
-    [TaskPriority.HIGH]: 20,
-    [TaskPriority.URGENT]: 35,
-    EARLY_COMPLETION_BONUS: 10,
-    STREAK_BONUS: 5,
-} as const;
-
-// ─── Schema ──────────────────────────────────────────────────────────────────
-
-const SubTaskSchema = new mongoose.Schema(
+const AttachmentSchema = new mongoose.Schema(
     {
-        id: { type: String, default: v4 },
-        text: { type: String, required: true, trim: true },
-        completed: { type: Boolean, default: false },
-        completedAt: { type: Date },
+        AssetID:    { type: String, required: true },
+        URL:        { type: String, required: true },
+        FileName:   { type: String, required: true },
+        FileType:   { type: String, required: true },   // MIME type
+        FileSize:   { type: Number, required: true },   // bytes
+        UploadedAt: { type: Date,   default: Date.now },
     },
     { _id: false }
 );
 
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+export enum TaskStatus {
+    PENDING   = "PENDING",
+    COMPLETED = "COMPLETED",
+    HIDDEN    = "HIDDEN",   // soft-deleted; not shown in normal lists
+}
+
+export enum TaskPriority {
+    LOW    = "LOW",
+    MEDIUM = "MEDIUM",
+    HIGH   = "HIGH",
+    URGENT = "URGENT",
+}
+
+export enum TaskCategory {
+    PERSONAL   = "PERSONAL",
+    WORK       = "WORK",
+    HEALTH     = "HEALTH",
+    EDUCATION  = "EDUCATION",
+    FINANCE    = "FINANCE",
+    SOCIAL     = "SOCIAL",
+    HOBBY      = "HOBBY",
+    OTHER      = "OTHER",
+}
+
+// ─── XP per priority ──────────────────────────────────────────────────────────
+
+export const XP_REWARDS = {
+    [TaskPriority.LOW]:    5,
+    [TaskPriority.MEDIUM]: 10,
+    [TaskPriority.HIGH]:   20,
+    [TaskPriority.URGENT]: 35,
+} as const;
+
+// ─── Schema ───────────────────────────────────────────────────────────────────
+
 const ProductivityTask_Schema = new mongoose.Schema(
     {
-        TaskID: { type: String, default: v4, unique: true, index: true },
-        UserID: { type: String, required: true, index: true },
+        TaskID:   { type: String, default: v4, unique: true, index: true },
+        UserID:   { type: String, required: true, index: true },
 
         // Content
-        Title: { type: String, required: true, trim: true, maxlength: 500 },
+        Title:       { type: String, required: true, trim: true, maxlength: 500 },
         Description: { type: String, trim: true, maxlength: 5000 },
         Category: {
             type: String,
@@ -95,96 +92,53 @@ const ProductivityTask_Schema = new mongoose.Schema(
 
         // Scheduling
         DueDate: { type: Date },
-        StartDate: { type: Date },
-        ReminderAt: { type: Date },
-        Repeat: {
-            type: String,
-            enum: Object.values(RepeatType),
-            default: RepeatType.NONE,
-        },
-        RepeatInterval: { type: Number, default: 1 },
-        RepeatDaysOfWeek: { type: [Number], default: [] }, // 0=Sun…6=Sat
-
-        // Sub-tasks
-        SubTasks: { type: [SubTaskSchema], default: [] },
 
         // Gamification
-        XPReward: { type: Number, default: 10 },
-        XPEarned: { type: Number, default: 0 },
-        EarlyCompletionBonus: { type: Number, default: 0 },
+        XPReward:  { type: Number, default: 10 },
+        XPEarned:  { type: Number, default: 0 },
+
+        // Attachments
+        Attachments: { type: [AttachmentSchema], default: [] },
 
         // Completion
         CompletedAt: { type: Date },
-        CompletedEarly: { type: Boolean, default: false },
-
-        // AI-generated flag
-        AIGenerated: { type: Boolean, default: false },
-        AIPrompt: { type: String },
-
-        // Linked goal
-        GoalID: { type: String },
-
-        // Attachments (CDN URLs)
-        Attachments: { type: [String], default: [] },
-
-        // Notes (OCR / manual)
-        Notes: { type: String, trim: true },
-
-        // Sort order (for drag-drop)
-        SortOrder: { type: Number, default: 0 },
-
-        // Soft delete
-        Archived: { type: Boolean, default: false },
-        ArchivedAt: { type: Date },
     },
     { timestamps: true }
 );
 
 ProductivityTask_Schema.index({ UserID: 1, Status: 1 });
 ProductivityTask_Schema.index({ UserID: 1, DueDate: 1 });
-ProductivityTask_Schema.index({ UserID: 1, Category: 1 });
 ProductivityTask_Schema.index({ UserID: 1, Priority: 1 });
 ProductivityTask_Schema.index(
     { Title: "text", Description: "text", Tags: "text" },
     { weights: { Title: 10, Tags: 5, Description: 1 } }
 );
 
+export interface ITaskAttachment {
+    AssetID:    string;
+    URL:        string;
+    FileName:   string;
+    FileType:   string;
+    FileSize:   number;
+    UploadedAt: Date;
+}
+
 export interface IProductivityTask extends mongoose.Document {
-    TaskID: string;
-    UserID: string;
-    Title: string;
+    TaskID:      string;
+    UserID:      string;
+    Title:       string;
     Description?: string;
-    Category: TaskCategory;
-    Tags: string[];
-    Status: TaskStatus;
-    Priority: TaskPriority;
-    DueDate?: Date;
-    StartDate?: Date;
-    ReminderAt?: Date;
-    Repeat: RepeatType;
-    RepeatInterval: number;
-    RepeatDaysOfWeek: number[];
-    SubTasks: Array<{
-        id: string;
-        text: string;
-        completed: boolean;
-        completedAt?: Date;
-    }>;
-    XPReward: number;
-    XPEarned: number;
-    EarlyCompletionBonus: number;
+    Category:    TaskCategory;
+    Tags:        string[];
+    Status:      TaskStatus;
+    Priority:    TaskPriority;
+    DueDate?:    Date;
+    XPReward:    number;
+    XPEarned:    number;
+    Attachments: ITaskAttachment[];
     CompletedAt?: Date;
-    CompletedEarly: boolean;
-    AIGenerated: boolean;
-    AIPrompt?: string;
-    GoalID?: string;
-    Attachments: string[];
-    Notes?: string;
-    SortOrder: number;
-    Archived: boolean;
-    ArchivedAt?: Date;
-    createdAt: Date;
-    updatedAt: Date;
+    createdAt:   Date;
+    updatedAt:   Date;
 }
 
 export const ProductivityTask: mongoose.Model<IProductivityTask> =

@@ -31,7 +31,10 @@ import {
     Security,
     Tag,
     DescriptionOutlined,
-    Palette
+    Palette,
+    Instagram,
+    ChecklistRtl,
+    Rocket
 } from "@mui/icons-material";
 import type { ToolDefinition, ToolBadge } from "@/Static/ToolsDashboard";
 

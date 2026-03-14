@@ -326,29 +326,6 @@ export const TOOLS: ToolDefinition[] = [
         syncToDb: false,
         shortcut: "G"
     },
-    // ── Productivity ─────────────────────────────────────────────────────────
-    {
-        id: "productivity",
-        name: "Productivity Hub",
-        description: "Gamified tasks, habits, goals and reminders with AI assistance",
-        longDescription:
-            "All-in-one productivity system with gamification. Complete tasks to earn XP, track daily habits with streak counters, set short & long-term goals with milestones, and schedule reminders. AI-powered creation and intelligent search via GitHub Models, Google Gemini, or Perplexity.",
-        category: "dev-tools",
-        iconName: "Rocket",
-        accentColor: "#AF52DE",
-        route: "/tools/productivity",
-        badges: ["new", "featured", "db-sync", "admin-managed"],
-        isPublic: false,
-        adminManaged: true,
-        syncToDb: true,
-        shortcut: "P",
-        modes: [
-            { label: "Tasks", route: "/tools/productivity/tasks" },
-            { label: "Habits", route: "/tools/productivity/habits" },
-            { label: "Goals", route: "/tools/productivity/goals" },
-            { label: "Reminders", route: "/tools/productivity/reminders" },
-        ],
-    },
 ];
 
 /** Returns tools grouped by category (preserving TOOL_CATEGORIES order) */

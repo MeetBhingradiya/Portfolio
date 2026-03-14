@@ -1,7 +1,7 @@
 /**
- * GET    /api/productivity/habits/[id]          – get habit
- * PUT    /api/productivity/habits/[id]          – update habit
- * DELETE /api/productivity/habits/[id]          – delete habit
+ * GET    /api/productivity/habits/[id]   – get habit
+ * PUT    /api/productivity/habits/[id]   – update habit
+ * DELETE /api/productivity/habits/[id]   – delete habit
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
@@ -15,18 +15,14 @@ export async function GET(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id } = await params;
-        const habit = await ProductivityHabit.findOne({
-            HabitID: id,
-            UserID: user.userId,
-        }).lean();
+        const { id }  = await params;
+        const habit   = await ProductivityHabit.findOne({ HabitID: id, UserID: user.userId }).lean();
 
         if (!habit) return NextResponse.json({ success: false, error: "Habit not found" }, { status: 404 });
-
         return NextResponse.json({ success: true, data: habit });
     } catch (err) {
         console.error("GET /api/productivity/habits/[id]:", err);
@@ -40,18 +36,18 @@ export async function PUT(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const body = await req.json();
+        const body   = await req.json();
 
         const allowed = [
             "Title", "Description", "Category", "Difficulty", "Emoji", "Color",
-            "Frequency", "FrequencyDays", "FrequencyTimesPerPeriod",
-            "TargetValue", "TargetUnit", "GoalID", "ReminderEnabled", "ReminderTime",
-            "StartDate", "EndDate", "SortOrder", "IsActive", "Archived",
+            "Frequency", "FrequencyDays",
+            "ReminderEnabled", "ReminderTime", "StartDate", "EndDate",
+            "IsActive", "Archived",
         ];
 
         const update: Record<string, unknown> = {};
@@ -66,7 +62,6 @@ export async function PUT(
         ).lean();
 
         if (!updated) return NextResponse.json({ success: false, error: "Habit not found" }, { status: 404 });
-
         return NextResponse.json({ success: true, data: updated });
     } catch (err) {
         console.error("PUT /api/productivity/habits/[id]:", err);
@@ -80,18 +75,14 @@ export async function DELETE(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id } = await params;
-        const deleted = await ProductivityHabit.findOneAndDelete({
-            HabitID: id,
-            UserID: user.userId,
-        });
+        const { id }   = await params;
+        const deleted  = await ProductivityHabit.findOneAndDelete({ HabitID: id, UserID: user.userId });
 
         if (!deleted) return NextResponse.json({ success: false, error: "Habit not found" }, { status: 404 });
-
         return NextResponse.json({ success: true, message: "Habit deleted" });
     } catch (err) {
         console.error("DELETE /api/productivity/habits/[id]:", err);

@@ -8,17 +8,11 @@ import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
 import {
     ProductivityGoal,
-    GoalType,
     GoalStatus,
     GoalCategory,
     GOAL_XP,
 } from "@Models/ProductivityGoal";
-import {
-    UserProductivityStats,
-    getOrCreateStats,
-    computeLevel,
-    ACHIEVEMENTS,
-} from "@Models/UserProductivityStats";
+import { UserProductivityStats, getOrCreateStats } from "@Models/UserProductivityStats";
 
 export async function GET(req: NextRequest) {
     try {
@@ -27,16 +21,14 @@ export async function GET(req: NextRequest) {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const q = req.nextUrl.searchParams;
-        const type = q.get("type");
-        const status = q.get("status");
+        const q        = req.nextUrl.searchParams;
+        const status   = q.get("status");
         const category = q.get("category");
         const archived = q.get("archived") === "true";
 
         const query: Record<string, unknown> = { UserID: user.userId, Archived: archived };
 
-        if (type) query.Type = type;
-        if (status) query.Status = status;
+        if (status)   query.Status   = status;
         if (category) query.Category = category;
 
         const goals = await ProductivityGoal.find(query)
@@ -61,90 +53,56 @@ export async function POST(req: NextRequest) {
         const {
             Title,
             Description,
-            Category = GoalCategory.OTHER,
-            Emoji = "🎯",
-            Color = "#AF52DE",
-            Type = GoalType.SHORT_TERM,
+            Category           = GoalCategory.OTHER,
+            Emoji              = "🎯",
+            Color              = "#AF52DE",
             StartDate,
             TargetDate,
-            ProgressType = "PERCENTAGE",
-            ProgressTarget = 100,
-            ProgressUnit,
-            Milestones = [],
-            Motivation,
-            Tags = [],
-            IsPublic = false,
-            AIGenerated = false,
-            AIPrompt,
+            LinkedTaskIDs      = [],
+            LinkedHabitIDs     = [],
+            LinkedReminderIDs  = [],
+            Tags               = [],
         } = body;
 
         if (!Title?.trim()) {
             return NextResponse.json({ success: false, error: "Title is required" }, { status: 400 });
         }
 
-        const xpReward = GOAL_XP[Type as GoalType] ?? GOAL_XP[GoalType.SHORT_TERM];
-
         const goal = await ProductivityGoal.create({
-            UserID: user.userId,
-            Title: Title.trim(),
-            Description: Description?.trim(),
+            UserID:            user.userId,
+            Title:             Title.trim(),
+            Description:       Description?.trim(),
             Category,
             Emoji,
             Color,
-            Type,
-            Status: GoalStatus.NOT_STARTED,
-            StartDate: StartDate ? new Date(StartDate) : new Date(),
-            TargetDate: TargetDate ? new Date(TargetDate) : undefined,
-            ProgressType,
-            ProgressTarget,
-            ProgressUnit: ProgressUnit?.trim(),
-            Milestones: Milestones.map((m: { Title: string; Description?: string; TargetDate?: string; XPReward?: number }, i: number) => ({
-                id: crypto.randomUUID(),
-                Title: m.Title,
-                Description: m.Description,
-                TargetDate: m.TargetDate ? new Date(m.TargetDate) : undefined,
-                XPReward: m.XPReward ?? 25,
-                SortOrder: i,
-            })),
-            Motivation: Motivation?.trim(),
-            XPReward: xpReward,
+            Status:            GoalStatus.NOT_STARTED,
+            StartDate:         StartDate ? new Date(StartDate) : new Date(),
+            TargetDate:        TargetDate ? new Date(TargetDate) : undefined,
+            LinkedTaskIDs,
+            LinkedHabitIDs,
+            LinkedReminderIDs,
+            XPReward:          GOAL_XP,
             Tags,
-            IsPublic,
-            AIGenerated,
-            AIPrompt,
         });
 
-        // Update stats
+        // Track stats / first-goal achievement
         const stats = await getOrCreateStats(user.userId);
-        const newGoalCount = stats.TotalGoalsCreated + 1;
-        const earnedIds = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
-
-        const updates: Record<string, unknown> = {};
-        const newAchievements: { id: string; EarnedAt: Date; XPAwarded: number }[] = [];
-        let bonusXP = 0;
-
-        if (!earnedIds.has("first_goal")) {
-            newAchievements.push({ id: "first_goal", EarnedAt: new Date(), XPAwarded: 25 });
-            bonusXP += 25;
-        }
+        const isFirst = stats.TotalGoalsCreated === 0;
 
         await UserProductivityStats.updateOne(
             { UserID: user.userId },
             {
-                $set: { TotalGoalsCreated: newGoalCount },
-                $inc: { TotalXP: bonusXP },
-                ...(newAchievements.length > 0
+                $inc: { TotalGoalsCreated: 1, ...(isFirst ? { TotalXP: 25 } : {}) },
+                ...(isFirst
                     ? {
                         $push: {
-                            EarnedAchievements: { $each: newAchievements },
+                            EarnedAchievements: { id: "first_goal", EarnedAt: new Date(), XPAwarded: 25 },
                             XPHistory: {
-                                $each: newAchievements.map((a) => ({
-                                    Amount: a.XPAwarded,
-                                    Reason: `Achievement: Dream Big`,
-                                    Source: "achievement",
-                                    SourceID: a.id,
-                                    EarnedAt: new Date(),
-                                })),
+                                Amount: 25,
+                                Reason: "Achievement: Dream Big",
+                                Source: "achievement",
+                                SourceID: "first_goal",
+                                EarnedAt: new Date(),
                             },
                         },
                     }

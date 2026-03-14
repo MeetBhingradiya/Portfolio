@@ -1,51 +1,50 @@
 /**
  * ProductivityReminder Mongoose Model
- * Scheduled reminders with repeat options and notification support.
+ * An extension of a Task — adds a scheduled fire time and notification
+ * channels. Can optionally be linked to an existing Task.
+ *
+ * Repeat options mirror Habit frequency (daily / weekly / monthly / yearly).
  */
 
 import mongoose from "mongoose";
 import { v4 } from "uuid";
 
-// ─── Enums ───────────────────────────────────────────────────────────────────
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
 export enum ReminderRepeat {
-    NONE = "NONE",
-    DAILY = "DAILY",
-    WEEKDAYS = "WEEKDAYS",  // Mon–Fri
-    WEEKENDS = "WEEKENDS",  // Sat–Sun
-    WEEKLY = "WEEKLY",
-    BIWEEKLY = "BIWEEKLY",
+    NONE    = "NONE",
+    DAILY   = "DAILY",
+    WEEKLY  = "WEEKLY",
     MONTHLY = "MONTHLY",
-    YEARLY = "YEARLY",
-    CUSTOM = "CUSTOM",
+    YEARLY  = "YEARLY",
 }
 
 export enum ReminderStatus {
-    ACTIVE = "ACTIVE",
-    SNOOZED = "SNOOZED",
+    ACTIVE    = "ACTIVE",
+    SNOOZED   = "SNOOZED",
     DISMISSED = "DISMISSED",
-    COMPLETED = "COMPLETED",
 }
 
 export enum ReminderPriority {
-    LOW = "LOW",
-    NORMAL = "NORMAL",
-    HIGH = "HIGH",
+    LOW      = "LOW",
+    NORMAL   = "NORMAL",
+    HIGH     = "HIGH",
     CRITICAL = "CRITICAL",
 }
 
-// ─── Schema ──────────────────────────────────────────────────────────────────
+// ─── Schema ───────────────────────────────────────────────────────────────────
 
 const ProductivityReminder_Schema = new mongoose.Schema(
     {
         ReminderID: { type: String, default: v4, unique: true, index: true },
-        UserID: { type: String, required: true, index: true },
+        UserID:     { type: String, required: true, index: true },
 
-        // Content
-        Title: { type: String, required: true, trim: true, maxlength: 500 },
+        // Content (own title/description — reminders may be standalone or linked)
+        Title:       { type: String, required: true, trim: true, maxlength: 500 },
         Description: { type: String, trim: true, maxlength: 2000 },
-        Emoji: { type: String, default: "🔔" },
-        Color: { type: String, default: "#FF9500" },
+
+        // Optional link to a Task this reminder belongs to
+        LinkedTaskID: { type: String },
 
         // Scheduling
         ScheduledAt: { type: Date, required: true },
@@ -54,8 +53,8 @@ const ProductivityReminder_Schema = new mongoose.Schema(
             enum: Object.values(ReminderRepeat),
             default: ReminderRepeat.NONE,
         },
-        RepeatDaysOfWeek: { type: [Number], default: [] }, // 0=Sun…6=Sat (for CUSTOM)
-        RepeatEndDate: { type: Date }, // When to stop repeating
+        // Which days of the week to repeat (0=Sun…6=Sat); used when Repeat=WEEKLY
+        RepeatDaysOfWeek: { type: [Number], default: [] },
 
         // Status
         Status: {
@@ -71,20 +70,8 @@ const ProductivityReminder_Schema = new mongoose.Schema(
 
         // Snooze
         SnoozedUntil: { type: Date },
-        SnoozeCount: { type: Number, default: 0 },
 
-        // Fired tracking
-        LastFiredAt: { type: Date },
-        NextFireAt: { type: Date },
-        FireCount: { type: Number, default: 0 },
-
-        // Linked items
-        LinkedTaskID: { type: String },
-        LinkedHabitID: { type: String },
-        LinkedGoalID: { type: String },
-
-        // Notification
-        NotificationSent: { type: Boolean, default: false },
+        // Notification channels
         NotificationChannels: {
             type: [String],
             default: ["browser"],
@@ -94,7 +81,7 @@ const ProductivityReminder_Schema = new mongoose.Schema(
         // Tags
         Tags: { type: [String], default: [] },
 
-        // Archived
+        // Soft delete
         Archived: { type: Boolean, default: false },
     },
     { timestamps: true }
@@ -102,35 +89,24 @@ const ProductivityReminder_Schema = new mongoose.Schema(
 
 ProductivityReminder_Schema.index({ UserID: 1, ScheduledAt: 1 });
 ProductivityReminder_Schema.index({ UserID: 1, Status: 1 });
-ProductivityReminder_Schema.index({ UserID: 1, NextFireAt: 1 });
 
 export interface IProductivityReminder extends mongoose.Document {
-    ReminderID: string;
-    UserID: string;
-    Title: string;
-    Description?: string;
-    Emoji: string;
-    Color: string;
-    ScheduledAt: Date;
-    Repeat: ReminderRepeat;
-    RepeatDaysOfWeek: number[];
-    RepeatEndDate?: Date;
-    Status: ReminderStatus;
-    Priority: ReminderPriority;
-    SnoozedUntil?: Date;
-    SnoozeCount: number;
-    LastFiredAt?: Date;
-    NextFireAt?: Date;
-    FireCount: number;
-    LinkedTaskID?: string;
-    LinkedHabitID?: string;
-    LinkedGoalID?: string;
-    NotificationSent: boolean;
+    ReminderID:           string;
+    UserID:               string;
+    Title:                string;
+    Description?:         string;
+    LinkedTaskID?:        string;
+    ScheduledAt:          Date;
+    Repeat:               ReminderRepeat;
+    RepeatDaysOfWeek:     number[];
+    Status:               ReminderStatus;
+    Priority:             ReminderPriority;
+    SnoozedUntil?:        Date;
     NotificationChannels: string[];
-    Tags: string[];
-    Archived: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    Tags:                 string[];
+    Archived:             boolean;
+    createdAt:            Date;
+    updatedAt:            Date;
 }
 
 export const ProductivityReminder: mongoose.Model<IProductivityReminder> =

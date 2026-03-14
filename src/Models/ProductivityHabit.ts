@@ -1,71 +1,73 @@
 /**
  * ProductivityHabit Mongoose Model
- * Habit tracking with streak computation, frequency configuration, and XP rewards.
+ * Repetitive task with streak tracking and optional notification.
+ * Frequency set by the user: daily / weekly / monthly / yearly.
+ * Completing a habit earns XP; streaks award milestone bonuses.
  */
 
 import mongoose from "mongoose";
 import { v4 } from "uuid";
 
-// ─── Enums ───────────────────────────────────────────────────────────────────
+// ─── Enums ────────────────────────────────────────────────────────────────────
 
 export enum HabitFrequency {
-    DAILY = "DAILY",
-    WEEKLY = "WEEKLY",
+    DAILY   = "DAILY",
+    WEEKLY  = "WEEKLY",
     MONTHLY = "MONTHLY",
-    CUSTOM = "CUSTOM",
+    YEARLY  = "YEARLY",
 }
 
 export enum HabitCategory {
-    HEALTH = "HEALTH",
-    FITNESS = "FITNESS",
+    HEALTH      = "HEALTH",
+    FITNESS     = "FITNESS",
     MINDFULNESS = "MINDFULNESS",
-    LEARNING = "LEARNING",
+    LEARNING    = "LEARNING",
     PRODUCTIVITY = "PRODUCTIVITY",
-    SOCIAL = "SOCIAL",
-    FINANCE = "FINANCE",
-    CREATIVITY = "CREATIVITY",
-    OTHER = "OTHER",
+    SOCIAL      = "SOCIAL",
+    FINANCE     = "FINANCE",
+    CREATIVITY  = "CREATIVITY",
+    OTHER       = "OTHER",
 }
 
 export enum HabitDifficulty {
-    EASY = "EASY",
+    EASY   = "EASY",
     MEDIUM = "MEDIUM",
-    HARD = "HARD",
+    HARD   = "HARD",
 }
 
-// ─── XP per difficulty ───────────────────────────────────────────────────────
+// ─── XP per difficulty + streak milestones ────────────────────────────────────
 
 export const HABIT_XP = {
-    [HabitDifficulty.EASY]: 5,
+    [HabitDifficulty.EASY]:   5,
     [HabitDifficulty.MEDIUM]: 10,
-    [HabitDifficulty.HARD]: 20,
-    STREAK_7_BONUS: 25,
-    STREAK_30_BONUS: 100,
+    [HabitDifficulty.HARD]:   20,
+    STREAK_7_BONUS:   25,
+    STREAK_30_BONUS:  100,
     STREAK_100_BONUS: 500,
 } as const;
 
-// ─── Sub-schemas ─────────────────────────────────────────────────────────────
+// ─── Sub-schemas ──────────────────────────────────────────────────────────────
 
-/** One day's completion record */
+/** One period's completion record */
 const CompletionRecordSchema = new mongoose.Schema(
     {
-        Date: { type: String, required: true }, // ISO date string YYYY-MM-DD
+        Date:        { type: String, required: true }, // ISO date YYYY-MM-DD
         CompletedAt: { type: Date },
-        Note: { type: String, trim: true },
-        XPAwarded: { type: Number, default: 0 },
+        Note:        { type: String, trim: true },
+        XPAwarded:   { type: Number, default: 0 },
     },
     { _id: false }
 );
 
-// ─── Schema ──────────────────────────────────────────────────────────────────
+// ─── Schema ───────────────────────────────────────────────────────────────────
 
 const ProductivityHabit_Schema = new mongoose.Schema(
     {
         HabitID: { type: String, default: v4, unique: true, index: true },
-        UserID: { type: String, required: true, index: true },
+        UserID:  { type: String, required: true, index: true },
 
         // Content
-        Title: { type: String, required: true, trim: true, maxlength: 300 },
+        Title:       { type: String, required: true, trim: true, maxlength: 300 },
         Description: { type: String, trim: true, maxlength: 2000 },
         Category: {
             type: String,
@@ -80,50 +82,37 @@ const ProductivityHabit_Schema = new mongoose.Schema(
         Emoji: { type: String, default: "✅" },
         Color: { type: String, default: "#5E97F6" },
 
-        // Frequency configuration
+        // Frequency — how often the habit must be performed
         Frequency: {
             type: String,
             enum: Object.values(HabitFrequency),
             default: HabitFrequency.DAILY,
         },
-        FrequencyDays: { type: [Number], default: [0, 1, 2, 3, 4, 5, 6] }, // 0=Sun…6=Sat
-        FrequencyTimesPerPeriod: { type: Number, default: 1 }, // e.g. 3 times per week
-
-        // Target (optional)
-        TargetValue: { type: Number }, // e.g. 8 (glasses of water)
-        TargetUnit: { type: String, trim: true }, // e.g. "glasses"
+        // Which days of the week (0=Sun…6=Sat) — relevant when Frequency=WEEKLY
+        FrequencyDays: { type: [Number], default: [0, 1, 2, 3, 4, 5, 6] },
 
         // Streak tracking
-        CurrentStreak: { type: Number, default: 0 },
-        LongestStreak: { type: Number, default: 0 },
+        CurrentStreak:     { type: Number, default: 0 },
+        LongestStreak:     { type: Number, default: 0 },
         LastCompletedDate: { type: String }, // YYYY-MM-DD
 
-        // Completion history (last 365 days)
+        // Completion history (last 365 periods)
         CompletionHistory: { type: [CompletionRecordSchema], default: [] },
 
         // Gamification
-        TotalXPEarned: { type: Number, default: 0 },
+        TotalXPEarned:    { type: Number, default: 0 },
         TotalCompletions: { type: Number, default: 0 },
 
-        // AI-generated flag
-        AIGenerated: { type: Boolean, default: false },
-
-        // Linked goal
-        GoalID: { type: String },
+        // Notification
+        ReminderEnabled: { type: Boolean, default: false },
+        ReminderTime:    { type: String }, // HH:MM
 
         // Status
-        IsActive: { type: Boolean, default: true },
+        IsActive:  { type: Boolean, default: true },
         StartDate: { type: String }, // YYYY-MM-DD
-        EndDate: { type: String }, // YYYY-MM-DD (optional)
+        EndDate:   { type: String }, // YYYY-MM-DD (optional)
 
-        // Reminders
-        ReminderEnabled: { type: Boolean, default: false },
-        ReminderTime: { type: String }, // HH:MM
-
-        // Sort order
-        SortOrder: { type: Number, default: 0 },
-
-        // Archived
+        // Soft delete
         Archived: { type: Boolean, default: false },
     },
     { timestamps: true }
@@ -134,43 +123,37 @@ ProductivityHabit_Schema.index({ UserID: 1, Category: 1 });
 ProductivityHabit_Schema.index({ UserID: 1, CurrentStreak: -1 });
 
 export interface ICompletionRecord {
-    Date: string;
+    Date:        string;
     CompletedAt?: Date;
-    Note?: string;
-    XPAwarded: number;
+    Note?:       string;
+    XPAwarded:   number;
 }
 
 export interface IProductivityHabit extends mongoose.Document {
-    HabitID: string;
-    UserID: string;
-    Title: string;
-    Description?: string;
-    Category: HabitCategory;
-    Difficulty: HabitDifficulty;
-    Emoji: string;
-    Color: string;
-    Frequency: HabitFrequency;
-    FrequencyDays: number[];
-    FrequencyTimesPerPeriod: number;
-    TargetValue?: number;
-    TargetUnit?: string;
-    CurrentStreak: number;
-    LongestStreak: number;
+    HabitID:           string;
+    UserID:            string;
+    Title:             string;
+    Description?:      string;
+    Category:          HabitCategory;
+    Difficulty:        HabitDifficulty;
+    Emoji:             string;
+    Color:             string;
+    Frequency:         HabitFrequency;
+    FrequencyDays:     number[];
+    CurrentStreak:     number;
+    LongestStreak:     number;
     LastCompletedDate?: string;
     CompletionHistory: ICompletionRecord[];
-    TotalXPEarned: number;
-    TotalCompletions: number;
-    AIGenerated: boolean;
-    GoalID?: string;
-    IsActive: boolean;
-    StartDate?: string;
-    EndDate?: string;
-    ReminderEnabled: boolean;
-    ReminderTime?: string;
-    SortOrder: number;
-    Archived: boolean;
-    createdAt: Date;
-    updatedAt: Date;
+    TotalXPEarned:     number;
+    TotalCompletions:  number;
+    ReminderEnabled:   boolean;
+    ReminderTime?:     string;
+    IsActive:          boolean;
+    StartDate?:        string;
+    EndDate?:          string;
+    Archived:          boolean;
+    createdAt:         Date;
+    updatedAt:         Date;
 }
 
 export const ProductivityHabit: mongoose.Model<IProductivityHabit> =

@@ -1,19 +1,13 @@
 /**
  * GET    /api/productivity/goals/[id]   – get goal
- * PUT    /api/productivity/goals/[id]   – update goal (progress, milestones, status)
+ * PUT    /api/productivity/goals/[id]   – update goal (status, linked items)
  * DELETE /api/productivity/goals/[id]   – delete goal
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
-import {
-    ProductivityGoal,
-    GoalStatus,
-    GoalType,
-    MilestoneStatus,
-    GOAL_XP,
-} from "@Models/ProductivityGoal";
+import { ProductivityGoal, GoalStatus, GOAL_XP } from "@Models/ProductivityGoal";
 import {
     UserProductivityStats,
     getOrCreateStats,
@@ -27,12 +21,12 @@ export async function GET(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const goal = await ProductivityGoal.findOne({ GoalID: id, UserID: user.userId }).lean();
+        const goal   = await ProductivityGoal.findOne({ GoalID: id, UserID: user.userId }).lean();
         if (!goal) return NextResponse.json({ success: false, error: "Goal not found" }, { status: 404 });
 
         return NextResponse.json({ success: true, data: goal });
@@ -48,106 +42,57 @@ export async function PUT(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const body = await req.json();
+        const body   = await req.json();
 
         const goal = await ProductivityGoal.findOne({ GoalID: id, UserID: user.userId });
         if (!goal) return NextResponse.json({ success: false, error: "Goal not found" }, { status: 404 });
 
-        const wasCompleted = goal.Status === GoalStatus.COMPLETED;
+        const wasCompleted    = goal.Status === GoalStatus.COMPLETED;
         const isCompletingNow = !wasCompleted && body.Status === GoalStatus.COMPLETED;
 
         const allowed = [
-            "Title", "Description", "Category", "Emoji", "Color", "Type", "Status",
-            "StartDate", "TargetDate", "ProgressType", "ProgressTarget",
-            "ProgressCurrent", "ProgressUnit", "Motivation", "Tags",
-            "IsPublic", "Archived", "LinkedTaskIDs", "LinkedHabitIDs",
+            "Title", "Description", "Category", "Emoji", "Color", "Status",
+            "StartDate", "TargetDate", "Tags", "Archived",
+            "LinkedTaskIDs", "LinkedHabitIDs", "LinkedReminderIDs",
         ];
 
         const update: Record<string, unknown> = {};
         for (const key of allowed) {
             if (key in body) {
-                if ((key === "StartDate" || key === "TargetDate") && body[key]) {
-                    update[key] = new Date(body[key] as string);
-                } else {
-                    update[key] = body[key];
-                }
+                update[key] = (["StartDate", "TargetDate"].includes(key) && body[key])
+                    ? new Date(body[key] as string)
+                    : body[key];
             }
         }
 
-        // Handle progress update
-        if ("ProgressCurrent" in body) {
-            const newProgress = Math.min(body.ProgressCurrent as number, goal.ProgressTarget);
-            update.ProgressCurrent = newProgress;
-
-            if (newProgress > 0 && goal.Status === GoalStatus.NOT_STARTED) {
-                update.Status = GoalStatus.IN_PROGRESS;
-            }
-
-            // Auto-complete if 100%
-            if (newProgress >= goal.ProgressTarget && !wasCompleted) {
-                update.Status = GoalStatus.COMPLETED;
-                update.CompletedAt = new Date();
-                const isEarly = goal.TargetDate && new Date() < goal.TargetDate;
-                update.CompletedEarly = isEarly ?? false;
-                update.XPEarned = goal.XPReward + (isEarly ? GOAL_XP.EARLY_COMPLETION_BONUS : 0);
-            }
-
-            // Add to progress history
-            update.ProgressHistory = [
-                ...goal.ProgressHistory,
-                { Date: new Date(), Value: newProgress, Note: body.progressNote },
-            ].slice(-365);
+        // Auto-set IN_PROGRESS when linked items are added for the first time
+        if (
+            (body.LinkedTaskIDs?.length || body.LinkedHabitIDs?.length || body.LinkedReminderIDs?.length) &&
+            goal.Status === GoalStatus.NOT_STARTED
+        ) {
+            update.Status = GoalStatus.IN_PROGRESS;
         }
 
-        // Handle milestone update
-        if (body.milestoneId && body.milestoneStatus) {
-            const milestones = goal.Milestones.map((m) => {
-                if (m.id === body.milestoneId) {
-                    return {
-                        ...m.toObject(),
-                        Status: body.milestoneStatus,
-                        CompletedAt:
-                            body.milestoneStatus === MilestoneStatus.COMPLETED
-                                ? new Date()
-                                : undefined,
-                    };
-                }
-                return m.toObject();
-            });
-            update.Milestones = milestones;
-        }
-
-        // Handle explicit completion
+        // Handle completion
         if (isCompletingNow) {
-            const now = new Date();
-            update.CompletedAt = now;
-            const isEarly = goal.TargetDate ? now < goal.TargetDate : false;
-            update.CompletedEarly = isEarly;
-            const xpReward = goal.XPReward + (isEarly ? GOAL_XP.EARLY_COMPLETION_BONUS : 0);
-            update.XPEarned = xpReward;
-            update.ProgressCurrent = goal.ProgressTarget;
+            update.CompletedAt = new Date();
+            update.XPEarned    = GOAL_XP;
 
-            // Award XP
-            const stats = await getOrCreateStats(user.userId);
-            const newXP = stats.TotalXP + xpReward;
-            const levelInfo = computeLevel(newXP);
-
-            const earnedIds = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
+            const stats             = await getOrCreateStats(user.userId);
+            const newXP             = stats.TotalXP + GOAL_XP;
+            const levelInfo         = computeLevel(newXP);
+            const earnedIds         = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
             const newGoalsCompleted = stats.TotalGoalsCompleted + 1;
+
             const newAchievements: { id: string; EarnedAt: Date; XPAwarded: number }[] = [];
             let bonusXP = 0;
 
-            const checks: Record<string, boolean> = {
-                short_goal_done: goal.Type === GoalType.SHORT_TERM,
-                long_goal_done: goal.Type === GoalType.LONG_TERM,
-                goals_5: newGoalsCompleted >= 5,
-            };
-
+            const checks: Record<string, boolean> = { goals_5: newGoalsCompleted >= 5 };
             for (const ach of ACHIEVEMENTS) {
                 if (earnedIds.has(ach.id) || !(ach.id in checks)) continue;
                 if (checks[ach.id]) {
@@ -156,7 +101,7 @@ export async function PUT(
                 }
             }
 
-            const finalXP = newXP + bonusXP;
+            const finalXP    = newXP + bonusXP;
             const finalLevel = computeLevel(finalXP);
 
             await UserProductivityStats.updateOne(
@@ -168,18 +113,13 @@ export async function PUT(
                         XPHistory: {
                             $each: [
                                 {
-                                    Amount: xpReward,
-                                    Reason: `Goal completed: ${goal.Title}`,
-                                    Source: "goal",
-                                    SourceID: id,
-                                    EarnedAt: new Date(),
+                                    Amount: GOAL_XP, Reason: `Goal completed: ${goal.Title}`,
+                                    Source: "goal", SourceID: id, EarnedAt: new Date(),
                                 },
                                 ...newAchievements.map((a) => ({
                                     Amount: a.XPAwarded,
                                     Reason: `Achievement: ${ACHIEVEMENTS.find((x) => x.id === a.id)?.title ?? a.id}`,
-                                    Source: "achievement" as const,
-                                    SourceID: a.id,
-                                    EarnedAt: new Date(),
+                                    Source: "achievement" as const, SourceID: a.id, EarnedAt: new Date(),
                                 })),
                             ],
                             $slice: -500,
@@ -210,11 +150,11 @@ export async function DELETE(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id } = await params;
+        const { id }  = await params;
         const deleted = await ProductivityGoal.findOneAndDelete({ GoalID: id, UserID: user.userId });
         if (!deleted) return NextResponse.json({ success: false, error: "Goal not found" }, { status: 404 });
 

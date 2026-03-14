@@ -117,6 +117,8 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
     { id: "daily_streak_3", title: "Consistent", description: "Use the app 3 days in a row", emoji: "🔄", xpReward: 30 },
     { id: "daily_streak_7", title: "Weekly Regular", description: "Use the app 7 days in a row", emoji: "📆", xpReward: 70 },
     { id: "daily_streak_30", title: "Dedicated", description: "Use the app 30 days in a row", emoji: "🔑", xpReward: 250 },
+    { id: "daily_streak_60", title: "Committed", description: "Use the app 60 days in a row", emoji: "🏅", xpReward: 500 },
+    { id: "daily_streak_100", title: "Unbreakable", description: "Use the app 100 days in a row", emoji: "🏆", xpReward: 1000 },
 
     // Level achievements
     { id: "level_5", title: "Rising Star", description: "Reach Level 5", emoji: "⭐", xpReward: 100 },
@@ -124,9 +126,14 @@ export const ACHIEVEMENTS: AchievementDefinition[] = [
 
     // Reminder achievements
     { id: "first_reminder", title: "Never Forget", description: "Create your first reminder", emoji: "🔔", xpReward: 15 },
+    { id: "reminders_10", title: "Reminder Maker", description: "Create 10 reminders", emoji: "📢", xpReward: 50 },
+    { id: "reminders_50", title: "Reminder Master", description: "Create 50 reminders", emoji: "📣", xpReward: 200 },
+    { id: "reminders_100", title: "Reminder Emperor", description: "Create 100 reminders", emoji: "📣", xpReward: 500 },
 
     // AI achievements
     { id: "ai_task_created", title: "AI Pioneer", description: "Create a task using AI", emoji: "🤖", xpReward: 20 },
+    { id: "ai_search_performed", title: "AI Explorer", description: "Perform a search using AI", emoji: "🔍", xpReward: 10 },
+
 ];
 
 // ─── Sub-schema ───────────────────────────────────────────────────────────────

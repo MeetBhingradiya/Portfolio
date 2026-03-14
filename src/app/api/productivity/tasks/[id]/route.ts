@@ -1,7 +1,13 @@
 /**
  * GET    /api/productivity/tasks/[id]   – get task
- * PUT    /api/productivity/tasks/[id]   – update task (including complete)
- * DELETE /api/productivity/tasks/[id]   – delete task
+ * PUT    /api/productivity/tasks/[id]   – update / complete / hide task
+ * DELETE /api/productivity/tasks/[id]   – hard-delete task (revokes XP)
+ *
+ * Status rules:
+ *   PENDING → COMPLETED        : award XP
+ *   COMPLETED → PENDING        : revoke XP  (only via 3-dot menu)
+ *   any → HIDDEN               : soft delete (primary delete button in UI)
+ *   DELETE method              : hard delete + revoke XP if completed
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
@@ -22,38 +28,25 @@ import {
 
 // ─── helpers ──────────────────────────────────────────────────────────────────
 
-async function awardTaskXP(
-    userId: string,
-    xp: number,
-    reason: string,
-    taskId: string
-) {
-    const stats = await getOrCreateStats(userId);
-    const newXP = stats.TotalXP + xp;
+async function awardTaskXP(userId: string, xp: number, reason: string, taskId: string) {
+    const stats    = await getOrCreateStats(userId);
+    const newXP    = stats.TotalXP + xp;
     const levelInfo = computeLevel(newXP);
 
-    const xpEntry = {
-        Amount: xp,
-        Reason: reason,
-        Source: "task" as const,
-        SourceID: taskId,
-        EarnedAt: new Date(),
-    };
+    const xpEntry = { Amount: xp, Reason: reason, Source: "task" as const, SourceID: taskId, EarnedAt: new Date() };
 
-    const earnedIds = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
+    const earnedIds    = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
     const newAchievements: { id: string; EarnedAt: Date; XPAwarded: number }[] = [];
     let bonusXP = 0;
 
     const newCompleted = stats.TotalTasksCompleted + 1;
-
     const checks: Record<string, boolean> = {
-        first_task: newCompleted >= 1,
-        tasks_10: newCompleted >= 10,
-        tasks_50: newCompleted >= 50,
-        tasks_100: newCompleted >= 100,
-        tasks_500: newCompleted >= 500,
+        first_task:  newCompleted >= 1,
+        tasks_10:    newCompleted >= 10,
+        tasks_50:    newCompleted >= 50,
+        tasks_100:   newCompleted >= 100,
+        tasks_500:   newCompleted >= 500,
         urgent_task: reason.includes("URGENT"),
-        early_task: reason.includes("early"),
     };
 
     for (const ach of ACHIEVEMENTS) {
@@ -64,17 +57,13 @@ async function awardTaskXP(
         }
     }
 
-    const finalXP = newXP + bonusXP;
+    const finalXP    = newXP + bonusXP;
     const finalLevel = computeLevel(finalXP);
 
     await UserProductivityStats.updateOne(
         { UserID: userId },
         {
-            $set: {
-                TotalXP: finalXP,
-                Level: finalLevel.level,
-                LevelTitle: finalLevel.title,
-            },
+            $set: { TotalXP: finalXP, Level: finalLevel.level, LevelTitle: finalLevel.title },
             $inc: { TotalTasksCompleted: 1 },
             $push: {
                 XPHistory: {
@@ -107,18 +96,14 @@ export async function GET(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const task = await ProductivityTask.findOne({
-            TaskID: id,
-            UserID: user.userId,
-        }).lean();
+        const task   = await ProductivityTask.findOne({ TaskID: id, UserID: user.userId }).lean();
 
         if (!task) return NextResponse.json({ success: false, error: "Task not found" }, { status: 404 });
-
         return NextResponse.json({ success: true, data: task });
     } catch (err) {
         console.error("GET /api/productivity/tasks/[id]:", err);
@@ -134,101 +119,51 @@ export async function PUT(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id } = await params;
-        const body = await req.json();
+        const { id }  = await params;
+        const body     = await req.json();
 
-        const existing = await ProductivityTask.findOne({
-            TaskID: id,
-            UserID: user.userId,
-        });
-
-        if (!existing) {
-            return NextResponse.json({ success: false, error: "Task not found" }, { status: 404 });
-        }
+        const existing = await ProductivityTask.findOne({ TaskID: id, UserID: user.userId });
+        if (!existing) return NextResponse.json({ success: false, error: "Task not found" }, { status: 404 });
 
         const wasCompleted = existing.Status === TaskStatus.COMPLETED;
-        const isCompletingNow =
-            !wasCompleted &&
-            body.Status === TaskStatus.COMPLETED;
+        const isCompletingNow = !wasCompleted && body.Status === TaskStatus.COMPLETED;
 
-        // Build update object
         const update: Record<string, unknown> = {};
-        const allowed = [
-            "Title", "Description", "Category", "Tags", "Status", "Priority",
-            "DueDate", "StartDate", "ReminderAt", "Repeat", "RepeatInterval",
-            "RepeatDaysOfWeek", "SubTasks", "GoalID", "Notes", "Attachments",
-            "SortOrder", "Archived",
-        ];
+        const allowed = ["Title", "Description", "Category", "Tags", "Status", "Priority", "DueDate", "Attachments"];
 
         for (const key of allowed) {
             if (key in body) {
-                if ((key === "DueDate" || key === "StartDate" || key === "ReminderAt") && body[key]) {
-                    update[key] = new Date(body[key] as string);
-                } else {
-                    update[key] = body[key];
-                }
+                update[key] = key === "DueDate" && body[key] ? new Date(body[key] as string) : body[key];
             }
         }
 
-        // Handle task completion
         let xpResult: { xpAwarded: number; newAchievements: { id: string; EarnedAt: Date; XPAwarded: number }[] } | null = null;
+
+        // ── completing ──────────────────────────────────────────────────────
         if (isCompletingNow) {
-            const now = new Date();
-            update.CompletedAt = now;
-
-            const isEarly =
-                existing.DueDate != null && now < existing.DueDate;
-            update.CompletedEarly = isEarly;
-
-            const baseXP = XP_REWARDS[existing.Priority as TaskPriority] ?? 10;
-            const earlyBonus = isEarly ? XP_REWARDS.EARLY_COMPLETION_BONUS : 0;
-            const totalXP = baseXP + earlyBonus;
-
-            update.XPEarned = totalXP;
-            update.EarlyCompletionBonus = earlyBonus;
-
-            const reason = [
-                `Completed task (${existing.Priority})`,
-                isEarly ? "early" : "",
-            ]
-                .filter(Boolean)
-                .join(", ");
-
-            xpResult = await awardTaskXP(user.userId, totalXP, reason, id);
+            update.CompletedAt = new Date();
+            const xp           = XP_REWARDS[existing.Priority as TaskPriority] ?? XP_REWARDS[TaskPriority.MEDIUM];
+            update.XPEarned    = xp;
+            xpResult           = await awardTaskXP(user.userId, xp, `Completed task (${existing.Priority})`, id);
         }
 
-        // Handle un-complete (re-open)
-        if (wasCompleted && body.Status && body.Status !== TaskStatus.COMPLETED) {
+        // ── un-completing (only via 3-dot menu — Status → PENDING) ──────────
+        if (wasCompleted && body.Status === TaskStatus.PENDING) {
             update.CompletedAt = undefined;
-            update.CompletedEarly = false;
-            update.XPEarned = 0;
-            update.EarlyCompletionBonus = 0;
+            update.XPEarned    = 0;
 
-            // Decrement completed count (floor at 0)
-            const stats = await getOrCreateStats(user.userId);
-            const deductXP = existing.XPEarned ?? 0;
-            const newXP = Math.max(0, stats.TotalXP - deductXP);
-            const levelInfo = computeLevel(newXP);
+            const stats  = await getOrCreateStats(user.userId);
+            const deduct = existing.XPEarned ?? 0;
+            const newXP  = Math.max(0, stats.TotalXP - deduct);
+            const lvl    = computeLevel(newXP);
 
             await UserProductivityStats.updateOne(
                 { UserID: user.userId },
-                {
-                    $set: { TotalXP: newXP, Level: levelInfo.level, LevelTitle: levelInfo.title },
-                    $inc: { TotalTasksCompleted: -1 },
-                }
-            );
-        }
-
-        // Handle cancel
-        if (!wasCompleted && body.Status === TaskStatus.CANCELLED) {
-            await UserProductivityStats.updateOne(
-                { UserID: user.userId },
-                { $inc: { TotalTasksCancelled: 1 } },
-                { upsert: true }
+                { $set: { TotalXP: newXP, Level: lvl.level, LevelTitle: lvl.title }, $inc: { TotalTasksCompleted: -1 } }
             );
         }
 
@@ -238,11 +173,7 @@ export async function PUT(
             { new: true }
         ).lean();
 
-        return NextResponse.json({
-            success: true,
-            data: updated,
-            ...(xpResult ? { xp: xpResult } : {}),
-        });
+        return NextResponse.json({ success: true, data: updated, ...(xpResult ? { xp: xpResult } : {}) });
     } catch (err) {
         console.error("PUT /api/productivity/tasks/[id]:", err);
         return NextResponse.json({ success: false, error: "Failed to update task" }, { status: 500 });
@@ -250,6 +181,7 @@ export async function PUT(
 }
 
 // ─── DELETE ───────────────────────────────────────────────────────────────────
+// Hard-delete: removes record from DB and revokes any XP earned
 
 export async function DELETE(
     _req: NextRequest,
@@ -257,18 +189,28 @@ export async function DELETE(
 ) {
     try {
         await dbConnect();
-        const h = await headers();
+        const h    = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id } = await params;
-        const deleted = await ProductivityTask.findOneAndDelete({
-            TaskID: id,
-            UserID: user.userId,
-        });
+        const { id }  = await params;
+        const deleted = await ProductivityTask.findOneAndDelete({ TaskID: id, UserID: user.userId });
 
-        if (!deleted) {
-            return NextResponse.json({ success: false, error: "Task not found" }, { status: 404 });
+        if (!deleted) return NextResponse.json({ success: false, error: "Task not found" }, { status: 404 });
+
+        // Revoke XP if the task was completed
+        if (deleted.XPEarned && deleted.XPEarned > 0) {
+            const stats  = await getOrCreateStats(user.userId);
+            const newXP  = Math.max(0, stats.TotalXP - deleted.XPEarned);
+            const lvl    = computeLevel(newXP);
+
+            await UserProductivityStats.updateOne(
+                { UserID: user.userId },
+                {
+                    $set: { TotalXP: newXP, Level: lvl.level, LevelTitle: lvl.title },
+                    $inc: { TotalTasksCompleted: -1 },
+                }
+            );
         }
 
         return NextResponse.json({ success: true, message: "Task deleted" });

@@ -17,7 +17,9 @@ const routes: { path: string; changefreq: string; priority: string }[] = [
     { path: "/experience",                           changefreq: "monthly", priority: "0.7" },
     { path: "/contact",                              changefreq: "yearly",  priority: "0.7" },
     { path: "/dashboard",                            changefreq: "weekly",  priority: "0.6" },
+    { path: "/profile",                              changefreq: "weekly",  priority: "0.6" },
     { path: "/sitemap",                              changefreq: "monthly", priority: "0.4" },
+
     // Tools
     { path: "/tools",                                changefreq: "weekly",  priority: "0.8" },
     { path: "/tools/colour",                         changefreq: "yearly",  priority: "0.5" },
@@ -33,12 +35,54 @@ const routes: { path: string; changefreq: string; priority: string }[] = [
     { path: "/tools/todo",                           changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/uuid",                           changefreq: "yearly",  priority: "0.5" },
     { path: "/tools/instagram",                      changefreq: "yearly",  priority: "0.5" },
+
+    // Productivity Tools
+    { path: "/tools/productivity",                   changefreq: "weekly",  priority: "0.7" },
+    { path: "/tools/productivity/tasks",             changefreq: "weekly",  priority: "0.6" },
+    { path: "/tools/productivity/habits",            changefreq: "weekly",  priority: "0.6" },
+    { path: "/tools/productivity/goals",             changefreq: "weekly",  priority: "0.6" },
+    { path: "/tools/productivity/reminders",         changefreq: "weekly",  priority: "0.6" },
+
+    // Trade Journal
+    { path: "/trade-journal",                        changefreq: "weekly",  priority: "0.7" },
+    { path: "/trade-journal/new",                    changefreq: "weekly",  priority: "0.6" },
+    { path: "/trade-journal/analytics",              changefreq: "weekly",  priority: "0.6" },
+
+    // Shop / Commerce
+    { path: "/shop",                                 changefreq: "weekly",  priority: "0.8" },
+    { path: "/shop/cart",                            changefreq: "weekly",  priority: "0.6" },
+    { path: "/shop/checkout",                        changefreq: "weekly",  priority: "0.6" },
+    { path: "/shop/orders",                          changefreq: "weekly",  priority: "0.6" },
+    { path: "/shop/refunds",                         changefreq: "weekly",  priority: "0.6" },
+
+    // Support
+    { path: "/support",                              changefreq: "weekly",  priority: "0.7" },
+    { path: "/support/tickets",                      changefreq: "weekly",  priority: "0.6" },
+    { path: "/support/tickets/new",                  changefreq: "weekly",  priority: "0.6" },
+
+    // Employee
+    { path: "/employee",                             changefreq: "weekly",  priority: "0.6" },
+
+    // Settings
+    { path: "/settings",                             changefreq: "monthly", priority: "0.6" },
+    { path: "/settings/profile",                     changefreq: "monthly", priority: "0.6" },
+    { path: "/settings/linked-accounts",             changefreq: "monthly", priority: "0.6" },
+    { path: "/settings/security",                    changefreq: "monthly", priority: "0.6" },
+    { path: "/settings/security/passkeys",           changefreq: "monthly", priority: "0.5" },
+    { path: "/settings/security/sessions",           changefreq: "monthly", priority: "0.5" },
+    { path: "/settings/security/two-factor",         changefreq: "monthly", priority: "0.5" },
+    { path: "/settings/cdn",                         changefreq: "monthly", priority: "0.5" },
+
     // Legal
     { path: "/privacy",                              changefreq: "yearly",  priority: "0.3" },
     { path: "/terms",                                changefreq: "yearly",  priority: "0.3" },
     { path: "/agreements/security",                  changefreq: "yearly",  priority: "0.3" },
     { path: "/agreements/covered-products-privacy",  changefreq: "yearly",  priority: "0.3" },
     { path: "/agreements/covered-products-terms",    changefreq: "yearly",  priority: "0.3" },
+
+    // System
+    { path: "/maintenance",                          changefreq: "yearly",  priority: "0.2" },
+    { path: "/immich-sso",                           changefreq: "yearly",  priority: "0.2" },
 ];
 
 export const dynamic = "force-dynamic";

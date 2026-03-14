@@ -53,7 +53,20 @@ import {
     Map,
     MenuBook,
     Code,
-    BorderColor
+    BorderColor,
+    Target,
+    BarChart,
+    Analytics,
+    ShoppingCart,
+    Payment,
+    Receipt,
+    SupportAgent,
+    ConfirmationNumber,
+    Diversity1,
+    Apps,
+    HelpOutline,
+    ToggleOn,
+    EmojiEvents
 } from "@mui/icons-material";
 
 interface SitemapLink {
@@ -129,6 +142,12 @@ const sitemapData: SitemapSection[] = [
                 description: "Personal dashboard and analytics"
             },
             {
+                label: "Profile",
+                href: "/profile",
+                icon: <Person />,
+                description: "Public profile page"
+            },
+            {
                 label: "Sitemap",
                 href: "/sitemap",
                 icon: <Map />,
@@ -137,9 +156,9 @@ const sitemapData: SitemapSection[] = [
         ]
     },
     {
-        title: "Tools",
+        title: "Developer Tools",
         icon: <Build />,
-        description: "Developer tools and utilities",
+        description: "Developer tools and utilities for coding and productivity",
         links: [
             {
                 label: "Tools Hub",
@@ -218,20 +237,150 @@ const sitemapData: SitemapSection[] = [
                 href: "/tools/uuid",
                 icon: <Tag />,
                 description: "Generate UUIDs / GUIDs"
+            },
+            {
+                label: "Instagram Tools",
+                href: "/tools/instagram",
+                icon: <Image />,
+                description: "Instagram-related utilities"
+            }
+        ]
+    },
+    {
+        title: "Productivity Suite",
+        icon: <Task />,
+        description: "Productivity management tools - tasks, habits, goals, and reminders",
+        links: [
+            {
+                label: "Productivity Hub",
+                href: "/tools/productivity",
+                icon: <Task />,
+                description: "Full productivity management suite"
+            },
+            {
+                label: "Tasks",
+                href: "/tools/productivity/tasks",
+                icon: <Task />,
+                description: "Create and manage your tasks"
+            },
+            {
+                label: "Habits",
+                href: "/tools/productivity/habits",
+                icon: <Star />,
+                description: "Build and track daily habits"
+            },
+            {
+                label: "Goals",
+                href: "/tools/productivity/goals",
+                icon: <Target />,
+                description: "Set and achieve your goals"
+            },
+            {
+                label: "Reminders",
+                href: "/tools/productivity/reminders",
+                icon: <Tune />,
+                description: "Get notified on important tasks"
+            }
+        ]
+    },
+    {
+        title: "Trade Journal",
+        icon: <BarChart />,
+        description: "Trading journal and analytics for tracking trades",
+        links: [
+            {
+                label: "Trade Journal",
+                href: "/trade-journal",
+                icon: <BarChart />,
+                description: "Your trading journal and logs"
+            },
+            {
+                label: "New Trade",
+                href: "/trade-journal/new",
+                icon: <BorderColor />,
+                description: "Log a new trade"
+            },
+            {
+                label: "Analytics",
+                href: "/trade-journal/analytics",
+                icon: <Analytics />,
+                description: "View trading analytics and statistics"
+            }
+        ]
+    },
+    {
+        title: "Shop & Commerce",
+        icon: <ShoppingBag />,
+        description: "Shop, products, orders, and checkout",
+        links: [
+            {
+                label: "Shop",
+                href: "/shop",
+                icon: <ShoppingBag />,
+                description: "Browse products and shop"
+            },
+            {
+                label: "Shopping Cart",
+                href: "/shop/cart",
+                icon: <ShoppingCart />,
+                description: "View and manage your shopping cart"
+            },
+            {
+                label: "Checkout",
+                href: "/shop/checkout",
+                icon: <Payment />,
+                description: "Complete your purchase"
+            },
+            {
+                label: "My Orders",
+                href: "/shop/orders",
+                icon: <Receipt />,
+                description: "View your order history"
+            },
+            {
+                label: "Refunds",
+                href: "/shop/refunds",
+                icon: <Refund />,
+                description: "Request or check refund status"
+            }
+        ]
+    },
+    {
+        title: "Support",
+        icon: <SupportAgent />,
+        description: "Support tickets and employee hub",
+        links: [
+            {
+                label: "Support Center",
+                href: "/support",
+                icon: <SupportAgent />,
+                description: "Get help and support"
+            },
+            {
+                label: "Support Tickets",
+                href: "/support/tickets",
+                icon: <ConfirmationNumber />,
+                description: "View and manage support tickets"
+            },
+            {
+                label: "New Ticket",
+                href: "/support/tickets/new",
+                icon: <BorderColor />,
+                description: "Create a new support ticket"
+            },
+            {
+                label: "Employee Hub",
+                href: "/employee",
+                icon: <Diversity1 />,
+                description: "Employee-only information and resources"
             }
         ]
     },
     {
         title: "Profile & Settings",
-        icon: <Person />,
+        icon: <Settings />,
         description: "Profile, settings, and account management",
         links: [
-            {
-                label: "Profile",
-                href: "/settings/profile",
-                icon: <Person />,
-                description: "Public profile page"
-            },
             {
                 label: "Settings",
                 href: "/settings",
@@ -249,6 +398,12 @@ const sitemapData: SitemapSection[] = [
                         href: "/settings/linked-accounts",
                         icon: <AccountTree />,
                         description: "Manage connected OAuth accounts"
+                    },
+                    {
+                        label: "CDN Settings",
+                        href: "/settings/cdn",
+                        icon: <CloudUpload />,
+                        description: "Configure CDN and file uploads"
                     },
                     {
                         label: "Security",
@@ -314,7 +469,7 @@ const sitemapData: SitemapSection[] = [
     {
         title: "Admin Panel",
         icon: <AdminPanelSettings />,
-        description: "Administrative management pages",
+        description: "Administrative management pages (Admin Only)",
         links: [
             {
                 label: "Admin Dashboard",
@@ -323,88 +478,196 @@ const sitemapData: SitemapSection[] = [
                 description: "Main admin control panel"
             },
             {
-                label: "Blogs",
-                href: "/admin/blogs",
+                label: "Core Management",
+                href: "#",
+                icon: <Build />,
+                description: "Manage core system features",
+                children: [
+                    {
+                        label: "Users",
+                        href: "/admin/users",
+                        icon: <Group />,
+                        description: "Manage registered users"
+                    },
+                    {
+                        label: "Roles & Permissions",
+                        href: "/admin/roles",
+                        icon: <Security />,
+                        description: "Configure roles and permissions"
+                    },
+                    {
+                        label: "Features",
+                        href: "/admin/features",
+                        icon: <ToggleOn />,
+                        description: "Manage feature flags"
+                    },
+                    {
+                        label: "Tool Settings",
+                        href: "/admin/tool-settings",
+                        icon: <Tune />,
+                        description: "Configure tool visibility and defaults"
+                    },
+                    {
+                        label: "AI Providers",
+                        href: "/admin/ai-providers",
+                        icon: <Code />,
+                        description: "Configure AI provider integrations"
+                    }
+                ]
+            },
+            {
+                label: "Content Management",
+                href: "#",
                 icon: <Article />,
-                description: "Manage blog posts"
+                description: "Manage portfolio and content",
+                children: [
+                    {
+                        label: "Blogs",
+                        href: "/admin/blogs",
+                        icon: <Article />,
+                        description: "Manage blog posts"
+                    },
+                    {
+                        label: "Projects",
+                        href: "/admin/projects",
+                        icon: <Work />,
+                        description: "Manage portfolio projects"
+                    },
+                    {
+                        label: "Skills",
+                        href: "/admin/skills",
+                        icon: <Star />,
+                        description: "Manage skills and technologies"
+                    },
+                    {
+                        label: "Education",
+                        href: "/admin/education",
+                        icon: <School />,
+                        description: "Manage education entries"
+                    },
+                    {
+                        label: "Experience",
+                        href: "/admin/experience",
+                        icon: <WorkHistory />,
+                        description: "Manage work experience entries"
+                    },
+                    {
+                        label: "Certificates",
+                        href: "/admin/certificates",
+                        icon: <Badge />,
+                        description: "Manage certificates and credentials"
+                    },
+                    {
+                        label: "Test Scores",
+                        href: "/admin/test-scores",
+                        icon: <EmojiEvents />,
+                        description: "Manage academic test scores"
+                    },
+                    {
+                        label: "Resume",
+                        href: "/admin/resume",
+                        icon: <Description />,
+                        description: "Manage resume content"
+                    },
+                    {
+                        label: "Sitemap",
+                        href: "/admin/sitemap",
+                        icon: <Map />,
+                        description: "Manage sitemap entries"
+                    }
+                ]
             },
             {
-                label: "CDN",
-                href: "/admin/cdn",
+                label: "Shop Management",
+                href: "#",
+                icon: <ShoppingBag />,
+                description: "Manage shop and orders",
+                children: [
+                    {
+                        label: "Products",
+                        href: "/admin/products",
+                        icon: <Tag />,
+                        description: "Manage shop products"
+                    },
+                    {
+                        label: "Orders",
+                        href: "/admin/orders",
+                        icon: <Receipt />,
+                        description: "View and manage orders"
+                    },
+                    {
+                        label: "Refunds",
+                        href: "/admin/refunds",
+                        icon: <Refund />,
+                        description: "Manage refund requests"
+                    },
+                    {
+                        label: "FAQ",
+                        href: "/admin/faq",
+                        icon: <HelpOutline />,
+                        description: "Manage FAQ entries"
+                    }
+                ]
+            },
+            {
+                label: "Support Management",
+                href: "#",
+                icon: <SupportAgent />,
+                description: "Manage support tickets",
+                children: [
+                    {
+                        label: "Tickets",
+                        href: "/admin/tickets",
+                        icon: <ConfirmationNumber />,
+                        description: "Manage support tickets"
+                    }
+                ]
+            },
+            {
+                label: "CDN Management",
+                href: "#",
                 icon: <CloudUpload />,
-                description: "Manage CDN assets and files"
+                description: "Manage CDN and assets",
+                children: [
+                    {
+                        label: "CDN Assets",
+                        href: "/admin/cdn",
+                        icon: <CloudUpload />,
+                        description: "Manage CDN assets and files"
+                    },
+                    {
+                        label: "CDN Requests",
+                        href: "/admin/cdn/applications",
+                        icon: <Apps />,
+                        description: "View CDN access requests"
+                    },
+                    {
+                        label: "API Keys",
+                        href: "/admin/cdn/api-keys",
+                        icon: <VpnKey />,
+                        description: "Manage CDN API keys"
+                    }
+                ]
             },
             {
-                label: "Certificates",
-                href: "/admin/certificates",
-                icon: <Badge />,
-                description: "Manage certificates and credentials"
-            },
-            {
-                label: "Education",
-                href: "/admin/education",
-                icon: <School />,
-                description: "Manage education entries"
-            },
-            {
-                label: "Experience",
-                href: "/admin/experience",
-                icon: <WorkHistory />,
-                description: "Manage work experience entries"
-            },
-            {
-                label: "Immich Access",
-                href: "/admin/immich-access",
-                icon: <PhotoCamera />,
-                description: "Manage Immich SSO access"
-            },
-            {
-                label: "Maintenance",
-                href: "/admin/maintenance",
+                label: "System Management",
+                href: "#",
                 icon: <Settings />,
-                description: "Site maintenance mode control"
-            },
-            {
-                label: "Projects",
-                href: "/admin/projects",
-                icon: <Work />,
-                description: "Manage portfolio projects"
-            },
-            {
-                label: "Resume",
-                href: "/admin/resume",
-                icon: <Description />,
-                description: "Manage resume content"
-            },
-            {
-                label: "Sitemap",
-                href: "/admin/sitemap",
-                icon: <Map />,
-                description: "Manage sitemap entries"
-            },
-            {
-                label: "Skills",
-                href: "/admin/skills",
-                icon: <Star />,
-                description: "Manage skills and technologies"
-            },
-            {
-                label: "Test Scores",
-                href: "/admin/test-scores",
-                icon: <School />,
-                description: "Manage academic test scores"
-            },
-            {
-                label: "Tool Settings",
-                href: "/admin/tool-settings",
-                icon: <Tune />,
-                description: "Configure tool visibility and defaults"
-            },
-            {
-                label: "Users",
-                href: "/admin/users",
-                icon: <Group />,
-                description: "Manage registered users"
+                description: "System maintenance and configuration",
+                children: [
+                    {
+                        label: "Maintenance",
+                        href: "/admin/maintenance",
+                        icon: <Settings />,
+                        description: "Site maintenance mode control"
+                    },
+                    {
+                        label: "Immich Access",
+                        href: "/admin/immich-access",
+                        icon: <PhotoCamera />,
+                        description: "Manage Immich SSO access"
+                    }
+                ]
             }
         ]
     },
@@ -446,7 +709,7 @@ const sitemapData: SitemapSection[] = [
         ]
     },
     {
-        title: "System",
+        title: "System Pages",
         icon: <Settings />,
         description: "System and special pages",
         links: [
@@ -461,6 +724,12 @@ const sitemapData: SitemapSection[] = [
                 href: "/immich-sso",
                 icon: <PhotoCamera />,
                 description: "Immich single sign-on integration"
+            },
+            {
+                label: "Developer CDN",
+                href: "/developer/cdn",
+                icon: <Code />,
+                description: "Developer CDN management"
             },
             {
                 label: "Sitemap XML",

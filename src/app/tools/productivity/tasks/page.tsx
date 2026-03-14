@@ -16,6 +16,7 @@ import {
     Upload, InsertDriveFile, Image, PictureAsPdf, Restore,
     KeyboardReturn,
 } from "@mui/icons-material";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -105,7 +106,7 @@ function TaskRow({
 
     return (
         <motion.div
-            className="rounded-xl overflow-hidden"
+            className="rounded-xl"
             style={{ background: cardBg, border: `1px solid ${border}`, opacity: hidden ? 0.6 : 1 }}
             layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: hidden ? 0.6 : 1, y: 0 }} exit={{ opacity: 0, height: 0 }}
         >
@@ -215,9 +216,9 @@ function TaskRow({
             <AnimatePresence>
                 {expanded && (
                     <motion.div
-                        className="px-4 pb-4 space-y-3"
-                        style={{ borderTop: `1px solid ${border}` }}
+                        className="overflow-hidden"
                         initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+                        <div className="px-4 pb-4 space-y-3" style={{ borderTop: `1px solid ${border}` }}>
 
                         {/* Mobile chips */}
                         <div className="flex flex-wrap gap-1.5 pt-3 sm:hidden">
@@ -286,6 +287,7 @@ function TaskRow({
                             Created {new Date(task.createdAt).toLocaleDateString("en", { month: "short", day: "numeric", year: "numeric" })}
                             {task.CompletedAt && ` · Completed ${new Date(task.CompletedAt).toLocaleDateString("en", { month: "short", day: "numeric" })}`}
                         </p>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -395,11 +397,11 @@ function TaskModal({
                     {/* Category */}
                     <div>
                         <p className="text-xs font-medium mb-1.5" style={{ color: palette.textSecondary }}>Category</p>
-                        <select value={category} onChange={e => setCategory(e.target.value)}
-                            className="w-full rounded-xl px-3 py-2 text-sm outline-none border"
-                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }}>
-                            {["PERSONAL","WORK","HEALTH","EDUCATION","FINANCE","SOCIAL","HOBBY","OTHER"].map(c => <option key={c} value={c}>{c}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={category}
+                            onChange={setCategory}
+                            options={["PERSONAL","WORK","HEALTH","EDUCATION","FINANCE","SOCIAL","HOBBY","OTHER"].map(c => ({ value: c, label: c }))}
+                        />
                     </div>
 
                     {/* Due date */}

@@ -207,6 +207,9 @@ const UserProductivityStats_Schema = new mongoose.Schema(
         // AI usage
         AITasksCreated: { type: Number, default: 0 },
         AISearchesPerformed: { type: Number, default: 0 },
+
+        // Reset history — dates when user wiped all their productivity data
+        ResetHistory: { type: [Date], default: [] },
     },
     { timestamps: true }
 );
@@ -249,6 +252,7 @@ export interface IUserProductivityStats extends mongoose.Document {
     XPHistory: IXPHistoryEntry[];
     AITasksCreated: number;
     AISearchesPerformed: number;
+    ResetHistory: Date[];
     createdAt: Date;
     updatedAt: Date;
 }

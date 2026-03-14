@@ -12,6 +12,7 @@ import {
     Add, LocalFireDepartment, CheckCircle, MoreVert, Delete, Edit, Close,
     Loop, Psychology, Star, Refresh,
 } from "@mui/icons-material";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -104,7 +105,7 @@ function HabitCard({
     }, [menuOpen]);
 
     return (
-        <motion.div className="rounded-2xl p-4 relative overflow-hidden"
+        <motion.div className="rounded-2xl p-4 relative"
             style={{ background: cardBg, border: `1px solid ${border}`, backdropFilter: isApple ? "blur(16px)" : "none" }}
             layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }}>
 
@@ -343,10 +344,11 @@ function HabitModal({
                     {/* Category */}
                     <div>
                         <p className="text-xs font-medium mb-1.5" style={{ color: palette.textSecondary }}>Category</p>
-                        <select value={cat} onChange={e => setCat(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm outline-none border"
-                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }}>
-                            {["HEALTH","FITNESS","MINDFULNESS","LEARNING","PRODUCTIVITY","SOCIAL","FINANCE","CREATIVITY","OTHER"].map(c => <option key={c}>{c}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={cat}
+                            onChange={setCat}
+                            options={["HEALTH","FITNESS","MINDFULNESS","LEARNING","PRODUCTIVITY","SOCIAL","FINANCE","CREATIVITY","OTHER"].map(c => ({ value: c, label: c }))}
+                        />
                     </div>
 
                     {/* Reminder */}

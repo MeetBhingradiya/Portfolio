@@ -13,6 +13,7 @@ import {
     CheckCircle, RadioButtonUnchecked, Loop, Notifications,
     CalendarToday, Psychology, EmojiEvents,
 } from "@mui/icons-material";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
@@ -103,7 +104,7 @@ function GoalCard({
     }
 
     return (
-        <motion.div className="rounded-2xl overflow-hidden"
+        <motion.div className="rounded-2xl"
             style={{ background: cardBg, border: `1px solid ${border}`, backdropFilter: isApple ? "blur(16px)" : "none" }}
             layout initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, height: 0 }}>
 
@@ -212,9 +213,9 @@ function GoalCard({
             {/* Link panel */}
             <AnimatePresence>
                 {expanded && (
-                    <motion.div className="px-4 pb-4 space-y-3"
-                        style={{ borderTop: `1px solid ${border}` }}
+                    <motion.div className="overflow-hidden"
                         initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
+                        <div className="px-4 pb-4 space-y-3" style={{ borderTop: `1px solid ${border}` }}>
                         <p className="text-xs font-semibold uppercase tracking-wider pt-3" style={{ color: palette.textTertiary }}>Link Items</p>
 
                         {/* Tasks */}
@@ -277,6 +278,7 @@ function GoalCard({
                         {allTasks.length === 0 && allHabits.length === 0 && allReminders.length === 0 && (
                             <p className="text-xs py-2" style={{ color: palette.textTertiary }}>No tasks, habits, or reminders to link. Create some first.</p>
                         )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -379,10 +381,11 @@ function GoalModal({ initial, isDark, isApple, palette, border, onSave, onClose 
 
                     <div>
                         <p className="text-xs font-medium mb-1.5" style={{ color: palette.textSecondary }}>Category</p>
-                        <select value={cat} onChange={e => setCat(e.target.value)} className="w-full rounded-xl px-3 py-2 text-sm outline-none border"
-                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: border }}>
-                            {GOAL_CATEGORIES.map(c => <option key={c}>{c}</option>)}
-                        </select>
+                        <CustomSelect
+                            value={cat}
+                            onChange={setCat}
+                            options={GOAL_CATEGORIES.map(c => ({ value: c, label: c }))}
+                        />
                     </div>
 
                     <div>

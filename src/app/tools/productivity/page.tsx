@@ -6,12 +6,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import Link from "next/link";
 import {
     EmojiEvents, LocalFireDepartment, CheckCircle, Loop, TrackChanges,
     Notifications, ArrowForward, Psychology, Star, ChecklistRtl, Refresh,
+    DeleteForever, Warning, Close,
 } from "@mui/icons-material";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
@@ -73,6 +74,10 @@ export default function ProductivityDashboard() {
     const [reminders, setReminders] = useState<Reminder[]>([]);
     const [tasks,     setTasks]     = useState<Task[]>([]);
     const [loading,   setLoading]   = useState(true);
+    const [resetHistory,     setResetHistory]     = useState<string[]>([]);
+    const [showResetConfirm, setShowResetConfirm] = useState(false);
+    const [resetInput,       setResetInput]       = useState("");
+    const [resetLoading,     setResetLoading]     = useState(false);
 
     const cardBg  = isApple ? isDark ? "rgba(44,44,46,0.72)" : "rgba(255,255,255,0.75)" : palette.surface;
     const border  = isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.08)";
@@ -81,13 +86,14 @@ export default function ProductivityDashboard() {
     const load = useCallback(async () => {
         setLoading(true);
         try {
-            const [sR, hR, rR, tR] = await Promise.all([
+            const [sR, hR, rR, tR, resetR] = await Promise.all([
                 fetch("/api/productivity/stats"),
                 fetch("/api/productivity/habits"),
                 fetch("/api/productivity/reminders?status=ACTIVE"),
                 fetch("/api/productivity/tasks?limit=60"),
+                fetch("/api/productivity/reset"),
             ]);
-            const [s, h, r, t] = await Promise.all([sR.json(), hR.json(), rR.json(), tR.json()]);
+            const [s, h, r, t, resetJ] = await Promise.all([sR.json(), hR.json(), rR.json(), tR.json(), resetR.json()]);
             if (s.success) setStats(s.data);
             if (h.success) setHabits((h.data ?? []).slice(0, 5));
             if (r.success) {
@@ -96,6 +102,7 @@ export default function ProductivityDashboard() {
                 setReminders(sorted.slice(0, 5));
             }
             if (t.success) setTasks(t.data?.tasks ?? []);
+            if (resetJ.success) setResetHistory(resetJ.data ?? []);
         } finally { setLoading(false); }
     }, []);
 
@@ -123,8 +130,7 @@ export default function ProductivityDashboard() {
         return days;
     }, [tasks, habits]);
 
-    if (loading) return (
-        <div className="flex items-center justify-center h-screen">
+    if (loading) return (        <div className="flex items-center justify-center h-screen">
             <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                 className="w-8 h-8 rounded-full border-2"
                 style={{ borderColor: `${ACCENT}30`, borderTopColor: ACCENT }} />
@@ -141,6 +147,20 @@ export default function ProductivityDashboard() {
 
     const { levelInfo } = stats;
     const totalWeek     = sevenDayData.reduce((s, d) => s + d.tasks + d.habits, 0);
+
+    async function handleReset() {
+        if (resetInput !== "RESET") return;
+        setResetLoading(true);
+        try {
+            const r = await fetch("/api/productivity/reset", { method: "POST" });
+            const j = await r.json();
+            if (j.success) {
+                setShowResetConfirm(false);
+                setResetInput("");
+                load();
+            }
+        } finally { setResetLoading(false); }
+    }
 
     return (
         <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-5 pb-8">
@@ -352,6 +372,106 @@ export default function ProductivityDashboard() {
                     </div>
                 </motion.div>
             )}
+
+            {/* Danger Zone — Reset History (visible only after a reset has been done) */}
+            {resetHistory.length > 0 && (
+                <motion.div className="rounded-2xl p-5"
+                    style={{ background: isDark ? "rgba(239,68,68,0.08)" : "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.25)" }}
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                    <div className="flex items-center gap-2 mb-3">
+                        <Warning style={{ color: "#ef4444", fontSize: 18 }} />
+                        <p className="font-semibold text-sm" style={{ color: "#ef4444" }}>Reset History</p>
+                    </div>
+                    <div className="space-y-1.5">
+                        {[...resetHistory].reverse().map((d, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs" style={{ color: palette.textSecondary }}>
+                                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: "#ef444460" }} />
+                                {new Date(d).toLocaleString("en", { year: "numeric", month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                            </div>
+                        ))}
+                    </div>
+                </motion.div>
+            )}
+
+            {/* Danger Zone — Reset button */}
+            <motion.div className="rounded-2xl p-5"
+                style={{ background: isDark ? "rgba(239,68,68,0.06)" : "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.20)" }}
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}>
+                <div className="flex items-start gap-4">
+                    <div className="p-2.5 rounded-xl shrink-0" style={{ background: "rgba(239,68,68,0.12)" }}>
+                        <DeleteForever style={{ color: "#ef4444", fontSize: 22 }} />
+                    </div>
+                    <div className="flex-1">
+                        <p className="font-semibold text-sm" style={{ color: palette.textPrimary }}>Danger Zone</p>
+                        <p className="text-xs mt-0.5 leading-relaxed" style={{ color: palette.textSecondary }}>
+                            Permanently delete all your tasks, habits, goals and reminders. XP and level are reset to zero. This cannot be undone.
+                        </p>
+                    </div>
+                    <motion.button
+                        onClick={() => { setShowResetConfirm(true); setResetInput(""); }}
+                        className="shrink-0 px-4 py-2 rounded-xl text-sm font-semibold"
+                        style={{ background: "rgba(239,68,68,0.14)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.30)" }}
+                        whileHover={{ background: "rgba(239,68,68,0.22)" }} whileTap={{ scale: 0.97 }}>
+                        Reset All
+                    </motion.button>
+                </div>
+            </motion.div>
+
+            {/* Reset Confirmation Modal */}
+            <AnimatePresence>
+                {showResetConfirm && (
+                    <motion.div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4"
+                        style={{ background: "rgba(0,0,0,0.55)" }}
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        onClick={e => e.target === e.currentTarget && setShowResetConfirm(false)}>
+                        <motion.div className="w-full max-w-sm rounded-2xl p-6"
+                            style={{ background: isDark ? "rgba(28,28,30,0.98)" : "rgba(255,255,255,0.98)", border: `1px solid ${border}`, backdropFilter: "blur(24px)" }}
+                            initial={{ y: 60, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 60, opacity: 0 }}>
+                            <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Warning style={{ color: "#ef4444", fontSize: 20 }} />
+                                    <p className="font-bold text-base" style={{ color: palette.textPrimary }}>Reset All Data?</p>
+                                </div>
+                                <button onClick={() => setShowResetConfirm(false)}>
+                                    <Close style={{ color: palette.textTertiary, fontSize: 20 }} />
+                                </button>
+                            </div>
+                            <p className="text-sm leading-relaxed mb-4" style={{ color: palette.textSecondary }}>
+                                This will permanently delete <strong>all tasks, habits, goals and reminders</strong> and reset your XP and level to zero. The reset date will be recorded in your history.
+                            </p>
+                            <p className="text-xs font-semibold mb-2" style={{ color: palette.textPrimary }}>
+                                Type <span style={{ color: "#ef4444" }}>RESET</span> to confirm:
+                            </p>
+                            <input
+                                value={resetInput}
+                                onChange={e => setResetInput(e.target.value)}
+                                placeholder="RESET"
+                                className="w-full rounded-xl px-3 py-2.5 text-sm outline-none border mb-4"
+                                style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, borderColor: resetInput === "RESET" ? "#ef4444" : border }}
+                                onKeyDown={e => e.key === "Enter" && resetInput === "RESET" && handleReset()}
+                            />
+                            <div className="flex gap-3">
+                                <button onClick={() => setShowResetConfirm(false)}
+                                    className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                                    style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}>
+                                    Cancel
+                                </button>
+                                <motion.button
+                                    onClick={handleReset}
+                                    disabled={resetInput !== "RESET" || resetLoading}
+                                    className="flex-1 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-1.5"
+                                    style={{ background: resetInput === "RESET" ? "#ef4444" : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", color: resetInput === "RESET" ? "#fff" : palette.textTertiary }}
+                                    whileTap={resetInput === "RESET" ? { scale: 0.97 } : {}}>
+                                    {resetLoading
+                                        ? <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white" />
+                                        : <><DeleteForever style={{ fontSize: 16 }} /> Reset Everything</>
+                                    }
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

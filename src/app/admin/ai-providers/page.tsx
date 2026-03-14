@@ -20,6 +20,7 @@ import {
     ToggleOn,
     ToggleOff,
 } from "@mui/icons-material";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -133,6 +134,21 @@ export default function AIProvidersAdminPage() {
     const [saved, setSaved] = useState(false);
     const [expandedProvider, setExpandedProvider] = useState<string | null>("github");
     const [showSecrets, setShowSecrets] = useState<Record<string, boolean>>({});
+    const [fetchedModels, setFetchedModels] = useState<Record<string, string[]>>({});
+    const [fetchingModels, setFetchingModels] = useState<Record<string, boolean>>({});
+
+    const fetchModels = useCallback(async (pk: string) => {
+        setFetchingModels((prev) => ({ ...prev, [pk]: true }));
+        try {
+            const res = await fetch(`/api/admin/ai-providers/models?provider=${pk}`);
+            const json = await res.json();
+            if (json.success && Array.isArray(json.models) && json.models.length > 0) {
+                setFetchedModels((prev) => ({ ...prev, [pk]: json.models }));
+            }
+        } catch { /* ignore */ } finally {
+            setFetchingModels((prev) => ({ ...prev, [pk]: false }));
+        }
+    }, []);
 
     const fetchSettings = useCallback(async () => {
         try {
@@ -158,6 +174,17 @@ export default function AIProvidersAdminPage() {
         fetchSettings();
     }, [fetchSettings]);
 
+    // Auto-fetch live models when a provider card is expanded and has an API key.
+    // Also re-runs when settings reload so the initially-expanded card gets fetched.
+    useEffect(() => {
+        if (!expandedProvider) return;
+        const provConfig = settings.Providers[expandedProvider as keyof typeof settings.Providers];
+        if (!provConfig?.hasApiKey) return;
+        if (fetchedModels[expandedProvider]) return;
+        if (fetchingModels[expandedProvider]) return;
+        fetchModels(expandedProvider);
+    }, [expandedProvider, settings.Providers, fetchedModels, fetchingModels, fetchModels]);
+
     const handleSave = async () => {
         setSaving(true);
         try {
@@ -174,8 +201,12 @@ export default function AIProvidersAdminPage() {
             if (res.ok) {
                 setSaved(true);
                 setTimeout(() => setSaved(false), 2500);
-                // Re-fetch to get updated hasApiKey flags
-                fetchSettings();
+                // Re-fetch settings to get updated hasApiKey flags, then refresh live models
+                await fetchSettings();
+                if (expandedProvider) {
+                    setFetchedModels((prev) => { const n = { ...prev }; delete n[expandedProvider]; return n; });
+                    fetchModels(expandedProvider);
+                }
             }
         } finally {
             setSaving(false);
@@ -387,24 +418,56 @@ export default function AIProvidersAdminPage() {
                                         </div>
 
                                         {/* Model selector */}
-                                        {available?.models && available.models.length > 0 && (
-                                            <div className="space-y-1.5">
-                                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
-                                                    Active Model
-                                                </label>
-                                                <select
-                                                    value={config.activeModel}
-                                                    onChange={(e) => updateProvider(pk, "activeModel", e.target.value)}
-                                                    className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
-                                                    style={inputStyle}
-                                                >
-                                                    <option value="">Default ({available.models[0]})</option>
-                                                    {available.models.map((m) => (
-                                                        <option key={m} value={m}>{m}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        )}
+                                        {(() => {
+                                            const liveModels = fetchedModels[pk];
+                                            const modelList: string[] = liveModels ?? (available?.models ? [...available.models] : []);
+                                            return (
+                                                <div className="space-y-1.5">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                                            Active Model
+                                                        </label>
+                                                        <motion.button
+                                                            onClick={() => fetchModels(pk)}
+                                                            disabled={fetchingModels[pk] || !config.hasApiKey}
+                                                            title={!config.hasApiKey ? "Configure an API key first" : "Fetch live model list"}
+                                                            className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg"
+                                                            style={{
+                                                                background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                                                color: (fetchingModels[pk] || !config.hasApiKey) ? palette.textTertiary : palette.textSecondary,
+                                                                opacity: (fetchingModels[pk] || !config.hasApiKey) ? 0.45 : 1,
+                                                                cursor: !config.hasApiKey ? "not-allowed" : "pointer",
+                                                            }}
+                                                            whileTap={{ scale: 0.9 }}
+                                                        >
+                                                            {fetchingModels[pk] ? (
+                                                                <span className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin inline-block flex-shrink-0" />
+                                                            ) : (
+                                                                <Refresh sx={{ fontSize: 12 }} />
+                                                            )}
+                                                            {fetchingModels[pk] ? "Fetching…" : "Refresh"}
+                                                        </motion.button>
+                                                    </div>
+                                                    <CustomSelect
+                                                        value={config.activeModel}
+                                                        onChange={(v) => updateProvider(pk, "activeModel", v)}
+                                                        options={[
+                                                            { value: "", label: modelList.length ? `Default (${modelList[0]})` : "Default" },
+                                                            ...modelList.map((m) => ({ value: m, label: m })),
+                                                        ]}
+                                                    />
+                                                    <p className="text-xs" style={{ color: palette.textTertiary }}>
+                                                        {fetchingModels[pk]
+                                                            ? "Fetching live models…"
+                                                            : liveModels
+                                                                ? `${liveModels.length} models fetched live`
+                                                                : config.hasApiKey
+                                                                    ? "Auto-fetching on expand, or click Refresh"
+                                                                    : `${modelList.length} built-in models — add an API key to fetch live`}
+                                                    </p>
+                                                </div>
+                                            );
+                                        })()}
 
                                         {/* Custom base URL */}
                                         <div className="space-y-1.5">

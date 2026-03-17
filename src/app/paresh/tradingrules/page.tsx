@@ -369,7 +369,7 @@ export default function TradingRulesPage() {
                                                                     variant="h6"
                                                                     sx={{
                                                                         fontWeight: 600,
-                                                                        color: isApple ? "rgba(255, 255, 255, 0.95)" : palette.text,
+                                                                        color: isApple ? "rgba(255, 255, 255, 0.95)" : palette.textPrimary,
                                                                         fontSize: { xs: "1rem", md: "1.1rem" },
                                                                     }}
                                                                 >
@@ -430,7 +430,7 @@ export default function TradingRulesPage() {
                                 variant="h6"
                                 sx={{
                                     fontWeight: 600,
-                                    color: isApple ? "rgba(255, 255, 255, 0.9)" : palette.text,
+                                    color: isApple ? "rgba(255, 255, 255, 0.9)" : palette.textPrimary,
                                     fontSize: { xs: "1rem", md: "1.2rem" },
                                 }}
                             >

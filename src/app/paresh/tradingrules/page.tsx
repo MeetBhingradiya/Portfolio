@@ -9,15 +9,15 @@ import {
     Stop,
     Lock,
     BarChart,
-    Calendar,
-    DollarSign,
+    DateRange,
+    AttachMoney,
     Shield,
-    Target,
+    GpsFixed,
     CheckCircle,
-    FileText,
+    Description,
     TrendingFlat,
-    AlertTriangle,
-    BookOpen,
+    Warning,
+    MenuBook,
     Newspaper,
     School,
 } from "@mui/icons-material";
@@ -53,7 +53,7 @@ const TRADING_RULES: TradingRule[] = [
         id: 3,
         title: "1.4% Profit Minimum",
         description: "Each trade must generate at least 1.4% profit to cover taxes, brokerage fees, and ensure net positive returns.",
-        icon: <DollarSign />,
+        icon: <AttachMoney />,
         category: "execution",
         color: "#388e3c",
     },
@@ -77,7 +77,7 @@ const TRADING_RULES: TradingRule[] = [
         id: 6,
         title: "Skip Monday & Friday",
         description: "No trading on Mondays and Fridays to avoid market volatility and give yourself trading-free days.",
-        icon: <Calendar />,
+        icon: <DateRange />,
         category: "discipline",
         color: "#c2185b",
     },
@@ -93,7 +93,7 @@ const TRADING_RULES: TradingRule[] = [
         id: 8,
         title: "ATM Only - 10 Lots (65 Qty)",
         description: "Trade only At-The-Money (ATM) options with a fixed position size of 10 lots (65 quantity per trade).",
-        icon: <Target />,
+        icon: <GpsFixed />,
         category: "execution",
         color: "#0097a7",
     },
@@ -101,7 +101,7 @@ const TRADING_RULES: TradingRule[] = [
         id: 9,
         title: "No Social Media Distractions",
         description: "Avoid YouTube, Instagram, and Telegram to maintain focus and prevent emotional/impulsive trading decisions.",
-        icon: <AlertTriangle />,
+        icon: <Warning />,
         category: "psychology",
         color: "#d32f2f",
     },
@@ -109,7 +109,7 @@ const TRADING_RULES: TradingRule[] = [
         id: 10,
         title: "Capital Preservation First",
         description: "Prioritize protecting your capital above all else—it's more important than chasing trades or profits.",
-        icon: <DollarSign />,
+        icon: <AttachMoney />,
         category: "risk",
         color: "#388e3c",
     },
@@ -125,7 +125,7 @@ const TRADING_RULES: TradingRule[] = [
         id: 12,
         title: "Plan Before Trade",
         description: "Always have a clear, documented plan before placing any trade. No plan = no trade.",
-        icon: <FileText />,
+        icon: <Description />,
         category: "discipline",
         color: "#1976d2",
     },
@@ -133,7 +133,7 @@ const TRADING_RULES: TradingRule[] = [
         id: 13,
         title: "No Trade Screenshots",
         description: "Don't take or share screenshots of your trades. Focus on learning, not showing off or ego-boosting.",
-        icon: <BookOpen />,
+        icon: <MenuBook />,
         category: "psychology",
         color: "#7b1fa2",
     },
@@ -206,7 +206,8 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 export default function TradingRulesPage() {
-    const { palette, isApple } = useDesignTheme();
+    const { palette, designTheme } = useDesignTheme();
+    const isApple = designTheme === "apple";
 
     const groupedRules = useMemo(() => {
         const grouped: Record<string, TradingRule[]> = {
@@ -246,7 +247,7 @@ export default function TradingRulesPage() {
                                 fontWeight: 700,
                                 background: isApple
                                     ? "linear-gradient(135deg, #fff 0%, #ccc 100%)"
-                                    : `linear-gradient(135deg, ${palette.primary} 0%, ${palette.accent} 100%)`,
+                                    : `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accent} 100%)`,
                                 backgroundClip: "text",
                                 WebkitBackgroundClip: "text",
                                 WebkitTextFillColor: "transparent",
@@ -296,7 +297,7 @@ export default function TradingRulesPage() {
                                             variant="h5"
                                             sx={{
                                                 fontWeight: 600,
-                                                color: isApple ? "rgba(255, 255, 255, 0.9)" : palette.text,
+                                                color: isApple ? "rgba(255, 255, 255, 0.9)" : palette.textPrimary,
                                                 fontSize: { xs: "1.1rem", md: "1.5rem" },
                                             }}
                                         >
@@ -397,7 +398,7 @@ export default function TradingRulesPage() {
                                         <Divider
                                             sx={{
                                                 my: { xs: 1, md: 2 },
-                                                borderColor: isApple ? "rgba(255, 255, 255, 0.1)" : `${palette.primary}20`,
+                                                borderColor: isApple ? "rgba(255, 255, 255, 0.1)" : `${palette.accent}20`,
                                             }}
                                         />
                                     )}

@@ -1,7 +1,7 @@
 /**
  * XML Sitemap — /sitemap.xml
  * Submit this URL to Google Search Console:
- *   https://meetbhingradiya.shop/sitemap.xml
+ *   https://meetbhingradiya.in/sitemap.xml
  */
 import { NextResponse } from "next/server";
 import { Config } from "@Config/Client";

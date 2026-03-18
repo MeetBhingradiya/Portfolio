@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary",
         title: "Sitemap | Meet Bhingradiya",
-        description: "Complete site index for meetbhingradiya.shop."
+        description: "Complete site index for meetbhingradiya.in."
     }
 };
 

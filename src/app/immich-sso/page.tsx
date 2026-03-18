@@ -22,7 +22,7 @@ import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { authClient } from "@Library/auth-client";
 import Image from "next/image";
 
-const IMMICH_LOGO_CDN = "https://meetbhingradiya.shop/api/cdn/74b7b2736908460fb8ea6b1bf5d2df8e";
+const IMMICH_LOGO_CDN = "https://meetbhingradiya.in/api/cdn/74b7b2736908460fb8ea6b1bf5d2df8e";
 
 interface Provider {
     id: "google" | "github" | "microsoft" | "apple";
@@ -307,7 +307,7 @@ export default function ImmichSSOPage() {
                     style={{ color: palette.textTertiary }}
                 >
                     Secured by{" "}
-                    <span style={{ color: palette.accent }}>meetbhingradiya.shop</span>
+                    <span style={{ color: palette.accent }}>meetbhingradiya.in</span>
                 </p>
             </motion.div>
         </div>

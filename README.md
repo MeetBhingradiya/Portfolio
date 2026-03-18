@@ -6,8 +6,8 @@ This project is licensed under the [My Terms of use](/COPYRIGHT)
 
 ## 👤 Contact
 - **GitHub**: [@MeetBhingradiya](https://github.com/MeetBhingradiya)
-- **Website**: [meetbhingradiya.shop](https://meetbhingradiya.shop)
-- **Email**: [me@meetbhingradiya.shop](mailto:me@meetbhingradiya.shop)
+- **Website**: [meetbhingradiya.in](https://meetbhingradiya.in)
+- **Email**: [me@meetbhingradiya.in](mailto:me@meetbhingradiya.in)
 - **LinkedIn**: [Meet Bhingradiya](https://www.linkedin.com/in/meet-bhingradiya)
 
 ---

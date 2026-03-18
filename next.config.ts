@@ -166,7 +166,7 @@ const nextConfig: NextConfig = {
                                     Self: true,
                                     Blob: true,
                                     Domains: [
-                                        "https://meetbhingradiya.shop"
+                                        "https://meetbhingradiya.in"
                                     ]
                                 },
                                 [CSPDirectiveOptions.StyleSrc]: {

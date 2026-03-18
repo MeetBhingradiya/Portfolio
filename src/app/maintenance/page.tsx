@@ -164,7 +164,7 @@ function MaintenanceContent() {
                         an urgent matter, please reach out.
                     </p>
                     <a
-                        href="mailto:contact@meetbhingradiya.shop"
+                        href="mailto:contact@meetbhingradiya.in"
                         className="inline-flex items-center gap-2 self-center px-5 py-2.5 rounded-full text-sm font-semibold transition-opacity hover:opacity-80"
                         style={{
                             background: `linear-gradient(135deg, ${palette.accent}, ${palette.accent}cc)`,

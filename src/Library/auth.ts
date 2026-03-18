@@ -58,7 +58,7 @@ export const auth = betterAuth({
         }),
         passkey({
             rpName: "Meet Bhingradiya Portfolio",
-            rpID: "meetbhingradiya.shop",
+            rpID: "meetbhingradiya.in",
             origin: Config.Origin,
         }),
         multiSession(),

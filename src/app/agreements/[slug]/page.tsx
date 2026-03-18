@@ -18,8 +18,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     };
 
     const descriptions: Record<string, string> = {
-        "privacy": "Read the privacy policy of meetbhingradiya.shop — how personal data is collected, stored and protected.",
-        "terms": "Terms and conditions governing your use of meetbhingradiya.shop and associated services.",
+        "privacy": "Read the privacy policy of meetbhingradiya.in — how personal data is collected, stored and protected.",
+        "terms": "Terms and conditions governing your use of meetbhingradiya.in and associated services.",
         "covered-products-privacy": "Privacy policy for products and services under Meet Bhingradiya's portfolio ecosystem.",
         "covered-products-terms": "Terms of service governing use of covered products in Meet Bhingradiya's ecosystem.",
         "security": "Security policies, responsible disclosure and best practices for Meet Bhingradiya's product ecosystem."

@@ -14,14 +14,14 @@ export const metadata: Metadata = {
         "profitable trading",
     ],
     alternates: {
-        canonical: `https://meetbhingradiya.shop/paresh/tradingrules`,
+        canonical: `https://meetbhingradiya.in/paresh/tradingrules`,
     },
     robots: { index: true, follow: true },
     openGraph: {
         title: "Trading Rules | Complete 19-Rule Framework",
         description: "Essential trading rules for consistent, profitable, and disciplined trading. Master risk management, psychology, and execution.",
         type: "website",
-        url: `https://meetbhingradiya.shop/paresh/tradingrules`,
+        url: `https://meetbhingradiya.in/paresh/tradingrules`,
         images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Trading Rules Framework" }],
     },
     twitter: {

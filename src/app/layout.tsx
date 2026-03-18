@@ -70,7 +70,7 @@ export const metadata: Metadata = {
         "India",
         // Domains (only confirmed owned)
         "meetbhingradiya.vercel.app",
-        "meetbhingradiya.shop"
+        "meetbhingradiya.in"
     ],
 
     // ─── Authors & Creator ───────────────────────────────────────────────────

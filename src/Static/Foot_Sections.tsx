@@ -56,7 +56,7 @@ export const footerSections: FooterSection[] = [
             { label: "Tools", href: "/tools", icon: <Build className="text-base" /> },
             // { label: "Timetable", href: "/timetable", icon: <CalendarMonth className="text-base" /> },
             // { label: "Bookmarks", href: "/bookmarks", icon: <Bookmark className="text-base" /> },
-            { label: "Photos", href: "https://photos.meetbhingradiya.shop", external: true, icon: <PhotoCamera className="text-base" /> },
+            { label: "Photos", href: "/api/photos", external: true, icon: <PhotoCamera className="text-base" /> },
         ]
     },
     {

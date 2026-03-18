@@ -23,5 +23,5 @@ export const Config: Client_Config_Type = {
         legal: "legal@meetbhingradiya.shop",
         dmca: "dmca@meetbhingradiya.shop"
     },
-    Origin: process.env.NODE_ENV === "production" ? "https://meetbhingradiya.shop" : "http://localhost:3000"
+    Origin: process.env.NODE_ENV === "production" ? "https://meetbhingradiya.in" : "http://localhost:3000"
 }

@@ -22,7 +22,7 @@ import { getSession } from "@/Library/auth";
 export const dynamic = "force-dynamic";
 
 // The Immich login page — visiting this causes Immich to start the OIDC redirect.
-const IMMICH_LOGIN_URL = "https://photos.meetbhingradiya.shop/auth/login";
+const IMMICH_LOGIN_URL = "https://photos.meetbhingradiya.in/auth/login";
 
 export async function GET(req: NextRequest) {
     const baseUrl = req.nextUrl.origin;

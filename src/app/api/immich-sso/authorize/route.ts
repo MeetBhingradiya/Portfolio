@@ -15,7 +15,7 @@ import { getIssuer, validateClient, isRedirectUriAllowed } from "@Utils/OIDCKeys
 
 export const dynamic = "force-dynamic";
 
-const IMMICH_ORIGIN = "https://photos.meetbhingradiya.shop";
+const IMMICH_ORIGIN = "https://photos.meetbhingradiya.in";
 
 function oidcError(
     redirectUri: string | null,

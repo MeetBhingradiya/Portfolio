@@ -179,7 +179,7 @@ const nextConfig: NextConfig = {
                     },
                     {
                         key: "Access-Control-Allow-Origin",
-                        value: "meetbhingradiya.tech, stage.meetbhingradiya.tech, dev.meetbhingradiya.tech"
+                        value: "meetbhingradiya.shop, meetbhingradiya.in, www.meetbhingradiya.in"
                     },
                     {
                         key: "Access-Control-Allow-Methods",

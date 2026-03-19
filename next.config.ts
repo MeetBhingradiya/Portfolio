@@ -279,6 +279,11 @@ const nextConfig: NextConfig = {
                 ...config,
                 resolve: {
                     ...config.resolve,
+                    fallback: {
+                        ...config.resolve.fallback,
+                        // Prevent fflate/jspdf from pulling in Node.js worker_threads during SSR
+                        worker_threads: false
+                    },
                     alias: {
                         ...Object.fromEntries(
                             Object.entries(tsconfig.compilerOptions.paths).map(
@@ -311,7 +316,7 @@ const nextConfig: NextConfig = {
         }
     }),
 
-    serverExternalPackages: ["sharp"],
+    serverExternalPackages: ["sharp", "jspdf"],
 
     // Additional dev optimizations
     onDemandEntries: {

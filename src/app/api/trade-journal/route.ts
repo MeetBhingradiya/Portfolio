@@ -6,7 +6,57 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
-import { TradeJournal, TradeResult } from "@Models/TradeJournal";
+import { TradeDirection, TradeHitStatus, TradeJournal, TradePnLSign, TradeResult } from "@Models/TradeJournal";
+
+const AM_PM_TIME_RE = /^(0[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i;
+
+function toNum(v: unknown): number | undefined {
+    if (v == null || v === "") return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+}
+
+function toArray(v: unknown): string[] {
+    if (Array.isArray(v)) return v.map(String).map(s => s.trim()).filter(Boolean);
+    if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
+    return [];
+}
+
+function computeHitStatus(direction: string, exitPrice?: number, stopLoss?: number, target?: number): TradeHitStatus {
+    if (exitPrice == null) return TradeHitStatus.NONE;
+    const isShort = direction === TradeDirection.SHORT;
+    if (target != null) {
+        const targetHit = isShort ? exitPrice <= target : exitPrice >= target;
+        if (targetHit) return TradeHitStatus.TARGET_ACHIEVED;
+    }
+    if (stopLoss != null) {
+        const slHit = isShort ? exitPrice >= stopLoss : exitPrice <= stopLoss;
+        if (slHit) return TradeHitStatus.STOPLOSS_HIT;
+    }
+    return TradeHitStatus.NONE;
+}
+
+function computePnL(direction: string, entryPrice?: number, exitPrice?: number, quantity?: number, lotSize?: number): number | undefined {
+    if (entryPrice == null || exitPrice == null) return undefined;
+    const qty = quantity ?? 1;
+    const lot = lotSize ?? 1;
+    const raw = direction === TradeDirection.SHORT
+        ? (entryPrice - exitPrice) * qty * lot
+        : (exitPrice - entryPrice) * qty * lot;
+    return Number(raw.toFixed(2));
+}
+
+function parseAmPmMinutes(t?: string): number | undefined {
+    if (!t || !AM_PM_TIME_RE.test(t.trim())) return undefined;
+    const m = t.trim().toUpperCase().match(/^(\d{2}):(\d{2})\s?(AM|PM)$/);
+    if (!m) return undefined;
+    let h = Number(m[1]);
+    const min = Number(m[2]);
+    const meridiem = m[3];
+    if (meridiem === "PM" && h < 12) h += 12;
+    if (meridiem === "AM" && h === 12) h = 0;
+    return h * 60 + min;
+}
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -26,7 +76,12 @@ export async function GET(req: NextRequest) {
         const to        = q.get("to");
         const search    = q.get("search");
 
+        const includeDrafts = q.get("includeDrafts") === "1";
+        const onlyDrafts = q.get("onlyDrafts") === "1";
+
         const query: Record<string, any> = { UserID: user.userId };
+        if (onlyDrafts) query.IsDraft = true;
+        else if (!includeDrafts) query.IsDraft = { $ne: true };
 
         if (result)    query.Result    = result;
         if (segment)   query.Segment   = segment;
@@ -97,85 +152,150 @@ export async function POST(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
-        const {
-            Date: tradeDate, EntryTime, ExitTime,
-            Instrument, Segment, Direction,
-            OptionType, StrikePrice, Expiry,
-            EntryPrice, ExitPrice, StopLoss, Target,
-            Quantity, LotSize = 1, TotalCapital, RiskPercentage,
-            PlannedRiskAmount, PlannedRewardAmount, PlannedRR,
-            GrossPnL, Brokerage = 0, Taxes = 0,
-            SetupType, StrategyName, MarketCondition,
-            EmotionalState, FollowedPlan, MistakeType,
-            PreTradeAnalysis, PostTradeNotes, Lessons,
-            Screenshots = [], Tags = [],
-        } = body;
 
-        if (!EntryTime || !Instrument || EntryPrice == null || Quantity == null) {
-            return NextResponse.json(
-                { success: false, error: "EntryTime, Instrument, EntryPrice, and Quantity are required" },
-                { status: 400 }
+        const isDraft = Boolean(body.IsDraft);
+        const tradeDate = body.Date;
+        const entryTime = String(body.EntryTime || "").trim().toUpperCase();
+        const exitTime = String(body.ExitTime || "").trim().toUpperCase();
+
+        const instrumentName = String(body.InstrumentName || body.Instrument || "").trim().toUpperCase();
+        const instrument = String(body.Instrument || instrumentName).trim().toUpperCase();
+        const segment = String(body.Segment || "OPTIONS").toUpperCase();
+        const direction = String(body.PositionDuration || body.Direction || "SHORT").toUpperCase();
+
+        const entryPrice = toNum(body.EntryPrice);
+        const exitPrice = toNum(body.ExitPrice);
+        const stopLoss = toNum(body.StopLoss);
+        const target = toNum(body.Target);
+        const quantity = toNum(body.Quantity);
+        const lotSize = toNum(body.LotSize) ?? 1;
+        const strikePrice = toNum(body.StrikePrice ?? body.Strike);
+
+        const brokerage = toNum(body.Brokerage) ?? 0;
+        const taxes = toNum(body.Taxes) ?? 0;
+        const explicitPnlAmount = toNum(body.PnLAmount);
+        const pnlSign = String(body.PnLSign || "").toUpperCase() === TradePnLSign.LOSS
+            ? TradePnLSign.LOSS
+            : TradePnLSign.PROFIT;
+
+        const optionTypeMap: Record<string, string> = {
+            CE: "CALL", CALL: "CALL",
+            PE: "PUT", PUT: "PUT",
+            NA: "NA",
+        };
+        const resolvedOptionType = body.OptionType
+            ? (optionTypeMap[String(body.OptionType).toUpperCase()] ?? "NA")
+            : "NA";
+
+        if (!isDraft) {
+            if (!tradeDate || !entryTime || !exitTime || !instrumentName || entryPrice == null || exitPrice == null) {
+                return NextResponse.json({ success: false, error: "Date, EntryTime, ExitTime, Instrument, EntryPrice, ExitPrice are required" }, { status: 400 });
+            }
+            if (!AM_PM_TIME_RE.test(entryTime) || !AM_PM_TIME_RE.test(exitTime)) {
+                return NextResponse.json({ success: false, error: "EntryTime and ExitTime must be in hh:mm AM/PM format" }, { status: 400 });
+            }
+            if (quantity == null && toNum(body.LotSize) == null) {
+                return NextResponse.json({ success: false, error: "Either Quantity or Lot Size is required" }, { status: 400 });
+            }
+        }
+
+        const computedRawPnL = computePnL(direction, entryPrice, exitPrice, quantity, lotSize);
+        const signedProvidedPnl = explicitPnlAmount != null
+            ? (pnlSign === TradePnLSign.LOSS ? -Math.abs(explicitPnlAmount) : Math.abs(explicitPnlAmount))
+            : undefined;
+        const grossPnl = toNum(body.GrossPnL) ?? signedProvidedPnl ?? computedRawPnL ?? 0;
+        const netPnl = toNum(body.NetPnL) ?? Number((grossPnl - brokerage - taxes).toFixed(2));
+
+        const result = exitPrice == null
+            ? TradeResult.PENDING
+            : netPnl > 0
+                ? TradeResult.WIN
+                : netPnl < 0
+                    ? TradeResult.LOSS
+                    : TradeResult.BREAKEVEN;
+
+        let actualRR: number | undefined;
+        if (entryPrice != null && exitPrice != null && stopLoss != null && stopLoss !== entryPrice) {
+            actualRR = Number((Math.abs(exitPrice - entryPrice) / Math.abs(entryPrice - stopLoss)).toFixed(2));
+        }
+
+        const inferredHit = computeHitStatus(direction, exitPrice, stopLoss, target);
+        const isHit = String(body.IsHit || "").toUpperCase() === "AUTO"
+            ? inferredHit
+            : (String(body.IsHit || inferredHit).toUpperCase() as TradeHitStatus);
+
+        const entryMinutes = parseAmPmMinutes(entryTime);
+        const exitMinutes = parseAmPmMinutes(exitTime);
+        const holdingDurationMinutes = entryMinutes != null && exitMinutes != null
+            ? exitMinutes - entryMinutes
+            : undefined;
+
+        const orUndef = (v: unknown) => (v === "" || v == null ? undefined : v);
+
+        const payload = {
+            UserID: user.userId,
+            IsDraft: isDraft,
+            DraftID: body.DraftID || undefined,
+            DraftUpdatedAt: new Date(),
+            Date: tradeDate ? new Date(tradeDate) : new Date(),
+            EntryTime: entryTime || undefined,
+            ExitTime: exitTime || undefined,
+            InstrumentName: instrumentName || undefined,
+            Instrument: instrument || undefined,
+            Segment: segment,
+            Direction: direction,
+            PositionDuration: direction,
+            OptionType: resolvedOptionType,
+            StrikePrice: strikePrice,
+            Expiry: orUndef(body.Expiry),
+            EntryPrice: entryPrice,
+            ExitPrice: exitPrice,
+            StopLoss: stopLoss,
+            Target: target,
+            Quantity: quantity,
+            LotSize: lotSize,
+            TotalCapital: toNum(body.TotalCapital),
+            RiskPercentage: toNum(body.RiskPercentage),
+            PlannedRiskAmount: toNum(body.PlannedRiskAmount),
+            PlannedRewardAmount: toNum(body.PlannedRewardAmount),
+            PlannedRR: toNum(body.PlannedRR),
+            ActualRR: actualRR,
+            GrossPnL: grossPnl,
+            NetPnL: netPnl,
+            Brokerage: brokerage,
+            Taxes: taxes,
+            Result: result,
+            IsHit: isHit,
+            PnLAmount: explicitPnlAmount ?? Math.abs(netPnl),
+            PnLSign: pnlSign,
+            HoldingDurationMinutes: holdingDurationMinutes,
+            SetupType: orUndef(body.SetupType),
+            StrategyName: orUndef(body.StrategyName || body.Strategy),
+            MarketCondition: orUndef(body.MarketCondition),
+            EmotionalState: orUndef(body.EmotionalState),
+            FollowedPlan: body.FollowedPlan,
+            MistakeType: orUndef(body.MistakeType),
+            PreTradeAnalysis: orUndef(body.PreTradeAnalysis),
+            PostTradeNotes: orUndef(body.PostTradeNotes || body.Notes),
+            Lessons: orUndef(body.Lessons),
+            Screenshots: toArray(body.Screenshots || body.AttachmentLinks),
+            AttachmentUrls: toArray(body.AttachmentUrls || body.ScreenshotCdnUrls),
+            Tags: toArray(body.Tags),
+            IsOpen: exitPrice == null,
+        };
+
+        let trade;
+        if (!isDraft && body.DraftID) {
+            trade = await TradeJournal.findOneAndUpdate(
+                { UserID: user.userId, DraftID: body.DraftID, IsDraft: true },
+                { $set: { ...payload, IsDraft: false, DraftUpdatedAt: null } },
+                { new: true }
             );
         }
 
-        // Compute derived fields
-        let ActualRR: number | undefined;
-        let NetPnL = 0;
-        let GrossPnLCalc = GrossPnL;
-        let Result: string = TradeResult.PENDING;
-        let HoldingDurationMinutes: number | undefined;
-
-        if (ExitPrice != null) {
-            const raw = Direction === "LONG"
-                ? (ExitPrice - EntryPrice) * Quantity * LotSize
-                : (EntryPrice - ExitPrice) * Quantity * LotSize;
-            GrossPnLCalc = GrossPnL ?? raw;
-            NetPnL = GrossPnLCalc - Brokerage - Taxes;
-
-            if (StopLoss != null && StopLoss !== EntryPrice) {
-                ActualRR = parseFloat(
-                    (Math.abs(ExitPrice - EntryPrice) / Math.abs(EntryPrice - StopLoss)).toFixed(2)
-                );
-            }
-            Result = NetPnL > 0 ? TradeResult.WIN : NetPnL < 0 ? TradeResult.LOSS : TradeResult.BREAKEVEN;
+        if (!trade) {
+            trade = await TradeJournal.create(payload);
         }
-
-        if (EntryTime && ExitTime) {
-            const mins = (t: string) => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
-            HoldingDurationMinutes = mins(ExitTime) - mins(EntryTime);
-        }
-
-        // Map broker shorthand CE/PE → model enum CALL/PUT
-        const optionTypeMap: Record<string, string> = {
-            CE: "CALL", CALL: "CALL",
-            PE: "PUT",  PUT:  "PUT",
-            NA: "NA",
-        };
-        const resolvedOptionType = OptionType
-            ? (optionTypeMap[String(OptionType).toUpperCase()] ?? "NA")
-            : "NA";
-
-        // Strip empty-string values for optional enum fields so Mongoose skips validation
-        const orUndef = (v: unknown) => (v === "" || v == null ? undefined : v);
-
-        const trade = await TradeJournal.create({
-            UserID: user.userId,
-            Date: tradeDate ? new Date(tradeDate) : new Date(),
-            EntryTime, ExitTime,
-            Instrument: String(Instrument).toUpperCase(),
-            Segment, Direction,
-            OptionType: resolvedOptionType, StrikePrice, Expiry,
-            EntryPrice, ExitPrice, StopLoss, Target,
-            Quantity, LotSize, TotalCapital, RiskPercentage,
-            PlannedRiskAmount, PlannedRewardAmount, PlannedRR, ActualRR,
-            GrossPnL: GrossPnLCalc ?? 0, Brokerage, Taxes, NetPnL, Result,
-            HoldingDurationMinutes,
-            SetupType: orUndef(SetupType), StrategyName, MarketCondition: orUndef(MarketCondition),
-            EmotionalState: orUndef(EmotionalState), FollowedPlan, MistakeType: orUndef(MistakeType),
-            PreTradeAnalysis, PostTradeNotes, Lessons,
-            Screenshots, Tags,
-            IsOpen: ExitPrice == null,
-        });
 
         return NextResponse.json({ success: true, data: trade }, { status: 201 });
     } catch (err) {

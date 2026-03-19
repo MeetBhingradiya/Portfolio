@@ -1,5 +1,6 @@
 /**
  * New Trade Page — log a fresh trade.
+ * Draft state is managed directly inside TradeForm/useTradeFormState.
  */
 
 "use client";
@@ -9,7 +10,11 @@ import { useRouter } from "next/navigation";
 import { useDesignTheme } from "@Hooks";
 import { ArrowBack } from "@mui/icons-material";
 import { motion } from "motion/react";
-import TradeForm, { TradeFormData } from "../_components/TradeForm";
+import TradeForm, { TradeFormData } from "../components/TradeForm";
+
+const DRAFT_STORAGE_KEY = "tradeform_draft";
+const DRAFT_TIMESTAMP_KEY = "tradeform_draft_timestamp";
+const DRAFT_ID_KEY = "tradeform_draft_id";
 
 export default function NewTradePage() {
     const router = useRouter();
@@ -21,24 +26,33 @@ export default function NewTradePage() {
         setSubmitting(true);
         setError("");
         try {
-            // Convert string fields to numbers
+            if (!data.Quantity && !data.LotSize) {
+                setError("Either Quantity or Lot Size must be provided (at least one).");
+                setSubmitting(false);
+                return;
+            }
+
             const payload = {
                 ...data,
+                IsDraft: false,
+                Segment: data.Segment || "OPTIONS",
+                PositionDuration: data.PositionDuration || "SHORT",
+                Direction: data.PositionDuration || "SHORT",
+                Instrument: data.Instrument || data.InstrumentName,
                 EntryPrice: data.EntryPrice !== "" ? Number(data.EntryPrice) : undefined,
                 ExitPrice:  data.ExitPrice  !== "" ? Number(data.ExitPrice)  : undefined,
                 StopLoss:   data.StopLoss   !== "" ? Number(data.StopLoss)   : undefined,
                 Target:     data.Target     !== "" ? Number(data.Target)     : undefined,
                 Quantity:   data.Quantity   !== "" ? Number(data.Quantity)   : undefined,
                 LotSize:    data.LotSize    !== "" ? Number(data.LotSize)    : undefined,
-                PlannedRR:  data.PlannedRR  !== "" ? Number(data.PlannedRR)  : undefined,
-                GrossPnL:   data.GrossPnL   !== "" ? Number(data.GrossPnL)   : undefined,
-                NetPnL:     data.NetPnL     !== "" ? Number(data.NetPnL)     : undefined,
-                Brokerage:  data.Brokerage  !== "" ? Number(data.Brokerage)  : undefined,
-                Taxes:      data.Taxes      !== "" ? Number(data.Taxes)      : undefined,
-                PlanAdherence: data.PlanAdherence !== "" ? Number(data.PlanAdherence) : undefined,
-                Strike:     data.Strike     !== "" ? Number(data.Strike)     : undefined,
-                Tags:       data.Tags       ? data.Tags.split(",").map(t => t.trim()).filter(Boolean) : [],
-                Screenshots: data.Screenshots ? data.Screenshots.split(",").map(s => s.trim()).filter(Boolean) : [],
+                StrikePrice: data.Strike    !== "" ? Number(data.Strike)     : undefined,
+                IsHit:      data.IsHit || "AUTO",
+                PnLAmount:  data.PnLAmount !== "" ? Number(data.PnLAmount) : undefined,
+                StrategyName: data.StrategyName,
+                PostTradeNotes: data.Notes,
+                Tags:       data.Tags ? data.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+                Screenshots: data.AttachmentLinks ? data.AttachmentLinks.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+                ScreenshotCdnUrls: Array.isArray(data.ScreenshotCdnUrls) ? data.ScreenshotCdnUrls : [],
             };
 
             const res = await fetch("/api/trade-journal", {
@@ -48,11 +62,16 @@ export default function NewTradePage() {
             });
             const json = await res.json();
             if (json.success) {
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem(DRAFT_STORAGE_KEY);
+                    localStorage.removeItem(DRAFT_TIMESTAMP_KEY);
+                    localStorage.removeItem(DRAFT_ID_KEY);
+                }
                 router.push("/trade-journal");
             } else {
                 setError(json.error ?? "Failed to save trade.");
             }
-        } catch (e) {
+        } catch {
             setError("Network error. Please try again.");
         } finally {
             setSubmitting(false);
@@ -86,7 +105,7 @@ export default function NewTradePage() {
                 </div>
             )}
 
-            <TradeForm onSubmit={handleSubmit} submitting={submitting} />
+            <TradeForm onSubmit={handleSubmit} submitting={submitting} enableBackendDraft />
         </div>
     );
 }

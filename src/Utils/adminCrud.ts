@@ -6,8 +6,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
 import mongoose from "mongoose";
-import dbConnect from "@/Utils/dbConnect";
-import { requireAdmin } from "@/Library/auth";
+import dbConnect from "@Utils/dbConnect";
+import { requireAdmin } from "@Library/auth";
 
 type ModelFn = () => mongoose.Model<any>;
 
@@ -79,7 +79,7 @@ export async function adminCreate(
         const body = await request.json();
         const Model = modelFn();
         const doc = await Model.create(body);
-        tags.forEach(t => revalidateTag(t));
+        tags.forEach(t => revalidateTag(t, "max"));
         return NextResponse.json({ success: true, data: doc }, { status: 201 });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") return forbidden();
@@ -105,7 +105,7 @@ export async function adminUpdate(
             { new: true, runValidators: true }
         );
         if (!doc) return notFound(id);
-        tags.forEach(t => revalidateTag(t));
+        tags.forEach(t => revalidateTag(t, "max"));
         return NextResponse.json({ success: true, data: doc });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") return forbidden();
@@ -130,7 +130,7 @@ export async function adminDelete(
             { new: true }
         );
         if (!doc) return notFound(id);
-        tags.forEach(t => revalidateTag(t));
+        tags.forEach(t => revalidateTag(t, "max"));
         return NextResponse.json({ success: true, message: "Deleted" });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") return forbidden();

@@ -1,6 +1,7 @@
 /**
  * Trade Detail / Edit Page
  * Fetches the trade by ID, pre-fills the form, allows update + delete.
+ * Auto-saves drafts to prevent progress loss.
  */
 
 "use client";
@@ -10,7 +11,10 @@ import { useRouter, useParams } from "next/navigation";
 import { useDesignTheme } from "@Hooks";
 import { ArrowBack, Delete } from "@mui/icons-material";
 import { motion } from "motion/react";
-import TradeForm, { TradeFormData } from "../_components/TradeForm";
+import TradeForm, { TradeFormData } from "../components/TradeForm";
+
+const DRAFT_STORAGE_KEY = "tradeform_draft";
+const DRAFT_TIMESTAMP_KEY = "tradeform_draft_timestamp";
 
 export default function TradeDetailPage() {
     const router = useRouter();
@@ -32,39 +36,40 @@ export default function TradeDetailPage() {
             .then(json => {
                 if (json.success) {
                     const t = json.data;
+                    const normalizedDate = t.Date
+                        ? new Date(t.Date).toISOString().slice(0, 10)
+                        : new Date().toISOString().slice(0, 10);
                     setInitial({
-                        Date:            t.Date,
+                        Date:            normalizedDate,
                         EntryTime:       t.EntryTime    ?? "",
                         ExitTime:        t.ExitTime     ?? "",
+                        InstrumentName:  t.InstrumentName ?? t.Instrument,
                         Instrument:      t.Instrument,
                         Segment:         t.Segment,
-                        Direction:       t.Direction,
+                        PositionDuration: t.PositionDuration ?? t.Direction ?? "SHORT",
+                        Direction:       t.Direction ?? "SHORT",
                         OptionType:      t.OptionType   ?? "",
-                        Strike:          t.Strike       ?? "",
+                        Strike:          t.StrikePrice  ?? t.Strike ?? "",
                         Expiry:          t.Expiry       ?? "",
                         EntryPrice:      t.EntryPrice,
                         ExitPrice:       t.ExitPrice    ?? "",
                         StopLoss:        t.StopLoss     ?? "",
                         Target:          t.Target       ?? "",
-                        Quantity:        t.Quantity,
+                        Quantity:        t.Quantity      ?? "",
                         LotSize:         t.LotSize      ?? "",
-                        PlannedRR:       t.PlannedRR    ?? "",
-                        GrossPnL:        t.GrossPnL     ?? "",
-                        NetPnL:          t.NetPnL       ?? "",
-                        Brokerage:       t.Brokerage    ?? "",
-                        Taxes:           t.Taxes        ?? "",
-                        Result:          t.Result       ?? "",
-                        IsOpen:          t.IsOpen       ?? false,
+                        IsHit:           t.IsHit        ?? "AUTO",
+                        PnLAmount:       t.PnLAmount    ?? "",
+                        PnLSign:         t.PnLSign      ?? "PROFIT",
                         SetupType:       t.SetupType    ?? "",
-                        Strategy:        t.Strategy     ?? "",
+                        StrategyName:    t.StrategyName ?? t.Strategy ?? "",
                         MarketCondition: t.MarketCondition ?? "",
                         EmotionalState:  t.EmotionalState  ?? "",
-                        PlanAdherence:   t.PlanAdherence   ?? "",
                         MistakeType:     t.MistakeType  ?? "",
-                        Learnings:       t.Learnings    ?? "",
-                        Notes:           t.Notes        ?? "",
+                        Notes:           t.PostTradeNotes ?? t.Notes ?? "",
                         Tags:            Array.isArray(t.Tags) ? t.Tags.join(", ") : (t.Tags ?? ""),
-                        Screenshots:     Array.isArray(t.Screenshots) ? t.Screenshots.join(", ") : (t.Screenshots ?? ""),
+                        AttachmentLinks: Array.isArray(t.Screenshots) ? t.Screenshots.join(", ") : (t.Screenshots ?? ""),
+                        ScreenshotCdnUrls: Array.isArray(t.AttachmentUrls) ? t.AttachmentUrls : [],
+                        DraftID:         t.DraftID ?? "",
                     });
                 } else {
                     setNotFound(true);
@@ -80,21 +85,23 @@ export default function TradeDetailPage() {
         try {
             const payload = {
                 ...data,
+                IsDraft: false,
+                Direction: data.PositionDuration || data.Direction || "SHORT",
+                PositionDuration: data.PositionDuration || data.Direction || "SHORT",
+                Instrument: data.Instrument || data.InstrumentName,
+                StrikePrice: data.Strike !== "" ? Number(data.Strike) : undefined,
                 EntryPrice: data.EntryPrice !== "" ? Number(data.EntryPrice) : undefined,
                 ExitPrice:  data.ExitPrice  !== "" ? Number(data.ExitPrice)  : undefined,
                 StopLoss:   data.StopLoss   !== "" ? Number(data.StopLoss)   : undefined,
                 Target:     data.Target     !== "" ? Number(data.Target)     : undefined,
                 Quantity:   data.Quantity   !== "" ? Number(data.Quantity)   : undefined,
                 LotSize:    data.LotSize    !== "" ? Number(data.LotSize)    : undefined,
-                PlannedRR:  data.PlannedRR  !== "" ? Number(data.PlannedRR)  : undefined,
-                GrossPnL:   data.GrossPnL   !== "" ? Number(data.GrossPnL)   : undefined,
-                NetPnL:     data.NetPnL     !== "" ? Number(data.NetPnL)     : undefined,
-                Brokerage:  data.Brokerage  !== "" ? Number(data.Brokerage)  : undefined,
-                Taxes:      data.Taxes      !== "" ? Number(data.Taxes)      : undefined,
-                PlanAdherence: data.PlanAdherence !== "" ? Number(data.PlanAdherence) : undefined,
-                Strike:     data.Strike     !== "" ? Number(data.Strike)     : undefined,
-                Tags:       data.Tags       ? data.Tags.split(",").map(t => t.trim()).filter(Boolean) : [],
-                Screenshots: data.Screenshots ? data.Screenshots.split(",").map(s => s.trim()).filter(Boolean) : [],
+                PnLAmount:  data.PnLAmount !== "" ? Number(data.PnLAmount) : undefined,
+                Tags:       data.Tags       ? data.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+                Screenshots: data.AttachmentLinks ? data.AttachmentLinks.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
+                ScreenshotCdnUrls: Array.isArray(data.ScreenshotCdnUrls) ? data.ScreenshotCdnUrls : [],
+                StrategyName: data.StrategyName,
+                PostTradeNotes: data.Notes,
             };
 
             const res  = await fetch(`/api/trade-journal/${id}`, {
@@ -104,6 +111,11 @@ export default function TradeDetailPage() {
             });
             const json = await res.json();
             if (json.success) {
+                // Clear draft on successful update
+                if (typeof window !== "undefined") {
+                    localStorage.removeItem(DRAFT_STORAGE_KEY);
+                    localStorage.removeItem(DRAFT_TIMESTAMP_KEY);
+                }
                 router.push("/trade-journal");
             } else {
                 setError(json.error ?? "Failed to update trade.");

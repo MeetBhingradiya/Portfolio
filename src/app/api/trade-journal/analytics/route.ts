@@ -24,12 +24,20 @@ export async function GET(req: NextRequest) {
         const segment   = searchParams.get("segment");
         const instrument = searchParams.get("instrument");
 
-        const query: Record<string, any> = { UserID: user.userId, IsOpen: false };
+        const query: Record<string, any> = {
+            UserID: user.userId,
+            IsDraft: { $ne: true },
+            $or: [
+                { IsOpen: false },
+                { ExitPrice: { $ne: null } },
+                { Result: { $in: [TradeResult.WIN, TradeResult.LOSS, TradeResult.BREAKEVEN] } },
+            ],
+        };
 
         if (from || to) {
             query.Date = {};
-            if (from) query.Date.$gte = from;
-            if (to)   query.Date.$lte = to;
+            if (from) query.Date.$gte = new Date(from);
+            if (to)   query.Date.$lte = new Date(to);
         }
         if (segment)    query.Segment    = segment;
         if (instrument) query.Instrument = { $regex: instrument, $options: "i" };

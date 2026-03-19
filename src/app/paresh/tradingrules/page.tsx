@@ -185,6 +185,14 @@ const TRADING_RULES: TradingRule[] = [
         category: "learning",
         color: "#f57c00",
     },
+    {
+        id: 20,
+        title: "Wait for Candle Close Before Entry",
+        description: "Before executing any trade, wait for the candle to close to confirm direction and reduce false entries.",
+        icon: <BarChart />,
+        category: "execution",
+        color: "#1976d2",
+    },
 ];
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -264,7 +272,7 @@ export default function TradingRulesPage() {
                                 mx: "auto",
                             }}
                         >
-                            Your Complete Trading Discipline Framework — 19 Essential Rules for Consistent, Profitable Trading
+                            Your Complete Trading Discipline Framework — 20 Essential Rules for Consistent, Profitable Trading
                         </Typography>
                     </Stack>
                 </motion.div>
@@ -444,7 +452,7 @@ export default function TradingRulesPage() {
                                     fontSize: { xs: "0.9rem", md: "1rem" },
                                 }}
                             >
-                                These 19 rules form the backbone of a disciplined trading approach. Success comes from consistent adherence to these principles, not from chasing profits. Master these rules, execute them flawlessly, and build the empire you envision.
+                                These 20 rules form the backbone of a disciplined trading approach. Success comes from consistent adherence to these principles, not from chasing profits. Master these rules, execute them flawlessly, and build the empire you envision.
                             </Typography>
                         </Stack>
                     </Card>

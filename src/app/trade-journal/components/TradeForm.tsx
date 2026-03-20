@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCDNUpload, useDesignTheme, useTradeFormState } from "@Hooks";
 import { CloudDone, DocumentScanner, InfoOutlined, Psychology, Save, TrendingUp, UploadFile } from "@mui/icons-material";
@@ -27,6 +27,98 @@ const MARKET_SUGGESTIONS = ["TRENDING_UP", "TRENDING_DOWN", "SIDEWAYS", "VOLATIL
 const EMOTION_SUGGESTIONS = ["CALM", "CONFIDENT", "DISCIPLINED", "ANXIOUS", "FOMO", "REVENGE"];
 const MISTAKE_SUGGESTIONS = ["NONE", "EARLY_EXIT", "LATE_ENTRY", "NO_STOP_LOSS", "OVERTRADING", "IGNORED_PLAN"];
 
+interface ChargesDetail {
+    brokerage:        number; // ₹20 buy + ₹20 sell (flat per order)
+    stt:              number; // Securities Transaction Tax
+    stampDuty:        number; // State stamp duty on buy side
+    exchangeTurnover: number; // NSE / BSE / MCX / MCX-SX transaction charges
+    sebiTurnover:     number; // SEBI regulatory fee (₹10 per crore)
+    gst:              number; // GST on brokerage + exchange + SEBI (18% Indian / 30% Forex & Crypto)
+    taxes:            number; // stt + stampDuty + exchangeTurnover + sebiTurnover + gst
+    total:            number; // brokerage + taxes
+}
+
+const r2 = (n: number) => parseFloat(n.toFixed(2));
+
+function estimateCharges(
+    segment: string,
+    entryPrice: number,
+    exitPrice: number,
+    qty: number,
+    lot: number,
+): ChargesDetail {
+    const buyValue  = entryPrice * qty * lot;
+    const sellValue = exitPrice  * qty * lot;
+    const turnover  = buyValue + sellValue;
+    const seg       = segment.toUpperCase();
+
+    // Brokerage: flat ₹20/order, ₹40 round-trip (except EQUITY where it's % capped at ₹20/order)
+    let brokerage        = 40;
+    let stt              = 0;
+    let stampDuty        = 0;
+    let exchangeTurnover = 0;
+    let sebiTurnover     = r2(turnover * 0.000001); // ₹10 per crore for all regulated segments
+    // GST applied on brokerage + exchange + SEBI charges
+    // 18% for all Indian-regulated instruments; 30% flat for Forex & Crypto
+    // (Forex/Crypto are treated as 30% per business requirement — reflects the
+    //  higher effective tax burden outside the standard STT/stamp-duty framework)
+    const gstRate        = (seg === "FOREX" || seg === "CRYPTO") ? 0.30 : 0.18;
+
+    if (seg === "OPTIONS") {
+        // STT: 0.0625% on sell-side premium (NSE index options)
+        stt              = r2(sellValue * 0.000625);
+        // Stamp duty: 0.003% on buy side
+        stampDuty        = r2(buyValue  * 0.00003);
+        // Exchange transaction: 0.053% of total turnover (NSE F&O)
+        exchangeTurnover = r2(turnover  * 0.00053);
+    } else if (seg === "FUTURES") {
+        // STT: 0.01% on sell side
+        stt              = r2(sellValue * 0.0001);
+        // Stamp duty: 0.002% on buy side
+        stampDuty        = r2(buyValue  * 0.00002);
+        // Exchange transaction: 0.002% (NSE Futures)
+        exchangeTurnover = r2(turnover  * 0.00002);
+    } else if (seg === "EQUITY") {
+        // Brokerage: min(0.03%, ₹20) per order
+        brokerage        = r2(Math.min(buyValue * 0.0003, 20) + Math.min(sellValue * 0.0003, 20));
+        // STT: 0.025% on sell side (intraday)
+        stt              = r2(sellValue * 0.00025);
+        // Stamp duty: 0.003% on buy side
+        stampDuty        = r2(buyValue  * 0.00003);
+        // Exchange transaction: 0.00345% (NSE Equity)
+        exchangeTurnover = r2(turnover  * 0.0000345);
+    } else if (seg === "COMMODITY") {
+        // STT: 0.01% on sell side (non-agricultural futures, MCX)
+        stt              = r2(sellValue * 0.0001);
+        // Stamp duty: 0.002% on buy side
+        stampDuty        = r2(buyValue  * 0.00002);
+        // Exchange transaction: 0.0021% (MCX)
+        exchangeTurnover = r2(turnover  * 0.000021);
+    } else if (seg === "FOREX") {
+        // No STT on currency derivatives
+        stt              = 0;
+        // Stamp duty: 0.0001% on buy side
+        stampDuty        = r2(buyValue  * 0.000001);
+        // Exchange transaction: 0.00045% (NSE Currency)
+        exchangeTurnover = r2(turnover  * 0.0000045);
+        // SEBI charges apply on currency too
+    } else if (seg === "CRYPTO") {
+        // Crypto is unregulated in India — no STT, no stamp duty, no SEBI
+        stt              = 0;
+        stampDuty        = 0;
+        sebiTurnover     = 0;
+        // Platform/exchange fee: ~0.1% per side (typical Indian exchange)
+        exchangeTurnover = r2(turnover  * 0.001);
+    }
+
+    // GST = 18% (or 30%) on brokerage + exchange charges + SEBI charges
+    const gst    = r2((brokerage + exchangeTurnover + sebiTurnover) * gstRate);
+    const taxes  = r2(stt + stampDuty + exchangeTurnover + sebiTurnover + gst);
+    const total  = r2(brokerage + taxes);
+
+    return { brokerage, stt, stampDuty, exchangeTurnover, sebiTurnover, gst, taxes, total };
+}
+
 export interface TradeFormData {
     Date: string;
     EntryTime: string;
@@ -45,6 +137,8 @@ export interface TradeFormData {
     Target?: number | string;
     Quantity?: number | string;
     LotSize?: number | string;
+    Brokerage?: number | string;
+    Taxes?: number | string;
     IsHit?: string;
     PnLAmount?: number | string;
     PnLSign?: string;
@@ -112,12 +206,20 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
 
     const [showOcr, setShowOcr] = useState(false);
     const [uploadError, setUploadError] = useState("");
+    const [instrumentSuggestions, setInstrumentSuggestions] = useState<string[]>([]);
 
     const { upload, uploading } = useCDNUpload();
     const { form, setField, mergeForm, hasDraft, clearDraft, draftSaving } = useTradeFormState(initialData, {
         enableBackendDraft,
         enableLocalDraft: !isEdit,
     });
+
+    useEffect(() => {
+        fetch("/api/trade-journal/instruments")
+            .then(r => r.json())
+            .then(j => { if (j.success) setInstrumentSuggestions(j.data); })
+            .catch(() => {});
+    }, []);
 
     const effectiveDirection = (form.PositionDuration || form.Direction || "SHORT").toUpperCase();
 
@@ -163,6 +265,28 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
 
         return { amount: Math.abs(Number(raw.toFixed(2))), sign: raw >= 0 ? "PROFIT" : "LOSS" };
     }, [effectiveDirection, form.EntryPrice, form.ExitPrice, form.Quantity, form.LotSize]);
+
+    const calculatedCharges = useMemo((): ChargesDetail => {
+        const entry = Number(form.EntryPrice);
+        const exit  = Number(form.ExitPrice);
+        const qty   = Number(form.Quantity || 0);
+        const lot   = Number(form.LotSize  || 1);
+        if (!Number.isFinite(entry) || !Number.isFinite(exit) || qty <= 0) {
+            return { brokerage: 0, stt: 0, stampDuty: 0, exchangeTurnover: 0, sebiTurnover: 0, gst: 0, taxes: 0, total: 0 };
+        }
+        return estimateCharges(form.Segment || "OPTIONS", entry, exit, qty, lot);
+    }, [form.EntryPrice, form.ExitPrice, form.Quantity, form.LotSize, form.Segment]);
+
+    const netPnlAfterCharges = useMemo(() => {
+        if (calculatedPnl.amount === "") return null;
+        const numOr = (v: number | string | undefined, fallback: number) =>
+            (v !== "" && v != null) ? Number(v) || 0 : fallback;
+        const gross  = Number(calculatedPnl.amount);
+        const sign   = calculatedPnl.sign === "LOSS" ? -1 : 1;
+        const brok   = numOr(form.Brokerage, calculatedCharges.brokerage);
+        const taxAmt = numOr(form.Taxes,     calculatedCharges.taxes);
+        return parseFloat(((sign * gross) - brok - taxAmt).toFixed(2));
+    }, [calculatedPnl, form.Brokerage, form.Taxes, calculatedCharges]);
 
     function applyOcr(extracted: Partial<TradeFormData>) {
         const next: Partial<TradeFormData> = { ...extracted };
@@ -251,6 +375,8 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         IsHit: form.IsHit === "AUTO" || !form.IsHit ? calculatedHit : form.IsHit,
                         PnLAmount: form.PnLAmount === "" || form.PnLAmount == null ? calculatedPnl.amount : form.PnLAmount,
                         PnLSign: form.PnLSign || calculatedPnl.sign,
+                        Brokerage: form.Brokerage !== "" && form.Brokerage != null ? form.Brokerage : calculatedCharges.brokerage,
+                        Taxes: form.Taxes !== "" && form.Taxes != null ? form.Taxes : calculatedCharges.taxes,
                     };
                     await onSubmit(nextForm);
                 }}
@@ -323,7 +449,8 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         />
                     </Field>
                     <Field label="Instrument Name *">
-                        <input type="text" style={inputStyle} placeholder="e.g. NIFTY" value={String(form.InstrumentName)} onChange={e => setField("InstrumentName", e.target.value.toUpperCase())} required />
+                        <input list="instrument-suggestions" type="text" style={inputStyle} placeholder="e.g. NIFTY" value={String(form.InstrumentName)} onChange={e => setField("InstrumentName", e.target.value.toUpperCase())} required />
+                        <datalist id="instrument-suggestions">{instrumentSuggestions.map(v => <option key={v} value={v} />)}</datalist>
                     </Field>
                     <Field label="Segment *">
                         <CustomSelect value={form.Segment} onChange={v => setField("Segment", v)} options={SEGMENT_OPTS} />
@@ -382,6 +509,68 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     <Field label="Auto PnL Amount (read-only)">
                         <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedPnl.amount === "" ? "-" : String(calculatedPnl.amount)} readOnly />
                     </Field>
+
+                    {/* ── Charges breakdown ─────────────────────────────── */}
+                    <div className="sm:col-span-2 lg:col-span-3">
+                        <p className="text-xs font-semibold mb-2 uppercase tracking-widest" style={{ color: palette.textTertiary }}>
+                            Charges Breakdown
+                            {calculatedCharges.total > 0 && (
+                                <span className="ml-2 font-bold text-sm normal-case tracking-normal" style={{ color: "#ef4444" }}>
+                                    Total: ₹{calculatedCharges.total.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                                </span>
+                            )}
+                        </p>
+                        {(() => {
+                            const isHighGstSegment = ["FOREX", "CRYPTO"].includes((form.Segment || "OPTIONS").toUpperCase());
+                            return (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                                    {([
+                                        { label: "Brokerage",          hint: "₹20 buy + ₹20 sell",          value: calculatedCharges.brokerage },
+                                        { label: "STT",                hint: "Securities Transaction Tax",   value: calculatedCharges.stt },
+                                        { label: "Stamp Duty",         hint: "On buy-side notional",         value: calculatedCharges.stampDuty },
+                                        { label: "Exchange Turnover",  hint: "NSE / MCX fees",               value: calculatedCharges.exchangeTurnover },
+                                        { label: "SEBI Turnover",      hint: "₹10 per crore",                value: calculatedCharges.sebiTurnover },
+                                        { label: `GST (${isHighGstSegment ? "30%" : "18%"})`,
+                                          hint: "On brokerage + exchange + SEBI",                            value: calculatedCharges.gst },
+                                    ] as const).map(({ label, hint, value }) => (
+                                        <div key={label} className="p-2 rounded-xl flex flex-col gap-0.5"
+                                            style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border: `1px solid ${borderColor}` }}>
+                                            <span className="text-xs font-medium leading-tight" style={{ color: palette.textTertiary }} title={hint}>{label}</span>
+                                            <span className="text-sm font-bold tabular-nums" style={{ color: value > 0 ? "#ef4444" : palette.textSecondary }}>
+                                                ₹{value.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                                            </span>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })()}
+                    </div>
+
+                    {/* Override fields */}
+                    <Field label={`Brokerage Override (auto ₹${calculatedCharges.brokerage})`}>
+                        <input type="number" min={0} step="0.01" style={inputStyle}
+                            placeholder={String(calculatedCharges.brokerage || "0")}
+                            value={String(form.Brokerage ?? "")}
+                            onChange={e => setField("Brokerage", e.target.value)} />
+                    </Field>
+                    <Field label={`Taxes Override (auto ₹${calculatedCharges.taxes})`}>
+                        <input type="number" min={0} step="0.01" style={inputStyle}
+                            placeholder={String(calculatedCharges.taxes || "0")}
+                            value={String(form.Taxes ?? "")}
+                            onChange={e => setField("Taxes", e.target.value)} />
+                    </Field>
+
+                    {/* Net P&L after all charges */}
+                    {netPnlAfterCharges !== null && (
+                        <div className="sm:col-span-2 lg:col-span-3">
+                            <Field label="Net P&L after All Charges (read-only)">
+                                <input type="text" style={{ ...inputStyle, opacity: 0.85, fontWeight: 700,
+                                    color: netPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444" }}
+                                    value={`${netPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(netPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`}
+                                    readOnly />
+                            </Field>
+                        </div>
+                    )}
                 </>)}
 
                 {sectionCard("Setup & Psychology", <Psychology />, <>

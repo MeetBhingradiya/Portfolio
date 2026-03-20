@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useCDNUpload, useDesignTheme, useTradeFormState } from "@Hooks";
 import { CloudDone, DocumentScanner, InfoOutlined, Psychology, Save, TrendingUp, UploadFile } from "@mui/icons-material";
@@ -27,6 +27,49 @@ const MARKET_SUGGESTIONS = ["TRENDING_UP", "TRENDING_DOWN", "SIDEWAYS", "VOLATIL
 const EMOTION_SUGGESTIONS = ["CALM", "CONFIDENT", "DISCIPLINED", "ANXIOUS", "FOMO", "REVENGE"];
 const MISTAKE_SUGGESTIONS = ["NONE", "EARLY_EXIT", "LATE_ENTRY", "NO_STOP_LOSS", "OVERTRADING", "IGNORED_PLAN"];
 
+function estimateCharges(
+    segment: string,
+    entryPrice: number,
+    exitPrice: number,
+    qty: number,
+    lot: number,
+): { brokerage: number; taxes: number } {
+    const buyValue  = entryPrice * qty * lot;
+    const sellValue = exitPrice  * qty * lot;
+    const turnover  = buyValue + sellValue;
+    const seg = segment.toUpperCase();
+
+    if (seg === "OPTIONS") {
+        const brokerage = 40;
+        const stt       = sellValue * 0.0005;
+        const exchange  = turnover  * 0.00053;
+        const gst       = brokerage * 0.18;
+        const stamp     = buyValue  * 0.00003;
+        return { brokerage, taxes: parseFloat((stt + exchange + gst + stamp).toFixed(2)) };
+    }
+    if (seg === "FUTURES") {
+        const brokerage = 40;
+        const stt       = sellValue * 0.0001;
+        const exchange  = turnover  * 0.0002;
+        const gst       = brokerage * 0.18;
+        const stamp     = buyValue  * 0.00002;
+        return { brokerage, taxes: parseFloat((stt + exchange + gst + stamp).toFixed(2)) };
+    }
+    if (seg === "EQUITY") {
+        const brok1     = Math.min(buyValue  * 0.0003, 20);
+        const brok2     = Math.min(sellValue * 0.0003, 20);
+        const brokerage = parseFloat((brok1 + brok2).toFixed(2));
+        const stt       = (buyValue + sellValue) * 0.00025;
+        const exchange  = turnover * 0.0000345;
+        const gst       = brokerage * 0.18;
+        const stamp     = buyValue  * 0.00015;
+        return { brokerage, taxes: parseFloat((stt + exchange + gst + stamp).toFixed(2)) };
+    }
+    // CRYPTO / FOREX / COMMODITY – simplified
+    const brokerage = 40;
+    return { brokerage, taxes: parseFloat((turnover * 0.001).toFixed(2)) };
+}
+
 export interface TradeFormData {
     Date: string;
     EntryTime: string;
@@ -45,6 +88,8 @@ export interface TradeFormData {
     Target?: number | string;
     Quantity?: number | string;
     LotSize?: number | string;
+    Brokerage?: number | string;
+    Taxes?: number | string;
     IsHit?: string;
     PnLAmount?: number | string;
     PnLSign?: string;
@@ -112,12 +157,20 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
 
     const [showOcr, setShowOcr] = useState(false);
     const [uploadError, setUploadError] = useState("");
+    const [instrumentSuggestions, setInstrumentSuggestions] = useState<string[]>([]);
 
     const { upload, uploading } = useCDNUpload();
     const { form, setField, mergeForm, hasDraft, clearDraft, draftSaving } = useTradeFormState(initialData, {
         enableBackendDraft,
         enableLocalDraft: !isEdit,
     });
+
+    useEffect(() => {
+        fetch("/api/trade-journal/instruments")
+            .then(r => r.json())
+            .then(j => { if (j.success) setInstrumentSuggestions(j.data); })
+            .catch(() => {});
+    }, []);
 
     const effectiveDirection = (form.PositionDuration || form.Direction || "SHORT").toUpperCase();
 
@@ -163,6 +216,26 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
 
         return { amount: Math.abs(Number(raw.toFixed(2))), sign: raw >= 0 ? "PROFIT" : "LOSS" };
     }, [effectiveDirection, form.EntryPrice, form.ExitPrice, form.Quantity, form.LotSize]);
+
+    const calculatedCharges = useMemo(() => {
+        const entry = Number(form.EntryPrice);
+        const exit  = Number(form.ExitPrice);
+        const qty   = Number(form.Quantity || 0);
+        const lot   = Number(form.LotSize  || 1);
+        if (!Number.isFinite(entry) || !Number.isFinite(exit) || qty <= 0) {
+            return { brokerage: 0, taxes: 0 };
+        }
+        return estimateCharges(form.Segment || "OPTIONS", entry, exit, qty, lot);
+    }, [form.EntryPrice, form.ExitPrice, form.Quantity, form.LotSize, form.Segment]);
+
+    const netPnlAfterCharges = useMemo(() => {
+        if (calculatedPnl.amount === "") return null;
+        const gross  = Number(calculatedPnl.amount);
+        const sign   = calculatedPnl.sign === "LOSS" ? -1 : 1;
+        const brok   = Number(form.Brokerage !== "" && form.Brokerage != null ? form.Brokerage : calculatedCharges.brokerage) || 0;
+        const taxAmt = Number(form.Taxes     !== "" && form.Taxes     != null ? form.Taxes     : calculatedCharges.taxes)     || 0;
+        return parseFloat(((sign * gross) - brok - taxAmt).toFixed(2));
+    }, [calculatedPnl, form.Brokerage, form.Taxes, calculatedCharges]);
 
     function applyOcr(extracted: Partial<TradeFormData>) {
         const next: Partial<TradeFormData> = { ...extracted };
@@ -251,6 +324,8 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         IsHit: form.IsHit === "AUTO" || !form.IsHit ? calculatedHit : form.IsHit,
                         PnLAmount: form.PnLAmount === "" || form.PnLAmount == null ? calculatedPnl.amount : form.PnLAmount,
                         PnLSign: form.PnLSign || calculatedPnl.sign,
+                        Brokerage: form.Brokerage !== "" && form.Brokerage != null ? form.Brokerage : calculatedCharges.brokerage,
+                        Taxes: form.Taxes !== "" && form.Taxes != null ? form.Taxes : calculatedCharges.taxes,
                     };
                     await onSubmit(nextForm);
                 }}
@@ -323,7 +398,8 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         />
                     </Field>
                     <Field label="Instrument Name *">
-                        <input type="text" style={inputStyle} placeholder="e.g. NIFTY" value={String(form.InstrumentName)} onChange={e => setField("InstrumentName", e.target.value.toUpperCase())} required />
+                        <input list="instrument-suggestions" type="text" style={inputStyle} placeholder="e.g. NIFTY" value={String(form.InstrumentName)} onChange={e => setField("InstrumentName", e.target.value.toUpperCase())} required />
+                        <datalist id="instrument-suggestions">{instrumentSuggestions.map(v => <option key={v} value={v} />)}</datalist>
                     </Field>
                     <Field label="Segment *">
                         <CustomSelect value={form.Segment} onChange={v => setField("Segment", v)} options={SEGMENT_OPTS} />
@@ -382,6 +458,27 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     <Field label="Auto PnL Amount (read-only)">
                         <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedPnl.amount === "" ? "-" : String(calculatedPnl.amount)} readOnly />
                     </Field>
+                    <Field label={`Brokerage (est. ₹${calculatedCharges.brokerage})`}>
+                        <input type="number" min={0} step="0.01" style={inputStyle}
+                            placeholder={String(calculatedCharges.brokerage || "0")}
+                            value={String(form.Brokerage ?? "")}
+                            onChange={e => setField("Brokerage", e.target.value)} />
+                    </Field>
+                    <Field label={`Taxes / STT (est. ₹${calculatedCharges.taxes})`}>
+                        <input type="number" min={0} step="0.01" style={inputStyle}
+                            placeholder={String(calculatedCharges.taxes || "0")}
+                            value={String(form.Taxes ?? "")}
+                            onChange={e => setField("Taxes", e.target.value)} />
+                    </Field>
+                    {netPnlAfterCharges !== null && (
+                        <div className="sm:col-span-2 lg:col-span-3">
+                            <Field label="Net P&L after Charges (read-only)">
+                                <input type="text" style={{ ...inputStyle, opacity: 0.85, fontWeight: 600, color: netPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444" }}
+                                    value={`${netPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(netPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`}
+                                    readOnly />
+                            </Field>
+                        </div>
+                    )}
                 </>)}
 
                 {sectionCard("Setup & Psychology", <Psychology />, <>

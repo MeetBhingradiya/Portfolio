@@ -19,12 +19,14 @@ import {
     Menu,
     Close,
     AutoStories,
+    ShowChart,
 } from "@mui/icons-material";
 
 const NAV_ITEMS = [
-    { label: "Dashboard",  href: "/trade-journal",            icon: <Dashboard /> },
-    { label: "New Trade",  href: "/trade-journal/new",         icon: <AddCircleOutline /> },
-    { label: "Analytics",  href: "/trade-journal/analytics",   icon: <BarChart /> },
+    { label: "Dashboard",   href: "/trade-journal",               icon: <Dashboard /> },
+    { label: "New Trade",   href: "/trade-journal/new",            icon: <AddCircleOutline /> },
+    { label: "Analytics",   href: "/trade-journal/analytics",      icon: <BarChart /> },
+    { label: "Capital Log", href: "/trade-journal/daily-capital",  icon: <ShowChart /> },
 ];
 
 export default function TradeJournalLayout({ children }: { children: React.ReactNode }) {

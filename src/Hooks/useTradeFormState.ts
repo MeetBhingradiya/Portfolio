@@ -38,6 +38,8 @@ const initialFormState: TradeFormData = {
     Target: "",
     Quantity: "",
     LotSize: "",
+    Brokerage: "",
+    Taxes: "",
     IsHit: "AUTO",
     PnLAmount: "",
     PnLSign: "PROFIT",

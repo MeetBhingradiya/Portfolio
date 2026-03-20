@@ -105,7 +105,7 @@ export async function GET(req: NextRequest) {
             if (equity > peak) peak = equity;
             const dd = peak > 0 ? (peak - equity) / peak : 0;
             if (dd > maxDrawdown) maxDrawdown = dd;
-            equityCurve.push({ date: trades[i].Date, equity: parseFloat(equity.toFixed(2)), tradeNo: i + 1 });
+            equityCurve.push({ date: new Date(trades[i].Date as Date).toISOString().slice(0, 10), equity: parseFloat(equity.toFixed(2)), tradeNo: i + 1 });
         }
         const maxDrawdownPct = parseFloat((maxDrawdown * 100).toFixed(2));
 
@@ -117,15 +117,15 @@ export async function GET(req: NextRequest) {
             else curConsec = 0;
         }
 
-        // ── Avg actual RR, plan adherence, holding duration ───────────────
+        // ── Avg actual RR, plan adherence (via FollowedPlan), holding duration ─
         const tradesWithRR  = trades.filter(t => t.ActualRR != null);
         const avgActualRR   = tradesWithRR.length
             ? tradesWithRR.reduce((s, t) => s + t.ActualRR, 0) / tradesWithRR.length
             : 0;
 
-        const planAdherenceTrades = trades.filter(t => t.PlanAdherence != null);
-        const planAdherenceAvg    = planAdherenceTrades.length
-            ? planAdherenceTrades.reduce((s, t) => s + t.PlanAdherence, 0) / planAdherenceTrades.length
+        const tradesWithFollowedPlan = trades.filter(t => t.FollowedPlan != null);
+        const planAdherenceAvg = tradesWithFollowedPlan.length
+            ? (tradesWithFollowedPlan.filter((t: any) => t.FollowedPlan).length / tradesWithFollowedPlan.length) * 100
             : 0;
 
         const holdingTrades       = trades.filter(t => t.HoldingDurationMinutes != null);
@@ -136,7 +136,7 @@ export async function GET(req: NextRequest) {
         // ── Monthly PnL breakdown ─────────────────────────────────────────
         const monthMap: Record<string, number> = {};
         for (const t of trades) {
-            const ym = (t.Date as string).slice(0, 7); // "YYYY-MM"
+            const ym = new Date(t.Date as Date).toISOString().slice(0, 7); // "YYYY-MM"
             monthMap[ym] = (monthMap[ym] ?? 0) + (t.NetPnL ?? 0);
         }
         const monthlyPnL = Object.entries(monthMap)

@@ -17,6 +17,15 @@ import {
     Delete,
 } from "@mui/icons-material";
 
+interface DailyCapitalEntry {
+    Date:             string;
+    StartingCapital:  number;
+    EndingCapital:    number;
+    NetPnL:           number;
+    DailyReturn:      number;
+    Notes?:           string;
+}
+
 export default function DailyCapitalPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const isDark  = actualColorMode === "dark";
@@ -45,7 +54,7 @@ export default function DailyCapitalPage() {
     const [dcNotes,    setDcNotes]    = useState("");
     const [dcSaving,   setDcSaving]   = useState(false);
     const [dcSaved,    setDcSaved]    = useState(false);
-    const [dcEntries,  setDcEntries]  = useState<any[]>([]);
+    const [dcEntries,  setDcEntries]  = useState<DailyCapitalEntry[]>([]);
     const [dcDeleting, setDcDeleting] = useState<string | null>(null);
     const [loading,    setLoading]    = useState(true);
 
@@ -207,20 +216,20 @@ export default function DailyCapitalPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {dcEntries.map((e: any) => {
+                                {dcEntries.map((e) => {
                                     const ret = (e.DailyReturn ?? 0) * 100;
                                     const pos  = ret >= 0;
                                     return (
                                         <tr key={e.Date} style={{ borderBottom: `1px solid ${borderColor}` }}>
                                             <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textPrimary }}>{e.Date}</td>
                                             <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textSecondary }}>
-                                                {(e.StartingCapital as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                                {e.StartingCapital.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
                                             </td>
                                             <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textSecondary }}>
-                                                {(e.EndingCapital as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                                {e.EndingCapital.toLocaleString("en-IN", { maximumFractionDigits: 0 })}
                                             </td>
                                             <td className="py-2 pr-3 tabular-nums font-semibold" style={{ color: pos ? "#22c55e" : "#ef4444" }}>
-                                                {pos ? "+" : ""}₹{Math.abs(e.NetPnL as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
+                                                {pos ? "+" : ""}₹{Math.abs(e.NetPnL).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
                                             </td>
                                             <td className="py-2 pr-3 tabular-nums font-semibold" style={{ color: pos ? "#22c55e" : "#ef4444" }}>
                                                 {pos ? "+" : ""}{ret.toFixed(3)}%

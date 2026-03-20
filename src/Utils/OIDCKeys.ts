@@ -14,7 +14,8 @@ import {
     exportJWK,
     importJWK,
 } from "jose";
-import { Config } from "@Config/Client";
+import { Config as CConfig } from "@Config/Client";
+import { Config as SConfig } from "@Config/Server";
 
 interface OIDCKeySet {
     privateKey: any;
@@ -78,7 +79,7 @@ export async function getOIDCKeys(): Promise<OIDCKeySet> {
 
 /** The OIDC issuer base URL (no trailing slash) */
 export function getIssuer(): string {
-    return `${Config.Origin}/api/immich-sso`;
+    return `${CConfig.Origin}/api/immich-sso`;
 }
 
 /** Validate OIDC client credentials */
@@ -100,16 +101,11 @@ export function validateClient(
 
 /** Check if a redirect_uri is allowed */
 export function isRedirectUriAllowed(uri: string): boolean {
-    const allowed = (process.env.IMMICH_SSO_REDIRECT_URIS || "")
-        .split(",")
-        .map((u) => u.trim())
-        .filter(Boolean);
+    const allowed = Object.values(SConfig.Immich_Endpoints).map(endpoint => `${CConfig.Origin}${endpoint}`);
 
-    // If none configured, allow any (for initial setup)
     if (allowed.length === 0) return true;
 
     return allowed.some((allowedUri) => {
-        // Exact match or prefix match for the same host
         return uri === allowedUri || uri.startsWith(allowedUri);
     });
 }

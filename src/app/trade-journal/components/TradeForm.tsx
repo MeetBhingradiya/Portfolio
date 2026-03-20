@@ -19,7 +19,6 @@ const SEGMENT_OPTS = mkOpts(["OPTIONS", "EQUITY", "FUTURES", "CRYPTO", "FOREX", 
 const DURATION_OPTS = mkOpts(["SHORT", "LONG"]);
 const OPTION_TYPE_OPTS = mkOpts(["CE", "PE"], "-");
 const HIT_OPTS = mkOpts(["AUTO", "TARGET_ACHIEVED", "STOPLOSS_HIT", "NONE"]);
-const PNL_SIGN_OPTS = mkOpts(["PROFIT", "LOSS"]);
 
 const SETUP_SUGGESTIONS = ["BREAKOUT", "REVERSAL", "PULLBACK", "MOMENTUM", "RANGE", "SCALP"];
 const STRATEGY_SUGGESTIONS = ["EMA Crossover", "ORB", "VWAP Reclaim", "Break and Retest", "Range Fade"];
@@ -38,17 +37,21 @@ interface ChargesDetail {
     total:            number; // brokerage + taxes
 }
 
-const r2 = (n: number) => parseFloat(n.toFixed(2));
+const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
+const t2 = (n: number) => Math.trunc(n * 100) / 100;
 
 function estimateCharges(
     segment: string,
     entryPrice: number,
     exitPrice: number,
     qty: number,
-    lot: number,
+    direction: string,
 ): ChargesDetail {
-    const buyValue  = entryPrice * qty * lot;
-    const sellValue = exitPrice  * qty * lot;
+    const entryValue = entryPrice * qty;
+    const exitValue  = exitPrice  * qty;
+    const isShort    = String(direction || "SHORT").toUpperCase() === "SHORT";
+    const buyValue   = isShort ? exitValue : entryValue;
+    const sellValue  = isShort ? entryValue : exitValue;
     const turnover  = buyValue + sellValue;
     const seg       = segment.toUpperCase();
 
@@ -65,12 +68,12 @@ function estimateCharges(
     const gstRate        = (seg === "FOREX" || seg === "CRYPTO") ? 0.30 : 0.18;
 
     if (seg === "OPTIONS") {
-        // STT: 0.0625% on sell-side premium (NSE index options)
-        stt              = r2(sellValue * 0.000625);
+        // STT: 0.1% on sell-side premium (intraday options)
+        stt              = r2(sellValue * 0.001);
         // Stamp duty: 0.003% on buy side
         stampDuty        = r2(buyValue  * 0.00003);
-        // Exchange transaction: 0.053% of total turnover (NSE F&O)
-        exchangeTurnover = r2(turnover  * 0.00053);
+        // Exchange transaction: 0.035031% of total turnover (NSE F&O effective)
+        exchangeTurnover = r2(turnover  * 0.00035031);
     } else if (seg === "FUTURES") {
         // STT: 0.01% on sell side
         stt              = r2(sellValue * 0.0001);
@@ -112,7 +115,8 @@ function estimateCharges(
     }
 
     // GST = 18% (or 30%) on brokerage + exchange charges + SEBI charges
-    const gst    = r2((brokerage + exchangeTurnover + sebiTurnover) * gstRate);
+    // Broker UI commonly truncates GST to 2 decimals instead of half-up rounding.
+    const gst    = t2((brokerage + exchangeTurnover + sebiTurnover) * gstRate);
     const taxes  = r2(stt + stampDuty + exchangeTurnover + sebiTurnover + gst);
     const total  = r2(brokerage + taxes);
 
@@ -207,6 +211,9 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
     const [showOcr, setShowOcr] = useState(false);
     const [uploadError, setUploadError] = useState("");
     const [instrumentSuggestions, setInstrumentSuggestions] = useState<string[]>([]);
+    const [directionTouched, setDirectionTouched] = useState(
+        Boolean(initialData?.PositionDuration || initialData?.Direction)
+    );
 
     const { upload, uploading } = useCDNUpload();
     const { form, setField, mergeForm, hasDraft, clearDraft, draftSaving } = useTradeFormState(initialData, {
@@ -221,7 +228,29 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
             .catch(() => {});
     }, []);
 
-    const effectiveDirection = (form.PositionDuration || form.Direction || "SHORT").toUpperCase();
+    const inferredDirection = useMemo(() => {
+        const entry = Number(form.EntryPrice);
+        const exit = Number(form.ExitPrice);
+        const sl = Number(form.StopLoss);
+        const tgt = Number(form.Target);
+
+        if (Number.isFinite(entry) && Number.isFinite(tgt) && Number.isFinite(sl)) {
+            if (tgt > entry && sl < entry) return "LONG";
+            if (tgt < entry && sl > entry) return "SHORT";
+        }
+
+        if (Number.isFinite(entry) && Number.isFinite(exit)) {
+            if (exit > entry) return "LONG";
+            if (exit < entry) return "SHORT";
+        }
+
+        return "SHORT";
+    }, [form.EntryPrice, form.ExitPrice, form.StopLoss, form.Target]);
+
+    const selectedDirection = String(form.PositionDuration || form.Direction || "SHORT").toUpperCase();
+    const effectiveDirection = directionTouched
+        ? (selectedDirection === "LONG" ? "LONG" : "SHORT")
+        : inferredDirection;
 
     const instrumentPreview = useMemo(() => {
         const parts = [String(form.InstrumentName || "").trim().toUpperCase()];
@@ -255,38 +284,68 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
         const qty = Number(form.Quantity || 0);
         const lot = Number(form.LotSize || 1);
 
-        if (!Number.isFinite(entry) || !Number.isFinite(exit) || !Number.isFinite(qty) || qty <= 0) {
+        const effectiveQty = Number.isFinite(qty) && qty > 0
+            ? (Number.isFinite(lot) && lot > 1 ? Math.floor(qty / lot) * lot : qty)
+            : 0;
+
+        if (!Number.isFinite(entry) || !Number.isFinite(exit) || effectiveQty <= 0) {
             return { amount: "", sign: "PROFIT" };
         }
 
         const raw = effectiveDirection === "SHORT"
-            ? (entry - exit) * qty * lot
-            : (exit - entry) * qty * lot;
+            ? (entry - exit) * effectiveQty
+            : (exit - entry) * effectiveQty;
 
         return { amount: Math.abs(Number(raw.toFixed(2))), sign: raw >= 0 ? "PROFIT" : "LOSS" };
     }, [effectiveDirection, form.EntryPrice, form.ExitPrice, form.Quantity, form.LotSize]);
 
+    const effectiveQuantity = useMemo(() => {
+        const qty = Number(form.Quantity || 0);
+        const lot = Number(form.LotSize || 1);
+        if (!Number.isFinite(qty) || qty <= 0) return 0;
+        if (Number.isFinite(lot) && lot > 1) {
+            const normalized = Math.floor(qty / lot) * lot;
+            return normalized > 0 ? normalized : qty;
+        }
+        return qty;
+    }, [form.Quantity, form.LotSize]);
+
     const calculatedCharges = useMemo((): ChargesDetail => {
         const entry = Number(form.EntryPrice);
         const exit  = Number(form.ExitPrice);
-        const qty   = Number(form.Quantity || 0);
-        const lot   = Number(form.LotSize  || 1);
-        if (!Number.isFinite(entry) || !Number.isFinite(exit) || qty <= 0) {
+        if (!Number.isFinite(entry) || !Number.isFinite(exit) || effectiveQuantity <= 0) {
             return { brokerage: 0, stt: 0, stampDuty: 0, exchangeTurnover: 0, sebiTurnover: 0, gst: 0, taxes: 0, total: 0 };
         }
-        return estimateCharges(form.Segment || "OPTIONS", entry, exit, qty, lot);
-    }, [form.EntryPrice, form.ExitPrice, form.Quantity, form.LotSize, form.Segment]);
+        return estimateCharges(form.Segment || "OPTIONS", entry, exit, effectiveQuantity, effectiveDirection);
+    }, [effectiveDirection, effectiveQuantity, form.EntryPrice, form.ExitPrice, form.Segment]);
+
+    const marginUsed = useMemo(() => {
+        const entry = Number(form.EntryPrice);
+        const exit = Number(form.ExitPrice);
+        if (effectiveQuantity <= 0) return null;
+
+        // For options premium-style accounting, capital outflow is buy-side premium.
+        const buySidePrice = effectiveDirection === "SHORT"
+            ? (Number.isFinite(exit) ? exit : entry)
+            : entry;
+
+        if (!Number.isFinite(buySidePrice)) return null;
+        return r2(buySidePrice * effectiveQuantity);
+    }, [effectiveDirection, effectiveQuantity, form.EntryPrice, form.ExitPrice]);
 
     const netPnlAfterCharges = useMemo(() => {
         if (calculatedPnl.amount === "") return null;
-        const numOr = (v: number | string | undefined, fallback: number) =>
-            (v !== "" && v != null) ? Number(v) || 0 : fallback;
         const gross  = Number(calculatedPnl.amount);
         const sign   = calculatedPnl.sign === "LOSS" ? -1 : 1;
-        const brok   = numOr(form.Brokerage, calculatedCharges.brokerage);
-        const taxAmt = numOr(form.Taxes,     calculatedCharges.taxes);
+        const brok   = calculatedCharges.brokerage;
+        const taxAmt = calculatedCharges.taxes;
         return parseFloat(((sign * gross) - brok - taxAmt).toFixed(2));
-    }, [calculatedPnl, form.Brokerage, form.Taxes, calculatedCharges]);
+    }, [calculatedPnl, calculatedCharges]);
+
+    const netPnlPercentage = useMemo(() => {
+        if (netPnlAfterCharges == null || marginUsed == null || marginUsed <= 0) return null;
+        return r2((netPnlAfterCharges / marginUsed) * 100);
+    }, [marginUsed, netPnlAfterCharges]);
 
     function applyOcr(extracted: Partial<TradeFormData>) {
         const next: Partial<TradeFormData> = { ...extracted };
@@ -369,14 +428,15 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
 
                     const nextForm: TradeFormData = {
                         ...form,
+                        Quantity: effectiveQuantity > 0 ? effectiveQuantity : form.Quantity,
                         Instrument: instrumentPreview || form.InstrumentName,
                         PositionDuration: effectiveDirection,
                         Direction: effectiveDirection,
                         IsHit: form.IsHit === "AUTO" || !form.IsHit ? calculatedHit : form.IsHit,
-                        PnLAmount: form.PnLAmount === "" || form.PnLAmount == null ? calculatedPnl.amount : form.PnLAmount,
-                        PnLSign: form.PnLSign || calculatedPnl.sign,
-                        Brokerage: form.Brokerage !== "" && form.Brokerage != null ? form.Brokerage : calculatedCharges.brokerage,
-                        Taxes: form.Taxes !== "" && form.Taxes != null ? form.Taxes : calculatedCharges.taxes,
+                        PnLAmount: calculatedPnl.amount === "" ? undefined : calculatedPnl.amount,
+                        PnLSign: calculatedPnl.sign,
+                        Brokerage: calculatedCharges.brokerage,
+                        Taxes: calculatedCharges.taxes,
                     };
                     await onSubmit(nextForm);
                 }}
@@ -456,7 +516,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         <CustomSelect value={form.Segment} onChange={v => setField("Segment", v)} options={SEGMENT_OPTS} />
                     </Field>
                     <Field label="Position Duration *">
-                        <CustomSelect value={effectiveDirection} onChange={v => setField("PositionDuration", v)} options={DURATION_OPTS} />
+                        <CustomSelect value={effectiveDirection} onChange={v => { setDirectionTouched(true); setField("PositionDuration", v); }} options={DURATION_OPTS} />
                     </Field>
                     <Field label="Option Type">
                         <CustomSelect value={form.OptionType ?? ""} onChange={v => setField("OptionType", v)} options={OPTION_TYPE_OPTS} />
@@ -499,14 +559,10 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     <Field label="Detected Hit (read-only)">
                         <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedHit} readOnly />
                     </Field>
-                    <Field label="PnL Sign">
-                        <CustomSelect value={form.PnLSign ?? calculatedPnl.sign} onChange={v => setField("PnLSign", v)} options={PNL_SIGN_OPTS} />
+                    <Field label="P&L Sign (auto)">
+                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedPnl.sign} readOnly />
                     </Field>
-                    <Field label="Profit/Loss Amount">
-                        <input type="number" min={0} step="0.01" style={inputStyle} placeholder={String(calculatedPnl.amount || "Auto")}
-                            value={String(form.PnLAmount ?? "")} onChange={e => setField("PnLAmount", e.target.value)} />
-                    </Field>
-                    <Field label="Auto PnL Amount (read-only)">
+                    <Field label="Gross P&L Amount (auto)">
                         <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedPnl.amount === "" ? "-" : String(calculatedPnl.amount)} readOnly />
                     </Field>
 
@@ -546,19 +602,29 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         })()}
                     </div>
 
-                    {/* Override fields */}
-                    <Field label={`Brokerage Override (auto ₹${calculatedCharges.brokerage})`}>
-                        <input type="number" min={0} step="0.01" style={inputStyle}
-                            placeholder={String(calculatedCharges.brokerage || "0")}
-                            value={String(form.Brokerage ?? "")}
-                            onChange={e => setField("Brokerage", e.target.value)} />
+                    <Field label="Brokerage (auto)">
+                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }}
+                            value={`₹${calculatedCharges.brokerage.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
+                            readOnly />
                     </Field>
-                    <Field label={`Taxes Override (auto ₹${calculatedCharges.taxes})`}>
-                        <input type="number" min={0} step="0.01" style={inputStyle}
-                            placeholder={String(calculatedCharges.taxes || "0")}
-                            value={String(form.Taxes ?? "")}
-                            onChange={e => setField("Taxes", e.target.value)} />
+                    <Field label="Taxes (auto, excl. brokerage)">
+                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }}
+                            value={`₹${calculatedCharges.taxes.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
+                            readOnly />
                     </Field>
+                    <Field label="Total Charges (auto)">
+                        <input type="text" style={{ ...inputStyle, opacity: 0.75, fontWeight: 700 }}
+                            value={`₹${calculatedCharges.total.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
+                            readOnly />
+                    </Field>
+
+                    {marginUsed !== null && (
+                        <Field label="Margin Used (Entry Price × Quantity)">
+                            <input type="text" style={{ ...inputStyle, opacity: 0.75 }}
+                                value={`₹${marginUsed.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
+                                readOnly />
+                        </Field>
+                    )}
 
                     {/* Net P&L after all charges */}
                     {netPnlAfterCharges !== null && (
@@ -566,7 +632,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                             <Field label="Net P&L after All Charges (read-only)">
                                 <input type="text" style={{ ...inputStyle, opacity: 0.85, fontWeight: 700,
                                     color: netPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444" }}
-                                    value={`${netPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(netPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`}
+                                    value={`${netPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(netPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}${netPnlPercentage != null ? ` (${netPnlPercentage >= 0 ? "+" : ""}${netPnlPercentage.toLocaleString("en-IN", { maximumFractionDigits: 2 })}%)` : ""}`}
                                     readOnly />
                             </Field>
                         </div>

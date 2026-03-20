@@ -38,5 +38,10 @@ export interface Client_Config_Type extends Common_Config_Type {
 }
 
 export interface Server_Config_Type extends Common_Config_Type {
-
+    Immich_Origins: string[];
+    Immich_Endpoints: {
+        Mobile_Redirect: string;
+        Authorization: string;
+        User_Settings: string;
+    }
 }

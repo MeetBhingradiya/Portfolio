@@ -12,10 +12,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { getIssuer, validateClient, isRedirectUriAllowed } from "@Utils/OIDCKeys";
+import { Config } from "@Config/Server";
 
 export const dynamic = "force-dynamic";
-
-const IMMICH_ORIGIN = "https://photos.meetbhingradiya.in";
 
 function oidcError(
     redirectUri: string | null,
@@ -64,8 +63,9 @@ export async function GET(req: NextRequest) {
     // to the Immich instance origin.
     const origin = req.headers.get("origin") || "";
     const referer = req.headers.get("referer") || "";
-    const fromImmich =
-        origin.startsWith(IMMICH_ORIGIN) || referer.startsWith(IMMICH_ORIGIN);
+    const fromImmich = Config.Immich_Origins.some(immichOrigin =>
+        origin.startsWith(immichOrigin) || referer.startsWith(immichOrigin)
+    );
 
     if (!fromImmich) {
         console.warn("[authorize] Invalid origin/referer — rejecting request", { origin, referer });

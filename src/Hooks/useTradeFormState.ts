@@ -38,6 +38,8 @@ const initialFormState: TradeFormData = {
     Target: "",
     Quantity: "",
     LotSize: "",
+    Brokerage: "",
+    Taxes: "",
     IsHit: "AUTO",
     PnLAmount: "",
     PnLSign: "PROFIT",
@@ -98,6 +100,8 @@ function toDraftPayload(form: TradeFormData) {
         Target: form.Target !== "" ? Number(form.Target) : undefined,
         Quantity: form.Quantity !== "" ? Number(form.Quantity) : undefined,
         LotSize: form.LotSize !== "" ? Number(form.LotSize) : undefined,
+        Brokerage: form.Brokerage !== "" && form.Brokerage != null ? Number(form.Brokerage) : undefined,
+        Taxes: form.Taxes !== "" && form.Taxes != null ? Number(form.Taxes) : undefined,
         PnLAmount: form.PnLAmount !== "" ? Number(form.PnLAmount) : undefined,
         Tags: form.Tags ? form.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
         Screenshots: form.AttachmentLinks

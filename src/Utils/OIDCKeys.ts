@@ -101,11 +101,32 @@ export function validateClient(
 
 /** Check if a redirect_uri is allowed */
 export function isRedirectUriAllowed(uri: string): boolean {
-    const allowed = Object.values(SConfig.Immich_Endpoints).map(endpoint => `${CConfig.Origin}${endpoint}`);
+    const normalizeOrigin = (value: string) => value.replace(/\/$/, "");
+    const normalizePath = (value: string) => {
+        if (value === "/") return value;
+        return value.replace(/\/$/, "");
+    };
 
-    if (allowed.length === 0) return true;
+    const allowedOrigins = new Set(
+        [CConfig.Origin, ...SConfig.Immich_Origins].map(normalizeOrigin)
+    );
+    const allowedPaths = new Set(
+        Object.values(SConfig.Immich_Endpoints).map(normalizePath)
+    );
 
-    return allowed.some((allowedUri) => {
-        return uri === allowedUri || uri.startsWith(allowedUri);
-    });
+    if (allowedOrigins.size === 0 || allowedPaths.size === 0) return true;
+
+    try {
+        const parsed = new URL(uri);
+        const uriOrigin = normalizeOrigin(parsed.origin);
+        const uriPath = normalizePath(parsed.pathname);
+
+        if (!allowedOrigins.has(uriOrigin)) return false;
+
+        return [...allowedPaths].some((allowedPath) => {
+            return uriPath === allowedPath;
+        });
+    } catch {
+        return false;
+    }
 }

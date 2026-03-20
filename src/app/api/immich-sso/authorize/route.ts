@@ -101,6 +101,7 @@ export async function GET(req: NextRequest) {
             new URL("/immich-sso?error=missing_redirect_uri", baseUrl)
         );
     }
+    
     if (!isRedirectUriAllowed(redirectUri)) {
         return oidcError(
             null,

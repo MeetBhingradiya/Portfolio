@@ -252,7 +252,7 @@ export function DesignThemeProvider({
 }
 
 export function useDesignTheme() {
-    const context = useContext(DesignThemeContext);5
+    const context = useContext(DesignThemeContext);
     if (context === undefined) {
         throw new Error(
             "useDesignTheme must be used within a DesignThemeProvider"

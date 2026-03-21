@@ -8,7 +8,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useDesignTheme } from "@Hooks";
 import { KeyboardArrowDown } from "@mui/icons-material";
 
 interface Option {
@@ -164,15 +164,3 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
     );
 };
 
-interface Option {
-    value: string;
-    label: string;
-}
-
-interface CustomSelectProps {
-    value: string;
-    onChange: (value: string) => void;
-    options: Option[];
-    placeholder?: string;
-    className?: string;
-}

@@ -50,3 +50,8 @@ export * from "./ProductivityGoal";
 export * from "./ProductivityReminder";
 export * from "./UserProductivityStats";
 export * from "./AIProviderSettings";
+
+// ? Wallet & Expenses (Paisa Manager)
+export * from "./WalletAsset";
+export * from "./WalletTransaction";
+export * from "./WalletContact";

@@ -98,7 +98,7 @@ export default function AssetsPage() {
 
     const fetchAssets = useCallback(async () => {
         setLoading(true);
-        const res = await fetch("/api/wallet/assets").then(r => r.json());
+        const res = await fetch(`/api/wallet/assets?t=${Date.now()}`, { cache: "no-store" }).then(r => r.json());
         if (res.success) {
             setAssets(res.data.assets ?? []);
             setTotalBalance(res.data.totalBalance ?? 0);

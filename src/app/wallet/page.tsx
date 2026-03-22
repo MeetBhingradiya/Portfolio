@@ -95,7 +95,8 @@ export default function WalletDashboard() {
         if (type !== "ALL")  params.set("type", type);
         if (category !== "ALL") params.set("category", category);
 
-        const res = await fetch(`/api/wallet?${params}`).then(r => r.json());
+        params.set("t", Date.now().toString());
+        const res = await fetch(`/api/wallet?${params}`, { cache: "no-store" }).then(r => r.json());
         if (res.success) {
             setTransactions(res.data.transactions ?? []);
             const pg = res.data.pagination ?? {};

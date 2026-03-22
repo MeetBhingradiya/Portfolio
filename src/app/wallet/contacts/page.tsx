@@ -83,7 +83,8 @@ export default function ContactsPage() {
         setLoading(true);
         const params = new URLSearchParams();
         if (search) params.set("search", search);
-        const res = await fetch(`/api/wallet/contacts?${params}`).then(r => r.json());
+        params.set("t", Date.now().toString());
+        const res = await fetch(`/api/wallet/contacts?${params}`, { cache: "no-store" }).then(r => r.json());
         if (res.success) setContacts(res.data ?? []);
         setLoading(false);
     }, [search]);

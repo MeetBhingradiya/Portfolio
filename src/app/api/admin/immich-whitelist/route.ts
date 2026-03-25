@@ -1,13 +1,13 @@
 /**
  * Admin — Immich Whitelist API
  * GET  /api/admin/immich-whitelist          list (joined with BA user data)
- * POST /api/admin/immich-whitelist          create (by userId or email)
+ * POST /api/admin/immich-whitelist          create (email only)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
-import { MongoClient } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 
 export async function GET(req: NextRequest) {
     try {
@@ -38,17 +38,29 @@ export async function GET(req: NextRequest) {
                     .filter((e) => e.userId)
                     .map((e) => e.userId as string);
 
+                const linkedObjectIds = linkedIds
+                    .filter((id) => ObjectId.isValid(id))
+                    .map((id) => new ObjectId(id));
+
                 const baUsers = linkedIds.length
                     ? await userCol
-                        .find({ $or: [{ id: { $in: linkedIds as any } }, { _id: { $in: linkedIds as any } }] })
+                        .find({
+                            $or: [
+                                { id: { $in: linkedIds as any } },
+                                { _id: { $in: linkedIds as any } },
+                                { _id: { $in: linkedObjectIds as any } },
+                            ],
+                        })
                         .project({ _id: 1, id: 1, name: 1, image: 1, emailVerified: 1, email: 1, googleAvatar: 1, githubAvatar: 1, microsoftAvatar: 1 })
                         .toArray()
                     : [];
 
-                // Key by whichever field holds the BA UUID
-                const baMap = Object.fromEntries(
-                    baUsers.map((u) => [(u.id ?? u._id) as string, u])
-                );
+                // Key by both BA id and Mongo _id string so legacy entries still resolve.
+                const baMap: Record<string, any> = {};
+                for (const u of baUsers) {
+                    if (u.id) baMap[String(u.id)] = u;
+                    if (u._id) baMap[String(u._id)] = u;
+                }
 
                 const enriched = entries.map((e) => ({
                     ...e,
@@ -73,45 +85,14 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const session = await requireAdmin(req.headers);
-        // userId  → link an existing Better Auth account (preferred)
-        // email   → email-only entry (for people who haven't signed up yet)
-        const { userId, email: rawEmail, label: rawLabel, note } = await req.json();
+        const { email: rawEmail, label: rawLabel, note } = await req.json();
 
         let resolvedEmail = rawEmail?.toLowerCase().trim();
         let resolvedLabel = rawLabel?.trim();
         let resolvedUserId: string | undefined;
-        let linkedAccount = false;
 
-        // ── If a userId was provided, look up the BA account ──────────────
-        if (userId && process.env.MONGODB_01) {
-            const client = new MongoClient(process.env.MONGODB_01);
-            try {
-                await client.connect();
-                const db = client.db("PRODUCTION_MeetBhingradiya");
-                // BA adapter may store its UUID as `id` (with Mongo ObjectId in `_id`)
-                // or directly as `_id` (string). Cover both.
-                const baUser = await db.collection("user").findOne({
-                    $or: [{ id: userId }, { _id: userId }],
-                });
-                if (!baUser) {
-                    return NextResponse.json(
-                        { success: false, error: "Better Auth user not found" },
-                        { status: 404 }
-                    );
-                }
-                // Override email from the real BA account record
-                resolvedEmail = (baUser.email as string).toLowerCase();
-                // Auto-label from account name if caller didn't supply one
-                resolvedLabel = resolvedLabel || (baUser.name as string) || resolvedEmail;
-                resolvedUserId = userId;
-                linkedAccount = true;
-            } finally {
-                await client.close();
-            }
-        }
-
-        // ── If email-only, try to auto-link to a matching BA account ──────────
-        if (!userId && resolvedEmail && process.env.MONGODB_01) {
+        // Try to auto-link to a matching BA account by email (case-insensitive).
+        if (resolvedEmail && process.env.MONGODB_01) {
             const emailClient = new MongoClient(process.env.MONGODB_01);
             try {
                 await emailClient.connect();
@@ -120,9 +101,8 @@ export async function POST(req: NextRequest) {
                     email: { $regex: new RegExp(`^${resolvedEmail}$`, "i") },
                 });
                 if (baUser) {
-                    resolvedUserId = ((baUser._id ?? baUser.id) as string);
+                    resolvedUserId = String(baUser.id ?? baUser._id);
                     resolvedLabel = resolvedLabel || (baUser.name as string) || resolvedEmail;
-                    linkedAccount = true;
                 }
             } catch {
                 // proceed as email-only if lookup fails
@@ -133,7 +113,7 @@ export async function POST(req: NextRequest) {
 
         if (!resolvedEmail || !resolvedLabel) {
             return NextResponse.json(
-                { success: false, error: "email (or userId) and label are required" },
+                { success: false, error: "email and label are required" },
                 { status: 400 }
             );
         }

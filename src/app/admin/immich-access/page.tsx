@@ -3,9 +3,7 @@
  * /admin/immich-access
  *
  * Manage the email whitelist that gates access to your Immich instance.
- * Supports two entry modes:
- *  • Linked Account — pick an existing Better Auth user (preferred, matched by userId)
- *  • Email Only — for people who do not have a portfolio account yet
+ * Add entries by email, with optional Better Auth account suggestions while typing.
  */
 "use client";
 
@@ -45,7 +43,6 @@ interface WhitelistEntry {
     account?: { _id: string; name?: string; image?: string; email?: string; emailVerified?: boolean; googleAvatar?: string; githubAvatar?: string; microsoftAvatar?: string } | null;
 }
 
-type AddMode = "account" | "email";
 const ISSUER_PATH = "/api/immich-sso";
 
 /* --- Component ------------------------------------------------------------ */
@@ -66,7 +63,6 @@ export default function ImmichAccessPage() {
 
     const [addModal, setAddModal] = useState({
         open: false,
-        mode: "account" as AddMode,
         loading: false,
         accountSearch: "",
         accountResults: [] as BAUser[],
@@ -101,7 +97,6 @@ export default function ImmichAccessPage() {
         : isDark ? "rgba(24,24,28,0.98)" : "#fff";
     const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)";
     const inputBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
-    const subtleBg = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
 
     const flash = (msg: string, isError = false) => {
         if (isError) { patchList({ error: msg, success: "" }); setTimeout(() => patchList({ error: "" }), 4000); }
@@ -109,7 +104,7 @@ export default function ImmichAccessPage() {
     };
 
     const resetAdd = () => {
-        patchAdd({ selectedUser: null, accountSearch: "", accountResults: [], email: "", label: "", note: "", mode: "account" });
+        patchAdd({ accountSearch: "", accountResults: [], selectedUser: null, email: "", label: "", note: "" });
     };
 
     /* fetch whitelist --------------------------------------------------- */
@@ -130,6 +125,12 @@ export default function ImmichAccessPage() {
     const searchAccounts = (q: string) => {
         patchAdd({ accountSearch: q });
         if (searchTimer.current) clearTimeout(searchTimer.current);
+
+        if (!q.trim()) {
+            patchAdd({ accountResults: [], accountLoading: false, selectedUser: null });
+            return;
+        }
+
         searchTimer.current = setTimeout(async () => {
             patchAdd({ accountLoading: true });
             try {
@@ -143,16 +144,15 @@ export default function ImmichAccessPage() {
 
     /* add --------------------------------------------------------------- */
     const handleAdd = async () => {
-        if (addModal.mode === "account" && !addModal.selectedUser) return;
-        if (addModal.mode === "email" && !addModal.email) return;
+        if (!addModal.email) return;
         if (!addModal.label) return;
         patchAdd({ loading: true });
         try {
-            const body: Record<string, string> = { label: addModal.label, note: addModal.note };
-            if (addModal.mode === "account" && addModal.selectedUser) {
-                const u = addModal.selectedUser as any;
-                body.userId = u.id ?? u._id;
-            } else body.email = addModal.email;
+            const body: Record<string, string> = {
+                label: addModal.label,
+                note: addModal.note,
+                email: addModal.email,
+            };
             const res = await fetch("/api/admin/immich-whitelist", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -219,7 +219,7 @@ export default function ImmichAccessPage() {
     const issuerUrl = typeof window !== "undefined"
         ? `${window.location.origin}${ISSUER_PATH}` : `https://your-domain.com${ISSUER_PATH}`;
 
-    const canAdd = addModal.label && (addModal.mode === "account" ? !!addModal.selectedUser : !!addModal.email);
+    const canAdd = addModal.label && addModal.email;
 
     /* --- render --------------------------------------------------------- */
     return (
@@ -238,7 +238,7 @@ export default function ImmichAccessPage() {
                             Immich Access Control
                         </h1>
                         <p className="text-sm" style={{ color: palette.textSecondary }}>
-                            Grant Immich access to portfolio accounts or standalone emails
+                            Grant Immich access using email entries with live account suggestions
                         </p>
                     </div>
                 </div>
@@ -380,118 +380,101 @@ export default function ImmichAccessPage() {
                                 <button onClick={() => patchAdd({ open: false })}><Close style={{ color: palette.textTertiary }} /></button>
                             </div>
 
-                            {/* Mode toggle */}
-                            <div className="flex gap-1 p-1 rounded-2xl mb-5" style={{ background: subtleBg }}>
-                                {(["account", "email"] as AddMode[]).map((m) => (
-                                    <button key={m} onClick={() => { patchAdd({ mode: m, selectedUser: null }); }}
-                                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-sm font-semibold transition-all"
-                                        style={{
-                                            background: addModal.mode === m ? (isDark ? "rgba(255,255,255,0.12)" : "#fff") : "transparent",
-                                            color: addModal.mode === m ? palette.accent : palette.textTertiary,
-                                            boxShadow: addModal.mode === m ? "0 1px 4px rgba(0,0,0,0.12)" : "none",
-                                        }}>
-                                        {m === "account"
-                                            ? <><LinkIcon style={{ fontSize: 15 }} /> Portfolio Account</>
-                                            : <><Email style={{ fontSize: 15 }} /> Email Only</>}
-                                    </button>
-                                ))}
-                            </div>
-
-                            {/* Account picker */}
-                            {addModal.mode === "account" && (
-                                <div className="mb-3">
-                                    {addModal.selectedUser ? (
-                                        <div className="flex items-center gap-3 px-3 py-3 rounded-xl"
-                                            style={{ background: `${palette.accent}12`, border: `1px solid ${palette.accent}30` }}>
-                                            {addModal.selectedUser.image ? (
-                                                <Image src={addModal.selectedUser.image} alt={addModal.selectedUser.name || ""} width={36} height={36}
-                                                    className="rounded-full flex-shrink-0" />
-                                            ) : (
-                                                <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
-                                                    style={{ background: `${palette.accent}25`, color: palette.accent }}>
-                                                    {(addModal.selectedUser.name || addModal.selectedUser.email || "?").charAt(0).toUpperCase()}
-                                                </div>
-                                            )}
-                                            <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold truncate" style={{ color: palette.textPrimary }}>
-                                                    {addModal.selectedUser.name || "No name"}
-                                                </p>
-                                                <p className="text-xs truncate" style={{ color: palette.textSecondary }}>{addModal.selectedUser.email}</p>
-                                            </div>
-                                            <button onClick={() => { patchAdd({ selectedUser: null, accountSearch: "", label: "" }); }}
-                                                className="p-1 rounded-lg" style={{ color: palette.textTertiary }}>
-                                                <Close style={{ fontSize: 16 }} />
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <>
-                                            <label className="block text-xs font-medium mb-1" style={{ color: palette.textSecondary }}>
-                                                Search Portfolio Accounts *
-                                            </label>
-                                            <div className="relative">
-                                                <input type="text" value={addModal.accountSearch}
-                                                    onChange={(e) => searchAccounts(e.target.value)}
-                                                    placeholder="Name or email…"
-                                                    className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                                    style={{ background: inputBg, border: `1px solid ${borderColor}`, color: palette.textPrimary }}
-                                                    autoFocus />
-                                                {addModal.accountLoading && (
-                                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
-                                                        style={{ borderColor: palette.accent, borderTopColor: "transparent" }} />
-                                                )}
-                                            </div>
-                                            {addModal.accountResults.length > 0 && (
-                                                <div className="mt-1 rounded-xl overflow-hidden"
-                                                    style={{ border: `1px solid ${borderColor}`, background: isDark ? "#1c1c20" : "#fff" }}>
-                                                    {addModal.accountResults.map((u: BAUser) => (
-                                                        <button key={u._id}
-                                                            onClick={() => { patchAdd({ selectedUser: u, label: u.name || u.email?.split("@")[0] || "" }); }}
-                                                            className="w-full flex items-center gap-3 px-3 py-2.5 text-left"
-                                                            style={{ borderBottom: `1px solid ${borderColor}` }}>
-                                                            {u.image ? (
-                                                                <Image src={u.image} alt={u.name || ""} width={30} height={30}
-                                                                    className="rounded-full flex-shrink-0" />
-                                                            ) : (
-                                                                <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
-                                                                    style={{ background: `${palette.accent}20`, color: palette.accent }}>
-                                                                    {(u.name || u.email || "?").charAt(0).toUpperCase()}
-                                                                </div>
-                                                            )}
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-sm font-medium truncate" style={{ color: palette.textPrimary }}>
-                                                                    {u.name || "No name"}
-                                                                </p>
-                                                                <p className="text-xs truncate" style={{ color: palette.textSecondary }}>{u.email}</p>
-                                                            </div>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
-                                            {addModal.accountSearch && !addModal.accountLoading && addModal.accountResults.length === 0 && (
-                                                <p className="mt-2 text-xs text-center" style={{ color: palette.textTertiary }}>
-                                                    No accounts found — use Email Only mode instead
-                                                </p>
-                                            )}
-                                        </>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Email-only */}
-                            {addModal.mode === "email" && (
-                                <div className="mb-3">
-                                    <label className="block text-xs font-medium mb-1" style={{ color: palette.textSecondary }}>
-                                        Email Address *
-                                    </label>
-                                    <input type="email" value={addModal.email} onChange={(e) => patchAdd({ email: e.target.value })}
+                            <div className="mb-3">
+                                <label className="block text-xs font-medium mb-1" style={{ color: palette.textSecondary }}>
+                                    Email Address *
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="email"
+                                        value={addModal.email}
+                                        onChange={(e) => {
+                                            const nextEmail = e.target.value;
+                                            patchAdd({
+                                                email: nextEmail,
+                                                selectedUser: addModal.selectedUser?.email?.toLowerCase() === nextEmail.toLowerCase()
+                                                    ? addModal.selectedUser
+                                                    : null,
+                                            });
+                                            searchAccounts(nextEmail);
+                                        }}
                                         placeholder="user@example.com"
                                         className="w-full px-3 py-2.5 rounded-xl text-sm outline-none"
-                                        style={{ background: inputBg, border: `1px solid ${borderColor}`, color: palette.textPrimary }} />
-                                    <p className="text-xs mt-1.5" style={{ color: palette.textTertiary }}>
-                                        Matched by email when they sign in. Upgrades to a linked account automatically.
-                                    </p>
+                                        style={{ background: inputBg, border: `1px solid ${borderColor}`, color: palette.textPrimary }}
+                                        autoFocus
+                                    />
+                                    {addModal.accountLoading && (
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 rounded-full border-2 border-t-transparent animate-spin"
+                                            style={{ borderColor: palette.accent, borderTopColor: "transparent" }} />
+                                    )}
                                 </div>
-                            )}
+
+                                {addModal.selectedUser && (
+                                    <div className="mt-2 flex items-center gap-3 px-3 py-3 rounded-xl"
+                                        style={{ background: `${palette.accent}12`, border: `1px solid ${palette.accent}30` }}>
+                                        {addModal.selectedUser.image ? (
+                                            <Image src={addModal.selectedUser.image} alt={addModal.selectedUser.name || ""} width={36} height={36}
+                                                className="rounded-full flex-shrink-0" />
+                                        ) : (
+                                            <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                                                style={{ background: `${palette.accent}25`, color: palette.accent }}>
+                                                {(addModal.selectedUser.name || addModal.selectedUser.email || "?").charAt(0).toUpperCase()}
+                                            </div>
+                                        )}
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-semibold truncate" style={{ color: palette.textPrimary }}>
+                                                {addModal.selectedUser.name || "No name"}
+                                            </p>
+                                            <p className="text-xs truncate" style={{ color: palette.textSecondary }}>{addModal.selectedUser.email}</p>
+                                        </div>
+                                        <button onClick={() => patchAdd({ selectedUser: null })}
+                                            className="p-1 rounded-lg" style={{ color: palette.textTertiary }}>
+                                            <Close style={{ fontSize: 16 }} />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {addModal.accountResults.length > 0 && (
+                                    <div className="mt-1 rounded-xl overflow-hidden"
+                                        style={{ border: `1px solid ${borderColor}`, background: isDark ? "#1c1c20" : "#fff" }}>
+                                        {addModal.accountResults.map((u: BAUser) => (
+                                            <button
+                                                key={u._id}
+                                                onClick={() => {
+                                                    patchAdd({
+                                                        email: u.email || "",
+                                                        accountSearch: "",
+                                                        accountResults: [],
+                                                        selectedUser: u,
+                                                        label: addModal.label || u.name || u.email?.split("@")[0] || "",
+                                                    });
+                                                }}
+                                                className="w-full flex items-center gap-3 px-3 py-2.5 text-left"
+                                                style={{ borderBottom: `1px solid ${borderColor}` }}>
+                                                {u.image ? (
+                                                    <Image src={u.image} alt={u.name || ""} width={30} height={30}
+                                                        className="rounded-full flex-shrink-0" />
+                                                ) : (
+                                                    <div className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-xs font-bold"
+                                                        style={{ background: `${palette.accent}20`, color: palette.accent }}>
+                                                        {(u.name || u.email || "?").charAt(0).toUpperCase()}
+                                                    </div>
+                                                )}
+                                                <div className="flex-1 min-w-0">
+                                                    <p className="text-sm font-medium truncate" style={{ color: palette.textPrimary }}>
+                                                        {u.name || "No name"}
+                                                    </p>
+                                                    <p className="text-xs truncate" style={{ color: palette.textSecondary }}>{u.email}</p>
+                                                </div>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <p className="text-xs mt-1.5" style={{ color: palette.textTertiary }}>
+                                    Type an email to get account suggestions, or add any email directly.
+                                </p>
+                            </div>
 
                             {/* Shared fields */}
                             <div className="space-y-3 mb-5">
@@ -554,7 +537,7 @@ export default function ImmichAccessPage() {
                     <PhotoCamera style={{ fontSize: 40, color: palette.textTertiary, marginBottom: 12 }} />
                     <p className="font-semibold" style={{ color: palette.textPrimary }}>No entries yet</p>
                     <p className="text-sm mt-1" style={{ color: palette.textTertiary }}>
-                        Grant a portfolio account or email access to Immich
+                        Add an email entry to grant Immich access
                     </p>
                     <button onClick={() => { patchAdd({ open: true }); resetAdd(); }}
                         className="mt-4 px-5 py-2 rounded-xl text-sm font-semibold"
@@ -572,6 +555,7 @@ export default function ImmichAccessPage() {
                         || entry.account?.githubAvatar
                         || entry.account?.microsoftAvatar
                         || undefined;
+                    const displayName = entry.account?.name || entry.label;
                     const displayEmail = entry.account?.email || entry.email;
                     const initial = (entry.account?.name || entry.label || entry.email || "?").charAt(0).toUpperCase();
 
@@ -648,7 +632,7 @@ export default function ImmichAccessPage() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
                                             <span className="font-semibold text-sm truncate" style={{ color: palette.textPrimary }}>
-                                                {entry.label}
+                                                {displayName}
                                             </span>
                                             {entry.linkedAccount && (
                                                 <span className="text-xs px-1.5 py-0.5 rounded-full font-medium"
@@ -661,6 +645,11 @@ export default function ImmichAccessPage() {
                                                     style={{ background: "#ff3b3020", color: "#ff3b30" }}>Disabled</span>
                                             )}
                                         </div>
+                                        {entry.account?.name && entry.label && entry.label !== entry.account.name && (
+                                            <p className="text-[11px] truncate" style={{ color: palette.textTertiary }}>
+                                                Label: {entry.label}
+                                            </p>
+                                        )}
                                         <p className="text-xs truncate" style={{ color: palette.textSecondary }}>{displayEmail}</p>
                                         <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                                             {entry.note && (

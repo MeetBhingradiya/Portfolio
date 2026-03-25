@@ -118,6 +118,15 @@ export default function TradeJournalPage() {
     const pnlFmt = (n?: number) =>
         n == null ? "—" : `${n >= 0 ? "+" : ""}₹${Math.abs(n).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
 
+    const priceFmt = (n?: number) =>
+        n == null ? "—" : `₹${Number(n).toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
+
+    const dateFmt = (value: string) => {
+        const d = new Date(value);
+        if (Number.isNaN(d.getTime())) return value;
+        return d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
+    };
+
     const statCards = [
         { label: "Total Trades", value: summary.total,                         icon: <FilterList />, color: palette.accent },
         { label: "Win Rate",     value: `${summary.winRate.toFixed(1)}%`,       icon: <TrendingUp />, color: "#22c55e" },
@@ -206,15 +215,12 @@ export default function TradeJournalPage() {
             {/* Trade list */}
             <div className="rounded-2xl overflow-hidden" style={{ border: `1px solid ${borderColor}` }}>
                 {/* Table header */}
-                <div className="hidden sm:grid grid-cols-[1fr_1fr_80px_80px_100px_80px_100px] px-4 py-2 text-xs font-semibold uppercase tracking-widest"
+                <div className="hidden sm:grid grid-cols-[1.8fr_1fr_1fr_120px] px-4 py-2 text-xs font-semibold uppercase tracking-widest"
                     style={{ background: `${palette.accent}10`, color: palette.textTertiary }}>
-                    <span>Date</span>
-                    <span>Instrument / Segment</span>
-                    <span>Dir</span>
-                    <span>Qty</span>
-                    <span>Entry / Exit</span>
-                    <span>Result</span>
-                    <span className="text-right">Net P&L</span>
+                    <span>Trade</span>
+                    <span>Position</span>
+                    <span>Outcome</span>
+                    <span className="text-right">Actions</span>
                 </div>
 
                 {loading ? (
@@ -238,7 +244,7 @@ export default function TradeJournalPage() {
                     trades.map((t, idx) => (
                         <motion.div
                             key={t.TradeID}
-                            className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_80px_80px_100px_80px_100px] items-center px-4 py-3 gap-2"
+                            className="grid grid-cols-1 sm:grid-cols-[1.8fr_1fr_1fr_120px] items-start sm:items-center px-4 py-4 gap-3"
                             style={{
                                 background: idx % 2 === 0 ? "transparent" : (isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.015)"),
                                 borderTop: `1px solid ${borderColor}`,
@@ -246,50 +252,83 @@ export default function TradeJournalPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                         >
-                            <span className="text-sm font-medium" style={{ color: palette.textPrimary }}>{t.Date}</span>
-                            <div>
-                                <span className="font-semibold text-sm" style={{ color: palette.textPrimary }}>{t.Instrument}</span>
-                                <span className="ml-2 text-xs px-1.5 py-0.5 rounded-md" style={{ background: `${palette.accent}18`, color: palette.accent }}>
-                                    {t.Segment}
-                                </span>
-                            </div>
-                            <span className="text-xs font-bold" style={{ color: t.Direction === "LONG" ? "#22c55e" : "#ef4444" }}>
-                                {t.Direction}
-                            </span>
-                            <span className="text-sm" style={{ color: palette.textSecondary }}>{t.Quantity}</span>
-                            <div className="text-xs" style={{ color: palette.textSecondary }}>
-                                <div>E: ₹{t.EntryPrice}</div>
-                                {t.ExitPrice && <div>X: ₹{t.ExitPrice}</div>}
-                            </div>
-                            <span className="text-xs font-bold" style={{ color: resultColor(t.Result) }}>
-                                {t.IsOpen ? "OPEN" : (t.Result ?? "—")}
-                            </span>
-                            <div className="sm:text-right flex sm:flex-col items-center sm:items-end gap-2">
-                                <span className="text-sm font-bold" style={{ color: resultColor(t.Result) }}>
-                                    {pnlFmt(t.NetPnL)}
-                                </span>
-                                <div className="flex gap-1">
-                                    <Link href={`/trade-journal/${t.TradeID}`}>
-                                        <motion.button
-                                            className="p-1 rounded-lg"
-                                            style={{ color: palette.accent }}
-                                            whileHover={{ scale: 1.1 }}
-                                            title="View / Edit"
-                                        >
-                                            <Visibility fontSize="small" />
-                                        </motion.button>
-                                    </Link>
-                                    <motion.button
-                                        className="p-1 rounded-lg"
-                                        style={{ color: "#ef4444", opacity: deletingId === t.TradeID ? 0.5 : 1 }}
-                                        whileHover={{ scale: 1.1 }}
-                                        onClick={() => deleteTrade(t.TradeID)}
-                                        disabled={deletingId === t.TradeID}
-                                        title="Delete"
-                                    >
-                                        <Delete fontSize="small" />
-                                    </motion.button>
+                            <div className="space-y-1">
+                                <p className="text-[11px] uppercase tracking-wide" style={{ color: palette.textTertiary }}>
+                                    {dateFmt(t.Date)}
+                                </p>
+                                <p className="text-sm sm:text-base font-semibold" style={{ color: palette.textPrimary }}>
+                                    {t.Instrument}
+                                </p>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: `${palette.accent}18`, color: palette.accent }}>
+                                        {t.Segment}
+                                    </span>
+                                    {t.SetupType && (
+                                        <span className="text-[11px] px-2 py-0.5 rounded-md" style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)", color: palette.textSecondary }}>
+                                            {t.SetupType}
+                                        </span>
+                                    )}
                                 </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <span className="inline-flex text-[11px] font-bold px-2 py-0.5 rounded-md"
+                                    style={{
+                                        color: t.Direction === "LONG" ? "#22c55e" : "#ef4444",
+                                        background: t.Direction === "LONG" ? "rgba(34,197,94,0.14)" : "rgba(239,68,68,0.14)",
+                                    }}>
+                                    {t.Direction}
+                                </span>
+                                <p className="text-xs" style={{ color: palette.textSecondary }}>
+                                    Qty: <span className="font-semibold" style={{ color: palette.textPrimary }}>{t.Quantity}</span>
+                                </p>
+                                <p className="text-xs" style={{ color: palette.textSecondary }}>
+                                    Entry: <span style={{ color: palette.textPrimary }}>{priceFmt(t.EntryPrice)}</span>
+                                    <span className="mx-2" style={{ color: palette.textTertiary }}>|</span>
+                                    Exit: <span style={{ color: palette.textPrimary }}>{priceFmt(t.ExitPrice)}</span>
+                                </p>
+                            </div>
+
+                            <div className="space-y-1">
+                                <span className="inline-flex text-[11px] font-bold px-2 py-0.5 rounded-md"
+                                    style={{
+                                        color: resultColor(t.Result),
+                                        background: t.IsOpen
+                                            ? `${palette.accent}1A`
+                                            : (t.Result === "WIN"
+                                                ? "rgba(34,197,94,0.14)"
+                                                : t.Result === "LOSS"
+                                                    ? "rgba(239,68,68,0.14)"
+                                                    : (isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)")),
+                                    }}>
+                                    {t.IsOpen ? "OPEN" : (t.Result ?? "—")}
+                                </span>
+                                <p className="text-sm font-bold" style={{ color: resultColor(t.Result) }}>
+                                    {pnlFmt(t.NetPnL)}
+                                </p>
+                            </div>
+
+                            <div className="sm:justify-self-end flex items-center gap-1">
+                                <Link href={`/trade-journal/${t.TradeID}`}>
+                                    <motion.button
+                                        className="p-1.5 rounded-lg"
+                                        style={{ color: palette.accent }}
+                                        whileHover={{ scale: 1.08 }}
+                                        title="View / Edit"
+                                    >
+                                        <Visibility fontSize="small" />
+                                    </motion.button>
+                                </Link>
+                                <motion.button
+                                    className="p-1.5 rounded-lg"
+                                    style={{ color: "#ef4444", opacity: deletingId === t.TradeID ? 0.5 : 1 }}
+                                    whileHover={{ scale: 1.08 }}
+                                    onClick={() => deleteTrade(t.TradeID)}
+                                    disabled={deletingId === t.TradeID}
+                                    title="Delete"
+                                >
+                                    <Delete fontSize="small" />
+                                </motion.button>
                             </div>
                         </motion.div>
                     ))

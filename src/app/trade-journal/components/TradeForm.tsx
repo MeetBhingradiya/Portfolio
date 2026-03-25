@@ -40,6 +40,40 @@ interface ChargesDetail {
 const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 const t2 = (n: number) => Math.trunc(n * 100) / 100;
 
+const parseOptionalNumber = (value: string): number | null => {
+    const raw = String(value ?? "").trim();
+    if (!raw) return null;
+    const n = Number(raw);
+    return Number.isFinite(n) ? n : null;
+};
+
+function toInputDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const d = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+}
+
+function getNextWeekExpiryDate(targetWeekday: number): string {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const day = today.getDay();
+    const daysUntilNextMonday = day === 1 ? 7 : (8 - day) % 7;
+    const nextMonday = new Date(today);
+    nextMonday.setDate(today.getDate() + (daysUntilNextMonday || 7));
+    const offsetFromMonday = (targetWeekday + 6) % 7;
+    const expiry = new Date(nextMonday);
+    expiry.setDate(nextMonday.getDate() + offsetFromMonday);
+    return toInputDate(expiry);
+}
+
+function getInstrumentDefaultExpiry(instrumentName: string): string | null {
+    const key = instrumentName.replace(/\s+/g, "").toUpperCase();
+    if (key === "NIFTY") return getNextWeekExpiryDate(1); // Thursday
+    if (key === "BANKNIFTY") return getNextWeekExpiryDate(2); // Wednesday
+    return null;
+}
+
 function estimateCharges(
     segment: string,
     entryPrice: number,
@@ -175,16 +209,88 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     );
 }
 
+function isAmPmTime(value: string): boolean {
+    return /^(0[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i.test(value.trim());
+}
+
 function normalizeAmPm(value: string): string {
     const upper = value.trim().toUpperCase().replace(/\s+/g, " ");
     const m = upper.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/);
-    if (!m) return value.toUpperCase();
+    if (!m) return upper;
     const hh = String(Math.min(12, Math.max(1, Number(m[1])))).padStart(2, "0");
     return `${hh}:${m[2]} ${m[3]}`;
 }
 
-function isAmPmTime(value: string): boolean {
-    return /^(0[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i.test(value.trim());
+function splitAmPm(value?: string): { hour: string; minute: string; meridiem: string } {
+    const m = normalizeAmPm(String(value || "")).match(/^(\d{2}):(\d{2})\s(AM|PM)$/);
+    return {
+        hour: m?.[1] || "",
+        minute: m?.[2] || "",
+        meridiem: m?.[3] || "",
+    };
+}
+
+function composeAmPm(parts: { hour: string; minute: string; meridiem: string }): string {
+    if (!parts.hour || !parts.minute || !parts.meridiem) return "";
+    return `${parts.hour}:${parts.minute} ${parts.meridiem}`;
+}
+
+const HOUR_OPTIONS = Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
+const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, idx) => String(idx).padStart(2, "0"));
+
+function TimePickerAmPm({
+    value,
+    onChange,
+    required,
+    inputStyle,
+}: {
+    value?: string;
+    onChange: (value: string) => void;
+    required?: boolean;
+    inputStyle: React.CSSProperties;
+}) {
+    const parts = splitAmPm(value);
+
+    const updatePart = (part: "hour" | "minute" | "meridiem", next: string) => {
+        onChange(composeAmPm({ ...parts, [part]: next }));
+    };
+
+    return (
+        <div className="grid grid-cols-3 gap-2">
+            <select style={inputStyle} value={parts.hour} onChange={e => updatePart("hour", e.target.value)} required={required}>
+                <option value="">HH</option>
+                {HOUR_OPTIONS.map(h => <option key={h} value={h}>{h}</option>)}
+            </select>
+            <select style={inputStyle} value={parts.minute} onChange={e => updatePart("minute", e.target.value)} required={required}>
+                <option value="">MM</option>
+                {MINUTE_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
+            </select>
+            <select style={inputStyle} value={parts.meridiem} onChange={e => updatePart("meridiem", e.target.value)} required={required}>
+                <option value="">AM/PM</option>
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
+        </div>
+    );
+}
+
+function toAmPmFromDate(date: Date): string {
+    const hh = date.getHours();
+    const mm = String(date.getMinutes()).padStart(2, "0");
+    const meridiem = hh >= 12 ? "PM" : "AM";
+    const h12 = hh % 12 === 0 ? 12 : hh % 12;
+    return `${String(h12).padStart(2, "0")}:${mm} ${meridiem}`;
+}
+
+function nowAmPm(): string {
+    return toAmPmFromDate(new Date());
+}
+
+function roundedToFiveAmPm(): string {
+    const rounded = new Date();
+    const next = Math.ceil(rounded.getMinutes() / 5) * 5;
+    rounded.setMinutes(next, 0, 0);
+    return toAmPmFromDate(rounded);
 }
 
 export default function TradeForm({ initialData, onSubmit, submitting, isEdit, enableBackendDraft = false }: Props) {
@@ -214,6 +320,12 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
     const [directionTouched, setDirectionTouched] = useState(
         Boolean(initialData?.PositionDuration || initialData?.Direction)
     );
+    const [expiryTouched, setExpiryTouched] = useState(Boolean(initialData?.Expiry));
+    const [overrideBrokerage, setOverrideBrokerage] = useState("");
+    const [overrideGst, setOverrideGst] = useState("");
+    const [overrideChargesTotal, setOverrideChargesTotal] = useState("");
+    const [overrideMarginUsed, setOverrideMarginUsed] = useState("");
+    const [overrideNetPnl, setOverrideNetPnl] = useState("");
 
     const { upload, uploading } = useCDNUpload();
     const { form, setField, mergeForm, hasDraft, clearDraft, draftSaving } = useTradeFormState(initialData, {
@@ -227,6 +339,15 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
             .then(j => { if (j.success) setInstrumentSuggestions(j.data); })
             .catch(() => {});
     }, []);
+
+    useEffect(() => {
+        if (isEdit || expiryTouched) return;
+        const defaultExpiry = getInstrumentDefaultExpiry(String(form.InstrumentName || ""));
+        if (!defaultExpiry) return;
+        if (form.Expiry !== defaultExpiry) {
+            setField("Expiry", defaultExpiry);
+        }
+    }, [expiryTouched, form.Expiry, form.InstrumentName, isEdit, setField]);
 
     const inferredDirection = useMemo(() => {
         const entry = Number(form.EntryPrice);
@@ -321,31 +442,45 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
 
     const marginUsed = useMemo(() => {
         const entry = Number(form.EntryPrice);
-        const exit = Number(form.ExitPrice);
         if (effectiveQuantity <= 0) return null;
+        if (!Number.isFinite(entry)) return null;
+        return r2(entry * effectiveQuantity);
+    }, [effectiveQuantity, form.EntryPrice]);
 
-        // For options premium-style accounting, capital outflow is buy-side premium.
-        const buySidePrice = effectiveDirection === "SHORT"
-            ? (Number.isFinite(exit) ? exit : entry)
-            : entry;
+    const defaultExpirySuggestion = useMemo(
+        () => getInstrumentDefaultExpiry(String(form.InstrumentName || "")),
+        [form.InstrumentName],
+    );
 
-        if (!Number.isFinite(buySidePrice)) return null;
-        return r2(buySidePrice * effectiveQuantity);
-    }, [effectiveDirection, effectiveQuantity, form.EntryPrice, form.ExitPrice]);
+    const overrideBrokerageValue = useMemo(() => parseOptionalNumber(overrideBrokerage), [overrideBrokerage]);
+    const overrideGstValue = useMemo(() => parseOptionalNumber(overrideGst), [overrideGst]);
+    const overrideChargesTotalValue = useMemo(() => parseOptionalNumber(overrideChargesTotal), [overrideChargesTotal]);
+    const overrideMarginUsedValue = useMemo(() => parseOptionalNumber(overrideMarginUsed), [overrideMarginUsed]);
+    const overrideNetPnlValue = useMemo(() => parseOptionalNumber(overrideNetPnl), [overrideNetPnl]);
 
-    const netPnlAfterCharges = useMemo(() => {
+    const effectiveBrokerage = overrideBrokerageValue ?? calculatedCharges.brokerage;
+    const effectiveGst = overrideGstValue ?? calculatedCharges.gst;
+    const effectiveTaxes = useMemo(
+        () => r2(calculatedCharges.stt + calculatedCharges.stampDuty + calculatedCharges.exchangeTurnover + calculatedCharges.sebiTurnover + effectiveGst),
+        [calculatedCharges.exchangeTurnover, calculatedCharges.sebiTurnover, calculatedCharges.stampDuty, calculatedCharges.stt, effectiveGst],
+    );
+    const autoTotalCharges = useMemo(() => r2(effectiveBrokerage + effectiveTaxes), [effectiveBrokerage, effectiveTaxes]);
+    const effectiveTotalCharges = overrideChargesTotalValue ?? autoTotalCharges;
+    const effectiveMarginUsed = overrideMarginUsedValue ?? marginUsed;
+
+    const autoNetPnlAfterCharges = useMemo(() => {
         if (calculatedPnl.amount === "") return null;
-        const gross  = Number(calculatedPnl.amount);
-        const sign   = calculatedPnl.sign === "LOSS" ? -1 : 1;
-        const brok   = calculatedCharges.brokerage;
-        const taxAmt = calculatedCharges.taxes;
-        return parseFloat(((sign * gross) - brok - taxAmt).toFixed(2));
-    }, [calculatedPnl, calculatedCharges]);
+        const gross = Number(calculatedPnl.amount);
+        const sign = calculatedPnl.sign === "LOSS" ? -1 : 1;
+        return r2((sign * gross) - effectiveTotalCharges);
+    }, [calculatedPnl.amount, calculatedPnl.sign, effectiveTotalCharges]);
+
+    const effectiveNetPnlAfterCharges = overrideNetPnlValue ?? autoNetPnlAfterCharges;
 
     const netPnlPercentage = useMemo(() => {
-        if (netPnlAfterCharges == null || marginUsed == null || marginUsed <= 0) return null;
-        return r2((netPnlAfterCharges / marginUsed) * 100);
-    }, [marginUsed, netPnlAfterCharges]);
+        if (effectiveNetPnlAfterCharges == null || effectiveMarginUsed == null || effectiveMarginUsed <= 0) return null;
+        return r2((effectiveNetPnlAfterCharges / effectiveMarginUsed) * 100);
+    }, [effectiveMarginUsed, effectiveNetPnlAfterCharges]);
 
     function applyOcr(extracted: Partial<TradeFormData>) {
         const next: Partial<TradeFormData> = { ...extracted };
@@ -433,10 +568,14 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         PositionDuration: effectiveDirection,
                         Direction: effectiveDirection,
                         IsHit: form.IsHit === "AUTO" || !form.IsHit ? calculatedHit : form.IsHit,
-                        PnLAmount: calculatedPnl.amount === "" ? undefined : calculatedPnl.amount,
-                        PnLSign: calculatedPnl.sign,
-                        Brokerage: calculatedCharges.brokerage,
-                        Taxes: calculatedCharges.taxes,
+                        PnLAmount: effectiveNetPnlAfterCharges == null
+                            ? (calculatedPnl.amount === "" ? undefined : calculatedPnl.amount)
+                            : Math.abs(effectiveNetPnlAfterCharges),
+                        PnLSign: effectiveNetPnlAfterCharges == null
+                            ? calculatedPnl.sign
+                            : (effectiveNetPnlAfterCharges >= 0 ? "PROFIT" : "LOSS"),
+                        Brokerage: effectiveBrokerage,
+                        Taxes: effectiveTaxes,
                     };
                     await onSubmit(nextForm);
                 }}
@@ -480,33 +619,34 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                 )}
 
                 {sectionCard("Timing & Instrument", <InfoOutlined />, <>
+                    <div className="sm:col-span-2 lg:col-span-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: palette.textTertiary }}>
+                            Required Inputs
+                        </p>
+                    </div>
                     <Field label="Date *">
                         <input type="date" style={inputStyle} value={form.Date} onChange={e => setField("Date", e.target.value)} required />
                     </Field>
-                    <Field label="Entry Time (AM/PM) *">
-                        <input
-                            type="text"
-                            style={inputStyle}
-                            value={form.EntryTime}
-                            placeholder="09:15 AM"
-                            inputMode="text"
-                            title="Use format HH:MM AM/PM (e.g. 09:15 AM)"
-                            onBlur={e => setField("EntryTime", normalizeAmPm(e.target.value))}
-                            onChange={e => setField("EntryTime", e.target.value.toUpperCase())}
-                            required
-                        />
-                    </Field>
-                    <Field label="Exit Time (AM/PM)">
-                        <input
-                            type="text"
-                            style={inputStyle}
-                            value={form.ExitTime ?? ""}
-                            placeholder="03:20 PM"
-                            inputMode="text"
-                            title="Use format HH:MM AM/PM (e.g. 03:20 PM)"
-                            onBlur={e => setField("ExitTime", normalizeAmPm(e.target.value))}
-                            onChange={e => setField("ExitTime", e.target.value.toUpperCase())}
-                        />
+                    <Field label="Entry Time *">
+                        <TimePickerAmPm value={form.EntryTime} onChange={v => setField("EntryTime", v)} required inputStyle={inputStyle} />
+                        <div className="mt-1 flex items-center gap-2">
+                            <button
+                                type="button"
+                                className="text-[11px] px-2 py-0.5 rounded-md"
+                                style={{ background: `${palette.accent}16`, color: palette.accent }}
+                                onClick={() => setField("EntryTime", nowAmPm())}
+                            >
+                                Set Current Time
+                            </button>
+                            <button
+                                type="button"
+                                className="text-[11px] px-2 py-0.5 rounded-md"
+                                style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
+                                onClick={() => setField("EntryTime", roundedToFiveAmPm())}
+                            >
+                                Round to 5 min
+                            </button>
+                        </div>
                     </Field>
                     <Field label="Instrument Name *">
                         <input list="instrument-suggestions" type="text" style={inputStyle} placeholder="e.g. NIFTY" value={String(form.InstrumentName)} onChange={e => setField("InstrumentName", e.target.value.toUpperCase())} required />
@@ -518,15 +658,81 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     <Field label="Position Duration *">
                         <CustomSelect value={effectiveDirection} onChange={v => { setDirectionTouched(true); setField("PositionDuration", v); }} options={DURATION_OPTS} />
                     </Field>
-                    <Field label="Option Type">
-                        <CustomSelect value={form.OptionType ?? ""} onChange={v => setField("OptionType", v)} options={OPTION_TYPE_OPTS} />
-                    </Field>
-                    <Field label="Strike Price">
-                        <input type="number" style={inputStyle} placeholder="e.g. 24000" value={String(form.Strike ?? "")} onChange={e => setField("Strike", e.target.value)} />
-                    </Field>
-                    <Field label="Expiry">
-                        <input type="date" style={inputStyle} value={form.Expiry ?? ""} onChange={e => setField("Expiry", e.target.value)} />
-                    </Field>
+
+                    <div className="sm:col-span-2 lg:col-span-3">
+                        <details className="rounded-xl p-3" style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                            <summary className="cursor-pointer text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                Optional Contract Inputs
+                            </summary>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                                <Field label="Exit Time">
+                                    <TimePickerAmPm value={form.ExitTime} onChange={v => setField("ExitTime", v)} inputStyle={inputStyle} />
+                                    <div className="mt-1 flex items-center gap-1 flex-wrap">
+                                        <button
+                                            type="button"
+                                            className="text-[11px] px-2 py-0.5 rounded-md"
+                                            style={{ background: `${palette.accent}16`, color: palette.accent }}
+                                            onClick={() => setField("ExitTime", nowAmPm())}
+                                        >
+                                            Set Current Time
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="text-[11px] px-2 py-0.5 rounded-md"
+                                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
+                                            onClick={() => setField("ExitTime", roundedToFiveAmPm())}
+                                        >
+                                            Round to 5 min
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="text-[11px] px-2 py-0.5 rounded-md"
+                                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
+                                            onClick={() => setField("ExitTime", "")}
+                                        >
+                                            Clear
+                                        </button>
+                                    </div>
+                                </Field>
+                                <Field label="Option Type">
+                                    <CustomSelect value={form.OptionType ?? ""} onChange={v => setField("OptionType", v)} options={OPTION_TYPE_OPTS} />
+                                </Field>
+                                <Field label="Strike Price">
+                                    <input type="number" style={inputStyle} placeholder="e.g. 24000" value={String(form.Strike ?? "")} onChange={e => setField("Strike", e.target.value)} />
+                                </Field>
+                                <Field label="Expiry">
+                                    <input
+                                        type="date"
+                                        style={inputStyle}
+                                        value={form.Expiry ?? ""}
+                                        onChange={e => {
+                                            setExpiryTouched(true);
+                                            setField("Expiry", e.target.value);
+                                        }}
+                                    />
+                                    {defaultExpirySuggestion && (
+                                        <div className="mt-1 flex items-center justify-between gap-2">
+                                            <p className="text-[11px]" style={{ color: palette.textTertiary }}>
+                                                Default next-week expiry: {defaultExpirySuggestion}
+                                            </p>
+                                            <button
+                                                type="button"
+                                                className="text-[11px] px-2 py-0.5 rounded-md"
+                                                style={{ background: `${palette.accent}16`, color: palette.accent }}
+                                                onClick={() => {
+                                                    setExpiryTouched(false);
+                                                    setField("Expiry", defaultExpirySuggestion);
+                                                }}
+                                            >
+                                                Use Default
+                                            </button>
+                                        </div>
+                                    )}
+                                </Field>
+                            </div>
+                        </details>
+                    </div>
+
                     <div className="sm:col-span-2 lg:col-span-3">
                         <Field label="Composed Instrument Preview">
                             <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={instrumentPreview} readOnly />
@@ -535,6 +741,11 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                 </>)}
 
                 {sectionCard("Position & Outcome", <TrendingUp />, <>
+                    <div className="sm:col-span-2 lg:col-span-3">
+                        <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: palette.textTertiary }}>
+                            Trade Calculation Inputs
+                        </p>
+                    </div>
                     <Field label="Entry Price *">
                         <input type="number" step="0.01" style={inputStyle} value={String(form.EntryPrice)} onChange={e => setField("EntryPrice", e.target.value)} required />
                     </Field>
@@ -553,9 +764,24 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     <Field label="Lot Size">
                         <input type="number" step="1" style={inputStyle} value={String(form.LotSize ?? "")} onChange={e => setField("LotSize", e.target.value)} />
                     </Field>
-                    <Field label="Hit Status">
-                        <CustomSelect value={form.IsHit ?? "AUTO"} onChange={v => setField("IsHit", v)} options={HIT_OPTS} />
-                    </Field>
+                    <div className="sm:col-span-2 lg:col-span-3">
+                        <details className="rounded-xl p-3" style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                            <summary className="cursor-pointer text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                Optional Outcome Inputs
+                            </summary>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                                <Field label="Stop Loss">
+                                    <input type="number" step="0.01" style={inputStyle} value={String(form.StopLoss ?? "")} onChange={e => setField("StopLoss", e.target.value)} />
+                                </Field>
+                                <Field label="Target">
+                                    <input type="number" step="0.01" style={inputStyle} value={String(form.Target ?? "")} onChange={e => setField("Target", e.target.value)} />
+                                </Field>
+                                <Field label="Hit Status">
+                                    <CustomSelect value={form.IsHit ?? "AUTO"} onChange={v => setField("IsHit", v)} options={HIT_OPTS} />
+                                </Field>
+                            </div>
+                        </details>
+                    </div>
                     <Field label="Detected Hit (read-only)">
                         <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedHit} readOnly />
                     </Field>
@@ -570,9 +796,9 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     <div className="sm:col-span-2 lg:col-span-3">
                         <p className="text-xs font-semibold mb-2 uppercase tracking-widest" style={{ color: palette.textTertiary }}>
                             Charges Breakdown
-                            {calculatedCharges.total > 0 && (
+                            {effectiveTotalCharges > 0 && (
                                 <span className="ml-2 font-bold text-sm normal-case tracking-normal" style={{ color: "#ef4444" }}>
-                                    Total: ₹{calculatedCharges.total.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                                    Total: ₹{effectiveTotalCharges.toLocaleString("en-IN", { maximumFractionDigits: 2 })}
                                 </span>
                             )}
                         </p>
@@ -581,13 +807,13 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                             return (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                                     {([
-                                        { label: "Brokerage",          hint: "₹20 buy + ₹20 sell",          value: calculatedCharges.brokerage },
+                                                                                { label: `Brokerage${overrideBrokerageValue != null ? " (override)" : ""}`, hint: "₹20 buy + ₹20 sell", value: effectiveBrokerage },
                                         { label: "STT",                hint: "Securities Transaction Tax",   value: calculatedCharges.stt },
                                         { label: "Stamp Duty",         hint: "On buy-side notional",         value: calculatedCharges.stampDuty },
                                         { label: "Exchange Turnover",  hint: "NSE / MCX fees",               value: calculatedCharges.exchangeTurnover },
                                         { label: "SEBI Turnover",      hint: "₹10 per crore",                value: calculatedCharges.sebiTurnover },
-                                        { label: `GST (${isHighGstSegment ? "30%" : "18%"})`,
-                                          hint: "On brokerage + exchange + SEBI",                            value: calculatedCharges.gst },
+                                                                                { label: `GST (${isHighGstSegment ? "30%" : "18%"})${overrideGstValue != null ? " (override)" : ""}`,
+                                                                                    hint: "On brokerage + exchange + SEBI",                            value: effectiveGst },
                                     ] as const).map(({ label, hint, value }) => (
                                         <div key={label} className="p-2 rounded-xl flex flex-col gap-0.5"
                                             style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border: `1px solid ${borderColor}` }}>
@@ -602,37 +828,91 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         })()}
                     </div>
 
-                    <Field label="Brokerage (auto)">
-                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }}
-                            value={`₹${calculatedCharges.brokerage.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
-                            readOnly />
-                    </Field>
-                    <Field label="Taxes (auto, excl. brokerage)">
-                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }}
-                            value={`₹${calculatedCharges.taxes.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
-                            readOnly />
-                    </Field>
-                    <Field label="Total Charges (auto)">
-                        <input type="text" style={{ ...inputStyle, opacity: 0.75, fontWeight: 700 }}
-                            value={`₹${calculatedCharges.total.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
-                            readOnly />
-                    </Field>
-
-                    {marginUsed !== null && (
-                        <Field label="Margin Used (Entry Price × Quantity)">
-                            <input type="text" style={{ ...inputStyle, opacity: 0.75 }}
-                                value={`₹${marginUsed.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
-                                readOnly />
-                        </Field>
-                    )}
+                    <div className="sm:col-span-2 lg:col-span-3">
+                        <details className="rounded-xl p-3" style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                            <summary className="cursor-pointer text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                Manual Overrides (Optional)
+                            </summary>
+                            <p className="text-[11px] mt-2" style={{ color: palette.textTertiary }}>
+                                Leave inputs empty to keep system-calculated values.
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                                <Field label="Brokerage Override">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        style={inputStyle}
+                                        placeholder="Leave blank to use auto"
+                                        value={overrideBrokerage}
+                                        onChange={e => setOverrideBrokerage(e.target.value)}
+                                    />
+                                    <p className="text-[11px] mt-1" style={{ color: palette.textTertiary }}>
+                                        Auto: ₹{calculatedCharges.brokerage.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                                    </p>
+                                </Field>
+                                <Field label="GST Override">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        style={inputStyle}
+                                        placeholder="Leave blank to use auto"
+                                        value={overrideGst}
+                                        onChange={e => setOverrideGst(e.target.value)}
+                                    />
+                                    <p className="text-[11px] mt-1" style={{ color: palette.textTertiary }}>
+                                        Auto: ₹{calculatedCharges.gst.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                                    </p>
+                                </Field>
+                                <Field label="Total Charges Override">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        style={inputStyle}
+                                        placeholder="Leave blank to use auto"
+                                        value={overrideChargesTotal}
+                                        onChange={e => setOverrideChargesTotal(e.target.value)}
+                                    />
+                                    <p className="text-[11px] mt-1" style={{ color: palette.textTertiary }}>
+                                        Auto: ₹{autoTotalCharges.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}
+                                    </p>
+                                </Field>
+                                <Field label="Margin Used Override">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        style={inputStyle}
+                                        placeholder="Leave blank to use auto"
+                                        value={overrideMarginUsed}
+                                        onChange={e => setOverrideMarginUsed(e.target.value)}
+                                    />
+                                    <p className="text-[11px] mt-1" style={{ color: palette.textTertiary }}>
+                                        Auto: {marginUsed == null ? "-" : `₹${marginUsed.toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
+                                    </p>
+                                </Field>
+                                <Field label="Net P&L Override">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        style={inputStyle}
+                                        placeholder="Leave blank to use auto"
+                                        value={overrideNetPnl}
+                                        onChange={e => setOverrideNetPnl(e.target.value)}
+                                    />
+                                    <p className="text-[11px] mt-1" style={{ color: palette.textTertiary }}>
+                                        Auto: {autoNetPnlAfterCharges == null ? "-" : `${autoNetPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(autoNetPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2, minimumFractionDigits: 2 })}`}
+                                    </p>
+                                </Field>
+                            </div>
+                        </details>
+                    </div>
 
                     {/* Net P&L after all charges */}
-                    {netPnlAfterCharges !== null && (
+                    {effectiveNetPnlAfterCharges !== null && (
                         <div className="sm:col-span-2 lg:col-span-3">
                             <Field label="Net P&L after All Charges (read-only)">
                                 <input type="text" style={{ ...inputStyle, opacity: 0.85, fontWeight: 700,
-                                    color: netPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444" }}
-                                    value={`${netPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(netPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}${netPnlPercentage != null ? ` (${netPnlPercentage >= 0 ? "+" : ""}${netPnlPercentage.toLocaleString("en-IN", { maximumFractionDigits: 2 })}%)` : ""}`}
+                                    color: effectiveNetPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444" }}
+                                    value={`${effectiveNetPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(effectiveNetPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}${netPnlPercentage != null ? ` (${netPnlPercentage >= 0 ? "+" : ""}${netPnlPercentage.toLocaleString("en-IN", { maximumFractionDigits: 2 })}%)` : ""}`}
                                     readOnly />
                             </Field>
                         </div>
@@ -640,61 +920,80 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                 </>)}
 
                 {sectionCard("Setup & Psychology", <Psychology />, <>
-                    <Field label="Setup Type">
-                        <input list="setup-suggestions" type="text" style={inputStyle} value={form.SetupType ?? ""} onChange={e => setField("SetupType", e.target.value.toUpperCase())} />
-                        <datalist id="setup-suggestions">{SETUP_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
-                    </Field>
-                    <Field label="Strategy Name">
-                        <input list="strategy-suggestions" type="text" style={inputStyle} value={form.StrategyName ?? ""} onChange={e => setField("StrategyName", e.target.value)} />
-                        <datalist id="strategy-suggestions">{STRATEGY_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
-                    </Field>
-                    <Field label="Market Condition">
-                        <input list="market-suggestions" type="text" style={inputStyle} value={form.MarketCondition ?? ""} onChange={e => setField("MarketCondition", e.target.value.toUpperCase())} />
-                        <datalist id="market-suggestions">{MARKET_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
-                    </Field>
-                    <Field label="Emotional State">
-                        <input list="emotion-suggestions" type="text" style={inputStyle} value={form.EmotionalState ?? ""} onChange={e => setField("EmotionalState", e.target.value.toUpperCase())} />
-                        <datalist id="emotion-suggestions">{EMOTION_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
-                    </Field>
-                    <Field label="Mistake Type">
-                        <input list="mistake-suggestions" type="text" style={inputStyle} value={form.MistakeType ?? ""} onChange={e => setField("MistakeType", e.target.value.toUpperCase())} />
-                        <datalist id="mistake-suggestions">{MISTAKE_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
-                    </Field>
                     <div className="sm:col-span-2 lg:col-span-3">
-                        <Field label="Notes">
-                            <textarea rows={3} style={{ ...inputStyle, resize: "vertical" }} value={form.Notes ?? ""} onChange={e => setField("Notes", e.target.value)} />
-                        </Field>
-                    </div>
-                    <Field label="Tags (comma-separated)">
-                        <input type="text" style={inputStyle} value={form.Tags ?? ""} onChange={e => setField("Tags", e.target.value)} />
-                    </Field>
-                    <Field label="Attachment Links (comma-separated)">
-                        <input type="text" style={inputStyle} value={form.AttachmentLinks ?? ""} onChange={e => setField("AttachmentLinks", e.target.value)} />
-                    </Field>
-                    <div>
-                        <Field label="Upload Screenshot to CDN">
-                            <label className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer"
-                                style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)" }}>
-                                <UploadFile fontSize="small" style={{ color: palette.accent }} />
-                                <span className="text-xs" style={{ color: palette.textSecondary }}>{uploading ? "Uploading..." : "Select file(s)"}</span>
-                                <input type="file" className="hidden" multiple accept="image/*" onChange={e => handleAttachmentUpload(e.target.files)} />
-                            </label>
-                        </Field>
-                        {uploadError && <p className="text-xs mt-1" style={{ color: "#ef4444" }}>{uploadError}</p>}
-                    </div>
-                    {!!form.ScreenshotCdnUrls?.length && (
-                        <div className="sm:col-span-2 lg:col-span-3">
-                            <Field label="Uploaded CDN URLs">
-                                <div className="flex flex-wrap gap-2">
-                                    {form.ScreenshotCdnUrls.map((url: string, idx: number) => (
-                                        <span key={`${url}-${idx}`} className="text-xs px-2 py-1 rounded-md" style={{ background: `${palette.accent}18`, color: palette.accent }}>
-                                            {url}
-                                        </span>
-                                    ))}
+                        <details className="rounded-xl p-3" style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                            <summary className="cursor-pointer text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                Trade Context & Psychology (Optional)
+                            </summary>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                                <Field label="Setup Type">
+                                    <input list="setup-suggestions" type="text" style={inputStyle} value={form.SetupType ?? ""} onChange={e => setField("SetupType", e.target.value.toUpperCase())} />
+                                    <datalist id="setup-suggestions">{SETUP_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
+                                </Field>
+                                <Field label="Strategy Name">
+                                    <input list="strategy-suggestions" type="text" style={inputStyle} value={form.StrategyName ?? ""} onChange={e => setField("StrategyName", e.target.value)} />
+                                    <datalist id="strategy-suggestions">{STRATEGY_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
+                                </Field>
+                                <Field label="Market Condition">
+                                    <input list="market-suggestions" type="text" style={inputStyle} value={form.MarketCondition ?? ""} onChange={e => setField("MarketCondition", e.target.value.toUpperCase())} />
+                                    <datalist id="market-suggestions">{MARKET_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
+                                </Field>
+                                <Field label="Emotional State">
+                                    <input list="emotion-suggestions" type="text" style={inputStyle} value={form.EmotionalState ?? ""} onChange={e => setField("EmotionalState", e.target.value.toUpperCase())} />
+                                    <datalist id="emotion-suggestions">{EMOTION_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
+                                </Field>
+                                <Field label="Mistake Type">
+                                    <input list="mistake-suggestions" type="text" style={inputStyle} value={form.MistakeType ?? ""} onChange={e => setField("MistakeType", e.target.value.toUpperCase())} />
+                                    <datalist id="mistake-suggestions">{MISTAKE_SUGGESTIONS.map(v => <option key={v} value={v} />)}</datalist>
+                                </Field>
+                                <Field label="Tags (comma-separated)">
+                                    <input type="text" style={inputStyle} value={form.Tags ?? ""} onChange={e => setField("Tags", e.target.value)} />
+                                </Field>
+                                <div className="sm:col-span-2 lg:col-span-3">
+                                    <Field label="Notes">
+                                        <textarea rows={3} style={{ ...inputStyle, resize: "vertical" }} value={form.Notes ?? ""} onChange={e => setField("Notes", e.target.value)} />
+                                    </Field>
                                 </div>
-                            </Field>
-                        </div>
-                    )}
+                            </div>
+                        </details>
+                    </div>
+
+                    <div className="sm:col-span-2 lg:col-span-3">
+                        <details className="rounded-xl p-3" style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
+                            <summary className="cursor-pointer text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                Attachments (Optional)
+                            </summary>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
+                                <Field label="Attachment Links (comma-separated)">
+                                    <input type="text" style={inputStyle} value={form.AttachmentLinks ?? ""} onChange={e => setField("AttachmentLinks", e.target.value)} />
+                                </Field>
+                                <div>
+                                    <Field label="Upload Screenshot to CDN">
+                                        <label className="flex items-center gap-2 px-3 py-2 rounded-xl cursor-pointer"
+                                            style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)" }}>
+                                            <UploadFile fontSize="small" style={{ color: palette.accent }} />
+                                            <span className="text-xs" style={{ color: palette.textSecondary }}>{uploading ? "Uploading..." : "Select file(s)"}</span>
+                                            <input type="file" className="hidden" multiple accept="image/*" onChange={e => handleAttachmentUpload(e.target.files)} />
+                                        </label>
+                                    </Field>
+                                    {uploadError && <p className="text-xs mt-1" style={{ color: "#ef4444" }}>{uploadError}</p>}
+                                </div>
+                                {!!form.ScreenshotCdnUrls?.length && (
+                                    <div className="sm:col-span-2 lg:col-span-3">
+                                        <Field label="Uploaded CDN URLs">
+                                            <div className="flex flex-wrap gap-2">
+                                                {form.ScreenshotCdnUrls.map((url: string, idx: number) => (
+                                                    <span key={`${url}-${idx}`} className="text-xs px-2 py-1 rounded-md" style={{ background: `${palette.accent}18`, color: palette.accent }}>
+                                                        {url}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </Field>
+                                    </div>
+                                )}
+                            </div>
+                        </details>
+                    </div>
                 </>)}
 
                 <motion.button

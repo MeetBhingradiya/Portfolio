@@ -1028,7 +1028,7 @@ export default function SitemapContent() {
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
     const [searchQuery, setSearchQuery] = useState("");
-    const [viewMode, setViewMode] = useState<ViewMode>("list");
+    const [viewMode, setViewMode] = useState<ViewMode>("compact");
     const [sortBy, setSortBy] = useState<"name" | "section">("section");
 
     // Filter and sort sitemap based on search and sort options

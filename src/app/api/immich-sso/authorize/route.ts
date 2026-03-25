@@ -4,7 +4,9 @@
  *
  * Security gate (evaluated first):
  *  1. `_gate` query param must match IMMICH_SSO_GATE_KEY env var.
- *  2. `Origin` or `Referer` header must originate from the Immich instance.
+ *  2. `Origin` or `Referer` should originate from the Immich instance.
+ *     If headers are missing in mobile/webview flows, fallback is allowed only
+ *     for valid redirect_uri + mobile/Immich-like user-agent requests.
  *
  * If both pass: validates OIDC request params, stores them in a signed
  * cookie, then redirects the user to /immich-sso login page.
@@ -13,6 +15,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { getIssuer, validateClient, isRedirectUriAllowed } from "@Utils/OIDCKeys";
 import { Config } from "@Config/Server";
+import { UserAgent } from "@Library/UserAgent";
+import { normalizeHeader } from "@Utils/NormalizeHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +34,7 @@ function oidcError(
         if (state) url.searchParams.set("state", state);
         return NextResponse.redirect(url.toString());
     }
-    // Can't redirect — show error page
+    // Can't redirect - show error page
     return NextResponse.redirect(
         new URL(
             `/immich-sso?error=${encodeURIComponent(error)}&error_description=${encodeURIComponent(description)}`,
@@ -49,38 +53,13 @@ export async function GET(req: NextRequest) {
     const nonce = searchParams.get("nonce");
     const baseUrl = req.nextUrl.origin;
 
-    // ── Gate key validation ─────────────────────────────────────────────────
+    // - Gate key validation -------------------------------------------------
     // The Immich OIDC authorization URL must include ?_gate=<IMMICH_SSO_GATE_KEY>
     const gateKey = searchParams.get("_gate");
     const expectedKey = process.env.IMMICH_SSO_GATE_KEY;
     if (!expectedKey || !gateKey || gateKey !== expectedKey) {
-        console.warn("[authorize] Gate key mismatch — rejecting request");
+        console.warn("[authorize] Gate key mismatch - rejecting request");
         return NextResponse.redirect(new URL("/?notice=immich_access_denied", baseUrl));
-    }
-
-    // ── Origin / Referer validation ─────────────────────────────────────────
-    // Immich runs in the user's browser so the auth redirect sets Origin/Referer
-    // to the Immich instance origin.
-    const origin = req.headers.get("origin") || "";
-    const referer = req.headers.get("referer") || "";
-    const fromImmich = Config.Immich_Origins.some(immichOrigin =>
-        origin.startsWith(immichOrigin) || referer.startsWith(immichOrigin)
-    );
-
-    if (!fromImmich) {
-        console.warn("[authorize] Invalid origin/referer — rejecting request", { origin, referer });
-        return NextResponse.redirect(new URL("/?notice=immich_access_denied", baseUrl));
-    }
-
-    // Validate response_type
-    if (responseType !== "code") {
-        return oidcError(
-            redirectUri,
-            state,
-            "unsupported_response_type",
-            "Only 'code' response_type is supported",
-            baseUrl
-        );
     }
 
     // Validate client
@@ -97,11 +76,9 @@ export async function GET(req: NextRequest) {
 
     // Validate redirect_uri
     if (!redirectUri) {
-        return NextResponse.redirect(
-            new URL("/immich-sso?error=missing_redirect_uri", baseUrl)
-        );
+        return NextResponse.redirect(new URL("/immich-sso?error=missing_redirect_uri", baseUrl));
     }
-    
+
     if (!isRedirectUriAllowed(redirectUri)) {
         return oidcError(
             null,
@@ -112,10 +89,60 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    // Build a short-lived signed JWT containing the OIDC request params
-    const secret = new TextEncoder().encode(
-        process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me"
+    // - Origin / Referer validation ----------------------------------------
+    // Browsers usually send Origin/Referer, but some Android secure-folder / webview
+    // flows omit them or send non-URL placeholders (e.g., "null").
+    const origin = normalizeHeader(req.headers.get("origin"));
+    const referer = normalizeHeader(req.headers.get("referer"));
+
+    const fromImmichHeaders = Config.Immich_Origins.some((immichOrigin) => {
+        return origin.startsWith(immichOrigin) || referer.startsWith(immichOrigin);
+    });
+
+    const userAgentSource = normalizeHeader(req.headers.get("user-agent"));
+    const userAgentLower = userAgentSource.toLowerCase();
+    const parsedUserAgent = userAgentSource ? new UserAgent(userAgentSource).parse() : null;
+
+    const isImmichUserAgent = userAgentLower.includes("immich");
+    const isMobileUserAgent = Boolean(
+        parsedUserAgent?.isAndroid ||
+            parsedUserAgent?.isiPhone ||
+            parsedUserAgent?.isiPad ||
+            parsedUserAgent?.isMobile ||
+            parsedUserAgent?.isMobileNative
     );
+
+    // Fallback for mobile app/webview flows without reliable browser headers.
+    // At this point, gate key + client_id + redirect_uri checks already passed.
+    const fromImmichRedirect = Config.Immich_Origins.some((immichOrigin) => {
+        return redirectUri.startsWith(immichOrigin);
+    });
+
+    const allowMobileFallback = fromImmichRedirect && (isImmichUserAgent || isMobileUserAgent);
+
+    if (!fromImmichHeaders && !allowMobileFallback) {
+        console.warn("[authorize] Unable to verify Immich source - rejecting request", {
+            origin,
+            referer,
+            redirectUri,
+            userAgent: userAgentSource,
+        });
+        return NextResponse.redirect(new URL("/?notice=immich_access_denied", baseUrl));
+    }
+
+    // Validate response_type
+    if (responseType !== "code") {
+        return oidcError(
+            redirectUri,
+            state,
+            "unsupported_response_type",
+            "Only 'code' response_type is supported",
+            baseUrl
+        );
+    }
+
+    // Build a short-lived signed JWT containing the OIDC request params
+    const secret = new TextEncoder().encode(process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me");
     const oidcRequestToken = await new SignJWT({
         clientId,
         redirectUri,

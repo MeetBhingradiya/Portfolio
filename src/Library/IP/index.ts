@@ -1,5 +1,10 @@
-import { NextRequest } from "next/server";
 import { is } from "./is";
+
+type RequestWithHeaders = {
+    headers?: {
+        get(name: string): string | null;
+    };
+};
 
 function getClientIpFromXForwardedFor(value: any) {
     if (!is.existy(value)) {
@@ -34,7 +39,7 @@ function getClientIpFromXForwardedFor(value: any) {
     return null;
 }
 
-function getClientIp(req: NextRequest): string | string[] | null | undefined {
+function getClientIp(req: RequestWithHeaders): string | string[] | null | undefined {
     if (req.headers) {
         if (is.ip(req.headers.get("x-client-ip"))) {
             return req.headers.get("x-client-ip");

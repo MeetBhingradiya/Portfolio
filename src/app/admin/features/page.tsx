@@ -34,6 +34,16 @@ interface FeatureState {
     allowSignup: boolean;
     shopEnabled: boolean;
     productivityEnabled: boolean;
+    emailPolicies: {
+        verificationRateLimitWindowMinutes: number;
+        verificationRateLimitMax: number;
+    };
+    phonePolicies: {
+        maxPhonesPerAccount: number;
+        maxAccountsPerPhone: number;
+        otpExpiryMinutes: number;
+        otpMaxAttempts: number;
+    };
     paymentProviders: Record<string, ProviderState>;
 }
 
@@ -107,6 +117,16 @@ const defaultState = (): FeatureState => ({
     allowSignup: true,
     shopEnabled: false,
     productivityEnabled: true,
+    emailPolicies: {
+        verificationRateLimitWindowMinutes: 720,
+        verificationRateLimitMax: 3,
+    },
+    phonePolicies: {
+        maxPhonesPerAccount: 3,
+        maxAccountsPerPhone: 3,
+        otpExpiryMinutes: 5,
+        otpMaxAttempts: 5,
+    },
     paymentProviders: Object.fromEntries(PROVIDERS.map(p => [p.key, defaultProvider()])),
 });
 
@@ -181,6 +201,16 @@ export default function AdminFeaturesPage() {
                 allowSignup: json.data.allowSignup ?? true,
                 shopEnabled: json.data.shopEnabled ?? false,
                 productivityEnabled: json.data.productivityEnabled ?? true,
+                emailPolicies: {
+                    verificationRateLimitWindowMinutes: json.data.emailPolicies?.verificationRateLimitWindowMinutes ?? 720,
+                    verificationRateLimitMax: json.data.emailPolicies?.verificationRateLimitMax ?? 3,
+                },
+                phonePolicies: {
+                    maxPhonesPerAccount: json.data.phonePolicies?.maxPhonesPerAccount ?? 3,
+                    maxAccountsPerPhone: json.data.phonePolicies?.maxAccountsPerPhone ?? 3,
+                    otpExpiryMinutes: json.data.phonePolicies?.otpExpiryMinutes ?? 5,
+                    otpMaxAttempts: json.data.phonePolicies?.otpMaxAttempts ?? 5,
+                },
                 paymentProviders: providers,
             });
         }
@@ -199,6 +229,8 @@ export default function AdminFeaturesPage() {
                 allowSignup: state.allowSignup,
                 shopEnabled: state.shopEnabled,
                 productivityEnabled: state.productivityEnabled,
+                emailPolicies: state.emailPolicies,
+                phonePolicies: state.phonePolicies,
                 paymentProviders: Object.fromEntries(
                     Object.entries(state.paymentProviders).map(([k, v]) => [k, {
                         enabled: v.enabled,
@@ -342,6 +374,134 @@ export default function AdminFeaturesPage() {
                                 tag={state.productivityEnabled ? "Enabled" : "Disabled"}
                                 tagColor={state.productivityEnabled ? "#AF52DE" : "#8E8E93"}
                             />
+                        </div>
+                    </section>
+
+                    {/* ── Section: Email Security Policies ── */}
+                    <section>
+                        <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: palette.textTertiary }}>
+                            Email Security Policies
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="p-4 rounded-2xl" style={{ background: cardBg, border }}>
+                                <p className="text-xs mb-2" style={{ color: palette.textSecondary }}>
+                                    Verification window (minutes)
+                                </p>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={state.emailPolicies.verificationRateLimitWindowMinutes}
+                                    onChange={(e) => setState(s => ({
+                                        ...s,
+                                        emailPolicies: {
+                                            ...s.emailPolicies,
+                                            verificationRateLimitWindowMinutes: Number(e.target.value || 1),
+                                        },
+                                    }))}
+                                    className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div className="p-4 rounded-2xl" style={{ background: cardBg, border }}>
+                                <p className="text-xs mb-2" style={{ color: palette.textSecondary }}>
+                                    Max verification emails in window
+                                </p>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={state.emailPolicies.verificationRateLimitMax}
+                                    onChange={(e) => setState(s => ({
+                                        ...s,
+                                        emailPolicies: {
+                                            ...s.emailPolicies,
+                                            verificationRateLimitMax: Number(e.target.value || 1),
+                                        },
+                                    }))}
+                                    className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
+                        </div>
+                    </section>
+
+                    {/* ── Section: Phone Policies ── */}
+                    <section>
+                        <p className="text-xs font-black uppercase tracking-widest mb-3" style={{ color: palette.textTertiary }}>
+                            Phone Security Policies
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="p-4 rounded-2xl" style={{ background: cardBg, border }}>
+                                <p className="text-xs mb-2" style={{ color: palette.textSecondary }}>Max phones per account</p>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={state.phonePolicies.maxPhonesPerAccount}
+                                    onChange={(e) => setState(s => ({
+                                        ...s,
+                                        phonePolicies: {
+                                            ...s.phonePolicies,
+                                            maxPhonesPerAccount: Number(e.target.value || 1),
+                                        },
+                                    }))}
+                                    className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div className="p-4 rounded-2xl" style={{ background: cardBg, border }}>
+                                <p className="text-xs mb-2" style={{ color: palette.textSecondary }}>Max accounts per phone</p>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={state.phonePolicies.maxAccountsPerPhone}
+                                    onChange={(e) => setState(s => ({
+                                        ...s,
+                                        phonePolicies: {
+                                            ...s.phonePolicies,
+                                            maxAccountsPerPhone: Number(e.target.value || 1),
+                                        },
+                                    }))}
+                                    className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div className="p-4 rounded-2xl" style={{ background: cardBg, border }}>
+                                <p className="text-xs mb-2" style={{ color: palette.textSecondary }}>OTP expiry (minutes)</p>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={state.phonePolicies.otpExpiryMinutes}
+                                    onChange={(e) => setState(s => ({
+                                        ...s,
+                                        phonePolicies: {
+                                            ...s.phonePolicies,
+                                            otpExpiryMinutes: Number(e.target.value || 1),
+                                        },
+                                    }))}
+                                    className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
+
+                            <div className="p-4 rounded-2xl" style={{ background: cardBg, border }}>
+                                <p className="text-xs mb-2" style={{ color: palette.textSecondary }}>OTP max attempts</p>
+                                <input
+                                    type="number"
+                                    min={1}
+                                    value={state.phonePolicies.otpMaxAttempts}
+                                    onChange={(e) => setState(s => ({
+                                        ...s,
+                                        phonePolicies: {
+                                            ...s.phonePolicies,
+                                            otpMaxAttempts: Number(e.target.value || 1),
+                                        },
+                                    }))}
+                                    className="w-full text-sm px-3 py-2 rounded-xl outline-none"
+                                    style={inputStyle}
+                                />
+                            </div>
                         </div>
                     </section>
 

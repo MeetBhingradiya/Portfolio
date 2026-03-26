@@ -14,6 +14,8 @@ import {
     Security,
     Fingerprint,
     VpnKey,
+    Password,
+    PhoneIphone,
     History,
     Devices,
     Warning,
@@ -55,6 +57,24 @@ export default function SecuritySettingsPage() {
             href: "/settings/security/two-factor",
             enabled: false, // TODO: Get from user settings
             badge: "Recommended"
+        },
+        {
+            id: "password",
+            title: "Password Management",
+            description: "Set or change your account password",
+            icon: <Password />,
+            href: "/settings/security/password",
+            enabled: true,
+            badge: null
+        },
+        {
+            id: "phone",
+            title: "Phone Number Verification",
+            description: "Add and verify your phone number with OTP",
+            icon: <PhoneIphone />,
+            href: "/settings/security/phone",
+            enabled: !!user?.emailVerified,
+            badge: user?.emailVerified ? null : "Verify Email First"
         },
         {
             id: "passkeys",
@@ -263,9 +283,11 @@ export default function SecuritySettingsPage() {
                             }}
                             whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
-                            onClick={handleChangePassword}
+                            onClick={() => {
+                                window.location.href = "/settings/security/password";
+                            }}
                         >
-                            Change Password
+                            Set / Change Password
                         </motion.button>
                         <motion.button
                             className="w-full px-4 py-3 rounded-xl text-left font-semibold"

@@ -55,3 +55,7 @@ export * from "./AIProviderSettings";
 export * from "./WalletAsset";
 export * from "./WalletTransaction";
 export * from "./WalletContact";
+
+// ? Security: linked phone numbers + OTP challenges
+export * from "./UserPhone";
+export * from "./PhoneOtpChallenge";

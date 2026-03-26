@@ -49,6 +49,18 @@ const SiteSettings_Schema = new mongoose.Schema(
             type: Boolean,
             default: true
         },
+        // ── Phone Security Policies ───────────────────────────────────────
+        phonePolicies: {
+            maxPhonesPerAccount: { type: Number, default: 3 },
+            maxAccountsPerPhone: { type: Number, default: 3 },
+            otpExpiryMinutes: { type: Number, default: 5 },
+            otpMaxAttempts: { type: Number, default: 5 },
+        },
+        // ── Email Security Policies ───────────────────────────────────────
+        emailPolicies: {
+            verificationRateLimitWindowMinutes: { type: Number, default: 720 },
+            verificationRateLimitMax: { type: Number, default: 3 },
+        },
         // ── Payment Providers ────────────────────────────────────────────
         paymentProviders: {
             stripe: { type: PaymentProviderSchema, default: () => ({}) },
@@ -79,6 +91,16 @@ export interface ISiteSettings extends mongoose.Document {
     allowSignup: boolean;
     shopEnabled: boolean;
     productivityEnabled: boolean;
+    phonePolicies: {
+        maxPhonesPerAccount: number;
+        maxAccountsPerPhone: number;
+        otpExpiryMinutes: number;
+        otpMaxAttempts: number;
+    };
+    emailPolicies: {
+        verificationRateLimitWindowMinutes: number;
+        verificationRateLimitMax: number;
+    };
     paymentProviders: {
         stripe: IPaymentProvider;
         razorpay: IPaymentProvider;

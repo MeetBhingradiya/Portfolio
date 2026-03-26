@@ -8,9 +8,156 @@ import { GoogleOptions } from "better-auth/social-providers";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { twoFactor } from "better-auth/plugins/two-factor";
 import { username, multiSession } from "better-auth/plugins";
+import { phoneNumber } from "better-auth/plugins/phone-number";
 import { passkey } from "@better-auth/passkey";
 import { MongoClient } from "mongodb";
 import { Config } from "@Config/Client";
+import { sendEmail, loginNotificationEmail, verificationEmailTemplate, deleteAccountVerificationEmail } from "@Utils/Email";
+import { sendPhoneOtpSms } from "@Utils/SMS";
+import { UserAgent } from "@Library/UserAgent";
+import { IPData } from "@Utils/IPData";
+import { getSiteSettings } from "@Models/SiteSettings";
+import { getClientIp } from "@Library/IP";
+
+const verificationEmailRateLimitStore = new Map<string, number[]>();
+const E164_PHONE_REGEX = /^\+[1-9]\d{7,14}$/;
+
+type IpDataResult = {
+    ip?: string;
+    city?: string;
+    region_code?: string;
+    region?: string;
+    country_name?: string;
+    isERROR?: boolean;
+};
+
+function toTitleCase(value: string): string {
+    return value
+        .split(/[_\s-]+/)
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+        .join(" ");
+}
+
+type EmailSecurityPolicies = {
+    verificationRateLimitWindowMinutes: number;
+    verificationRateLimitMax: number;
+};
+
+function getEmailPoliciesFromEnv(): EmailSecurityPolicies {
+    return {
+        verificationRateLimitWindowMinutes: Number(process.env.EMAIL_VERIFICATION_WINDOW_MINUTES || "720"),
+        verificationRateLimitMax: Number(process.env.EMAIL_VERIFICATION_MAX_PER_WINDOW || "3"),
+    };
+}
+
+async function getEmailSecurityPolicies(): Promise<EmailSecurityPolicies> {
+    const fallback = getEmailPoliciesFromEnv();
+    try {
+        const settings = await getSiteSettings();
+        return {
+            verificationRateLimitWindowMinutes:
+                settings.emailPolicies?.verificationRateLimitWindowMinutes ?? fallback.verificationRateLimitWindowMinutes,
+            verificationRateLimitMax:
+                settings.emailPolicies?.verificationRateLimitMax ?? fallback.verificationRateLimitMax,
+        };
+    } catch {
+        return fallback;
+    }
+}
+
+function consumeVerificationRateLimit(
+    email: string,
+    policies: EmailSecurityPolicies
+): { allowed: boolean; retryAfterSeconds: number } {
+    const windowMs = Math.max(1, policies.verificationRateLimitWindowMinutes) * 60 * 1000;
+    const maxPerWindow = Math.max(1, policies.verificationRateLimitMax);
+
+    const now = Date.now();
+    const key = email.toLowerCase();
+    const existing = verificationEmailRateLimitStore.get(key) ?? [];
+    const fresh = existing.filter((ts) => now - ts < windowMs);
+
+    if (fresh.length >= maxPerWindow) {
+        const retryAfterMs = Math.max(0, windowMs - (now - fresh[0]));
+        return {
+            allowed: false,
+            retryAfterSeconds: Math.ceil(retryAfterMs / 1000),
+        };
+    }
+
+    fresh.push(now);
+    verificationEmailRateLimitStore.set(key, fresh);
+    return { allowed: true, retryAfterSeconds: 0 };
+}
+
+function getDeviceContext(userAgentSource: string): { platform: string; deviceType: string; browser: string } {
+    if (!userAgentSource) {
+        return {
+            platform: "Unknown Platform",
+            deviceType: "Unknown Device",
+            browser: "Unknown Browser",
+        };
+    }
+
+    const parsed = new UserAgent(userAgentSource).parse();
+    const platform = parsed.platform !== "unknown" ? parsed.platform : (parsed.os !== "unknown" ? parsed.os : "Unknown Platform");
+    const browser = parsed.browser !== "unknown" ? parsed.browser : "Unknown Browser";
+
+    const deviceType = parsed.isTablet
+        ? "Tablet"
+        : parsed.isMobile
+            ? "Mobile"
+            : parsed.isDesktop
+                ? "Desktop"
+                : "Unknown Device";
+
+    return {
+        platform: toTitleCase(String(platform)),
+        deviceType,
+        browser: toTitleCase(String(browser)),
+    };
+}
+
+async function resolveLocation(ipAddress: string): Promise<string> {
+    if (!ipAddress || ipAddress === "Unknown") {
+        return "Unknown location";
+    }
+
+    const data = (await IPData(ipAddress)) as IpDataResult;
+    if (!data || data.isERROR) {
+        return "Unknown location";
+    }
+
+    const parts = [data.city, data.region_code || data.region, data.country_name].filter(Boolean);
+    return parts.length ? parts.join(", ") : "Unknown location";
+}
+
+async function sendLoginNotificationEmail(input: {
+    email: string;
+    name?: string;
+    userAgent: string;
+    ipAddress: string;
+    eventPath?: string;
+}) {
+    const location = await resolveLocation(input.ipAddress);
+    const device = getDeviceContext(input.userAgent);
+
+    await sendEmail({
+        to: input.email,
+        subject: `New login detected on ${device.deviceType}`,
+        html: loginNotificationEmail({
+            name: input.name,
+            ipAddress: input.ipAddress,
+            location,
+            platform: device.platform,
+            deviceType: device.deviceType,
+            browser: device.browser,
+            loginAt: new Date().toISOString(),
+            eventPath: input.eventPath,
+        }),
+    });
+}
 
 // Skip database initialization during build time
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
@@ -21,6 +168,31 @@ if (!isBuildTime && process.env.MONGODB_01) {
     try {
         const client = new MongoClient(process.env.MONGODB_01);
         const db = client.db("PRODUCTION_MeetBhingradiya");
+
+        // Compatibility migration for older account documents that used `user_id`.
+        // Better Auth credential sign-in queries by `userId`.
+        db.collection("account")
+            .updateMany(
+                {
+                    userId: { $exists: false },
+                    user_id: { $exists: true },
+                },
+                [
+                    {
+                        $set: {
+                            userId: "$user_id",
+                        },
+                    },
+                ]
+            )
+            .then((res) => {
+                if (res.modifiedCount > 0) {
+                    console.log(`[Auth] Migrated ${res.modifiedCount} legacy account documents to userId.`);
+                }
+            })
+            .catch((error) => {
+                console.warn("[Auth] Legacy account migration skipped:", error);
+            });
 
         // Disable transactions for standalone MongoDB (local dev).
         // Transactions require a replica set; Atlas in production supports them.
@@ -38,10 +210,40 @@ if (!isBuildTime && process.env.MONGODB_01) {
 export const auth = betterAuth({
     database: dbAdapter,
 
+    emailVerification: {
+        sendOnSignUp: true,
+        sendOnSignIn: true,
+        expiresIn: 60 * 60,
+        sendVerificationEmail: async ({ user, url }) => {
+            const policies = await getEmailSecurityPolicies();
+            const limit = consumeVerificationRateLimit(user.email, policies);
+            if (!limit.allowed) {
+                console.warn(`[Auth] Verification email rate-limited for ${user.email}. Retry in ${limit.retryAfterSeconds}s.`);
+                return;
+            }
+
+            try {
+                await sendEmail({
+                    to: user.email,
+                    subject: "Verify your email - Meet Bhingradiya Portfolio",
+                    html: verificationEmailTemplate({
+                        name: user.name,
+                        verificationUrl: url,
+                        expiresInMinutes: 60,
+                    }),
+                });
+                console.log(`[Auth] Verification email sent to ${user.email}`);
+            } catch (error) {
+                // Never block sign-up flow on mail delivery issues.
+                console.error(`[Auth] Failed to send verification email to ${user.email}:`, error);
+            }
+        },
+    },
+
     // Email and password authentication
     emailAndPassword: {
         enabled: true,
-        requireEmailVerification: false, // Set to false for OAuth compatibility
+        requireEmailVerification: true,
         // OAuth users are auto-verified via their provider
         disableSignUp: false, // Allow sign-up for email/password users
         autoSignIn: true, // Auto sign-in after sign-up
@@ -60,6 +262,15 @@ export const auth = betterAuth({
             rpName: "Meet Bhingradiya Portfolio",
             rpID: "meetbhingradiya.in",
             origin: Config.Origin,
+        }),
+        phoneNumber({
+            expiresIn: 5 * 60,
+            otpLength: 6,
+            requireVerification: true,
+            phoneNumberValidator: (phone) => E164_PHONE_REGEX.test(phone),
+            sendOTP: async ({ phoneNumber: phone, code }) => {
+                await sendPhoneOtpSms(phone, code);
+            },
         }),
         multiSession(),
     ],
@@ -183,11 +394,57 @@ export const auth = betterAuth({
         sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
     },
 
+    databaseHooks: {
+        user: {
+            create: {
+                after: async (user) => {
+                    console.log(`[Auth] User created: ${user.email}`);
+                },
+            },
+        },
+        account: {
+            create: {
+                after: async (account) => {
+                    console.log(`[Auth] Account created: provider=${account.providerId}, accountId=${account.accountId}`);
+                },
+            },
+        },
+        session: {
+            create: {
+                after: async (session, context) => {
+                    try {
+                        const path = context?.path ?? "";
+                        if (path.startsWith("/sign-up")) {
+                            return;
+                        }
+
+                        const user = await context?.context.internalAdapter.findUserById(session.userId);
+                        if (!user?.email) {
+                            return;
+                        }
+
+                        const request = context?.request;
+                        const derivedIp = request ? getClientIp(request) : null;
+                        const ipAddress = session.ipAddress || (Array.isArray(derivedIp) ? derivedIp[0] : derivedIp) || "Unknown";
+                        const userAgent = session.userAgent || request?.headers.get("user-agent") || "";
+
+                        await sendLoginNotificationEmail({
+                            email: user.email,
+                            name: user.name,
+                            userAgent,
+                            ipAddress,
+                            eventPath: path || undefined,
+                        });
+                    } catch (error) {
+                        console.error("[Auth] Failed to send login notification email:", error);
+                    }
+                },
+            },
+        },
+    },
+
     // Account settings
     account: {
-        fields: {
-            userId: "user_id",
-        },
         updateAccountOnSignIn: true,
         encryptOAuthTokens: true,
         storeAccountCookie: true,
@@ -237,7 +494,17 @@ export const auth = betterAuth({
         },
         deleteUser: {
             enabled: true,
-            
+            sendDeleteAccountVerification: async ({ user, url }) => {
+                await sendEmail({
+                    to: user.email,
+                    subject: "Confirm account deletion - Meet Bhingradiya Portfolio",
+                    html: deleteAccountVerificationEmail({
+                        name: user.name,
+                        verificationUrl: url,
+                        expiresInHours: 24,
+                    }),
+                });
+            },
         }
     },
 });

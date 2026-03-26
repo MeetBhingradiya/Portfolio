@@ -9,6 +9,7 @@ import React from "react";
 import { createAuthClient } from "better-auth/react";
 import { twoFactorClient, usernameClient, multiSessionClient } from "better-auth/client/plugins";
 import { passkeyClient } from "@better-auth/passkey/client";
+import { phoneNumberClient } from "better-auth/client/plugins";
 import { Config } from "@Config/Client";
 
 export const authClient = createAuthClient({
@@ -17,6 +18,7 @@ export const authClient = createAuthClient({
         usernameClient(),
         twoFactorClient(),
         passkeyClient(),
+        phoneNumberClient(),
         multiSessionClient()
     ],
 });
@@ -29,6 +31,7 @@ export const {
     useSession,
     updateUser,
     changePassword,
+    sendVerificationEmail,
     listSessions,
     revokeSession,
     revokeOtherSessions,
@@ -39,7 +42,15 @@ export const {
     isUsernameAvailable,
     twoFactor,
     passkey,
+    phoneNumber,
 } = authClient;
+
+export async function setPassword(input: { newPassword: string }) {
+    return authClient.$fetch("/set-password", {
+        method: "POST",
+        body: input,
+    });
+}
 
 // Custom hooks
 export function useAuth() {
@@ -54,7 +65,9 @@ export function useAuth() {
         signUp,
         signOut,
         updateUser,
+        setPassword,
         changePassword,
+        sendVerificationEmail,
         listSessions,
         revokeSession,
         revokeOtherSessions,
@@ -65,5 +78,6 @@ export function useAuth() {
         isUsernameAvailable,
         twoFactor,
         passkey,
+        phoneNumber,
     };
 }

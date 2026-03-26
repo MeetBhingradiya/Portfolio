@@ -6,16 +6,24 @@
 
 import nodemailer from "nodemailer";
 
-const createTransporter = () =>
-    nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: parseInt(process.env.SMTP_PORT || "587"),
-        secure: process.env.SMTP_SECURE === "true",
-        auth: {
-            user: process.env.SMTP_USER,
-            pass: process.env.SMTP_PASS,
-        },
-    });
+const createTransporter = () => {
+  const port = parseInt((process.env.SMTP_PORT || "587").trim(), 10);
+  const secureEnv = (process.env.SMTP_SECURE || "").trim().toLowerCase();
+  const secure = secureEnv === "true" || port === 465;
+
+  return nodemailer.createTransport({
+    host: process.env.SMTP_HOST,
+    port,
+    secure,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 15000,
+  });
+};
 
 interface SendEmailOptions {
     to: string;
@@ -32,6 +40,215 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
         subject,
         html,
         text,
+    });
+}
+
+function renderEmailShell(opts: {
+    preheader: string;
+    eyebrow: string;
+    title: string;
+    subtitle: string;
+    accent: string;
+    body: string;
+    note?: string;
+}): string {
+    const year = new Date().getFullYear();
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${opts.title}</title>
+</head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;">
+  <span style="display:none!important;visibility:hidden;opacity:0;color:transparent;height:0;width:0;overflow:hidden;">${opts.preheader}</span>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:28px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:20px;overflow:hidden;border:1px solid #e5e7eb;">
+          <tr>
+            <td style="padding:0;background:linear-gradient(140deg,#0f172a 0%,#1e293b 55%,#334155 100%);">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding:30px 30px 24px 30px;">
+                    <div style="display:inline-block;padding:6px 11px;border-radius:999px;background:rgba(255,255,255,0.14);color:#f8fafc;font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;">${opts.eyebrow}</div>
+                    <h1 style="margin:14px 0 8px 0;color:#ffffff;font-size:30px;line-height:1.2;font-weight:800;">${opts.title}</h1>
+                    <p style="margin:0;color:#cbd5e1;font-size:14px;line-height:1.55;">${opts.subtitle}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:30px;">
+              ${opts.body}
+            </td>
+          </tr>
+
+          ${opts.note
+              ? `<tr><td style="padding:0 30px 24px 30px;"><div style="border-radius:12px;background:${opts.accent}14;border:1px solid ${opts.accent}38;padding:12px 14px;color:#334155;font-size:12px;line-height:1.55;">${opts.note}</div></td></tr>`
+              : ""}
+
+          <tr>
+            <td style="padding:18px 30px;border-top:1px solid #e5e7eb;background:#fafafa;color:#94a3b8;font-size:12px;line-height:1.6;text-align:center;">
+              Meet Bhingradiya Portfolio • ${year}<br/>
+              <a href="https://www.meetbhingradiya.in" style="color:#64748b;text-decoration:none;">www.meetbhingradiya.in</a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function getPublicBaseUrl(): string {
+  const raw = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  const normalized = (raw || "https://www.meetbhingradiya.in").trim();
+  if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+    return normalized.replace(/\/$/, "");
+  }
+  return `https://${normalized.replace(/\/$/, "")}`;
+}
+
+function toAbsoluteAssetUrl(path: string): string {
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const base = getPublicBaseUrl();
+  const cleaned = path.startsWith("/") ? path : `/${path}`;
+  return `${base}${cleaned}`;
+}
+
+export function verificationEmailTemplate(opts: {
+    name?: string;
+    verificationUrl: string;
+    expiresInMinutes: number;
+  verificationImageUrl?: string;
+}): string {
+    const accent = "#2563eb";
+  const verificationImageUrl = toAbsoluteAssetUrl(opts.verificationImageUrl || "/assets/EmailConfirm.svg");
+
+    return renderEmailShell({
+        preheader: "Confirm your email to activate your account.",
+        eyebrow: "Account Security",
+        title: "Verify Your Email",
+        subtitle: "One quick confirmation keeps your account secure and unlocks full access.",
+        accent,
+        body: `
+          <div style="margin:0 0 20px 0;text-align:center;">
+            <img src="${verificationImageUrl}" alt="Email verification illustration" width="220" style="max-width:100%;height:auto;display:inline-block;" />
+          </div>
+
+          <p style="margin:0 0 16px 0;color:#1e293b;font-size:15px;line-height:1.75;">
+            Hi <strong>${opts.name || "there"}</strong>,<br/>
+            Thanks for joining. Please verify your email address to continue using your account.
+          </p>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 18px 0;">
+            <tr>
+              <td align="center" style="border-radius:12px;background:${accent};">
+                <a href="${opts.verificationUrl}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:.01em;">
+                  Verify Email Address
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:0;color:#64748b;font-size:13px;line-height:1.7;">
+            This secure link expires in <strong>${opts.expiresInMinutes} minutes</strong>. If this was not you, you can safely ignore this email.
+          </p>
+        `,
+        note: "For your safety, email verification links are single-use and time-limited.",
+    });
+}
+
+export function deleteAccountVerificationEmail(opts: {
+    name?: string;
+    verificationUrl: string;
+    expiresInHours: number;
+}): string {
+    const accent = "#b91c1c";
+
+    return renderEmailShell({
+        preheader: "Final confirmation required to delete your account.",
+        eyebrow: "Critical Action",
+        title: "Confirm Account Deletion",
+        subtitle: "This request is sensitive and requires explicit confirmation.",
+        accent,
+        body: `
+          <p style="margin:0 0 14px 0;color:#1e293b;font-size:15px;line-height:1.75;">
+            Hi <strong>${opts.name || "there"}</strong>,<br/>
+            We received a request to permanently delete your account and associated data.
+          </p>
+
+          <div style="margin:0 0 16px 0;padding:12px 14px;border-radius:12px;background:#fff1f2;border:1px solid #fecdd3;color:#9f1239;font-size:13px;line-height:1.65;">
+            This action is irreversible. After confirmation, recovery will not be possible.
+          </div>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px 0 18px 0;">
+            <tr>
+              <td align="center" style="border-radius:12px;background:${accent};">
+                <a href="${opts.verificationUrl}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:.01em;">
+                  Confirm Permanent Deletion
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:0;color:#64748b;font-size:13px;line-height:1.7;">
+            This confirmation link expires in <strong>${opts.expiresInHours} hours</strong>. If you did not request this, ignore this message.
+          </p>
+        `,
+        note: "Security recommendation: if this request was not initiated by you, reset your password immediately.",
+    });
+}
+
+export function loginNotificationEmail(opts: {
+    name?: string;
+    ipAddress: string;
+    location: string;
+    platform: string;
+    deviceType: string;
+    browser: string;
+    loginAt: string;
+    eventPath?: string;
+}): string {
+    const loginTime = new Date(opts.loginAt).toLocaleString();
+    const accent = "#0f766e";
+
+    return renderEmailShell({
+        preheader: "A new sign-in was detected on your account.",
+        eyebrow: "Security Alert",
+        title: "New Login Detected",
+        subtitle: "We noticed a successful sign-in. Review details below.",
+        accent,
+        body: `
+          <p style="margin:0 0 16px 0;color:#1e293b;font-size:15px;line-height:1.75;">
+            Hi <strong>${opts.name || "there"}</strong>,<br/>
+            A new session was created on your account.
+          </p>
+
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;background:#f8fafc;">
+            <tr><td style="padding:11px 14px;color:#64748b;font-size:12px;">Device</td><td style="padding:11px 14px;color:#0f172a;font-size:13px;font-weight:700;text-align:right;">${opts.deviceType}</td></tr>
+            <tr><td style="padding:11px 14px;color:#64748b;font-size:12px;border-top:1px solid #e2e8f0;">Platform</td><td style="padding:11px 14px;color:#0f172a;font-size:13px;font-weight:700;text-align:right;border-top:1px solid #e2e8f0;">${opts.platform}</td></tr>
+            <tr><td style="padding:11px 14px;color:#64748b;font-size:12px;border-top:1px solid #e2e8f0;">Browser</td><td style="padding:11px 14px;color:#0f172a;font-size:13px;font-weight:700;text-align:right;border-top:1px solid #e2e8f0;">${opts.browser}</td></tr>
+            <tr><td style="padding:11px 14px;color:#64748b;font-size:12px;border-top:1px solid #e2e8f0;">Location</td><td style="padding:11px 14px;color:#0f172a;font-size:13px;font-weight:700;text-align:right;border-top:1px solid #e2e8f0;">${opts.location}</td></tr>
+            <tr><td style="padding:11px 14px;color:#64748b;font-size:12px;border-top:1px solid #e2e8f0;">IP Address</td><td style="padding:11px 14px;color:#0f172a;font-size:13px;font-weight:700;text-align:right;border-top:1px solid #e2e8f0;">${opts.ipAddress}</td></tr>
+            <tr><td style="padding:11px 14px;color:#64748b;font-size:12px;border-top:1px solid #e2e8f0;">Time</td><td style="padding:11px 14px;color:#0f172a;font-size:13px;font-weight:700;text-align:right;border-top:1px solid #e2e8f0;">${loginTime}</td></tr>
+            ${opts.eventPath ? `<tr><td style="padding:11px 14px;color:#64748b;font-size:12px;border-top:1px solid #e2e8f0;">Event</td><td style="padding:11px 14px;color:#0f172a;font-size:13px;font-weight:700;text-align:right;border-top:1px solid #e2e8f0;">${opts.eventPath}</td></tr>` : ""}
+          </table>
+
+          <p style="margin:16px 0 0 0;color:#64748b;font-size:13px;line-height:1.7;">
+            If this wasn’t you, reset your password and revoke unknown sessions immediately.
+          </p>
+        `,
+        note: "Security tip: enable two-factor authentication to protect future logins.",
     });
 }
 

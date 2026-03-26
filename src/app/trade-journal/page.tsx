@@ -46,23 +46,23 @@ interface Summary {
     winRate: number;
 }
 
-const RESULTS  = ["ALL", "WIN", "LOSS", "BREAKEVEN", "OPEN"];
+const RESULTS = ["ALL", "WIN", "LOSS", "BREAKEVEN", "OPEN"];
 const SEGMENTS = ["ALL", "EQUITY", "FUTURES", "OPTIONS", "CRYPTO", "FOREX", "COMMODITY"];
-const RESULT_OPTS  = RESULTS.map(v => ({ value: v, label: v }));
+const RESULT_OPTS = RESULTS.map(v => ({ value: v, label: v }));
 const SEGMENT_OPTS = SEGMENTS.map(v => ({ value: v, label: v }));
 
 export default function TradeJournalPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
-    const isDark  = actualColorMode === "dark";
+    const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
-    const [trades,  setTrades]  = useState<Trade[]>([]);
+    const [trades, setTrades] = useState<Trade[]>([]);
     const [summary, setSummary] = useState<Summary>({ total: 0, wins: 0, losses: 0, netPnl: 0, winRate: 0 });
     const [loading, setLoading] = useState(true);
-    const [page,    setPage]    = useState(1);
+    const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [search,  setSearch]  = useState("");
-    const [result,  setResult]  = useState("ALL");
+    const [search, setSearch] = useState("");
+    const [result, setResult] = useState("ALL");
     const [segment, setSegment] = useState("ALL");
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -74,22 +74,22 @@ export default function TradeJournalPage() {
     const fetchTrades = useCallback(async () => {
         setLoading(true);
         const params = new URLSearchParams({ page: String(page), limit: "20" });
-        if (search)           params.set("search", search);
-        if (result  !== "ALL") params.set("result", result);
+        if (search) params.set("search", search);
+        if (result !== "ALL") params.set("result", result);
         if (segment !== "ALL") params.set("segment", segment);
 
-        const res  = await fetch(`/api/trade-journal?${params}`).then(r => r.json());
+        const res = await fetch(`/api/trade-journal?${params}`).then(r => r.json());
         if (res.success) {
             setTrades(res.data.trades ?? []);
             const pg = res.data.pagination ?? {};
-            const sm = res.data.summary   ?? {};
+            const sm = res.data.summary ?? {};
             setTotalPages(pg.totalPages ?? 1);
             setSummary({
-                total:   pg.total    ?? 0,
-                wins:    sm.wins     ?? 0,
-                losses:  sm.losses   ?? 0,
-                netPnl:  sm.netPnl   ?? 0,
-                winRate: sm.winRate  ?? 0,
+                total: pg.total ?? 0,
+                wins: sm.wins ?? 0,
+                losses: sm.losses ?? 0,
+                netPnl: sm.netPnl ?? 0,
+                winRate: sm.winRate ?? 0,
             });
         }
         setLoading(false);
@@ -109,7 +109,7 @@ export default function TradeJournalPage() {
     }
 
     const resultColor = (r?: string) => {
-        if (r === "WIN")  return "#22c55e";
+        if (r === "WIN") return "#22c55e";
         if (r === "LOSS") return "#ef4444";
         if (r === "BREAKEVEN") return palette.textSecondary;
         return palette.accent;
@@ -128,13 +128,15 @@ export default function TradeJournalPage() {
     };
 
     const statCards = [
-        { label: "Total Trades", value: summary.total,                         icon: <FilterList />, color: palette.accent },
-        { label: "Win Rate",     value: `${summary.winRate.toFixed(1)}%`,       icon: <TrendingUp />, color: "#22c55e" },
-        { label: "Net P&L",
-          value: pnlFmt(summary.netPnl),
-          icon: summary.netPnl >= 0 ? <TrendingUp /> : <TrendingDown />,
-          color: summary.netPnl >= 0 ? "#22c55e" : "#ef4444" },
-        { label: "W / L",        value: `${summary.wins} / ${summary.losses}`,  icon: <Remove />,     color: "#f59e0b" },
+        { label: "Total Trades", value: summary.total, icon: <FilterList />, color: palette.accent },
+        { label: "Win Rate", value: `${summary.winRate.toFixed(1)}%`, icon: <TrendingUp />, color: "#22c55e" },
+        {
+            label: "Net P&L",
+            value: pnlFmt(summary.netPnl),
+            icon: summary.netPnl >= 0 ? <TrendingUp /> : <TrendingDown />,
+            color: summary.netPnl >= 0 ? "#22c55e" : "#ef4444"
+        },
+        { label: "W / L", value: `${summary.wins} / ${summary.losses}`, icon: <Remove />, color: "#f59e0b" },
     ];
 
     return (

@@ -27,18 +27,39 @@ const EMOTION_SUGGESTIONS = ["CALM", "CONFIDENT", "DISCIPLINED", "ANXIOUS", "FOM
 const MISTAKE_SUGGESTIONS = ["NONE", "EARLY_EXIT", "LATE_ENTRY", "NO_STOP_LOSS", "OVERTRADING", "IGNORED_PLAN"];
 
 interface ChargesDetail {
-    brokerage:        number; // ₹20 buy + ₹20 sell (flat per order)
-    stt:              number; // Securities Transaction Tax
-    stampDuty:        number; // State stamp duty on buy side
+    brokerage: number; // ₹20 buy + ₹20 sell (flat per order)
+    stt: number; // Securities Transaction Tax
+    stampDuty: number; // State stamp duty on buy side
     exchangeTurnover: number; // NSE / BSE / MCX / MCX-SX transaction charges
-    sebiTurnover:     number; // SEBI regulatory fee (₹10 per crore)
-    gst:              number; // GST on brokerage + exchange + SEBI (18% Indian / 30% Forex & Crypto)
-    taxes:            number; // stt + stampDuty + exchangeTurnover + sebiTurnover + gst
-    total:            number; // brokerage + taxes
+    sebiTurnover: number; // SEBI regulatory fee (₹10 per crore)
+    gst: number; // GST on brokerage + exchange + SEBI (18% Indian / 30% Forex & Crypto)
+    taxes: number; // stt + stampDuty + exchangeTurnover + sebiTurnover + gst
+    total: number; // brokerage + taxes
 }
 
 const r2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
-const t2 = (n: number) => Math.trunc(n * 100) / 100;
+
+type GstRoundMode = "paise" | "rupee";
+const GST_ROUND_MODE: GstRoundMode = "paise";
+
+function roundMoney(value: number, mode: GstRoundMode = GST_ROUND_MODE): number {
+    return mode === "rupee" ? Math.round(value) : r2(value);
+}
+
+function calculateGstExclusive(baseAmount: number, gstRatePercent: number, mode: GstRoundMode = GST_ROUND_MODE) {
+    const base = roundMoney(baseAmount, mode);
+    const gst = roundMoney((base * gstRatePercent) / 100, mode);
+    const total = roundMoney(base + gst, mode);
+    return { base, gst, total };
+}
+
+function calculateGstInclusive(totalAmount: number, gstRatePercent: number, mode: GstRoundMode = GST_ROUND_MODE) {
+    const total = roundMoney(totalAmount, mode);
+    const baseRaw = total / (1 + (gstRatePercent / 100));
+    const base = roundMoney(baseRaw, mode);
+    const gst = roundMoney(total - base, mode);
+    return { base, gst, total };
+}
 
 const parseOptionalNumber = (value: string): number | null => {
     const raw = String(value ?? "").trim();
@@ -82,77 +103,79 @@ function estimateCharges(
     direction: string,
 ): ChargesDetail {
     const entryValue = entryPrice * qty;
-    const exitValue  = exitPrice  * qty;
-    const isShort    = String(direction || "SHORT").toUpperCase() === "SHORT";
-    const buyValue   = isShort ? exitValue : entryValue;
-    const sellValue  = isShort ? entryValue : exitValue;
-    const turnover  = buyValue + sellValue;
-    const seg       = segment.toUpperCase();
+    const exitValue = exitPrice * qty;
+    const isShort = String(direction || "SHORT").toUpperCase() === "SHORT";
+    const buyValue = isShort ? exitValue : entryValue;
+    const sellValue = isShort ? entryValue : exitValue;
+    const turnover = buyValue + sellValue;
+    const seg = segment.toUpperCase();
 
     // Brokerage: flat ₹20/order, ₹40 round-trip (except EQUITY where it's % capped at ₹20/order)
-    let brokerage        = 40;
-    let stt              = 0;
-    let stampDuty        = 0;
+    let brokerage = 40;
+    let stt = 0;
+    let stampDuty = 0;
     let exchangeTurnover = 0;
-    let sebiTurnover     = r2(turnover * 0.000001); // ₹10 per crore for all regulated segments
+    let sebiTurnover = r2(turnover * 0.000001); // ₹10 per crore for all regulated segments
     // GST applied on brokerage + exchange + SEBI charges
     // 18% for all Indian-regulated instruments; 30% flat for Forex & Crypto
     // (Forex/Crypto are treated as 30% per business requirement — reflects the
     //  higher effective tax burden outside the standard STT/stamp-duty framework)
-    const gstRate        = (seg === "FOREX" || seg === "CRYPTO") ? 0.30 : 0.18;
+    const gstRatePercent = (seg === "FOREX" || seg === "CRYPTO") ? 30 : 18;
 
     if (seg === "OPTIONS") {
         // STT: 0.1% on sell-side premium (intraday options)
-        stt              = r2(sellValue * 0.001);
+        stt = r2(sellValue * 0.001);
         // Stamp duty: 0.003% on buy side
-        stampDuty        = r2(buyValue  * 0.00003);
+        stampDuty = r2(buyValue * 0.00003);
         // Exchange transaction: 0.035031% of total turnover (NSE F&O effective)
-        exchangeTurnover = r2(turnover  * 0.00035031);
+        exchangeTurnover = r2(turnover * 0.00035031);
     } else if (seg === "FUTURES") {
         // STT: 0.01% on sell side
-        stt              = r2(sellValue * 0.0001);
+        stt = r2(sellValue * 0.0001);
         // Stamp duty: 0.002% on buy side
-        stampDuty        = r2(buyValue  * 0.00002);
+        stampDuty = r2(buyValue * 0.00002);
         // Exchange transaction: 0.002% (NSE Futures)
-        exchangeTurnover = r2(turnover  * 0.00002);
+        exchangeTurnover = r2(turnover * 0.00002);
     } else if (seg === "EQUITY") {
         // Brokerage: min(0.03%, ₹20) per order
-        brokerage        = r2(Math.min(buyValue * 0.0003, 20) + Math.min(sellValue * 0.0003, 20));
+        brokerage = r2(Math.min(buyValue * 0.0003, 20) + Math.min(sellValue * 0.0003, 20));
         // STT: 0.025% on sell side (intraday)
-        stt              = r2(sellValue * 0.00025);
+        stt = r2(sellValue * 0.00025);
         // Stamp duty: 0.003% on buy side
-        stampDuty        = r2(buyValue  * 0.00003);
+        stampDuty = r2(buyValue * 0.00003);
         // Exchange transaction: 0.00345% (NSE Equity)
-        exchangeTurnover = r2(turnover  * 0.0000345);
+        exchangeTurnover = r2(turnover * 0.0000345);
     } else if (seg === "COMMODITY") {
         // STT: 0.01% on sell side (non-agricultural futures, MCX)
-        stt              = r2(sellValue * 0.0001);
+        stt = r2(sellValue * 0.0001);
         // Stamp duty: 0.002% on buy side
-        stampDuty        = r2(buyValue  * 0.00002);
+        stampDuty = r2(buyValue * 0.00002);
         // Exchange transaction: 0.0021% (MCX)
-        exchangeTurnover = r2(turnover  * 0.000021);
+        exchangeTurnover = r2(turnover * 0.000021);
     } else if (seg === "FOREX") {
         // No STT on currency derivatives
-        stt              = 0;
+        stt = 0;
         // Stamp duty: 0.0001% on buy side
-        stampDuty        = r2(buyValue  * 0.000001);
+        stampDuty = r2(buyValue * 0.000001);
         // Exchange transaction: 0.00045% (NSE Currency)
-        exchangeTurnover = r2(turnover  * 0.0000045);
+        exchangeTurnover = r2(turnover * 0.0000045);
         // SEBI charges apply on currency too
     } else if (seg === "CRYPTO") {
         // Crypto is unregulated in India — no STT, no stamp duty, no SEBI
-        stt              = 0;
-        stampDuty        = 0;
-        sebiTurnover     = 0;
+        stt = 0;
+        stampDuty = 0;
+        sebiTurnover = 0;
         // Platform/exchange fee: ~0.1% per side (typical Indian exchange)
-        exchangeTurnover = r2(turnover  * 0.001);
+        exchangeTurnover = r2(turnover * 0.001);
     }
 
-    // GST = 18% (or 30%) on brokerage + exchange charges + SEBI charges
-    // Broker UI commonly truncates GST to 2 decimals instead of half-up rounding.
-    const gst    = t2((brokerage + exchangeTurnover + sebiTurnover) * gstRate);
-    const taxes  = r2(stt + stampDuty + exchangeTurnover + sebiTurnover + gst);
-    const total  = r2(brokerage + taxes);
+    // GST exclusive calculation on (brokerage + exchange + SEBI).
+    // Uses consistent money rounding to avoid truncation bias.
+    const gstBase = brokerage + exchangeTurnover + sebiTurnover;
+    const gst = calculateGstExclusive(gstBase, gstRatePercent).gst;
+
+    const taxes = r2(stt + stampDuty + exchangeTurnover + sebiTurnover + gst);
+    const total = r2(brokerage + taxes);
 
     return { brokerage, stt, stampDuty, exchangeTurnover, sebiTurnover, gst, taxes, total };
 }
@@ -337,7 +360,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
         fetch("/api/trade-journal/instruments")
             .then(r => r.json())
             .then(j => { if (j.success) setInstrumentSuggestions(j.data); })
-            .catch(() => {});
+            .catch(() => { });
     }, []);
 
     useEffect(() => {
@@ -433,7 +456,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
 
     const calculatedCharges = useMemo((): ChargesDetail => {
         const entry = Number(form.EntryPrice);
-        const exit  = Number(form.ExitPrice);
+        const exit = Number(form.ExitPrice);
         if (!Number.isFinite(entry) || !Number.isFinite(exit) || effectiveQuantity <= 0) {
             return { brokerage: 0, stt: 0, stampDuty: 0, exchangeTurnover: 0, sebiTurnover: 0, gst: 0, taxes: 0, total: 0 };
         }
@@ -807,13 +830,15 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                             return (
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                                     {([
-                                                                                { label: `Brokerage${overrideBrokerageValue != null ? " (override)" : ""}`, hint: "₹20 buy + ₹20 sell", value: effectiveBrokerage },
-                                        { label: "STT",                hint: "Securities Transaction Tax",   value: calculatedCharges.stt },
-                                        { label: "Stamp Duty",         hint: "On buy-side notional",         value: calculatedCharges.stampDuty },
-                                        { label: "Exchange Turnover",  hint: "NSE / MCX fees",               value: calculatedCharges.exchangeTurnover },
-                                        { label: "SEBI Turnover",      hint: "₹10 per crore",                value: calculatedCharges.sebiTurnover },
-                                                                                { label: `GST (${isHighGstSegment ? "30%" : "18%"})${overrideGstValue != null ? " (override)" : ""}`,
-                                                                                    hint: "On brokerage + exchange + SEBI",                            value: effectiveGst },
+                                        { label: `Brokerage${overrideBrokerageValue != null ? " (override)" : ""}`, hint: "₹20 buy + ₹20 sell", value: effectiveBrokerage },
+                                        { label: "STT", hint: "Securities Transaction Tax", value: calculatedCharges.stt },
+                                        { label: "Stamp Duty", hint: "On buy-side notional", value: calculatedCharges.stampDuty },
+                                        { label: "Exchange Turnover", hint: "NSE / MCX fees", value: calculatedCharges.exchangeTurnover },
+                                        { label: "SEBI Turnover", hint: "₹10 per crore", value: calculatedCharges.sebiTurnover },
+                                        {
+                                            label: `GST (${isHighGstSegment ? "30%" : "18%"})${overrideGstValue != null ? " (override)" : ""}`,
+                                            hint: "On brokerage + exchange + SEBI", value: effectiveGst
+                                        },
                                     ] as const).map(({ label, hint, value }) => (
                                         <div key={label} className="p-2 rounded-xl flex flex-col gap-0.5"
                                             style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border: `1px solid ${borderColor}` }}>
@@ -910,8 +935,10 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     {effectiveNetPnlAfterCharges !== null && (
                         <div className="sm:col-span-2 lg:col-span-3">
                             <Field label="Net P&L after All Charges (read-only)">
-                                <input type="text" style={{ ...inputStyle, opacity: 0.85, fontWeight: 700,
-                                    color: effectiveNetPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444" }}
+                                <input type="text" style={{
+                                    ...inputStyle, opacity: 0.85, fontWeight: 700,
+                                    color: effectiveNetPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444"
+                                }}
                                     value={`${effectiveNetPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(effectiveNetPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}${netPnlPercentage != null ? ` (${netPnlPercentage >= 0 ? "+" : ""}${netPnlPercentage.toLocaleString("en-IN", { maximumFractionDigits: 2 })}%)` : ""}`}
                                     readOnly />
                             </Field>

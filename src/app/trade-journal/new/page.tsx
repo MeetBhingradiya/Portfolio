@@ -5,7 +5,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDesignTheme } from "@Hooks";
 import { ArrowBack } from "@mui/icons-material";
@@ -40,17 +40,17 @@ export default function NewTradePage() {
                 Direction: data.PositionDuration || "SHORT",
                 Instrument: data.Instrument || data.InstrumentName,
                 EntryPrice: data.EntryPrice !== "" ? Number(data.EntryPrice) : undefined,
-                ExitPrice:  data.ExitPrice  !== "" ? Number(data.ExitPrice)  : undefined,
-                StopLoss:   data.StopLoss   !== "" ? Number(data.StopLoss)   : undefined,
-                Target:     data.Target     !== "" ? Number(data.Target)     : undefined,
-                Quantity:   data.Quantity   !== "" ? Number(data.Quantity)   : undefined,
-                LotSize:    data.LotSize    !== "" ? Number(data.LotSize)    : undefined,
-                StrikePrice: data.Strike    !== "" ? Number(data.Strike)     : undefined,
-                IsHit:      data.IsHit || "AUTO",
-                PnLAmount:  data.PnLAmount !== "" ? Number(data.PnLAmount) : undefined,
+                ExitPrice: data.ExitPrice !== "" ? Number(data.ExitPrice) : undefined,
+                StopLoss: data.StopLoss !== "" ? Number(data.StopLoss) : undefined,
+                Target: data.Target !== "" ? Number(data.Target) : undefined,
+                Quantity: data.Quantity !== "" ? Number(data.Quantity) : undefined,
+                LotSize: data.LotSize !== "" ? Number(data.LotSize) : undefined,
+                StrikePrice: data.Strike !== "" ? Number(data.Strike) : undefined,
+                IsHit: data.IsHit || "AUTO",
+                PnLAmount: data.PnLAmount !== "" ? Number(data.PnLAmount) : undefined,
                 StrategyName: data.StrategyName,
                 PostTradeNotes: data.Notes,
-                Tags:       data.Tags ? data.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+                Tags: data.Tags ? data.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
                 Screenshots: data.AttachmentLinks ? data.AttachmentLinks.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
                 ScreenshotCdnUrls: Array.isArray(data.ScreenshotCdnUrls) ? data.ScreenshotCdnUrls : [],
             };

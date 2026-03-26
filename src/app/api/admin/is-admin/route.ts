@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import { getUserPermissions, getUserRoles, isAdminEmail } from "@/Library/permissions";
 
 export async function GET(req: NextRequest) {

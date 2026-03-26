@@ -134,7 +134,7 @@ context   (optional) — "<kind>:<id>" e.g. "user:abc123", "company:Google"
 ### React Hook
 
 ```typescript
-import { useCDNUpload } from "@/Hooks";
+import { useCDNUpload } from "@Hooks";
 
 function AvatarPicker({ userId }: { userId: string }) {
     const { upload, uploading, progress, error } = useCDNUpload();

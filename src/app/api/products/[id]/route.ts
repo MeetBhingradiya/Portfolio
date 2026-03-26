@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { dbConnect } from "@Utils/dbConnect";
 import { Product } from "@/Models/Products";
 import { Agreement } from "@/Models/Agreements";
-import { auth } from "@/Library/auth";
+import { auth } from "@Library/auth";
 
 // Helper function to check admin authorization
 async function isAdmin(request: NextRequest) {

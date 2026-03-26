@@ -14,7 +14,7 @@ import {
     requireAnyPermission,
     requireAllPermissions,
     permissionError
-} from "@/Library/adminApiMiddleware";
+} from "@Library/adminApiMiddleware";
 
 // Example 1: Admin-only endpoint (ADMIN_EMAIL required)
 export async function exampleAdminOnly(req: NextRequest) {

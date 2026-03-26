@@ -4,7 +4,7 @@
  * DELETE /api/admin/immich-whitelist/[id]   remove
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 

@@ -5,7 +5,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 

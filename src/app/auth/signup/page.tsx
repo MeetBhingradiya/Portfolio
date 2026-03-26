@@ -23,7 +23,7 @@ import {
     ArrowBack,
     Person
 } from "@mui/icons-material";
-import { signUp, signIn, useSession } from "@/Library/auth-client";
+import { signUp, signIn, useSession } from "@Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CookieWarning } from "@Components/Common/CookieWarning";

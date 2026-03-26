@@ -2,7 +2,7 @@
  * Admin Users - Get/Delete a single user
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import { MongoClient, ObjectId } from "mongodb";
 
 async function getDB() {

@@ -9,7 +9,7 @@
  * asset as "active" again (useful after accidental deletion).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubRestoreFromCommit } from "@Utils/GitHubCDN";

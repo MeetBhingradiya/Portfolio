@@ -9,7 +9,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 
 export const dynamic = "force-dynamic";
 

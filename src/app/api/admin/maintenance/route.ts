@@ -10,7 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import dbConnect from "@/Utils/dbConnect";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import { SiteSettings_Model, getSiteSettings } from "@/Models/SiteSettings";
 
 const SINGLETON_ID = "site_settings_singleton";
@@ -92,7 +92,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: "maintenanceMode (boolean) is required" }, { status: 400 });
         }
 
-        const session = await import("@/Library/auth").then((m) => m.getSession(req.headers));
+        const session = await import("@Library/auth").then((m) => m.getSession(req.headers));
         const updatedBy = session?.user?.email || "admin";
 
         const updated = await SiteSettings_Model.findOneAndUpdate(

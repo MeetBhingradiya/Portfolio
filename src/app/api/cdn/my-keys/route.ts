@@ -4,7 +4,7 @@
  * GET  /api/cdn/my-keys            — list all keys linked to the logged-in user's email
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAPIKey } from "@Models/CDNAPIKey";
 import { CDNApplication } from "@Models/CDNApplication";

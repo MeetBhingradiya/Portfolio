@@ -6,7 +6,7 @@
  * Paste the result as IMMICH_SSO_PRIVATE_KEY_JWK in .env.local
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import { generateKeyPair, exportJWK } from "jose";
 
 export async function POST(req: NextRequest) {

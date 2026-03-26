@@ -12,7 +12,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { Payment } from "@Models/Payment";
 

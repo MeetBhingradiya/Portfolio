@@ -9,7 +9,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/Library/auth";
+import { auth } from "@Library/auth";
 import { MongoClient, ObjectId } from "mongodb";
 
 function toObjectId(id: string): ObjectId | null {

@@ -8,7 +8,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAPIKey } from "@Models/CDNAPIKey";
 import { CDNRateWindow } from "@Models/CDNRateWindow";

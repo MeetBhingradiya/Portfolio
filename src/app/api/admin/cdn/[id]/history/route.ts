@@ -9,7 +9,7 @@
  *   perPage   — max commits to return (default 50, max 100)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubListCommits } from "@Utils/GitHubCDN";

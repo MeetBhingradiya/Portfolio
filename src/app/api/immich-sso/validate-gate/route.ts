@@ -20,7 +20,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import { getIssuer } from "@Utils/OIDCKeys";
 
 export const dynamic = "force-dynamic";

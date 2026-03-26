@@ -4,7 +4,7 @@
  * DELETE /api/admin/cdn/[id]   — hard delete from GitHub + MongoDB
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubDelete } from "@Utils/GitHubCDN";

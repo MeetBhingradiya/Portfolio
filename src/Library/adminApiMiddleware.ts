@@ -8,7 +8,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import {
     hasPermission,
     hasAnyPermission,

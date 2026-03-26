@@ -24,7 +24,7 @@ import {
     Fingerprint,
     Info
 } from "@mui/icons-material";
-import { signIn, useSession, passkey } from "@/Library/auth-client";
+import { signIn, useSession, passkey } from "@Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CookieWarning } from "@Components/Common/CookieWarning";

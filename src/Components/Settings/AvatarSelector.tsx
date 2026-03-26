@@ -9,6 +9,13 @@ import { Check, Google, GitHub, Microsoft, CloudUpload } from "@mui/icons-materi
 import Image from "next/image";
 import { CDNAvatarUpload } from "./CDNAvatarUpload";
 
+interface AvatarHistoryItem {
+    assetId: string;
+    url: string;
+    altText?: string;
+    createdAt: string;
+}
+
 interface LinkedAccountInfo {
     id: string;
     providerId: string;
@@ -50,6 +57,10 @@ export function AvatarSelector() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [showCDNUpload, setShowCDNUpload] = useState(false);
+    const [avatarHistory, setAvatarHistory] = useState<AvatarHistoryItem[]>([]);
+    const [importUrl, setImportUrl] = useState("");
+    const [importingUrl, setImportingUrl] = useState(false);
+    const [importError, setImportError] = useState("");
 
     // Fetch linked accounts with per-provider images
     useEffect(() => {
@@ -69,12 +80,74 @@ export function AvatarSelector() {
                 } else if (cur === data.microsoftAvatar) {
                     setSelectedSource("microsoft");
                 } else {
-                    setSelectedSource("initials");
+                    setSelectedSource("custom");
                 }
             })
             .catch(console.error)
             .finally(() => setLoading(false));
     }, [user?.id]);
+
+    useEffect(() => {
+        if (!user?.id) return;
+        fetch("/api/auth/avatar-history")
+            .then((r) => r.json())
+            .then((data) => {
+                if (Array.isArray(data?.history)) {
+                    setAvatarHistory(data.history);
+                }
+            })
+            .catch((err) => {
+                console.error("Failed to load avatar history", err);
+            });
+    }, [user?.id]);
+
+    const applyCustomAvatar = async (customImageUrl: string) => {
+        if (saving) return;
+        setSaving(true);
+        setSelectedSource("custom");
+
+        try {
+            const res = await fetch("/api/auth/update-avatar", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ avatarSource: "custom", customImageUrl }),
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || "Failed to update avatar");
+            }
+            window.location.reload();
+        } catch (error: any) {
+            console.error("Failed to update custom avatar", error);
+            alert(error?.message || "Failed to update avatar. Please try again.");
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const handleImportUrl = async () => {
+        if (importingUrl || !importUrl.trim()) return;
+        setImportError("");
+        setImportingUrl(true);
+
+        try {
+            const importRes = await fetch("/api/auth/avatar-import-url", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ imageUrl: importUrl.trim() }),
+            });
+            const importData = await importRes.json();
+            if (!importRes.ok) {
+                throw new Error(importData?.error || "Failed to import image URL");
+            }
+
+            await applyCustomAvatar(importData.cdnUrl);
+        } catch (error: any) {
+            setImportError(error?.message || "Failed to import image URL");
+        } finally {
+            setImportingUrl(false);
+        }
+    };
 
     const handleSelect = async (source: AvatarSource) => {
         if (saving || source === selectedSource) return;
@@ -154,7 +227,9 @@ export function AvatarSelector() {
                     <p className="text-sm" style={{ color: palette.textSecondary }}>
                         {selectedSource === "initials"
                             ? "Gradient with initials"
-                            : `From ${providerLabel(selectedSource)}`}
+                            : selectedSource === "custom"
+                                ? "Custom avatar"
+                                : `From ${providerLabel(selectedSource)}`}
                     </p>
                 </div>
             </div>
@@ -315,6 +390,98 @@ export function AvatarSelector() {
                     </motion.button>
                 )}
             </AnimatePresence>
+
+            {/* Import from image URL */}
+            <div
+                className="p-4 rounded-xl border"
+                style={{ borderColor: palette.border, background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)" }}
+            >
+                <p className="font-semibold text-sm" style={{ color: palette.textPrimary }}>
+                    Import Avatar From URL
+                </p>
+                <p className="text-xs mt-1 mb-3" style={{ color: palette.textSecondary }}>
+                    Paste a direct image URL. It will be fetched, uploaded to your CDN, and set as your profile avatar.
+                </p>
+                <div className="flex gap-2">
+                    <input
+                        type="url"
+                        value={importUrl}
+                        onChange={(e) => setImportUrl(e.target.value)}
+                        placeholder="https://example.com/avatar.jpg"
+                        className="w-full px-3 py-2 rounded-lg outline-none"
+                        style={{
+                            border: `1px solid ${palette.border}`,
+                            background: isDark ? "rgba(255,255,255,0.04)" : "#ffffff",
+                            color: palette.textPrimary,
+                        }}
+                    />
+                    <motion.button
+                        onClick={handleImportUrl}
+                        disabled={importingUrl || saving || !importUrl.trim()}
+                        className="px-4 py-2 rounded-lg text-sm font-semibold"
+                        style={{
+                            background: importingUrl || saving || !importUrl.trim() ? palette.textTertiary : palette.accent,
+                            color: "#fff",
+                            cursor: importingUrl || saving || !importUrl.trim() ? "not-allowed" : "pointer",
+                        }}
+                        whileHover={{ scale: importingUrl || saving || !importUrl.trim() ? 1 : 1.02 }}
+                        whileTap={{ scale: importingUrl || saving || !importUrl.trim() ? 1 : 0.98 }}
+                    >
+                        {importingUrl ? "Importing..." : "Import"}
+                    </motion.button>
+                </div>
+                {importError && (
+                    <p className="text-xs mt-2" style={{ color: "#ef4444" }}>
+                        {importError}
+                    </p>
+                )}
+            </div>
+
+            {/* Previous custom avatars */}
+            {avatarHistory.length > 0 && (
+                <div className="space-y-2">
+                    <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                        Your Previous Avatars
+                    </p>
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                        {avatarHistory.map((item) => {
+                            const isActive = Boolean(
+                                accountsInfo?.currentImage &&
+                                accountsInfo.currentImage.endsWith(`/api/cdn/${item.assetId}`)
+                            );
+                            return (
+                                <button
+                                    key={item.assetId}
+                                    onClick={() => applyCustomAvatar(item.url)}
+                                    disabled={saving || importingUrl}
+                                    className="relative rounded-full overflow-hidden aspect-square border-2"
+                                    style={{
+                                        borderColor: isActive ? palette.accent : palette.border,
+                                        opacity: saving || importingUrl ? 0.6 : 1,
+                                    }}
+                                    title={item.altText || "Previous avatar"}
+                                >
+                                    <Image
+                                        src={item.url}
+                                        alt={item.altText || "Previous avatar"}
+                                        fill
+                                        className="object-cover"
+                                        unoptimized
+                                    />
+                                    {isActive && (
+                                        <span
+                                            className="absolute bottom-1 right-1 rounded-full p-0.5"
+                                            style={{ background: palette.accent, color: "#fff" }}
+                                        >
+                                            <Check style={{ fontSize: 14 }} />
+                                        </span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -27,7 +27,22 @@ interface Props {
 }
 
 const CROP_SIZE = 320; // preview canvas size (square)
-const OUTPUT_SIZE = 400; // final export canvas size
+const OUTPUT_SIZE = 640; // final export canvas size
+
+function clamp(value: number, min: number, max: number) {
+    return Math.max(min, Math.min(max, value));
+}
+
+function coverZoom(width: number, height: number, rotationDeg: number) {
+    const rad = (rotationDeg * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(rad));
+    const sin = Math.abs(Math.sin(rad));
+
+    const rotatedWidth = width * cos + height * sin;
+    const rotatedHeight = width * sin + height * cos;
+
+    return CROP_SIZE / Math.min(rotatedWidth, rotatedHeight);
+}
 
 export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
@@ -50,6 +65,36 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const imgRef = useRef<HTMLImageElement | null>(null);
 
+    const minZoom = React.useMemo(() => {
+        const img = imgRef.current;
+        if (!img) return 0.5;
+        return clamp(coverZoom(img.naturalWidth, img.naturalHeight, rotation), 0.5, 6);
+    }, [rotation, imageSrc]);
+
+    const maxZoom = 6;
+
+    const clampPan = useCallback((nextPanX: number, nextPanY: number, candidateZoom = zoom) => {
+        const img = imgRef.current;
+        if (!img) return { panX: 0, panY: 0 };
+
+        const rad = (rotation * Math.PI) / 180;
+        const cos = Math.abs(Math.cos(rad));
+        const sin = Math.abs(Math.sin(rad));
+
+        const rotatedWidth = img.naturalWidth * cos + img.naturalHeight * sin;
+        const rotatedHeight = img.naturalWidth * sin + img.naturalHeight * cos;
+
+        const halfW = (rotatedWidth * candidateZoom) / 2;
+        const halfH = (rotatedHeight * candidateZoom) / 2;
+        const boundX = Math.max(0, halfW - CROP_SIZE / 2);
+        const boundY = Math.max(0, halfH - CROP_SIZE / 2);
+
+        return {
+            panX: clamp(nextPanX, -boundX, boundX),
+            panY: clamp(nextPanY, -boundY, boundY),
+        };
+    }, [rotation, zoom]);
+
     // ── Draw preview ───────────────────────────────────────────────────────
     const draw = useCallback(() => {
         const canvas = canvasRef.current;
@@ -69,6 +114,20 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
 
     useEffect(() => { draw(); }, [draw]);
 
+    useEffect(() => {
+        if (!imgRef.current) return;
+        if (zoom < minZoom) {
+            const clamped = clampPan(panX, panY, minZoom);
+            setZoom(minZoom);
+            setPanX(clamped.panX);
+            setPanY(clamped.panY);
+            return;
+        }
+        const clamped = clampPan(panX, panY, zoom);
+        if (clamped.panX !== panX) setPanX(clamped.panX);
+        if (clamped.panY !== panY) setPanY(clamped.panY);
+    }, [minZoom, zoom, panX, panY, clampPan]);
+
     // ── Load file ──────────────────────────────────────────────────────────
     const handleFile = (file: File) => {
         if (!file.type.startsWith("image/")) return;
@@ -80,7 +139,7 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
         newImg.onload = () => {
             imgRef.current = newImg;
             // Auto-fit: scale so the shorter dimension fills CROP_SIZE
-            const scale = CROP_SIZE / Math.min(newImg.naturalWidth, newImg.naturalHeight);
+            const scale = clamp(coverZoom(newImg.naturalWidth, newImg.naturalHeight, 0), 0.5, 6);
             setZoom(scale);
             draw();
         };
@@ -101,8 +160,11 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
     };
     const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
         if (!dragging) return;
-        setPanX(dragStart.panX + (e.clientX - dragStart.x));
-        setPanY(dragStart.panY + (e.clientY - dragStart.y));
+        const nextX = dragStart.panX + (e.clientX - dragStart.x);
+        const nextY = dragStart.panY + (e.clientY - dragStart.y);
+        const clamped = clampPan(nextX, nextY);
+        setPanX(clamped.panX);
+        setPanY(clamped.panY);
     };
     const onPointerUp = () => setDragging(false);
 
@@ -119,6 +181,8 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
             out.width = OUTPUT_SIZE;
             out.height = OUTPUT_SIZE;
             const ctx = out.getContext("2d")!;
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = "high";
 
             // Circular clip
             ctx.beginPath();
@@ -226,7 +290,11 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
                                 onPointerLeave={onPointerUp}
                                 onWheel={(e) => {
                                     e.preventDefault();
-                                    setZoom(z => Math.max(0.5, Math.min(6, z - e.deltaY * 0.003)));
+                                    const candidate = clamp(zoom - e.deltaY * 0.003, minZoom, maxZoom);
+                                    const clamped = clampPan(panX, panY, candidate);
+                                    setZoom(candidate);
+                                    setPanX(clamped.panX);
+                                    setPanY(clamped.panY);
                                 }}
                             />
                         </div>
@@ -241,14 +309,43 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
                                 <RotateRight style={{ fontSize: 16 }} /> +90°
                             </button>
                             {/* Zoom */}
-                            <button style={btnBase} onClick={() => setZoom(z => Math.max(0.5, z - 0.2))}>
+                            <button
+                                style={btnBase}
+                                onClick={() => {
+                                    const candidate = clamp(zoom - 0.2, minZoom, maxZoom);
+                                    const clamped = clampPan(panX, panY, candidate);
+                                    setZoom(candidate);
+                                    setPanX(clamped.panX);
+                                    setPanY(clamped.panY);
+                                }}
+                            >
                                 <ZoomOut style={{ fontSize: 16 }} />
                             </button>
-                            <button style={btnBase} onClick={() => setZoom(z => Math.min(6, z + 0.2))}>
+                            <button
+                                style={btnBase}
+                                onClick={() => {
+                                    const candidate = clamp(zoom + 0.2, minZoom, maxZoom);
+                                    const clamped = clampPan(panX, panY, candidate);
+                                    setZoom(candidate);
+                                    setPanX(clamped.panX);
+                                    setPanY(clamped.panY);
+                                }}
+                            >
                                 <ZoomIn style={{ fontSize: 16 }} />
                             </button>
                             {/* Reset */}
-                            <button style={btnBase} onClick={() => { setRotation(0); setPanX(0); setPanY(0); setZoom(CROP_SIZE / Math.min(imgRef.current?.naturalWidth ?? CROP_SIZE, imgRef.current?.naturalHeight ?? CROP_SIZE)); }}>
+                            <button
+                                style={btnBase}
+                                onClick={() => {
+                                    setRotation(0);
+                                    setPanX(0);
+                                    setPanY(0);
+                                    const img = imgRef.current;
+                                    if (img) {
+                                        setZoom(clamp(coverZoom(img.naturalWidth, img.naturalHeight, 0), 0.5, 6));
+                                    }
+                                }}
+                            >
                                 <CropFree style={{ fontSize: 16 }} /> Reset
                             </button>
                             {/* Change image */}
@@ -267,7 +364,31 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
                                 min={-180}
                                 max={180}
                                 value={rotation}
-                                onChange={e => setRotation(Number(e.target.value))}
+                                onChange={e => {
+                                    const nextRotation = Number(e.target.value);
+                                    setRotation(nextRotation);
+                                }}
+                                style={{ width: "100%", accentColor: palette.accent }}
+                            />
+                        </div>
+
+                        <div style={{ width: "100%", maxWidth: 300 }}>
+                            <p className="text-xs mb-1 text-center" style={{ color: palette.textTertiary }}>
+                                Zoom: {zoom.toFixed(2)}x
+                            </p>
+                            <input
+                                type="range"
+                                min={minZoom}
+                                max={maxZoom}
+                                step={0.01}
+                                value={zoom}
+                                onChange={(e) => {
+                                    const candidate = clamp(Number(e.target.value), minZoom, maxZoom);
+                                    const clamped = clampPan(panX, panY, candidate);
+                                    setZoom(candidate);
+                                    setPanX(clamped.panX);
+                                    setPanY(clamped.panY);
+                                }}
                                 style={{ width: "100%", accentColor: palette.accent }}
                             />
                         </div>

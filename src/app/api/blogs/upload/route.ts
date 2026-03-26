@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/Library/auth";
+import { requireAuth } from "@Library/auth";
 
 export async function POST(req: NextRequest) {
     try {

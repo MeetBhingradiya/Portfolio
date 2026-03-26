@@ -6,7 +6,7 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 
 export const metadata = {
     title: "Support | Meet Bhingradiya",

@@ -14,7 +14,7 @@
  *   3. Apply per-user permission overrides (permissionOverrides) on top.
  */
 
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { UserRole, IUserRole } from "@Models/UserRole";
 import { RoleDefinition } from "@Models/RoleDefinition";

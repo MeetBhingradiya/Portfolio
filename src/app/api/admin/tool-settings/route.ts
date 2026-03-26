@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/Utils/dbConnect";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import { ToolSettings_Model } from "@/Models/ToolSettings";
 
 const SINGLETON_ID = "tool_settings_singleton";

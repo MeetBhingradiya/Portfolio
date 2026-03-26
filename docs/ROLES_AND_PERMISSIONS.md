@@ -94,7 +94,7 @@ To add a new sidebar item with permission:
 ```typescript
 // src/app/api/admin/orders/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { requireAnyPermission, permissionError } from "@/Library/adminApiMiddleware";
+import { requireAnyPermission, permissionError } from "@Library/adminApiMiddleware";
 
 export async function GET(req: NextRequest) {
     const result = await requireAnyPermission(req, ["shop.orders.view", "admin.users.manage"]);
@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
 ```typescript
 'use client';
 
-import { useAdminSession } from "@/Hooks/useAdminSession";
+import { useAdminSession } from "@Hooks/useAdminSession";
 
 export function OrdersManager() {
     const { session, loading, hasPermission } = useAdminSession();
@@ -180,8 +180,8 @@ Your system now has **two-layer protection**:
 ```typescript
 // src/app/api/admin/products/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { requirePermission, permissionError } from "@/Library/adminApiMiddleware";
-import { Product } from "@/Models/Product";
+import { requirePermission, permissionError } from "@Library/adminApiMiddleware";
+import { Product } from "@Models/Product";
 
 export async function GET(req: NextRequest) {
     // CHECK 1: Verify authentication & permission

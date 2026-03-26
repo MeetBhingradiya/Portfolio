@@ -11,7 +11,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { createHmac } from "crypto";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { Payment } from "@Models/Payment";
 import { CDNApplication } from "@Models/CDNApplication";

@@ -11,8 +11,8 @@
 import React from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { getSession } from "@/Library/auth";
-import { isAdminEmail } from "@/Library/permissions";
+import { getSession } from "@Library/auth";
+import { isAdminEmail } from "@Library/permissions";
 import AdminSidebar from "./AdminSidebar";
 
 export const metadata = {

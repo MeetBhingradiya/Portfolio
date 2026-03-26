@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/Library/auth";
+import { auth } from "@Library/auth";
 import { MongoClient } from "mongodb";
 
 export async function GET(request: NextRequest) {

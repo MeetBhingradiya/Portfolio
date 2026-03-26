@@ -18,7 +18,7 @@ import { randomBytes } from "crypto";
 import { MongoClient } from "mongodb";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist, ImmichAuthCode } from "@Models/ImmichWhitelist";
-import { getSession } from "@/Library/auth";
+import { getSession } from "@Library/auth";
 import { getIssuer } from "@Utils/OIDCKeys";
 
 export const dynamic = "force-dynamic";

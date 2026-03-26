@@ -12,7 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Blog, { BlogStatus, BlogCategory } from "@/Models/Blog";
 import dbConnect from "@/Utils/dbConnect";
-import { getSession, requireAuth } from "@/Library/auth";
+import { getSession, requireAuth } from "@Library/auth";
 import slugify from "@sindresorhus/slugify";
 
 // ── helpers ──────────────────────────────────────────────────────

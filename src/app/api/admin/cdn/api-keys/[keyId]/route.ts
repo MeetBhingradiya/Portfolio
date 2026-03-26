@@ -6,7 +6,7 @@
  * DELETE /api/admin/cdn/api-keys/[keyId]     — hard-delete (use revoke instead where possible)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, getSession } from "@/Library/auth";
+import { requireAdmin, getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAPIKey, IRateLimitPolicy } from "@Models/CDNAPIKey";
 import { CDNRateWindow } from "@Models/CDNRateWindow";

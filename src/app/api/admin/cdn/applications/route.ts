@@ -5,7 +5,7 @@
  *   List applications with optional filters: status, search, page, limit
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { CDNApplication } from "@Models/CDNApplication";
 

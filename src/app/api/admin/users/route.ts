@@ -2,7 +2,7 @@
  * Admin Users API - list all Better Auth users with their role data
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/Library/auth";
+import { requireAdmin } from "@Library/auth";
 import { MongoClient } from "mongodb";
 
 export async function GET(req: NextRequest) {

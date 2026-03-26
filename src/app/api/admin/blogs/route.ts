@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Blog, { BlogStatus } from "@/Models/Blog";
 import dbConnect from "@/Utils/dbConnect";
-import { requireAdmin, getSession } from "@/Library/auth";
+import { requireAdmin, getSession } from "@Library/auth";
 
 // GET — fetch all blogs with filters
 export async function GET(req: NextRequest) {

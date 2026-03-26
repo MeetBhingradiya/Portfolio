@@ -5,7 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/Library/auth";
+import { auth } from "@Library/auth";
 import { MongoClient, ObjectId } from "mongodb";
 import { symmetricDecrypt } from "better-auth/crypto";
 

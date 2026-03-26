@@ -44,6 +44,17 @@ function coverZoom(width: number, height: number, rotationDeg: number) {
     return CROP_SIZE / Math.min(rotatedWidth, rotatedHeight);
 }
 
+function containZoom(width: number, height: number, rotationDeg: number) {
+    const rad = (rotationDeg * Math.PI) / 180;
+    const cos = Math.abs(Math.cos(rad));
+    const sin = Math.abs(Math.sin(rad));
+
+    const rotatedWidth = width * cos + height * sin;
+    const rotatedHeight = width * sin + height * cos;
+
+    return CROP_SIZE / Math.max(rotatedWidth, rotatedHeight);
+}
+
 export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const isDark = actualColorMode === "dark";
@@ -54,6 +65,7 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [rotation, setRotation] = useState(0);        // degrees
     const [zoom, setZoom] = useState(1);                // 1 – 4
+    const [fitWholeImage, setFitWholeImage] = useState(true);
     const [panX, setPanX] = useState(0);
     const [panY, setPanY] = useState(0);
     const [dragging, setDragging] = useState(false);
@@ -67,9 +79,12 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
 
     const minZoom = React.useMemo(() => {
         const img = imgRef.current;
-        if (!img) return 0.5;
-        return clamp(coverZoom(img.naturalWidth, img.naturalHeight, rotation), 0.5, 6);
-    }, [rotation, imageSrc]);
+        if (!img) return 0.1;
+        const base = fitWholeImage
+            ? containZoom(img.naturalWidth, img.naturalHeight, rotation)
+            : coverZoom(img.naturalWidth, img.naturalHeight, rotation);
+        return clamp(base, 0.1, 6);
+    }, [rotation, imageSrc, fitWholeImage]);
 
     const maxZoom = 6;
 
@@ -104,13 +119,16 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
         if (!ctx) return;
 
         ctx.clearRect(0, 0, CROP_SIZE, CROP_SIZE);
+        // Keep a pleasant backdrop when using "fit whole image" mode.
+        ctx.fillStyle = isDark ? "#1f2937" : "#f1f5f9";
+        ctx.fillRect(0, 0, CROP_SIZE, CROP_SIZE);
         ctx.save();
         ctx.translate(CROP_SIZE / 2 + panX, CROP_SIZE / 2 + panY);
         ctx.rotate((rotation * Math.PI) / 180);
         ctx.scale(zoom, zoom);
         ctx.drawImage(img, -img.naturalWidth / 2, -img.naturalHeight / 2);
         ctx.restore();
-    }, [rotation, zoom, panX, panY]);
+    }, [rotation, zoom, panX, panY, isDark]);
 
     useEffect(() => { draw(); }, [draw]);
 
@@ -138,8 +156,13 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
         const newImg = new Image();
         newImg.onload = () => {
             imgRef.current = newImg;
-            // Auto-fit: scale so the shorter dimension fills CROP_SIZE
-            const scale = clamp(coverZoom(newImg.naturalWidth, newImg.naturalHeight, 0), 0.5, 6);
+            const scale = clamp(
+                fitWholeImage
+                    ? containZoom(newImg.naturalWidth, newImg.naturalHeight, 0)
+                    : coverZoom(newImg.naturalWidth, newImg.naturalHeight, 0),
+                0.1,
+                6
+            );
             setZoom(scale);
             draw();
         };
@@ -188,6 +211,10 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
             ctx.beginPath();
             ctx.arc(OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, OUTPUT_SIZE / 2, 0, Math.PI * 2);
             ctx.clip();
+
+            // Fill background so fit mode doesn't produce dark/transparent gaps in JPEG.
+            ctx.fillStyle = isDark ? "#1f2937" : "#f8fafc";
+            ctx.fillRect(0, 0, OUTPUT_SIZE, OUTPUT_SIZE);
 
             // Scale pan from preview to output
             const scale = OUTPUT_SIZE / CROP_SIZE;
@@ -303,10 +330,46 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
                         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
                             {/* Rotate */}
                             <button style={btnBase} onClick={() => setRotation(r => r - 90)}>
-                                <RotateLeft style={{ fontSize: 16 }} /> -90°
+                                <RotateLeft style={{ fontSize: 16 }} /> -90deg
                             </button>
                             <button style={btnBase} onClick={() => setRotation(r => r + 90)}>
-                                <RotateRight style={{ fontSize: 16 }} /> +90°
+                                <RotateRight style={{ fontSize: 16 }} /> +90deg
+                            </button>
+                            <button
+                                style={{
+                                    ...btnBase,
+                                    borderColor: fitWholeImage ? palette.accent : border,
+                                    color: fitWholeImage ? palette.accent : palette.textSecondary,
+                                }}
+                                onClick={() => {
+                                    setFitWholeImage(true);
+                                    setPanX(0);
+                                    setPanY(0);
+                                    const img = imgRef.current;
+                                    if (img) {
+                                        setZoom(clamp(containZoom(img.naturalWidth, img.naturalHeight, rotation), 0.1, 6));
+                                    }
+                                }}
+                            >
+                                Fit full image
+                            </button>
+                            <button
+                                style={{
+                                    ...btnBase,
+                                    borderColor: !fitWholeImage ? palette.accent : border,
+                                    color: !fitWholeImage ? palette.accent : palette.textSecondary,
+                                }}
+                                onClick={() => {
+                                    setFitWholeImage(false);
+                                    setPanX(0);
+                                    setPanY(0);
+                                    const img = imgRef.current;
+                                    if (img) {
+                                        setZoom(clamp(coverZoom(img.naturalWidth, img.naturalHeight, rotation), 0.1, 6));
+                                    }
+                                }}
+                            >
+                                Fill circle
                             </button>
                             {/* Zoom */}
                             <button
@@ -342,7 +405,15 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
                                     setPanY(0);
                                     const img = imgRef.current;
                                     if (img) {
-                                        setZoom(clamp(coverZoom(img.naturalWidth, img.naturalHeight, 0), 0.5, 6));
+                                        setZoom(
+                                            clamp(
+                                                fitWholeImage
+                                                    ? containZoom(img.naturalWidth, img.naturalHeight, 0)
+                                                    : coverZoom(img.naturalWidth, img.naturalHeight, 0),
+                                                0.1,
+                                                6
+                                            )
+                                        );
                                     }
                                 }}
                             >
@@ -374,7 +445,7 @@ export function CDNAvatarUpload({ sessionUserId, onSuccess, onCancel }: Props) {
 
                         <div style={{ width: "100%", maxWidth: 300 }}>
                             <p className="text-xs mb-1 text-center" style={{ color: palette.textTertiary }}>
-                                Zoom: {zoom.toFixed(2)}x
+                                Zoom: {zoom.toFixed(2)}x {fitWholeImage ? "(full image mode)" : "(fill mode)"}
                             </p>
                             <input
                                 type="range"

@@ -19,11 +19,12 @@ const SEGMENT_OPTS = mkOpts(["OPTIONS", "EQUITY", "FUTURES", "CRYPTO", "FOREX", 
 const DURATION_OPTS = mkOpts(["SHORT", "LONG"]);
 const OPTION_TYPE_OPTS = mkOpts(["CE", "PE"], "-");
 const HIT_OPTS = mkOpts(["AUTO", "TARGET_ACHIEVED", "STOPLOSS_HIT", "NONE"]);
+const PNL_SIGN_OPTS = mkOpts(["PROFIT", "LOSS"], "AUTO");
 
 const SETUP_SUGGESTIONS = ["BREAKOUT", "REVERSAL", "PULLBACK", "MOMENTUM", "RANGE", "SCALP"];
 const STRATEGY_SUGGESTIONS = ["EMA Crossover", "ORB", "VWAP Reclaim", "Break and Retest", "Range Fade"];
 const MARKET_SUGGESTIONS = ["TRENDING_UP", "TRENDING_DOWN", "SIDEWAYS", "VOLATILE", "CONSOLIDATION"];
-const EMOTION_SUGGESTIONS = ["CALM", "CONFIDENT", "DISCIPLINED", "ANXIOUS", "FOMO", "REVENGE"];
+const EMOTION_SUGGESTIONS = ["CALM", "CONFIDENT", "DISCIPLINED", "ANXIOUS", "FOMO", "REVENGE", "OVERCONFIDENT"];
 const MISTAKE_SUGGESTIONS = ["NONE", "EARLY_EXIT", "LATE_ENTRY", "NO_STOP_LOSS", "OVERTRADING", "IGNORED_PLAN"];
 
 interface ChargesDetail {
@@ -260,17 +261,16 @@ function composeAmPm(parts: { hour: string; minute: string; meridiem: string }):
 
 const HOUR_OPTIONS = Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
 const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, idx) => String(idx).padStart(2, "0"));
+const HOUR_SELECT_OPTS = [{ value: "", label: "HH" }, ...HOUR_OPTIONS.map(v => ({ value: v, label: v }))];
+const MINUTE_SELECT_OPTS = [{ value: "", label: "MM" }, ...MINUTE_OPTIONS.map(v => ({ value: v, label: v }))];
+const MERIDIEM_SELECT_OPTS = [{ value: "", label: "AM/PM" }, { value: "AM", label: "AM" }, { value: "PM", label: "PM" }];
 
 function TimePickerAmPm({
     value,
     onChange,
-    required,
-    inputStyle,
 }: {
     value?: string;
     onChange: (value: string) => void;
-    required?: boolean;
-    inputStyle: React.CSSProperties;
 }) {
     const parts = splitAmPm(value);
 
@@ -280,19 +280,24 @@ function TimePickerAmPm({
 
     return (
         <div className="grid grid-cols-3 gap-2">
-            <select style={inputStyle} value={parts.hour} onChange={e => updatePart("hour", e.target.value)} required={required}>
-                <option value="">HH</option>
-                {HOUR_OPTIONS.map(h => <option key={h} value={h}>{h}</option>)}
-            </select>
-            <select style={inputStyle} value={parts.minute} onChange={e => updatePart("minute", e.target.value)} required={required}>
-                <option value="">MM</option>
-                {MINUTE_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
-            </select>
-            <select style={inputStyle} value={parts.meridiem} onChange={e => updatePart("meridiem", e.target.value)} required={required}>
-                <option value="">AM/PM</option>
-                <option value="AM">AM</option>
-                <option value="PM">PM</option>
-            </select>
+            <CustomSelect
+                value={parts.hour}
+                onChange={v => updatePart("hour", v)}
+                options={HOUR_SELECT_OPTS}
+                className="w-full"
+            />
+            <CustomSelect
+                value={parts.minute}
+                onChange={v => updatePart("minute", v)}
+                options={MINUTE_SELECT_OPTS}
+                className="w-full"
+            />
+            <CustomSelect
+                value={parts.meridiem}
+                onChange={v => updatePart("meridiem", v)}
+                options={MERIDIEM_SELECT_OPTS}
+                className="w-full"
+            />
         </div>
     );
 }
@@ -349,6 +354,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
     const [overrideChargesTotal, setOverrideChargesTotal] = useState("");
     const [overrideMarginUsed, setOverrideMarginUsed] = useState("");
     const [overrideNetPnl, setOverrideNetPnl] = useState("");
+    const [overridePnlSign, setOverridePnlSign] = useState("");
 
     const { upload, uploading } = useCDNUpload();
     const { form, setField, mergeForm, hasDraft, clearDraft, draftSaving } = useTradeFormState(initialData, {
@@ -480,6 +486,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
     const overrideChargesTotalValue = useMemo(() => parseOptionalNumber(overrideChargesTotal), [overrideChargesTotal]);
     const overrideMarginUsedValue = useMemo(() => parseOptionalNumber(overrideMarginUsed), [overrideMarginUsed]);
     const overrideNetPnlValue = useMemo(() => parseOptionalNumber(overrideNetPnl), [overrideNetPnl]);
+    const effectiveGrossPnlSign = overridePnlSign === "LOSS" ? "LOSS" : overridePnlSign === "PROFIT" ? "PROFIT" : calculatedPnl.sign;
 
     const effectiveBrokerage = overrideBrokerageValue ?? calculatedCharges.brokerage;
     const effectiveGst = overrideGstValue ?? calculatedCharges.gst;
@@ -494,9 +501,9 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
     const autoNetPnlAfterCharges = useMemo(() => {
         if (calculatedPnl.amount === "") return null;
         const gross = Number(calculatedPnl.amount);
-        const sign = calculatedPnl.sign === "LOSS" ? -1 : 1;
+        const sign = effectiveGrossPnlSign === "LOSS" ? -1 : 1;
         return r2((sign * gross) - effectiveTotalCharges);
-    }, [calculatedPnl.amount, calculatedPnl.sign, effectiveTotalCharges]);
+    }, [calculatedPnl.amount, effectiveGrossPnlSign, effectiveTotalCharges]);
 
     const effectiveNetPnlAfterCharges = overrideNetPnlValue ?? autoNetPnlAfterCharges;
 
@@ -595,7 +602,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                             ? (calculatedPnl.amount === "" ? undefined : calculatedPnl.amount)
                             : Math.abs(effectiveNetPnlAfterCharges),
                         PnLSign: effectiveNetPnlAfterCharges == null
-                            ? calculatedPnl.sign
+                            ? effectiveGrossPnlSign
                             : (effectiveNetPnlAfterCharges >= 0 ? "PROFIT" : "LOSS"),
                         Brokerage: effectiveBrokerage,
                         Taxes: effectiveTaxes,
@@ -612,7 +619,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                 >
                     <DocumentScanner style={{ color: palette.accent, fontSize: 20 }} />
                     <span className="text-sm font-semibold" style={{ color: palette.accent }}>
-                        Auto-fill from Screenshot (OCR)
+                        OCR
                     </span>
                     <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: `${palette.accent}22`, color: palette.accent }}>
                         Client-side · No upload
@@ -651,7 +658,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                         <input type="date" style={inputStyle} value={form.Date} onChange={e => setField("Date", e.target.value)} required />
                     </Field>
                     <Field label="Entry Time *">
-                        <TimePickerAmPm value={form.EntryTime} onChange={v => setField("EntryTime", v)} required inputStyle={inputStyle} />
+                        <TimePickerAmPm value={form.EntryTime} onChange={v => setField("EntryTime", v)} />
                         <div className="mt-1 flex items-center gap-2">
                             <button
                                 type="button"
@@ -689,7 +696,7 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                             </summary>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-3">
                                 <Field label="Exit Time">
-                                    <TimePickerAmPm value={form.ExitTime} onChange={v => setField("ExitTime", v)} inputStyle={inputStyle} />
+                                    <TimePickerAmPm value={form.ExitTime} onChange={v => setField("ExitTime", v)} />
                                     <div className="mt-1 flex items-center gap-1 flex-wrap">
                                         <button
                                             type="button"
@@ -775,17 +782,8 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                     <Field label="Exit Price *">
                         <input type="number" step="0.01" style={inputStyle} value={String(form.ExitPrice ?? "")} onChange={e => setField("ExitPrice", e.target.value)} required />
                     </Field>
-                    <Field label="Stop Loss">
-                        <input type="number" step="0.01" style={inputStyle} value={String(form.StopLoss ?? "")} onChange={e => setField("StopLoss", e.target.value)} />
-                    </Field>
-                    <Field label="Target">
-                        <input type="number" step="0.01" style={inputStyle} value={String(form.Target ?? "")} onChange={e => setField("Target", e.target.value)} />
-                    </Field>
                     <Field label="Quantity">
                         <input type="number" step="1" style={inputStyle} value={String(form.Quantity ?? "")} onChange={e => setField("Quantity", e.target.value)} />
-                    </Field>
-                    <Field label="Lot Size">
-                        <input type="number" step="1" style={inputStyle} value={String(form.LotSize ?? "")} onChange={e => setField("LotSize", e.target.value)} />
                     </Field>
                     <div className="sm:col-span-2 lg:col-span-3">
                         <details className="rounded-xl p-3" style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
@@ -799,21 +797,39 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                                 <Field label="Target">
                                     <input type="number" step="0.01" style={inputStyle} value={String(form.Target ?? "")} onChange={e => setField("Target", e.target.value)} />
                                 </Field>
+                                <Field label="Lot Size">
+                                    <input type="number" step="1" style={inputStyle} value={String(form.LotSize ?? "")} onChange={e => setField("LotSize", e.target.value)} />
+                                </Field>
                                 <Field label="Hit Status">
                                     <CustomSelect value={form.IsHit ?? "AUTO"} onChange={v => setField("IsHit", v)} options={HIT_OPTS} />
+                                </Field>
+                                <Field label="Detected Hit (read-only)">
+                                    <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedHit} readOnly />
+                                </Field>
+                                <Field label="P&L Sign Override">
+                                    <CustomSelect value={overridePnlSign} onChange={v => setOverridePnlSign(v)} options={PNL_SIGN_OPTS} />
+                                </Field>
+                                <Field label="Effective P&L Sign">
+                                    <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={effectiveGrossPnlSign} readOnly />
+                                </Field>
+                                <Field label="Gross P&L Amount (auto)">
+                                    <input
+                                        type="text"
+                                        style={{
+                                            ...inputStyle,
+                                            opacity: 0.85,
+                                            fontWeight: 700,
+                                            color: calculatedPnl.amount === ""
+                                                ? palette.textSecondary
+                                                : (effectiveGrossPnlSign === "PROFIT" ? "#22c55e" : "#ef4444"),
+                                        }}
+                                        value={calculatedPnl.amount === "" ? "-" : String(calculatedPnl.amount)}
+                                        readOnly
+                                    />
                                 </Field>
                             </div>
                         </details>
                     </div>
-                    <Field label="Detected Hit (read-only)">
-                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedHit} readOnly />
-                    </Field>
-                    <Field label="P&L Sign (auto)">
-                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedPnl.sign} readOnly />
-                    </Field>
-                    <Field label="Gross P&L Amount (auto)">
-                        <input type="text" style={{ ...inputStyle, opacity: 0.75 }} value={calculatedPnl.amount === "" ? "-" : String(calculatedPnl.amount)} readOnly />
-                    </Field>
 
                     {/* ── Charges breakdown ─────────────────────────────── */}
                     <div className="sm:col-span-2 lg:col-span-3">
@@ -852,6 +868,19 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                             );
                         })()}
                     </div>
+
+                    {effectiveNetPnlAfterCharges !== null && (
+                        <div className="sm:col-span-2 lg:col-span-3">
+                            <Field label="Net P&L after All Charges (read-only)">
+                                <input type="text" style={{
+                                    ...inputStyle, opacity: 0.85, fontWeight: 700,
+                                    color: effectiveNetPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444"
+                                }}
+                                    value={`${effectiveNetPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(effectiveNetPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}${netPnlPercentage != null ? ` (${netPnlPercentage >= 0 ? "+" : ""}${netPnlPercentage.toLocaleString("en-IN", { maximumFractionDigits: 2 })}%)` : ""}`}
+                                    readOnly />
+                            </Field>
+                        </div>
+                    )}
 
                     <div className="sm:col-span-2 lg:col-span-3">
                         <details className="rounded-xl p-3" style={{ border: `1px solid ${borderColor}`, background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}>
@@ -930,20 +959,6 @@ export default function TradeForm({ initialData, onSubmit, submitting, isEdit, e
                             </div>
                         </details>
                     </div>
-
-                    {/* Net P&L after all charges */}
-                    {effectiveNetPnlAfterCharges !== null && (
-                        <div className="sm:col-span-2 lg:col-span-3">
-                            <Field label="Net P&L after All Charges (read-only)">
-                                <input type="text" style={{
-                                    ...inputStyle, opacity: 0.85, fontWeight: 700,
-                                    color: effectiveNetPnlAfterCharges >= 0 ? "#22c55e" : "#ef4444"
-                                }}
-                                    value={`${effectiveNetPnlAfterCharges >= 0 ? "+" : ""}₹${Math.abs(effectiveNetPnlAfterCharges).toLocaleString("en-IN", { maximumFractionDigits: 2 })}${netPnlPercentage != null ? ` (${netPnlPercentage >= 0 ? "+" : ""}${netPnlPercentage.toLocaleString("en-IN", { maximumFractionDigits: 2 })}%)` : ""}`}
-                                    readOnly />
-                            </Field>
-                        </div>
-                    )}
                 </>)}
 
                 {sectionCard("Setup & Psychology", <Psychology />, <>

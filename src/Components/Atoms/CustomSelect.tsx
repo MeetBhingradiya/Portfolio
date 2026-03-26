@@ -89,6 +89,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         <AnimatePresence>
             <motion.div
                 key="select-dropdown"
+                className={`custom-select-dropdown ${isDark ? "cs-dark" : "cs-light"}`}
                 initial={{ opacity: 0, y: -6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -6 }}
@@ -106,7 +107,9 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                     borderRadius: 14,
                     boxShadow: "0 8px 32px rgba(0,0,0,0.24)",
                     maxHeight: 300,
-                    overflowY: "auto"
+                    overflowY: "auto",
+                    scrollbarWidth: "thin",
+                    scrollbarColor: isDark ? "rgba(255,255,255,0.20) transparent" : "rgba(0,0,0,0.22) transparent"
                 }}
             >
                 {options.map((option, index) => (
@@ -160,6 +163,33 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
                 </motion.div>
             </motion.button>
             {dropdown}
+            <style jsx global>{`
+                .custom-select-dropdown::-webkit-scrollbar {
+                    width: 6px;
+                    height: 6px;
+                }
+
+                .custom-select-dropdown::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+
+                .custom-select-dropdown.cs-dark::-webkit-scrollbar-thumb {
+                    border-radius: 999px;
+                    background: rgba(255, 255, 255, 0.18);
+                }
+
+                .custom-select-dropdown.cs-dark::-webkit-scrollbar-thumb:hover {
+                    background: rgba(255, 255, 255, 0.28);
+                }
+
+                .custom-select-dropdown.cs-light::-webkit-scrollbar-thumb {
+                    background: rgba(0, 0, 0, 0.20);
+                }
+
+                .custom-select-dropdown.cs-light::-webkit-scrollbar-thumb:hover {
+                    background: rgba(0, 0, 0, 0.30);
+                }
+            `}</style>
         </div>
     );
 };

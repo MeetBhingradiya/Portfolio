@@ -11,6 +11,7 @@ import HeadNavigation from "@Components/Common/HeadNavigation";
 import FootNavigation from "@Components/Common/FootNavigation";
 import AntiDebuggerShield from "@Components/Common/AntiDebuggerShield";
 import URLNotice from "@Components/Common/URLNotice";
+import MuiXLicense from "@Components/Common/MuiXLicense";
 import { Suspense } from "react";
 
 // muiXTelemetrySettings.disableTelemetry();
@@ -242,6 +243,7 @@ export default function RootLayout({
                 )} */}
             </head>
             <body className={inter.className}>
+                <MuiXLicense />
                 <ToastContainer
                     autoClose={3000}
                     position="bottom-right"

@@ -36,13 +36,79 @@ export async function GET(req: NextRequest) {
 
         if (from || to) {
             query.Date = {};
-            if (from) query.Date.$gte = new Date(from);
-            if (to)   query.Date.$lte = new Date(to);
+            if (from) {
+                const fromDate = new Date(from);
+                fromDate.setHours(0, 0, 0, 0);
+                query.Date.$gte = fromDate;
+            }
+            if (to) {
+                const toDate = new Date(to);
+                toDate.setHours(23, 59, 59, 999);
+                query.Date.$lte = toDate;
+            }
         }
         if (segment)    query.Segment    = segment;
         if (instrument) query.Instrument = { $regex: instrument, $options: "i" };
 
         const trades: any[] = await TradeJournal.find(query).sort({ Date: 1, EntryTime: 1 }).lean();
+
+        // Charges metrics should be independent of selected date range.
+        // Keep segment/instrument filters, but remove from/to dependency.
+        const chargeBaseMatch: Record<string, any> = {
+            UserID: user.userId,
+            IsDraft: { $ne: true },
+        };
+        if (segment) chargeBaseMatch.Segment = segment;
+        if (instrument) chargeBaseMatch.Instrument = { $regex: instrument, $options: "i" };
+
+        const avgChargesAgg = await TradeJournal.aggregate([
+            { $match: chargeBaseMatch },
+            {
+                $project: {
+                    charges: {
+                        $add: [
+                            { $ifNull: ["$Brokerage", 0] },
+                            { $ifNull: ["$Taxes", 0] },
+                        ],
+                    },
+                },
+            },
+            {
+                $group: {
+                    _id: null,
+                    total: { $sum: "$charges" },
+                    count: { $sum: 1 },
+                },
+            },
+        ]);
+        const allTimeAvgCharges = avgChargesAgg[0]?.count
+            ? parseFloat(((avgChargesAgg[0].total ?? 0) / avgChargesAgg[0].count).toFixed(2))
+            : 0;
+
+        const todayStart = new Date();
+        todayStart.setHours(0, 0, 0, 0);
+        const todayEnd = new Date();
+        todayEnd.setHours(23, 59, 59, 999);
+        const todayChargesAgg = await TradeJournal.aggregate([
+            {
+                $match: {
+                    ...chargeBaseMatch,
+                    Date: { $gte: todayStart, $lte: todayEnd },
+                },
+            },
+            {
+                $project: {
+                    charges: {
+                        $add: [
+                            { $ifNull: ["$Brokerage", 0] },
+                            { $ifNull: ["$Taxes", 0] },
+                        ],
+                    },
+                },
+            },
+            { $group: { _id: null, total: { $sum: "$charges" } } },
+        ]);
+        const todayCharges = parseFloat(((todayChargesAgg[0]?.total ?? 0) as number).toFixed(2));
 
         // ── Daily capital records for Sharpe ratio ────────────────────────
         const dailyCapitalQuery: Record<string, any> = { UserID: user.userId };
@@ -71,7 +137,13 @@ export async function GET(req: NextRequest) {
         }
 
         if (trades.length === 0) {
-            return NextResponse.json({ success: true, data: emptyAnalytics() });
+            return NextResponse.json({
+                success: true,
+                data: emptyAnalytics({
+                    avgCharges: allTimeAvgCharges,
+                    todayCharges,
+                }),
+            });
         }
 
         // ── Basic partitioning ────────────────────────────────────────────
@@ -202,8 +274,21 @@ export async function GET(req: NextRequest) {
             .map(([mistake, count]) => ({ mistake, count }))
             .sort((a, b) => b.count - a.count);
 
-        // ── Edge Validation (8-rule system) ──────────────────────────────
         const netPnLTotal = trades.reduce((s, t) => s + (t.NetPnL ?? 0), 0);
+
+        // ── Additional performance metrics ───────────────────────────────
+        const uniqueTradingDays = new Set(
+            trades.map(t => new Date(t.Date as Date).toISOString().slice(0, 10))
+        ).size;
+        const dailyAvgPnL = uniqueTradingDays > 0 ? netPnLTotal / uniqueTradingDays : 0;
+
+        const tradePnLs = trades.map(t => t.NetPnL ?? 0);
+        const highestPnL = tradePnLs.length ? Math.max(...tradePnLs) : 0;
+        const lowestPnL = tradePnLs.length ? Math.min(...tradePnLs) : 0;
+
+        const avgCharges = allTimeAvgCharges;
+
+        // ── Edge Validation (8-rule system) ──────────────────────────────
         const edgeChecklist = [
             { rule: "Win Rate ≥ 50%",                   pass: winRate  >= 0.5 },
             { rule: "Profit Factor ≥ 1.5",              pass: profitFactor >= 1.5 },
@@ -239,6 +324,11 @@ export async function GET(req: NextRequest) {
                     avgActualRR:      parseFloat(avgActualRR.toFixed(2)),
                     planAdherenceAvg: parseFloat(planAdherenceAvg.toFixed(1)),
                     avgHoldingMinutes: parseFloat(avgHoldingMinutes.toFixed(0)),
+                    dailyAvgPnL: parseFloat(dailyAvgPnL.toFixed(2)),
+                    highestPnL: parseFloat(highestPnL.toFixed(2)),
+                    lowestPnL: parseFloat(lowestPnL.toFixed(2)),
+                    avgCharges: parseFloat(avgCharges.toFixed(2)),
+                    todayCharges,
                     edgeScore,
                     edgeScoreMax: edgeChecklist.length,
                     sharpeRatio,
@@ -259,7 +349,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-function emptyAnalytics() {
+function emptyAnalytics(charges?: { avgCharges?: number; todayCharges?: number }) {
     return {
         summary: {
             total: 0, wins: 0, losses: 0, breakeven: 0,
@@ -268,6 +358,8 @@ function emptyAnalytics() {
             avgWin: 0, avgLoss: 0, expectancy: 0, profitFactor: 0,
             maxDrawdownPct: 0, maxConsecLosses: 0,
             avgActualRR: 0, planAdherenceAvg: 0, avgHoldingMinutes: 0,
+            dailyAvgPnL: 0, highestPnL: 0, lowestPnL: 0,
+            avgCharges: charges?.avgCharges ?? 0, todayCharges: charges?.todayCharges ?? 0,
             sharpeRatio: 0, dailyCapitalDays: 0,
             edgeScore: 0, edgeScoreMax: 8,
         },

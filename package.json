@@ -28,6 +28,7 @@
         "@monaco-editor/react": "^4.7.0",
         "@mui/icons-material": "^7.3.8",
         "@mui/material": "^7.3.8",
+        "@mui/x-charts": "^8.28.0",
         "@mui/x-data-grid-premium": "^8.27.3",
         "@mui/x-date-pickers-pro": "^8.27.2",
         "@mui/x-license": "^8.26.0",

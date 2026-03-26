@@ -355,6 +355,14 @@ export default function HeadNavigation() {
     }, [signOut]);
 
     const totalBannerOffset = (maintenanceBanner ? 1 : 0) + activeNotifications.length;
+    const headerStackHeight = (totalBannerOffset + 1) * 60;
+
+    useEffect(() => {
+        document.documentElement.style.setProperty("--global-header-offset", `${headerStackHeight}px`);
+        return () => {
+            document.documentElement.style.removeProperty("--global-header-offset");
+        };
+    }, [headerStackHeight]);
 
     return (
         <>
@@ -1499,7 +1507,7 @@ export default function HeadNavigation() {
             {/* Spacer */}
             <div
                 style={{
-                    height: activeNotifications.length > 0 ? `${(activeNotifications.length * 64) + 64}px` : "64px",
+                    height: `${headerStackHeight}px`,
                     transition: "height 0.3s ease"
                 }}
             />

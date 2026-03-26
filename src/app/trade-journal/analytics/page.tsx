@@ -1,32 +1,44 @@
-/**
- * Trade Journal — Analytics Dashboard
- * Full P&L analytics: equity curve, monthly breakdown, by-instrument,
- * by-setup, by-emotion, mistake analysis, and edge validation checklist.
- */
-
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import dayjs, { type Dayjs } from "dayjs";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks";
-import Link from "next/link";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
+import { type DateRange } from "@mui/x-date-pickers-pro/models";
+import {
+    Box,
+    Button,
+    Card,
+    CardContent,
+    Chip,
+    Divider,
+    IconButton,
+    LinearProgress,
+    Stack,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TableRow,
+    TextField,
+    Typography,
+} from "@mui/material";
 import {
     ArrowBack,
-    TrendingUp,
-    TrendingDown,
-    Refresh,
-    Psychology,
-    EmojiEvents,
-    Warning,
+    AutoGraph,
+    CalendarMonth,
     CheckCircle,
-    Cancel,
-    BarChart,
-    AddCircleOutline,
     Delete,
-    ShowChart,
+    EmojiEvents,
+    Refresh,
+    Warning,
 } from "@mui/icons-material";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { BarChart, LineChart, PieChart } from "@mui/x-charts";
 
 interface Summary {
     total: number;
@@ -52,6 +64,11 @@ interface Summary {
     edgeScoreMax: number;
     sharpeRatio: number;
     dailyCapitalDays: number;
+    dailyAvgPnL: number;
+    highestPnL: number;
+    lowestPnL: number;
+    avgCharges: number;
+    todayCharges: number;
 }
 
 interface AnalyticsData {
@@ -65,175 +82,328 @@ interface AnalyticsData {
     edgeChecklist: { rule: string; pass: boolean }[];
 }
 
-// ─── Small helpers ────────────────────────────────────────────────────────────
+interface DailyCapitalEntry {
+    Date: string;
+    StartingCapital: number;
+    EndingCapital: number;
+    NetPnL: number;
+    DailyReturn: number;
+}
+
+interface FilterState {
+    period: string;
+    filterMode: "preset" | "custom";
+    customRange: DateRange<Dayjs>;
+}
+
+interface ViewState {
+    data: AnalyticsData | null;
+    loading: boolean;
+    dcEntries: DailyCapitalEntry[];
+}
+
+interface DailyCapitalState {
+    dcDate: string;
+    dcStart: string;
+    dcEnd: string;
+    dcNotes: string;
+    dcSaving: boolean;
+    dcSaved: boolean;
+    dcDeleting: string | null;
+}
+
+const PERIOD_OPTIONS = [
+    { label: "All Time", value: "all" },
+    { label: "This Month", value: "month" },
+    { label: "Last 30d", value: "30d" },
+    { label: "Last 90d", value: "90d" },
+    { label: "This Year", value: "year" },
+];
 
 const fmt = (n: number, dp = 2) =>
     n.toLocaleString("en-IN", { minimumFractionDigits: dp, maximumFractionDigits: dp });
 
-const pnlColor = (n: number, pos: string, neg: string, zero = "#9ca3af") =>
-    n > 0 ? pos : n < 0 ? neg : zero;
+const pnlTone = (n: number) => (n > 0 ? "#22c55e" : n < 0 ? "#ef4444" : "#9ca3af");
 
-// ─── Equity Curve SVG Sparkline ───────────────────────────────────────────────
-
-function EquityCurve({
-    data, accentColor, isDark,
+function MetricCard({
+    title,
+    value,
+    sub,
+    tone,
+    border,
+    surface,
+    text,
+    radius,
+    headingWeight,
+    valueWeight,
 }: {
-    data: { tradeNo: number; equity: number }[];
-    accentColor: string;
-    isDark: boolean;
-}) {
-    if (!data.length) return (
-        <p className="text-center py-10 text-sm" style={{ color: isDark ? "rgba(255,255,255,0.3)" : "rgba(0,0,0,0.3)" }}>
-            No closed trades yet.
-        </p>
-    );
-
-    const W = 600; const H = 160; const PAD = 24;
-    const values = data.map(d => d.equity);
-    const minV   = Math.min(...values);
-    const maxV   = Math.max(...values);
-    const range  = maxV - minV || 1;
-    const innerW = W - PAD * 2;
-    const innerH = H - PAD * 2;
-
-    const pts = values.map((v, i) => {
-        const x = PAD + (i / (values.length - 1 || 1)) * innerW;
-        const y = H - PAD - ((v - minV) / range) * innerH;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-    });
-
-    const lastEquity = values[values.length - 1];
-    const lineColor  = lastEquity >= 0 ? "#22c55e" : "#ef4444";
-    const zeroY      = minV < 0 && maxV > 0
-        ? H - PAD - ((0 - minV) / range) * innerH
-        : null;
-
-    return (
-        <div className="overflow-x-auto">
-            <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ minWidth: 280 }}>
-                {/* Zero line */}
-                {zeroY !== null && (
-                    <line x1={PAD} y1={zeroY} x2={W - PAD} y2={zeroY}
-                        stroke={isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)"}
-                        strokeDasharray="4" strokeWidth={1} />
-                )}
-                {/* Area fill */}
-                <path
-                    d={`M ${pts[0]} L ${pts.join(" L ")} L ${(PAD + innerW).toFixed(1)},${(H - PAD).toFixed(1)} L ${PAD},${(H - PAD).toFixed(1)} Z`}
-                    fill={`${lineColor}18`}
-                />
-                {/* Line */}
-                <polyline points={pts.join(" ")} fill="none" stroke={lineColor} strokeWidth={2.5} strokeLinejoin="round" />
-                {/* Axis labels */}
-                <text x={PAD} y={H - 4} fontSize={9} fill={isDark ? "#6b7280" : "#9ca3af"}>Trade 1</text>
-                <text x={W - PAD} y={H - 4} fontSize={9} fill={isDark ? "#6b7280" : "#9ca3af"} textAnchor="end">
-                    Trade {data.length}
-                </text>
-                <text x={PAD} y={PAD - 4} fontSize={9} fill={isDark ? "#6b7280" : "#9ca3af"}>₹{fmt(maxV)}</text>
-                <text x={PAD} y={H - PAD + 12} fontSize={9} fill={isDark ? "#6b7280" : "#9ca3af"}>₹{fmt(minV)}</text>
-            </svg>
-        </div>
-    );
-}
-
-// ─── Horizontal bar row ───────────────────────────────────────────────────────
-
-function BarRow({
-    label, value, maxValue, pnl, winRate, isDark,
-}: {
-    label: string; value: number; maxValue: number;
-    pnl?: number; winRate?: number; isDark: boolean;
-}) {
-    const width = maxValue > 0 ? `${(Math.abs(value) / maxValue) * 100}%` : "0%";
-    const barColor = (pnl ?? value) >= 0 ? "#22c55e" : "#ef4444";
-    return (
-        <div className="flex items-center gap-3 py-1.5">
-            <span className="text-xs w-28 truncate shrink-0" style={{ color: isDark ? "rgba(255,255,255,0.55)" : "rgba(0,0,0,0.55)" }}>
-                {label.replace(/_/g, " ")}
-            </span>
-            <div className="flex-1 h-5 rounded-lg overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)" }}>
-                <div className="h-full rounded-lg transition-all duration-700" style={{ width, background: `${barColor}80` }} />
-            </div>
-            <div className="flex gap-3 items-center shrink-0">
-                {pnl !== undefined && (
-                    <span className="text-xs font-semibold w-20 text-right tabular-nums"
-                        style={{ color: pnl >= 0 ? "#22c55e" : "#ef4444" }}>
-                        ₹{fmt(pnl)}
-                    </span>
-                )}
-                {winRate !== undefined && (
-                    <span className="text-xs w-12 text-right tabular-nums"
-                        style={{ color: isDark ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.4)" }}>
-                        {winRate}%
-                    </span>
-                )}
-            </div>
-        </div>
-    );
-}
-
-// ─── Summary stat card ────────────────────────────────────────────────────────
-
-function StatCard({
-    label, value, sub, valueColor, icon, surfaceBg, borderColor, textPrimary, textSecondary,
-}: {
-    label: string; value: string; sub?: string;
-    valueColor?: string; icon?: React.ReactNode;
-    surfaceBg: string; borderColor: string;
-    textPrimary: string; textSecondary: string;
+    title: string;
+    value: string;
+    sub: string;
+    tone: string;
+    border: string;
+    surface: string;
+    text: string;
+    radius: string;
+    headingWeight: number;
+    valueWeight: number;
 }) {
     return (
-        <div className="p-4 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}>
-            <div className="flex items-center gap-1.5 mb-2" style={{ color: textSecondary }}>
-                {icon && <span className="text-sm">{icon}</span>}
-                <span className="text-xs font-medium uppercase tracking-wide">{label}</span>
-            </div>
-            <p className="text-2xl font-bold tabular-nums" style={{ color: valueColor ?? textPrimary }}>{value}</p>
-            {sub && <p className="text-xs mt-0.5" style={{ color: textSecondary }}>{sub}</p>}
-        </div>
+        <Card sx={{ background: surface, border: `1px solid ${border}`, borderRadius: radius }}>
+            <CardContent>
+                <Typography variant="caption" sx={{ letterSpacing: 0.6, color: text, fontWeight: headingWeight }}>
+                    {title}
+                </Typography>
+                <Typography variant="h4" sx={{ mt: 1, color: tone, fontWeight: valueWeight, lineHeight: 1.1 }}>
+                    {value}
+                </Typography>
+                <Typography variant="caption" sx={{ color: text, display: "block", mt: 1 }}>
+                    {sub}
+                </Typography>
+            </CardContent>
+        </Card>
     );
 }
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
-const PERIOD_OPTIONS = [
-    { label: "All Time",    value: "all" },
-    { label: "This Month",  value: "month" },
-    { label: "Last 30d",    value: "30d" },
-    { label: "Last 90d",    value: "90d" },
-    { label: "This Year",   value: "year" },
-];
 
 export default function AnalyticsPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
-    const isDark  = actualColorMode === "dark";
+    const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
-    const [data,    setData]    = useState<AnalyticsData | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [period,  setPeriod]  = useState("all");
-
-    // ── Daily Capital Logger state ─────────────────────────────────────────
     const today = new Date().toISOString().slice(0, 10);
-    const [dcDate,    setDcDate]    = useState(today);
-    const [dcStart,   setDcStart]   = useState("");
-    const [dcEnd,     setDcEnd]     = useState("");
-    const [dcNotes,   setDcNotes]   = useState("");
-    const [dcSaving,  setDcSaving]  = useState(false);
-    const [dcSaved,   setDcSaved]   = useState(false);
-    const [dcEntries, setDcEntries] = useState<any[]>([]);
-    const [dcDeleting,setDcDeleting]= useState<string | null>(null);
+    const [viewState, setViewState] = useState<ViewState>({
+        data: null,
+        loading: true,
+        dcEntries: [],
+    });
+    const [filterState, setFilterState] = useState<FilterState>({
+        period: "all",
+        filterMode: "preset",
+        customRange: [null, null],
+    });
+    const [dailyCapitalState, setDailyCapitalState] = useState<DailyCapitalState>({
+        dcDate: today,
+        dcStart: "",
+        dcEnd: "",
+        dcNotes: "",
+        dcSaving: false,
+        dcSaved: false,
+        dcDeleting: null,
+    });
+
+    const { data, loading, dcEntries } = viewState;
+    const { period, filterMode, customRange } = filterState;
+    const { dcDate, dcStart, dcEnd, dcNotes, dcSaving, dcSaved, dcDeleting } = dailyCapitalState;
+
+    const surfaceBg = isApple
+        ? isDark ? "rgba(30, 30, 34, 0.58)" : "rgba(255, 255, 255, 0.72)"
+        : palette.surface;
+    const borderColor = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.09)";
+    const textSoft = isDark ? "rgba(255,255,255,0.68)" : "rgba(0,0,0,0.58)";
+
+    const cardRadius = isApple ? "18px" : "26px";
+    const cardPadding = isApple ? 2 : 2.5;
+    const headingWeight = isApple ? 700 : 900;
+    const valueWeight = isApple ? 800 : 900;
+
+    const pageBackground = isApple
+        ? isDark
+            ? "radial-gradient(120% 120% at 12% 0%, rgba(94,53,177,0.16), transparent 40%), radial-gradient(100% 90% at 100% 100%, rgba(0,122,255,0.14), transparent 35%)"
+            : "radial-gradient(120% 120% at 12% 0%, rgba(94,53,177,0.10), transparent 45%), radial-gradient(100% 90% at 100% 100%, rgba(0,122,255,0.10), transparent 40%)"
+        : isDark
+            ? "linear-gradient(180deg, rgba(16,16,20,0.96) 0%, rgba(22,22,28,0.96) 100%)"
+            : "linear-gradient(180deg, rgba(251,251,253,0.96) 0%, rgba(244,244,248,0.96) 100%)";
+
+    const panelSx = {
+        borderRadius: cardRadius,
+        border: `1px solid ${borderColor}`,
+        background: surfaceBg,
+        backdropFilter: isApple ? "blur(20px) saturate(135%)" : "none",
+        boxShadow: isApple
+            ? (isDark ? "0 18px 56px rgba(0,0,0,0.35)" : "0 18px 44px rgba(15,23,42,0.14)")
+            : (isDark ? "0 14px 28px rgba(0,0,0,0.42)" : "0 10px 20px rgba(15,23,42,0.12)"),
+    };
+
+    const controlButtonSx = {
+        borderRadius: isApple ? "14px" : "18px",
+        textTransform: "none",
+        fontWeight: isApple ? 650 : 800,
+        minHeight: isApple ? 38 : 48,
+        color: palette.textPrimary,
+    };
+
+    const backButtonSx = {
+        border: `1px solid ${borderColor}`,
+        borderRadius: isApple ? "14px" : "18px",
+        color: `${palette.textPrimary} !important`,
+        background: isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.03)",
+        "&:hover": {
+            background: isDark ? "rgba(255,255,255,0.16)" : "rgba(0,0,0,0.08)",
+            borderColor: isDark ? "rgba(255,255,255,0.32)" : "rgba(0,0,0,0.18)",
+        },
+    };
+
+    const logButtonSx = {
+        ...controlButtonSx,
+        color: isDark ? "#03111f" : "#ffffff",
+        background: palette.accent,
+        border: `1px solid ${palette.accent}`,
+        "&:hover": {
+            background: isDark ? "#7bc0ff" : "#2563eb",
+            borderColor: isDark ? "#7bc0ff" : "#2563eb",
+        },
+        "&.Mui-disabled": {
+            color: isDark ? "rgba(255,255,255,0.56)" : "rgba(0,0,0,0.44)",
+            background: isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.10)",
+            borderColor: isDark ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.14)",
+        },
+    };
+
+    const chartSx = {
+        "& .MuiChartsAxis-line, & .MuiChartsAxis-tick": {
+            stroke: isDark ? "rgba(255,255,255,0.20)" : "rgba(0,0,0,0.25)",
+        },
+        "& .MuiChartsAxis-label, & .MuiChartsAxis-label tspan": {
+            fill: `${palette.textPrimary} !important`,
+            color: `${palette.textPrimary} !important`,
+            fontWeight: isApple ? 550 : 750,
+        },
+        "& .MuiChartsLegend-label, & .MuiChartsLegend-label tspan": {
+            fill: `${palette.textSecondary} !important`,
+            color: `${palette.textSecondary} !important`,
+            fontWeight: isApple ? 500 : 700,
+        },
+        "& .MuiChartsAxis-tickLabel, & .MuiChartsAxis-tickLabel tspan": {
+            fill: `${palette.textSecondary} !important`,
+            color: `${palette.textSecondary} !important`,
+            fontWeight: isApple ? 520 : 720,
+            fontSize: isApple ? 12 : 13,
+        },
+        "& .MuiChartsGrid-line": {
+            stroke: isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)",
+            strokeDasharray: isApple ? "2 6" : "4 4",
+        },
+    };
+
+    const inputSx = {
+        "& .MuiInputLabel-root": {
+            color: `${textSoft} !important`,
+            fontWeight: isApple ? 520 : 760,
+        },
+        "& .MuiInputLabel-root.Mui-focused": {
+            color: `${palette.accent} !important`,
+        },
+        "& .MuiOutlinedInput-root": {
+            borderRadius: isApple ? "14px" : "18px",
+            minHeight: isApple ? 44 : 50,
+            fontWeight: isApple ? 500 : 700,
+            color: `${palette.textPrimary} !important`,
+            background: isApple
+                ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.75)")
+                : (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.02)"),
+        },
+        "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: `${borderColor} !important`,
+        },
+        "& .MuiInputBase-input": {
+            color: `${palette.textPrimary} !important`,
+            WebkitTextFillColor: `${palette.textPrimary} !important`,
+        },
+        "& input, & textarea": {
+            color: `${palette.textPrimary} !important`,
+            WebkitTextFillColor: `${palette.textPrimary} !important`,
+            caretColor: `${palette.textPrimary} !important`,
+        },
+        "& .MuiInputBase-input::placeholder": {
+            color: `${palette.textSecondary} !important`,
+            opacity: 1,
+        },
+        "& input:-webkit-autofill, & input:-webkit-autofill:hover, & input:-webkit-autofill:focus": {
+            WebkitTextFillColor: `${palette.textPrimary} !important`,
+            transition: "background-color 9999s ease-in-out 0s",
+            boxShadow: `0 0 0px 1000px ${isDark ? "rgba(18,18,22,0.85)" : "rgba(255,255,255,0.88)"} inset`,
+        },
+        "& .MuiSvgIcon-root": {
+            color: `${palette.textSecondary} !important`,
+        },
+        "& input[type='date']": {
+            color: `${palette.textPrimary} !important`,
+            WebkitTextFillColor: `${palette.textPrimary} !important`,
+        },
+        "& input[type='date']::-webkit-calendar-picker-indicator": {
+            filter: isDark ? "invert(1) opacity(0.9)" : "invert(0) opacity(0.75)",
+        },
+    };
+
+    const chartPalette = useMemo(
+        () => ["#34d399", "#fb7185", "#f59e0b", "#60a5fa", "#a78bfa", "#2dd4bf", "#f97316", "#14b8a6"],
+        []
+    );
 
     const fetchDailyCapital = useCallback(async () => {
         const res = await fetch("/api/trade-journal/daily-capital?limit=30").then(r => r.json());
-        if (res.success) setDcEntries(res.data);
+        if (res.success) {
+            setViewState(prev => ({ ...prev, dcEntries: res.data as DailyCapitalEntry[] }));
+        }
     }, []);
 
-    useEffect(() => { fetchDailyCapital(); }, [fetchDailyCapital]);
+    const fetchAnalytics = useCallback(async () => {
+        setViewState(prev => ({ ...prev, loading: true }));
+        try {
+            const params = new URLSearchParams();
+            const now = new Date();
+
+            if (filterMode === "custom") {
+                const [start, end] = customRange;
+                if (!start || !end) {
+                    setViewState(prev => ({ ...prev, loading: false }));
+                    return;
+                }
+                params.set("from", start.format("YYYY-MM-DD"));
+                params.set("to", end.format("YYYY-MM-DD"));
+            } else if (period === "month") {
+                const from = new Date(now.getFullYear(), now.getMonth(), 1);
+                params.set("from", from.toISOString().slice(0, 10));
+                params.set("to", now.toISOString().slice(0, 10));
+            } else if (period === "30d") {
+                const from = new Date(now);
+                from.setDate(now.getDate() - 30);
+                params.set("from", from.toISOString().slice(0, 10));
+                params.set("to", now.toISOString().slice(0, 10));
+            } else if (period === "90d") {
+                const from = new Date(now);
+                from.setDate(now.getDate() - 90);
+                params.set("from", from.toISOString().slice(0, 10));
+                params.set("to", now.toISOString().slice(0, 10));
+            } else if (period === "year") {
+                const from = new Date(now.getFullYear(), 0, 1);
+                params.set("from", from.toISOString().slice(0, 10));
+                params.set("to", now.toISOString().slice(0, 10));
+            }
+
+            const res = await fetch(`/api/trade-journal/analytics?${params}`);
+            const json = await res.json();
+            if (json.success) {
+                setViewState(prev => ({ ...prev, data: json.data as AnalyticsData }));
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setViewState(prev => ({ ...prev, loading: false }));
+        }
+    }, [customRange, filterMode, period]);
+
+    useEffect(() => {
+        fetchDailyCapital();
+    }, [fetchDailyCapital]);
+
+    useEffect(() => {
+        fetchAnalytics();
+    }, [fetchAnalytics]);
 
     const handleLogCapital = async () => {
         if (!dcDate || !dcStart || !dcEnd) return;
-        setDcSaving(true);
+        setDailyCapitalState(prev => ({ ...prev, dcSaving: true }));
         try {
             await fetch("/api/trade-journal/daily-capital", {
                 method: "POST",
@@ -245,523 +415,544 @@ export default function AnalyticsPage() {
                     Notes: dcNotes,
                 }),
             });
-            setDcSaved(true);
-            setDcStart(""); setDcEnd(""); setDcNotes("");
-            setTimeout(() => setDcSaved(false), 2000);
+            setDailyCapitalState(prev => ({
+                ...prev,
+                dcSaved: true,
+                dcStart: "",
+                dcEnd: "",
+                dcNotes: "",
+            }));
+            setTimeout(() => {
+                setDailyCapitalState(prev => ({ ...prev, dcSaved: false }));
+            }, 1800);
             fetchDailyCapital();
             fetchAnalytics();
         } finally {
-            setDcSaving(false);
+            setDailyCapitalState(prev => ({ ...prev, dcSaving: false }));
         }
     };
 
     const handleDeleteDc = async (date: string) => {
-        setDcDeleting(date);
+        setDailyCapitalState(prev => ({ ...prev, dcDeleting: date }));
         await fetch(`/api/trade-journal/daily-capital?date=${date}`, { method: "DELETE" });
-        setDcDeleting(null);
+        setDailyCapitalState(prev => ({ ...prev, dcDeleting: null }));
         fetchDailyCapital();
         fetchAnalytics();
     };
 
-    const surfaceBg   = isApple
-        ? isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)"
-        : palette.surface;
-    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
-    const borderColorStrong = isDark ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.12)";
-
-    const fetchAnalytics = useCallback(async () => {
-        setLoading(true);
-        try {
-            const params = new URLSearchParams();
-            const now = new Date();
-            if (period === "month") {
-                const from = new Date(now.getFullYear(), now.getMonth(), 1);
-                params.set("from", from.toISOString().slice(0, 10));
-                params.set("to",   now.toISOString().slice(0, 10));
-            } else if (period === "30d") {
-                const from = new Date(now); from.setDate(now.getDate() - 30);
-                params.set("from", from.toISOString().slice(0, 10));
-                params.set("to",   now.toISOString().slice(0, 10));
-            } else if (period === "90d") {
-                const from = new Date(now); from.setDate(now.getDate() - 90);
-                params.set("from", from.toISOString().slice(0, 10));
-                params.set("to",   now.toISOString().slice(0, 10));
-            } else if (period === "year") {
-                const from = new Date(now.getFullYear(), 0, 1);
-                params.set("from", from.toISOString().slice(0, 10));
-                params.set("to",   now.toISOString().slice(0, 10));
-            }
-            const res  = await fetch(`/api/trade-journal/analytics?${params}`);
-            const json = await res.json();
-            if (json.success) setData(json.data);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoading(false);
-        }
-    }, [period]);
-
-    useEffect(() => { fetchAnalytics(); }, [fetchAnalytics]);
-
     const s = data?.summary;
 
-    const statCards = s ? [
-        {
-            label: "Net P&L",
-            value: `₹${fmt(s.netPnL)}`,
-            sub: `Gross Win ₹${fmt(s.grossWin)} · Loss ₹${fmt(s.grossLoss)}`,
-            valueColor: pnlColor(s.netPnL, "#22c55e", "#ef4444"),
-            icon: s.netPnL >= 0 ? <TrendingUp fontSize="inherit" /> : <TrendingDown fontSize="inherit" />,
-        },
-        {
-            label: "Win Rate",
-            value: `${s.winRate}%`,
-            sub: `${s.wins}W  ${s.losses}L  ${s.breakeven}BE  (${s.total} total)`,
-            valueColor: s.winRate >= 50 ? "#22c55e" : "#f59e0b",
-            icon: <EmojiEvents fontSize="inherit" />,
-        },
-        {
-            label: "Expectancy",
-            value: `₹${fmt(s.expectancy)}`,
-            sub: "Avg edge per trade",
-            valueColor: pnlColor(s.expectancy, "#22c55e", "#ef4444"),
-        },
-        {
-            label: "Profit Factor",
-            value: s.profitFactor === 0 ? "—" : s.profitFactor.toFixed(2),
-            sub: "Gross Win ÷ Gross Loss",
-            valueColor: s.profitFactor >= 1.5 ? "#22c55e" : s.profitFactor >= 1 ? "#f59e0b" : "#ef4444",
-        },
-        {
-            label: "Avg Win / Avg Loss",
-            value: `${fmt(s.avgWin, 0)} / ${fmt(s.avgLoss, 0)}`,
-            sub: `Ratio: ${s.avgLoss > 0 ? (s.avgWin / s.avgLoss).toFixed(2) : "—"}`,
-            valueColor: palette.textPrimary,
-        },
-        {
-            label: "Max Drawdown",
-            value: `${s.maxDrawdownPct}%`,
-            sub: "Peak-to-trough equity",
-            valueColor: s.maxDrawdownPct < 20 ? "#f59e0b" : "#ef4444",
-            icon: <TrendingDown fontSize="inherit" />,
-        },
-        {
-            label: "Avg Actual RR",
-            value: s.avgActualRR > 0 ? s.avgActualRR.toFixed(2) : "—",
-            sub: "Realised risk-reward",
-            valueColor: s.avgActualRR >= 1 ? "#22c55e" : "#f59e0b",
-        },
-        {
-            label: "Max Consec. Losses",
-            value: String(s.maxConsecLosses),
-            sub: "Longest losing streak",
-            valueColor: s.maxConsecLosses <= 5 ? "#f59e0b" : "#ef4444",
-            icon: <Warning fontSize="inherit" />,
-        },
-        {
-            label: "Plan Adherence",
-            value: s.planAdherenceAvg > 0 ? `${s.planAdherenceAvg.toFixed(0)}%` : "—",
-            sub: "Avg discipline score",
-            valueColor: s.planAdherenceAvg >= 70 ? "#22c55e" : "#f59e0b",
-        },
-        {
-            label: "Sharpe Ratio",
-            value: s.sharpeRatio !== 0 ? s.sharpeRatio.toFixed(3) : "—",
-            sub: s.dailyCapitalDays >= 2
-                ? `${s.dailyCapitalDays}d of capital data · annualised`
-                : "Log daily capital below",
-            valueColor: s.sharpeRatio >= 2 ? "#22c55e" : s.sharpeRatio >= 1 ? "#f59e0b" : s.sharpeRatio > 0 ? palette.textPrimary : palette.textSecondary,
-            icon: <ShowChart fontSize="inherit" />,
-        },
-        {
-            label: "Avg Holding",
-            value: s.avgHoldingMinutes > 0
-                ? s.avgHoldingMinutes >= 60
-                    ? `${(s.avgHoldingMinutes / 60).toFixed(1)}h`
-                    : `${s.avgHoldingMinutes}m`
-                : "—",
-            sub: "Avg trade duration",
-            valueColor: palette.textPrimary,
-        },
+    const equityLabels = (data?.equityCurve ?? []).map(p => `#${p.tradeNo}`);
+    const equitySeries = (data?.equityCurve ?? []).map(p => p.equity);
+
+    const monthly = data?.monthlyPnL ?? [];
+    const instrumentTop = (data?.byInstrument ?? []).slice(0, 8);
+    const setupTop = (data?.bySetup ?? []).slice(0, 8);
+    const emotionData = (data?.byEmotion ?? []).slice(0, 8);
+    const mistakeData = (data?.byMistake ?? []).slice(0, 8);
+
+    const stats = s ? [
+        { title: "Net P&L", value: `₹${fmt(s.netPnL)}`, sub: `Gross ₹${fmt(s.grossWin)} / Loss ₹${fmt(s.grossLoss)}`, tone: pnlTone(s.netPnL) },
+        { title: "Daily Avg P&L", value: `₹${fmt(s.dailyAvgPnL)}`, sub: "Net per trading day", tone: pnlTone(s.dailyAvgPnL) },
+        { title: "Win Rate", value: `${fmt(s.winRate)}%`, sub: `${s.wins}W ${s.losses}L ${s.breakeven}BE`, tone: s.winRate >= 50 ? "#22c55e" : "#f59e0b" },
+        { title: "Profit Factor", value: s.profitFactor ? s.profitFactor.toFixed(2) : "-", sub: "Gross Win / Gross Loss", tone: s.profitFactor >= 1.5 ? "#22c55e" : "#f59e0b" },
+        { title: "Highest P&L", value: `₹${fmt(s.highestPnL, 0)}`, sub: "Best trade", tone: pnlTone(s.highestPnL) },
+        { title: "Lowest P&L", value: `₹${fmt(s.lowestPnL, 0)}`, sub: "Worst trade", tone: pnlTone(s.lowestPnL) },
+        { title: "Average Charges", value: `₹${fmt(s.avgCharges)}`, sub: "Brokerage + taxes per trade", tone: "#f59e0b" },
+        { title: "Today Charges", value: `₹${fmt(s.todayCharges)}`, sub: "Today brokerage + taxes", tone: s.todayCharges > 0 ? "#ef4444" : "#9ca3af" },
     ] : [];
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <div className="flex flex-col items-center gap-3">
-                    <div className="w-10 h-10 rounded-full border-2 animate-spin"
-                        style={{ borderColor: `${palette.accent}40`, borderTopColor: palette.accent }} />
-                    <p className="text-sm" style={{ color: palette.textSecondary }}>Computing analytics…</p>
-                </div>
-            </div>
-        );
-    }
-
     return (
-        <div className="max-w-6xl mx-auto space-y-6 pt-6 pb-28">
-
-            {/* ── Header ────────────────────────────────────────────────────── */}
-            <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }}
-                className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                    <Link href="/trade-journal">
-                        <motion.button
-                            className="p-2 rounded-xl"
-                            style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}
-                            whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                        >
-                            <ArrowBack fontSize="small" style={{ color: palette.textSecondary }} />
-                        </motion.button>
-                    </Link>
-                    <div>
-                        <h1 className="text-2xl font-bold" style={{ color: palette.textPrimary }}>Analytics</h1>
-                        <p className="text-sm" style={{ color: palette.textSecondary }}>
-                            Trade your edge, not your emotions.
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    {/* Period selector */}
-                    <div className="flex rounded-xl overflow-hidden border" style={{ borderColor }}>
-                        {PERIOD_OPTIONS.map(opt => (
-                            <button
-                                key={opt.value}
-                                onClick={() => setPeriod(opt.value)}
-                                className="px-3 py-1.5 text-xs font-medium transition-colors"
-                                style={{
-                                    background: period === opt.value ? palette.accent : "transparent",
-                                    color: period === opt.value ? "#fff" : palette.textSecondary,
-                                }}
-                            >
-                                {opt.label}
-                            </button>
-                        ))}
-                    </div>
-                    <motion.button
-                        onClick={fetchAnalytics}
-                        className="p-2 rounded-xl"
-                        style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}
-                        whileHover={{ scale: 1.05 }} whileTap={{ rotate: 180 }}
-                        title="Refresh"
-                    >
-                        <Refresh fontSize="small" style={{ color: palette.textSecondary }} />
-                    </motion.button>
-                </div>
-            </motion.div>
-
-            {/* ── Edge Score Banner ─────────────────────────────────────────── */}
-            {s && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.04 }}
-                    className="p-5 rounded-2xl flex items-center justify-between flex-wrap gap-4"
-                    style={{
-                        background: isApple
-                            ? isDark ? "rgba(88,86,214,0.18)" : "rgba(88,86,214,0.10)"
-                            : `${palette.accent}14`,
-                        border: `1.5px solid ${palette.accent}40`,
-                    }}>
-                    <div className="flex items-center gap-3">
-                        <div className="p-2.5 rounded-xl" style={{ background: `${palette.accent}20` }}>
-                            <BarChart style={{ color: palette.accent, fontSize: 22 }} />
-                        </div>
-                        <div>
-                            <p className="font-bold" style={{ color: palette.textPrimary }}>
-                                Edge Score: {s.edgeScore} / {s.edgeScoreMax}
-                            </p>
-                            <p className="text-sm" style={{ color: palette.textSecondary }}>
-                                {s.edgeScore >= 6 ? "Strong edge — consider live trading." :
-                                 s.edgeScore >= 4 ? "Developing edge — keep improving." :
-                                 "No proven edge — stay in simulation."}
-                            </p>
-                        </div>
-                    </div>
-                    {/* Score pill bar */}
-                    <div className="flex gap-1.5">
-                        {Array.from({ length: s.edgeScoreMax }).map((_, i) => (
-                            <div key={i} className="w-6 h-6 rounded-lg transition-colors duration-500"
-                                style={{ background: i < s.edgeScore ? palette.accent : `${palette.accent}25` }} />
-                        ))}
-                    </div>
-                </motion.div>
-            )}
-
-            {/* ── Summary Cards ─────────────────────────────────────────────── */}
-            {s && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.07 }}
-                    className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                    {statCards.map((c, i) => (
-                        <StatCard key={i} {...c} surfaceBg={surfaceBg} borderColor={borderColor}
-                            textPrimary={palette.textPrimary} textSecondary={palette.textSecondary} />
-                    ))}
-                </motion.div>
-            )}
-
-            {/* ── Equity Curve ──────────────────────────────────────────────── */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-                className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}>
-                <p className="font-bold mb-3 text-sm" style={{ color: palette.textPrimary }}>Equity Curve</p>
-                <EquityCurve
-                    data={data?.equityCurve ?? []}
-                    accentColor={palette.accent}
-                    isDark={isDark}
-                />
-            </motion.div>
-
-            {/* ── Monthly P&L + By Instrument ───────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12 }}
-                    className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}>
-                    <p className="font-bold mb-3 text-sm" style={{ color: palette.textPrimary }}>Monthly P&L</p>
-                    {data && data.monthlyPnL.length > 0 ? (() => {
-                        const max = Math.max(...data.monthlyPnL.map(r => Math.abs(r.pnl)));
-                        return data.monthlyPnL.map((r, i) => (
-                            <BarRow key={i} label={r.month} value={r.pnl} maxValue={max} pnl={r.pnl} isDark={isDark} />
-                        ));
-                    })() : (
-                        <p className="text-xs text-center py-6" style={{ color: palette.textTertiary }}>No data yet.</p>
-                    )}
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+            <Box sx={{ maxWidth: 1400, mx: "auto", py: 4, px: { xs: 1.5, md: 2 }, pb: 12, background: pageBackground }}>
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+                    <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" gap={2}>
+                        <Stack direction="row" spacing={1.5} alignItems="center">
+                            <Link href="/trade-journal">
+                                <IconButton sx={backButtonSx}>
+                                    <ArrowBack sx={{ color: `${palette.textPrimary} !important` }} />
+                                </IconButton>
+                            </Link>
+                            <Box>
+                                <Typography variant="h4" sx={{ fontWeight: valueWeight, color: palette.textPrimary, letterSpacing: isApple ? 0 : 0.2 }}>
+                                    Analytics Command Center
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: textSoft }}>
+                                    Performance, behavior and risk in one view.
+                                </Typography>
+                            </Box>
+                        </Stack>
+                        <Button variant="outlined" startIcon={<Refresh />} onClick={fetchAnalytics} sx={controlButtonSx}>
+                            Refresh
+                        </Button>
+                    </Stack>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.14 }}
-                    className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}>
-                    <p className="font-bold mb-3 text-sm" style={{ color: palette.textPrimary }}>By Instrument</p>
-                    {data && data.byInstrument.length > 0 ? (() => {
-                        const max = Math.max(...data.byInstrument.map(r => Math.abs(r.pnl)));
-                        return data.byInstrument.slice(0, 10).map((r, i) => (
-                            <BarRow key={i} label={r.instrument} value={r.pnl} maxValue={max} pnl={r.pnl} winRate={r.winRate} isDark={isDark} />
-                        ));
-                    })() : (
-                        <p className="text-xs text-center py-6" style={{ color: palette.textTertiary }}>No data yet.</p>
-                    )}
-                </motion.div>
-            </div>
+                <Card sx={{ mt: 2, ...panelSx }}>
+                    <CardContent sx={{ p: cardPadding }}>
+                        <Stack spacing={2}>
+                            <Stack direction={{ xs: "column", lg: "row" }} gap={2} alignItems={{ lg: "center" }}>
+                                <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 210 }}>
+                                    <CalendarMonth sx={{ color: palette.accent }} />
+                                    <Box>
+                                        <Typography variant="subtitle2" sx={{ color: palette.textPrimary, fontWeight: headingWeight }}>
+                                            Date Wise Filter
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ color: textSoft }}>
+                                            Presets or exact custom range.
+                                        </Typography>
+                                    </Box>
+                                </Stack>
 
-            {/* ── By Setup + By Emotion ─────────────────────────────────────── */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}
-                    className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}>
-                    <p className="font-bold mb-3 text-sm" style={{ color: palette.textPrimary }}>By Setup Type</p>
-                    {data && data.bySetup.length > 0 ? (() => {
-                        const max = Math.max(...data.bySetup.map(r => Math.abs(r.pnl)));
-                        return data.bySetup.map((r, i) => (
-                            <BarRow key={i} label={r.setup} value={r.pnl} maxValue={max} pnl={r.pnl} winRate={r.winRate} isDark={isDark} />
-                        ));
-                    })() : (
-                        <p className="text-xs text-center py-6" style={{ color: palette.textTertiary }}>No setup data.</p>
-                    )}
-                </motion.div>
-
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18 }}
-                    className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}>
-                    <div className="flex items-center gap-2 mb-3">
-                        <Psychology fontSize="small" style={{ color: palette.accent }} />
-                        <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>Emotional State vs P&L</p>
-                    </div>
-                    {data && data.byEmotion.length > 0 ? (() => {
-                        const max = Math.max(...data.byEmotion.map(r => Math.abs(r.pnl)));
-                        return data.byEmotion.map((r, i) => (
-                            <BarRow key={i} label={r.emotion} value={r.pnl} maxValue={max} pnl={r.pnl} winRate={r.winRate} isDark={isDark} />
-                        ));
-                    })() : (
-                        <p className="text-xs text-center py-6" style={{ color: palette.textTertiary }}>No emotion data.</p>
-                    )}
-                </motion.div>
-            </div>
-
-            {/* ── Mistake Analysis ──────────────────────────────────────────── */}
-            {data && data.byMistake.length > 0 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.20 }}
-                    className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}>
-                    <p className="font-bold mb-3 text-sm" style={{ color: palette.textPrimary }}>Mistake Frequency</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-                        {data.byMistake.map((m, i) => (
-                            <div key={i} className="p-3 rounded-xl flex items-center justify-between"
-                                style={{ background: isDark ? "rgba(239,68,68,0.10)" : "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.18)" }}>
-                                <span className="text-xs" style={{ color: palette.textSecondary }}>
-                                    {m.mistake.replace(/_/g, " ")}
-                                </span>
-                                <span className="text-sm font-bold" style={{ color: "#ef4444" }}>{m.count}×</span>
-                            </div>
-                        ))}
-                    </div>
-                </motion.div>
-            )}
-
-            {/* ── Edge Validation Checklist ─────────────────────────────────── */}
-            {data && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 }}
-                    className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1.5px solid ${borderColorStrong}` }}>
-                    <div className="flex items-center gap-2 mb-4">
-                        <EmojiEvents style={{ color: palette.accent }} />
-                        <p className="font-bold" style={{ color: palette.textPrimary }}>
-                            Edge Validation Checklist
-                        </p>
-                        <span className="ml-auto text-sm font-semibold"
-                            style={{ color: palette.accent }}>
-                            {s?.edgeScore} / {s?.edgeScoreMax} rules passing
-                        </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                        {data.edgeChecklist.map((item, i) => (
-                            <div key={i}
-                                className="flex items-center gap-2.5 p-3 rounded-xl"
-                                style={{
-                                    background: item.pass
-                                        ? isDark ? "rgba(34,197,94,0.08)"  : "rgba(34,197,94,0.06)"
-                                        : isDark ? "rgba(239,68,68,0.08)"  : "rgba(239,68,68,0.05)",
-                                    border: `1px solid ${item.pass ? "rgba(34,197,94,0.20)" : "rgba(239,68,68,0.18)"}`,
-                                }}>
-                                {item.pass
-                                    ? <CheckCircle fontSize="small" style={{ color: "#22c55e", flexShrink: 0 }} />
-                                    : <Cancel fontSize="small"       style={{ color: "#ef4444", flexShrink: 0 }} />
-                                }
-                                <span className="text-xs font-medium" style={{ color: palette.textPrimary }}>
-                                    {item.rule}
-                                </span>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Bottom guidance */}
-                    {s && s.edgeScore < 4 && (
-                        <div className="mt-4 p-3 rounded-xl flex items-start gap-2"
-                            style={{ background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.18)" }}>
-                            <Warning fontSize="small" style={{ color: "#ef4444", flexShrink: 0, marginTop: 1 }} />
-                            <p className="text-xs" style={{ color: palette.textSecondary }}>
-                                Your data does not yet prove a statistical edge. Log more trades (target 100+), review your
-                                mistakes, and focus on improving plan adherence before trading real capital.
-                            </p>
-                        </div>
-                    )}
-                    {s && s.edgeScore >= 6 && (
-                        <div className="mt-4 p-3 rounded-xl flex items-start gap-2"
-                            style={{ background: "rgba(34,197,94,0.08)", border: "1px solid rgba(34,197,94,0.18)" }}>
-                            <CheckCircle fontSize="small" style={{ color: "#22c55e", flexShrink: 0, marginTop: 1 }} />
-                            <p className="text-xs" style={{ color: palette.textSecondary }}>
-                                Strong edge detected across {s.total} trades. Maintain discipline, manage position sizing,
-                                and keep journalling to preserve this edge.
-                            </p>
-                        </div>
-                    )}
-                </motion.div>
-            )}
-
-            {/* ── Daily Capital Logger (for Sharpe Ratio) ───────────────────── */}
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}
-                className="p-5 rounded-2xl" style={{ background: surfaceBg, border: `1px solid ${borderColorStrong}` }}>
-                <div className="flex items-center gap-2 mb-1">
-                    <ShowChart style={{ color: palette.accent }} />
-                    <p className="font-bold" style={{ color: palette.textPrimary }}>Daily Capital Log</p>
-                    <span className="ml-1 text-xs px-2 py-0.5 rounded-full"
-                        style={{ background: `${palette.accent}18`, color: palette.accent }}>
-                        Sharpe Ratio input
-                    </span>
-                </div>
-                <p className="text-xs mb-4" style={{ color: palette.textSecondary }}>
-                    Log your starting and ending portfolio value each day (after market close).<br/>
-                    Sharpe = (avgDailyReturn − 6%/252) ÷ stdDev × √252 &nbsp;·&nbsp; needs ≥ 2 days to compute.
-                </p>
-
-                {/* Input row */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                    {[
-                        { label: "Date", type: "date", val: dcDate, set: setDcDate },
-                        { label: "Starting Capital (₹)", type: "number", val: dcStart, set: setDcStart },
-                        { label: "Ending Capital (₹)",  type: "number", val: dcEnd,   set: setDcEnd   },
-                        { label: "Notes (optional)",     type: "text",   val: dcNotes, set: setDcNotes  },
-                    ].map(({ label, type, val, set }) => (
-                        <div key={label} className="flex flex-col gap-1">
-                            <label className="text-xs" style={{ color: palette.textSecondary }}>{label}</label>
-                            <input
-                                type={type}
-                                value={val}
-                                onChange={e => set(e.target.value)}
-                                className="rounded-xl px-3 py-2 text-sm outline-none"
-                                style={{
-                                    background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
-                                    border: `1px solid ${borderColor}`,
-                                    color: palette.textPrimary,
-                                }}
-                                step={type === "number" ? "0.01" : undefined}
-                                placeholder={type === "number" ? "e.g. 200000" : ""}
-                            />
-                        </div>
-                    ))}
-                </div>
-
-                {dcStart && dcEnd && parseFloat(dcStart) > 0 && (
-                    <p className="text-xs mb-3" style={{ color: palette.textSecondary }}>
-                        Daily Return:&nbsp;
-                        <span style={{ color: parseFloat(dcEnd) >= parseFloat(dcStart) ? "#22c55e" : "#ef4444", fontWeight: 600 }}>
-                            {(((parseFloat(dcEnd) - parseFloat(dcStart)) / parseFloat(dcStart)) * 100).toFixed(3)}%
-                        </span>
-                        &nbsp;· Net P&L: ₹{(parseFloat(dcEnd) - parseFloat(dcStart)).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-                    </p>
-                )}
-
-                <motion.button
-                    onClick={handleLogCapital}
-                    disabled={dcSaving || !dcDate || !dcStart || !dcEnd}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-                    style={{
-                        background: dcSaved ? "#22c55e" : palette.accent,
-                        color: "#fff",
-                        opacity: (!dcDate || !dcStart || !dcEnd) ? 0.5 : 1,
-                    }}
-                    whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                >
-                    <AddCircleOutline fontSize="small" />
-                    {dcSaving ? "Saving…" : dcSaved ? "Saved ✓" : "Log Today's Capital"}
-                </motion.button>
-
-                {/* Recent entries table */}
-                {dcEntries.length > 0 && (
-                    <div className="mt-4 overflow-x-auto">
-                        <table className="w-full text-xs" style={{ borderCollapse: "collapse" }}>
-                            <thead>
-                                <tr style={{ color: palette.textTertiary, borderBottom: `1px solid ${borderColor}` }}>
-                                    {["Date","Start (₹)","End (₹)","Net P&L","Return %",""].map(h => (
-                                        <td key={h} className="pb-2 pr-3 font-semibold uppercase tracking-widest">{h}</td>
+                                <Stack direction="row" flexWrap="wrap" gap={1}>
+                                    {PERIOD_OPTIONS.map(opt => (
+                                        <Button
+                                            key={opt.value}
+                                            size="small"
+                                            variant={filterMode === "preset" && period === opt.value ? "contained" : "outlined"}
+                                            sx={controlButtonSx}
+                                            onClick={() => {
+                                                setFilterState(prev => ({ ...prev, filterMode: "preset", period: opt.value }));
+                                            }}
+                                        >
+                                            {opt.label}
+                                        </Button>
                                     ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {dcEntries.map((e: any) => {
-                                    const ret = ((e.DailyReturn ?? 0) * 100);
-                                    const pos  = ret >= 0;
-                                    return (
-                                        <tr key={e.Date} style={{ borderBottom: `1px solid ${borderColor}` }}>
-                                            <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textPrimary }}>{e.Date}</td>
-                                            <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textSecondary }}>
-                                                {(e.StartingCapital as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-                                            </td>
-                                            <td className="py-2 pr-3 tabular-nums" style={{ color: palette.textSecondary }}>
-                                                {(e.EndingCapital as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-                                            </td>
-                                            <td className="py-2 pr-3 tabular-nums font-semibold" style={{ color: pos ? "#22c55e" : "#ef4444" }}>
-                                                {pos ? "+" : ""}₹{Math.abs(e.NetPnL as number).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-                                            </td>
-                                            <td className="py-2 pr-3 tabular-nums font-semibold" style={{ color: pos ? "#22c55e" : "#ef4444" }}>
-                                                {pos ? "+" : ""}{ret.toFixed(3)}%
-                                            </td>
-                                            <td className="py-2">
-                                                <motion.button
-                                                    onClick={() => handleDeleteDc(e.Date)}
-                                                    disabled={dcDeleting === e.Date}
-                                                    style={{ color: "#ef4444", opacity: dcDeleting === e.Date ? 0.4 : 1 }}
-                                                    whileHover={{ scale: 1.1 }} title="Delete"
-                                                >
-                                                    <Delete fontSize="small" />
-                                                </motion.button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
+                                </Stack>
+                            </Stack>
+
+                            <Stack direction={{ xs: "column", lg: "row" }} gap={1.5}>
+                                <DateRangePicker
+                                    value={customRange}
+                                    onChange={(next) => {
+                                        setFilterState(prev => ({ ...prev, filterMode: "custom", customRange: next }));
+                                    }}
+                                    format="DD MMM YYYY"
+                                    sx={{
+                                        flex: 1,
+                                        "& .MuiInputBase-root": {
+                                            minHeight: isApple ? 44 : 50,
+                                            borderRadius: isApple ? "14px" : "20px",
+                                            background: isApple
+                                                ? (isDark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.76)")
+                                                : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.03)"),
+                                            color: palette.textPrimary,
+                                            fontWeight: isApple ? 520 : 760,
+                                        },
+                                        "& .MuiInputBase-input": {
+                                            color: `${palette.textPrimary} !important`,
+                                            WebkitTextFillColor: `${palette.textPrimary} !important`,
+                                        },
+                                        "& .MuiInputBase-input::placeholder": {
+                                            color: `${palette.textSecondary} !important`,
+                                            opacity: 1,
+                                        },
+                                        "& .MuiDateRangePickerInput-root, & .MuiDateRangePickerInput-root span": {
+                                            color: `${palette.textPrimary} !important`,
+                                        },
+                                        "& .MuiDateRangePickerInput-root .MuiDateRangePickerInput-rangeSeparator": {
+                                            color: `${palette.textSecondary} !important`,
+                                        },
+                                        "& [class*='MuiDateRangePickerInput']": {
+                                            color: `${palette.textPrimary} !important`,
+                                        },
+                                        "& [class*='MuiDateRangePickerInput'] *": {
+                                            color: `${palette.textPrimary} !important`,
+                                            WebkitTextFillColor: `${palette.textPrimary} !important`,
+                                        },
+                                        "& .MuiDateRangePickerInput-sectionContent": {
+                                            color: `${palette.textPrimary} !important`,
+                                        },
+                                        "& .MuiDateRangePickerInput-sectionContent.Mui-selected": {
+                                            color: "#fff !important",
+                                        },
+                                        "& .MuiInputAdornment-root": {
+                                            color: `${palette.textSecondary} !important`,
+                                        },
+                                        "& .MuiOutlinedInput-notchedOutline": {
+                                            borderColor: borderColor,
+                                        },
+                                        "& .MuiSvgIcon-root": {
+                                            color: palette.accent,
+                                        },
+                                    }}
+                                    slotProps={{
+                                        textField: {
+                                            sx: {
+                                                ...inputSx,
+                                                "& .MuiPickersInputBase-root": {
+                                                    color: `${palette.textPrimary} !important`,
+                                                    borderRadius: isApple ? "14px" : "18px",
+                                                    minHeight: isApple ? 44 : 50,
+                                                },
+                                                "& .MuiPickersSectionList-root": {
+                                                    color: `${palette.textPrimary} !important`,
+                                                },
+                                                "& .MuiPickersSectionList-sectionContent": {
+                                                    color: `${palette.textPrimary} !important`,
+                                                    WebkitTextFillColor: `${palette.textPrimary} !important`,
+                                                },
+                                                "& .MuiPickersRangeSeparator-root": {
+                                                    color: `${palette.textSecondary} !important`,
+                                                },
+                                            },
+                                        },
+                                        popper: {
+                                            sx: {
+                                                "& .MuiPaper-root": {
+                                                    borderRadius: isApple ? "18px" : "24px",
+                                                    background: isApple
+                                                        ? (isDark ? "rgba(26,26,30,0.82)" : "rgba(255,255,255,0.90)")
+                                                        : (isDark ? "rgba(22,22,26,0.98)" : "rgba(255,255,255,0.98)"),
+                                                    border: `1px solid ${borderColor}`,
+                                                    backdropFilter: isApple ? "blur(18px) saturate(130%)" : "none",
+                                                },
+                                                "& .MuiTypography-root, & .MuiDayCalendar-weekDayLabel, & .MuiPickersCalendarHeader-label": {
+                                                    color: `${palette.textPrimary} !important`,
+                                                },
+                                                "& .MuiPickersCalendarHeader-switchViewButton, & .MuiPickersArrowSwitcher-button": {
+                                                    color: `${palette.textPrimary} !important`,
+                                                },
+                                                "& .MuiPickersSectionList-root, & .MuiPickersSectionList-sectionContent": {
+                                                    color: `${palette.textPrimary} !important`,
+                                                },
+                                                "& .MuiPickersDay-root": {
+                                                    borderRadius: isApple ? "10px" : "14px",
+                                                    fontWeight: isApple ? 500 : 800,
+                                                    color: `${palette.textPrimary} !important`,
+                                                },
+                                                "& .MuiPickersDay-root.Mui-selected": {
+                                                    background: palette.accent,
+                                                },
+                                                "& .MuiDateRangePickerDay-rangeIntervalDayHighlight": {
+                                                    background: `${palette.accent}30`,
+                                                },
+                                            },
+                                        },
+                                    }}
+                                />
+                                <Button size="small" sx={controlButtonSx} onClick={() => {
+                                    const d = dayjs();
+                                    setFilterState(prev => ({ ...prev, filterMode: "custom", customRange: [d, d] }));
+                                }}>
+                                    Today
+                                </Button>
+                                <Button size="small" sx={controlButtonSx} onClick={() => {
+                                    const d = dayjs().subtract(1, "day");
+                                    setFilterState(prev => ({ ...prev, filterMode: "custom", customRange: [d, d] }));
+                                }}>
+                                    Yesterday
+                                </Button>
+                                <Button
+                                    size="small"
+                                    sx={{ ...controlButtonSx, color: palette.textSecondary, borderColor: borderColor }}
+                                    onClick={() => {
+                                        setFilterState(prev => ({ ...prev, filterMode: "preset", period: "all", customRange: [null, null] }));
+                                    }}
+                                >
+                                    Clear
+                                </Button>
+                            </Stack>
+                        </Stack>
+                    </CardContent>
+                </Card>
+
+                {loading && <LinearProgress sx={{ mt: 2, borderRadius: 999 }} />}
+
+                {s && (
+                    <Card sx={{ mt: 2, ...panelSx }}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" gap={2}>
+                                <Stack direction="row" spacing={1.5} alignItems="center">
+                                    <AutoGraph sx={{ color: palette.accent }} />
+                                    <Box>
+                                        <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary }}>
+                                            Edge Score {s.edgeScore}/{s.edgeScoreMax}
+                                        </Typography>
+                                        <Typography variant="body2" sx={{ color: textSoft }}>
+                                            {s.edgeScore >= 6 ? "Strong system behavior" : s.edgeScore >= 4 ? "Developing edge" : "Insufficient edge quality"}
+                                        </Typography>
+                                    </Box>
+                                </Stack>
+                                <Stack direction="row" spacing={0.75} flexWrap="wrap">
+                                    {Array.from({ length: s.edgeScoreMax }).map((_, i) => (
+                                        <Box
+                                            key={i}
+                                            sx={{
+                                                width: 16,
+                                                height: 16,
+                                                borderRadius: isApple ? "6px" : "4px",
+                                                background: i < s.edgeScore ? palette.accent : `${palette.accent}2e`,
+                                            }}
+                                        />
+                                    ))}
+                                </Stack>
+                            </Stack>
+                        </CardContent>
+                    </Card>
                 )}
-            </motion.div>
-        </div>
+
+                <Box sx={{ mt: 2, display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr", xl: "repeat(4, minmax(0, 1fr))" }, gap: 1.5 }}>
+                    {stats.map(item => (
+                        <MetricCard
+                            key={item.title}
+                            title={item.title}
+                            value={item.value}
+                            sub={item.sub}
+                            tone={item.tone}
+                            border={borderColor}
+                            surface={surfaceBg}
+                            text={textSoft}
+                            radius={cardRadius}
+                            headingWeight={headingWeight}
+                            valueWeight={valueWeight}
+                        />
+                    ))}
+                </Box>
+
+                <Box sx={{ mt: 2, display: "grid", gridTemplateColumns: { xs: "1fr", lg: "2fr 1fr" }, gap: 1.5 }}>
+                    <Card sx={panelSx}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary, mb: 1.5 }}>Equity Curve</Typography>
+                            {equitySeries.length ? (
+                                <LineChart
+                                    height={320}
+                                    sx={chartSx}
+                                    xAxis={[{ scaleType: "point", data: equityLabels }]}
+                                    yAxis={[{ valueFormatter: (v: number | null) => `₹${fmt((v ?? 0) as number, 0)}` }]}
+                                    series={[{ data: equitySeries, area: true, color: pnlTone(equitySeries[equitySeries.length - 1] ?? 0), showMark: false }]}
+                                    grid={{ horizontal: true }}
+                                />
+                            ) : (
+                                <Typography sx={{ color: textSoft, py: 8, textAlign: "center" }}>No closed trades yet.</Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card sx={panelSx}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary, mb: 1 }}>Emotion Mix</Typography>
+                            {emotionData.length ? (
+                                <PieChart
+                                    height={320}
+                                    sx={chartSx}
+                                    series={[{
+                                        innerRadius: isApple ? 54 : 36,
+                                        outerRadius: 110,
+                                        paddingAngle: 2,
+                                        cornerRadius: isApple ? 6 : 2,
+                                        data: emotionData.map((e, i) => ({ id: e.emotion, value: e.trades, label: e.emotion.replace(/_/g, " "), color: chartPalette[i % chartPalette.length] })),
+                                    }]}
+                                />
+                            ) : (
+                                <Typography sx={{ color: textSoft, py: 8, textAlign: "center" }}>No emotion data.</Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+                </Box>
+
+                <Box sx={{ mt: 1.5, display: "grid", gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" }, gap: 1.5 }}>
+                    <Card sx={panelSx}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary, mb: 1.5 }}>Monthly P&L</Typography>
+                            {monthly.length ? (
+                                <BarChart
+                                    height={300}
+                                    sx={chartSx}
+                                    xAxis={[{ scaleType: "band", data: monthly.map(m => m.month) }]}
+                                    yAxis={[{ valueFormatter: (v: number | null) => `₹${fmt((v ?? 0) as number, 0)}` }]}
+                                    series={[{ data: monthly.map(m => m.pnl), color: isApple ? palette.accent : "#4f46e5" }]}
+                                    grid={{ horizontal: true }}
+                                />
+                            ) : (
+                                <Typography sx={{ color: textSoft, py: 8, textAlign: "center" }}>No monthly data.</Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card sx={panelSx}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary, mb: 1.5 }}>Top Instruments by P&L</Typography>
+                            {instrumentTop.length ? (
+                                <BarChart
+                                    layout="horizontal"
+                                    height={300}
+                                    sx={chartSx}
+                                    yAxis={[{ scaleType: "band", data: instrumentTop.map(i => i.instrument) }]}
+                                    xAxis={[{ valueFormatter: (v: number | null) => `₹${fmt((v ?? 0) as number, 0)}` }]}
+                                    series={[{ data: instrumentTop.map(i => i.pnl), color: isApple ? "#60a5fa" : "#0ea5e9" }]}
+                                    grid={{ vertical: true }}
+                                />
+                            ) : (
+                                <Typography sx={{ color: textSoft, py: 8, textAlign: "center" }}>No instrument data.</Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+                </Box>
+
+                <Box sx={{ mt: 1.5, display: "grid", gridTemplateColumns: { xs: "1fr", lg: "1fr 1fr" }, gap: 1.5 }}>
+                    <Card sx={panelSx}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary, mb: 1.5 }}>Setups by P&L</Typography>
+                            {setupTop.length ? (
+                                <BarChart
+                                    layout="horizontal"
+                                    height={300}
+                                    sx={chartSx}
+                                    yAxis={[{ scaleType: "band", data: setupTop.map(i => i.setup.replace(/_/g, " ")) }]}
+                                    xAxis={[{ valueFormatter: (v: number | null) => `₹${fmt((v ?? 0) as number, 0)}` }]}
+                                    series={[{ data: setupTop.map(i => i.pnl), color: isApple ? "#14b8a6" : "#22c55e" }]}
+                                    grid={{ vertical: true }}
+                                />
+                            ) : (
+                                <Typography sx={{ color: textSoft, py: 8, textAlign: "center" }}>No setup data.</Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+
+                    <Card sx={panelSx}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary, mb: 1.5 }}>Mistake Frequency</Typography>
+                            {mistakeData.length ? (
+                                <BarChart
+                                    layout="horizontal"
+                                    height={300}
+                                    sx={chartSx}
+                                    yAxis={[{ scaleType: "band", data: mistakeData.map(i => i.mistake.replace(/_/g, " ")) }]}
+                                    xAxis={[{}]}
+                                    series={[{ data: mistakeData.map(i => i.count), color: isApple ? "#fb7185" : "#ef4444" }]}
+                                    grid={{ vertical: true }}
+                                />
+                            ) : (
+                                <Typography sx={{ color: textSoft, py: 8, textAlign: "center" }}>No mistake data.</Typography>
+                            )}
+                        </CardContent>
+                    </Card>
+                </Box>
+
+                {data && s && (
+                    <Card sx={{ mt: 1.5, ...panelSx }}>
+                        <CardContent sx={{ p: cardPadding }}>
+                            <Stack direction={{ xs: "column", md: "row" }} justifyContent="space-between" alignItems={{ md: "center" }} gap={1.5}>
+                                <Stack direction="row" spacing={1} alignItems="center">
+                                    <EmojiEvents sx={{ color: palette.accent }} />
+                                    <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary }}>Edge Validation Checklist</Typography>
+                                </Stack>
+                                <Chip color={s.edgeScore >= 6 ? "success" : s.edgeScore >= 4 ? "warning" : "error"} label={`${s.edgeScore}/${s.edgeScoreMax} Rules Passing`} />
+                            </Stack>
+                            <Divider sx={{ my: 1.5 }} />
+                            <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", md: "1fr 1fr", xl: "repeat(4, minmax(0,1fr))" }, gap: 1 }}>
+                                {data.edgeChecklist.map(item => (
+                                    <Chip
+                                        key={item.rule}
+                                        icon={item.pass ? <CheckCircle /> : <Warning />}
+                                        label={item.rule}
+                                        color={item.pass ? "success" : "error"}
+                                        variant="outlined"
+                                    />
+                                ))}
+                            </Box>
+                        </CardContent>
+                    </Card>
+                )}
+
+                <Card sx={{ mt: 1.5, ...panelSx }}>
+                    <CardContent sx={{ p: cardPadding }}>
+                        <Typography sx={{ fontWeight: headingWeight, color: palette.textPrimary }}>Daily Capital Logger</Typography>
+                        <Typography variant="caption" sx={{ color: textSoft }}>
+                            Sharpe input: add one portfolio snapshot after market close.
+                        </Typography>
+
+                        <Box sx={{ mt: 2, display: "grid", gridTemplateColumns: { xs: "1fr", md: "repeat(4, minmax(0,1fr))" }, gap: 1 }}>
+                            <TextField
+                                label="Date"
+                                type="date"
+                                value={dcDate}
+                                onChange={(e) => setDailyCapitalState(prev => ({ ...prev, dcDate: e.target.value }))}
+                                InputLabelProps={{ shrink: true }}
+                                size="small"
+                                sx={inputSx}
+                            />
+                            <TextField
+                                label="Starting Capital"
+                                type="number"
+                                value={dcStart}
+                                onChange={(e) => setDailyCapitalState(prev => ({ ...prev, dcStart: e.target.value }))}
+                                size="small"
+                                sx={inputSx}
+                            />
+                            <TextField
+                                label="Ending Capital"
+                                type="number"
+                                value={dcEnd}
+                                onChange={(e) => setDailyCapitalState(prev => ({ ...prev, dcEnd: e.target.value }))}
+                                size="small"
+                                sx={inputSx}
+                            />
+                            <TextField
+                                label="Notes"
+                                value={dcNotes}
+                                onChange={(e) => setDailyCapitalState(prev => ({ ...prev, dcNotes: e.target.value }))}
+                                size="small"
+                                sx={inputSx}
+                            />
+                        </Box>
+
+                        <Stack direction="row" gap={1} sx={{ mt: 1.5 }}>
+                            <Button variant="contained" sx={logButtonSx} disabled={dcSaving || !dcDate || !dcStart || !dcEnd} onClick={handleLogCapital}>
+                                {dcSaving ? "Saving..." : dcSaved ? "Saved" : "Log Capital"}
+                            </Button>
+                            {!!dcStart && !!dcEnd && parseFloat(dcStart) > 0 && (
+                                <Chip
+                                    color={parseFloat(dcEnd) >= parseFloat(dcStart) ? "success" : "error"}
+                                    label={`Daily Return ${(((parseFloat(dcEnd) - parseFloat(dcStart)) / parseFloat(dcStart)) * 100).toFixed(2)}%`}
+                                />
+                            )}
+                        </Stack>
+
+                        {dcEntries.length > 0 && (
+                            <TableContainer sx={{ mt: 2, border: `1px solid ${borderColor}`, borderRadius: isApple ? "14px" : "18px" }}>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell sx={{ color: textSoft, fontWeight: headingWeight }}>Date</TableCell>
+                                            <TableCell sx={{ color: textSoft, fontWeight: headingWeight }}>Start</TableCell>
+                                            <TableCell sx={{ color: textSoft, fontWeight: headingWeight }}>End</TableCell>
+                                            <TableCell sx={{ color: textSoft, fontWeight: headingWeight }}>Net P&L</TableCell>
+                                            <TableCell sx={{ color: textSoft, fontWeight: headingWeight }}>Return %</TableCell>
+                                            <TableCell align="right" sx={{ color: textSoft, fontWeight: headingWeight }}>Action</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                        {dcEntries.map(entry => {
+                                            const ret = (entry.DailyReturn ?? 0) * 100;
+                                            const pos = ret >= 0;
+                                            return (
+                                                <TableRow key={entry.Date}>
+                                                    <TableCell sx={{ color: palette.textPrimary }}>{entry.Date}</TableCell>
+                                                    <TableCell sx={{ color: palette.textPrimary }}>{fmt(entry.StartingCapital, 0)}</TableCell>
+                                                    <TableCell sx={{ color: palette.textPrimary }}>{fmt(entry.EndingCapital, 0)}</TableCell>
+                                                    <TableCell sx={{ color: pos ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
+                                                        {pos ? "+" : ""}₹{fmt(Math.abs(entry.NetPnL), 0)}
+                                                    </TableCell>
+                                                    <TableCell sx={{ color: pos ? "#22c55e" : "#ef4444", fontWeight: 700 }}>
+                                                        {pos ? "+" : ""}{ret.toFixed(3)}%
+                                                    </TableCell>
+                                                    <TableCell align="right">
+                                                        <IconButton color="error" size="small" disabled={dcDeleting === entry.Date} onClick={() => handleDeleteDc(entry.Date)}>
+                                                            <Delete fontSize="small" />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })}
+                                    </TableBody>
+                                </Table>
+                            </TableContainer>
+                        )}
+                    </CardContent>
+                </Card>
+            </Box>
+        </LocalizationProvider>
     );
 }

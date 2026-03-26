@@ -126,8 +126,8 @@ export default function WalletLayout({ children }: { children: React.ReactNode }
 
             {/* Mobile top bar */}
             <div
-                className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 py-3 backdrop-blur-md"
-                style={{ background: surfaceBg, borderBottom: `1px solid ${borderColor}` }}
+                className="lg:hidden fixed left-0 right-0 z-[110] flex items-center justify-between px-4 py-3 backdrop-blur-md"
+                style={{ top: "var(--global-header-offset, 64px)", background: surfaceBg, borderBottom: `1px solid ${borderColor}` }}
             >
                 <div className="flex items-center gap-2">
                     <AccountBalanceWallet style={{ color: palette.accent, fontSize: 20 }} />
@@ -148,16 +148,16 @@ export default function WalletLayout({ children }: { children: React.ReactNode }
                 {mobileOpen && (
                     <>
                         <motion.div
-                            className="lg:hidden fixed inset-0 z-30"
-                            style={{ background: "rgba(0,0,0,0.4)" }}
+                            className="lg:hidden fixed left-0 right-0 bottom-0 z-[119]"
+                            style={{ top: "var(--global-header-offset, 64px)", background: "rgba(0,0,0,0.4)" }}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setMobileOpen(false)}
                         />
                         <motion.aside
-                            className="lg:hidden fixed top-0 left-0 bottom-0 w-60 z-40 flex flex-col"
-                            style={{ background: surfaceBg, borderRight: `1px solid ${borderColor}` }}
+                            className="lg:hidden fixed left-0 bottom-0 w-60 z-[120] flex flex-col"
+                            style={{ top: "var(--global-header-offset, 64px)", background: surfaceBg, borderRight: `1px solid ${borderColor}` }}
                             initial={{ x: -240 }}
                             animate={{ x: 0 }}
                             exit={{ x: -240 }}

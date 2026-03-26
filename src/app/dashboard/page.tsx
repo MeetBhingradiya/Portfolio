@@ -31,6 +31,9 @@ import PersonIcon from "@mui/icons-material/Person";
 import LockIcon from "@mui/icons-material/Lock";
 import LinkIcon from "@mui/icons-material/Link";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import AutoStoriesIcon from "@mui/icons-material/AutoStories";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import RocketLaunchIcon from "@mui/icons-material/RocketLaunch";
 
 // ── Types ────────────────────────────────────────────────────────
 interface BlogItem {
@@ -485,6 +488,57 @@ export default function UserDashboard() {
                                                         {React.cloneElement(icon, { style: { fontSize: 22, color } })}
                                                     </div>
                                                     <span className="text-xs font-medium" style={{ color: palette.textPrimary }}>{label}</span>
+                                                </motion.div>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                {/* Special tools dashboards */}
+                                <div>
+                                    <h3 className="text-sm font-semibold mb-3" style={{ color: palette.textSecondary }}>SPECIAL TOOLS DASHBOARDS</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                                        {[
+                                            {
+                                                label: "Trade Journal",
+                                                description: "Track trades, capital and analytics",
+                                                icon: <AutoStoriesIcon />,
+                                                href: "/trade-journal",
+                                                color: "#3b82f6"
+                                            },
+                                            {
+                                                label: "Wallet Manager",
+                                                description: "Income, expenses and asset analytics",
+                                                icon: <AccountBalanceWalletIcon />,
+                                                href: "/wallet",
+                                                color: "#10b981"
+                                            },
+                                            {
+                                                label: "Productivity Hub",
+                                                description: "Tasks, habits, goals and reminders",
+                                                icon: <RocketLaunchIcon />,
+                                                href: "/tools/productivity",
+                                                color: "#af52de"
+                                            }
+                                        ].map(({ label, description, icon, href, color }) => (
+                                            <Link key={label} href={href}>
+                                                <motion.div
+                                                    className="p-4 rounded-2xl cursor-pointer"
+                                                    style={card}
+                                                    whileHover={{ y: -3 }}
+                                                    whileTap={{ scale: 0.98 }}
+                                                    transition={{ type: "spring", stiffness: 300 }}
+                                                >
+                                                    <div className="flex items-start gap-3">
+                                                        <div className="p-2.5 rounded-xl shrink-0" style={{ background: color + "18", color }}>
+                                                            {React.cloneElement(icon, { style: { fontSize: 22, color } })}
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>{label}</p>
+                                                            <p className="text-xs mt-1" style={{ color: palette.textSecondary }}>{description}</p>
+                                                            <p className="text-xs mt-2 font-medium" style={{ color }}>Open dashboard →</p>
+                                                        </div>
+                                                    </div>
                                                 </motion.div>
                                             </Link>
                                         ))}

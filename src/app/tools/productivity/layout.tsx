@@ -157,8 +157,9 @@ export default function ProductivityLayout({ children }: { children: React.React
 
                 {/* Mobile top bar */}
                 <div
-                    className="lg:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
+                    className="lg:hidden fixed left-0 right-0 z-[110] flex items-center justify-between px-4"
                     style={{
+                        top: "var(--global-header-offset, 64px)",
                         background: surfaceBg,
                         borderBottom: `1px solid ${borderColor}`,
                         backdropFilter: isApple ? "blur(20px)" : "none",
@@ -197,16 +198,17 @@ export default function ProductivityLayout({ children }: { children: React.React
                     {mobileOpen && (
                         <>
                             <motion.div
-                                className="lg:hidden fixed inset-0 z-30"
-                                style={{ background: "rgba(0,0,0,0.45)" }}
+                                className="lg:hidden fixed left-0 right-0 bottom-0 z-[119]"
+                                style={{ top: "var(--global-header-offset, 64px)", background: "rgba(0,0,0,0.45)" }}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 onClick={() => setMobileOpen(false)}
                             />
                             <motion.aside
-                                className="lg:hidden fixed top-0 left-0 bottom-0 w-64 z-40 flex flex-col"
+                                className="lg:hidden fixed left-0 bottom-0 w-64 z-[120] flex flex-col"
                                 style={{
+                                    top: "var(--global-header-offset, 64px)",
                                     background: surfaceBg,
                                     borderRight: `1px solid ${borderColor}`,
                                     backdropFilter: isApple ? "blur(24px)" : "none",
@@ -227,7 +229,7 @@ export default function ProductivityLayout({ children }: { children: React.React
                 <main
                     className="flex-1 overflow-y-auto"
                     style={{
-                        paddingTop: "calc(56px + env(safe-area-inset-top))",
+                        paddingTop: "calc(var(--global-header-offset, 64px) + 56px + env(safe-area-inset-top))",
                         paddingBottom: "env(safe-area-inset-bottom)",
                     }}
                 >

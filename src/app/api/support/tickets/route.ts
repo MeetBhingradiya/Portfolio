@@ -4,9 +4,11 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { createHash, randomBytes } from "crypto";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket, TicketCounter } from "@Models/SupportTicket";
 import { getResolvedUser } from "@Utils/RolePermissions";
+import { sendEmail } from "@Utils/Email";
 
 async function nextTicketNumber(): Promise<number> {
     const counter = await TicketCounter.findByIdAndUpdate(
@@ -75,17 +77,24 @@ export async function POST(req: NextRequest) {
         await dbConnect();
         const h = await headers();
         const user = await getResolvedUser(h);
-        if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
+        const email = String(user?.email || body?.email || "").trim().toLowerCase();
+        const name = String(user?.name || body?.name || "").trim();
+        if (!email || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            return NextResponse.json({ success: false, error: "Valid name and email are required." }, { status: 400 });
+        }
+
         const num = await nextTicketNumber();
         const ticketId = `TKT-${String(num).padStart(5, "0")}`;
+        const accessSecret = randomBytes(6).toString("hex").toUpperCase();
+        const accessSecretHash = createHash("sha256").update(accessSecret).digest("hex");
 
         const firstMessage = {
             messageId: require("uuid").v4(),
-            senderId: user.userId,
-            senderEmail: user.email,
-            senderName: user.name,
+            senderId: user?.userId || `guest:${email}`,
+            senderEmail: email,
+            senderName: name,
             senderRole: "customer",
             content: body.description || "",
             attachments: body.attachments || [],
@@ -96,9 +105,9 @@ export async function POST(req: NextRequest) {
         const ticket = await SupportTicket.create({
             ticketId,
             ticketNumber: num,
-            userId: user.userId,
-            userEmail: user.email,
-            userName: user.name,
+            userId: user?.userId || `guest:${email}`,
+            userEmail: email,
+            userName: name,
             subject: body.subject,
             category: body.category || "general",
             priority: body.priority || "medium",
@@ -106,9 +115,26 @@ export async function POST(req: NextRequest) {
             messages: [firstMessage],
             lastRepliedAt: new Date(),
             tags: body.tags || [],
+            accessSecretHash,
         });
 
-        return NextResponse.json({ success: true, data: ticket.toObject() }, { status: 201 });
+        try {
+            await sendEmail({
+                to: email,
+                subject: `Support Ticket ${ticketId} Created`,
+                html: `<p>Your support ticket <strong>${ticketId}</strong> was created.</p><p>Ticket secret code: <strong>${accessSecret}</strong></p><p>Keep this secret code safe. You need it with OTP for secure ticket access.</p>`,
+                text: `Ticket ${ticketId} created. Secret code: ${accessSecret}. Keep this code safe.`,
+            });
+        } catch {
+            // Non-blocking: ticket is already created.
+        }
+
+        const data = ticket.toObject() as any;
+        delete data.accessSecretHash;
+        delete data.accessOtpHash;
+        delete data.accessSessionHash;
+        data.accessSecret = accessSecret;
+        return NextResponse.json({ success: true, data }, { status: 201 });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 400 });
     }

@@ -37,6 +37,8 @@ function NewTicketContent() {
     const prefillOrderId = searchParams.get("orderId") || "";
 
     const [form, setForm] = useState({
+        name: "",
+        email: "",
         subject: "",
         category: prefillOrderId ? "order" : "general",
         priority: "medium",
@@ -68,6 +70,10 @@ function NewTicketContent() {
             setError("Subject and description are required.");
             return;
         }
+        if (!form.name.trim() || !form.email.trim()) {
+            setError("Name and email are required.");
+            return;
+        }
         setLoading(true);
         setError("");
         try {
@@ -78,6 +84,9 @@ function NewTicketContent() {
             });
             const json = await res.json();
             if (json.success) {
+                if (json.data?.accessSecret && typeof window !== "undefined") {
+                    localStorage.setItem(`support-ticket-secret:${json.data.ticketId}`, json.data.accessSecret);
+                }
                 router.push(`/support/tickets/${json.data.ticketId}`);
             } else {
                 setError(json.error || "Failed to create ticket");
@@ -117,6 +126,32 @@ function NewTicketContent() {
                         style={{ background: cardBg, border, borderRadius: br, backdropFilter: isApple ? "blur(20px)" : "none" }}
                     >
                         {/* Subject */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-sm font-bold mb-1.5 block" style={{ color: palette.textPrimary }}>
+                                    Name *
+                                </label>
+                                <input
+                                    style={inputStyle}
+                                    placeholder="Your full name"
+                                    value={form.name}
+                                    onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-sm font-bold mb-1.5 block" style={{ color: palette.textPrimary }}>
+                                    Email *
+                                </label>
+                                <input
+                                    style={inputStyle}
+                                    type="email"
+                                    placeholder="you@example.com"
+                                    value={form.email}
+                                    onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                                />
+                            </div>
+                        </div>
+
                         <div>
                             <label className="text-sm font-bold mb-1.5 block" style={{ color: palette.textPrimary }}>
                                 Subject *

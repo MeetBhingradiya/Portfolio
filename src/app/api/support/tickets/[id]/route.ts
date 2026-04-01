@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { v4 as uuidv4 } from "uuid";
+import { createHash, timingSafeEqual } from "crypto";
 import mongoose from "mongoose";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket } from "@Models/SupportTicket";
@@ -17,26 +18,48 @@ function ticketQuery(id: string) {
         : { ticketId: id };
 }
 
+function compareHash(storedHash: string | undefined, provided: string): boolean {
+    if (!storedHash || !provided) return false;
+    const expected = Buffer.from(storedHash, "hex");
+    const actual = Buffer.from(createHash("sha256").update(provided).digest("hex"), "hex");
+    if (expected.length !== actual.length) return false;
+    return timingSafeEqual(expected, actual);
+}
+
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
     try {
         await dbConnect();
         const h = await headers();
         const user = await getResolvedUser(h);
-        if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        const accessToken = req.headers.get("x-ticket-access-token") || "";
 
         const ticket = await SupportTicket.findOne({
             ...ticketQuery(params.id),
             isDeleted: false,
-        }).lean();
+        })
+            .select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "")
+            .lean();
 
         if (!ticket) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
-        // Users can only see their own tickets; filter internal messages
-        if (!user.isEmployee) {
-            if ((ticket as any).userId !== user.userId) {
-                return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+        const hasValidAccessSession =
+            !!(ticket as any).accessSessionHash &&
+            !!(ticket as any).accessSessionExpiresAt &&
+            new Date((ticket as any).accessSessionExpiresAt).getTime() > Date.now() &&
+            compareHash((ticket as any).accessSessionHash, accessToken);
+
+        // Session user path
+        if (user) {
+            if (!user.isEmployee && (ticket as any).userId !== user.userId) {
+                if (!hasValidAccessSession) {
+                    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+                }
             }
-            // Strip internal notes for regular users
+        } else if (!hasValidAccessSession) {
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        }
+
+        if (!user?.isEmployee) {
             (ticket as any).messages = ((ticket as any).messages as any[]).filter(
                 (m: any) => !m.isInternal
             );
@@ -53,32 +76,41 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         await dbConnect();
         const h = await headers();
         const user = await getResolvedUser(h);
-        if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        const accessToken = req.headers.get("x-ticket-access-token") || "";
 
         const body = await req.json();
         const ticket = await SupportTicket.findOne({
             ...ticketQuery(params.id),
             isDeleted: false,
-        });
+        }).select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "");
 
         if (!ticket) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
-        // Only owner or employee/admin can touch this ticket
-        const isOwner = ticket.userId === user.userId;
-        if (!isOwner && !user.isEmployee) {
+        const hasValidAccessSession =
+            !!ticket.accessSessionHash &&
+            !!ticket.accessSessionExpiresAt &&
+            ticket.accessSessionExpiresAt.getTime() > Date.now() &&
+            compareHash(ticket.accessSessionHash, accessToken);
+
+        if (!user && !hasValidAccessSession) {
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        }
+
+        const isOwner = !!user && ticket.userId === user.userId;
+        if (user && !isOwner && !user.isEmployee && !hasValidAccessSession) {
             return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
         }
 
         // Add reply message
         if (body.reply) {
-            const senderRole = user.isAdmin ? "admin" : user.isEmployee ? "employee" : "customer";
-            const isInternal = !!body.isInternal && user.isEmployee;
+            const senderRole = user?.isAdmin ? "admin" : user?.isEmployee ? "employee" : "customer";
+            const isInternal = !!body.isInternal && !!user?.isEmployee;
 
             ticket.messages.push({
                 messageId: uuidv4(),
-                senderId: user.userId,
-                senderEmail: user.email,
-                senderName: user.name,
+                senderId: user?.userId || `guest:${ticket.ticketId}`,
+                senderEmail: user?.email || ticket.userEmail,
+                senderName: user?.name || ticket.userName || "Guest",
                 senderRole,
                 content: body.reply,
                 attachments: body.attachments || [],
@@ -97,7 +129,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
 
         // Employee/admin can update metadata
-        if (user.isEmployee) {
+        if (user?.isEmployee) {
             if (body.status) {
                 ticket.status = body.status;
                 if (body.status === "resolved") ticket.resolvedAt = new Date();
@@ -112,7 +144,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
 
         // Customer can rate resolved ticket
-        if (isOwner && body.satisfactionRating && ["resolved", "closed"].includes(ticket.status)) {
+        if ((isOwner || hasValidAccessSession) && body.satisfactionRating && ["resolved", "closed"].includes(ticket.status)) {
             ticket.satisfactionRating = body.satisfactionRating;
             ticket.satisfactionComment = body.satisfactionComment;
         }

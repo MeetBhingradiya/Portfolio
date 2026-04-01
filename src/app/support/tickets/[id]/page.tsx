@@ -73,6 +73,12 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     const [sending, setSending] = useState(false);
     const [isInternal, setIsInternal] = useState(false);
     const [rating, setRating] = useState(0);
+    const [error, setError] = useState("");
+    const [secretCode, setSecretCode] = useState("");
+    const [otp, setOtp] = useState("");
+    const [otpSent, setOtpSent] = useState(false);
+    const [accessToken, setAccessToken] = useState("");
+    const [accessLoading, setAccessLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const cardBg = isApple
@@ -83,15 +89,31 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
 
     const fetchTicket = async () => {
         setLoading(true);
+        setError("");
         try {
-            const res = await fetch(`/api/support/tickets/${params.id}`);
+            const headers: Record<string, string> = {};
+            if (accessToken) headers["x-ticket-access-token"] = accessToken;
+            const res = await fetch(`/api/support/tickets/${params.id}`, { headers });
             const json = await res.json();
             if (json.success) setTicket(json.data);
-        } catch { /* silent */ }
+            else {
+                setTicket(null);
+                setError(json.error || "Unable to load ticket.");
+            }
+        } catch {
+            setTicket(null);
+            setError("Network error. Please try again.");
+        }
         setLoading(false);
     };
 
-    useEffect(() => { fetchTicket(); }, [params.id]);
+    useEffect(() => {
+        const token = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-token:${params.id}`) || "" : "";
+        if (token) setAccessToken(token);
+        const savedSecret = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-secret:${params.id}`) || "" : "";
+        if (savedSecret) setSecretCode(savedSecret);
+    }, [params.id]);
+    useEffect(() => { fetchTicket(); }, [params.id, accessToken]);
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [ticket?.messages]);
@@ -102,15 +124,22 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
         try {
             const res = await fetch(`/api/support/tickets/${params.id}`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    ...(accessToken ? { "x-ticket-access-token": accessToken } : {}),
+                },
                 body: JSON.stringify({ reply, isInternal }),
             });
             const json = await res.json();
             if (json.success) {
                 setTicket(json.data);
                 setReply("");
+            } else {
+                setError(json.error || "Failed to send reply.");
             }
-        } catch { /* silent */ }
+        } catch {
+            setError("Network error. Please try again.");
+        }
         setSending(false);
     };
 
@@ -118,10 +147,61 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
         setRating(r);
         await fetch(`/api/support/tickets/${params.id}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+                "Content-Type": "application/json",
+                ...(accessToken ? { "x-ticket-access-token": accessToken } : {}),
+            },
             body: JSON.stringify({ satisfactionRating: r }),
         });
         fetchTicket();
+    };
+
+    const requestOtp = async () => {
+        if (!secretCode.trim()) return;
+        setAccessLoading(true);
+        setError("");
+        try {
+            const res = await fetch(`/api/support/tickets/access/${params.id}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ secretCode }),
+            });
+            const json = await res.json();
+            if (json.success) {
+                setOtpSent(true);
+            } else {
+                setError(json.error || "Unable to send OTP.");
+            }
+        } catch {
+            setError("Network error. Please try again.");
+        }
+        setAccessLoading(false);
+    };
+
+    const verifyOtp = async () => {
+        if (!secretCode.trim() || !otp.trim()) return;
+        setAccessLoading(true);
+        setError("");
+        try {
+            const res = await fetch(`/api/support/tickets/access/${params.id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ secretCode, otp }),
+            });
+            const json = await res.json();
+            if (json.success && json.data?.accessToken) {
+                setAccessToken(json.data.accessToken);
+                if (typeof window !== "undefined") {
+                    localStorage.setItem(`support-ticket-token:${params.id}`, json.data.accessToken);
+                }
+                setTicket(json.data.ticket);
+            } else {
+                setError(json.error || "OTP verification failed.");
+            }
+        } catch {
+            setError("Network error. Please try again.");
+        }
+        setAccessLoading(false);
     };
 
     if (loading) {
@@ -136,6 +216,50 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
         return (
             <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: palette.background }}>
                 <p className="text-lg font-bold" style={{ color: palette.textPrimary }}>Ticket not found</p>
+                {!!error && <p className="text-sm" style={{ color: "#FF3B30" }}>{error}</p>}
+                {["Unauthorized", "Forbidden", "Invalid ticket credentials."].includes(error) && (
+                    <div className="w-full max-w-md p-4 rounded-2xl space-y-3" style={{ background: cardBg, border }}>
+                        <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                            Access this ticket with secret code + OTP
+                        </p>
+                        <input
+                            value={secretCode}
+                            onChange={e => setSecretCode(e.target.value)}
+                            placeholder="Ticket secret code"
+                            className="w-full px-3 py-2 rounded-xl bg-transparent outline-none text-sm"
+                            style={{ color: palette.textPrimary, border }}
+                        />
+                        {otpSent && (
+                            <input
+                                value={otp}
+                                onChange={e => setOtp(e.target.value)}
+                                placeholder="6-digit OTP sent to ticket email"
+                                className="w-full px-3 py-2 rounded-xl bg-transparent outline-none text-sm"
+                                style={{ color: palette.textPrimary, border }}
+                            />
+                        )}
+                        <div className="flex gap-2">
+                            <button
+                                onClick={requestOtp}
+                                disabled={accessLoading || !secretCode.trim()}
+                                className="px-4 py-2 rounded-xl font-semibold text-sm"
+                                style={{ background: palette.accent, color: "#fff", opacity: accessLoading ? 0.7 : 1 }}
+                            >
+                                Send OTP
+                            </button>
+                            {otpSent && (
+                                <button
+                                    onClick={verifyOtp}
+                                    disabled={accessLoading || !otp.trim()}
+                                    className="px-4 py-2 rounded-xl font-semibold text-sm"
+                                    style={{ background: "#34C759", color: "#fff", opacity: accessLoading ? 0.7 : 1 }}
+                                >
+                                    Verify & Open
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                )}
                 <Link href="/support/tickets">
                     <button className="px-5 py-2.5 rounded-xl font-bold text-white" style={{ background: palette.accent }}>
                         Back to Tickets
@@ -282,6 +406,11 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                 {/* Reply box */}
                 {!isClosed && (
                     <div className="p-4 space-y-3" style={{ background: cardBg, border, borderRadius: br }}>
+                        {!!error && (
+                            <p className="text-xs px-3 py-2 rounded-xl" style={{ color: "#FF3B30", background: "#FF3B3014" }}>
+                                {error}
+                            </p>
+                        )}
                         <textarea
                             rows={4}
                             placeholder="Type your reply…"

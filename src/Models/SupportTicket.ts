@@ -68,6 +68,12 @@ export interface ISupportTicket extends Document {
     satisfactionComment?: string;
 
     isDeleted: boolean;
+    accessSecretHash?: string;
+    accessOtpHash?: string;
+    accessOtpExpiresAt?: Date;
+    accessOtpAttempts: number;
+    accessSessionHash?: string;
+    accessSessionExpiresAt?: Date;
     createdAt: Date;
     updatedAt: Date;
 }
@@ -129,6 +135,12 @@ const SupportTicketSchema = new Schema<ISupportTicket>(
         satisfactionComment: { type: String, trim: true },
 
         isDeleted: { type: Boolean, default: false },
+        accessSecretHash: { type: String, select: false },
+        accessOtpHash: { type: String, select: false },
+        accessOtpExpiresAt: { type: Date, select: false },
+        accessOtpAttempts: { type: Number, default: 0, select: false },
+        accessSessionHash: { type: String, select: false },
+        accessSessionExpiresAt: { type: Date, select: false },
     },
     { timestamps: true }
 );

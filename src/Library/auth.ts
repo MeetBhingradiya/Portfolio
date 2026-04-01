@@ -22,6 +22,13 @@ import { getClientIp } from "@Library/IP";
 const verificationEmailRateLimitStore = new Map<string, number[]>();
 const E164_PHONE_REGEX = /^\+[1-9]\d{7,14}$/;
 
+class SignupDisabledError extends Error {
+    constructor() {
+        super("User registration is currently disabled. Please contact the site administrator for assistance.");
+        this.name = "SignupDisabledError";
+    }
+}
+
 type IpDataResult = {
     ip?: string;
     city?: string;
@@ -397,6 +404,21 @@ export const auth = betterAuth({
     databaseHooks: {
         user: {
             create: {
+                before: async (user) => {
+                    try {
+                        const settings = await getSiteSettings();
+                        if (settings.allowSignup !== true) {
+                            throw new SignupDisabledError();
+                        }
+                    } catch (err: unknown) {
+                        if (err instanceof SignupDisabledError) {
+                            throw err;
+                        }
+                        // If we can't read settings, fail open (allow) to avoid breaking auth on DB errors
+                        console.error("[Auth] Failed to read site settings for signup check:", err);
+                    }
+                    return { data: user };
+                },
                 after: async (user) => {
                     console.log(`[Auth] User created: ${user.email}`);
                 },

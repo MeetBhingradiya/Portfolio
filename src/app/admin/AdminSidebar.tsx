@@ -95,7 +95,6 @@ const allNavItems: NavItem[] = [
     { href: "/admin/tools",                label: "Tools",        icon: <Build fontSize="small" />,           group: "system", permKey: "tools" },
     { href: "/admin/tool-settings",        label: "Tool Settings",icon: <Build fontSize="small" />,           group: "system", permKey: "tool-settings" },
     { href: "/admin/ai-providers",         label: "AI Providers", icon: <Psychology fontSize="small" />,      group: "system", permKey: "ai-providers" },
-    { href: "/admin/db-sync",              label: "DB Sync",      icon: <SyncAlt fontSize="small" />,         group: "system", permKey: "db-sync" },
     { href: "/admin/maintenance",          label: "Maintenance",  icon: <Construction fontSize="small" />,    group: "system", permKey: "maintenance" },
     { href: "/admin/immich-access",        label: "Immich Access",icon: <PhotoCamera fontSize="small" />,     group: "system", permKey: "immich-access" },
     { href: "/admin/cdn",                  label: "CDN Assets",   icon: <CloudUpload fontSize="small" />,     exact: true, group: "system", permKey: "cdn" },

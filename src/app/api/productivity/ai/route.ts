@@ -18,6 +18,7 @@ import {
     type AIProviderKey,
 } from "@Models/AIProviderSettings";
 import { UserProductivityStats } from "@Models/UserProductivityStats";
+import { decryptStoredSecret } from "@Utils/SecretVault";
 
 // ─── Provider call helper ─────────────────────────────────────────────────────
 
@@ -170,14 +171,26 @@ export async function POST(req: NextRequest) {
 
         const settings = await getAIProviderSettings();
 
+        const providerKeys = Object.keys(settings.Providers) as AIProviderKey[];
+        const resolvedApiKeys = Object.fromEntries(
+            providerKeys.map((k) => {
+                try {
+                    return [k, decryptStoredSecret(settings.Providers[k].apiKey || "")];
+                } catch {
+                    return [k, ""];
+                }
+            })
+        ) as Record<AIProviderKey, string>;
+
         // Find the active enabled provider
         const activeProvider = settings.ActiveProvider;
         const providerConfig = settings.Providers[activeProvider];
+        const activeApiKey = resolvedApiKeys[activeProvider];
 
-        if (!providerConfig.enabled || !providerConfig.apiKey) {
+        if (!providerConfig.enabled || !activeApiKey) {
             // Try to find any enabled provider as fallback
-            const fallback = (Object.keys(settings.Providers) as AIProviderKey[]).find(
-                (k) => settings.Providers[k].enabled && settings.Providers[k].apiKey
+            const fallback = providerKeys.find(
+                (k) => settings.Providers[k].enabled && resolvedApiKeys[k]
             );
             if (!fallback) {
                 return NextResponse.json(
@@ -187,12 +200,13 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        const provider = providerConfig.enabled && providerConfig.apiKey ? activeProvider
-            : (Object.keys(settings.Providers) as AIProviderKey[]).find(
-                (k) => settings.Providers[k].enabled && settings.Providers[k].apiKey
+        const provider = providerConfig.enabled && activeApiKey ? activeProvider
+            : providerKeys.find(
+                (k) => settings.Providers[k].enabled && resolvedApiKeys[k]
             )!;
 
         const config = settings.Providers[provider];
+        const apiKey = resolvedApiKeys[provider];
         const model = config.activeModel || AI_PROVIDERS[provider].models[0];
 
         // Build user message
@@ -205,7 +219,7 @@ export async function POST(req: NextRequest) {
 
         const rawResponse = await callAI(
             provider,
-            config.apiKey,
+            apiKey,
             model,
             SYSTEM_PROMPTS[action] ?? SYSTEM_PROMPTS.create_task,
             userMessage,

@@ -10,6 +10,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { getAIProviderSettings, AI_PROVIDERS, type AIProviderKey } from "@Models/AIProviderSettings";
+import { decryptStoredSecret } from "@Utils/SecretVault";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -81,8 +82,9 @@ export async function GET(req: NextRequest) {
 
         const settings = await getAIProviderSettings();
         const config = settings.Providers[provider];
+        const apiKey = decryptStoredSecret(config?.apiKey || "");
 
-        if (!config?.apiKey) {
+        if (!apiKey) {
             return NextResponse.json(
                 { success: false, error: "No API key configured for this provider" },
                 { status: 422 }
@@ -93,11 +95,11 @@ export async function GET(req: NextRequest) {
         let models: string[] = [];
 
         if (provider === "github") {
-            models = await fetchGitHubModels(config.apiKey, baseUrl);
+            models = await fetchGitHubModels(apiKey, baseUrl);
         } else if (provider === "google") {
-            models = await fetchGoogleModels(config.apiKey);
+            models = await fetchGoogleModels(apiKey);
         } else if (provider === "perplexity") {
-            models = await fetchPerplexityModels(config.apiKey);
+            models = await fetchPerplexityModels(apiKey);
         }
 
         return NextResponse.json({ success: true, models });

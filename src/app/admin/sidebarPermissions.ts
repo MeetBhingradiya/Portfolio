@@ -31,6 +31,7 @@ export type NavItemKey =
     | "ai-providers"
     | "maintenance"
     | "immich-access"
+    | "db-sync"
     | "cdn"
     | "cdn-applications"
     | "cdn-api-keys";
@@ -74,6 +75,7 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
     "ai-providers": ["admin.site.settings"],
     maintenance: ["admin.site.settings"],
     "immich-access": ["admin.site.settings"],
+    "db-sync": ["admin.site.settings"],
     cdn: ["cdn.keys.view", "cdn.keys.manage"],
     "cdn-applications": ["cdn.applications.view", "cdn.applications.review"],
     "cdn-api-keys": ["cdn.keys.view", "cdn.keys.manage"],

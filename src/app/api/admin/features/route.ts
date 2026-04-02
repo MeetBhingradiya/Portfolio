@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@/Utils/dbConnect";
 import { SiteSettings_Model, getSiteSettings } from "@/Models/SiteSettings";
+import { encryptStoredSecret } from "@Utils/SecretVault";
 
 function redactProviders(providers: Record<string, any>) {
     const out: Record<string, any> = {};
@@ -107,8 +108,8 @@ export async function PATCH(req: NextRequest) {
             if (typeof prov.publicKey === "string")
                 update[`paymentProviders.${name}.publicKey`] = prov.publicKey;
             // Only overwrite secretKey if explicitly provided and non-empty
-            if (typeof prov.secretKey === "string" && prov.secretKey.length > 0)
-                update[`paymentProviders.${name}.secretKey`] = prov.secretKey;
+            if (typeof prov.secretKey === "string" && prov.secretKey.length > 0 && !prov.secretKey.includes("•"))
+                update[`paymentProviders.${name}.secretKey`] = encryptStoredSecret(prov.secretKey);
             if (prov.extra && typeof prov.extra === "object")
                 update[`paymentProviders.${name}.extra`] = prov.extra;
         }

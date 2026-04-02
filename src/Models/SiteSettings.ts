@@ -9,7 +9,7 @@ const PaymentProviderSchema = new mongoose.Schema(
     {
         enabled:   { type: Boolean, default: false },
         publicKey: { type: String, default: "" },
-        secretKey: { type: String, default: "" },
+        secretKey: { type: String, default: "" }, // Encrypted at rest
         extra:     { type: mongoose.Schema.Types.Mixed, default: {} },
     },
     { _id: false }

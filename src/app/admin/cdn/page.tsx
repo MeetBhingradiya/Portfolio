@@ -39,9 +39,6 @@ import {
     Info,
     Fingerprint,
     BugReport,
-    History,
-    RestoreFromTrash,
-    OpenInNew,
 } from "@mui/icons-material";
 
 // ---------------------------------------------------------------------------
@@ -808,15 +805,6 @@ export default function CDNAdminPage() {
 // Asset Row
 // ---------------------------------------------------------------------------
 
-interface GitHubCommit {
-    sha: string;
-    shortSha: string;
-    message: string;
-    authorName: string;
-    authorDate: string;
-    htmlUrl: string;
-}
-
 function DetailDrawer({
     asset, palette, isDark, isApple, border, radius, onClose, onRefresh,
 }: {
@@ -836,57 +824,6 @@ function DetailDrawer({
     const cdnUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/api/cdn/${asset.assetId}`;
 
     const copyField = (text: string) => navigator.clipboard.writeText(text);
-
-    // ── Version History tab ──────────────────────────────────────────────
-    const [activeTab, setActiveTab] = useState<"info" | "history">("info");
-    const [commits, setCommits] = useState<GitHubCommit[]>([]);
-    const [historyLoading, setHistoryLoading] = useState(false);
-    const [historyError, setHistoryError] = useState("");
-    const [restoring, setRestoring] = useState<string | null>(null); // sha being restored
-    const [restoreMsg, setRestoreMsg] = useState("");
-
-    const loadHistory = React.useCallback(async () => {
-        setHistoryLoading(true);
-        setHistoryError("");
-        try {
-            const res = await fetch(`/api/admin/cdn/${asset._id}/history`);
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Failed to load history");
-            setCommits(data.commits ?? []);
-        } catch (e: any) {
-            setHistoryError(e.message);
-        } finally {
-            setHistoryLoading(false);
-        }
-    }, [asset._id]);
-
-    const handleRestore = async (commitSha: string) => {
-        setRestoring(commitSha);
-        setRestoreMsg("");
-        try {
-            const res = await fetch(`/api/admin/cdn/${asset._id}/restore`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ commitSha }),
-            });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error || "Restore failed");
-            setRestoreMsg(`✓ Restored from ${commitSha.slice(0, 7)} — asset is active again!`);
-            onRefresh();
-            // Reload history so new restore commit appears
-            await loadHistory();
-        } catch (e: any) {
-            setRestoreMsg(`✗ ${e.message}`);
-        } finally {
-            setRestoring(null);
-        }
-    };
-
-    React.useEffect(() => {
-        if (activeTab === "history" && commits.length === 0 && !historyLoading) {
-            loadHistory();
-        }
-    }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const Row = ({ label, value, mono = false, copiable = false }: { label: string; value?: string; mono?: boolean; copiable?: boolean }) => {
         const [copied, setCopied] = useState(false);
@@ -934,26 +871,7 @@ function DetailDrawer({
                 }}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Tabs */}
-                <div style={{ display: "flex", borderBottom: `1px solid ${border}`, background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)" }}>
-                    {(["info", "history"] as const).map((tab) => (
-                        <button
-                            key={tab}
-                            onClick={() => setActiveTab(tab)}
-                            style={{
-                                flex: 1, padding: "13px 0", background: "none", border: "none",
-                                borderBottom: activeTab === tab ? `2px solid ${palette.accent}` : "2px solid transparent",
-                                color: activeTab === tab ? palette.accent : palette.textSecondary,
-                                fontWeight: activeTab === tab ? 800 : 600, fontSize: 13,
-                                cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                                transition: "all 0.15s",
-                            }}
-                        >
-                            {tab === "info" ? <Info style={{ fontSize: 15 }} /> : <History style={{ fontSize: 15 }} />}
-                            {tab === "info" ? "Details" : "Version History"}
-                        </button>
-                    ))}
-                </div>
+                {/* Header */}
 
                 {/* Header */}
                 <div style={{ padding: "20px 20px 14px", borderBottom: `1px solid ${border}`, display: "flex", alignItems: "center", gap: 12 }}>
@@ -992,8 +910,8 @@ function DetailDrawer({
                     )}
                 </div>
 
-                {/* Metadata rows — only shown in Details tab */}
-                {activeTab === "info" && <div style={{ padding: "0 20px", flex: 1 }}>
+                {/* Metadata rows */}
+                <div style={{ padding: "0 20px", flex: 1 }}>
                     <Row label="Asset ID" value={asset.assetId} mono copiable />
                     <Row label="CDN URL" value={`/api/cdn/${asset.assetId}`} mono copiable />
                     <Row label="GitHub Repo" value={asset.githubRepo} mono copiable />
@@ -1009,109 +927,9 @@ function DetailDrawer({
                     <Row label="Created" value={asset.createdAt ? new Date(asset.createdAt).toLocaleString() : undefined} />
                     {asset.lastChecked && <Row label="Last Checked" value={new Date(asset.lastChecked).toLocaleString()} />}
                     {asset.lastCheckOk !== undefined && <Row label="Last Check" value={asset.lastCheckOk ? "✓ OK" : "✗ Failed"} />}
-                </div>}
-
-                {/* Version History tab content */}
-                {activeTab === "history" && (
-                    <div style={{ flex: 1, overflowY: "auto", padding: "14px 20px" }}>
-                        {/* Restore message */}
-                        {restoreMsg && (
-                            <div style={{
-                                marginBottom: 12, padding: "10px 14px", borderRadius: 10, fontSize: 13, fontWeight: 700,
-                                background: restoreMsg.startsWith("✓") ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.12)",
-                                color: restoreMsg.startsWith("✓") ? "#22c55e" : "#ef4444",
-                                border: `1px solid ${restoreMsg.startsWith("✓") ? "rgba(34,197,94,0.3)" : "rgba(239,68,68,0.3)"}`,
-                            }}>
-                                {restoreMsg}
-                            </div>
-                        )}
-
-                        {/* Reload / info header */}
-                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                            <p style={{ fontSize: 11, color: palette.textTertiary }}>
-                                Every commit that touched this file path in GitHub is listed. Click <strong>Restore</strong> to bring any version back as the current file.
-                            </p>
-                            <button
-                                onClick={loadHistory}
-                                disabled={historyLoading}
-                                style={{ background: "none", border: "none", cursor: "pointer", color: palette.accent, flexShrink: 0, marginLeft: 8 }}
-                            >
-                                <Refresh style={{ fontSize: 16, animation: historyLoading ? "spin 1s linear infinite" : "none" }} />
-                            </button>
-                        </div>
-
-                        {historyError && (
-                            <p style={{ color: "#ef4444", fontSize: 13, marginBottom: 12 }}>{historyError}</p>
-                        )}
-
-                        {historyLoading && !commits.length && (
-                            <p style={{ color: palette.textTertiary, fontSize: 13 }}>Loading commit history…</p>
-                        )}
-
-                        {!historyLoading && !historyError && commits.length === 0 && (
-                            <p style={{ color: palette.textTertiary, fontSize: 13 }}>No commits found for this file path.</p>
-                        )}
-
-                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                            {commits.map((c, idx) => (
-                                <div key={c.sha} style={{
-                                    borderRadius: 10,
-                                    border: `1px solid ${border}`,
-                                    padding: "12px 14px",
-                                    background: idx === 0 ? (isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)") : "transparent",
-                                }}>
-                                    <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10 }}>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                                                <span style={{ fontFamily: "monospace", fontSize: 12, fontWeight: 800, color: palette.accent, background: `${palette.accent}18`, borderRadius: 5, padding: "2px 7px" }}>
-                                                    {c.shortSha}
-                                                </span>
-                                                {idx === 0 && (
-                                                    <span style={{ fontSize: 10, fontWeight: 800, background: "rgba(34,197,94,0.15)", color: "#22c55e", borderRadius: 5, padding: "2px 7px" }}>CURRENT</span>
-                                                )}
-                                            </div>
-                                            <p style={{ fontSize: 13, color: palette.textPrimary, fontWeight: 600, margin: 0, wordBreak: "break-word" }}>{c.message}</p>
-                                            <p style={{ fontSize: 11, color: palette.textTertiary, marginTop: 4 }}>
-                                                {c.authorName} · {new Date(c.authorDate).toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <div style={{ display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
-                                            <a
-                                                href={c.htmlUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                title="View on GitHub"
-                                                style={{ display: "flex", alignItems: "center", justifyContent: "center", background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)", border: `1px solid ${border}`, borderRadius: 7, padding: "5px 8px", color: palette.textSecondary, textDecoration: "none" }}
-                                            >
-                                                <OpenInNew style={{ fontSize: 14 }} />
-                                            </a>
-                                            {idx !== 0 && (
-                                                <button
-                                                    onClick={() => handleRestore(c.sha)}
-                                                    disabled={restoring === c.sha}
-                                                    title="Restore this version"
-                                                    style={{
-                                                        display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
-                                                        background: restoring === c.sha ? palette.textTertiary : "rgba(99,91,255,0.15)",
-                                                        border: "1px solid rgba(99,91,255,0.3)", borderRadius: 7,
-                                                        padding: "5px 10px", cursor: restoring === c.sha ? "not-allowed" : "pointer",
-                                                        color: restoring === c.sha ? "#fff" : "#7c71f8", fontSize: 11, fontWeight: 800,
-                                                    }}
-                                                >
-                                                    <RestoreFromTrash style={{ fontSize: 13 }} />
-                                                    {restoring === c.sha ? "Restoring…" : "Restore"}
-                                                </button>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                </div>
 
                 {/* Copy full URL footer */}
-                {activeTab === "info" && (
                 <div style={{ padding: 20, borderTop: `1px solid ${border}` }}>
                     <button
                         onClick={() => navigator.clipboard.writeText(cdnUrl)}
@@ -1134,7 +952,6 @@ function DetailDrawer({
                         <ContentCopy fontSize="small" /> Copy Full CDN URL
                     </button>
                 </div>
-                )}
             </motion.div>
         </motion.div>
     );

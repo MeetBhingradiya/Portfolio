@@ -7,8 +7,11 @@
  * the most free space.
  *
  * Required env vars:
- *   CDN_GITHUB_TOKEN       — PAT (classic) with `repo` scope
  *   CDN_GITHUB_OWNER       — GitHub username or organisation
+ *   AND one token variable:
+ *     - CDN_GITHUB_FINE_GRAINED_TOKEN (preferred)
+ *     - CDN_GITHUB_TOKEN               (classic token, backward compatible)
+ *     - CDN_GITHUB_CLASSIC_TOKEN       (explicit classic alias)
  *
  * Optional env vars:
  *   CDN_GITHUB_REPO_PREFIX — Prefix repos must start with  (default: "PrivateCloud")
@@ -23,14 +26,29 @@ const DEFAULT_PREFIX = "PrivateCloud";
 const DEFAULT_LIMIT_KB = 900_000; // ~900 MB
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+function isHistoryCompactionEnabled() {
+    const raw = (process.env.CDN_COMPACT_HISTORY ?? "true").trim().toLowerCase();
+    return raw !== "0" && raw !== "false" && raw !== "off";
+}
+
 // ---------------------------------------------------------------------------
 // Config helpers
 // ---------------------------------------------------------------------------
 
 function getToken() {
-    const t = process.env.CDN_GITHUB_TOKEN;
-    if (!t) throw new Error("CDN_GITHUB_TOKEN is not set.");
-    return t;
+    const fineGrained = process.env.CDN_GITHUB_FINE_GRAINED_TOKEN?.trim();
+    const classic =
+        process.env.CDN_GITHUB_CLASSIC_TOKEN?.trim() ||
+        process.env.CDN_GITHUB_TOKEN?.trim();
+
+    const token = fineGrained || classic;
+    if (!token) {
+        throw new Error(
+            "No GitHub token found. Set CDN_GITHUB_FINE_GRAINED_TOKEN or CDN_GITHUB_TOKEN/CDN_GITHUB_CLASSIC_TOKEN."
+        );
+    }
+
+    return token;
 }
 
 function getOwner() {
@@ -58,6 +76,69 @@ function ghHeaders(tk: string) {
         "X-GitHub-Api-Version": "2022-11-28",
         "Content-Type": "application/json",
     };
+}
+
+async function compactRepoHistory(repo: string, reason: string): Promise<void> {
+    if (!isHistoryCompactionEnabled()) return;
+
+    const tk = getToken();
+    const ow = getOwner();
+    const br = getBranch();
+
+    // 1) Resolve current branch head commit
+    const refRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/ref/heads/${encodeURIComponent(br)}`, {
+        headers: ghHeaders(tk),
+        cache: "no-store",
+    });
+    if (!refRes.ok) {
+        const body = await refRes.text();
+        throw new Error(`CDN history compact failed (read ref ${repo}:${br}) (${refRes.status}): ${body}`);
+    }
+    const refData = await refRes.json();
+    const headCommitSha = refData?.object?.sha as string | undefined;
+    if (!headCommitSha) throw new Error(`CDN history compact failed: missing head commit for ${repo}:${br}`);
+
+    // 2) Read tree SHA from head commit
+    const headCommitRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/commits/${headCommitSha}`, {
+        headers: ghHeaders(tk),
+        cache: "no-store",
+    });
+    if (!headCommitRes.ok) {
+        const body = await headCommitRes.text();
+        throw new Error(`CDN history compact failed (read commit ${headCommitSha}) (${headCommitRes.status}): ${body}`);
+    }
+    const headCommit = await headCommitRes.json();
+    const treeSha = headCommit?.tree?.sha as string | undefined;
+    if (!treeSha) throw new Error(`CDN history compact failed: missing tree sha for ${repo}:${br}`);
+
+    // 3) Create fresh root commit (no parents)
+    const newCommitRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/commits`, {
+        method: "POST",
+        headers: ghHeaders(tk),
+        body: JSON.stringify({
+            message: `cdn: compact history (${reason})`,
+            tree: treeSha,
+            parents: [],
+        }),
+    });
+    if (!newCommitRes.ok) {
+        const body = await newCommitRes.text();
+        throw new Error(`CDN history compact failed (create commit) (${newCommitRes.status}): ${body}`);
+    }
+    const newCommit = await newCommitRes.json();
+    const newCommitSha = newCommit?.sha as string | undefined;
+    if (!newCommitSha) throw new Error(`CDN history compact failed: missing new commit sha`);
+
+    // 4) Force branch to the new root commit
+    const updateRefRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/refs/heads/${encodeURIComponent(br)}`, {
+        method: "PATCH",
+        headers: ghHeaders(tk),
+        body: JSON.stringify({ sha: newCommitSha, force: true }),
+    });
+    if (!updateRefRes.ok) {
+        const body = await updateRefRes.text();
+        throw new Error(`CDN history compact failed (update ref) (${updateRefRes.status}): ${body}`);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -277,6 +358,9 @@ export async function githubUpload(
     }
 
     const data = await res.json();
+
+    await compactRepoHistory(repoName, `upload ${path}`);
+
     return {
         repo: repoName,
         sha: data.content.sha as string,
@@ -371,6 +455,8 @@ export async function githubDelete(
         const body = await res.text();
         throw new Error(`GitHub delete failed in "${repo}" (${res.status}): ${body}`);
     }
+
+    await compactRepoHistory(repo, `delete ${path}`);
 }
 
 // ---------------------------------------------------------------------------

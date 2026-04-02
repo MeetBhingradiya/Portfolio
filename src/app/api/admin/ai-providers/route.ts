@@ -11,6 +11,7 @@ import {
     AI_PROVIDERS,
     type AIProviderKey,
 } from "@Models/AIProviderSettings";
+import { encryptStoredSecret } from "@Utils/SecretVault";
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
@@ -100,7 +101,7 @@ export async function PATCH(req: NextRequest) {
                 }
                 // Only update apiKey if a non-empty value is provided
                 if (incoming.apiKey && incoming.apiKey.trim() && !incoming.apiKey.includes("•")) {
-                    updateSet[`Providers.${providerKey}.apiKey`] = incoming.apiKey.trim();
+                    updateSet[`Providers.${providerKey}.apiKey`] = encryptStoredSecret(incoming.apiKey);
                 }
             }
         }

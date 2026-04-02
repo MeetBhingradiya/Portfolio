@@ -6,6 +6,11 @@
 A private, unlimited-storage CDN backed by one or more private GitHub repositories.
 Files are never exposed with a public GitHub URL — everything is proxied through the Next.js API, authenticated with a PAT, and served with long-lived `Cache-Control` headers.
 
+The CDN now runs in **privacy compaction mode**:
+- After each upload/delete mutation, the repository branch is force-compacted to a **single commit**.
+- Historical file revisions are intentionally removed from normal branch history.
+- Admin version-history/restore-by-commit features are disabled.
+
 ---
 
 ## Architecture
@@ -76,12 +81,18 @@ Required permissions (for the `PrivateCloud-*` repos):
 
 ```env
 # .env (never commit this)
-CDN_GITHUB_TOKEN=github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Preferred (fine-grained token)
+CDN_GITHUB_FINE_GRAINED_TOKEN=github_pat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# Backward-compatible classic token aliases (optional)
+# CDN_GITHUB_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+# CDN_GITHUB_CLASSIC_TOKEN=ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 CDN_GITHUB_OWNER=YourGitHubUsername
 CDN_GITHUB_REPO_PREFIX=PrivateCloud
 CDN_GITHUB_BRANCH=main
 # Soft cap per repo in KB (900 MB = 921600 KB is a safe GitHub limit)
 CDN_REPO_SIZE_LIMIT_KB=921600
+# Keep commit history compacted to one commit for privacy
+CDN_COMPACT_HISTORY=true
 ```
 
 ### 4. MongoDB
@@ -271,7 +282,7 @@ The system automatically manages multiple `PrivateCloud-*` repos:
    (paginated, cached for 5 minutes in-process).
 2. Repos are sorted by ascending `sizeKb`.
 3. The first repo under `CDN_REPO_SIZE_LIMIT_KB` is selected.
-4. If **all** repos exceed the cap, a warning is logged and the smallest repo is still used.
+4. If **all** repos exceed the cap, a new `PrivateCloud-N` repo is created automatically.
 5. After a successful upload the cache is invalidated so the next upload sees the updated size.
 
 **To add storage:** just create another repo named `PrivateCloud-2`, `PrivateCloud-3`, etc.  
@@ -291,6 +302,8 @@ Calls `GET contents/<path>` for every active asset. Detects:
 - Files still present (SHA may have changed externally → updated in MongoDB)
 - Files missing on GitHub → `status: "missing"`
 - Previously missing files re-appearing → `status: "active"` restored
+
+> Note: Because branch history is compacted to a single commit, historical rollback by commit is not available.
 
 ### Deep Check (Checksum Verification)
 

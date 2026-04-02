@@ -61,7 +61,7 @@ export type AIProviderKey = keyof typeof AI_PROVIDERS;
 const AIProviderConfigSchema = new mongoose.Schema(
     {
         enabled: { type: Boolean, default: false },
-        apiKey: { type: String, default: "" },      // Write-only — never returned to client
+        apiKey: { type: String, default: "" },      // Encrypted at rest, write-only in admin API
         activeModel: { type: String, default: "" },  // Selected model for this provider
         customBaseUrl: { type: String, default: "" }, // Optional override
     },

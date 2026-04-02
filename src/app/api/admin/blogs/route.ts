@@ -8,12 +8,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import Blog, { BlogStatus } from "@/Models/Blog";
 import dbConnect from "@/Utils/dbConnect";
-import { requireAdmin, getSession } from "@Library/auth";
+import { getSession } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 
 // GET — fetch all blogs with filters
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "content.blog.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const p = req.nextUrl.searchParams;
@@ -56,7 +58,8 @@ export async function GET(req: NextRequest) {
 // PUT — approve / reject / edit metadata
 export async function PUT(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "content.blog.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const session = await getSession(req.headers);
@@ -107,7 +110,8 @@ export async function PUT(req: NextRequest) {
 // DELETE — hard delete
 export async function DELETE(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "content.blog.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const id = req.nextUrl.searchParams.get("id");

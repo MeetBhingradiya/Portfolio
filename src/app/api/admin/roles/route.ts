@@ -3,17 +3,16 @@
  * POST /api/admin/roles        → upsert roles for a user (looks up userId from email if needed)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { UserRole } from "@Models/UserRole";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const q = req.nextUrl.searchParams;
         const page = Math.max(1, parseInt(q.get("page") || "1"));
@@ -51,8 +50,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        const admin = await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+        const admin = auth.session?.user;
+        if (!admin) return permissionError(401, "Unauthorized: Not authenticated");
 
         const body = await req.json();
         let { userId, email, roles, permissions, notes } = body;

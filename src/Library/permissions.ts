@@ -81,6 +81,15 @@ export async function hasRole(userId: string, role: string): Promise<boolean> {
 }
 
 /**
+ * Check if user should be treated as admin
+ * Supports ADMIN_EMAIL owner and delegated admin role.
+ */
+export async function isAdminUser(userId: string, email: string): Promise<boolean> {
+    if (isAdminEmail(email)) return true;
+    return hasRole(userId, ADMIN_ROLE);
+}
+
+/**
  * Check if user is admin (ADMIN_EMAIL env check)
  */
 export function isAdminEmail(email: string): boolean {

@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 
 export interface AdminSession {
     isAdmin: boolean;
+    canAccessAdmin?: boolean;
     email: string;
     roles: string[];
     permissions: string[];

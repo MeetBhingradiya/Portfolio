@@ -6,10 +6,9 @@
  * DELETE /api/admin/role-definitions/[key]   — delete (custom roles only)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { RoleDefinition } from "@Models/RoleDefinition";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { ALL_PERMISSION_KEYS } from "@Config/Permissions";
 
 type Params = { params: Promise<{ key: string }> };
@@ -17,8 +16,8 @@ type Params = { params: Promise<{ key: string }> };
 export async function GET(_req: NextRequest, { params }: Params) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(_req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const { key } = await params;
 
         const role = await RoleDefinition.findOne({ key }).lean();
@@ -33,8 +32,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const { key } = await params;
 
         const body = await req.json();
@@ -66,8 +65,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 export async function DELETE(_req: NextRequest, { params }: Params) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(_req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const { key } = await params;
 
         const role = await RoleDefinition.findOne({ key });

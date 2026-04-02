@@ -12,7 +12,7 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getSession } from "@Library/auth";
-import { isAdminEmail } from "@Library/permissions";
+import { getUserPermissions, isAdminUser } from "@Library/permissions";
 import AdminSidebar from "./AdminSidebar";
 
 export const metadata = {
@@ -32,9 +32,12 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
         redirect("/auth/signin?callbackUrl=/admin");
     }
 
-    // Logged in but wrong account, OR ADMIN_EMAIL env var missing → go home (no loop)
-    // Note: Future versions can grant admin access via role system instead of just ADMIN_EMAIL
-    if (!isAdminEmail(session.user.email)) {
+    const isFullAdmin = await isAdminUser(session.user.id, session.user.email);
+    const userPermissions = isFullAdmin ? [] : await getUserPermissions(session.user.id);
+    const hasDelegatedAccess = userPermissions.some((perm) => perm !== "user");
+
+    // Logged in but neither full admin nor delegated staff access → go home (no loop)
+    if (!isFullAdmin && !hasDelegatedAccess) {
         redirect("/?error=unauthorized");
     }
 

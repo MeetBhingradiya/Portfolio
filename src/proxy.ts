@@ -21,7 +21,8 @@ interface MaintenanceCache {
     ts: number;
 }
 let cache: MaintenanceCache = { enabled: false, message: "", ts: 0 };
-const CACHE_TTL_MS = 30_000; // 30 seconds
+
+const CACHE_TTL_MS = 60_000; // 60 seconds
 
 // ── Paths that are ALWAYS allowed through ───────────────────────────────
 const BYPASS_PREFIXES = [

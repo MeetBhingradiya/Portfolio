@@ -4,13 +4,14 @@
  * POST /api/admin/cdn/check    — trigger bulk integrity check (separate route file)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.keys.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const q = req.nextUrl.searchParams;

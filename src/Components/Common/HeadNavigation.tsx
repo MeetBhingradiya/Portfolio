@@ -200,6 +200,7 @@ export default function HeadNavigation() {
     const [showSwitchAccountModal, setShowSwitchAccountModal] = useState(false);
     const [hasImmichAccess, setHasImmichAccess] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [canAccessAdmin, setCanAccessAdmin] = useState(false);
     const [maintenanceBanner, setMaintenanceBanner] = useState<{ message: string } | null>(null);
 
     const menuTimeout = useRef<NodeJS.Timeout | undefined>(undefined);
@@ -322,6 +323,7 @@ export default function HeadNavigation() {
         if (!isAuthenticated) {
             setHasImmichAccess(false);
             setIsAdmin(false);
+            setCanAccessAdmin(false);
             // Still fetch maintenance even when logged out
             fetchMaintenance();
             const interval = setInterval(fetchMaintenance, 60_000);
@@ -337,8 +339,14 @@ export default function HeadNavigation() {
                 .catch(() => setHasImmichAccess(false)),
             fetch("/api/admin/is-admin")
                 .then(r => r.json())
-                .then(d => setIsAdmin(!!d.isAdmin))
-                .catch(() => setIsAdmin(false)),
+                .then(d => {
+                    setIsAdmin(!!d.isAdmin);
+                    setCanAccessAdmin(!!d.canAccessAdmin);
+                })
+                .catch(() => {
+                    setIsAdmin(false);
+                    setCanAccessAdmin(false);
+                }),
         ]);
 
         const interval = setInterval(fetchMaintenance, 60_000);
@@ -994,12 +1002,12 @@ export default function HeadNavigation() {
                                                             <img
                                                                 src={user.image}
                                                                 alt={user.name || "avatar"}
-                                                                className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                                                                className="w-11 h-11 rounded-full object-cover flex-shrink-0"
                                                                 style={{ border: `2px solid ${palette.accent}50` }}
                                                             />
                                                         ) : (
                                                             <div
-                                                                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                                                                className="w-11 h-11 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
                                                                 style={{ background: generateAvatarGradient(user?.id || "default"), border: `2px solid ${palette.accent}50` }}
                                                             >
                                                                 {getInitials(user?.name, user?.email)}
@@ -1085,7 +1093,7 @@ export default function HeadNavigation() {
                                                             </div>
                                                         </motion.div>
                                                     </Link>
-                                                    {isAdmin && (
+                                                    {canAccessAdmin && (
                                                         <Link href="/admin">
                                                             <motion.div
                                                                 className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
@@ -1458,7 +1466,7 @@ export default function HeadNavigation() {
                                             { label: "Settings", href: "/settings", icon: <Settings className="text-xl" /> },
                                             { label: "Profile", href: "/settings/profile", icon: <AccountCircle className="text-xl" /> },
                                             ...(hasImmichAccess ? [{ label: "Photos", href: "/api/photos", icon: <PhotoCamera className="text-xl" /> }] : []),
-                                            ...(isAdmin ? [{ label: "Admin Dashboard", href: "/admin", icon: <AdminPanelSettings className="text-xl" /> }] : []),
+                                            ...(canAccessAdmin ? [{ label: "Admin Dashboard", href: "/admin", icon: <AdminPanelSettings className="text-xl" /> }] : []),
                                         ].map((item) => (
                                             <Link key={item.href} href={item.href}>
                                                 <motion.div

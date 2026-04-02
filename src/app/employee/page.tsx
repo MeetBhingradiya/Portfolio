@@ -14,8 +14,9 @@ import {
     ConfirmationNumber,
     AssignmentReturn,
     ShoppingBag,
-    TrendingUp,
-    OpenInNew,
+    Storage,
+    CloudDone,
+    Build,
     ErrorOutline,
 } from "@mui/icons-material";
 
@@ -121,6 +122,22 @@ export default function EmployeeDashboard() {
         { icon: <ConfirmationNumber />, label: "Open Tickets", value: tickets.filter(t => t.status === "open").length, color: "#FF9500", href: "/admin/tickets" },
         { icon: <AssignmentReturn />, label: "Pending Refunds", value: refunds.filter(r => r.status === "pending").length, color: "#FF3B30", href: "/admin/refunds" },
         { icon: <ShoppingBag />, label: "All Tickets", value: tickets.length, color: "#007AFF", href: "/admin/tickets" },
+    ];
+
+    const localTools = [
+        { label: "Password Generator", href: "/tools/password" },
+        { label: "JWT Decoder", href: "/tools/jwt" },
+        { label: "JSON Formatter", href: "/tools/json" },
+        { label: "QR Generator", href: "/tools/qr" },
+        { label: "UUID Generator", href: "/tools/uuid" },
+        { label: "Markdown Preview", href: "/tools/markdown" },
+    ];
+
+    const cloudTools = [
+        { label: "Trade Journal", href: "/trade-journal" },
+        { label: "Productivity Dashboard", href: "/tools/productivity" },
+        { label: "Wallet", href: "/wallet" },
+        { label: "Bookmarks", href: "/bookmarks" },
     ];
 
     return (
@@ -257,6 +274,86 @@ export default function EmployeeDashboard() {
                             </motion.div>
                         </Link>
                     ))}
+                </div>
+
+                {/* Tool Access Types */}
+                <div className="mt-10 grid md:grid-cols-2 gap-5">
+                    <div
+                        className="p-5 rounded-3xl"
+                        style={{
+                            background: cardBg,
+                            border,
+                            backdropFilter: isApple ? "blur(20px)" : "none",
+                        }}
+                    >
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(59,130,246,0.14)" }}>
+                                <Storage style={{ color: "#3b82f6" }} />
+                            </div>
+                            <div>
+                                <h3 className="font-black" style={{ color: palette.textPrimary }}>Type 1: No Sign-in Required</h3>
+                                <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                    Local-only tools. No cloud persistence.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                            {localTools.map((tool) => (
+                                <Link key={tool.href} href={tool.href}>
+                                    <motion.div
+                                        whileHover={{ y: -1 }}
+                                        className="px-3 py-2 rounded-xl text-sm font-semibold"
+                                        style={{
+                                            background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                                            color: palette.textPrimary,
+                                            border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.07)"}`,
+                                        }}
+                                    >
+                                        {tool.label}
+                                    </motion.div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div
+                        className="p-5 rounded-3xl"
+                        style={{
+                            background: cardBg,
+                            border,
+                            backdropFilter: isApple ? "blur(20px)" : "none",
+                        }}
+                    >
+                        <div className="flex items-start gap-3 mb-3">
+                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.14)" }}>
+                                <CloudDone style={{ color: "#10b981" }} />
+                            </div>
+                            <div>
+                                <h3 className="font-black" style={{ color: palette.textPrimary }}>Type 2: Sign-in Required</h3>
+                                <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                    Cloud-persistent tools in your custom dashboard.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            {cloudTools.map((tool) => (
+                                <Link key={tool.href} href={tool.href}>
+                                    <motion.div
+                                        whileHover={{ x: 2 }}
+                                        className="flex items-center justify-between px-3 py-2 rounded-xl"
+                                        style={{
+                                            background: isDark ? "rgba(16,185,129,0.10)" : "rgba(16,185,129,0.07)",
+                                            border: "1px solid rgba(16,185,129,0.25)",
+                                            color: palette.textPrimary,
+                                        }}
+                                    >
+                                        <span className="text-sm font-semibold">{tool.label}</span>
+                                        <Build style={{ fontSize: 15, color: "#10b981" }} />
+                                    </motion.div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -5,13 +5,14 @@
  *   List applications with optional filters: status, search, page, limit
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { CDNApplication } from "@Models/CDNApplication";
 
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.applications.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const q = req.nextUrl.searchParams;

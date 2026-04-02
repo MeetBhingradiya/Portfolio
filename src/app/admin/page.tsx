@@ -5,14 +5,15 @@
 
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useAdminSession } from "@Hooks/useAdminSession";
 import Link from "next/link";
 import {
     People, Folder, Code, School, Work,
     WorkspacePremium, EmojiEvents, MapOutlined,
-    PictureAsPdf, TrendingUp, Refresh
+    PictureAsPdf, TrendingUp, Refresh, PhotoCamera
 } from "@mui/icons-material";
 
 interface StatCard {
@@ -21,17 +22,34 @@ interface StatCard {
     href: string;
     icon: React.ReactNode;
     color: string;
+    requiredPermissions?: string[];
 }
 
 const statCards: StatCard[] = [
-    { label: "Users", apiPath: "/api/admin/users", href: "/admin/users", icon: <People />, color: "#007AFF" },
-    { label: "Projects", apiPath: "/api/admin/projects", href: "/admin/projects", icon: <Folder />, color: "#AF52DE" },
-    { label: "Skills", apiPath: "/api/admin/skills", href: "/admin/skills", icon: <Code />, color: "#34C759" },
-    { label: "Education", apiPath: "/api/admin/education", href: "/admin/education", icon: <School />, color: "#FF9500" },
-    { label: "Experience", apiPath: "/api/admin/experience", href: "/admin/experience", icon: <Work />, color: "#FF2D55" },
-    { label: "Certificates", apiPath: "/api/admin/certificates", href: "/admin/certificates", icon: <WorkspacePremium />, color: "#FFCC00" },
-    { label: "Test Scores", apiPath: "/api/admin/test-scores", href: "/admin/test-scores", icon: <EmojiEvents />, color: "#5AC8FA" },
-    { label: "Sitemap Entries", apiPath: "/api/admin/sitemap", href: "/admin/sitemap", icon: <MapOutlined />, color: "#FF6B9D" },
+    { label: "Users", apiPath: "/api/admin/users", href: "/admin/users", icon: <People />, color: "#007AFF", requiredPermissions: ["admin.users.manage"] },
+    { label: "Projects", apiPath: "/api/admin/projects", href: "/admin/projects", icon: <Folder />, color: "#AF52DE", requiredPermissions: ["portfolio.manage"] },
+    { label: "Skills", apiPath: "/api/admin/skills", href: "/admin/skills", icon: <Code />, color: "#34C759", requiredPermissions: ["portfolio.manage"] },
+    { label: "Education", apiPath: "/api/admin/education", href: "/admin/education", icon: <School />, color: "#FF9500", requiredPermissions: ["portfolio.manage"] },
+    { label: "Experience", apiPath: "/api/admin/experience", href: "/admin/experience", icon: <Work />, color: "#FF2D55", requiredPermissions: ["portfolio.manage"] },
+    { label: "Certificates", apiPath: "/api/admin/certificates", href: "/admin/certificates", icon: <WorkspacePremium />, color: "#FFCC00", requiredPermissions: ["portfolio.manage"] },
+    { label: "Test Scores", apiPath: "/api/admin/test-scores", href: "/admin/test-scores", icon: <EmojiEvents />, color: "#5AC8FA", requiredPermissions: ["portfolio.manage"] },
+    { label: "Sitemap Entries", apiPath: "/api/admin/sitemap", href: "/admin/sitemap", icon: <MapOutlined />, color: "#FF6B9D", requiredPermissions: ["portfolio.manage"] },
+    { label: "Immich Access", apiPath: "/api/admin/immich-whitelist", href: "/admin/immich-access", icon: <PhotoCamera />, color: "#10B981", requiredPermissions: ["admin.site.settings"] },
+];
+
+interface QuickAction {
+    label: string;
+    href: string;
+    icon: React.ReactNode;
+    requiredPermissions?: string[];
+}
+
+const quickActions: QuickAction[] = [
+    { label: "Build Resume PDF", href: "/admin/resume", icon: <PictureAsPdf fontSize="small" />, requiredPermissions: ["portfolio.manage"] },
+    { label: "Immich Access", href: "/admin/immich-access", icon: <PhotoCamera fontSize="small" />, requiredPermissions: ["admin.site.settings"] },
+    { label: "Manage Projects", href: "/admin/projects", icon: <Folder fontSize="small" />, requiredPermissions: ["portfolio.manage"] },
+    { label: "Edit Sitemap", href: "/admin/sitemap", icon: <MapOutlined fontSize="small" />, requiredPermissions: ["portfolio.manage"] },
+    { label: "View Users", href: "/admin/users", icon: <People fontSize="small" />, requiredPermissions: ["admin.users.manage"] },
 ];
 
 function StatTile({ card, count }: { card: StatCard; count: number | null }) {
@@ -85,16 +103,36 @@ function StatTile({ card, count }: { card: StatCard; count: number | null }) {
 
 export default function AdminDashboard() {
     const { palette, actualColorMode } = useDesignTheme();
+    const { session, loading } = useAdminSession();
     const isDark = actualColorMode === "dark";
+
+    const hasAccess = useCallback((requiredPermissions?: string[]) => {
+        if (!requiredPermissions || requiredPermissions.length === 0) return true;
+        if (!session) return false;
+        if (session.isAdmin) return true;
+        return requiredPermissions.some((perm) => session.permissions.includes(perm));
+    }, [session]);
+
+    const visibleStatCards = useMemo(
+        () => statCards.filter((card) => hasAccess(card.requiredPermissions)),
+        [hasAccess]
+    );
+
+    const visibleQuickActions = useMemo(
+        () => quickActions.filter((action) => hasAccess(action.requiredPermissions)),
+        [hasAccess]
+    );
 
     // Single counts state — null means loading
     const [counts, setCounts] = useState<Record<string, number | null>>(
-        Object.fromEntries(statCards.map(c => [c.label, null]))
+        Object.fromEntries(visibleStatCards.map(c => [c.label, null]))
     );
 
     const fetchAll = useCallback(() => {
-        setCounts(Object.fromEntries(statCards.map(c => [c.label, null])));
-        statCards.forEach(card => {
+        if (loading) return;
+
+        setCounts(Object.fromEntries(visibleStatCards.map(c => [c.label, null])));
+        visibleStatCards.forEach(card => {
             fetch(`${card.apiPath}?limit=1`)
                 .then(r => r.json())
                 .then(j => {
@@ -105,7 +143,7 @@ export default function AdminDashboard() {
                 })
                 .catch(() => {});
         });
-    }, []);
+    }, [visibleStatCards, loading]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
@@ -116,7 +154,7 @@ export default function AdminDashboard() {
                 <div>
                     <h1 className="text-3xl font-black" style={{ color: palette.textPrimary }}>Admin Dashboard</h1>
                     <p className="mt-1 text-sm" style={{ color: palette.textSecondary }}>
-                        Portfolio content overview — owner only
+                        Task-based admin workspace with role-scoped access
                     </p>
                 </div>
                 <motion.button
@@ -130,7 +168,7 @@ export default function AdminDashboard() {
 
             {/* Stats Grid */}
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
-                {statCards.map((card, i) => (
+                {visibleStatCards.map((card, i) => (
                     <motion.div key={card.label}
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -140,16 +178,21 @@ export default function AdminDashboard() {
                 ))}
             </div>
 
+            {!loading && visibleStatCards.length === 0 && (
+                <div className="mb-8 p-4 rounded-xl" style={{
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
+                    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                    color: palette.textSecondary,
+                }}>
+                    You have admin dashboard access, but no tiles are assigned to your current permissions.
+                </div>
+            )}
+
             {/* Quick actions */}
             <div className="mb-4">
                 <h2 className="text-lg font-black mb-4" style={{ color: palette.textPrimary }}>Quick Actions</h2>
                 <div className="flex flex-wrap gap-3">
-                    {[
-                        { label: "Build Resume PDF", href: "/admin/resume", icon: <PictureAsPdf fontSize="small" /> },
-                        { label: "Manage Projects", href: "/admin/projects", icon: <Folder fontSize="small" /> },
-                        { label: "Edit Sitemap", href: "/admin/sitemap", icon: <MapOutlined fontSize="small" /> },
-                        { label: "View Users", href: "/admin/users", icon: <People fontSize="small" /> },
-                    ].map(action => (
+                    {visibleQuickActions.map(action => (
                         <Link key={action.label} href={action.href}>
                             <motion.div
                                 className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"

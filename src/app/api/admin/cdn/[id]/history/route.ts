@@ -9,7 +9,7 @@
  *   perPage   — max commits to return (default 50, max 100)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubListCommits } from "@Utils/GitHubCDN";
@@ -19,7 +19,8 @@ export async function GET(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.keys.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const { id } = await params;

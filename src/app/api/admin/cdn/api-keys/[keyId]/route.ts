@@ -6,7 +6,8 @@
  * DELETE /api/admin/cdn/api-keys/[keyId]     — hard-delete (use revoke instead where possible)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin, getSession } from "@Library/auth";
+import { getSession } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAPIKey, IRateLimitPolicy } from "@Models/CDNAPIKey";
 import { CDNRateWindow } from "@Models/CDNRateWindow";
@@ -15,7 +16,8 @@ type Params = { params: Promise<{ keyId: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
     try {
-        await requireAdmin(_req.headers);
+        const auth = await requirePermission(_req, "cdn.keys.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
         const { keyId } = await params;
 
@@ -30,7 +32,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 export async function PATCH(req: NextRequest, { params }: Params) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.keys.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const session  = await getSession(req.headers);
         await dbConnect();
         const { keyId } = await params;
@@ -88,7 +91,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
 export async function DELETE(req: NextRequest, { params }: Params) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.keys.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
         const { keyId } = await params;
 

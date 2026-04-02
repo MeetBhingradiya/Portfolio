@@ -4,7 +4,7 @@
  * DELETE /api/admin/immich-whitelist/[id]   remove
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@Library/auth";
+import { requirePermission, permissionError } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 
@@ -13,7 +13,10 @@ export async function PATCH(
     context: { params: Promise<{ id: string }> }
 ) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) {
+            return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+        }
         const { id } = await context.params;
         const body = await req.json();
 
@@ -33,8 +36,8 @@ export async function PATCH(
         await entry.save();
         return NextResponse.json({ success: true, data: entry });
     } catch (err: any) {
-        if (err?.message?.includes("Forbidden") || err?.message?.includes("Admin")) {
-            return NextResponse.json({ success: false, error: "Admin only" }, { status: 403 });
+        if (err?.message?.includes("Forbidden") || err?.message?.includes("Permission")) {
+            return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
         }
         return NextResponse.json({ success: false, error: err?.message || "Error" }, { status: 500 });
     }
@@ -45,7 +48,10 @@ export async function DELETE(
     context: { params: Promise<{ id: string }> }
 ) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) {
+            return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+        }
         const { id } = await context.params;
 
         await dbConnect();
@@ -56,8 +62,8 @@ export async function DELETE(
 
         return NextResponse.json({ success: true });
     } catch (err: any) {
-        if (err?.message?.includes("Forbidden") || err?.message?.includes("Admin")) {
-            return NextResponse.json({ success: false, error: "Admin only" }, { status: 403 });
+        if (err?.message?.includes("Forbidden") || err?.message?.includes("Permission")) {
+            return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
         }
         return NextResponse.json({ success: false, error: err?.message || "Error" }, { status: 500 });
     }

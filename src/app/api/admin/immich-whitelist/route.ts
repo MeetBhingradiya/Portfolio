@@ -4,14 +4,17 @@
  * POST /api/admin/immich-whitelist          create (email only)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@Library/auth";
+import { requirePermission, permissionError } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 import { MongoClient, ObjectId } from "mongodb";
 
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) {
+            return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+        }
         await dbConnect();
 
         const q = req.nextUrl.searchParams;
@@ -84,7 +87,14 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        const session = await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) {
+            return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+        }
+        const session = auth.session;
+        if (!session?.user) {
+            return permissionError(401, "Unauthorized: Not authenticated");
+        }
         const { email: rawEmail, label: rawLabel, note } = await req.json();
 
         let resolvedEmail = rawEmail?.toLowerCase().trim();
@@ -143,8 +153,8 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, data: entry }, { status: 201 });
     } catch (err: any) {
-        if (err?.message?.includes("Forbidden") || err?.message?.includes("Admin")) {
-            return NextResponse.json({ success: false, error: "Admin only" }, { status: 403 });
+        if (err?.message?.includes("Forbidden") || err?.message?.includes("Permission")) {
+            return NextResponse.json({ success: false, error: "Insufficient permissions" }, { status: 403 });
         }
         return NextResponse.json({ success: false, error: err?.message || "Error" }, { status: 500 });
     }

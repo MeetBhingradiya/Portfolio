@@ -6,8 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { requireAdmin } from "@/Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@/Utils/dbConnect";
 import { SiteSettings_Model, getSiteSettings } from "@/Models/SiteSettings";
 
@@ -25,9 +24,10 @@ function redactProviders(providers: Record<string, any>) {
     return out;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(await headers());
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
     } catch (e: any) {
         return NextResponse.json({ success: false, error: e.message }, { status: e.message === "Unauthorized" ? 401 : 403 });
     }
@@ -56,7 +56,8 @@ export async function GET() {
 
 export async function PATCH(req: NextRequest) {
     try {
-        await requireAdmin(await headers());
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
     } catch (e: any) {
         return NextResponse.json({ success: false, error: e.message }, { status: e.message === "Unauthorized" ? 401 : 403 });
     }

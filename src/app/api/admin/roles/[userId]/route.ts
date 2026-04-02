@@ -3,17 +3,18 @@
  * DELETE /api/admin/roles/[userId]   → remove role record (resets to default user)
  */
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { UserRole } from "@Models/UserRole";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ userId: string }> }) {
     const { userId } = await params;
     try {
         await dbConnect();
-        const h = await headers();
-        const admin = await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+        const admin = auth.session?.user;
+        if (!admin) return permissionError(401, "Unauthorized: Not authenticated");
 
         const body = await req.json();
         const { roles, permissions, notes } = body;
@@ -39,8 +40,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ u
     const { userId } = await params;
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         await UserRole.findOneAndDelete({ userId });
         return NextResponse.json({ success: true });

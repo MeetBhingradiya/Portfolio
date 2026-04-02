@@ -5,10 +5,9 @@
  * Existing entries are left untouched (upsert by Endpoint).
  */
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { SitemapEntry_Model } from "@Models/Portfolio";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 
 const STATIC_PAGES: {
     Endpoint: string;
@@ -62,8 +61,8 @@ const STATIC_PAGES: {
 export async function POST(req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "content.sitemap.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const Model = SitemapEntry_Model();
 

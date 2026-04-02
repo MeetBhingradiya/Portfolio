@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@/Utils/dbConnect";
-import { requireAdmin } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { ToolSettings_Model } from "@/Models/ToolSettings";
 
 const SINGLETON_ID = "tool_settings_singleton";
@@ -13,7 +13,8 @@ const SINGLETON_ID = "tool_settings_singleton";
 /** GET /api/admin/tool-settings — fetch current defaults */
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         let doc = await ToolSettings_Model.findOne({ ConfigID: SINGLETON_ID }).lean();
@@ -37,7 +38,8 @@ export async function GET(req: NextRequest) {
 /** PUT /api/admin/tool-settings — update defaults (partial merge) */
 export async function PUT(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const body = await req.json();

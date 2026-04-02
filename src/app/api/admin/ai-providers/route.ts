@@ -3,9 +3,8 @@
  * PATCH /api/admin/ai-providers   – update AI provider settings
  */
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import {
     AIProviderSettings_Model,
     getAIProviderSettings,
@@ -18,8 +17,8 @@ import {
 export async function GET(_req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(_req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const settings = await getAIProviderSettings();
         const obj = settings.toObject();
@@ -60,8 +59,10 @@ export async function GET(_req: NextRequest) {
 export async function PATCH(req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        const admin = await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+        const admin = auth.session?.user;
+        if (!admin) return permissionError(401, "Unauthorized: Not authenticated");
 
         const body = await req.json();
         const { ActiveProvider, Providers, Features, RateLimitPerUser } = body as {

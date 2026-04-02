@@ -7,15 +7,14 @@
  * Used by the Roles manager when adding a new user by email.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
     try {
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.users.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const email = req.nextUrl.searchParams.get("email")?.toLowerCase().trim();
         if (!email) return NextResponse.json({ success: false, error: "email query param is required." }, { status: 422 });

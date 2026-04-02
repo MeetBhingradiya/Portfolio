@@ -6,7 +6,8 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { requireAdmin, getSession } from "@Library/auth";
+import { getSession } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { CDNAPIKey, PLAN_DEFAULTS, IRateLimitPolicy } from "@Models/CDNAPIKey";
 import { CDNApplication } from "@Models/CDNApplication";
@@ -24,7 +25,8 @@ function generateKeyId(): string {
 
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.keys.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const q     = req.nextUrl.searchParams;
@@ -66,7 +68,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.keys.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const session = await getSession(req.headers);
         await dbConnect();
 

@@ -2,7 +2,7 @@
  * Admin Users - Get/Delete a single user
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { MongoClient, ObjectId } from "mongodb";
 
 async function getDB() {
@@ -15,7 +15,8 @@ async function getDB() {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.users.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const { id } = await params;
         const { client, col } = await getDB();
         const user = await col.findOne({ _id: new ObjectId(id) });
@@ -30,7 +31,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.users.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const { id } = await params;
         const { client, col } = await getDB();
         await col.deleteOne({ _id: new ObjectId(id) });

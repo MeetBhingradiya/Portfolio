@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@Library/auth";
-import { getUserPermissions, getUserRoles, isAdminEmail } from "@/Library/permissions";
+import { getUserPermissions, getUserRoles, isAdminUser } from "@/Library/permissions";
 
 export async function GET(req: NextRequest) {
     const session = await getSession(req.headers);
@@ -13,15 +13,15 @@ export async function GET(req: NextRequest) {
         );
     }
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const isAdmin = isAdminEmail(session.user.email);
-
     // Get user roles and permissions
     const roles = await getUserRoles(session.user.id);
     const permissions = await getUserPermissions(session.user.id);
+    const isAdmin = await isAdminUser(session.user.id, session.user.email);
+    const canAccessAdmin = isAdmin || permissions.some((perm) => perm !== "user");
 
     return NextResponse.json({
         isAdmin,
+        canAccessAdmin,
         email: session.user.email,
         roles,
         permissions,

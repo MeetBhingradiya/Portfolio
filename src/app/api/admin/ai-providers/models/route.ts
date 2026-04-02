@@ -7,9 +7,8 @@
  * Returns: { success: true, models: string[] }
  */
 import { type NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { getAIProviderSettings, AI_PROVIDERS, type AIProviderKey } from "@Models/AIProviderSettings";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -69,8 +68,8 @@ async function fetchPerplexityModels(apiKey: string): Promise<string[]> {
 export async function GET(req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const provider = req.nextUrl.searchParams.get("provider") as AIProviderKey | null;
         if (!provider || !AI_PROVIDERS[provider]) {

@@ -33,13 +33,13 @@ import {
 export default function SettingsPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const { user, isAuthenticated } = useAuth();
-    const [isAdmin, setIsAdmin] = React.useState(false);
+    const [canAccessAdmin, setCanAccessAdmin] = React.useState(false);
 
     React.useEffect(() => {
         fetch("/api/admin/is-admin")
             .then(r => r.json())
-            .then(j => setIsAdmin(j.isAdmin === true))
-            .catch(() => setIsAdmin(false));
+            .then(j => setCanAccessAdmin(j.canAccessAdmin === true))
+            .catch(() => setCanAccessAdmin(false));
     }, []);
 
     const isDark = actualColorMode === "dark";
@@ -353,8 +353,8 @@ export default function SettingsPage() {
                         </Link>
                     </>
 
-                    {/* Admin Portal — only for ADMIN_EMAIL env var owner */}
-                    {isAdmin && (
+                    {/* Admin Portal — visible for full admins and delegated staff access */}
+                    {canAccessAdmin && (
                         <>
                             <div className="pt-2 pb-1">
                                 <p className="text-xs font-semibold uppercase tracking-widest"
@@ -385,7 +385,7 @@ export default function SettingsPage() {
                                                     </h3>
                                                     <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
                                                         style={{ background: "rgba(220,50,50,0.2)", color: "#DC3232" }}>
-                                                        Owner Only
+                                                        Staff Access
                                                     </span>
                                                 </div>
                                                 <p className="text-sm" style={{ color: palette.textSecondary }}>

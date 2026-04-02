@@ -8,7 +8,8 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "crypto";
-import { requireAdmin, getSession } from "@Library/auth";
+import { getSession } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import { CDNApplication, ApplicationStatus } from "@Models/CDNApplication";
 import { CDNAPIKey, PLAN_DEFAULTS } from "@Models/CDNAPIKey";
@@ -22,7 +23,8 @@ type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_req: NextRequest, { params }: Params) {
     try {
-        await requireAdmin(_req.headers);
+        const auth = await requirePermission(_req, "cdn.applications.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
         const { id } = await params;
 
@@ -37,7 +39,8 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
 export async function PATCH(req: NextRequest, { params }: Params) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "cdn.applications.review");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const session = await getSession(req.headers);
         await dbConnect();
         const { id } = await params;

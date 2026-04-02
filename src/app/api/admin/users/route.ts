@@ -2,12 +2,13 @@
  * Admin Users API - list all Better Auth users with their role data
  */
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { MongoClient } from "mongodb";
 
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.users.view");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const q = req.nextUrl.searchParams;
         const page = Math.max(1, parseInt(q.get("page") || "1"));

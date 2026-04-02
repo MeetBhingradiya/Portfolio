@@ -13,11 +13,11 @@ import {
     hasPermission,
     hasAnyPermission,
     hasAllPermissions,
-    isAdminEmail
+    isAdminUser
 } from "@/Library/permissions";
 
 /**
- * Check if a request is from an authenticated admin (ADMIN_EMAIL)
+ * Check if a request is from an authenticated admin account
  */
 export async function requireAdminEmail(req: NextRequest) {
     const session = await getSession(req.headers);
@@ -30,11 +30,12 @@ export async function requireAdminEmail(req: NextRequest) {
         };
     }
 
-    if (!isAdminEmail(session.user.email)) {
+    const isAdmin = await isAdminUser(session.user.id, session.user.email);
+    if (!isAdmin) {
         return {
             error: true,
             status: 403,
-            message: "Forbidden: Admin email required",
+            message: "Forbidden: Admin access required",
         };
     }
 

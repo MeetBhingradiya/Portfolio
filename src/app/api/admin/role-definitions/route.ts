@@ -5,17 +5,16 @@
  * POST /api/admin/role-definitions          — create a new custom role
  */
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { RoleDefinition, seedBuiltinRoles } from "@Models/RoleDefinition";
-import { requireAdmin } from "@Utils/RolePermissions";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { ALL_PERMISSION_KEYS } from "@Config/Permissions";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await seedBuiltinRoles();   // idempotent — only inserts if missing
 
         const roles = await RoleDefinition.find().sort({ order: 1, createdAt: 1 }).lean();
@@ -29,8 +28,8 @@ export async function GET() {
 export async function POST(req: NextRequest) {
     try {
         await dbConnect();
-        const h = await headers();
-        await requireAdmin(h);
+        const auth = await requirePermission(req, "admin.roles.manage");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const { key, label, description, permissions = [], color = "#6366f1" } = await req.json();
 

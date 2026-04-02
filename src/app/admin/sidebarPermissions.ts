@@ -42,7 +42,7 @@ export type NavItemKey =
 export const sidebarPermissions: Record<NavItemKey, string[]> = {
     // Core admin pages (requires admin email or admin role)
     dashboard: [],
-    users: ["admin.users.manage"],
+    users: ["admin.users.view", "admin.users.manage"],
     roles: ["admin.roles.manage"],
 
     // Support module
@@ -67,14 +67,14 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
     blogs: ["content.blog.manage"],
 
     // System/Settings module (admin only)
-    features: [],
-    "tool-settings": [],
-    "ai-providers": [],
-    maintenance: [],
-    "immich-access": [],
-    cdn: [],
-    "cdn-applications": [],
-    "cdn-api-keys": [],
+    features: ["admin.site.settings"],
+    "tool-settings": ["admin.site.settings"],
+    "ai-providers": ["admin.site.settings"],
+    maintenance: ["admin.site.settings"],
+    "immich-access": ["admin.site.settings"],
+    cdn: ["cdn.keys.view", "cdn.keys.manage"],
+    "cdn-applications": ["cdn.applications.view", "cdn.applications.review"],
+    "cdn-api-keys": ["cdn.keys.view", "cdn.keys.manage"],
 };
 
 /**

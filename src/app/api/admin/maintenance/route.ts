@@ -10,7 +10,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import dbConnect from "@/Utils/dbConnect";
-import { requireAdmin } from "@Library/auth";
+import { getSession } from "@Library/auth";
+import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { SiteSettings_Model, getSiteSettings } from "@/Models/SiteSettings";
 
 const SINGLETON_ID = "site_settings_singleton";
@@ -52,7 +53,8 @@ function clearBypassCookie(response: NextResponse) {
 /** GET — return current status and refresh admin bypass cookie */
 export async function GET(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const settings = await getSiteSettings();
@@ -79,7 +81,8 @@ export async function GET(req: NextRequest) {
 /** POST — toggle or set maintenance mode */
 export async function POST(req: NextRequest) {
     try {
-        await requireAdmin(req.headers);
+        const auth = await requirePermission(req, "admin.site.settings");
+        if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
         const body = await req.json();
@@ -92,7 +95,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: "maintenanceMode (boolean) is required" }, { status: 400 });
         }
 
-        const session = await import("@Library/auth").then((m) => m.getSession(req.headers));
+        const session = await getSession(req.headers);
         const updatedBy = session?.user?.email || "admin";
 
         const updated = await SiteSettings_Model.findOneAndUpdate(

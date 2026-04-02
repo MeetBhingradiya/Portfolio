@@ -14,7 +14,10 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
 
         await dbConnect();
 
-        const existing = await UserPhone.findOne({ _id: phoneId, userId: session.user.id }).exec();
+        const existing = await UserPhone.findOne({
+            _id: phoneId,
+            userId: session.user.id
+        }).exec();
         if (!existing) {
             return NextResponse.json({ success: false, error: "Phone not found" }, { status: 404 });
         }
@@ -23,7 +26,11 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         await UserPhone.deleteOne({ _id: existing._id });
 
         if (wasPrimary) {
-            const replacement = await UserPhone.findOne({ userId: session.user.id }).sort({ createdAt: 1 }).exec();
+            const replacement = await UserPhone.findOne({
+                userId: session.user.id
+            })
+                .sort({ createdAt: 1 })
+                .exec();
             if (replacement) {
                 replacement.isPrimary = true;
                 await replacement.save();
@@ -34,6 +41,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         return NextResponse.json({ success: true, data: { phones } });
     } catch (error: any) {
         const status = error?.message === "Unauthorized" ? 401 : 500;
-        return NextResponse.json({ success: false, error: error?.message || "Failed to delete phone" }, { status });
+        return NextResponse.json(
+            {
+                success: false,
+                error: error?.message || "Failed to delete phone"
+            },
+            { status }
+        );
     }
 }

@@ -2,19 +2,60 @@
 import AdminCRUDPage, { FieldDef } from "../AdminCRUDPage";
 
 const fields: FieldDef[] = [
-    { key: "Title", label: "Certificate Title", type: "text", required: true, colSpan: 2 },
-    { key: "IssuingOrganization", label: "Issuing Organization", type: "text", required: true },
+    {
+        key: "Title",
+        label: "Certificate Title",
+        type: "text",
+        required: true,
+        colSpan: 2
+    },
+    {
+        key: "IssuingOrganization",
+        label: "Issuing Organization",
+        type: "text",
+        required: true
+    },
     { key: "IssuedDate", label: "Issued Date", type: "date", required: true },
     { key: "ExpiryDate", label: "Expiry Date", type: "date" },
     { key: "NoExpiry", label: "No Expiry", type: "boolean" },
     { key: "CredentialID", label: "Credential ID", type: "text" },
     { key: "CredentialURL", label: "Credential URL", type: "url", colSpan: 2 },
-    { key: "Description", label: "Description", type: "textarea", colSpan: 2, tableVisible: false },
-    { key: "Skills", label: "Skills", type: "tags", colSpan: 2, tableVisible: false },
-    { key: "Image", label: "Certificate Image", type: "cdn-image", cdnType: "document", cdnContext: "cert", tableVisible: true },
-    { key: "Logo", label: "Issuer Logo", type: "cdn-image", cdnType: "icon", cdnContext: "company", tableVisible: false },
-    { key: "Published", label: "Published (visible on portfolio)", type: "boolean" },
-    { key: "Order", label: "Order", type: "number" },
+    {
+        key: "Description",
+        label: "Description",
+        type: "textarea",
+        colSpan: 2,
+        tableVisible: false
+    },
+    {
+        key: "Skills",
+        label: "Skills",
+        type: "tags",
+        colSpan: 2,
+        tableVisible: false
+    },
+    {
+        key: "Image",
+        label: "Certificate Image",
+        type: "cdn-image",
+        cdnType: "document",
+        cdnContext: "cert",
+        tableVisible: true
+    },
+    {
+        key: "Logo",
+        label: "Issuer Logo",
+        type: "cdn-image",
+        cdnType: "icon",
+        cdnContext: "company",
+        tableVisible: false
+    },
+    {
+        key: "Published",
+        label: "Published (visible on portfolio)",
+        type: "boolean"
+    },
+    { key: "Order", label: "Order", type: "number" }
 ];
 
 export default function CertificatesPage() {
@@ -25,7 +66,12 @@ export default function CertificatesPage() {
             apiBase="/api/admin/certificates"
             idField="CertificateID"
             fields={fields}
-            defaultValues={{ NoExpiry: false, Published: true, Order: 0, Skills: [] }}
+            defaultValues={{
+                NoExpiry: false,
+                Published: true,
+                Order: 0,
+                Skills: []
+            }}
         />
     );
 }

@@ -25,13 +25,18 @@ export async function POST(req: NextRequest) {
 
         const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = await req.json();
         if (!razorpay_order_id || !razorpay_payment_id || !razorpay_signature) {
-            return NextResponse.json({ error: "razorpay_order_id, razorpay_payment_id and razorpay_signature are required." }, { status: 422 });
+            return NextResponse.json(
+                {
+                    error: "razorpay_order_id, razorpay_payment_id and razorpay_signature are required."
+                },
+                { status: 422 }
+            );
         }
 
         // Verify HMAC signature
-        const secret    = process.env.RAZORPAY_KEY_SECRET!;
-        const body      = `${razorpay_order_id}|${razorpay_payment_id}`;
-        const expected  = createHmac("sha256", secret).update(body).digest("hex");
+        const secret = process.env.RAZORPAY_KEY_SECRET!;
+        const body = `${razorpay_order_id}|${razorpay_payment_id}`;
+        const expected = createHmac("sha256", secret).update(body).digest("hex");
         if (expected !== razorpay_signature) {
             return NextResponse.json({ error: "Invalid payment signature." }, { status: 400 });
         }
@@ -42,9 +47,9 @@ export async function POST(req: NextRequest) {
         const payment = await Payment.findOneAndUpdate(
             { razorpayOrderId: razorpay_order_id, provider: "razorpay" },
             {
-                razorpayPaymentId  : razorpay_payment_id,
-                razorpaySignature  : razorpay_signature,
-                status             : "completed",
+                razorpayPaymentId: razorpay_payment_id,
+                razorpaySignature: razorpay_signature,
+                status: "completed"
             },
             { new: true }
         );
@@ -71,7 +76,11 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true, paymentId: razorpay_payment_id, status: payment.status });
+        return NextResponse.json({
+            success: true,
+            paymentId: razorpay_payment_id,
+            status: payment.status
+        });
     } catch (err: any) {
         console.error("[Razorpay verify]", err);
         return NextResponse.json({ error: err?.message || "Verification failed." }, { status: 500 });

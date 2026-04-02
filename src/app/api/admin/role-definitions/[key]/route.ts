@@ -42,18 +42,20 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         if (body.permissions) {
             const invalid = body.permissions.filter((p: string) => !ALL_PERMISSION_KEYS.includes(p));
             if (invalid.length) {
-                return NextResponse.json({ success: false, error: `Unknown permission keys: ${invalid.join(", ")}` }, { status: 422 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: `Unknown permission keys: ${invalid.join(", ")}`
+                    },
+                    { status: 422 }
+                );
             }
         }
 
         // key cannot be changed via PATCH
         const { key: _, isBuiltin: __, ...safe } = body;
 
-        const role = await RoleDefinition.findOneAndUpdate(
-            { key },
-            { $set: safe },
-            { new: true }
-        );
+        const role = await RoleDefinition.findOneAndUpdate({ key }, { $set: safe }, { new: true });
         if (!role) return NextResponse.json({ success: false, error: "Role not found." }, { status: 404 });
         return NextResponse.json({ success: true, role });
     } catch (err: any) {

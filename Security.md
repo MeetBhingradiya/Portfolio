@@ -2,19 +2,14 @@
 
 ## Reporting a Vulnerability
 
-Thank you for taking the time to responsibly disclose any security
-vulnerabilities you may find in my portfolio website.
+Thank you for taking the time to responsibly disclose any security vulnerabilities you may find in my portfolio website.
 
 ### How to Report a Vulnerability
 
-If you believe you've found a security vulnerability in this repository or my
-deployed portfolio website, please follow these steps:
+If you believe you've found a security vulnerability in this repository or my deployed portfolio website, please follow these steps:
 
-1. **Do not** disclose the vulnerability publicly on GitHub Issues or other
-   public forums.
-2. Email me directly at
-   [meetbhingradiya@outlook.com](mailto:meetbhingradiya@outlook.com) with a
-   detailed description of the vulnerability.
+1. **Do not** disclose the vulnerability publicly on GitHub Issues or other public forums.
+2. Email me directly at [meetbhingradiya@outlook.com](mailto:meetbhingradiya@outlook.com) with a detailed description of the vulnerability.
 3. Include the following details in your report:
     - Description of the vulnerability
     - Steps to reproduce the issue
@@ -32,14 +27,12 @@ After receiving your report:
 
 ## Security Updates
 
-This portfolio project is continuously maintained. Security updates are applied
-as soon as vulnerabilities are discovered and verified.
+This portfolio project is continuously maintained. Security updates are applied as soon as vulnerabilities are discovered and verified.
 
 ## Acknowledgments
 
-I appreciate the security community's efforts in helping keep my portfolio
-project secure. Contributors who responsibly disclose vulnerabilities will be
-acknowledged here (with permission).
+I appreciate the security community's efforts in helping keep my portfolio project secure. Contributors who responsibly disclose
+vulnerabilities will be acknowledged here (with permission).
 
 ## Contact
 

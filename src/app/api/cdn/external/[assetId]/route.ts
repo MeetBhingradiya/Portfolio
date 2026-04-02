@@ -33,7 +33,7 @@ export async function GET(req: NextRequest, { params }: Params) {
             { error: rl.error, retryAfter: rl.retryAfter },
             {
                 status: 429,
-                headers: { "Retry-After": String(rl.retryAfter ?? 60) },
+                headers: { "Retry-After": String(rl.retryAfter ?? 60) }
             }
         );
     }
@@ -58,24 +58,33 @@ export async function GET(req: NextRequest, { params }: Params) {
         if (!result) {
             await CDNAsset.updateOne(
                 { assetId },
-                { $set: { status: "missing", lastChecked: new Date(), lastCheckOk: false } }
+                {
+                    $set: {
+                        status: "missing",
+                        lastChecked: new Date(),
+                        lastCheckOk: false
+                    }
+                }
             );
             return NextResponse.json(
                 { error: "Asset file not found in storage." },
-                { status: 404, headers: { "Cache-Control": "public, max-age=300" } }
+                {
+                    status: 404,
+                    headers: { "Cache-Control": "public, max-age=300" }
+                }
             );
         }
 
         return new NextResponse(new Uint8Array(result.buffer), {
             status: 200,
             headers: {
-                "Content-Type":   asset.mimeType,
+                "Content-Type": asset.mimeType,
                 "Content-Length": String(result.size),
-                "Cache-Control":  "public, max-age=31536000, immutable",
-                "X-Asset-Id":     asset.assetId,
-                "X-Asset-Type":   asset.type,
-                ...rateLimitHeaders(rl),
-            },
+                "Cache-Control": "public, max-age=31536000, immutable",
+                "X-Asset-Id": asset.assetId,
+                "X-Asset-Type": asset.type,
+                ...rateLimitHeaders(rl)
+            }
         });
     } catch (err: any) {
         console.error("[CDN External Serve]", assetId, err);

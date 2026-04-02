@@ -6,13 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
-import {
-    ProductivityTask,
-    TaskStatus,
-    TaskPriority,
-    TaskCategory,
-    XP_REWARDS,
-} from "@Models/ProductivityTask";
+import { ProductivityTask, TaskStatus, TaskPriority, TaskCategory, XP_REWARDS } from "@Models/ProductivityTask";
 import { UserProductivityStats } from "@Models/UserProductivityStats";
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
@@ -24,16 +18,16 @@ export async function GET(req: NextRequest) {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const q        = req.nextUrl.searchParams;
-        const page     = Math.max(1, parseInt(q.get("page")  || "1"));
-        const limit    = Math.min(100, parseInt(q.get("limit") || "20"));
-        const status   = q.get("status");
+        const q = req.nextUrl.searchParams;
+        const page = Math.max(1, parseInt(q.get("page") || "1"));
+        const limit = Math.min(100, parseInt(q.get("limit") || "20"));
+        const status = q.get("status");
         const priority = q.get("priority");
         const category = q.get("category");
-        const search   = q.get("search");
-        const overdue  = q.get("overdue") === "true";
+        const search = q.get("search");
+        const overdue = q.get("overdue") === "true";
         const dueBefore = q.get("dueBefore");
-        const dueAfter  = q.get("dueAfter");
+        const dueAfter = q.get("dueAfter");
 
         // Default: exclude HIDDEN (soft-deleted); pass status=HIDDEN to view trash
         const query: Record<string, unknown> = { UserID: user.userId };
@@ -49,12 +43,12 @@ export async function GET(req: NextRequest) {
 
         if (overdue) {
             query.DueDate = { $lt: new Date() };
-            query.Status  = TaskStatus.PENDING;
+            query.Status = TaskStatus.PENDING;
         }
         if (dueBefore || dueAfter) {
             query.DueDate = {} as Record<string, unknown>;
             if (dueBefore) (query.DueDate as Record<string, unknown>).$lte = new Date(dueBefore);
-            if (dueAfter)  (query.DueDate as Record<string, unknown>).$gte = new Date(dueAfter);
+            if (dueAfter) (query.DueDate as Record<string, unknown>).$gte = new Date(dueAfter);
         }
         if (search) query.$text = { $search: search };
 
@@ -64,15 +58,20 @@ export async function GET(req: NextRequest) {
                 .sort({ Priority: -1, DueDate: 1, createdAt: -1 })
                 .skip((page - 1) * limit)
                 .limit(limit)
-                .lean(),
+                .lean()
         ]);
 
         return NextResponse.json({
             success: true,
             data: {
                 tasks,
-                pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-            },
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
         });
     } catch (err) {
         console.error("GET /api/productivity/tasks:", err);
@@ -90,14 +89,7 @@ export async function POST(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const body = await req.json();
-        const {
-            Title,
-            Description,
-            Category = TaskCategory.PERSONAL,
-            Tags     = [],
-            Priority = TaskPriority.MEDIUM,
-            DueDate,
-        } = body;
+        const { Title, Description, Category = TaskCategory.PERSONAL, Tags = [], Priority = TaskPriority.MEDIUM, DueDate } = body;
 
         if (!Title?.trim()) {
             return NextResponse.json({ success: false, error: "Title is required" }, { status: 400 });
@@ -106,22 +98,18 @@ export async function POST(req: NextRequest) {
         const xpReward = XP_REWARDS[Priority as TaskPriority] ?? XP_REWARDS[TaskPriority.MEDIUM];
 
         const task = await ProductivityTask.create({
-            UserID:      user.userId,
-            Title:       Title.trim(),
+            UserID: user.userId,
+            Title: Title.trim(),
             Description: Description?.trim(),
             Category,
             Tags,
             Priority,
-            Status:   TaskStatus.PENDING,
-            DueDate:  DueDate ? new Date(DueDate) : undefined,
-            XPReward: xpReward,
+            Status: TaskStatus.PENDING,
+            DueDate: DueDate ? new Date(DueDate) : undefined,
+            XPReward: xpReward
         });
 
-        await UserProductivityStats.updateOne(
-            { UserID: user.userId },
-            { $inc: { TotalTasksCreated: 1 } },
-            { upsert: true }
-        );
+        await UserProductivityStats.updateOne({ UserID: user.userId }, { $inc: { TotalTasksCreated: 1 } }, { upsert: true });
 
         return NextResponse.json({ success: true, data: task }, { status: 201 });
     } catch (err) {

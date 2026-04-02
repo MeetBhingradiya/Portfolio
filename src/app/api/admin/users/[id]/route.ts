@@ -4,12 +4,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 async function getDB() {
     if (!process.env.MONGODB_01) throw new Error("DB not configured");
     const client = new MongoClient(process.env.MONGODB_01);
     await client.connect();
-    const db = client.db("PRODUCTION_MeetBhingradiya");
+    const db = client.db(SConfig.Database.Name);
     return { client, col: db.collection("user") };
 }
 

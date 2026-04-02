@@ -24,8 +24,7 @@ export const metadata: Metadata = {
         type: "website",
         url: `${Config.Origin}/blogs`,
         title: "Blog | Meet Bhingradiya",
-        description:
-            "Articles and tutorials on Full Stack development, React, Next.js, TypeScript and more.",
+        description: "Articles and tutorials on Full Stack development, React, Next.js, TypeScript and more.",
         images: [
             {
                 url: "/assets/og-image.png",
@@ -38,8 +37,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "Blog | Meet Bhingradiya",
-        description:
-            "Dev articles on React, Next.js, TypeScript, Node.js and more by Meet Bhingradiya.",
+        description: "Dev articles on React, Next.js, TypeScript, Node.js and more by Meet Bhingradiya.",
         images: ["/assets/og-image.png"]
     }
 };

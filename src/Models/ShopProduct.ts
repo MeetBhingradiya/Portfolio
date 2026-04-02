@@ -11,14 +11,14 @@ export type BillingCycle = "one_time" | "monthly" | "quarterly" | "yearly";
 
 export interface IProductVariant {
     variantId: string;
-    name: string;           // e.g. "Pro", "Team", "Enterprise"
+    name: string; // e.g. "Pro", "Team", "Enterprise"
     description?: string;
-    price: number;          // in cents
-    currency: string;       // e.g. "USD", "INR"
+    price: number; // in cents
+    currency: string; // e.g. "USD", "INR"
     billingCycle: BillingCycle;
     features: string[];
-    maxUsers?: number;      // for team licenses
-    stock?: number;         // -1 = unlimited
+    maxUsers?: number; // for team licenses
+    stock?: number; // -1 = unlimited
     isPopular?: boolean;
     isActive: boolean;
 }
@@ -37,8 +37,8 @@ export interface IShopProduct extends Document {
     tags: string[];
 
     // Media
-    thumbnail?: string;     // CDN URL
-    images: string[];       // CDN URLs
+    thumbnail?: string; // CDN URL
+    images: string[]; // CDN URLs
     demoUrl?: string;
     documentationUrl?: string;
     repositoryUrl?: string;
@@ -48,13 +48,13 @@ export interface IShopProduct extends Document {
     defaultVariantId?: string;
 
     // Physical delivery extras
-    weight?: number;        // grams
+    weight?: number; // grams
     dimensions?: { length: number; width: number; height: number }; // mm
     shippingClass?: string;
 
     // Digital delivery
     downloadUrl?: string;
-    licenseKey?: string;    // template
+    licenseKey?: string; // template
 
     // Stats
     totalSales: number;
@@ -73,21 +73,30 @@ export interface IShopProduct extends Document {
 
 const ProductVariantSchema = new Schema<IProductVariant>(
     {
-        variantId: { type: String, required: true, default: () => require("uuid").v4() },
+        variantId: {
+            type: String,
+            required: true,
+            default: () => require("uuid").v4()
+        },
         name: { type: String, required: true, trim: true },
         description: { type: String, trim: true },
         price: { type: Number, required: true, min: 0 },
-        currency: { type: String, required: true, default: "USD", uppercase: true },
+        currency: {
+            type: String,
+            required: true,
+            default: "USD",
+            uppercase: true
+        },
         billingCycle: {
             type: String,
             enum: ["one_time", "monthly", "quarterly", "yearly"],
-            default: "one_time",
+            default: "one_time"
         },
         features: { type: [String], default: [] },
         maxUsers: { type: Number },
         stock: { type: Number, default: -1 },
         isPopular: { type: Boolean, default: false },
-        isActive: { type: Boolean, default: true },
+        isActive: { type: Boolean, default: true }
     },
     { _id: false }
 );
@@ -96,30 +105,46 @@ const DimensionsSchema = new Schema(
     {
         length: { type: Number },
         width: { type: Number },
-        height: { type: Number },
+        height: { type: Number }
     },
     { _id: false }
 );
 
 const ShopProductSchema = new Schema<IShopProduct>(
     {
-        productId: { type: String, required: true, unique: true, default: () => require("uuid").v4() },
+        productId: {
+            type: String,
+            required: true,
+            unique: true,
+            default: () => require("uuid").v4()
+        },
         name: { type: String, required: true, trim: true },
-        slug: { type: String, required: true, unique: true, trim: true, lowercase: true },
+        slug: {
+            type: String,
+            required: true,
+            unique: true,
+            trim: true,
+            lowercase: true
+        },
         description: { type: String, required: true },
         shortDescription: { type: String, trim: true },
         type: {
             type: String,
             enum: ["license", "subscription", "physical", "digital"],
             required: true,
-            default: "digital",
+            default: "digital"
         },
         status: {
             type: String,
             enum: ["active", "inactive", "archived", "coming_soon"],
-            default: "active",
+            default: "active"
         },
-        category: { type: String, required: true, trim: true, default: "General" },
+        category: {
+            type: String,
+            required: true,
+            trim: true,
+            default: "General"
+        },
         tags: { type: [String], default: [] },
         thumbnail: { type: String },
         images: { type: [String], default: [] },
@@ -139,7 +164,7 @@ const ShopProductSchema = new Schema<IShopProduct>(
         metaTitle: { type: String },
         metaDescription: { type: String },
         isDeleted: { type: Boolean, default: false },
-        createdBy: { type: String, required: true },
+        createdBy: { type: String, required: true }
     },
     { timestamps: true }
 );
@@ -147,6 +172,4 @@ const ShopProductSchema = new Schema<IShopProduct>(
 ShopProductSchema.index({ status: 1, category: 1 });
 ShopProductSchema.index({ type: 1, status: 1 });
 
-export const ShopProduct =
-    mongoose.models.ShopProduct ||
-    mongoose.model<IShopProduct>("ShopProduct", ShopProductSchema);
+export const ShopProduct = mongoose.models.ShopProduct || mongoose.model<IShopProduct>("ShopProduct", ShopProductSchema);

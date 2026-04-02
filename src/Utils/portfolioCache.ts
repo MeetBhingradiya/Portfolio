@@ -7,14 +7,7 @@
 
 import { unstable_cache } from "next/cache";
 import dbConnect from "@Utils/dbConnect";
-import {
-    Project_Model,
-    Skill_Model,
-    Education_Model,
-    Experience_Model,
-    Certificate_Model,
-    TestScore_Model
-} from "@Models/Portfolio";
+import { Project_Model, Skill_Model, Education_Model, Experience_Model, Certificate_Model, TestScore_Model } from "@Models/Portfolio";
 
 const TTL = 43200; // 12 hours
 
@@ -23,9 +16,7 @@ export const cachedProjectBySlug = (slug: string) =>
     unstable_cache(
         async () => {
             await dbConnect();
-            const doc = await Project_Model()
-                .findOne({ Slug: slug, isDeleted: false })
-                .lean();
+            const doc = await Project_Model().findOne({ Slug: slug, isDeleted: false }).lean();
             return doc ? JSON.parse(JSON.stringify(doc)) : null;
         },
         [`project-${slug}`],
@@ -36,10 +27,7 @@ export const cachedProjectBySlug = (slug: string) =>
 export const cachedProjects = unstable_cache(
     async () => {
         await dbConnect();
-        const docs = await Project_Model()
-            .find({ isDeleted: false })
-            .sort({ Order: 1, createdAt: -1 })
-            .lean();
+        const docs = await Project_Model().find({ isDeleted: false }).sort({ Order: 1, createdAt: -1 }).lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-projects"],
@@ -50,10 +38,7 @@ export const cachedProjects = unstable_cache(
 export const cachedSkills = unstable_cache(
     async () => {
         await dbConnect();
-        const docs = await Skill_Model()
-            .find({ isDeleted: false, Visible: true })
-            .sort({ Order: 1 })
-            .lean();
+        const docs = await Skill_Model().find({ isDeleted: false, Visible: true }).sort({ Order: 1 }).lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-skills"],
@@ -64,10 +49,7 @@ export const cachedSkills = unstable_cache(
 export const cachedEducation = unstable_cache(
     async () => {
         await dbConnect();
-        const docs = await Education_Model()
-            .find({ isDeleted: false })
-            .sort({ StartDate: -1 })
-            .lean();
+        const docs = await Education_Model().find({ isDeleted: false }).sort({ StartDate: -1 }).lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-education"],
@@ -78,10 +60,7 @@ export const cachedEducation = unstable_cache(
 export const cachedExperience = unstable_cache(
     async () => {
         await dbConnect();
-        const docs = await Experience_Model()
-            .find({ isDeleted: false })
-            .sort({ StartDate: -1 })
-            .lean();
+        const docs = await Experience_Model().find({ isDeleted: false }).sort({ StartDate: -1 }).lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-experience"],
@@ -92,10 +71,7 @@ export const cachedExperience = unstable_cache(
 export const cachedCertificates = unstable_cache(
     async () => {
         await dbConnect();
-        const docs = await Certificate_Model()
-            .find({ isDeleted: false })
-            .sort({ IssuedDate: -1, Order: 1 })
-            .lean();
+        const docs = await Certificate_Model().find({ isDeleted: false }).sort({ IssuedDate: -1, Order: 1 }).lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-certificates"],
@@ -106,10 +82,7 @@ export const cachedCertificates = unstable_cache(
 export const cachedTestScores = unstable_cache(
     async () => {
         await dbConnect();
-        const docs = await TestScore_Model()
-            .find({ isDeleted: false })
-            .sort({ Year: -1, Order: 1 })
-            .lean();
+        const docs = await TestScore_Model().find({ isDeleted: false }).sort({ Year: -1, Order: 1 }).lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-test-scores"],

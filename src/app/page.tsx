@@ -43,8 +43,7 @@ export const metadata: Metadata = {
         type: "website",
         url: Config.Origin,
         title: "Meet Bhingradiya — Full Stack Developer",
-        description:
-            "Full Stack Developer from Surat, India. Explore projects, open-source work, developer tools and blog.",
+        description: "Full Stack Developer from Surat, India. Explore projects, open-source work, developer tools and blog.",
         images: [
             {
                 url: "/assets/og-image.png",
@@ -57,8 +56,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "Meet Bhingradiya — Full Stack Developer",
-        description:
-            "Full Stack Developer from Surat, India. Projects, tools, blog and more.",
+        description: "Full Stack Developer from Surat, India. Projects, tools, blog and more.",
         images: ["/assets/og-image.png"]
     }
 };
@@ -87,10 +85,7 @@ const getAllSkills = unstable_cache(
     async () => {
         await dbConnect();
         const Model = Skill_Model();
-        const docs = await Model.find({ isDeleted: false })
-            .sort({ Level: -1 })
-            .select("SkillID Name Category Level")
-            .lean();
+        const docs = await Model.find({ isDeleted: false }).sort({ Level: -1 }).select("SkillID Name Category Level").lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-skills"],

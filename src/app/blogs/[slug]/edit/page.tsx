@@ -47,23 +47,30 @@ export default function EditBlogPage({ params }: { params: Promise<{ slug: strin
             .finally(() => setLoading(false));
     }, [slug]);
 
-    const handleSave = useCallback(async (data: BlogDraft) => {
-        const res = await fetch(`/api/blogs?id=${blogId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data)
-        });
-        const result = await res.json();
-        if (!result.success) throw new Error(result.error || "Failed to update");
-        const finalSlug = result.blog?.slug || result.data?.slug || (!/^[a-f\d]{24}$/i.test(slug) ? slug : "");
-        router.push(finalSlug ? `/blogs/${finalSlug}` : "/dashboard");
-    }, [blogId, router, slug]);
+    const handleSave = useCallback(
+        async (data: BlogDraft) => {
+            const res = await fetch(`/api/blogs?id=${blogId}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            if (!result.success) throw new Error(result.error || "Failed to update");
+            const finalSlug = result.blog?.slug || result.data?.slug || (!/^[a-f\d]{24}$/i.test(slug) ? slug : "");
+            router.push(finalSlug ? `/blogs/${finalSlug}` : "/dashboard");
+        },
+        [blogId, router, slug]
+    );
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: palette.background }}>
-                <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
-                    style={{ borderColor: palette.accent }} />
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: palette.background }}>
+                <div
+                    className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ borderColor: palette.accent }}
+                />
             </div>
         );
     }
@@ -71,7 +78,9 @@ export default function EditBlogPage({ params }: { params: Promise<{ slug: strin
     if (notFoundFlag || !initial) return notFound();
 
     return (
-        <div className="h-screen overflow-hidden" style={{ background: palette.background }}>
+        <div
+            className="h-screen overflow-hidden"
+            style={{ background: palette.background }}>
             <BlogEditor
                 initial={initial}
                 isAdmin={session?.user?.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL}

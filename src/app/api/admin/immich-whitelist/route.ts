@@ -8,6 +8,7 @@ import { requirePermission, permissionError } from "@Library/adminApiMiddleware"
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 export async function GET(req: NextRequest) {
     try {
@@ -21,10 +22,7 @@ export async function GET(req: NextRequest) {
         const search = q.get("search") || "";
         const query: any = {};
         if (search) {
-            query.$or = [
-                { email: { $regex: search, $options: "i" } },
-                { label: { $regex: search, $options: "i" } },
-            ];
+            query.$or = [{ email: { $regex: search, $options: "i" } }, { label: { $regex: search, $options: "i" } }];
         }
 
         const entries = await ImmichWhitelist.find(query).sort({ addedAt: -1 }).lean();
@@ -34,28 +32,34 @@ export async function GET(req: NextRequest) {
             const client = new MongoClient(process.env.MONGODB_01);
             try {
                 await client.connect();
-                const db = client.db("PRODUCTION_MeetBhingradiya");
+                const db = client.db(SConfig.Database.Name);
                 const userCol = db.collection("user");
 
-                const linkedIds = entries
-                    .filter((e) => e.userId)
-                    .map((e) => e.userId as string);
+                const linkedIds = entries.filter((e) => e.userId).map((e) => e.userId as string);
 
-                const linkedObjectIds = linkedIds
-                    .filter((id) => ObjectId.isValid(id))
-                    .map((id) => new ObjectId(id));
+                const linkedObjectIds = linkedIds.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id));
 
                 const baUsers = linkedIds.length
                     ? await userCol
-                        .find({
-                            $or: [
-                                { id: { $in: linkedIds as any } },
-                                { _id: { $in: linkedIds as any } },
-                                { _id: { $in: linkedObjectIds as any } },
-                            ],
-                        })
-                        .project({ _id: 1, id: 1, name: 1, image: 1, emailVerified: 1, email: 1, googleAvatar: 1, githubAvatar: 1, microsoftAvatar: 1 })
-                        .toArray()
+                          .find({
+                              $or: [
+                                  { id: { $in: linkedIds as any } },
+                                  { _id: { $in: linkedIds as any } },
+                                  { _id: { $in: linkedObjectIds as any } }
+                              ]
+                          })
+                          .project({
+                              _id: 1,
+                              id: 1,
+                              name: 1,
+                              image: 1,
+                              emailVerified: 1,
+                              email: 1,
+                              googleAvatar: 1,
+                              githubAvatar: 1,
+                              microsoftAvatar: 1
+                          })
+                          .toArray()
                     : [];
 
                 // Key by both BA id and Mongo _id string so legacy entries still resolve.
@@ -67,7 +71,7 @@ export async function GET(req: NextRequest) {
 
                 const enriched = entries.map((e) => ({
                     ...e,
-                    account: e.userId ? (baMap[e.userId] ?? null) : null,
+                    account: e.userId ? (baMap[e.userId] ?? null) : null
                 }));
 
                 return NextResponse.json({ success: true, data: enriched });
@@ -106,9 +110,9 @@ export async function POST(req: NextRequest) {
             const emailClient = new MongoClient(process.env.MONGODB_01);
             try {
                 await emailClient.connect();
-                const db = emailClient.db("PRODUCTION_MeetBhingradiya");
+                const db = emailClient.db(SConfig.Database.Name);
                 const baUser = await db.collection("user").findOne({
-                    email: { $regex: new RegExp(`^${resolvedEmail}$`, "i") },
+                    email: { $regex: new RegExp(`^${resolvedEmail}$`, "i") }
                 });
                 if (baUser) {
                     resolvedUserId = String(baUser.id ?? baUser._id);
@@ -122,10 +126,7 @@ export async function POST(req: NextRequest) {
         }
 
         if (!resolvedEmail || !resolvedLabel) {
-            return NextResponse.json(
-                { success: false, error: "email and label are required" },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, error: "email and label are required" }, { status: 400 });
         }
 
         await dbConnect();
@@ -136,7 +137,10 @@ export async function POST(req: NextRequest) {
         const existing = await ImmichWhitelist.findOne({ $or: dupQuery });
         if (existing) {
             return NextResponse.json(
-                { success: false, error: "Account or email is already whitelisted" },
+                {
+                    success: false,
+                    error: "Account or email is already whitelisted"
+                },
                 { status: 409 }
             );
         }
@@ -148,7 +152,7 @@ export async function POST(req: NextRequest) {
             enabled: true,
             addedBy: session.user.email,
             addedAt: new Date(),
-            ...(resolvedUserId ? { userId: resolvedUserId, linkedAccount: true } : { linkedAccount: false }),
+            ...(resolvedUserId ? { userId: resolvedUserId, linkedAccount: true } : { linkedAccount: false })
         });
 
         return NextResponse.json({ success: true, data: entry }, { status: 201 });

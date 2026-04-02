@@ -28,14 +28,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     return {
         title: `${project.Title} | Meet Bhingradiya`,
         description: project.Description,
-        keywords: [
-            project.Title,
-            project.Type,
-            ...(project.TechStack ?? []),
-            ...(project.Tags ?? []),
-            "Meet Bhingradiya",
-            "portfolio"
-        ]
+        keywords: [project.Title, project.Type, ...(project.TechStack ?? []), ...(project.Tags ?? []), "Meet Bhingradiya", "portfolio"]
     };
 }
 

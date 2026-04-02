@@ -135,9 +135,6 @@ export function useToolDefaults() {
  *   const { defaults, loading } = useToolDefaults();
  *   const qrDefaults = getToolDefault(defaults, "qr");
  */
-export function getToolDefault<K extends keyof ToolDefaultsData>(
-    data: ToolDefaultsData,
-    key: K
-): ToolDefaultsData[K] | undefined {
+export function getToolDefault<K extends keyof ToolDefaultsData>(data: ToolDefaultsData, key: K): ToolDefaultsData[K] | undefined {
     return data[key];
 }

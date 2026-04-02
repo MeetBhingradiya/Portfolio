@@ -16,10 +16,7 @@ async function isAdmin(request: NextRequest) {
 }
 
 // GET /api/products/[id] - Get single product by ID or Slug
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
 
@@ -32,10 +29,7 @@ export async function GET(
         }).select("-__v");
 
         if (!product) {
-            return NextResponse.json(
-                { success: false, error: "Product not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
         }
 
         // Get related agreements
@@ -65,15 +59,15 @@ export async function GET(
 }
 
 // PUT /api/products/[id] - Update product (Admin only)
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         // Check admin authorization
         if (!(await isAdmin(request))) {
             return NextResponse.json(
-                { success: false, error: "Unauthorized. Admin access required." },
+                {
+                    success: false,
+                    error: "Unauthorized. Admin access required."
+                },
                 { status: 403 }
             );
         }
@@ -91,10 +85,7 @@ export async function PUT(
         });
 
         if (!product) {
-            return NextResponse.json(
-                { success: false, error: "Product not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
         }
 
         // Check if slug is being changed and if it's unique
@@ -147,15 +138,15 @@ export async function PUT(
 }
 
 // DELETE /api/products/[id] - Soft delete product (Admin only)
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         // Check admin authorization
         if (!(await isAdmin(request))) {
             return NextResponse.json(
-                { success: false, error: "Unauthorized. Admin access required." },
+                {
+                    success: false,
+                    error: "Unauthorized. Admin access required."
+                },
                 { status: 403 }
             );
         }
@@ -171,10 +162,7 @@ export async function DELETE(
         });
 
         if (!product) {
-            return NextResponse.json(
-                { success: false, error: "Product not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "Product not found" }, { status: 404 });
         }
 
         product.isDeleted = true;

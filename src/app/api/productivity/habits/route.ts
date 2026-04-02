@@ -6,12 +6,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
-import {
-    ProductivityHabit,
-    HabitFrequency,
-    HabitCategory,
-    HabitDifficulty,
-} from "@Models/ProductivityHabit";
+import { ProductivityHabit, HabitFrequency, HabitCategory, HabitDifficulty } from "@Models/ProductivityHabit";
 import { UserProductivityStats, getOrCreateStats } from "@Models/UserProductivityStats";
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
@@ -23,25 +18,27 @@ export async function GET(req: NextRequest) {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const q         = req.nextUrl.searchParams;
-        const category  = q.get("category");
+        const q = req.nextUrl.searchParams;
+        const category = q.get("category");
         const frequency = q.get("frequency");
-        const archived  = q.get("archived") === "true";
+        const archived = q.get("archived") === "true";
 
-        const query: Record<string, unknown> = { UserID: user.userId, Archived: archived, IsActive: true };
+        const query: Record<string, unknown> = {
+            UserID: user.userId,
+            Archived: archived,
+            IsActive: true
+        };
         if (archived) delete (query as Record<string, unknown>).IsActive;
-        if (category)  query.Category  = category;
+        if (category) query.Category = category;
         if (frequency) query.Frequency = frequency;
 
-        const habits = await ProductivityHabit.find(query)
-            .sort({ CurrentStreak: -1, createdAt: -1 })
-            .lean();
+        const habits = await ProductivityHabit.find(query).sort({ CurrentStreak: -1, createdAt: -1 }).lean();
 
         // Annotate with today's completion flag
         const today = new Date().toISOString().split("T")[0];
         const habitsWithToday = habits.map((habit) => ({
             ...habit,
-            completedToday: habit.CompletionHistory?.some((c: { Date: string }) => c.Date === today) ?? false,
+            completedToday: habit.CompletionHistory?.some((c: { Date: string }) => c.Date === today) ?? false
         }));
 
         return NextResponse.json({ success: true, data: habitsWithToday });
@@ -64,16 +61,16 @@ export async function POST(req: NextRequest) {
         const {
             Title,
             Description,
-            Category        = HabitCategory.OTHER,
-            Difficulty      = HabitDifficulty.MEDIUM,
-            Emoji           = "✅",
-            Color           = "#5E97F6",
-            Frequency       = HabitFrequency.DAILY,
-            FrequencyDays   = [0, 1, 2, 3, 4, 5, 6],
+            Category = HabitCategory.OTHER,
+            Difficulty = HabitDifficulty.MEDIUM,
+            Emoji = "✅",
+            Color = "#5E97F6",
+            Frequency = HabitFrequency.DAILY,
+            FrequencyDays = [0, 1, 2, 3, 4, 5, 6],
             ReminderEnabled = false,
             ReminderTime,
             StartDate,
-            EndDate,
+            EndDate
         } = body;
 
         if (!Title?.trim()) {
@@ -82,7 +79,7 @@ export async function POST(req: NextRequest) {
 
         const habit = await ProductivityHabit.create({
             UserID: user.userId,
-            Title:  Title.trim(),
+            Title: Title.trim(),
             Description: Description?.trim(),
             Category,
             Difficulty,
@@ -93,28 +90,38 @@ export async function POST(req: NextRequest) {
             ReminderEnabled,
             ReminderTime,
             StartDate,
-            EndDate,
+            EndDate
         });
 
         // Stats + first-habit achievement
-        const stats    = await getOrCreateStats(user.userId);
-        const isFirst  = stats.TotalHabitsCreated === 0;
+        const stats = await getOrCreateStats(user.userId);
+        const isFirst = stats.TotalHabitsCreated === 0;
 
         await UserProductivityStats.updateOne(
             { UserID: user.userId },
             {
-                $inc: { TotalHabitsCreated: 1, ...(isFirst ? { TotalXP: 20 } : {}) },
+                $inc: {
+                    TotalHabitsCreated: 1,
+                    ...(isFirst ? { TotalXP: 20 } : {})
+                },
                 ...(isFirst
                     ? {
-                        $push: {
-                            EarnedAchievements: { id: "first_habit", EarnedAt: new Date(), XPAwarded: 20 },
-                            XPHistory: {
-                                Amount: 20, Reason: "Achievement: New Habit",
-                                Source: "achievement", SourceID: "first_habit", EarnedAt: new Date(),
-                            },
-                        },
-                    }
-                    : {}),
+                          $push: {
+                              EarnedAchievements: {
+                                  id: "first_habit",
+                                  EarnedAt: new Date(),
+                                  XPAwarded: 20
+                              },
+                              XPHistory: {
+                                  Amount: 20,
+                                  Reason: "Achievement: New Habit",
+                                  Source: "achievement",
+                                  SourceID: "first_habit",
+                                  EarnedAt: new Date()
+                              }
+                          }
+                      }
+                    : {})
             },
             { upsert: true }
         );

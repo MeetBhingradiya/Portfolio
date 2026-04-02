@@ -21,11 +21,11 @@ export type IPDataError = {
 const API = "https://api.ipdata.co/";
 
 const headers = {
-    Origin: "https://ipdata.co",
-    Referer: "https://ipdata.co/",
-    accept: "*/*",
+    "Origin": "https://ipdata.co",
+    "Referer": "https://ipdata.co/",
+    "accept": "*/*",
     "accept-encoding": "gzip, deflate, br",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 };
 
 export async function IPData(ip?: Iip): Promise<IPDataResponse | IPDataError> {
@@ -34,7 +34,7 @@ export async function IPData(ip?: Iip): Promise<IPDataResponse | IPDataError> {
         if (!key) {
             return {
                 isERROR: true,
-                Message: "IPDATA_WEBSITE_KEY or IPDATA_API_KEY is missing",
+                Message: "IPDATA_WEBSITE_KEY or IPDATA_API_KEY is missing"
             };
         }
 
@@ -43,14 +43,14 @@ export async function IPData(ip?: Iip): Promise<IPDataResponse | IPDataError> {
 
         const response = await axios.get<IPDataResponse>(apiUrl.href, {
             headers,
-            timeout: 8000,
+            timeout: 8000
         });
 
         return response.data;
     } catch (error: any) {
         return {
             isERROR: true,
-            Message: error?.response?.data?.message || error?.message || "Failed to resolve IP location",
+            Message: error?.response?.data?.message || error?.message || "Failed to resolve IP location"
         };
     }
 }

@@ -13,9 +13,7 @@ import { getResolvedUser } from "@Utils/RolePermissions";
 
 /** Build a query that matches by ticketId string OR _id (only when id is a valid ObjectId). */
 function ticketQuery(id: string) {
-    return mongoose.isValidObjectId(id)
-        ? { $or: [{ _id: id }, { ticketId: id }] }
-        : { ticketId: id };
+    return mongoose.isValidObjectId(id) ? { $or: [{ _id: id }, { ticketId: id }] } : { ticketId: id };
 }
 
 function compareHash(storedHash: string | undefined, provided: string): boolean {
@@ -35,7 +33,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
         const ticket = await SupportTicket.findOne({
             ...ticketQuery(params.id),
-            isDeleted: false,
+            isDeleted: false
         })
             .select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "")
             .lean();
@@ -60,9 +58,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         }
 
         if (!user?.isEmployee) {
-            (ticket as any).messages = ((ticket as any).messages as any[]).filter(
-                (m: any) => !m.isInternal
-            );
+            (ticket as any).messages = ((ticket as any).messages as any[]).filter((m: any) => !m.isInternal);
         }
 
         return NextResponse.json({ success: true, data: ticket });
@@ -81,7 +77,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         const body = await req.json();
         const ticket = await SupportTicket.findOne({
             ...ticketQuery(params.id),
-            isDeleted: false,
+            isDeleted: false
         }).select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "");
 
         if (!ticket) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
@@ -115,7 +111,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 content: body.reply,
                 attachments: body.attachments || [],
                 isInternal,
-                createdAt: new Date(),
+                createdAt: new Date()
             } as any);
             ticket.lastRepliedAt = new Date();
 
@@ -163,10 +159,9 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         const user = await getResolvedUser(h);
         if (!user?.isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 
-        await SupportTicket.findOneAndUpdate(
-            ticketQuery(params.id),
-            { isDeleted: true }
-        );
+        await SupportTicket.findOneAndUpdate(ticketQuery(params.id), {
+            isDeleted: true
+        });
         return NextResponse.json({ success: true });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });

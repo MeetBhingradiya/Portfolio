@@ -31,10 +31,7 @@ function MaintenanceContent() {
                         try {
                             const ref = new URL(referrer);
                             // Only follow same-origin referrers (security)
-                            if (
-                                ref.origin === location.origin &&
-                                ref.pathname !== "/maintenance"
-                            ) {
+                            if (ref.origin === location.origin && ref.pathname !== "/maintenance") {
                                 target = ref.pathname + ref.search;
                             }
                         } catch {
@@ -67,16 +64,21 @@ function MaintenanceContent() {
     }, []);
 
     const features = [
-        { icon: <SecurityIcon style={{ fontSize: 24 }} />, label: "Secure Updates" },
+        {
+            icon: <SecurityIcon style={{ fontSize: 24 }} />,
+            label: "Secure Updates"
+        },
         { icon: <ScheduleIcon style={{ fontSize: 24 }} />, label: "Back Soon" },
-        { icon: <MailOutlineIcon style={{ fontSize: 24 }} />, label: "Contact Support" }
+        {
+            icon: <MailOutlineIcon style={{ fontSize: 24 }} />,
+            label: "Contact Support"
+        }
     ];
 
     return (
         <div
             className="min-h-screen flex flex-col items-center justify-center px-4 py-16"
-            style={{ background: palette.background }}
-        >
+            style={{ background: palette.background }}>
             {/* Glow */}
             <div
                 className="fixed inset-0 pointer-events-none"
@@ -89,19 +91,21 @@ function MaintenanceContent() {
                 initial={{ opacity: 0, y: 32 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
-                className="relative z-10 flex flex-col items-center gap-8 max-w-xl w-full text-center"
-            >
+                className="relative z-10 flex flex-col items-center gap-8 max-w-xl w-full text-center">
                 {/* Icon */}
                 <motion.div
                     animate={{ rotate: [0, -8, 8, -8, 0] }}
-                    transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                    transition={{
+                        duration: 2.4,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                    }}
                     className="flex items-center justify-center w-24 h-24 rounded-3xl"
                     style={{
                         background: `linear-gradient(135deg, ${palette.accent}33, ${palette.accent}11)`,
                         border: `2px solid ${palette.accent}44`,
                         boxShadow: `0 0 40px ${palette.accent}33`
-                    }}
-                >
+                    }}>
                     <BuildIcon style={{ fontSize: 44, color: palette.accent }} />
                 </motion.div>
 
@@ -109,14 +113,12 @@ function MaintenanceContent() {
                 <div className="flex flex-col gap-3">
                     <h1
                         className="text-4xl font-bold tracking-tight"
-                        style={{ color: palette.textPrimary }}
-                    >
+                        style={{ color: palette.textPrimary }}>
                         Under Maintenance{dots}
                     </h1>
                     <p
                         className="text-base leading-relaxed"
-                        style={{ color: palette.textSecondary }}
-                    >
+                        style={{ color: palette.textSecondary }}>
                         {message || "We're performing scheduled maintenance. We'll be back soon!"}
                     </p>
                 </div>
@@ -124,7 +126,9 @@ function MaintenanceContent() {
                 {/* Divider */}
                 <div
                     className="w-24 h-px rounded-full"
-                    style={{ background: `linear-gradient(90deg, transparent, ${palette.accent}66, transparent)` }}
+                    style={{
+                        background: `linear-gradient(90deg, transparent, ${palette.accent}66, transparent)`
+                    }}
                 />
 
                 {/* Feature chips */}
@@ -140,8 +144,7 @@ function MaintenanceContent() {
                                 background: `${palette.accent}15`,
                                 border: `1px solid ${palette.accent}30`,
                                 color: palette.textSecondary
-                            }}
-                        >
+                            }}>
                             <span style={{ color: palette.accent }}>{f.icon}</span>
                             {f.label}
                         </motion.div>
@@ -157,11 +160,11 @@ function MaintenanceContent() {
                     style={{
                         background: palette.surface,
                         border: `1px solid ${palette.border}`
-                    }}
-                >
-                    <p className="text-sm" style={{ color: palette.textSecondary }}>
-                        Our team is working hard to improve your experience. If you have
-                        an urgent matter, please reach out.
+                    }}>
+                    <p
+                        className="text-sm"
+                        style={{ color: palette.textSecondary }}>
+                        Our team is working hard to improve your experience. If you have an urgent matter, please reach out.
                     </p>
                     <a
                         href="mailto:contact@meetbhingradiya.in"
@@ -169,8 +172,7 @@ function MaintenanceContent() {
                         style={{
                             background: `linear-gradient(135deg, ${palette.accent}, ${palette.accent}cc)`,
                             color: "#fff"
-                        }}
-                    >
+                        }}>
                         <MailOutlineIcon style={{ fontSize: 18 }} />
                         Contact Support
                     </a>
@@ -182,11 +184,12 @@ function MaintenanceContent() {
 
 export default function MaintenancePage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
-                <BuildIcon style={{ fontSize: 48, opacity: 0.3 }} />
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                    <BuildIcon style={{ fontSize: 48, opacity: 0.3 }} />
+                </div>
+            }>
             <MaintenanceContent />
         </Suspense>
     );

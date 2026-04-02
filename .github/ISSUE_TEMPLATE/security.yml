@@ -3,162 +3,162 @@ description: Report a security vulnerability (please use responsible disclosure)
 labels: ["🔒 Type: Security"]
 assignees: []
 body:
-  - type: markdown
-    attributes:
-      value: |
-        ## ⚠️ Security Disclosure Guidelines
-        
-        **IMPORTANT:** If this is a critical security vulnerability that could compromise user data or system security, please **DO NOT** create a public issue. Instead:
-        
-        1. Send an email to [security@yourproject.com] with details
-        2. Use GitHub's [Security Advisories](https://github.com/YourUsername/YourRepo/security/advisories) feature
-        3. Wait for a response before making this information public
-        
-        For less critical security improvements or questions, you may continue with this form.
+    - type: markdown
+      attributes:
+          value: |
+              ## ⚠️ Security Disclosure Guidelines
 
-  - type: checkboxes
-    id: security_confirmation
-    attributes:
-      label: Security Issue Confirmation
-      options:
-        - label: |
-            I confirm this is NOT a critical vulnerability that could immediately compromise user data or system security.
+              **IMPORTANT:** If this is a critical security vulnerability that could compromise user data or system security, please **DO NOT** create a public issue. Instead:
+
+              1. Send an email to [security@yourproject.com] with details
+              2. Use GitHub's [Security Advisories](https://github.com/YourUsername/YourRepo/security/advisories) feature
+              3. Wait for a response before making this information public
+
+              For less critical security improvements or questions, you may continue with this form.
+
+    - type: checkboxes
+      id: security_confirmation
+      attributes:
+          label: Security Issue Confirmation
+          options:
+              - label: |
+                    I confirm this is NOT a critical vulnerability that could immediately compromise user data or system security.
+                required: true
+              - label: |
+                    I have not shared details of this issue publicly before reporting it here.
+                required: true
+              - label: |
+                    I understand that security issues require careful handling and may need to be kept private initially.
+                required: true
+
+    - type: dropdown
+      id: security_type
+      attributes:
+          label: Security Issue Type
+          description: What type of security issue is this?
+          options:
+              - Authentication/Authorization
+              - Input validation/Sanitization
+              - Cross-Site Scripting (XSS)
+              - Cross-Site Request Forgery (CSRF)
+              - SQL Injection
+              - Dependency vulnerability
+              - Information disclosure
+              - Insecure configuration
+              - Cryptographic issue
+              - Access control
+              - Security improvement suggestion
+              - Other
+          default: 10
+      validations:
           required: true
-        - label: |
-            I have not shared details of this issue publicly before reporting it here.
+
+    - type: dropdown
+      id: severity
+      attributes:
+          label: Severity Level
+          description: How severe is this security issue?
+          options:
+              - Low (Minor security improvement)
+              - Medium (Potential security risk with limited impact)
+              - High (Significant security risk)
+              - Critical (Immediate security threat - should NOT be reported here)
+          default: 0
+      validations:
           required: true
-        - label: |
-            I understand that security issues require careful handling and may need to be kept private initially.
+
+    - type: textarea
+      id: description
+      attributes:
+          label: Security Issue Description
+          description: |
+              Provide a clear description of the security issue.
+              Avoid including sensitive details that could be exploited.
+          placeholder: |
+              The login form doesn't implement rate limiting, which could allow brute force attacks.
+      validations:
           required: true
 
-  - type: dropdown
-    id: security_type
-    attributes:
-      label: Security Issue Type
-      description: What type of security issue is this?
-      options:
-        - Authentication/Authorization
-        - Input validation/Sanitization
-        - Cross-Site Scripting (XSS)
-        - Cross-Site Request Forgery (CSRF)
-        - SQL Injection
-        - Dependency vulnerability
-        - Information disclosure
-        - Insecure configuration
-        - Cryptographic issue
-        - Access control
-        - Security improvement suggestion
-        - Other
-      default: 10
-    validations:
-      required: true
+    - type: textarea
+      id: impact
+      attributes:
+          label: Potential Impact
+          description: |
+              Describe the potential impact if this security issue is exploited.
+              Who could be affected and how?
+          placeholder: |
+              - Attackers could attempt to brute force user passwords
+              - User accounts could be compromised
+              - System resources could be exhausted
+      validations:
+          required: true
 
-  - type: dropdown
-    id: severity
-    attributes:
-      label: Severity Level
-      description: How severe is this security issue?
-      options:
-        - Low (Minor security improvement)
-        - Medium (Potential security risk with limited impact)
-        - High (Significant security risk)
-        - Critical (Immediate security threat - should NOT be reported here)
-      default: 0
-    validations:
-      required: true
+    - type: textarea
+      id: affected_components
+      attributes:
+          label: Affected Components
+          description: |
+              List the components, files, or areas of the application that are affected.
+          placeholder: |
+              - Login endpoint: /api/auth/login
+              - User authentication middleware
+              - Frontend login form component
 
-  - type: textarea
-    id: description
-    attributes:
-      label: Security Issue Description
-      description: |
-        Provide a clear description of the security issue.
-        Avoid including sensitive details that could be exploited.
-      placeholder: |
-        The login form doesn't implement rate limiting, which could allow brute force attacks.
-    validations:
-      required: true
+    - type: textarea
+      id: reproduction_steps
+      attributes:
+          label: Steps to Reproduce (if safe to share)
+          description: |
+              If it's safe to share, provide steps to reproduce this security issue.
+              Avoid providing actual exploit code.
+          placeholder: |
+              1. Navigate to login page
+              2. Attempt multiple login requests rapidly
+              3. Notice no rate limiting is applied
 
-  - type: textarea
-    id: impact
-    attributes:
-      label: Potential Impact
-      description: |
-        Describe the potential impact if this security issue is exploited.
-        Who could be affected and how?
-      placeholder: |
-        - Attackers could attempt to brute force user passwords
-        - User accounts could be compromised
-        - System resources could be exhausted
-    validations:
-      required: true
+    - type: textarea
+      id: mitigation
+      attributes:
+          label: Suggested Mitigation
+          description: |
+              If you have suggestions for how to fix this security issue, please share them.
+          placeholder: |
+              - Implement rate limiting on login endpoint
+              - Add CAPTCHA after failed attempts
+              - Use exponential backoff for failed login attempts
+              - Log and monitor suspicious login patterns
 
-  - type: textarea
-    id: affected_components
-    attributes:
-      label: Affected Components
-      description: |
-        List the components, files, or areas of the application that are affected.
-      placeholder: |
-        - Login endpoint: /api/auth/login
-        - User authentication middleware
-        - Frontend login form component
+    - type: textarea
+      id: references
+      attributes:
+          label: Security References
+          description: |
+              Include any relevant security references, standards, or documentation.
+          placeholder: |
+              - OWASP Authentication Cheat Sheet
+              - CWE-307: Improper Restriction of Excessive Authentication Attempts
+              - Related CVE numbers (if applicable)
 
-  - type: textarea
-    id: reproduction_steps
-    attributes:
-      label: Steps to Reproduce (if safe to share)
-      description: |
-        If it's safe to share, provide steps to reproduce this security issue.
-        Avoid providing actual exploit code.
-      placeholder: |
-        1. Navigate to login page
-        2. Attempt multiple login requests rapidly
-        3. Notice no rate limiting is applied
+    - type: dropdown
+      id: disclosure_timeline
+      attributes:
+          label: Preferred Disclosure Timeline
+          description: How quickly should this be addressed?
+          options:
+              - No urgency (general security improvement)
+              - Within 30 days (moderate concern)
+              - Within 14 days (significant concern)
+              - Within 7 days (high concern)
+          default: 0
 
-  - type: textarea
-    id: mitigation
-    attributes:
-      label: Suggested Mitigation
-      description: |
-        If you have suggestions for how to fix this security issue, please share them.
-      placeholder: |
-        - Implement rate limiting on login endpoint
-        - Add CAPTCHA after failed attempts
-        - Use exponential backoff for failed login attempts
-        - Log and monitor suspicious login patterns
-
-  - type: textarea
-    id: references
-    attributes:
-      label: Security References
-      description: |
-        Include any relevant security references, standards, or documentation.
-      placeholder: |
-        - OWASP Authentication Cheat Sheet
-        - CWE-307: Improper Restriction of Excessive Authentication Attempts
-        - Related CVE numbers (if applicable)
-
-  - type: dropdown
-    id: disclosure_timeline
-    attributes:
-      label: Preferred Disclosure Timeline
-      description: How quickly should this be addressed?
-      options:
-        - No urgency (general security improvement)
-        - Within 30 days (moderate concern)
-        - Within 14 days (significant concern)
-        - Within 7 days (high concern)
-      default: 0
-
-  - type: textarea
-    id: additional_context
-    attributes:
-      label: Additional Context
-      description: |
-        Any additional context about this security issue.
-        Include environment details if relevant.
-      placeholder: |
-        - Found during security audit
-        - Similar to issue found in other projects
-        - Related to recent security advisory XYZ
+    - type: textarea
+      id: additional_context
+      attributes:
+          label: Additional Context
+          description: |
+              Any additional context about this security issue.
+              Include environment details if relevant.
+          placeholder: |
+              - Found during security audit
+              - Similar to issue found in other projects
+              - Related to recent security advisory XYZ

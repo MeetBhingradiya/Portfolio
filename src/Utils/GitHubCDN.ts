@@ -37,15 +37,11 @@ function isHistoryCompactionEnabled() {
 
 function getToken() {
     const fineGrained = process.env.CDN_GITHUB_FINE_GRAINED_TOKEN?.trim();
-    const classic =
-        process.env.CDN_GITHUB_CLASSIC_TOKEN?.trim() ||
-        process.env.CDN_GITHUB_TOKEN?.trim();
+    const classic = process.env.CDN_GITHUB_CLASSIC_TOKEN?.trim() || process.env.CDN_GITHUB_TOKEN?.trim();
 
     const token = fineGrained || classic;
     if (!token) {
-        throw new Error(
-            "No GitHub token found. Set CDN_GITHUB_FINE_GRAINED_TOKEN or CDN_GITHUB_TOKEN/CDN_GITHUB_CLASSIC_TOKEN."
-        );
+        throw new Error("No GitHub token found. Set CDN_GITHUB_FINE_GRAINED_TOKEN or CDN_GITHUB_TOKEN/CDN_GITHUB_CLASSIC_TOKEN.");
     }
 
     return token;
@@ -71,10 +67,10 @@ function getSizeLimitKb() {
 
 function ghHeaders(tk: string) {
     return {
-        Authorization: `Bearer ${tk}`,
-        Accept: "application/vnd.github+json",
+        "Authorization": `Bearer ${tk}`,
+        "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
     };
 }
 
@@ -88,7 +84,7 @@ async function compactRepoHistory(repo: string, reason: string): Promise<void> {
     // 1) Resolve current branch head commit
     const refRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/ref/heads/${encodeURIComponent(br)}`, {
         headers: ghHeaders(tk),
-        cache: "no-store",
+        cache: "no-store"
     });
     if (!refRes.ok) {
         const body = await refRes.text();
@@ -101,7 +97,7 @@ async function compactRepoHistory(repo: string, reason: string): Promise<void> {
     // 2) Read tree SHA from head commit
     const headCommitRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/commits/${headCommitSha}`, {
         headers: ghHeaders(tk),
-        cache: "no-store",
+        cache: "no-store"
     });
     if (!headCommitRes.ok) {
         const body = await headCommitRes.text();
@@ -118,8 +114,8 @@ async function compactRepoHistory(repo: string, reason: string): Promise<void> {
         body: JSON.stringify({
             message: `cdn: compact history (${reason})`,
             tree: treeSha,
-            parents: [],
-        }),
+            parents: []
+        })
     });
     if (!newCommitRes.ok) {
         const body = await newCommitRes.text();
@@ -133,7 +129,7 @@ async function compactRepoHistory(repo: string, reason: string): Promise<void> {
     const updateRefRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/refs/heads/${encodeURIComponent(br)}`, {
         method: "PATCH",
         headers: ghHeaders(tk),
-        body: JSON.stringify({ sha: newCommitSha, force: true }),
+        body: JSON.stringify({ sha: newCommitSha, force: true })
     });
     if (!updateRefRes.ok) {
         const body = await updateRefRes.text();
@@ -146,9 +142,9 @@ async function compactRepoHistory(repo: string, reason: string): Promise<void> {
 // ---------------------------------------------------------------------------
 
 export interface RepoInfo {
-    name: string;      // repo name only, e.g. "PrivateCloud-1"
-    fullName: string;  // "owner/PrivateCloud-1"
-    sizeKb: number;    // GitHub's `size` field (KB, approximate)
+    name: string; // repo name only, e.g. "PrivateCloud-1"
+    fullName: string; // "owner/PrivateCloud-1"
+    sizeKb: number; // GitHub's `size` field (KB, approximate)
     private: boolean;
 }
 
@@ -176,7 +172,10 @@ export async function listCDNRepos(forceRefresh = false): Promise<RepoInfo[]> {
 
     while (true) {
         const url = `${BASE}/user/repos?per_page=100&page=${page}&type=all&sort=full_name`;
-        const res = await fetch(url, { headers: ghHeaders(tk), cache: "no-store" });
+        const res = await fetch(url, {
+            headers: ghHeaders(tk),
+            cache: "no-store"
+        });
 
         if (!res.ok) {
             const body = await res.text();
@@ -187,16 +186,12 @@ export async function listCDNRepos(forceRefresh = false): Promise<RepoInfo[]> {
         if (repos.length === 0) break;
 
         for (const r of repos) {
-            if (
-                typeof r.name === "string" &&
-                r.name.toLowerCase().startsWith(pfx) &&
-                r.owner?.login?.toLowerCase() === ow.toLowerCase()
-            ) {
+            if (typeof r.name === "string" && r.name.toLowerCase().startsWith(pfx) && r.owner?.login?.toLowerCase() === ow.toLowerCase()) {
                 results.push({
                     name: r.name,
                     fullName: r.full_name,
                     sizeKb: r.size ?? 0,
-                    private: r.private ?? false,
+                    private: r.private ?? false
                 });
             }
         }
@@ -208,7 +203,7 @@ export async function listCDNRepos(forceRefresh = false): Promise<RepoInfo[]> {
     if (results.length === 0) {
         throw new Error(
             `No CDN repositories found with prefix "${getPrefix()}" under account "${ow}". ` +
-            `Create at least one private repo named "${getPrefix()}-1".`
+                `Create at least one private repo named "${getPrefix()}-1".`
         );
     }
 
@@ -255,11 +250,11 @@ async function createNextCDNRepo(existing: RepoInfo[]): Promise<RepoInfo> {
             name,
             description: "Private CDN storage repository — managed automatically",
             private: true,
-            auto_init: true,   // creates initial commit so the repo is ready immediately
+            auto_init: true, // creates initial commit so the repo is ready immediately
             has_issues: false,
             has_projects: false,
-            has_wiki: false,
-        }),
+            has_wiki: false
+        })
     });
 
     if (!res.ok) {
@@ -272,7 +267,7 @@ async function createNextCDNRepo(existing: RepoInfo[]): Promise<RepoInfo> {
         name: data.name as string,
         fullName: data.full_name as string,
         sizeKb: 0,
-        private: true,
+        private: true
     };
 
     // Invalidate cache so subsequent calls see the new repo
@@ -305,7 +300,7 @@ export async function resolveBestRepo(): Promise<RepoInfo> {
 // ---------------------------------------------------------------------------
 
 export interface GitHubUploadResult {
-    repo: string;  // e.g. "PrivateCloud-1"
+    repo: string; // e.g. "PrivateCloud-1"
     sha: string;
     path: string;
 }
@@ -321,10 +316,10 @@ export interface GitHubFileInfo {
 // ---------------------------------------------------------------------------
 
 export async function githubUpload(
-    path: string,           // path inside the repo, e.g. "uploads/avatars/abc123.png"
+    path: string, // path inside the repo, e.g. "uploads/avatars/abc123.png"
     contentBuffer: Buffer,
     commitMessage: string,
-    targetRepo?: string     // optional override: use a specific repo name
+    targetRepo?: string // optional override: use a specific repo name
 ): Promise<GitHubUploadResult> {
     const tk = getToken();
     const ow = getOwner();
@@ -348,8 +343,8 @@ export async function githubUpload(
         body: JSON.stringify({
             message: commitMessage,
             content: contentBuffer.toString("base64"),
-            branch: br,
-        }),
+            branch: br
+        })
     });
 
     if (!res.ok) {
@@ -364,7 +359,7 @@ export async function githubUpload(
     return {
         repo: repoName,
         sha: data.content.sha as string,
-        path: data.content.path as string,
+        path: data.content.path as string
     };
 }
 
@@ -394,16 +389,16 @@ export async function githubStat(repo: string, path: string): Promise<GitHubFile
 // Download — proxy bytes from a specific repo (works for private repos)
 // ---------------------------------------------------------------------------
 
-export async function githubDownload(
-    repo: string,
-    path: string
-): Promise<{ buffer: Buffer; size: number } | null> {
+export async function githubDownload(repo: string, path: string): Promise<{ buffer: Buffer; size: number } | null> {
     const tk = getToken();
     const ow = getOwner();
     const br = getBranch();
 
     const metaUrl = `${BASE}/repos/${ow}/${repo}/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}?ref=${br}`;
-    const metaRes = await fetch(metaUrl, { headers: ghHeaders(tk), cache: "no-store" });
+    const metaRes = await fetch(metaUrl, {
+        headers: ghHeaders(tk),
+        cache: "no-store"
+    });
 
     if (metaRes.status === 404) return null;
     if (!metaRes.ok) return null;
@@ -420,7 +415,7 @@ export async function githubDownload(
     if (meta.download_url) {
         const rawRes = await fetch(meta.download_url as string, {
             headers: { Authorization: `Bearer ${tk}` },
-            cache: "no-store",
+            cache: "no-store"
         });
         if (!rawRes.ok) return null;
         const buffer = Buffer.from(await rawRes.arrayBuffer());
@@ -434,12 +429,7 @@ export async function githubDownload(
 // Delete — remove a file from a specific repo by SHA
 // ---------------------------------------------------------------------------
 
-export async function githubDelete(
-    repo: string,
-    path: string,
-    sha: string,
-    commitMessage: string
-): Promise<void> {
+export async function githubDelete(repo: string, path: string, sha: string, commitMessage: string): Promise<void> {
     const tk = getToken();
     const ow = getOwner();
     const br = getBranch();
@@ -448,7 +438,7 @@ export async function githubDelete(
     const res = await fetch(url, {
         method: "DELETE",
         headers: ghHeaders(tk),
-        body: JSON.stringify({ message: commitMessage, sha, branch: br }),
+        body: JSON.stringify({ message: commitMessage, sha, branch: br })
     });
 
     if (!res.ok && res.status !== 404) {
@@ -469,7 +459,7 @@ export interface GitHubCommit {
     message: string;
     authorName: string;
     authorEmail: string;
-    authorDate: string;   // ISO 8601
+    authorDate: string; // ISO 8601
     htmlUrl: string;
 }
 
@@ -480,18 +470,12 @@ export interface GitHubCommit {
  * @param path   Path inside the repo, e.g. "uploads/banners/abc123.png"
  * @param perPage Max commits to return (default 50)
  */
-export async function githubListCommits(
-    repo: string,
-    path: string,
-    perPage = 50
-): Promise<GitHubCommit[]> {
+export async function githubListCommits(repo: string, path: string, perPage = 50): Promise<GitHubCommit[]> {
     const tk = getToken();
     const ow = getOwner();
     const br = getBranch();
 
-    const url =
-        `${BASE}/repos/${ow}/${repo}/commits` +
-        `?path=${encodeURIComponent(path)}&sha=${br}&per_page=${perPage}`;
+    const url = `${BASE}/repos/${ow}/${repo}/commits` + `?path=${encodeURIComponent(path)}&sha=${br}&per_page=${perPage}`;
 
     const res = await fetch(url, { headers: ghHeaders(tk), cache: "no-store" });
 
@@ -508,7 +492,7 @@ export async function githubListCommits(
         authorName: (c.commit?.author?.name as string) || "",
         authorEmail: (c.commit?.author?.email as string) || "",
         authorDate: (c.commit?.author?.date as string) || "",
-        htmlUrl: (c.html_url as string) || "",
+        htmlUrl: (c.html_url as string) || ""
     }));
 }
 
@@ -525,11 +509,7 @@ export async function githubListCommits(
  * @param commitSha   The commit whose tree should be read (full SHA)
  * @returns           New blob SHA after re-upload
  */
-export async function githubRestoreFromCommit(
-    repo: string,
-    path: string,
-    commitSha: string
-): Promise<{ newSha: string; size: number }> {
+export async function githubRestoreFromCommit(repo: string, path: string, commitSha: string): Promise<{ newSha: string; size: number }> {
     const tk = getToken();
     const ow = getOwner();
     const br = getBranch();
@@ -537,7 +517,7 @@ export async function githubRestoreFromCommit(
     // 1. Get the tree SHA for this commit
     const commitRes = await fetch(`${BASE}/repos/${ow}/${repo}/commits/${commitSha}`, {
         headers: ghHeaders(tk),
-        cache: "no-store",
+        cache: "no-store"
     });
     if (!commitRes.ok) {
         const body = await commitRes.text();
@@ -548,10 +528,10 @@ export async function githubRestoreFromCommit(
     if (!treeSha) throw new Error("Commit has no tree SHA");
 
     // 2. Find the blob SHA for the specific file in that tree (recursive)
-    const treeRes = await fetch(
-        `${BASE}/repos/${ow}/${repo}/git/trees/${treeSha}?recursive=1`,
-        { headers: ghHeaders(tk), cache: "no-store" }
-    );
+    const treeRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/trees/${treeSha}?recursive=1`, {
+        headers: ghHeaders(tk),
+        cache: "no-store"
+    });
     if (!treeRes.ok) {
         const body = await treeRes.text();
         throw new Error(`Cannot read tree ${treeSha} (${treeRes.status}): ${body}`);
@@ -565,8 +545,11 @@ export async function githubRestoreFromCommit(
 
     // 3. Download the blob bytes
     const blobRes = await fetch(`${BASE}/repos/${ow}/${repo}/git/blobs/${blobSha}`, {
-        headers: { ...ghHeaders(tk), Accept: "application/vnd.github.raw+json" },
-        cache: "no-store",
+        headers: {
+            ...ghHeaders(tk),
+            Accept: "application/vnd.github.raw+json"
+        },
+        cache: "no-store"
     });
     if (!blobRes.ok) {
         const body = await blobRes.text();
@@ -580,16 +563,16 @@ export async function githubRestoreFromCommit(
     const putBody: Record<string, any> = {
         message: `cdn: restore "${path}" from commit ${commitSha.slice(0, 7)}`,
         content: buffer.toString("base64"),
-        branch: br,
+        branch: br
     };
-    if (headMeta) putBody.sha = headMeta.sha;  // required to overwrite existing file
+    if (headMeta) putBody.sha = headMeta.sha; // required to overwrite existing file
 
     // 5. Re-upload to HEAD
     const putUrl = `${BASE}/repos/${ow}/${repo}/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}`;
     const putRes = await fetch(putUrl, {
         method: "PUT",
         headers: ghHeaders(tk),
-        body: JSON.stringify(putBody),
+        body: JSON.stringify(putBody)
     });
 
     if (!putRes.ok) {
@@ -600,6 +583,6 @@ export async function githubRestoreFromCommit(
     const putData = await putRes.json();
     return {
         newSha: putData.content.sha as string,
-        size: buffer.length,
+        size: buffer.length
     };
 }

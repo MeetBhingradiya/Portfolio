@@ -18,8 +18,8 @@ import { Payment } from "@Models/Payment";
 
 export async function POST(req: NextRequest) {
     const razorpay = new Razorpay({
-        key_id    : process.env.RAZORPAY_KEY_ID!,
-        key_secret: process.env.RAZORPAY_KEY_SECRET!,
+        key_id: process.env.RAZORPAY_KEY_ID!,
+        key_secret: process.env.RAZORPAY_KEY_SECRET!
     });
     try {
         const session = await getSession(req.headers);
@@ -31,36 +31,36 @@ export async function POST(req: NextRequest) {
         await dbConnect();
 
         const subscription = await (razorpay.subscriptions as any).create({
-            plan_id     : planId,
-            total_count : totalCount,    // number of billing cycles
-            quantity    : 1,
+            plan_id: planId,
+            total_count: totalCount, // number of billing cycles
+            quantity: 1,
             customer_notify: 1,
-            notes       : {
-                userId    : session.user.id    || "",
-                userEmail : session.user.email || "",
+            notes: {
+                userId: session.user.id || "",
+                userEmail: session.user.email || "",
                 purpose,
-                referenceId: referenceId || "",
-            },
+                referenceId: referenceId || ""
+            }
         });
 
         // Record pending subscription payment
         await Payment.create({
-            userId                 : session.user.id || session.user.email,
-            userEmail              : session.user.email,
-            provider               : "razorpay",
-            type                   : "subscription",
+            userId: session.user.id || session.user.email,
+            userEmail: session.user.email,
+            provider: "razorpay",
+            type: "subscription",
             purpose,
             referenceId,
-            amount                 : 0,      // updated on first charge webhook
-            currency               : "INR",
-            razorpaySubscriptionId : subscription.id,
-            status                 : "pending",
+            amount: 0, // updated on first charge webhook
+            currency: "INR",
+            razorpaySubscriptionId: subscription.id,
+            status: "pending"
         });
 
         return NextResponse.json({
-            subscriptionId : subscription.id,
-            status         : subscription.status,
-            keyId          : process.env.RAZORPAY_KEY_ID,
+            subscriptionId: subscription.id,
+            status: subscription.status,
+            keyId: process.env.RAZORPAY_KEY_ID
         });
     } catch (err: any) {
         console.error("[Razorpay subscription]", err);

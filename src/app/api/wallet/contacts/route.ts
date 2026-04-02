@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
                 { Name: { $regex: search, $options: "i" } },
                 { Relation: { $regex: search, $options: "i" } },
                 { Phones: { $in: [new RegExp(search, "i")] } },
-                { Emails: { $in: [new RegExp(search, "i")] } },
+                { Emails: { $in: [new RegExp(search, "i")] } }
             ];
         }
 
@@ -61,22 +61,26 @@ export async function POST(req: NextRequest) {
 
         const toArr = (v: unknown): string[] => {
             if (Array.isArray(v)) return v.map(String).filter(Boolean);
-            if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
+            if (typeof v === "string")
+                return v
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
             return [];
         };
 
         const contact = await WalletContact.create({
-            UserID:              user.userId,
-            Name:                name,
-            Relation:            body.Relation || undefined,
-            Phones:              toArr(body.Phones),
-            Emails:              toArr(body.Emails),
-            InstagramIDs:        toArr(body.InstagramIDs),
-            SnapIDs:             toArr(body.SnapIDs),
-            PendingCollections:  parseFloat(body.PendingCollections) || 0,
-            PendingPayments:     parseFloat(body.PendingPayments)   || 0,
-            Notes:               body.Notes || undefined,
-            Avatar:              body.Avatar || undefined,
+            UserID: user.userId,
+            Name: name,
+            Relation: body.Relation || undefined,
+            Phones: toArr(body.Phones),
+            Emails: toArr(body.Emails),
+            InstagramIDs: toArr(body.InstagramIDs),
+            SnapIDs: toArr(body.SnapIDs),
+            PendingCollections: parseFloat(body.PendingCollections) || 0,
+            PendingPayments: parseFloat(body.PendingPayments) || 0,
+            Notes: body.Notes || undefined,
+            Avatar: body.Avatar || undefined
         });
 
         return NextResponse.json({ success: true, data: contact }, { status: 201 });

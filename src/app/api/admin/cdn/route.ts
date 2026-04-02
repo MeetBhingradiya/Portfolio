@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
                 { filename: { $regex: search, $options: "i" } },
                 { tags: { $regex: search, $options: "i" } },
                 { altText: { $regex: search, $options: "i" } },
-                { assetId: { $regex: search, $options: "i" } },
+                { assetId: { $regex: search, $options: "i" } }
             ];
         }
         if (type) filter.type = type;
@@ -38,22 +38,20 @@ export async function GET(req: NextRequest) {
 
         const [assets, total] = await Promise.all([
             CDNAsset.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
-            CDNAsset.countDocuments(filter),
+            CDNAsset.countDocuments(filter)
         ]);
 
         // Summary counts for the dashboard header
         const [activeCount, missingCount, totalSize] = await Promise.all([
             CDNAsset.countDocuments({ status: "active" }),
             CDNAsset.countDocuments({ status: "missing" }),
-            CDNAsset.aggregate([{ $group: { _id: null, total: { $sum: "$size" } } }]).then(
-                (r) => r[0]?.total ?? 0
-            ),
+            CDNAsset.aggregate([{ $group: { _id: null, total: { $sum: "$size" } } }]).then((r) => r[0]?.total ?? 0)
         ]);
 
         return NextResponse.json({
             assets,
             pagination: { total, page, limit, pages: Math.ceil(total / limit) },
-            summary: { activeCount, missingCount, totalSize },
+            summary: { activeCount, missingCount, totalSize }
         });
     } catch (err: any) {
         console.error("[Admin CDN GET]", err);

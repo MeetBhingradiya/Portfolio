@@ -14,7 +14,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
         await dbConnect();
         const product = await ShopProduct.findOne({
             $or: [{ productId: params.id }, { slug: params.id }],
-            isDeleted: false,
+            isDeleted: false
         }).lean();
         if (!product) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
         return NextResponse.json({ success: true, data: product });

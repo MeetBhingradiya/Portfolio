@@ -12,15 +12,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIBadge } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    Code,
-    ContentCopy,
-    Check,
-    AutoFixHigh,
-    FindReplace,
-    BookmarkBorder,
-    ExpandMore
-} from "@mui/icons-material";
+import { Code, ContentCopy, Check, AutoFixHigh, FindReplace, BookmarkBorder, ExpandMore } from "@mui/icons-material";
 
 interface RegExpState {
     pattern: string;
@@ -45,16 +37,40 @@ const FLAG_OPTIONS = [
 ];
 
 const PRESETS: { label: string; pattern: string; flags: string }[] = [
-    { label: "Email", pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", flags: "gi" },
-    { label: "URL", pattern: "https?://[\\w\\-]+(\\.[\\w\\-]+)+([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?", flags: "gi" },
+    {
+        label: "Email",
+        pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+        flags: "gi"
+    },
+    {
+        label: "URL",
+        pattern: "https?://[\\w\\-]+(\\.[\\w\\-]+)+([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?",
+        flags: "gi"
+    },
     { label: "IPv4", pattern: "\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b", flags: "g" },
     { label: "Phone", pattern: "\\+?[\\d\\s\\-().]{7,15}", flags: "g" },
-    { label: "Hex Colour", pattern: "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\\b", flags: "gi" },
+    {
+        label: "Hex Colour",
+        pattern: "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})\\b",
+        flags: "gi"
+    },
     { label: "HTML Tag", pattern: "<\\/?[a-z][a-z0-9]*[^>]*>", flags: "gi" },
-    { label: "Date (YYYY-MM-DD)", pattern: "\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])", flags: "g" },
-    { label: "UUID", pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", flags: "gi" },
+    {
+        label: "Date (YYYY-MM-DD)",
+        pattern: "\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])",
+        flags: "g"
+    },
+    {
+        label: "UUID",
+        pattern: "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        flags: "gi"
+    },
     { label: "Credit Card", pattern: "\\b(?:\\d[ -]*?){13,19}\\b", flags: "g" },
-    { label: "Password Strength", pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$", flags: "" }
+    {
+        label: "Password Strength",
+        pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+        flags: ""
+    }
 ];
 
 export default function RegExpPage() {
@@ -90,15 +106,17 @@ export default function RegExpPage() {
     }, []);
 
     const toggleFlag = (flag: string) => {
-        const flags = state.flags.includes(flag)
-            ? state.flags.replace(flag, "")
-            : state.flags + flag;
+        const flags = state.flags.includes(flag) ? state.flags.replace(flag, "") : state.flags + flag;
         update({ flags });
     };
 
     // ── Run regex ────────────────────────────────────────────────────────────
     const { matches, highlightedText, replaceResult } = useMemo(() => {
-        const result: { matches: MatchResult[]; highlightedText: string; replaceResult: string } = {
+        const result: {
+            matches: MatchResult[];
+            highlightedText: string;
+            replaceResult: string;
+        } = {
             matches: [],
             highlightedText: state.testString,
             replaceResult: ""
@@ -143,7 +161,9 @@ export default function RegExpPage() {
                 try {
                     const replaceRegex = new RegExp(state.pattern, state.flags);
                     result.replaceResult = state.testString.replace(replaceRegex, state.replaceWith);
-                } catch { /* ignore */ }
+                } catch {
+                    /* ignore */
+                }
             }
         } catch (e: any) {
             setError(e.message);
@@ -163,14 +183,17 @@ export default function RegExpPage() {
             title="RegExp Tester"
             description="Test, explore and share regular expressions"
             icon={<Code sx={{ fontSize: 24 }} />}
-            accentColor="#FF2D55"
-        >
+            accentColor="#FF2D55">
             <div className="space-y-6">
                 {/* ── Pattern input ── */}
                 <Card>
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <span className="text-lg font-mono" style={{ color: palette.textTertiary }}>/</span>
+                            <span
+                                className="text-lg font-mono"
+                                style={{ color: palette.textTertiary }}>
+                                /
+                            </span>
                             <input
                                 value={state.pattern}
                                 onChange={(e) => update({ pattern: e.target.value })}
@@ -182,18 +205,27 @@ export default function RegExpPage() {
                                     border: `1.5px solid ${error ? "#FF3B30" : isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
                                 }}
                             />
-                            <span className="text-lg font-mono" style={{ color: palette.textTertiary }}>/{state.flags}</span>
+                            <span
+                                className="text-lg font-mono"
+                                style={{ color: palette.textTertiary }}>
+                                /{state.flags}
+                            </span>
                             <motion.button
                                 onClick={() => copy(`/${state.pattern}/${state.flags}`)}
                                 whileTap={{ scale: 0.9 }}
-                                style={{ color: copied ? "#34C759" : palette.textTertiary }}
-                            >
+                                style={{
+                                    color: copied ? "#34C759" : palette.textTertiary
+                                }}>
                                 {copied ? <Check sx={{ fontSize: 18 }} /> : <ContentCopy sx={{ fontSize: 18 }} />}
                             </motion.button>
                         </div>
 
                         {error && (
-                            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs font-bold" style={{ color: "#FF3B30" }}>
+                            <motion.p
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-xs font-bold"
+                                style={{ color: "#FF3B30" }}>
                                 {error}
                             </motion.p>
                         )}
@@ -207,12 +239,15 @@ export default function RegExpPage() {
                                     className="px-3 py-1.5 rounded-full text-xs font-bold"
                                     title={f.desc}
                                     style={{
-                                        background: state.flags.includes(f.flag) ? `${palette.accent}20` : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                                        background: state.flags.includes(f.flag)
+                                            ? `${palette.accent}20`
+                                            : isDark
+                                              ? "rgba(255,255,255,0.06)"
+                                              : "rgba(0,0,0,0.04)",
                                         color: state.flags.includes(f.flag) ? palette.accent : palette.textTertiary,
                                         border: `1px solid ${state.flags.includes(f.flag) ? `${palette.accent}40` : "transparent"}`
                                     }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
+                                    whileTap={{ scale: 0.95 }}>
                                     {f.flag} — {f.label}
                                 </motion.button>
                             ))}
@@ -224,14 +259,20 @@ export default function RegExpPage() {
                 <Card>
                     <motion.button
                         onClick={() => setShowPresets(!showPresets)}
-                        className="flex items-center justify-between w-full"
-                    >
-                        <span className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>
+                        className="flex items-center justify-between w-full">
+                        <span
+                            className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                            style={{ color: palette.textPrimary }}>
                             <BookmarkBorder sx={{ fontSize: 16, marginRight: 4 }} />
                             Preset Patterns ({PRESETS.length})
                         </span>
                         <motion.div animate={{ rotate: showPresets ? 180 : 0 }}>
-                            <ExpandMore sx={{ fontSize: 20, color: palette.textTertiary }} />
+                            <ExpandMore
+                                sx={{
+                                    fontSize: 20,
+                                    color: palette.textTertiary
+                                }}
+                            />
                         </motion.div>
                     </motion.button>
 
@@ -241,13 +282,17 @@ export default function RegExpPage() {
                                 initial={{ height: 0, opacity: 0 }}
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
-                                className="overflow-hidden"
-                            >
+                                className="overflow-hidden">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 mt-4">
                                     {PRESETS.map((p) => (
                                         <motion.button
                                             key={p.label}
-                                            onClick={() => update({ pattern: p.pattern, flags: p.flags })}
+                                            onClick={() =>
+                                                update({
+                                                    pattern: p.pattern,
+                                                    flags: p.flags
+                                                })
+                                            }
                                             className="px-3 py-2 rounded-xl text-xs font-bold text-left"
                                             style={{
                                                 background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
@@ -255,8 +300,7 @@ export default function RegExpPage() {
                                                 border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`
                                             }}
                                             whileHover={{ scale: 1.03 }}
-                                            whileTap={{ scale: 0.97 }}
-                                        >
+                                            whileTap={{ scale: 0.97 }}>
                                             {p.label}
                                         </motion.button>
                                     ))}
@@ -270,7 +314,9 @@ export default function RegExpPage() {
                     {/* ── Test string ── */}
                     <Card>
                         <div className="space-y-3">
-                            <h3 className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>
+                            <h3
+                                className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                                style={{ color: palette.textPrimary }}>
                                 Test String
                             </h3>
                             <textarea
@@ -288,7 +334,13 @@ export default function RegExpPage() {
                             {/* Highlighted preview */}
                             {state.pattern && matches.length > 0 && (
                                 <div className="space-y-1.5">
-                                    <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Highlighted</label>
+                                    <label
+                                        className="text-xs font-bold"
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
+                                        Highlighted
+                                    </label>
                                     <div
                                         className="px-4 py-3 rounded-xl text-sm font-mono whitespace-pre-wrap"
                                         style={{
@@ -296,7 +348,9 @@ export default function RegExpPage() {
                                             color: palette.textPrimary,
                                             border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`
                                         }}
-                                        dangerouslySetInnerHTML={{ __html: highlightedText }}
+                                        dangerouslySetInnerHTML={{
+                                            __html: highlightedText
+                                        }}
                                     />
                                 </div>
                             )}
@@ -313,12 +367,26 @@ export default function RegExpPage() {
                                     onClick={() => setActiveTab(tab)}
                                     className="px-4 py-2 rounded-full text-sm font-bold capitalize"
                                     style={{
-                                        background: activeTab === tab ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                                        background:
+                                            activeTab === tab ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                         color: activeTab === tab ? "#fff" : palette.textSecondary
                                     }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    {tab === "match" ? <AutoFixHigh sx={{ fontSize: 14, marginRight: 4 }} /> : <FindReplace sx={{ fontSize: 14, marginRight: 4 }} />}
+                                    whileTap={{ scale: 0.95 }}>
+                                    {tab === "match" ? (
+                                        <AutoFixHigh
+                                            sx={{
+                                                fontSize: 14,
+                                                marginRight: 4
+                                            }}
+                                        />
+                                    ) : (
+                                        <FindReplace
+                                            sx={{
+                                                fontSize: 14,
+                                                marginRight: 4
+                                            }}
+                                        />
+                                    )}
                                     {tab} {tab === "match" && `(${matches.length})`}
                                 </motion.button>
                             ))}
@@ -328,7 +396,11 @@ export default function RegExpPage() {
                             {activeTab === "match" ? (
                                 <div className="space-y-2 max-h-[360px] overflow-y-auto">
                                     {matches.length === 0 ? (
-                                        <p className="text-center py-8 text-sm" style={{ color: palette.textTertiary }}>
+                                        <p
+                                            className="text-center py-8 text-sm"
+                                            style={{
+                                                color: palette.textTertiary
+                                            }}>
                                             {state.pattern ? "No matches" : "Enter a pattern above"}
                                         </p>
                                     ) : (
@@ -342,16 +414,29 @@ export default function RegExpPage() {
                                                 style={{
                                                     background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
                                                     border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`
-                                                }}
-                                            >
+                                                }}>
                                                 <div className="flex items-center justify-between">
-                                                    <code className="text-sm font-mono" style={{ color: palette.accent }}>{m.match}</code>
-                                                    <span className="text-[10px] font-mono" style={{ color: palette.textTertiary }}>@{m.index}</span>
+                                                    <code
+                                                        className="text-sm font-mono"
+                                                        style={{
+                                                            color: palette.accent
+                                                        }}>
+                                                        {m.match}
+                                                    </code>
+                                                    <span
+                                                        className="text-[10px] font-mono"
+                                                        style={{
+                                                            color: palette.textTertiary
+                                                        }}>
+                                                        @{m.index}
+                                                    </span>
                                                 </div>
                                                 {m.groups.length > 0 && (
                                                     <div className="flex gap-1.5 mt-1.5">
                                                         {m.groups.map((g, gi) => (
-                                                            <OneUIBadge key={gi} variant="neutral">
+                                                            <OneUIBadge
+                                                                key={gi}
+                                                                variant="neutral">
                                                                 ${gi + 1}: {g ?? "undefined"}
                                                             </OneUIBadge>
                                                         ))}
@@ -364,10 +449,20 @@ export default function RegExpPage() {
                             ) : (
                                 <div className="space-y-4">
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Replace with</label>
+                                        <label
+                                            className="text-xs font-bold"
+                                            style={{
+                                                color: palette.textSecondary
+                                            }}>
+                                            Replace with
+                                        </label>
                                         <input
                                             value={state.replaceWith}
-                                            onChange={(e) => update({ replaceWith: e.target.value })}
+                                            onChange={(e) =>
+                                                update({
+                                                    replaceWith: e.target.value
+                                                })
+                                            }
                                             placeholder="Replacement string ($1 for groups)"
                                             className="w-full px-4 py-2.5 rounded-xl text-sm font-mono outline-none"
                                             style={{
@@ -378,24 +473,31 @@ export default function RegExpPage() {
                                         />
                                     </div>
                                     <div className="space-y-1.5">
-                                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Result</label>
+                                        <label
+                                            className="text-xs font-bold"
+                                            style={{
+                                                color: palette.textSecondary
+                                            }}>
+                                            Result
+                                        </label>
                                         <div
                                             className="px-4 py-3 rounded-xl text-sm font-mono whitespace-pre-wrap"
                                             style={{
                                                 background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)",
                                                 color: palette.textPrimary,
                                                 minHeight: 80
-                                            }}
-                                        >
+                                            }}>
                                             {replaceResult || state.testString}
                                         </div>
                                     </div>
                                     <motion.button
                                         onClick={() => copy(replaceResult)}
                                         className="px-4 py-2 rounded-full text-xs font-bold"
-                                        style={{ background: palette.accent, color: "#fff" }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
+                                        style={{
+                                            background: palette.accent,
+                                            color: "#fff"
+                                        }}
+                                        whileTap={{ scale: 0.95 }}>
                                         Copy Result
                                     </motion.button>
                                 </div>

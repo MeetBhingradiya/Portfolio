@@ -8,17 +8,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 
-export async function GET(
-    req: NextRequest,
-    _ctx: { params: Promise<{ id: string }> }
-) {
+export async function GET(req: NextRequest, _ctx: { params: Promise<{ id: string }> }) {
     try {
         const auth = await requirePermission(req, "cdn.keys.view");
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         return NextResponse.json(
             {
                 success: false,
-                error: "Commit history is disabled in CDN privacy mode (single-commit repository policy).",
+                error: "Commit history is disabled in CDN privacy mode (single-commit repository policy)."
             },
             { status: 410 }
         );

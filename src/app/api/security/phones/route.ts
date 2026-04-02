@@ -8,9 +8,7 @@ export async function GET(request: NextRequest) {
         const session = await requireUser(request);
         await dbConnect();
 
-        const phones = await UserPhone.find({ userId: session.user.id })
-            .sort({ isPrimary: -1, createdAt: 1 })
-            .lean();
+        const phones = await UserPhone.find({ userId: session.user.id }).sort({ isPrimary: -1, createdAt: 1 }).lean();
 
         const policies = await getPhonePolicies();
 
@@ -20,12 +18,18 @@ export async function GET(request: NextRequest) {
                 phones,
                 policies,
                 usage: {
-                    phonesOnAccount: phones.length,
-                },
-            },
+                    phonesOnAccount: phones.length
+                }
+            }
         });
     } catch (error: any) {
         const status = error?.message === "Unauthorized" ? 401 : 500;
-        return NextResponse.json({ success: false, error: error?.message || "Failed to fetch phones" }, { status });
+        return NextResponse.json(
+            {
+                success: false,
+                error: error?.message || "Failed to fetch phones"
+            },
+            { status }
+        );
     }
 }

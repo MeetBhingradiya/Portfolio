@@ -21,7 +21,7 @@ const UserPhoneSchema = new Schema<IUserPhone>(
         phoneNumber: { type: String, required: true, index: true },
         isPrimary: { type: Boolean, default: false, index: true },
         verified: { type: Boolean, default: true },
-        verifiedAt: { type: Date, default: Date.now },
+        verifiedAt: { type: Date, default: Date.now }
     },
     { timestamps: true }
 );
@@ -29,5 +29,4 @@ const UserPhoneSchema = new Schema<IUserPhone>(
 UserPhoneSchema.index({ userId: 1, phoneNumber: 1 }, { unique: true });
 
 export const UserPhone =
-    (mongoose.models.UserPhone as mongoose.Model<IUserPhone>) ||
-    mongoose.model<IUserPhone>("UserPhone", UserPhoneSchema);
+    (mongoose.models.UserPhone as mongoose.Model<IUserPhone>) || mongoose.model<IUserPhone>("UserPhone", UserPhoneSchema);

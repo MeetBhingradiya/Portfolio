@@ -24,7 +24,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/uuid`,
         title: "UUID Generator | Meet Bhingradiya Tools",
         description: "Generate v1, v4, v5 and NIL UUIDs in bulk with format options — free online.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "UUID Generator" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "UUID Generator"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

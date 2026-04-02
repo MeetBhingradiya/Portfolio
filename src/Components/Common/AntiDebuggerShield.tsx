@@ -51,13 +51,10 @@ async function emitBeacon(detail: string): Promise<void> {
             // Encode the detail so naive log scrapers miss it
             _d: btoa(detail),
             _t: Date.now(),
-            _u: location.pathname,
+            _u: location.pathname
         });
 
-        const sent = navigator.sendBeacon(
-            "/api/security/debugger-trap",
-            new Blob([body], { type: "application/json" })
-        );
+        const sent = navigator.sendBeacon("/api/security/debugger-trap", new Blob([body], { type: "application/json" }));
 
         if (!sent) {
             // sendBeacon failed — fall back to fetch (best-effort)
@@ -65,8 +62,8 @@ async function emitBeacon(detail: string): Promise<void> {
                 method: "POST",
                 keepalive: true,
                 body,
-                headers: { "Content-Type": "application/json" },
-            }).catch(() => { });
+                headers: { "Content-Type": "application/json" }
+            }).catch(() => {});
         }
     } catch {
         /* network failure — swallow silently */
@@ -82,7 +79,7 @@ async function resolveRedirectTarget(): Promise<string> {
     try {
         const res = await fetch("/api/security/site-status", {
             method: "GET",
-            cache: "no-store",
+            cache: "no-store"
         });
         if (res.ok) {
             const data = (await res.json()) as { maintenanceMode: boolean };
@@ -110,15 +107,14 @@ async function resolveRedirectTarget(): Promise<string> {
 /** React to a confirmed threat. */
 function handleThreat(detail: string): void {
     // 1. Emit beacon FIRST (survives redirect)
-    emitBeacon(detail).catch(() => { });
+    emitBeacon(detail).catch(() => {});
 
     // 2. Wipe sensitive client-side storage
     wipeClientStorage();
 
     // 3. Destroy page content immediately (defeats scrapers)
     try {
-        document.documentElement.innerHTML =
-            "<html><head><title>403</title></head><body></body></html>";
+        document.documentElement.innerHTML = "<html><head><title>403</title></head><body></body></html>";
     } catch {
         /* already navigating */
     }
@@ -149,9 +145,7 @@ export default function AntiDebuggerShield(): null {
 
         // ── Start the engine ─────────────────────────────────────────────
         antiDebugger.start((report) => {
-            handleThreat(
-                `ch=${report.channel} | ${report.detail} | ts=${report.ts}`
-            );
+            handleThreat(`ch=${report.channel} | ${report.detail} | ts=${report.ts}`);
         });
 
         // ── Cleanup on unmount ───────────────────────────────────────────

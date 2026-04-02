@@ -12,11 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
-import {
-    getAIProviderSettings,
-    AI_PROVIDERS,
-    type AIProviderKey,
-} from "@Models/AIProviderSettings";
+import { getAIProviderSettings, AI_PROVIDERS, type AIProviderKey } from "@Models/AIProviderSettings";
 import { UserProductivityStats } from "@Models/UserProductivityStats";
 import { decryptStoredSecret } from "@Utils/SecretVault";
 
@@ -41,10 +37,13 @@ async function callAI(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
                 contents: [
-                    { role: "user", parts: [{ text: `${systemPrompt}\n\n${userMessage}` }] },
+                    {
+                        role: "user",
+                        parts: [{ text: `${systemPrompt}\n\n${userMessage}` }]
+                    }
                 ],
-                generationConfig: { maxOutputTokens: 2048, temperature: 0.7 },
-            }),
+                generationConfig: { maxOutputTokens: 2048, temperature: 0.7 }
+            })
         });
 
         if (!res.ok) {
@@ -52,8 +51,10 @@ async function callAI(
             throw new Error(`Google AI error ${res.status}: ${err}`);
         }
 
-        const data = await res.json() as {
-            candidates?: Array<{ content?: { parts?: Array<{ text?: string }> } }>;
+        const data = (await res.json()) as {
+            candidates?: Array<{
+                content?: { parts?: Array<{ text?: string }> };
+            }>;
         };
         return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     }
@@ -64,17 +65,17 @@ async function callAI(
         method: "POST",
         headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
+            "Authorization": `Bearer ${apiKey}`
         },
         body: JSON.stringify({
             model,
             messages: [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: userMessage },
+                { role: "user", content: userMessage }
             ],
             max_tokens: 2048,
-            temperature: 0.7,
-        }),
+            temperature: 0.7
+        })
     });
 
     if (!res.ok) {
@@ -82,7 +83,7 @@ async function callAI(
         throw new Error(`AI provider error ${res.status}: ${err}`);
     }
 
-    const data = await res.json() as {
+    const data = (await res.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
     };
     return data.choices?.[0]?.message?.content ?? "";
@@ -143,7 +144,7 @@ Return ONLY a valid JSON array of habit objects with fields: Title, Category, Di
 
     search: `You are a productivity search assistant. Given a list of items and a search query, 
 return the IDs of the most relevant items in order of relevance as a JSON array of strings.
-Be lenient with typos and synonyms. Focus on semantic meaning.`,
+Be lenient with typos and synonyms. Focus on semantic meaning.`
 };
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
@@ -163,10 +164,7 @@ export async function POST(req: NextRequest) {
         };
 
         if (!action || !prompt?.trim()) {
-            return NextResponse.json(
-                { success: false, error: "action and prompt are required" },
-                { status: 400 }
-            );
+            return NextResponse.json({ success: false, error: "action and prompt are required" }, { status: 400 });
         }
 
         const settings = await getAIProviderSettings();
@@ -189,21 +187,22 @@ export async function POST(req: NextRequest) {
 
         if (!providerConfig.enabled || !activeApiKey) {
             // Try to find any enabled provider as fallback
-            const fallback = providerKeys.find(
-                (k) => settings.Providers[k].enabled && resolvedApiKeys[k]
-            );
+            const fallback = providerKeys.find((k) => settings.Providers[k].enabled && resolvedApiKeys[k]);
             if (!fallback) {
                 return NextResponse.json(
-                    { success: false, error: "No AI provider is configured. Please configure one in the admin panel." },
+                    {
+                        success: false,
+                        error: "No AI provider is configured. Please configure one in the admin panel."
+                    },
                     { status: 503 }
                 );
             }
         }
 
-        const provider = providerConfig.enabled && activeApiKey ? activeProvider
-            : providerKeys.find(
-                (k) => settings.Providers[k].enabled && resolvedApiKeys[k]
-            )!;
+        const provider =
+            providerConfig.enabled && activeApiKey
+                ? activeProvider
+                : providerKeys.find((k) => settings.Providers[k].enabled && resolvedApiKeys[k])!;
 
         const config = settings.Providers[provider];
         const apiKey = resolvedApiKeys[provider];
@@ -212,9 +211,7 @@ export async function POST(req: NextRequest) {
         // Build user message
         let userMessage = prompt;
         if (action === "search" && items) {
-            userMessage = `Query: "${prompt}"\n\nItems:\n${items
-                .map((item) => `- ID: ${item.id} | Text: ${item.text}`)
-                .join("\n")}`;
+            userMessage = `Query: "${prompt}"\n\nItems:\n${items.map((item) => `- ID: ${item.id} | Text: ${item.text}`).join("\n")}`;
         }
 
         const rawResponse = await callAI(
@@ -229,8 +226,7 @@ export async function POST(req: NextRequest) {
         // Parse JSON from response
         let parsed: unknown;
         try {
-            const jsonMatch = rawResponse.match(/```json\s*([\s\S]*?)\s*```/) ??
-                rawResponse.match(/```\s*([\s\S]*?)\s*```/);
+            const jsonMatch = rawResponse.match(/```json\s*([\s\S]*?)\s*```/) ?? rawResponse.match(/```\s*([\s\S]*?)\s*```/);
             const jsonStr = jsonMatch ? jsonMatch[1] : rawResponse.trim();
             parsed = JSON.parse(jsonStr);
         } catch {
@@ -244,8 +240,8 @@ export async function POST(req: NextRequest) {
             {
                 $inc: {
                     AISearchesPerformed: action === "search" ? 1 : 0,
-                    AITasksCreated: action === "create_task" ? 1 : 0,
-                },
+                    AITasksCreated: action === "create_task" ? 1 : 0
+                }
             },
             { upsert: true }
         );
@@ -254,7 +250,7 @@ export async function POST(req: NextRequest) {
             success: true,
             data: parsed,
             provider,
-            model,
+            model
         });
     } catch (err) {
         console.error("POST /api/productivity/ai:", err);

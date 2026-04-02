@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
         await dbConnect();
         const auth = await requirePermission(req, "admin.roles.manage");
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
-        await seedBuiltinRoles();   // idempotent — only inserts if missing
+        await seedBuiltinRoles(); // idempotent — only inserts if missing
 
         const roles = await RoleDefinition.find().sort({ order: 1, createdAt: 1 }).lean();
         return NextResponse.json({ success: true, roles });
@@ -40,24 +40,39 @@ export async function POST(req: NextRequest) {
         // Validate permission keys
         const invalid = permissions.filter((p: string) => !ALL_PERMISSION_KEYS.includes(p));
         if (invalid.length) {
-            return NextResponse.json({ success: false, error: `Unknown permission keys: ${invalid.join(", ")}` }, { status: 422 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Unknown permission keys: ${invalid.join(", ")}`
+                },
+                { status: 422 }
+            );
         }
 
         const count = await RoleDefinition.countDocuments();
-        const role  = await RoleDefinition.create({
-            key       : key.trim().toLowerCase().replace(/[^a-z0-9_]/g, "_"),
-            label     : label.trim(),
+        const role = await RoleDefinition.create({
+            key: key
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_]/g, "_"),
+            label: label.trim(),
             description: (description || "").trim(),
             permissions,
             color,
-            order     : count + 10,
-            isBuiltin : false,
+            order: count + 10,
+            isBuiltin: false
         });
 
         return NextResponse.json({ success: true, role }, { status: 201 });
     } catch (err: any) {
         if (err.code === 11000) {
-            return NextResponse.json({ success: false, error: "A role with this key already exists." }, { status: 409 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "A role with this key already exists."
+                },
+                { status: 409 }
+            );
         }
         const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
         return NextResponse.json({ success: false, error: err.message }, { status });

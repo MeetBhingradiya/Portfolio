@@ -42,7 +42,7 @@ import {
     ChevronRight as ChevronRightMUI,
     OpenInFull,
     InsertDriveFile,
-    VerifiedUser,
+    VerifiedUser
 } from "@mui/icons-material";
 
 type IconProps = {
@@ -54,7 +54,11 @@ type IconProps = {
 
 function wrap(IconComp: React.ElementType) {
     return ({ size = 24, className, style }: IconProps) => (
-        <IconComp className={className} style={style} sx={{ fontSize: size }} />
+        <IconComp
+            className={className}
+            style={style}
+            sx={{ fontSize: size }}
+        />
     );
 }
 
@@ -104,4 +108,3 @@ export const ChevronRight = wrap(ChevronRightMUI);
 export const Maximize2 = wrap(OpenInFull);
 export const FileIcon = wrap(InsertDriveFile);
 export const ShieldCheck = wrap(VerifiedUser);
-

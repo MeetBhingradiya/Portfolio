@@ -43,7 +43,11 @@ import type { ToolDefinition, ToolBadge } from "@/Static/ToolsDashboard";
 
 const BADGE_CONFIG: Record<
     ToolBadge,
-    { label: string; icon: React.ReactNode; variant: "accent" | "neutral" | "success" | "warning" }
+    {
+        label: string;
+        icon: React.ReactNode;
+        variant: "accent" | "neutral" | "success" | "warning";
+    }
 > = {
     "admin-managed": {
         label: "Admin",
@@ -55,22 +59,22 @@ const BADGE_CONFIG: Record<
         icon: <Cloud sx={{ fontSize: 12 }} />,
         variant: "neutral"
     },
-    studio: {
+    "studio": {
         label: "Studio",
         icon: <AutoAwesome sx={{ fontSize: 12 }} />,
         variant: "accent"
     },
-    featured: {
+    "featured": {
         label: "Featured",
         icon: <Bolt sx={{ fontSize: 12 }} />,
         variant: "success"
     },
-    new: {
+    "new": {
         label: "New",
         icon: <NewReleases sx={{ fontSize: 12 }} />,
         variant: "success"
     },
-    beta: {
+    "beta": {
         label: "Beta",
         icon: <Science sx={{ fontSize: 12 }} />,
         variant: "warning"
@@ -89,14 +93,26 @@ const BadgePill: React.FC<BadgePillProps> = ({ badge, palette, isDark }) => {
     const cfg = BADGE_CONFIG[badge];
 
     const colorMap = {
-        accent: { bg: `${palette.accent}20`, color: palette.accent, border: `${palette.accent}40` },
+        accent: {
+            bg: `${palette.accent}20`,
+            color: palette.accent,
+            border: `${palette.accent}40`
+        },
         neutral: {
             bg: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
             color: palette.textSecondary,
             border: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"
         },
-        success: { bg: "rgba(52,199,89,.18)", color: "#34C759", border: "rgba(52,199,89,.35)" },
-        warning: { bg: "rgba(255,149,0,.18)", color: "#FF9500", border: "rgba(255,149,0,.35)" }
+        success: {
+            bg: "rgba(52,199,89,.18)",
+            color: "#34C759",
+            border: "rgba(52,199,89,.35)"
+        },
+        warning: {
+            bg: "rgba(255,149,0,.18)",
+            color: "#FF9500",
+            border: "rgba(255,149,0,.35)"
+        }
     }[cfg.variant];
 
     return (
@@ -106,8 +122,7 @@ const BadgePill: React.FC<BadgePillProps> = ({ badge, palette, isDark }) => {
                 background: colorMap.bg,
                 color: colorMap.color,
                 border: `1px solid ${colorMap.border}`
-            }}
-        >
+            }}>
             {cfg.icon}
             {cfg.label}
         </span>
@@ -152,14 +167,7 @@ export interface ToolCardProps {
     index?: number;
 }
 
-const ToolCard: React.FC<ToolCardProps> = ({
-    tool,
-    usageCount = 0,
-    isPinned = false,
-    isEnabled = true,
-    onTogglePin,
-    index = 0
-}) => {
+const ToolCard: React.FC<ToolCardProps> = ({ tool, usageCount = 0, isPinned = false, isEnabled = true, onTogglePin, index = 0 }) => {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
@@ -172,8 +180,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
     const CardContent = (
         <div
             className="relative flex flex-col h-full gap-4"
-            style={{ opacity: isEnabled ? 1 : 0.5 }}
-        >
+            style={{ opacity: isEnabled ? 1 : 0.5 }}>
             {/* ── Top row : icon + badges ── */}
             <div className="flex items-start justify-between gap-2">
                 {/* Icon bubble */}
@@ -186,17 +193,17 @@ const ToolCard: React.FC<ToolCardProps> = ({
                             ? `${effectiveAccent}22`
                             : `linear-gradient(135deg, ${effectiveAccent}25, ${effectiveAccent}12)`,
                         border: `1.5px solid ${effectiveAccent}35`,
-                        boxShadow: hovered
-                            ? `0 0 20px ${effectiveAccent}40`
-                            : `0 4px 12px ${effectiveAccent}20`,
+                        boxShadow: hovered ? `0 0 20px ${effectiveAccent}40` : `0 4px 12px ${effectiveAccent}20`,
                         color: effectiveAccent,
                         backdropFilter: isApple ? "blur(8px)" : undefined,
                         borderRadius: isApple ? "16px" : "20px"
                     }}
                     animate={{ rotate: hovered ? [0, -6, 6, 0] : 0 }}
-                    transition={{ duration: 0.45 }}
-                >
-                    <ToolIcon name={tool.iconName} style={{ fontSize: 26 }} />
+                    transition={{ duration: 0.45 }}>
+                    <ToolIcon
+                        name={tool.iconName}
+                        style={{ fontSize: 26 }}
+                    />
                 </motion.div>
 
                 {/* Usage count chip */}
@@ -206,8 +213,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
                         style={{
                             background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                             color: palette.textTertiary
-                        }}
-                    >
+                        }}>
                         {usageCount}×
                     </span>
                 )}
@@ -217,14 +223,12 @@ const ToolCard: React.FC<ToolCardProps> = ({
             <div className="flex-1">
                 <h3
                     className={`${isApple ? "text-base font-semibold" : "text-lg font-black"} leading-tight mb-1`}
-                    style={{ color: palette.textPrimary }}
-                >
+                    style={{ color: palette.textPrimary }}>
                     {tool.name}
                 </h3>
                 <p
                     className="text-xs leading-relaxed line-clamp-2"
-                    style={{ color: palette.textSecondary }}
-                >
+                    style={{ color: palette.textSecondary }}>
                     {tool.description}
                 </p>
             </div>
@@ -232,7 +236,12 @@ const ToolCard: React.FC<ToolCardProps> = ({
             {/* ── Badges ── */}
             <div className="flex flex-wrap gap-1">
                 {tool.badges.slice(0, 3).map((b) => (
-                    <BadgePill key={b} badge={b} palette={palette} isDark={isDark} />
+                    <BadgePill
+                        key={b}
+                        badge={b}
+                        palette={palette}
+                        isDark={isDark}
+                    />
                 ))}
             </div>
 
@@ -245,8 +254,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
                             initial={{ opacity: 0, y: 6 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 6 }}
-                            className="flex flex-wrap gap-1.5"
-                        >
+                            className="flex flex-wrap gap-1.5">
                             {tool.modes.map((mode) => (
                                 <Link
                                     key={mode.label}
@@ -257,8 +265,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
                                         background: `${effectiveAccent}18`,
                                         color: effectiveAccent,
                                         border: `1px solid ${effectiveAccent}30`
-                                    }}
-                                >
+                                    }}>
                                     {mode.label}
                                     <ChevronRight sx={{ fontSize: 12 }} />
                                 </Link>
@@ -278,8 +285,7 @@ const ToolCard: React.FC<ToolCardProps> = ({
                             background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)",
                             color: palette.textTertiary,
                             border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`
-                        }}
-                    >
+                        }}>
                         {tool.shortcut}
                     </kbd>
                 )}
@@ -291,16 +297,13 @@ const ToolCard: React.FC<ToolCardProps> = ({
                         background: isEnabled
                             ? `linear-gradient(135deg, ${effectiveAccent}, ${effectiveAccent}cc)`
                             : isDark
-                            ? "rgba(255,255,255,0.08)"
-                            : "rgba(0,0,0,0.06)",
+                              ? "rgba(255,255,255,0.08)"
+                              : "rgba(0,0,0,0.06)",
                         color: isEnabled ? "#fff" : palette.textTertiary,
-                        boxShadow: isEnabled && hovered
-                            ? `0 4px 16px ${effectiveAccent}50`
-                            : "none"
+                        boxShadow: isEnabled && hovered ? `0 4px 16px ${effectiveAccent}50` : "none"
                     }}
                     whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.96 }}
-                >
+                    whileTap={{ scale: 0.96 }}>
                     {isEnabled ? (
                         <>
                             Open
@@ -320,13 +323,18 @@ const ToolCard: React.FC<ToolCardProps> = ({
             <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+                transition={{
+                    duration: 0.4,
+                    delay: index * 0.05,
+                    ease: [0.25, 0.46, 0.45, 0.94]
+                }}
                 onHoverStart={() => setHovered(true)}
                 onHoverEnd={() => setHovered(false)}
                 className="cursor-pointer"
-                onClick={() => isEnabled && (window.location.href = tool.route)}
-            >
-                <LiquidGlassCard intensity="medium" enableGlow={hovered}>
+                onClick={() => isEnabled && (window.location.href = tool.route)}>
+                <LiquidGlassCard
+                    intensity="medium"
+                    enableGlow={hovered}>
                     {CardContent}
                 </LiquidGlassCard>
             </motion.div>
@@ -338,13 +346,18 @@ const ToolCard: React.FC<ToolCardProps> = ({
         <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
+            transition={{
+                duration: 0.4,
+                delay: index * 0.05,
+                ease: [0.25, 0.46, 0.45, 0.94]
+            }}
             onHoverStart={() => setHovered(true)}
             onHoverEnd={() => setHovered(false)}
             className="cursor-pointer"
-            onClick={() => isEnabled && (window.location.href = tool.route)}
-        >
-            <OneUICard elevated={isPinned} interactive={isEnabled}>
+            onClick={() => isEnabled && (window.location.href = tool.route)}>
+            <OneUICard
+                elevated={isPinned}
+                interactive={isEnabled}>
                 {CardContent}
             </OneUICard>
         </motion.div>

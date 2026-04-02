@@ -163,105 +163,35 @@ interface DirectiveOptions {
 type DirectiveOptionsMap = {
     [CSPDirectiveOptions.DefaultSrc]: Pick<
         DirectiveOptions,
-        | "Domains"
-        | "None"
-        | "Self"
-        | "Inline"
-        | "Eval"
-        | "Data"
-        | "Dynamic"
-        | "Hash"
-        | "AllowedHashes"
-        | "Nonce"
+        "Domains" | "None" | "Self" | "Inline" | "Eval" | "Data" | "Dynamic" | "Hash" | "AllowedHashes" | "Nonce"
     >;
     [CSPDirectiveOptions.ScriptSrc]: Pick<
         DirectiveOptions,
-        | "Domains"
-        | "None"
-        | "Self"
-        | "Inline"
-        | "Eval"
-        | "Data"
-        | "Dynamic"
-        | "Hash"
-        | "AllowedHashes"
-        | "Nonce"
+        "Domains" | "None" | "Self" | "Inline" | "Eval" | "Data" | "Dynamic" | "Hash" | "AllowedHashes" | "Nonce"
     >;
     [CSPDirectiveOptions.StyleSrc]: Pick<
         DirectiveOptions,
-        | "Domains"
-        | "None"
-        | "Self"
-        | "Inline"
-        | "Data"
-        | "Hash"
-        | "AllowedHashes"
-        | "Nonce"
+        "Domains" | "None" | "Self" | "Inline" | "Data" | "Hash" | "AllowedHashes" | "Nonce"
     >;
-    [CSPDirectiveOptions.ImgSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self" | "Data" | "Blob"
-    >;
-    [CSPDirectiveOptions.FontSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self" | "Data"
-    >;
-    [CSPDirectiveOptions.ConnectSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
-    [CSPDirectiveOptions.ObjectSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
-    [CSPDirectiveOptions.MediaSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self" | "Data" | "Blob"
-    >;
-    [CSPDirectiveOptions.FrameSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
+    [CSPDirectiveOptions.ImgSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Data" | "Blob">;
+    [CSPDirectiveOptions.FontSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Data">;
+    [CSPDirectiveOptions.ConnectSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.ObjectSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.MediaSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Data" | "Blob">;
+    [CSPDirectiveOptions.FrameSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
     [CSPDirectiveOptions.Sandbox]: Pick<DirectiveOptions, "SandboxConfig">;
     [CSPDirectiveOptions.ReportUri]: Pick<DirectiveOptions, "Domains">;
-    [CSPDirectiveOptions.ChildSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
-    [CSPDirectiveOptions.FormAction]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
-    [CSPDirectiveOptions.FrameAncestors]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
+    [CSPDirectiveOptions.ChildSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.FormAction]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.FrameAncestors]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
     [CSPDirectiveOptions.PluginTypes]: Pick<DirectiveOptions, "Domains">;
-    [CSPDirectiveOptions.BaseUri]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
+    [CSPDirectiveOptions.BaseUri]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
     [CSPDirectiveOptions.ReportTo]: Pick<DirectiveOptions, "ReportConfig">;
-    [CSPDirectiveOptions.WorkerSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self" | "Blob"
-    >;
-    [CSPDirectiveOptions.ManifestSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
-    [CSPDirectiveOptions.PrefetchSrc]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
-    [CSPDirectiveOptions.NavigateTo]: Pick<
-        DirectiveOptions,
-        "Domains" | "None" | "Self"
-    >;
-    [CSPDirectiveOptions.RequireTrustedTypesFor]: Pick<
-        DirectiveOptions,
-        "Domains"
-    >;
+    [CSPDirectiveOptions.WorkerSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Blob">;
+    [CSPDirectiveOptions.ManifestSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.PrefetchSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.NavigateTo]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.RequireTrustedTypesFor]: Pick<DirectiveOptions, "Domains">;
     [CSPDirectiveOptions.TrustedTypes]: Pick<DirectiveOptions, "Domains">;
     [CSPDirectiveOptions.UpgradeInsecureRequests]: Record<string, never>;
     [CSPDirectiveOptions.BlockAllMixedContent]: Record<string, never>;
@@ -368,32 +298,17 @@ const DEFAULT_DIRECTIVES: Partial<Record<CSPDirectiveOptions, string>> = {
  * - Merges Domains arrays instead of overwriting.
  * - Handles all other fields as shallow merge.
  */
-function deepMergeDirectives<T extends Record<string, any>>(
-    target: T,
-    source: T
-): T {
+function deepMergeDirectives<T extends Record<string, any>>(target: T, source: T): T {
     const result = { ...target };
     for (const key in source) {
-        if (
-            source[key] &&
-            typeof source[key] === "object" &&
-            !Array.isArray(source[key])
-        ) {
+        if (source[key] && typeof source[key] === "object" && !Array.isArray(source[key])) {
             result[key] = {
                 ...((result[key] as any) || {}),
                 ...source[key]
             };
             // Only merge Domains if both are arrays
-            if (
-                Array.isArray(result[key].Domains) &&
-                Array.isArray(source[key].Domains)
-            ) {
-                result[key].Domains = [
-                    ...new Set([
-                        ...(target[key]?.Domains || []),
-                        ...source[key].Domains
-                    ])
-                ];
+            if (Array.isArray(result[key].Domains) && Array.isArray(source[key].Domains)) {
+                result[key].Domains = [...new Set([...(target[key]?.Domains || []), ...source[key].Domains])];
             }
         } else {
             result[key] = source[key];
@@ -437,9 +352,7 @@ function validateDomain(domain: string): { isValid: boolean; error?: string } {
 
     // Wildcard subdomains
     if (/^\*\./.test(domain)) {
-        return /^\*\.[\w.-]+$/.test(domain)
-            ? { isValid: true }
-            : { isValid: false, error: "Invalid wildcard subdomain format" };
+        return /^\*\.[\w.-]+$/.test(domain) ? { isValid: true } : { isValid: false, error: "Invalid wildcard subdomain format" };
     }
 
     // Bare domains
@@ -493,16 +406,10 @@ function validateHash(hash: string): { isValid: boolean; error?: string } {
  * @param options The directive options.
  * @returns Array of warning strings.
  */
-function detectUnsafePatterns(
-    directive: string,
-    options: DirectiveOptions
-): string[] {
+function detectUnsafePatterns(directive: string, options: DirectiveOptions): string[] {
     const warnings: string[] = [];
 
-    if (
-        options.Inline &&
-        (directive === "script-src" || directive === "style-src")
-    ) {
+    if (options.Inline && (directive === "script-src" || directive === "style-src")) {
         warnings.push(`'unsafe-inline' in ${directive} reduces security`);
     }
 
@@ -536,12 +443,7 @@ function normalizeValue(value: string, type: "nonce" | "hash"): string {
     if (type === "nonce" && value.startsWith("nonce-")) {
         return `'${value}'`;
     }
-    if (
-        type === "hash" &&
-        (value.startsWith("sha256-") ||
-            value.startsWith("sha384-") ||
-            value.startsWith("sha512-"))
-    ) {
+    if (type === "hash" && (value.startsWith("sha256-") || value.startsWith("sha384-") || value.startsWith("sha512-"))) {
         return `'${value}'`;
     }
     return value;
@@ -559,38 +461,20 @@ function normalizeValue(value: string, type: "nonce" | "hash"): string {
  * @param options CSPGeneratorOptions for building the policy.
  * @returns A CSP string suitable for use in HTTP headers or meta tags, or a result object if reportErrors is true.
  */
-function CSPGenerator(
-    options: CSPGeneratorOptions = {}
-): string | CSPGeneratorResult {
-    const {
-        directive = {},
-        minify = false,
-        strictValidation = false,
-        reportErrors = false,
-        reportOnly = false
-    } = options;
+function CSPGenerator(options: CSPGeneratorOptions = {}): string | CSPGeneratorResult {
+    const { directive = {}, minify = false, strictValidation = false, reportErrors = false, reportOnly = false } = options;
 
     const errors: CSPError[] = [];
     const warnings: string[] = [];
 
-    const serializeDirective = (
-        key: CSPDirectiveOptions | string,
-        value: DirectiveOptions
-    ): string => {
+    const serializeDirective = (key: CSPDirectiveOptions | string, value: DirectiveOptions): string => {
         if (!value) return "";
 
         const parts: string[] = [];
 
         // Handle conflicting options
-        if (
-            value.None &&
-            (value.Self || value.Inline || value.Domains?.length)
-        ) {
-            const error = new CSPError(
-                `'none' conflicts with other options in ${key}`,
-                key,
-                value
-            );
+        if (value.None && (value.Self || value.Inline || value.Domains?.length)) {
+            const error = new CSPError(`'none' conflicts with other options in ${key}`, key, value);
             if (strictValidation) throw error;
             errors.push(error);
         }
@@ -616,10 +500,7 @@ function CSPGenerator(
         }
 
         // Handle directives that don't take values
-        if (
-            key === CSPDirectiveOptions.UpgradeInsecureRequests ||
-            key === CSPDirectiveOptions.BlockAllMixedContent
-        ) {
+        if (key === CSPDirectiveOptions.UpgradeInsecureRequests || key === CSPDirectiveOptions.BlockAllMixedContent) {
             return key;
         }
 
@@ -637,11 +518,7 @@ function CSPGenerator(
             for (const domain of value.Domains) {
                 const validation = validateDomain(domain);
                 if (!validation.isValid) {
-                    const error = new CSPError(
-                        `Invalid domain '${domain}' in ${key}: ${validation.error}`,
-                        key,
-                        domain
-                    );
+                    const error = new CSPError(`Invalid domain '${domain}' in ${key}: ${validation.error}`, key, domain);
                     if (strictValidation) throw error;
                     errors.push(error);
                 } else {
@@ -655,11 +532,7 @@ function CSPGenerator(
             for (const hash of value.AllowedHashes) {
                 const validation = validateHash(hash);
                 if (!validation.isValid) {
-                    const error = new CSPError(
-                        `Invalid hash '${hash}' in ${key}: ${validation.error}`,
-                        key,
-                        hash
-                    );
+                    const error = new CSPError(`Invalid hash '${hash}' in ${key}: ${validation.error}`, key, hash);
                     if (strictValidation) throw error;
                     errors.push(error);
                 } else {
@@ -672,11 +545,7 @@ function CSPGenerator(
         if (value.Nonce) {
             const validation = validateNonce(value.Nonce);
             if (!validation.isValid) {
-                const error = new CSPError(
-                    `Invalid nonce in ${key}: ${validation.error}`,
-                    key,
-                    value.Nonce
-                );
+                const error = new CSPError(`Invalid nonce in ${key}: ${validation.error}`, key, value.Nonce);
                 if (strictValidation) throw error;
                 errors.push(error);
             } else {
@@ -720,9 +589,7 @@ function CSPGenerator(
         warnings
     };
 
-    const headerName = reportOnly
-        ? "Content-Security-Policy-Report-Only"
-        : "Content-Security-Policy";
+    const headerName = reportOnly ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
 
     if (reportErrors) {
         return { policy: csp, validation, headerName };
@@ -738,13 +605,8 @@ function CSPGenerator(
  * @param overrides Optional overrides for the preset.
  * @returns The generated CSP string.
  */
-function createCSPFromPreset(
-    preset: keyof typeof CSP_PRESETS,
-    overrides: CSPGeneratorOptions = {}
-): string {
-    const mergedDirectives = overrides.directive
-        ? deepMergeDirectives(CSP_PRESETS[preset], overrides.directive)
-        : CSP_PRESETS[preset];
+function createCSPFromPreset(preset: keyof typeof CSP_PRESETS, overrides: CSPGeneratorOptions = {}): string {
+    const mergedDirectives = overrides.directive ? deepMergeDirectives(CSP_PRESETS[preset], overrides.directive) : CSP_PRESETS[preset];
 
     return CSPGenerator({
         ...overrides,
@@ -760,9 +622,7 @@ function createCSPFromPreset(
  * @returns The meta tag string.
  */
 function generateMetaCSP(policy: string, reportOnly: boolean = false): string {
-    const headerName = reportOnly
-        ? "Content-Security-Policy-Report-Only"
-        : "Content-Security-Policy";
+    const headerName = reportOnly ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
     return `<meta http-equiv="${headerName}" content="${policy.replace(/"/g, "&quot;")}">`;
 }
 
@@ -773,13 +633,8 @@ function generateMetaCSP(policy: string, reportOnly: boolean = false): string {
  * @param reportOnly If true, uses the report-only header name.
  * @returns An object with the correct header name and value.
  */
-function generateHeaderCSP(
-    policy: string,
-    reportOnly: boolean = false
-): Record<string, string> {
-    const headerName = reportOnly
-        ? "Content-Security-Policy-Report-Only"
-        : "Content-Security-Policy";
+function generateHeaderCSP(policy: string, reportOnly: boolean = false): Record<string, string> {
+    const headerName = reportOnly ? "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
     return { [headerName]: policy };
 }
 
@@ -803,10 +658,7 @@ function generateNonce(length: number = 16): string {
  * @param algorithm The hash algorithm (default SHA-256).
  * @returns A single-quoted hash string for CSP.
  */
-async function generateContentHash(
-    content: string,
-    algorithm: "SHA-256" | "SHA-384" | "SHA-512" = "SHA-256"
-): Promise<string> {
+async function generateContentHash(content: string, algorithm: "SHA-256" | "SHA-384" | "SHA-512" = "SHA-256"): Promise<string> {
     const encoder = new TextEncoder();
     const data = encoder.encode(content);
     const hashBuffer = await crypto.subtle.digest(algorithm, data);
@@ -827,11 +679,4 @@ export {
     CSP_PRESETS
 };
 
-export type {
-    CSPGeneratorOptions,
-    DirectiveOptions,
-    CSPGeneratorResult,
-    CSPValidationResult,
-    ReportToConfig,
-    SandboxOptions
-};
+export type { CSPGeneratorOptions, DirectiveOptions, CSPGeneratorResult, CSPValidationResult, ReportToConfig, SandboxOptions };

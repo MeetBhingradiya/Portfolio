@@ -24,7 +24,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/encrypt`,
         title: "Encrypt & Decrypt Text | Meet Bhingradiya Tools",
         description: "Encrypt and decrypt text using AES, DES, TripleDES, Rabbit and RC4 — client-side.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Encrypt Decrypt Tool" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Encrypt Decrypt Tool"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

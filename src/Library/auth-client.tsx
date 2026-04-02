@@ -14,13 +14,7 @@ import { Config } from "@Config/Client";
 
 export const authClient = createAuthClient({
     baseURL: Config.Origin,
-    plugins: [
-        usernameClient(),
-        twoFactorClient(),
-        passkeyClient(),
-        phoneNumberClient(),
-        multiSessionClient()
-    ],
+    plugins: [usernameClient(), twoFactorClient(), passkeyClient(), phoneNumberClient(), multiSessionClient()]
 });
 
 // Export all auth methods for easy access
@@ -42,13 +36,13 @@ export const {
     isUsernameAvailable,
     twoFactor,
     passkey,
-    phoneNumber,
+    phoneNumber
 } = authClient;
 
 export async function setPassword(input: { newPassword: string }) {
     return authClient.$fetch("/set-password", {
         method: "POST",
-        body: input,
+        body: input
     });
 }
 
@@ -78,6 +72,6 @@ export function useAuth() {
         isUsernameAvailable,
         twoFactor,
         passkey,
-        phoneNumber,
+        phoneNumber
     };
 }

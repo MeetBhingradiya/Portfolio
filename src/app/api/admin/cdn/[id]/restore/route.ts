@@ -8,17 +8,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 
-export async function POST(
-    req: NextRequest,
-    _ctx: { params: Promise<{ id: string }> }
-) {
+export async function POST(req: NextRequest, _ctx: { params: Promise<{ id: string }> }) {
     try {
         const auth = await requirePermission(req, "cdn.keys.manage");
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         return NextResponse.json(
             {
                 success: false,
-                error: "Restore by commit is disabled in CDN privacy mode (single-commit repository policy).",
+                error: "Restore by commit is disabled in CDN privacy mode (single-commit repository policy)."
             },
             { status: 410 }
         );

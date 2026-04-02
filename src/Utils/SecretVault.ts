@@ -3,10 +3,7 @@ import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypt
 const ENC_PREFIX = "enc:v1:";
 
 function getVaultSecret(): string {
-    const secret =
-        process.env.AI_PROVIDER_ENCRYPTION_KEY?.trim() ||
-        process.env.BETTER_AUTH_SECRET?.trim() ||
-        "";
+    const secret = process.env.AI_PROVIDER_ENCRYPTION_KEY?.trim() || process.env.BETTER_AUTH_SECRET?.trim() || "";
 
     if (!secret) {
         throw new Error("Missing AI provider encryption secret. Set AI_PROVIDER_ENCRYPTION_KEY or BETTER_AUTH_SECRET.");
@@ -28,10 +25,7 @@ export function encryptStoredSecret(plainText: string): string {
     const iv = randomBytes(12);
     const cipher = createCipheriv("aes-256-gcm", key, iv);
 
-    const encrypted = Buffer.concat([
-        cipher.update(Buffer.from(trimmed, "utf8")),
-        cipher.final(),
-    ]);
+    const encrypted = Buffer.concat([cipher.update(Buffer.from(trimmed, "utf8")), cipher.final()]);
     const authTag = cipher.getAuthTag();
 
     return `${ENC_PREFIX}${iv.toString("base64url")}:${authTag.toString("base64url")}:${encrypted.toString("base64url")}`;

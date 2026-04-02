@@ -12,18 +12,14 @@ function getClientIpFromXForwardedFor(value: any) {
     }
 
     if (typeof value !== "string") {
-        throw new TypeError(
-            'Expected a string, got "'.concat(typeof value, '"')
-        );
+        throw new TypeError('Expected a string, got "'.concat(typeof value, '"'));
     }
 
     // ? By CodeRabbit Suggestions
     var forwardedIps = value.split(",").map((e) => e.trim());
 
     forwardedIps = forwardedIps.map((ip) => {
-        const ipv4PortMatch = ip.match(
-            /^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d+$/
-        );
+        const ipv4PortMatch = ip.match(/^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}):\d+$/);
         if (ipv4PortMatch) {
             return ipv4PortMatch[1];
         }
@@ -45,9 +41,7 @@ function getClientIp(req: RequestWithHeaders): string | string[] | null | undefi
             return req.headers.get("x-client-ip");
         }
 
-        var xForwardedFor = getClientIpFromXForwardedFor(
-            req.headers.get("x-forwarded-for")
-        );
+        var xForwardedFor = getClientIpFromXForwardedFor(req.headers.get("x-forwarded-for"));
 
         if (is.ip(xForwardedFor)) {
             return xForwardedFor;

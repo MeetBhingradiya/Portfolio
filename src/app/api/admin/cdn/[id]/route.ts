@@ -9,10 +9,7 @@ import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubDelete } from "@Utils/GitHubCDN";
 
-export async function PATCH(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await requirePermission(req, "cdn.keys.manage");
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
@@ -34,10 +31,7 @@ export async function PATCH(
     }
 }
 
-export async function DELETE(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         const auth = await requirePermission(req, "cdn.keys.manage");
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");

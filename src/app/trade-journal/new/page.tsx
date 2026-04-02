@@ -50,15 +50,23 @@ export default function NewTradePage() {
                 PnLAmount: data.PnLAmount !== "" ? Number(data.PnLAmount) : undefined,
                 StrategyName: data.StrategyName,
                 PostTradeNotes: data.Notes,
-                Tags: data.Tags ? data.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
-                Screenshots: data.AttachmentLinks ? data.AttachmentLinks.split(",").map((s: string) => s.trim()).filter(Boolean) : [],
-                ScreenshotCdnUrls: Array.isArray(data.ScreenshotCdnUrls) ? data.ScreenshotCdnUrls : [],
+                Tags: data.Tags
+                    ? data.Tags.split(",")
+                          .map((t: string) => t.trim())
+                          .filter(Boolean)
+                    : [],
+                Screenshots: data.AttachmentLinks
+                    ? data.AttachmentLinks.split(",")
+                          .map((s: string) => s.trim())
+                          .filter(Boolean)
+                    : [],
+                ScreenshotCdnUrls: Array.isArray(data.ScreenshotCdnUrls) ? data.ScreenshotCdnUrls : []
             };
 
             const res = await fetch("/api/trade-journal", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+                body: JSON.stringify(payload)
             });
             const json = await res.json();
             if (json.success) {
@@ -85,27 +93,39 @@ export default function NewTradePage() {
                     onClick={() => router.back()}
                     className="p-2 rounded-xl"
                     style={{ color: palette.textSecondary }}
-                    whileHover={{ scale: 1.05 }}
-                >
+                    whileHover={{ scale: 1.05 }}>
                     <ArrowBack />
                 </motion.button>
                 <div>
-                    <h1 className="text-2xl font-bold" style={{ color: palette.textPrimary }}>
+                    <h1
+                        className="text-2xl font-bold"
+                        style={{ color: palette.textPrimary }}>
                         Log New Trade
                     </h1>
-                    <p className="text-sm" style={{ color: palette.textSecondary }}>
+                    <p
+                        className="text-sm"
+                        style={{ color: palette.textSecondary }}>
                         Record your trade details for review and analytics.
                     </p>
                 </div>
             </div>
 
             {error && (
-                <div className="mb-4 p-3 rounded-xl text-sm" style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444" }}>
+                <div
+                    className="mb-4 p-3 rounded-xl text-sm"
+                    style={{
+                        background: "rgba(239,68,68,0.12)",
+                        color: "#ef4444"
+                    }}>
                     {error}
                 </div>
             )}
 
-            <TradeForm onSubmit={handleSubmit} submitting={submitting} enableBackendDraft />
+            <TradeForm
+                onSubmit={handleSubmit}
+                submitting={submitting}
+                enableBackendDraft
+            />
         </div>
     );
 }

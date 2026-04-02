@@ -4,25 +4,9 @@ import { NextConfig } from "next";
 import { CSPGenerator, CSPDirectiveOptions } from "@Library/CSP";
 import { jsonc } from "jsonc";
 
-let tsconfig: any = jsonc.parse(
-    fs.readFileSync(path.resolve(__dirname, "tsconfig.json"), "utf-8")
-);
+let tsconfig: any = jsonc.parse(fs.readFileSync(path.resolve(__dirname, "tsconfig.json"), "utf-8"));
 
-let Extensions = [
-    ".tsx",
-    ".ts",
-    ".jsx",
-    ".js",
-    ".sass",
-    ".ico",
-    ".svg",
-    ".webp",
-    ".mdx",
-    ".json",
-    ".css",
-    ".png",
-    ".jpg"
-];
+let Extensions = [".tsx", ".ts", ".jsx", ".js", ".sass", ".ico", ".svg", ".webp", ".mdx", ".json", ".css", ".png", ".jpg"];
 
 // Development performance optimization
 const isDev = process.env.NODE_ENV === "development";
@@ -54,13 +38,7 @@ const nextConfig: NextConfig = {
         workerThreads: false,
 
         // Optimize bundling - these work with both webpack and turbopack
-        optimizePackageImports: [
-            "motion",
-            "@heroicons/react",
-            "react-icons",
-            "@mui/icons-material",
-            "@mui/material"
-        ],
+        optimizePackageImports: ["motion", "@heroicons/react", "react-icons", "@mui/icons-material", "@mui/material"],
 
         // Other performance features
         optimisticClientCache: true,
@@ -155,19 +133,12 @@ const nextConfig: NextConfig = {
                                 },
                                 [CSPDirectiveOptions.ConnectSrc]: {
                                     Self: true,
-                                    Domains: [
-                                        "https://suggestqueries.google.com",
-                                        "https://api.bing.com",
-                                        "https://duckduckgo.com",
-                                        "*"
-                                    ]
+                                    Domains: ["https://suggestqueries.google.com", "https://api.bing.com", "https://duckduckgo.com", "*"]
                                 },
                                 [CSPDirectiveOptions.WorkerSrc]: {
                                     Self: true,
                                     Blob: true,
-                                    Domains: [
-                                        "https://meetbhingradiya.in"
-                                    ]
+                                    Domains: ["https://meetbhingradiya.in"]
                                 },
                                 [CSPDirectiveOptions.StyleSrc]: {
                                     Self: true,
@@ -218,25 +189,14 @@ const nextConfig: NextConfig = {
 
     // Webpack config - only when NOT using Turbopack
     ...(!useTurbopack && {
-        webpack: (
-            config: any,
-            { buildId, dev, isServer, defaultLoaders, webpack }: any
-        ) => {
+        webpack: (config: any, { buildId, dev, isServer, defaultLoaders, webpack }: any) => {
             // Development optimizations for webpack
             if (dev) {
                 // Faster file watching
                 config.watchOptions = {
                     poll: 1000,
                     aggregateTimeout: 300,
-                    ignored: [
-                        "**/node_modules/**",
-                        "**/.git/**",
-                        "**/dist/**",
-                        "**/build/**",
-                        "**/.next/**",
-                        "**/coverage/**",
-                        "**/*.log"
-                    ]
+                    ignored: ["**/node_modules/**", "**/.git/**", "**/dist/**", "**/build/**", "**/.next/**", "**/coverage/**", "**/*.log"]
                 };
 
                 // Memory optimizations for large projects
@@ -286,15 +246,10 @@ const nextConfig: NextConfig = {
                     },
                     alias: {
                         ...Object.fromEntries(
-                            Object.entries(tsconfig.compilerOptions.paths).map(
-                                ([key, value]: any) => [
-                                    key.replace("/*", ""),
-                                    path.resolve(
-                                        path.resolve(),
-                                        value[0].replace("/*", "")
-                                    )
-                                ]
-                            )
+                            Object.entries(tsconfig.compilerOptions.paths).map(([key, value]: any) => [
+                                key.replace("/*", ""),
+                                path.resolve(path.resolve(), value[0].replace("/*", ""))
+                            ])
                         ),
                         ...config.resolve.alias,
                         canvas: false

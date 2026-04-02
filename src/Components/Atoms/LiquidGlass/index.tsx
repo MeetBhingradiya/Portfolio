@@ -43,26 +43,29 @@ export const LiquidGlassCard: React.FC<LiquidGlassCardProps> = ({
 
     const isDark = actualColorMode === "dark";
 
-    const intensityConfig = React.useMemo(() => ({
-        subtle: {
-            blur: 40,
-            saturation: 180,
-            brightness: 1.05,
-            opacity: isDark ? 0.65 : 0.6
-        },
-        medium: {
-            blur: 50,
-            saturation: 200,
-            brightness: 1.1,
-            opacity: isDark ? 0.72 : 0.68
-        },
-        strong: {
-            blur: 60,
-            saturation: 220,
-            brightness: 1.15,
-            opacity: isDark ? 0.8 : 0.75
-        }
-    }), [isDark]);
+    const intensityConfig = React.useMemo(
+        () => ({
+            subtle: {
+                blur: 40,
+                saturation: 180,
+                brightness: 1.05,
+                opacity: isDark ? 0.65 : 0.6
+            },
+            medium: {
+                blur: 50,
+                saturation: 200,
+                brightness: 1.1,
+                opacity: isDark ? 0.72 : 0.68
+            },
+            strong: {
+                blur: 60,
+                saturation: 220,
+                brightness: 1.15,
+                opacity: isDark ? 0.8 : 0.75
+            }
+        }),
+        [isDark]
+    );
 
     const config = intensityConfig[intensity];
 
@@ -103,9 +106,7 @@ export const LiquidGlassCard: React.FC<LiquidGlassCardProps> = ({
                 background: isDark
                     ? `linear-gradient(180deg, rgba(44, 44, 46, ${config.opacity}) 0%, rgba(36, 36, 38, ${config.opacity - 0.05}) 50%, rgba(28, 28, 30, ${config.opacity}) 100%)`
                     : `linear-gradient(180deg, rgba(255, 255, 255, ${config.opacity}) 0%, rgba(252, 252, 252, ${config.opacity - 0.05}) 50%, rgba(250, 250, 250, ${config.opacity}) 100%)`,
-                border: isDark
-                    ? "0.5px solid rgba(255, 255, 255, 0.18)"
-                    : "0.5px solid rgba(255, 255, 255, 0.8)",
+                border: isDark ? "0.5px solid rgba(255, 255, 255, 0.18)" : "0.5px solid rgba(255, 255, 255, 0.8)",
                 borderRadius: "20px",
                 padding: "24px",
                 overflow: "hidden",
@@ -119,8 +120,7 @@ export const LiquidGlassCard: React.FC<LiquidGlassCardProps> = ({
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             whileHover={{ scale: 1.01 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-        >
+            transition={{ duration: 0.3, ease: "easeOut" }}>
             {/* Top glass reflection */}
             <div
                 className="absolute inset-x-0 top-0 pointer-events-none"
@@ -213,37 +213,40 @@ export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
         lg: "px-9 py-4.5 text-lg"
     };
 
-    const variantStyles = React.useMemo(() => ({
-        primary: {
-            background: `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accentDark || palette.accent} 100%)`,
-            color: "#FFFFFF",
-            border: "none",
-            backdropFilter: "none",
-            boxShadow: isDark
-                ? `0 8px 24px ${palette.accent}40, 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 0.5px ${palette.accent}50 inset`
-                : `0 6px 20px ${palette.accent}35, 0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 0.5px ${palette.accent}40 inset`
-        },
-        secondary: {
-            background: isDark
-                ? "linear-gradient(180deg, rgba(58, 58, 60, 0.7) 0%, rgba(44, 44, 46, 0.65) 100%)"
-                : "linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 250, 0.65) 100%)",
-            color: palette.textPrimary,
-            border: isDark ? "0.5px solid rgba(255, 255, 255, 0.18)" : "0.5px solid rgba(255, 255, 255, 0.8)",
-            backdropFilter: "blur(30px) saturate(200%)",
-            WebkitBackdropFilter: "blur(30px) saturate(200%)",
-            boxShadow: isDark
-                ? "0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 1px 0 rgba(255, 255, 255, 0.12) inset"
-                : "0 4px 16px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(255, 255, 255, 1) inset, 0 1px 2px rgba(255, 255, 255, 1) inset"
-        },
-        ghost: {
-            background: "transparent",
-            color: palette.accent,
-            border: `1px solid ${palette.accent}40`,
-            backdropFilter: "blur(10px)",
-            WebkitBackdropFilter: "blur(10px)",
-            boxShadow: "none"
-        }
-    }), [palette, isDark]);
+    const variantStyles = React.useMemo(
+        () => ({
+            primary: {
+                background: `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accentDark || palette.accent} 100%)`,
+                color: "#FFFFFF",
+                border: "none",
+                backdropFilter: "none",
+                boxShadow: isDark
+                    ? `0 8px 24px ${palette.accent}40, 0 4px 12px rgba(0, 0, 0, 0.3), 0 0 0 0.5px ${palette.accent}50 inset`
+                    : `0 6px 20px ${palette.accent}35, 0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 0.5px ${palette.accent}40 inset`
+            },
+            secondary: {
+                background: isDark
+                    ? "linear-gradient(180deg, rgba(58, 58, 60, 0.7) 0%, rgba(44, 44, 46, 0.65) 100%)"
+                    : "linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 250, 0.65) 100%)",
+                color: palette.textPrimary,
+                border: isDark ? "0.5px solid rgba(255, 255, 255, 0.18)" : "0.5px solid rgba(255, 255, 255, 0.8)",
+                backdropFilter: "blur(30px) saturate(200%)",
+                WebkitBackdropFilter: "blur(30px) saturate(200%)",
+                boxShadow: isDark
+                    ? "0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset, 0 1px 0 rgba(255, 255, 255, 0.12) inset"
+                    : "0 4px 16px rgba(0, 0, 0, 0.1), 0 0 0 0.5px rgba(255, 255, 255, 1) inset, 0 1px 2px rgba(255, 255, 255, 1) inset"
+            },
+            ghost: {
+                background: "transparent",
+                color: palette.accent,
+                border: `1px solid ${palette.accent}40`,
+                backdropFilter: "blur(10px)",
+                WebkitBackdropFilter: "blur(10px)",
+                boxShadow: "none"
+            }
+        }),
+        [palette, isDark]
+    );
 
     return (
         <motion.button
@@ -253,8 +256,7 @@ export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
             disabled={disabled}
             whileHover={{ scale: 1.04, y: -1 }}
             whileTap={{ scale: 0.96 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-        >
+            transition={{ duration: 0.2, ease: "easeOut" }}>
             {/* Glass reflection overlay */}
             {variant !== "ghost" && (
                 <>
@@ -262,11 +264,12 @@ export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
                         className="absolute inset-x-0 top-0 pointer-events-none"
                         style={{
                             height: "50%",
-                            background: variant === "primary"
-                                ? "linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)"
-                                : isDark
-                                    ? "linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 100%)"
-                                    : "linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)",
+                            background:
+                                variant === "primary"
+                                    ? "linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)"
+                                    : isDark
+                                      ? "linear-gradient(180deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 50%, transparent 100%)"
+                                      : "linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%)",
                             borderRadius: "50% 50% 0 0 / 100% 100% 0 0",
                             mixBlendMode: variant === "primary" ? "overlay" : isDark ? "screen" : "overlay"
                         }}
@@ -278,11 +281,12 @@ export const LiquidGlassButton: React.FC<LiquidGlassButtonProps> = ({
                             left: "30%",
                             width: "40%",
                             height: "30%",
-                            background: variant === "primary"
-                                ? "radial-gradient(ellipse, rgba(255, 255, 255, 0.3) 0%, transparent 70%)"
-                                : isDark
-                                    ? "radial-gradient(ellipse, rgba(255, 255, 255, 0.1) 0%, transparent 70%)"
-                                    : "radial-gradient(ellipse, rgba(255, 255, 255, 0.6) 0%, transparent 70%)",
+                            background:
+                                variant === "primary"
+                                    ? "radial-gradient(ellipse, rgba(255, 255, 255, 0.3) 0%, transparent 70%)"
+                                    : isDark
+                                      ? "radial-gradient(ellipse, rgba(255, 255, 255, 0.1) 0%, transparent 70%)"
+                                      : "radial-gradient(ellipse, rgba(255, 255, 255, 0.6) 0%, transparent 70%)",
                             filter: "blur(8px)",
                             borderRadius: "50%"
                         }}
@@ -305,11 +309,7 @@ interface LiquidGlassNavProps {
     sticky?: boolean;
 }
 
-export const LiquidGlassNav: React.FC<LiquidGlassNavProps> = ({
-    children,
-    className = "",
-    sticky = true
-}) => {
+export const LiquidGlassNav: React.FC<LiquidGlassNavProps> = ({ children, className = "", sticky = true }) => {
     const { palette, actualColorMode } = useDesignTheme();
     const [scrolled, setScrolled] = useState(false);
     const isDark = actualColorMode === "dark";
@@ -323,31 +323,30 @@ export const LiquidGlassNav: React.FC<LiquidGlassNavProps> = ({
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const navStyles = React.useMemo(() => ({
-        backdropFilter: scrolled 
-            ? "blur(60px) saturate(200%) brightness(1.05)" 
-            : "blur(30px) saturate(180%)",
-        WebkitBackdropFilter: scrolled 
-            ? "blur(60px) saturate(200%) brightness(1.05)" 
-            : "blur(30px) saturate(180%)",
-        background: scrolled
-            ? isDark
-                ? "linear-gradient(180deg, rgba(28, 28, 30, 0.85) 0%, rgba(20, 20, 22, 0.8) 100%)"
-                : "linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(250, 250, 250, 0.8) 100%)"
-            : isDark
-                ? "linear-gradient(180deg, rgba(28, 28, 30, 0.65) 0%, rgba(20, 20, 22, 0.6) 100%)"
-                : "linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(250, 250, 250, 0.6) 100%)",
-        borderBottom: scrolled
-            ? isDark 
-                ? "0.5px solid rgba(255, 255, 255, 0.15)" 
-                : "0.5px solid rgba(0, 0, 0, 0.08)"
-            : "0.5px solid transparent",
-        boxShadow: scrolled
-            ? isDark
-                ? "0 8px 32px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.08) inset"
-                : "0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.9) inset"
-            : "none"
-    }), [scrolled, isDark]);
+    const navStyles = React.useMemo(
+        () => ({
+            backdropFilter: scrolled ? "blur(60px) saturate(200%) brightness(1.05)" : "blur(30px) saturate(180%)",
+            WebkitBackdropFilter: scrolled ? "blur(60px) saturate(200%) brightness(1.05)" : "blur(30px) saturate(180%)",
+            background: scrolled
+                ? isDark
+                    ? "linear-gradient(180deg, rgba(28, 28, 30, 0.85) 0%, rgba(20, 20, 22, 0.8) 100%)"
+                    : "linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(250, 250, 250, 0.8) 100%)"
+                : isDark
+                  ? "linear-gradient(180deg, rgba(28, 28, 30, 0.65) 0%, rgba(20, 20, 22, 0.6) 100%)"
+                  : "linear-gradient(180deg, rgba(255, 255, 255, 0.65) 0%, rgba(250, 250, 250, 0.6) 100%)",
+            borderBottom: scrolled
+                ? isDark
+                    ? "0.5px solid rgba(255, 255, 255, 0.15)"
+                    : "0.5px solid rgba(0, 0, 0, 0.08)"
+                : "0.5px solid transparent",
+            boxShadow: scrolled
+                ? isDark
+                    ? "0 8px 32px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.08) inset"
+                    : "0 4px 24px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.9) inset"
+                : "none"
+        }),
+        [scrolled, isDark]
+    );
 
     return (
         <motion.nav
@@ -355,8 +354,7 @@ export const LiquidGlassNav: React.FC<LiquidGlassNavProps> = ({
             style={navStyles}
             initial={{ y: -100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-        >
+            transition={{ duration: 0.5, ease: "easeOut" }}>
             {/* Top glass reflection */}
             <div
                 className="absolute inset-x-0 top-0 pointer-events-none"
@@ -397,13 +395,7 @@ interface LiquidGlassModalProps {
     className?: string;
 }
 
-export const LiquidGlassModal: React.FC<LiquidGlassModalProps> = ({
-    children,
-    isOpen,
-    onClose,
-    title,
-    className = ""
-}) => {
+export const LiquidGlassModal: React.FC<LiquidGlassModalProps> = ({ children, isOpen, onClose, title, className = "" }) => {
     const { palette, actualColorMode } = useDesignTheme();
     const isDark = actualColorMode === "dark";
 
@@ -415,15 +407,12 @@ export const LiquidGlassModal: React.FC<LiquidGlassModalProps> = ({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-        >
+            transition={{ duration: 0.2 }}>
             {/* Enhanced Backdrop */}
             <motion.div
                 className="absolute inset-0"
                 style={{
-                    background: isDark
-                        ? "rgba(0, 0, 0, 0.7)"
-                        : "rgba(0, 0, 0, 0.4)",
+                    background: isDark ? "rgba(0, 0, 0, 0.7)" : "rgba(0, 0, 0, 0.4)",
                     backdropFilter: "blur(20px) saturate(180%)",
                     WebkitBackdropFilter: "blur(20px) saturate(180%)"
                 }}
@@ -442,9 +431,7 @@ export const LiquidGlassModal: React.FC<LiquidGlassModalProps> = ({
                     background: isDark
                         ? "linear-gradient(180deg, rgba(44, 44, 46, 0.85) 0%, rgba(36, 36, 38, 0.8) 50%, rgba(28, 28, 30, 0.85) 100%)"
                         : "linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(252, 252, 252, 0.8) 50%, rgba(250, 250, 250, 0.85) 100%)",
-                    border: isDark
-                        ? "0.5px solid rgba(255, 255, 255, 0.2)"
-                        : "0.5px solid rgba(255, 255, 255, 0.9)",
+                    border: isDark ? "0.5px solid rgba(255, 255, 255, 0.2)" : "0.5px solid rgba(255, 255, 255, 0.9)",
                     borderRadius: "24px",
                     boxShadow: isDark
                         ? "0 32px 96px rgba(0, 0, 0, 0.7), 0 0 0 0.5px rgba(255, 255, 255, 0.1) inset, 0 2px 4px 0 rgba(255, 255, 255, 0.15) inset, 0 -2px 4px 0 rgba(0, 0, 0, 0.4) inset"
@@ -453,8 +440,7 @@ export const LiquidGlassModal: React.FC<LiquidGlassModalProps> = ({
                 initial={{ scale: 0.92, y: 30, opacity: 0 }}
                 animate={{ scale: 1, y: 0, opacity: 1 }}
                 exit={{ scale: 0.92, y: 30, opacity: 0 }}
-                transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}
-            >
+                transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94] }}>
                 {/* Top glass reflection */}
                 <div
                     className="absolute inset-x-0 top-0 pointer-events-none"
@@ -491,36 +477,34 @@ export const LiquidGlassModal: React.FC<LiquidGlassModalProps> = ({
                         <div
                             className="px-6 py-5 sticky top-0 z-20"
                             style={{
-                                background: isDark
-                                    ? "rgba(44, 44, 46, 0.7)"
-                                    : "rgba(255, 255, 255, 0.7)",
+                                background: isDark ? "rgba(44, 44, 46, 0.7)" : "rgba(255, 255, 255, 0.7)",
                                 backdropFilter: "blur(20px)",
                                 WebkitBackdropFilter: "blur(20px)",
-                                borderBottom: isDark
-                                    ? "0.5px solid rgba(255, 255, 255, 0.1)"
-                                    : "0.5px solid rgba(0, 0, 0, 0.06)"
-                            }}
-                        >
+                                borderBottom: isDark ? "0.5px solid rgba(255, 255, 255, 0.1)" : "0.5px solid rgba(0, 0, 0, 0.06)"
+                            }}>
                             <div className="flex items-center justify-between">
                                 <h2
                                     className="text-2xl font-bold"
-                                    style={{ color: palette.textPrimary }}
-                                >
+                                    style={{ color: palette.textPrimary }}>
                                     {title}
                                 </h2>
                                 <motion.button
                                     onClick={onClose}
                                     className="p-2 rounded-full"
                                     style={{
-                                        background: isDark
-                                            ? "rgba(255, 255, 255, 0.1)"
-                                            : "rgba(0, 0, 0, 0.05)",
+                                        background: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
                                         color: palette.textSecondary
                                     }}
-                                    whileHover={{ scale: 1.1, background: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)" }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
-                                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+                                    whileHover={{
+                                        scale: 1.1,
+                                        background: isDark ? "rgba(255, 255, 255, 0.15)" : "rgba(0, 0, 0, 0.08)"
+                                    }}
+                                    whileTap={{ scale: 0.95 }}>
+                                    <svg
+                                        width="20"
+                                        height="20"
+                                        viewBox="0 0 20 20"
+                                        fill="currentColor">
                                         <path d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" />
                                     </svg>
                                 </motion.button>
@@ -565,8 +549,7 @@ export const LiquidGlassSection: React.FC<{
                         ? `linear-gradient(135deg, ${palette.background} 0%, rgba(20, 20, 22, 1) 50%, ${palette.backgroundSecondary} 100%)`
                         : `linear-gradient(135deg, ${palette.background} 0%, rgba(248, 248, 250, 1) 50%, ${palette.backgroundSecondary} 100%)`
                     : palette.background
-            }}
-        >
+            }}>
             {/* Ambient glow effects */}
             {ambient && (
                 <>

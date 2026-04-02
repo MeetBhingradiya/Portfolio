@@ -8,12 +8,11 @@
         "typecheck": "tsc --noEmit",
         "start": "next start",
         "lint": "next lint",
-        "blogs": "bun Scripts/SyncBlogs.ts",
-        "Comments": "bun Scripts/Comments.ts",
+        "prettier": "bunx prettier --write .",
+        "prettier:check": "bunx prettier --check .",
         "CheckDeploy": "bun Scripts/DeployCheck.ts",
         "CreateSign": "bun Scripts/CreateSignatures.ts",
         "RSAKeys": "bun Scripts/GenerateRSAKeys.ts",
-        "prettier": "bun Scripts/Prettier.ts",
         "prepare": "husky"
     },
     "dependencies": {

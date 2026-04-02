@@ -1,15 +1,14 @@
 import mongoose from "mongoose";
+import { Config as SConfig } from "@Config/Server";
 
 declare global {
     var mongoose: any;
 }
 
-const MONGODB_URI = process.env.MONGODB_01;
+const MONGODB_URI = process.env.MONGODB_01?.trim().replace(/^['\"]|['\"]$/g, "");
 
 if (!MONGODB_URI) {
-    throw new Error(
-        "Please define the MONGODB_01 environment variable inside .env.local or .env"
-    );
+    throw new Error("Please define the MONGODB_01 environment variable inside .env.local or .env");
 }
 
 let cached = global.mongoose;
@@ -26,13 +25,11 @@ async function dbConnect() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
-            dbName: "PRODUCTION_MeetBhingradiya"
+            dbName: SConfig.Database.Name
         };
-        cached.promise = mongoose
-            .connect(MONGODB_URI as string, opts)
-            .then((mongoose) => {
-                return mongoose;
-            });
+        cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
+            return mongoose;
+        });
     }
 
     try {

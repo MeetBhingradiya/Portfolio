@@ -29,7 +29,9 @@ import slugify from "@sindresorhus/slugify";
 
 // Dynamically import heavy editors (no SSR)
 const MDEditor = dynamic(() => import("@uiw/react-md-editor"), { ssr: false });
-const MonacoEditor = dynamic(() => import("@monaco-editor/react"), { ssr: false });
+const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
+    ssr: false
+});
 const MermaidBlock = lazy(() => import("./MermaidBlock"));
 const BlogRenderer = lazy(() => import("./BlogRenderer"));
 
@@ -40,7 +42,11 @@ const CATEGORIES = Object.values(BlogCategory).map((v) => ({
 
 const STATUS_OPTS = [
     { value: BlogStatus.Draft, label: "Draft", color: "#94a3b8" },
-    { value: BlogStatus.PendingReview, label: "Submit for Review", color: "#f59e0b" },
+    {
+        value: BlogStatus.PendingReview,
+        label: "Submit for Review",
+        color: "#f59e0b"
+    },
     { value: BlogStatus.Published, label: "Publish (Admin)", color: "#22c55e" },
     { value: BlogStatus.Unlisted, label: "Unlisted (Admin)", color: "#818cf8" },
     { value: BlogStatus.Private, label: "Private (Admin)", color: "#6b7280" }
@@ -74,7 +80,10 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
 
     const [editorMode, setEditorMode] = useState<"visual" | "raw" | "preview">("visual");
     const [saving, setSaving] = useState(false);
-    const [saveMsg, setSaveMsg] = useState<{ type: "ok" | "err"; text: string } | null>(null);
+    const [saveMsg, setSaveMsg] = useState<{
+        type: "ok" | "err";
+        text: string;
+    } | null>(null);
     const [tagInput, setTagInput] = useState("");
     const [sidebarSection, setSidebarSection] = useState<"meta" | "seo" | "cover">("meta");
 
@@ -93,7 +102,10 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
     // Auto-generate slug from title if slug is empty
     useEffect(() => {
         if (!initial?._id && draft.title && !draft.slug) {
-            setDraft((p) => ({ ...p, slug: slugify(p.title, { lowercase: true, separator: "-" }) }));
+            setDraft((p) => ({
+                ...p,
+                slug: slugify(p.title, { lowercase: true, separator: "-" })
+            }));
         }
     }, [draft.title]);
 
@@ -119,7 +131,10 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
         const fd = new FormData();
         fd.append("file", file);
         try {
-            const res = await fetch("/api/blogs/upload", { method: "POST", body: fd });
+            const res = await fetch("/api/blogs/upload", {
+                method: "POST",
+                body: fd
+            });
             const data = await res.json();
             if (data.success) {
                 const { content, title, excerpt, tags } = data.data;
@@ -150,15 +165,13 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
         try {
             const data: BlogDraft = {
                 ...draft,
-                status:
-                    action === "publish"
-                        ? BlogStatus.Published
-                        : action === "submit"
-                        ? BlogStatus.PendingReview
-                        : BlogStatus.Draft
+                status: action === "publish" ? BlogStatus.Published : action === "submit" ? BlogStatus.PendingReview : BlogStatus.Draft
             };
             await onSave?.(data, action);
-            setSaveMsg({ type: "ok", text: action === "draft" ? "Draft saved" : action === "submit" ? "Submitted for review!" : "Published!" });
+            setSaveMsg({
+                type: "ok",
+                text: action === "draft" ? "Draft saved" : action === "submit" ? "Submitted for review!" : "Published!"
+            });
         } catch (err: any) {
             setSaveMsg({ type: "err", text: err.message || "Save failed" });
         } finally {
@@ -179,27 +192,24 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
     };
 
     const cardStyle = {
-        background: isApple
-            ? isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)"
-            : isDark ? "rgba(20,20,24,0.95)" : "#fff",
+        background: isApple ? (isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)") : isDark ? "rgba(20,20,24,0.95)" : "#fff",
         border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
         backdropFilter: isApple ? "blur(20px)" : "none",
         borderRadius: 16
     };
 
     return (
-        <div className="flex flex-col h-full min-h-screen" style={{ background: palette.background }}>
+        <div
+            className="flex flex-col h-full min-h-screen"
+            style={{ background: palette.background }}>
             {/* ── Top Toolbar ─────────────────────────── */}
             <div
                 className="sticky top-0 z-30 flex items-center gap-3 px-4 py-3"
                 style={{
-                    background: isApple
-                        ? isDark ? "rgba(18,18,20,0.85)" : "rgba(245,245,250,0.85)"
-                        : palette.background,
+                    background: isApple ? (isDark ? "rgba(18,18,20,0.85)" : "rgba(245,245,250,0.85)") : palette.background,
                     backdropFilter: isApple ? "blur(24px)" : "none",
                     borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`
-                }}
-            >
+                }}>
                 <div className="flex-1 min-w-0">
                     <input
                         value={draft.title}
@@ -211,9 +221,18 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                 </div>
 
                 {/* Mode tabs */}
-                <div className="flex items-center gap-1 rounded-xl p-1"
-                    style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)" }}>
-                    {([["visual", "Visual", <EditNoteIcon style={{ fontSize: 14 }} />], ["raw", "Raw", <CodeIcon style={{ fontSize: 14 }} />], ["preview", "Preview", <VisibilityIcon style={{ fontSize: 14 }} />]] as [string, string, React.ReactNode][]).map(([mode, label, icon]) => (
+                <div
+                    className="flex items-center gap-1 rounded-xl p-1"
+                    style={{
+                        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"
+                    }}>
+                    {(
+                        [
+                            ["visual", "Visual", <EditNoteIcon style={{ fontSize: 14 }} />],
+                            ["raw", "Raw", <CodeIcon style={{ fontSize: 14 }} />],
+                            ["preview", "Preview", <VisibilityIcon style={{ fontSize: 14 }} />]
+                        ] as [string, string, React.ReactNode][]
+                    ).map(([mode, label, icon]) => (
                         <motion.button
                             key={mode}
                             onClick={() => setEditorMode(mode as any)}
@@ -222,15 +241,21 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                 background: editorMode === mode ? palette.accent : "transparent",
                                 color: editorMode === mode ? "#fff" : palette.textSecondary
                             }}
-                            whileTap={{ scale: 0.95 }}
-                        >
-                            {icon}{label}
+                            whileTap={{ scale: 0.95 }}>
+                            {icon}
+                            {label}
                         </motion.button>
                     ))}
                 </div>
 
                 {/* Upload */}
-                <input ref={fileInputRef} type="file" accept=".md,.markdown" className="hidden" onChange={handleUpload} />
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".md,.markdown"
+                    className="hidden"
+                    onChange={handleUpload}
+                />
                 <motion.button
                     onClick={() => fileInputRef.current?.click()}
                     className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium"
@@ -239,8 +264,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                         border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
                         color: palette.textSecondary
                     }}
-                    whileTap={{ scale: 0.95 }}
-                >
+                    whileTap={{ scale: 0.95 }}>
                     <UploadFileIcon style={{ fontSize: 15 }} /> Import .md
                 </motion.button>
 
@@ -254,8 +278,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                         border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
                         color: palette.textSecondary
                     }}
-                    whileTap={{ scale: 0.95 }}
-                >
+                    whileTap={{ scale: 0.95 }}>
                     <SaveIcon style={{ fontSize: 15 }} /> Save Draft
                 </motion.button>
 
@@ -265,8 +288,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                         disabled={saving}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
                         style={{ background: "#22c55e", color: "#fff" }}
-                        whileTap={{ scale: 0.95 }}
-                    >
+                        whileTap={{ scale: 0.95 }}>
                         <AutoAwesomeIcon style={{ fontSize: 15 }} /> Publish
                     </motion.button>
                 ) : (
@@ -275,8 +297,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                         disabled={saving}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold"
                         style={{ background: palette.accent, color: "#fff" }}
-                        whileTap={{ scale: 0.95 }}
-                    >
+                        whileTap={{ scale: 0.95 }}>
                         <SendIcon style={{ fontSize: 15 }} /> Submit for Review
                     </motion.button>
                 )}
@@ -288,15 +309,13 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                     <motion.div
                         className="px-6 py-2 text-sm font-medium"
                         style={{
-                            background: saveMsg.type === "ok"
-                                ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.1)",
+                            background: saveMsg.type === "ok" ? "rgba(34,197,94,0.12)" : "rgba(239,68,68,0.1)",
                             color: saveMsg.type === "ok" ? "#22c55e" : "#ef4444",
                             borderBottom: `1px solid ${saveMsg.type === "ok" ? "rgba(34,197,94,0.2)" : "rgba(239,68,68,0.2)"}`
                         }}
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                    >
+                        exit={{ opacity: 0, height: 0 }}>
                         {saveMsg.text}
                     </motion.div>
                 )}
@@ -307,7 +326,9 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                 {/* Editor / Preview */}
                 <div className="flex-1 flex flex-col overflow-y-auto">
                     {editorMode === "visual" && (
-                        <div className="flex-1 p-4" data-color-mode={isDark ? "dark" : "light"}>
+                        <div
+                            className="flex-1 p-4"
+                            data-color-mode={isDark ? "dark" : "light"}>
                             <MDEditor
                                 value={draft.content}
                                 onChange={(v) => set("content", v || "")}
@@ -329,8 +350,12 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                             const code = extractText(children).replace(/\n$/, "");
                                             if (lang === "mermaid") {
                                                 return (
-                                                    <Suspense fallback={<div className="py-4 opacity-40 text-sm text-center">Rendering…</div>}>
-                                                        <MermaidBlock code={code} silent />
+                                                    <Suspense
+                                                        fallback={<div className="py-4 opacity-40 text-sm text-center">Rendering…</div>}>
+                                                        <MermaidBlock
+                                                            code={code}
+                                                            silent
+                                                        />
                                                     </Suspense>
                                                 );
                                             }
@@ -343,7 +368,9 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                     )}
 
                     {editorMode === "raw" && (
-                        <div className="flex-1" style={{ minHeight: "calc(100vh - 120px)" }}>
+                        <div
+                            className="flex-1"
+                            style={{ minHeight: "calc(100vh - 120px)" }}>
                             <MonacoEditor
                                 height="calc(100vh - 120px)"
                                 language="markdown"
@@ -355,10 +382,24 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                         base: "vs-dark",
                                         inherit: true,
                                         rules: [
-                                            { token: "keyword", foreground: "c084fc" },
-                                            { token: "string", foreground: "86efac" },
-                                            { token: "comment", foreground: "6b7280", fontStyle: "italic" },
-                                            { token: "heading", foreground: "93c5fd", fontStyle: "bold" }
+                                            {
+                                                token: "keyword",
+                                                foreground: "c084fc"
+                                            },
+                                            {
+                                                token: "string",
+                                                foreground: "86efac"
+                                            },
+                                            {
+                                                token: "comment",
+                                                foreground: "6b7280",
+                                                fontStyle: "italic"
+                                            },
+                                            {
+                                                token: "heading",
+                                                foreground: "93c5fd",
+                                                fontStyle: "bold"
+                                            }
                                         ],
                                         colors: {
                                             "editor.background": "#0d0d12",
@@ -377,10 +418,24 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                         base: "vs",
                                         inherit: true,
                                         rules: [
-                                            { token: "keyword", foreground: "7c3aed" },
-                                            { token: "string", foreground: "16a34a" },
-                                            { token: "comment", foreground: "9ca3af", fontStyle: "italic" },
-                                            { token: "heading", foreground: "2563eb", fontStyle: "bold" }
+                                            {
+                                                token: "keyword",
+                                                foreground: "7c3aed"
+                                            },
+                                            {
+                                                token: "string",
+                                                foreground: "16a34a"
+                                            },
+                                            {
+                                                token: "comment",
+                                                foreground: "9ca3af",
+                                                fontStyle: "italic"
+                                            },
+                                            {
+                                                token: "heading",
+                                                foreground: "2563eb",
+                                                fontStyle: "bold"
+                                            }
                                         ],
                                         colors: {
                                             "editor.background": "#f8f8fc",
@@ -430,13 +485,19 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                     style={{
                         borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)",
                         background: isApple
-                            ? isDark ? "rgba(18,18,20,0.6)" : "rgba(245,245,250,0.6)"
-                            : isDark ? "rgba(16,16,20,0.95)" : "rgba(248,248,252,0.98)"
-                    }}
-                >
+                            ? isDark
+                                ? "rgba(18,18,20,0.6)"
+                                : "rgba(245,245,250,0.6)"
+                            : isDark
+                              ? "rgba(16,16,20,0.95)"
+                              : "rgba(248,248,252,0.98)"
+                    }}>
                     {/* Sidebar tabs */}
-                    <div className="flex gap-1 rounded-xl p-1"
-                        style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}>
+                    <div
+                        className="flex gap-1 rounded-xl p-1"
+                        style={{
+                            background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"
+                        }}>
                         {(["meta", "seo", "cover"] as const).map((s) => (
                             <button
                                 key={s}
@@ -445,8 +506,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                 style={{
                                     background: sidebarSection === s ? palette.accent : "transparent",
                                     color: sidebarSection === s ? "#fff" : palette.textSecondary
-                                }}
-                            >
+                                }}>
                                 {s === "meta" ? "Details" : s === "seo" ? "SEO" : "Cover"}
                             </button>
                         ))}
@@ -456,7 +516,11 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                         <div className="flex flex-col gap-4">
                             {/* Slug */}
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: palette.textSecondary }}>Slug</label>
+                                <label
+                                    className="text-xs font-medium mb-1 block"
+                                    style={{ color: palette.textSecondary }}>
+                                    Slug
+                                </label>
                                 <input
                                     value={draft.slug}
                                     onChange={(e) => set("slug", e.target.value)}
@@ -467,7 +531,11 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
 
                             {/* Excerpt */}
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: palette.textSecondary }}>Excerpt</label>
+                                <label
+                                    className="text-xs font-medium mb-1 block"
+                                    style={{ color: palette.textSecondary }}>
+                                    Excerpt
+                                </label>
                                 <textarea
                                     value={draft.excerpt}
                                     onChange={(e) => set("excerpt", e.target.value)}
@@ -480,44 +548,65 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
 
                             {/* Category */}
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: palette.textSecondary }}>Category</label>
+                                <label
+                                    className="text-xs font-medium mb-1 block"
+                                    style={{ color: palette.textSecondary }}>
+                                    Category
+                                </label>
                                 <select
                                     value={draft.category}
                                     onChange={(e) => set("category", e.target.value as BlogCategory)}
-                                    style={{ ...inputStyle }}
-                                >
+                                    style={{ ...inputStyle }}>
                                     {CATEGORIES.map((c) => (
-                                        <option key={c.value} value={c.value}>{c.label}</option>
+                                        <option
+                                            key={c.value}
+                                            value={c.value}>
+                                            {c.label}
+                                        </option>
                                     ))}
                                 </select>
                             </div>
 
                             {/* Tags */}
                             <div>
-                                <label className="text-xs font-medium mb-1 flex items-center gap-1" style={{ color: palette.textSecondary }}>
+                                <label
+                                    className="text-xs font-medium mb-1 flex items-center gap-1"
+                                    style={{ color: palette.textSecondary }}>
                                     <LocalOfferIcon style={{ fontSize: 12 }} /> Tags
                                 </label>
                                 <div className="flex gap-1">
                                     <input
                                         value={tagInput}
                                         onChange={(e) => setTagInput(e.target.value)}
-                                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(); } }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter" || e.key === ",") {
+                                                e.preventDefault();
+                                                addTag();
+                                            }
+                                        }}
                                         placeholder="Add tag…"
                                         style={{ ...inputStyle, flex: 1 }}
                                     />
                                     <button
                                         onClick={addTag}
                                         className="px-2 rounded-lg"
-                                        style={{ background: palette.accent, color: "#fff" }}
-                                    >
+                                        style={{
+                                            background: palette.accent,
+                                            color: "#fff"
+                                        }}>
                                         <AddIcon style={{ fontSize: 16 }} />
                                     </button>
                                 </div>
                                 <div className="flex flex-wrap gap-1 mt-2">
                                     {draft.tags.map((tag) => (
-                                        <span key={tag}
+                                        <span
+                                            key={tag}
                                             className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs"
-                                            style={{ background: `${palette.accent}20`, color: palette.accent, border: `1px solid ${palette.accent}40` }}>
+                                            style={{
+                                                background: `${palette.accent}20`,
+                                                color: palette.accent,
+                                                border: `1px solid ${palette.accent}40`
+                                            }}>
                                             {tag}
                                             <button onClick={() => removeTag(tag)}>
                                                 <CloseIcon style={{ fontSize: 10 }} />
@@ -530,23 +619,34 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                             {/* Status */}
                             {isAdmin && (
                                 <div>
-                                    <label className="text-xs font-medium mb-1 block" style={{ color: palette.textSecondary }}>Visibility</label>
+                                    <label
+                                        className="text-xs font-medium mb-1 block"
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
+                                        Visibility
+                                    </label>
                                     <select
                                         value={draft.status}
                                         onChange={(e) => set("status", e.target.value as BlogStatus)}
-                                        style={inputStyle}
-                                    >
+                                        style={inputStyle}>
                                         {STATUS_OPTS.map((s) => (
-                                            <option key={s.value} value={s.value}>{s.label}</option>
+                                            <option
+                                                key={s.value}
+                                                value={s.value}>
+                                                {s.label}
+                                            </option>
                                         ))}
                                     </select>
                                 </div>
                             )}
 
                             {/* Word count */}
-                            <div className="text-xs" style={{ color: palette.textSecondary }}>
-                                {draft.content.split(/\s+/).filter(Boolean).length} words ·{" "}
-                                ~{Math.max(1, Math.ceil(draft.content.split(/\s+/).length / 200))} min read
+                            <div
+                                className="text-xs"
+                                style={{ color: palette.textSecondary }}>
+                                {draft.content.split(/\s+/).filter(Boolean).length} words · ~
+                                {Math.max(1, Math.ceil(draft.content.split(/\s+/).length / 200))} min read
                             </div>
                         </div>
                     )}
@@ -554,7 +654,11 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                     {sidebarSection === "seo" && (
                         <div className="flex flex-col gap-4">
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: palette.textSecondary }}>Meta Title</label>
+                                <label
+                                    className="text-xs font-medium mb-1 block"
+                                    style={{ color: palette.textSecondary }}>
+                                    Meta Title
+                                </label>
                                 <input
                                     value={draft.metaTitle || ""}
                                     onChange={(e) => set("metaTitle", e.target.value)}
@@ -563,7 +667,11 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                 />
                             </div>
                             <div>
-                                <label className="text-xs font-medium mb-1 block" style={{ color: palette.textSecondary }}>Meta Description</label>
+                                <label
+                                    className="text-xs font-medium mb-1 block"
+                                    style={{ color: palette.textSecondary }}>
+                                    Meta Description
+                                </label>
                                 <textarea
                                     value={draft.metaDescription || ""}
                                     onChange={(e) => set("metaDescription", e.target.value)}
@@ -572,14 +680,31 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                     className="resize-none"
                                     style={inputStyle}
                                 />
-                                <div className="text-xs mt-1" style={{ color: (draft.metaDescription?.length || 0) > 160 ? "#ef4444" : palette.textSecondary }}>
+                                <div
+                                    className="text-xs mt-1"
+                                    style={{
+                                        color: (draft.metaDescription?.length || 0) > 160 ? "#ef4444" : palette.textSecondary
+                                    }}>
                                     {draft.metaDescription?.length || 0} / 160
                                 </div>
                             </div>
-                            <div className="p-3 rounded-xl text-xs" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)" }}>
-                                <div className="font-semibold mb-1" style={{ color: "#1a0dab" }}>{draft.metaTitle || draft.title || "Post Title"}</div>
-                                <div className="text-green-600 text-xs mb-1">{new URL(Config.Origin).hostname}/blogs/{draft.slug || "slug"}</div>
-                                <div style={{ color: palette.textSecondary }}>{draft.metaDescription || draft.excerpt || "Description…"}</div>
+                            <div
+                                className="p-3 rounded-xl text-xs"
+                                style={{
+                                    background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"
+                                }}>
+                                <div
+                                    className="font-semibold mb-1"
+                                    style={{ color: "#1a0dab" }}>
+                                    {draft.metaTitle || draft.title || "Post Title"}
+                                </div>
+                                <div className="text-green-600 text-xs mb-1">
+                                    {new URL(Config.Origin).hostname}/blogs/
+                                    {draft.slug || "slug"}
+                                </div>
+                                <div style={{ color: palette.textSecondary }}>
+                                    {draft.metaDescription || draft.excerpt || "Description…"}
+                                </div>
                             </div>
                         </div>
                     )}
@@ -587,7 +712,9 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                     {sidebarSection === "cover" && (
                         <div className="flex flex-col gap-4">
                             <div>
-                                <label className="text-xs font-medium mb-1 flex items-center gap-1" style={{ color: palette.textSecondary }}>
+                                <label
+                                    className="text-xs font-medium mb-1 flex items-center gap-1"
+                                    style={{ color: palette.textSecondary }}>
                                     <ImageIcon style={{ fontSize: 12 }} /> Featured Image URL
                                 </label>
                                 <input
@@ -603,7 +730,9 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                     src={draft.featuredImage}
                                     alt="Cover preview"
                                     className="w-full rounded-xl object-cover aspect-video"
-                                    onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).style.display = "none";
+                                    }}
                                 />
                             )}
                         </div>
@@ -612,7 +741,9 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
             </div>
 
             {/* ── MDEditor preview gap overrides ───────── */}
-            <style jsx global>{`
+            <style
+                jsx
+                global>{`
                 .w-md-editor-preview .wmde-markdown h1,
                 .w-md-editor-preview .wmde-markdown h2,
                 .w-md-editor-preview .wmde-markdown h3,

@@ -39,7 +39,9 @@ export default function MermaidBlock({ code, silent }: MermaidBlockProps) {
             }
         }
         render();
-        return () => { mounted = false; };
+        return () => {
+            mounted = false;
+        };
     }, [code, isDark, uid]);
 
     // Silently skip rendering if code is clearly invalid (e.g. [object Object] from React node serialization)
@@ -48,9 +50,13 @@ export default function MermaidBlock({ code, silent }: MermaidBlockProps) {
 
     if (error) {
         return (
-            <div className="p-3 rounded-xl text-xs font-mono" style={{
-                background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#ef4444"
-            }}>
+            <div
+                className="p-3 rounded-xl text-xs font-mono"
+                style={{
+                    background: "rgba(239,68,68,0.1)",
+                    border: "1px solid rgba(239,68,68,0.3)",
+                    color: "#ef4444"
+                }}>
                 Mermaid error: {error}
             </div>
         );
@@ -58,8 +64,11 @@ export default function MermaidBlock({ code, silent }: MermaidBlockProps) {
 
     if (!svgContent) {
         return (
-            <div className="flex items-center justify-center py-8 rounded-xl opacity-50"
-                style={{ background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)" }}>
+            <div
+                className="flex items-center justify-center py-8 rounded-xl opacity-50"
+                style={{
+                    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)"
+                }}>
                 <span className="text-sm">Rendering diagram…</span>
             </div>
         );

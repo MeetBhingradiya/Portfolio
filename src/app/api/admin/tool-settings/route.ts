@@ -17,7 +17,9 @@ export async function GET(req: NextRequest) {
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await dbConnect();
 
-        let doc = await ToolSettings_Model.findOne({ ConfigID: SINGLETON_ID }).lean();
+        let doc = await ToolSettings_Model.findOne({
+            ConfigID: SINGLETON_ID
+        }).lean();
         if (!doc) {
             doc = await ToolSettings_Model.create({ ConfigID: SINGLETON_ID });
             doc = doc.toObject();
@@ -29,7 +31,10 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ success: false, error: "Admin only" }, { status: 403 });
         }
         return NextResponse.json(
-            { success: false, error: err instanceof Error ? err.message : "Internal server error" },
+            {
+                success: false,
+                error: err instanceof Error ? err.message : "Internal server error"
+            },
             { status: 500 }
         );
     }
@@ -61,7 +66,10 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ success: false, error: "Admin only" }, { status: 403 });
         }
         return NextResponse.json(
-            { success: false, error: err instanceof Error ? err.message : "Internal server error" },
+            {
+                success: false,
+                error: err instanceof Error ? err.message : "Internal server error"
+            },
             { status: 500 }
         );
     }

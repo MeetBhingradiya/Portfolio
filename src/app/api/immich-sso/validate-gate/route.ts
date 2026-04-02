@@ -36,13 +36,14 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-        const secret = new TextEncoder().encode(
-            process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me"
-        );
+        const secret = new TextEncoder().encode(process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me");
         await jwtVerify(requestToken, secret, { issuer: getIssuer() });
     } catch (err: any) {
         // Expired or tampered
-        return NextResponse.json({ gateValid: false, reason: "cookie_invalid" });
+        return NextResponse.json({
+            gateValid: false,
+            reason: "cookie_invalid"
+        });
     }
 
     // ── 2. Check current session + whitelist ────────────────────────────────
@@ -50,7 +51,11 @@ export async function POST(req: NextRequest) {
 
     if (!session?.user?.email) {
         // Valid gate, not signed in — page should show provider picker
-        return NextResponse.json({ gateValid: true, hasAccess: false, needsAuth: true });
+        return NextResponse.json({
+            gateValid: true,
+            hasAccess: false,
+            needsAuth: true
+        });
     }
 
     const email = session.user.email;
@@ -60,12 +65,9 @@ export async function POST(req: NextRequest) {
 
         const entry = await ImmichWhitelist.findOne({
             email: {
-                $regex: new RegExp(
-                    `^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
-                    "i"
-                ),
+                $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
             },
-            enabled: true,
+            enabled: true
         }).lean();
 
         if (!entry) {
@@ -74,7 +76,7 @@ export async function POST(req: NextRequest) {
                 gateValid: true,
                 hasAccess: false,
                 needsAuth: false,
-                reason: "not_whitelisted",
+                reason: "not_whitelisted"
             });
         }
 
@@ -82,13 +84,10 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({
             gateValid: true,
             hasAccess: true,
-            email,
+            email
         });
     } catch (err: any) {
         console.error("[validate-gate]", err);
-        return NextResponse.json(
-            { gateValid: true, hasAccess: false, reason: "error" },
-            { status: 500 }
-        );
+        return NextResponse.json({ gateValid: true, hasAccess: false, reason: "error" }, { status: 500 });
     }
 }

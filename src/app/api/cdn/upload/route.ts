@@ -42,7 +42,9 @@ export async function POST(req: NextRequest) {
 
         if (file.size > MAX_BYTES) {
             return NextResponse.json(
-                { error: `File too large. Maximum is ${MAX_BYTES / 1024 / 1024} MB.` },
+                {
+                    error: `File too large. Maximum is ${MAX_BYTES / 1024 / 1024} MB.`
+                },
                 { status: 413 }
             );
         }
@@ -63,9 +65,7 @@ export async function POST(req: NextRequest) {
         const mimeType = file.type || "application/octet-stream";
 
         const validTypes: AssetType[] = ["icon", "avatar", "banner", "background", "video", "document", "other"];
-        const assetType: AssetType = (validTypes.includes(rawType as AssetType)
-            ? rawType
-            : inferType(mimeType)) as AssetType;
+        const assetType: AssetType = (validTypes.includes(rawType as AssetType) ? rawType : inferType(mimeType)) as AssetType;
 
         // Group into sub-folders by type to keep the repo tidy
         const folder = assetType === "other" ? "misc" : `${assetType}s`;
@@ -77,11 +77,7 @@ export async function POST(req: NextRequest) {
         const checksumSha256 = createHash("sha256").update(buffer).digest("hex");
 
         // ── Upload to GitHub (auto-selects best repo by size) ──────────
-        const { sha, repo: githubRepo } = await githubUpload(
-            githubPath,
-            buffer,
-            `cdn: upload ${assetType} "${file.name}" [${assetId}]`
-        );
+        const { sha, repo: githubRepo } = await githubUpload(githubPath, buffer, `cdn: upload ${assetType} "${file.name}" [${assetId}]`);
 
         // ── Persist to MongoDB ───────────────────────────────────────────
         await dbConnect();
@@ -104,7 +100,7 @@ export async function POST(req: NextRequest) {
             lastChecked: new Date(),
             lastCheckOk: true,
             checksumVerified: true,
-            altText,
+            altText
         });
 
         const cdnUrl = `${Config.Origin}/api/cdn/${assetId}`;
@@ -119,13 +115,10 @@ export async function POST(req: NextRequest) {
             type: doc.type,
             githubPath: doc.githubPath,
             checksumMd5: doc.checksumMd5,
-            checksumSha256: doc.checksumSha256,
+            checksumSha256: doc.checksumSha256
         });
     } catch (err: any) {
         console.error("[CDN Upload]", err);
-        return NextResponse.json(
-            { error: err?.message || "Upload failed" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: err?.message || "Upload failed" }, { status: 500 });
     }
 }

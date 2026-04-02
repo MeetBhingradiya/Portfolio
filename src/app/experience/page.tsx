@@ -5,12 +5,7 @@
 
 import type { Metadata } from "next";
 import { Config } from "@Config/Client";
-import {
-    cachedExperience,
-    cachedSkills,
-    cachedEducation,
-    cachedCertificates
-} from "@Utils/portfolioCache";
+import { cachedExperience, cachedSkills, cachedEducation, cachedCertificates } from "@Utils/portfolioCache";
 import ExperienceView from "@Components/Organisms/Experience/ExperienceView";
 
 export const revalidate = 43200;
@@ -38,9 +33,15 @@ export const metadata: Metadata = {
         type: "website",
         url: `${Config.Origin}/experience`,
         title: "Experience & Skills | Meet Bhingradiya",
-        description:
-            "Work experience, technical skills, education and certifications of Meet Bhingradiya.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Meet Bhingradiya Experience" }]
+        description: "Work experience, technical skills, education and certifications of Meet Bhingradiya.",
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Meet Bhingradiya Experience"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

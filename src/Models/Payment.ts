@@ -18,10 +18,10 @@ export interface IPayment extends Document {
     provider: PaymentProvider;
     type: PaymentType;
     purpose: PaymentPurpose;
-    referenceId?: string;      // CDN application ID, shop order ID, etc.
+    referenceId?: string; // CDN application ID, shop order ID, etc.
 
-    amount: number;      // in smallest currency unit (paise / cents)
-    currency: string;      // "INR" | "USD" | etc.
+    amount: number; // in smallest currency unit (paise / cents)
+    currency: string; // "INR" | "USD" | etc.
 
     // ── Razorpay ──────────────────────────────────────────────────────────
     razorpayOrderId?: string;
@@ -47,11 +47,29 @@ export interface IPayment extends Document {
 const PaymentSchema = new Schema<IPayment>(
     {
         userId: { type: String, required: true, index: true, trim: true },
-        userEmail: { type: String, required: true, index: true, trim: true, lowercase: true },
+        userEmail: {
+            type: String,
+            required: true,
+            index: true,
+            trim: true,
+            lowercase: true
+        },
 
-        provider: { type: String, enum: ["razorpay", "stripe"], required: true },
-        type: { type: String, enum: ["one_time", "subscription"], required: true },
-        purpose: { type: String, enum: ["cdn_plan", "shop_order", "other"], required: true },
+        provider: {
+            type: String,
+            enum: ["razorpay", "stripe"],
+            required: true
+        },
+        type: {
+            type: String,
+            enum: ["one_time", "subscription"],
+            required: true
+        },
+        purpose: {
+            type: String,
+            enum: ["cdn_plan", "shop_order", "other"],
+            required: true
+        },
         referenceId: { type: String, trim: true },
 
         amount: { type: Number, required: true },
@@ -70,9 +88,14 @@ const PaymentSchema = new Schema<IPayment>(
         stripeCustomerId: { type: String, sparse: true, trim: true },
         stripeInvoiceId: { type: String, sparse: true, trim: true },
 
-        status: { type: String, enum: ["pending", "completed", "failed", "refunded", "cancelled"], default: "pending", index: true },
+        status: {
+            type: String,
+            enum: ["pending", "completed", "failed", "refunded", "cancelled"],
+            default: "pending",
+            index: true
+        },
         failureReason: { type: String, trim: true },
-        metadata: { type: Schema.Types.Mixed },
+        metadata: { type: Schema.Types.Mixed }
     },
     { timestamps: true }
 );
@@ -81,5 +104,4 @@ const PaymentSchema = new Schema<IPayment>(
 PaymentSchema.index({ userId: 1, createdAt: -1 });
 PaymentSchema.index({ provider: 1, status: 1 });
 
-export const Payment = (mongoose.models.Payment as mongoose.Model<IPayment>) ||
-    mongoose.model<IPayment>("Payment", PaymentSchema);
+export const Payment = (mongoose.models.Payment as mongoose.Model<IPayment>) || mongoose.model<IPayment>("Payment", PaymentSchema);

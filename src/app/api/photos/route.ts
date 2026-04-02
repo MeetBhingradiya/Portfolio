@@ -30,9 +30,7 @@ export async function GET(req: NextRequest) {
     // 1. Must be signed in on this site first
     const session = await getSession(req.headers);
     if (!session?.user?.email) {
-        return NextResponse.redirect(
-            new URL("/?notice=photos_sign_in_required", baseUrl)
-        );
+        return NextResponse.redirect(new URL("/?notice=photos_sign_in_required", baseUrl));
     }
 
     // 2. Must be on the Immich whitelist
@@ -40,14 +38,14 @@ export async function GET(req: NextRequest) {
         await dbConnect();
         const email = session.user.email;
         const entry = await ImmichWhitelist.findOne({
-            email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
-            enabled: true,
+            email: {
+                $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
+            },
+            enabled: true
         }).lean();
 
         if (!entry) {
-            return NextResponse.redirect(
-                new URL("/?notice=photos_access_denied", baseUrl)
-            );
+            return NextResponse.redirect(new URL("/?notice=photos_access_denied", baseUrl));
         }
 
         // 3. Whitelist hit — send the user to Immich's login page.
@@ -60,8 +58,6 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(IMMICH_LOGIN_URL);
     } catch (err) {
         console.error("[photos-gateway]", err);
-        return NextResponse.redirect(
-            new URL("/?notice=photos_error", baseUrl)
-        );
+        return NextResponse.redirect(new URL("/?notice=photos_error", baseUrl));
     }
 }

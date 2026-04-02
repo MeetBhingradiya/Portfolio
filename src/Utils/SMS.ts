@@ -15,7 +15,7 @@ function getTwilioConfig() {
         accountSid,
         authToken,
         fromNumber,
-        messagingServiceSid,
+        messagingServiceSid
     };
 }
 
@@ -32,7 +32,7 @@ export async function sendPhoneOtpSms(phoneNumber: string, code: string): Promis
 
     const body = new URLSearchParams({
         To: phoneNumber,
-        Body: `Your Meet Bhingradiya verification code is ${code}. It expires in 5 minutes.`,
+        Body: `Your Meet Bhingradiya verification code is ${code}. It expires in 5 minutes.`
     });
 
     if (cfg.messagingServiceSid) {
@@ -41,17 +41,14 @@ export async function sendPhoneOtpSms(phoneNumber: string, code: string): Promis
         body.set("From", cfg.fromNumber);
     }
 
-    const response = await fetch(
-        `${TWILIO_API_BASE}/Accounts/${cfg.accountSid}/Messages.json`,
-        {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/x-www-form-urlencoded",
-                Authorization: `Basic ${Buffer.from(`${cfg.accountSid}:${cfg.authToken}`).toString("base64")}`,
-            },
-            body: body.toString(),
-        }
-    );
+    const response = await fetch(`${TWILIO_API_BASE}/Accounts/${cfg.accountSid}/Messages.json`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": `Basic ${Buffer.from(`${cfg.accountSid}:${cfg.authToken}`).toString("base64")}`
+        },
+        body: body.toString()
+    });
 
     if (!response.ok) {
         const raw = await response.text().catch(() => "");

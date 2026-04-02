@@ -17,9 +17,7 @@ export async function GET() {
 
     const config = {
         issuer,
-        authorization_endpoint: gateKey
-            ? `${issuer}/authorize?_gate=${encodeURIComponent(gateKey)}`
-            : `${issuer}/authorize`,
+        authorization_endpoint: gateKey ? `${issuer}/authorize?_gate=${encodeURIComponent(gateKey)}` : `${issuer}/authorize`,
         token_endpoint: `${issuer}/token`,
         userinfo_endpoint: `${issuer}/userinfo`,
         jwks_uri: `${issuer}/jwks`,
@@ -27,19 +25,16 @@ export async function GET() {
         subject_types_supported: ["public"],
         id_token_signing_alg_values_supported: ["RS256"],
         scopes_supported: ["openid", "email", "profile"],
-        token_endpoint_auth_methods_supported: [
-            "client_secret_post",
-            "client_secret_basic",
-        ],
+        token_endpoint_auth_methods_supported: ["client_secret_post", "client_secret_basic"],
         claims_supported: ["sub", "email", "name", "email_verified"],
         grant_types_supported: ["authorization_code"],
-        code_challenge_methods_supported: ["S256"],
+        code_challenge_methods_supported: ["S256"]
     };
 
     return NextResponse.json(config, {
         headers: {
             "Access-Control-Allow-Origin": "*",
-            "Cache-Control": "public, max-age=3600",
-        },
+            "Cache-Control": "public, max-age=3600"
+        }
     });
 }

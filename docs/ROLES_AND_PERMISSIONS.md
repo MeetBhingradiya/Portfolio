@@ -3,6 +3,7 @@
 ## Overview
 
 Your application now has a comprehensive role-based access control (RBAC) system with:
+
 - **Conditional sidebar rendering** based on permissions
 - **API route protection** with permission checks
 - **Role definitions** with permission catalogs
@@ -13,11 +14,13 @@ Your application now has a comprehensive role-based access control (RBAC) system
 ### 1. Core Models
 
 **RoleDefinition** (`src/Models/RoleDefinition.ts`)
+
 - Defines roles and their permissions
 - Built-in roles: `employee`, `paid_customer`, `moderator`
 - Custom roles can be created via Admin Panel
 
 **UserRole** (`src/Models/UserRole.ts`)
+
 - Maps users to roles
 - Supports custom permissions (overrides)
 - Built-in role: `user` (default for all authenticated users)
@@ -25,6 +28,7 @@ Your application now has a comprehensive role-based access control (RBAC) system
 ### 2. Server-Side Utilities
 
 **Permissions Library** (`src/Library/permissions.ts`)
+
 ```typescript
 // Get all permissions for a user (merged from roles + custom)
 await getUserPermissions(userId: string): Promise<string[]>
@@ -45,6 +49,7 @@ isAdminEmail(email: string): boolean
 ### 3. Client-Side Hook
 
 **useAdminSession** (`src/Hooks/useAdminSession.ts`)
+
 ```typescript
 const { session, loading, error, hasPermission, hasAnyPermission, hasAllPermissions, hasRole } = useAdminSession();
 
@@ -57,6 +62,7 @@ if (hasPermission("shop.orders.view")) {
 ### 4. API Protection Middleware
 
 **adminApiMiddleware** (`src/Library/adminApiMiddleware.ts`)
+
 ```typescript
 // Protect API routes with permission checks
 const result = await requirePermission(req, "shop.orders.view");
@@ -75,16 +81,18 @@ const session = result.session;
 The sidebar automatically filters items based on user permissions:
 
 **Config** (`src/app/admin/sidebarPermissions.ts`)
+
 ```typescript
 export const sidebarPermissions: Record<NavItemKey, string[]> = {
     users: ["admin.users.manage"],
     orders: ["shop.orders.view"],
-    blogs: ["content.blog.manage"],
+    blogs: ["content.blog.manage"]
     // ...
 };
 ```
 
 To add a new sidebar item with permission:
+
 1. Add the item to `allNavItems` in `AdminSidebar.tsx` with a `permKey`
 2. Add permission requirements in `sidebarPermissions.ts`
 3. The sidebar automatically filters based on user permissions
@@ -137,6 +145,7 @@ export function OrdersManager() {
 ### 4. Assigning Permissions to Users
 
 Via the Admin Panel, you can:
+
 1. Create custom roles with specific permissions
 2. Assign roles to users
 3. Override permissions on a per-user basis
@@ -150,6 +159,7 @@ Permissions follow a hierarchical naming pattern:
 ```
 
 Examples:
+
 - `support.tickets.view` - View support tickets
 - `support.tickets.manage` - Create/edit/delete tickets
 - `shop.orders.view` - View shop orders
@@ -165,11 +175,13 @@ Examples:
 Your system now has **two-layer protection**:
 
 ### Layer 1: Client-Side (UX)
+
 - Sidebar items hidden based on permissions
 - UI elements conditionally rendered
 - Hooks prevent rendering unauthorized content
 
 ### Layer 2: Server-Side (Security)
+
 - API endpoints verify permissions
 - Admin layout checks ADMIN_EMAIL
 - Individual API routes validate permissions
@@ -195,10 +207,7 @@ export async function GET(req: NextRequest) {
     const id = searchParams.get("id");
 
     if (!id) {
-        return NextResponse.json(
-            { error: "Missing product ID" },
-            { status: 400 }
-        );
+        return NextResponse.json({ error: "Missing product ID" }, { status: 400 });
     }
 
     // CHECK 3: Fetch and return data
@@ -224,6 +233,7 @@ export async function GET(req: NextRequest) {
 ## Security Best Practices
 
 ✅ **DO:**
+
 - Always verify permissions on the server (API routes)
 - Use permission checks as secondary validation
 - Follow the two-layer protection pattern
@@ -231,6 +241,7 @@ export async function GET(req: NextRequest) {
 - Audit admin actions
 
 ❌ **DON'T:**
+
 - Rely only on client-side permission checks
 - Store sensitive data in session on client
 - Mix authentication and authorization logic
@@ -240,17 +251,20 @@ export async function GET(req: NextRequest) {
 ## Troubleshooting
 
 ### Sidebar items not showing
+
 - Check `sidebarPermissions.ts` configuration
 - Verify user has required permissions in UserRole model
 - Check browser console for permission check errors
 
 ### API returns 403 Forbidden
+
 - Verify user is authenticated (401 vs 403)
 - Check API middleware permission requirements
 - Verify user roles in database
 - Check permission key naming
 
 ### Permissions not updating
+
 - Clear browser cache (localStorage/cookies)
 - Refresh /api/admin/is-admin endpoint
 - Verify UserRole document exists in database

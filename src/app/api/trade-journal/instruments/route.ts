@@ -19,10 +19,13 @@ export async function GET() {
         const instruments: string[] = await TradeJournal.distinct("InstrumentName", {
             UserID: user.userId,
             IsDraft: { $ne: true },
-            InstrumentName: { $exists: true, $ne: "" },
+            InstrumentName: { $exists: true, $ne: "" }
         });
 
-        return NextResponse.json({ success: true, data: instruments.filter(Boolean).sort() });
+        return NextResponse.json({
+            success: true,
+            data: instruments.filter(Boolean).sort()
+        });
     } catch (err) {
         console.error("GET /api/trade-journal/instruments:", err);
         return NextResponse.json({ success: false, error: "Failed to fetch instruments" }, { status: 500 });

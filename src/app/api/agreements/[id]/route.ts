@@ -16,10 +16,7 @@ async function isAdmin(request: NextRequest) {
 }
 
 // GET /api/agreements/[id] - Get single agreement by ID or Slug
-export async function GET(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
 
@@ -42,10 +39,7 @@ export async function GET(
         const agreement = await Agreement.findOne(query).select("-__v");
 
         if (!agreement) {
-            return NextResponse.json(
-                { success: false, error: "Agreement not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "Agreement not found" }, { status: 404 });
         }
 
         // Get related products if any
@@ -77,15 +71,15 @@ export async function GET(
 }
 
 // PUT /api/agreements/[id] - Update agreement (Admin only)
-export async function PUT(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         // Check admin authorization
         if (!(await isAdmin(request))) {
             return NextResponse.json(
-                { success: false, error: "Unauthorized. Admin access required." },
+                {
+                    success: false,
+                    error: "Unauthorized. Admin access required."
+                },
                 { status: 403 }
             );
         }
@@ -103,10 +97,7 @@ export async function PUT(
         });
 
         if (!agreement) {
-            return NextResponse.json(
-                { success: false, error: "Agreement not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "Agreement not found" }, { status: 404 });
         }
 
         // Check if slug is being changed and if it's unique
@@ -187,15 +178,15 @@ export async function PUT(
 }
 
 // DELETE /api/agreements/[id] - Soft delete agreement (Admin only)
-export async function DELETE(
-    request: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         // Check admin authorization
         if (!(await isAdmin(request))) {
             return NextResponse.json(
-                { success: false, error: "Unauthorized. Admin access required." },
+                {
+                    success: false,
+                    error: "Unauthorized. Admin access required."
+                },
                 { status: 403 }
             );
         }
@@ -211,10 +202,7 @@ export async function DELETE(
         });
 
         if (!agreement) {
-            return NextResponse.json(
-                { success: false, error: "Agreement not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ success: false, error: "Agreement not found" }, { status: 404 });
         }
 
         agreement.isDeleted = true;

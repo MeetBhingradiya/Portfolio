@@ -22,22 +22,19 @@ interface ToolPageWrapperProps {
     actions?: React.ReactNode;
 }
 
-const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({
-    title,
-    description,
-    icon,
-    accentColor,
-    children,
-    actions
-}) => {
+const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({ title, description, icon, accentColor, children, actions }) => {
     const { designTheme, palette, actualColorMode, accentColor: themeAccent } = useDesignTheme();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
 
     return (
-        <div className="min-h-screen" style={{ background: palette.background }}>
+        <div
+            className="min-h-screen"
+            style={{ background: palette.background }}>
             {/* ── Background decorations ── */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+            <div
+                className="fixed inset-0 pointer-events-none overflow-hidden"
+                style={{ zIndex: 0 }}>
                 {isApple ? (
                     <>
                         <motion.div
@@ -47,7 +44,11 @@ const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({
                                 filter: "blur(60px)"
                             }}
                             animate={{ scale: [1, 1.08, 1] }}
-                            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                            transition={{
+                                duration: 18,
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
                         />
                         <motion.div
                             className="absolute bottom-[-15%] left-[-8%] w-[400px] h-[400px] rounded-full"
@@ -56,7 +57,11 @@ const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({
                                 filter: "blur(80px)"
                             }}
                             animate={{ scale: [1.08, 1, 1.08] }}
-                            transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+                            transition={{
+                                duration: 16,
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
                         />
                     </>
                 ) : (
@@ -77,8 +82,7 @@ const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8"
                     initial={{ opacity: 0, y: -16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                >
+                    transition={{ duration: 0.4 }}>
                     <div className="flex items-center gap-4">
                         <Link
                             href="/tools"
@@ -89,8 +93,7 @@ const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({
                                 background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
                                 color: palette.textSecondary,
                                 borderRadius: isApple ? "12px" : "16px"
-                            }}
-                        >
+                            }}>
                             <ArrowBack sx={{ fontSize: 20 }} />
                         </Link>
 
@@ -99,25 +102,23 @@ const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({
                             style={{
                                 width: 48,
                                 height: 48,
-                                background: isApple
-                                    ? `${accentColor}22`
-                                    : `linear-gradient(135deg, ${accentColor}25, ${accentColor}12)`,
+                                background: isApple ? `${accentColor}22` : `linear-gradient(135deg, ${accentColor}25, ${accentColor}12)`,
                                 border: `1.5px solid ${accentColor}35`,
                                 color: accentColor,
                                 borderRadius: isApple ? "14px" : "18px"
-                            }}
-                        >
+                            }}>
                             {icon}
                         </div>
 
                         <div>
                             <h1
                                 className={`${isApple ? "text-2xl font-bold" : "text-3xl font-black"} leading-none`}
-                                style={{ color: palette.textPrimary }}
-                            >
+                                style={{ color: palette.textPrimary }}>
                                 {title}
                             </h1>
-                            <p className="text-sm mt-1" style={{ color: palette.textSecondary }}>
+                            <p
+                                className="text-sm mt-1"
+                                style={{ color: palette.textSecondary }}>
                                 {description}
                             </p>
                         </div>
@@ -130,8 +131,7 @@ const ToolPageWrapper: React.FC<ToolPageWrapperProps> = ({
                 <motion.div
                     initial={{ opacity: 0, y: 16 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.45, delay: 0.1 }}
-                >
+                    transition={{ duration: 0.45, delay: 0.1 }}>
                     {children}
                 </motion.div>
 

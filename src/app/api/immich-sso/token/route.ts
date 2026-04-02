@@ -15,10 +15,7 @@ import { getOIDCKeys, getIssuer, validateClient } from "@Utils/OIDCKeys";
 export const dynamic = "force-dynamic";
 
 function tokenError(error: string, description: string, status = 400): NextResponse {
-    return NextResponse.json(
-        { error, error_description: description },
-        { status, headers: { "Cache-Control": "no-store" } }
-    );
+    return NextResponse.json({ error, error_description: description }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
 export async function POST(req: NextRequest) {
@@ -99,7 +96,7 @@ export async function POST(req: NextRequest) {
         email: authCode.email,
         name: authCode.name,
         email_verified: true,
-        ...(authCode.nonce ? { nonce: authCode.nonce } : {}),
+        ...(authCode.nonce ? { nonce: authCode.nonce } : {})
     })
         .setProtectedHeader({ alg: "RS256", kid })
         .setIssuer(issuer)
@@ -113,7 +110,7 @@ export async function POST(req: NextRequest) {
         sub: authCode.sub,
         email: authCode.email,
         name: authCode.name,
-        scope: authCode.scope,
+        scope: authCode.scope
     })
         .setProtectedHeader({ alg: "RS256", kid })
         .setIssuer(issuer)
@@ -128,13 +125,13 @@ export async function POST(req: NextRequest) {
             token_type: "Bearer",
             expires_in: expiresIn,
             id_token: idToken,
-            scope: authCode.scope,
+            scope: authCode.scope
         },
         {
             headers: {
                 "Cache-Control": "no-store",
-                "Pragma": "no-cache",
-            },
+                "Pragma": "no-cache"
+            }
         }
     );
 }
@@ -146,7 +143,7 @@ export async function OPTIONS() {
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        },
+            "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        }
     });
 }

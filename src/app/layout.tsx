@@ -75,9 +75,7 @@ export const metadata: Metadata = {
     ],
 
     // ─── Authors & Creator ───────────────────────────────────────────────────
-    authors: [
-        { name: "Meet Bhingradiya", url: "https://github.com/MeetBhingradiya" }
-    ],
+    authors: [{ name: "Meet Bhingradiya", url: "https://github.com/MeetBhingradiya" }],
     creator: "Meet Bhingradiya",
     publisher: "Meet Bhingradiya",
 
@@ -94,9 +92,9 @@ export const metadata: Metadata = {
         follow: true,
         nocache: false,
         googleBot: {
-            index: true,
-            follow: true,
-            noimageindex: false,
+            "index": true,
+            "follow": true,
+            "noimageindex": false,
             "max-video-preview": -1,
             "max-image-preview": "large",
             "max-snippet": -1
@@ -110,8 +108,7 @@ export const metadata: Metadata = {
         url: BASE_URL,
         siteName: "Meet Bhingradiya",
         title: "Meet Bhingradiya — Full Stack Developer",
-        description:
-            "Full Stack Developer from Surat, India. Explore projects, open-source work, developer tools, blog articles and more.",
+        description: "Full Stack Developer from Surat, India. Explore projects, open-source work, developer tools, blog articles and more.",
         images: [
             {
                 url: "/assets/og-image.png",
@@ -128,8 +125,7 @@ export const metadata: Metadata = {
         site: "@MeetBhingradiya",
         creator: "@MeetBhingradiya",
         title: "Meet Bhingradiya — Full Stack Developer",
-        description:
-            "Full Stack Developer from Surat, India. Projects, tools, blogs and more.",
+        description: "Full Stack Developer from Surat, India. Projects, tools, blogs and more.",
         images: ["/assets/og-image.png"]
     },
 
@@ -172,27 +168,26 @@ export default function RootLayout({
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
                             "@type": "Person",
-                            name: "Meet Bhingradiya",
-                            url: Config.Origin,
-                            image: `${Config.Origin}/assets/og-image.png`,
-                            sameAs: [
+                            "name": "Meet Bhingradiya",
+                            "url": Config.Origin,
+                            "image": `${Config.Origin}/assets/og-image.png`,
+                            "sameAs": [
                                 "https://github.com/MeetBhingradiya",
                                 "https://linkedin.com/in/meetbhingradiya",
                                 "https://twitter.com/MeetBhingradiya"
                             ],
-                            jobTitle: "Full Stack Developer",
-                            worksFor: {
+                            "jobTitle": "Full Stack Developer",
+                            "worksFor": {
                                 "@type": "Organization",
-                                name: "Self-Employed"
+                                "name": "Self-Employed"
                             },
-                            address: {
+                            "address": {
                                 "@type": "PostalAddress",
-                                addressLocality: "Surat",
-                                addressRegion: "Gujarat",
-                                addressCountry: "IN"
+                                "addressLocality": "Surat",
+                                "addressRegion": "Gujarat",
+                                "addressCountry": "IN"
                             },
-                            description:
-                                "Full Stack Developer specialising in React, Next.js, TypeScript and Node.js."
+                            "description": "Full Stack Developer specialising in React, Next.js, TypeScript and Node.js."
                         })
                     }}
                 />
@@ -204,19 +199,19 @@ export default function RootLayout({
                         __html: JSON.stringify({
                             "@context": "https://schema.org",
                             "@type": "WebSite",
-                            name: "Meet Bhingradiya",
-                            url: Config.Origin,
-                            description:
+                            "name": "Meet Bhingradiya",
+                            "url": Config.Origin,
+                            "description":
                                 "Portfolio and developer workspace of Meet Bhingradiya — Full Stack Developer from Surat, India.",
-                            author: {
+                            "author": {
                                 "@type": "Person",
-                                name: "Meet Bhingradiya"
+                                "name": "Meet Bhingradiya"
                             },
-                            potentialAction: {
+                            "potentialAction": {
                                 "@type": "SearchAction",
-                                target: {
+                                "target": {
                                     "@type": "EntryPoint",
-                                    urlTemplate: `${Config.Origin}/blogs?search={search_term_string}`
+                                    "urlTemplate": `${Config.Origin}/blogs?search={search_term_string}`
                                 },
                                 "query-input": "required name=search_term_string"
                             }

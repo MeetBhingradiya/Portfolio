@@ -1,5 +1,6 @@
 /** @type {import('prettier').Config} */
 const config = {
+    printWidth: 140,
     useTabs: false,
     tabWidth: 4,
     singleAttributePerLine: true,
@@ -11,8 +12,8 @@ const config = {
     singleQuote: false,
     quoteProps: "consistent",
     jsxSingleQuote: false,
-    arrowParens: 'always',
-    endOfLine: 'auto',
+    arrowParens: "always",
+    endOfLine: "auto",
     htmlWhitespaceSensitivity: "css",
     vueIndentScriptAndStyle: true,
     embeddedLanguageFormatting: "auto"

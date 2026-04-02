@@ -29,12 +29,8 @@ function startInteractiveMode() {
             const hash = createSHA512Hash(input);
             console.log("\nInput: ", input);
             console.log("SHA-512 Hash: ", hash);
-            console.log(
-                "\nYou can use this hash as your ADMIN_SIGNATURE in your .env file"
-            );
-            console.log(
-                "------------------------------------------------------\n"
-            );
+            console.log("\nYou can use this hash as your ADMIN_SIGNATURE in your .env file");
+            console.log("------------------------------------------------------\n");
             promptUser();
         });
     }
@@ -51,9 +47,7 @@ function main() {
 
         console.log("Input: ", input);
         console.log("SHA-512 Hash: ", hash);
-        console.log(
-            "\nYou can use this hash as your ADMIN_SIGNATURE in your .env file"
-        );
+        console.log("\nYou can use this hash as your ADMIN_SIGNATURE in your .env file");
     } else {
         startInteractiveMode();
     }

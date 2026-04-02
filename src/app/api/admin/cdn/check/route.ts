@@ -59,14 +59,16 @@ export async function POST(req: NextRequest) {
                     lastChecked: new Date(),
                     lastCheckOk: exists,
                     ...(exists && info ? { sha: info.sha } : {}),
-                    ...(checksumVerified !== undefined ? { checksumVerified } : {}),
+                    ...(checksumVerified !== undefined ? { checksumVerified } : {})
                 };
 
                 await CDNAsset.updateOne({ assetId: asset.assetId }, { $set: update });
 
                 if (newStatus !== asset.status) {
-                    if (!exists) { nowMissing++; missingIds.push(asset.assetId); }
-                    else restored++;
+                    if (!exists) {
+                        nowMissing++;
+                        missingIds.push(asset.assetId);
+                    } else restored++;
                 }
                 checked++;
             } catch (err) {
@@ -86,7 +88,7 @@ export async function POST(req: NextRequest) {
             checksumMismatch,
             missingIds,
             mismatchIds,
-            checkedAt: new Date().toISOString(),
+            checkedAt: new Date().toISOString()
         });
     } catch (err: any) {
         console.error("[CDN Check]", err);

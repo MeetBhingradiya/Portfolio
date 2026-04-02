@@ -42,11 +42,11 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
     }
 
     return (
-        <div className="flex min-h-screen" style={{ background: "var(--bg, #0f0f0f)" }}>
+        <div
+            className="flex min-h-screen"
+            style={{ background: "var(--bg, #0f0f0f)" }}>
             <AdminSidebar />
-            <main className="flex-1 overflow-y-auto">
-                {children}
-            </main>
+            <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
     );
 }

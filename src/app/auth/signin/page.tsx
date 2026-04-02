@@ -69,7 +69,7 @@ function SignInContent() {
         try {
             const result = await signIn.email({
                 email: formData.email,
-                password: formData.password,
+                password: formData.password
             });
 
             if (result?.error) {
@@ -124,7 +124,7 @@ function SignInContent() {
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             [e.target.name]: e.target.value
         }));
@@ -139,8 +139,7 @@ function SignInContent() {
         return (
             <div
                 className="min-h-screen flex items-center justify-center"
-                style={{ background: palette.background }}
-            >
+                style={{ background: palette.background }}>
                 <div
                     className="w-12 h-12 border-4 border-t-transparent rounded-full animate-spin"
                     style={{ borderColor: palette.accent }}
@@ -153,25 +152,23 @@ function SignInContent() {
         <div
             className="min-h-screen flex items-center justify-center py-12 px-6"
             style={{
-                background: isApple && isDark
-                    ? `linear-gradient(180deg, ${palette.background} 0%, ${palette.backgroundSecondary} 100%)`
-                    : palette.background
-            }}
-        >
+                background:
+                    isApple && isDark
+                        ? `linear-gradient(180deg, ${palette.background} 0%, ${palette.backgroundSecondary} 100%)`
+                        : palette.background
+            }}>
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
-                className="w-full max-w-md"
-            >
+                className="w-full max-w-md">
                 {/* Back Button */}
                 <Link href="/">
                     <motion.button
                         className={`flex items-center gap-2 mb-6 ${isApple ? "text-sm" : "text-base font-semibold"}`}
                         style={{ color: palette.textSecondary }}
                         whileHover={{ x: -4, opacity: 0.7 }}
-                        transition={{ duration: 0.2 }}
-                    >
+                        transition={{ duration: 0.2 }}>
                         <ArrowBack fontSize="small" />
                         <span>Back to Home</span>
                     </motion.button>
@@ -183,8 +180,7 @@ function SignInContent() {
                 <Card
                     className={isApple ? "p-8" : "p-10"}
                     intensity={isApple ? "strong" : undefined}
-                    elevated={!isApple}
-                >
+                    elevated={!isApple}>
                     {/* Add Account Notice */}
                     {searchParams.get("addAccount") === "true" && (
                         <motion.div
@@ -194,14 +190,17 @@ function SignInContent() {
                             style={{
                                 background: isDark ? "rgba(59, 130, 246, 0.1)" : "rgba(59, 130, 246, 0.08)",
                                 border: `1px solid ${isDark ? "rgba(59, 130, 246, 0.2)" : "rgba(59, 130, 246, 0.15)"}`
-                            }}
-                        >
+                            }}>
                             <Info style={{ color: "#3b82f6" }} />
                             <div>
-                                <p className="text-sm font-semibold" style={{ color: "#3b82f6" }}>
+                                <p
+                                    className="text-sm font-semibold"
+                                    style={{ color: "#3b82f6" }}>
                                     Adding Another Account
                                 </p>
-                                <p className="text-xs" style={{ color: palette.textSecondary }}>
+                                <p
+                                    className="text-xs"
+                                    style={{ color: palette.textSecondary }}>
                                     Sign in with a different account to switch between them
                                 </p>
                             </div>
@@ -215,8 +214,7 @@ function SignInContent() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.1 }}
                             className={`${isApple ? "text-3xl font-bold" : "text-4xl font-black"} mb-2`}
-                            style={{ color: palette.textPrimary }}
-                        >
+                            style={{ color: palette.textPrimary }}>
                             Welcome Back
                         </motion.h1>
                         <motion.p
@@ -224,8 +222,7 @@ function SignInContent() {
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.2 }}
                             className={`${isApple ? "text-sm" : "text-base font-medium"}`}
-                            style={{ color: palette.textSecondary }}
-                        >
+                            style={{ color: palette.textSecondary }}>
                             Sign in to your account to continue
                         </motion.p>
                     </div>
@@ -235,51 +232,47 @@ function SignInContent() {
                         className="space-y-3 mb-6"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                    >
+                        transition={{ delay: 0.3 }}>
                         <div className="flex items-center justify-center gap-3">
-                        {/* Passkey Button */}
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.3 }}
-                        >
-                            <Button
-                                onClick={handlePasskeySignIn}
-                                disabled={passkeyLoading || loading}
-                                variant="secondary"
-                                className="w-full flex items-center justify-center gap-3"
-                            >
-                                {passkeyLoading ? (
-                                    <>
-                                        <div
-                                            className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
-                                            style={{ borderColor: palette.accent }}
-                                        />
-                                        <span>Authenticating...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Fingerprint />
-                                    </>
-                                )}
-                            </Button>
-                        </motion.div>
+                            {/* Passkey Button */}
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.3 }}>
+                                <Button
+                                    onClick={handlePasskeySignIn}
+                                    disabled={passkeyLoading || loading}
+                                    variant="secondary"
+                                    className="w-full flex items-center justify-center gap-3">
+                                    {passkeyLoading ? (
+                                        <>
+                                            <div
+                                                className="w-5 h-5 border-2 border-t-transparent rounded-full animate-spin"
+                                                style={{
+                                                    borderColor: palette.accent
+                                                }}
+                                            />
+                                            <span>Authenticating...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Fingerprint />
+                                        </>
+                                    )}
+                                </Button>
+                            </motion.div>
 
-                        
                             {oauthProviders.map((provider, index) => (
                                 <motion.div
                                     key={provider.id}
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: 0.4 + index * 0.1 }}
-                                >
+                                    transition={{ delay: 0.4 + index * 0.1 }}>
                                     <Button
                                         onClick={() => handleOAuthSignIn(provider.id)}
                                         disabled={loading || passkeyLoading}
                                         variant="secondary"
-                                        className="flex flex-row items-center justify-center gap-3"
-                                    >
+                                        className="flex flex-row items-center justify-center gap-3">
                                         {provider.icon}
                                     </Button>
                                 </motion.div>
@@ -301,8 +294,7 @@ function SignInContent() {
                                 style={{
                                     background: palette.surface,
                                     color: palette.textTertiary
-                                }}
-                            >
+                                }}>
                                 Or continue with email
                             </span>
                         </div>
@@ -312,34 +304,45 @@ function SignInContent() {
                     <AnimatePresence>
                         {(error || success) && (
                             <motion.div
-                                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                                animate={{ opacity: 1, height: "auto", marginBottom: 24 }}
-                                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                            >
+                                initial={{
+                                    opacity: 0,
+                                    height: 0,
+                                    marginBottom: 0
+                                }}
+                                animate={{
+                                    opacity: 1,
+                                    height: "auto",
+                                    marginBottom: 24
+                                }}
+                                exit={{
+                                    opacity: 0,
+                                    height: 0,
+                                    marginBottom: 0
+                                }}>
                                 <div
                                     className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} flex items-center gap-3`}
                                     style={{
-                                        background: error
-                                            ? "rgba(239, 68, 68, 0.1)"
-                                            : "rgba(34, 197, 94, 0.1)",
-                                        border: `1px solid ${error
-                                            ? "rgba(239, 68, 68, 0.3)"
-                                            : "rgba(34, 197, 94, 0.3)"}`
-                                    }}
-                                >
+                                        background: error ? "rgba(239, 68, 68, 0.1)" : "rgba(34, 197, 94, 0.1)",
+                                        border: `1px solid ${error ? "rgba(239, 68, 68, 0.3)" : "rgba(34, 197, 94, 0.3)"}`
+                                    }}>
                                     {error ? (
-                                        <ErrorIcon style={{ color: "rgb(239, 68, 68)" }} />
+                                        <ErrorIcon
+                                            style={{
+                                                color: "rgb(239, 68, 68)"
+                                            }}
+                                        />
                                     ) : (
-                                        <CheckCircle style={{ color: "rgb(34, 197, 94)" }} />
+                                        <CheckCircle
+                                            style={{
+                                                color: "rgb(34, 197, 94)"
+                                            }}
+                                        />
                                     )}
                                     <span
                                         className={isApple ? "text-sm" : "text-base font-semibold"}
                                         style={{
-                                            color: error
-                                                ? "rgb(239, 68, 68)"
-                                                : "rgb(34, 197, 94)"
-                                        }}
-                                    >
+                                            color: error ? "rgb(239, 68, 68)" : "rgb(34, 197, 94)"
+                                        }}>
                                         {error || success}
                                     </span>
                                 </div>
@@ -348,17 +351,17 @@ function SignInContent() {
                     </AnimatePresence>
 
                     {/* Login Form */}
-                    <form onSubmit={handleSubmit} className="space-y-5">
+                    <form
+                        onSubmit={handleSubmit}
+                        className="space-y-5">
                         {/* Email */}
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
-                        >
+                            transition={{ delay: 0.4 }}>
                             <label
                                 className={`block ${isApple ? "text-sm font-medium" : "text-base font-bold"} mb-2`}
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 Email Address
                             </label>
                             <div className="relative">
@@ -389,12 +392,10 @@ function SignInContent() {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.5 }}
-                        >
+                            transition={{ delay: 0.5 }}>
                             <label
                                 className={`block ${isApple ? "text-sm font-medium" : "text-base font-bold"} mb-2`}
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 Password
                             </label>
                             <div className="relative">
@@ -422,16 +423,19 @@ function SignInContent() {
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
                                     className="absolute right-4 top-1/2 -translate-y-1/2 transition-opacity hover:opacity-70"
-                                    disabled={loading}
-                                >
+                                    disabled={loading}>
                                     {showPassword ? (
                                         <VisibilityOff
-                                            style={{ color: palette.textTertiary }}
+                                            style={{
+                                                color: palette.textTertiary
+                                            }}
                                             fontSize="small"
                                         />
                                     ) : (
                                         <Visibility
-                                            style={{ color: palette.textTertiary }}
+                                            style={{
+                                                color: palette.textTertiary
+                                            }}
                                             fontSize="small"
                                         />
                                     )}
@@ -444,8 +448,7 @@ function SignInContent() {
                             <Link
                                 href="/auth/forgot-password"
                                 className={`${isApple ? "text-sm" : "text-base font-semibold"} hover:underline transition-opacity hover:opacity-70`}
-                                style={{ color: palette.accent }}
-                            >
+                                style={{ color: palette.accent }}>
                                 Forgot password?
                             </Link>
                         </div>
@@ -454,8 +457,7 @@ function SignInContent() {
                         <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.6 }}
-                        >
+                            transition={{ delay: 0.6 }}>
                             <button
                                 type="submit"
                                 disabled={loading}
@@ -465,8 +467,7 @@ function SignInContent() {
                                     color: palette.textOnAccent,
                                     cursor: loading ? "not-allowed" : "pointer",
                                     opacity: loading ? 0.6 : 1
-                                }}
-                            >
+                                }}>
                                 {loading ? (
                                     <>
                                         <div
@@ -490,18 +491,15 @@ function SignInContent() {
                         className="mt-6 text-center"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ delay: 0.7 }}
-                    >
+                        transition={{ delay: 0.7 }}>
                         <p
                             className={isApple ? "text-sm" : "text-base font-medium"}
-                            style={{ color: palette.textSecondary }}
-                        >
+                            style={{ color: palette.textSecondary }}>
                             Don&apos;t have an account?{" "}
                             <Link
                                 href="/auth/signup"
                                 className="font-bold hover:underline transition-opacity hover:opacity-70"
-                                style={{ color: palette.accent }}
-                            >
+                                style={{ color: palette.accent }}>
                                 Sign up
                             </Link>
                         </p>
@@ -514,14 +512,17 @@ function SignInContent() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.8 }}
                     className={`text-center mt-6 ${isApple ? "text-xs" : "text-sm font-medium"}`}
-                    style={{ color: palette.textTertiary }}
-                >
+                    style={{ color: palette.textTertiary }}>
                     By signing in, you agree to our{" "}
-                    <Link href="/terms" className="underline hover:opacity-70">
+                    <Link
+                        href="/terms"
+                        className="underline hover:opacity-70">
                         Terms of Service
-                    </Link>
-                    {" "}and{" "}
-                    <Link href="/privacy" className="underline hover:opacity-70">
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                        href="/privacy"
+                        className="underline hover:opacity-70">
                         Privacy Policy
                     </Link>
                 </motion.p>
@@ -532,11 +533,12 @@ function SignInContent() {
 
 export default function SignInPage() {
     return (
-        <Suspense fallback={
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="animate-pulse text-white text-xl">Loading...</div>
-            </div>
-        }>
+        <Suspense
+            fallback={
+                <div className="min-h-screen flex items-center justify-center">
+                    <div className="animate-pulse text-white text-xl">Loading...</div>
+                </div>
+            }>
             <SignInContent />
         </Suspense>
     );

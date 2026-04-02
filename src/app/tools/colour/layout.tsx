@@ -24,7 +24,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/colour`,
         title: "Colour Studio — Picker & Converter | Meet Bhingradiya Tools",
         description: "Pick colours, convert HSL/HEX/RGB/CMYK and generate harmonic palettes online.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Colour Studio Tool" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Colour Studio Tool"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

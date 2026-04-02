@@ -9,9 +9,14 @@ import { MongoClient, ObjectId } from "mongodb";
 import { symmetricDecrypt } from "better-auth/crypto";
 import dbConnect from "@Utils/dbConnect";
 import { WalletContact } from "@Models/WalletContact";
+import { Config as SConfig } from "@Config/Server";
 
 function toObjectId(id: string): ObjectId | null {
-    try { return new ObjectId(id); } catch { return null; }
+    try {
+        return new ObjectId(id);
+    } catch {
+        return null;
+    }
 }
 
 async function decryptToken(encrypted: string): Promise<string | null> {
@@ -19,7 +24,9 @@ async function decryptToken(encrypted: string): Promise<string | null> {
         const secret = process.env.BETTER_AUTH_SECRET;
         if (!secret) return null;
         return await symmetricDecrypt({ key: secret, data: encrypted });
-    } catch { return null; }
+    } catch {
+        return null;
+    }
 }
 
 export async function POST(req: NextRequest) {
@@ -41,22 +48,23 @@ export async function POST(req: NextRequest) {
         let accessToken: string | null = null;
         try {
             await mongoClient.connect();
-            const db = mongoClient.db("PRODUCTION_MeetBhingradiya");
+            const db = mongoClient.db(SConfig.Database.Name);
 
-            const userIdQuery = objectId
-                ? { $or: [{ user_id: userId }, { user_id: objectId }] }
-                : { user_id: userId };
+            const userIdQuery = objectId ? { $or: [{ user_id: userId }, { user_id: objectId }] } : { user_id: userId };
 
             const account = await db.collection("account").findOne({
                 ...userIdQuery,
-                providerId: "google",
+                providerId: "google"
             });
 
             if (!account) {
-                return NextResponse.json({
-                    success: false,
-                    error: "No Google account linked. Sign in with Google first.",
-                }, { status: 404 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "No Google account linked. Sign in with Google first."
+                    },
+                    { status: 404 }
+                );
             }
 
             const rawToken = account.accessToken as string | null;
@@ -66,10 +74,13 @@ export async function POST(req: NextRequest) {
         }
 
         if (!accessToken) {
-            return NextResponse.json({
-                success: false,
-                error: "Google access token expired. Please sign out and sign in again with Google.",
-            }, { status: 401 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Google access token expired. Please sign out and sign in again with Google."
+                },
+                { status: 401 }
+            );
         }
 
         // ── Fetch contacts from Google People API ─────────────────────────────
@@ -84,19 +95,28 @@ export async function POST(req: NextRequest) {
             if (nextPageToken) peopleUrl.searchParams.set("pageToken", nextPageToken);
 
             const res = await fetch(peopleUrl.toString(), {
-                headers: { Authorization: `Bearer ${accessToken}` },
+                headers: { Authorization: `Bearer ${accessToken}` }
             });
 
             if (!res.ok) {
                 const body = await res.text();
                 console.error("[contacts/import] People API error:", res.status, body);
                 if (res.status === 401 || res.status === 403) {
-                    return NextResponse.json({
-                        success: false,
-                        error: "Google token expired or contacts permission not granted. Please re-sign-in with Google.",
-                    }, { status: 401 });
+                    return NextResponse.json(
+                        {
+                            success: false,
+                            error: "Google token expired or contacts permission not granted. Please re-sign-in with Google."
+                        },
+                        { status: 401 }
+                    );
                 }
-                return NextResponse.json({ success: false, error: "Failed to fetch Google contacts" }, { status: 500 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Failed to fetch Google contacts"
+                    },
+                    { status: 500 }
+                );
             }
 
             const data = await res.json();
@@ -105,7 +125,10 @@ export async function POST(req: NextRequest) {
         } while (nextPageToken);
 
         if (allContacts.length === 0) {
-            return NextResponse.json({ success: true, data: { imported: 0, skipped: 0, total: 0 } });
+            return NextResponse.json({
+                success: true,
+                data: { imported: 0, skipped: 0, total: 0 }
+            });
         }
 
         // ── Upsert into WalletContact ─────────────────────────────────────────
@@ -122,23 +145,29 @@ export async function POST(req: NextRequest) {
 
         for (const person of allContacts) {
             const name = person.names?.[0]?.displayName;
-            if (!name) { skipped++; continue; }
+            if (!name) {
+                skipped++;
+                continue;
+            }
 
             const email = person.emailAddresses?.[0]?.value || "";
             const phone = person.phoneNumbers?.[0]?.value || "";
             const photo = person.photos?.[0]?.url || "";
 
-            if (!email && !phone) { skipped++; continue; }
+            if (!email && !phone) {
+                skipped++;
+                continue;
+            }
 
             // Try to find existing contact by email or phone
             const matchQuery: Record<string, any>[] = [];
             if (email) matchQuery.push({ Emails: email, UserID: walletUserId });
             if (phone) matchQuery.push({ Phones: phone, UserID: walletUserId });
 
-            const existing = await WalletContact.findOne({
+            const existing = (await WalletContact.findOne({
                 UserID: walletUserId,
-                $or: matchQuery,
-            }) as any;
+                $or: matchQuery
+            })) as any;
 
             if (existing) {
                 // Update name/photo if they changed
@@ -161,11 +190,11 @@ export async function POST(req: NextRequest) {
             } else {
                 await WalletContact.create({
                     UserID: walletUserId,
-                    Name:   name,
+                    Name: name,
                     Emails: email ? [email] : [],
                     Phones: phone ? [phone] : [],
                     Avatar: photo || undefined,
-                    Source: "google",
+                    Source: "google"
                 });
                 imported++;
             }
@@ -173,7 +202,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({
             success: true,
-            data: { imported, skipped, total: allContacts.length },
+            data: { imported, skipped, total: allContacts.length }
         });
     } catch (err) {
         console.error("[contacts/import] Error:", err);

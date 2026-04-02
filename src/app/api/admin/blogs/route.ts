@@ -40,13 +40,16 @@ export async function GET(req: NextRequest) {
         const total = await Blog.countDocuments(query);
 
         // Counts by status for stats bar
-        const statusCounts = await Blog.aggregate([
-            { $group: { _id: "$status", count: { $sum: 1 } } }
-        ]);
+        const statusCounts = await Blog.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]);
         const counts: Record<string, number> = { all: total };
         statusCounts.forEach((s) => (counts[s._id] = s.count));
 
-        return NextResponse.json({ success: true, data: blogs, pagination: { total, limit, skip }, counts });
+        return NextResponse.json({
+            success: true,
+            data: blogs,
+            pagination: { total, limit, skip },
+            counts
+        });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") {
             return NextResponse.json({ success: false, error: "Admin only" }, { status: 403 });
@@ -97,7 +100,10 @@ export async function PUT(req: NextRequest) {
             };
         }
 
-        const updated = await Blog.findByIdAndUpdate(id, update, { new: true, runValidators: true });
+        const updated = await Blog.findByIdAndUpdate(id, update, {
+            new: true,
+            runValidators: true
+        });
         return NextResponse.json({ success: true, data: updated });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") {

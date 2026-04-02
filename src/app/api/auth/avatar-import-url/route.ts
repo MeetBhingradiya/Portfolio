@@ -66,9 +66,9 @@ export async function POST(request: NextRequest) {
             redirect: "follow",
             signal: controller.signal,
             headers: {
-                "User-Agent": "MeetBhingradiya-AvatarImporter/1.0",
+                "User-Agent": "MeetBhingradiya-AvatarImporter/1.0"
             },
-            cache: "no-store",
+            cache: "no-store"
         }).finally(() => clearTimeout(timeout));
 
         if (!remoteRes.ok) {
@@ -77,7 +77,12 @@ export async function POST(request: NextRequest) {
 
         const contentType = (remoteRes.headers.get("content-type") || "").split(";")[0].trim().toLowerCase();
         if (!ALLOWED_TYPES.has(contentType)) {
-            return NextResponse.json({ error: `Unsupported image type: ${contentType || "unknown"}` }, { status: 415 });
+            return NextResponse.json(
+                {
+                    error: `Unsupported image type: ${contentType || "unknown"}`
+                },
+                { status: 415 }
+            );
         }
 
         const contentLengthRaw = remoteRes.headers.get("content-length");
@@ -101,7 +106,7 @@ export async function POST(request: NextRequest) {
             "image/png": ".png",
             "image/webp": ".webp",
             "image/gif": ".gif",
-            "image/avif": ".avif",
+            "image/avif": ".avif"
         };
         const fromPathExt = path.extname(parsed.pathname || "");
         const ext = extByMime[contentType] || fromPathExt || ".jpg";
@@ -112,11 +117,7 @@ export async function POST(request: NextRequest) {
         const checksumMd5 = createHash("md5").update(buffer).digest("hex");
         const checksumSha256 = createHash("sha256").update(buffer).digest("hex");
 
-        const { sha, repo: githubRepo } = await githubUpload(
-            githubPath,
-            buffer,
-            `cdn: avatar import-url ${session.user.id} [${assetId}]`
-        );
+        const { sha, repo: githubRepo } = await githubUpload(githubPath, buffer, `cdn: avatar import-url ${session.user.id} [${assetId}]`);
 
         await dbConnect();
         await CDNAsset.create({
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
             lastChecked: new Date(),
             lastCheckOk: true,
             checksumVerified: true,
-            altText: "Imported profile avatar",
+            altText: "Imported profile avatar"
         });
 
         const cdnUrl = `${Config.Origin}/api/cdn/${assetId}`;
@@ -145,13 +146,11 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             assetId,
-            cdnUrl,
+            cdnUrl
         });
     } catch (error: any) {
         console.error("[avatar-import-url]", error);
-        const message = error?.name === "AbortError"
-            ? "Image URL fetch timed out"
-            : (error?.message || "Failed to import image URL");
+        const message = error?.name === "AbortError" ? "Image URL fetch timed out" : error?.message || "Failed to import image URL";
         return NextResponse.json({ error: message }, { status: 500 });
     }
 }

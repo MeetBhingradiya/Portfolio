@@ -6,20 +6,20 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IImmichWhitelist extends Document {
-    email: string;           // Email address to whitelist (always present)
-    label: string;           // Friendly display name
-    note?: string;           // Admin note
-    enabled: boolean;        // Soft enable/disable without deleting
-    addedBy: string;         // Admin email that added this entry
+    email: string; // Email address to whitelist (always present)
+    label: string; // Friendly display name
+    note?: string; // Admin note
+    enabled: boolean; // Soft enable/disable without deleting
+    addedBy: string; // Admin email that added this entry
     addedAt: Date;
-    lastAccess?: Date;       // Last time this email authenticated to Immich
-    accessCount: number;     // How many times they've authenticated
+    lastAccess?: Date; // Last time this email authenticated to Immich
+    accessCount: number; // How many times they've authenticated
 
     // Better Auth account linkage (optional — email-only entries have no userId)
-    userId?: string;         // Better Auth user._id — match takes priority over email
-    linkedAccount: boolean;  // true when userId is set
-    subOverride?: string;    // Manual Immich oauthId override — if set, sent as `sub` in OIDC token
-    lastIssuedSub?: string;  // Last `sub` value actually sent to Immich (auto-recorded)
+    userId?: string; // Better Auth user._id — match takes priority over email
+    linkedAccount: boolean; // true when userId is set
+    subOverride?: string; // Manual Immich oauthId override — if set, sent as `sub` in OIDC token
+    lastIssuedSub?: string; // Last `sub` value actually sent to Immich (auto-recorded)
 }
 
 const ImmichWhitelistSchema = new Schema<IImmichWhitelist>(
@@ -30,7 +30,7 @@ const ImmichWhitelistSchema = new Schema<IImmichWhitelist>(
             unique: true,
             lowercase: true,
             trim: true,
-            index: true,
+            index: true
         },
         label: { type: String, required: true, trim: true },
         note: { type: String, trim: true },
@@ -44,14 +44,13 @@ const ImmichWhitelistSchema = new Schema<IImmichWhitelist>(
         userId: { type: String, index: true, sparse: true }, // unique per BA user
         linkedAccount: { type: Boolean, default: false },
         subOverride: { type: String, trim: true }, // manual oauthId to send as OIDC sub
-        lastIssuedSub: { type: String, trim: true }, // auto-recorded — last sub sent to Immich
+        lastIssuedSub: { type: String, trim: true } // auto-recorded — last sub sent to Immich
     },
     { timestamps: true }
 );
 
 export const ImmichWhitelist =
-    mongoose.models.ImmichWhitelist ||
-    mongoose.model<IImmichWhitelist>("ImmichWhitelist", ImmichWhitelistSchema);
+    mongoose.models.ImmichWhitelist || mongoose.model<IImmichWhitelist>("ImmichWhitelist", ImmichWhitelistSchema);
 
 // ---------------------------------------------------------------------------
 // Immich SSO Auth Code Model
@@ -59,7 +58,7 @@ export const ImmichWhitelist =
 // ---------------------------------------------------------------------------
 export interface IImmichAuthCode extends Document {
     code: string;
-    sub: string;          // User's unique ID (better-auth user ID)
+    sub: string; // User's unique ID (better-auth user ID)
     email: string;
     name: string;
     clientId: string;
@@ -78,9 +77,7 @@ const ImmichAuthCodeSchema = new Schema<IImmichAuthCode>({
     redirectUri: { type: String, required: true },
     scope: { type: String, default: "openid email profile" },
     nonce: { type: String },
-    expiresAt: { type: Date, required: true, index: { expires: 0 } },  // TTL index
+    expiresAt: { type: Date, required: true, index: { expires: 0 } } // TTL index
 });
 
-export const ImmichAuthCode =
-    mongoose.models.ImmichAuthCode ||
-    mongoose.model<IImmichAuthCode>("ImmichAuthCode", ImmichAuthCodeSchema);
+export const ImmichAuthCode = mongoose.models.ImmichAuthCode || mongoose.model<IImmichAuthCode>("ImmichAuthCode", ImmichAuthCodeSchema);

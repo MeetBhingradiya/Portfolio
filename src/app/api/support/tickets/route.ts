@@ -11,11 +11,7 @@ import { getResolvedUser } from "@Utils/RolePermissions";
 import { sendEmail } from "@Utils/Email";
 
 async function nextTicketNumber(): Promise<number> {
-    const counter = await TicketCounter.findByIdAndUpdate(
-        "ticket",
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true }
-    );
+    const counter = await TicketCounter.findByIdAndUpdate("ticket", { $inc: { seq: 1 } }, { new: true, upsert: true });
     return counter.seq;
 }
 
@@ -50,7 +46,7 @@ export async function GET(req: NextRequest) {
             query.$or = [
                 { subject: { $regex: search, $options: "i" } },
                 { ticketId: { $regex: search, $options: "i" } },
-                { userEmail: { $regex: search, $options: "i" } },
+                { userEmail: { $regex: search, $options: "i" } }
             ];
         }
 
@@ -65,7 +61,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             data: tickets,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
         });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -79,7 +75,9 @@ export async function POST(req: NextRequest) {
         const user = await getResolvedUser(h);
 
         const body = await req.json();
-        const email = String(user?.email || body?.email || "").trim().toLowerCase();
+        const email = String(user?.email || body?.email || "")
+            .trim()
+            .toLowerCase();
         const name = String(user?.name || body?.name || "").trim();
         if (!email || !name || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             return NextResponse.json({ success: false, error: "Valid name and email are required." }, { status: 400 });
@@ -99,7 +97,7 @@ export async function POST(req: NextRequest) {
             content: body.description || "",
             attachments: body.attachments || [],
             isInternal: false,
-            createdAt: new Date(),
+            createdAt: new Date()
         };
 
         const ticket = await SupportTicket.create({
@@ -115,7 +113,7 @@ export async function POST(req: NextRequest) {
             messages: [firstMessage],
             lastRepliedAt: new Date(),
             tags: body.tags || [],
-            accessSecretHash,
+            accessSecretHash
         });
 
         try {
@@ -123,7 +121,7 @@ export async function POST(req: NextRequest) {
                 to: email,
                 subject: `Support Ticket ${ticketId} Created`,
                 html: `<p>Your support ticket <strong>${ticketId}</strong> was created.</p><p>Ticket secret code: <strong>${accessSecret}</strong></p><p>Keep this secret code safe. You need it with OTP for secure ticket access.</p>`,
-                text: `Ticket ${ticketId} created. Secret code: ${accessSecret}. Keep this code safe.`,
+                text: `Ticket ${ticketId} created. Secret code: ${accessSecret}. Keep this code safe.`
             });
         } catch {
             // Non-blocking: ticket is already created.

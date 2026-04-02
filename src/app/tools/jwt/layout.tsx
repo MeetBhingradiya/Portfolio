@@ -23,7 +23,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/jwt`,
         title: "JWT Debugger & Decoder | Meet Bhingradiya Tools",
         description: "Decode and inspect JSON Web Tokens client-side — no data sent to servers.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "JWT Debugger" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "JWT Debugger"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

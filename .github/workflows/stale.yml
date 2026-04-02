@@ -14,8 +14,6 @@ jobs:
               with:
                   days-before-issue-stale: 120
                   stale-issue-label: "🚫 Status: Stale"
-                  stale-issue-message:
-                      "This issue is stale because it has been open for 14 days
-                      with no activity."
+                  stale-issue-message: "This issue is stale because it has been open for 14 days with no activity."
                   days-before-pr-stale: -1
                   repo-token: ${{ secrets.GITHUB_TOKEN }}

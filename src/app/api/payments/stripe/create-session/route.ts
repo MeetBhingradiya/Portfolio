@@ -16,7 +16,7 @@ import { Payment } from "@Models/Payment";
 
 export async function POST(req: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2026-02-25.clover",
+        apiVersion: "2026-02-25.clover"
     });
     try {
         const session = await getSession(req.headers);
@@ -34,31 +34,34 @@ export async function POST(req: NextRequest) {
             line_items: [{ price: priceId, quantity: 1 }],
             customer_email: session.user.email,
             success_url: `${appUrl}/settings/cdn?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url : `${appUrl}/settings/cdn?payment=cancelled`,
-            metadata   : {
-                userId     : session.user.id    || "",
-                userEmail  : session.user.email || "",
+            cancel_url: `${appUrl}/settings/cdn?payment=cancelled`,
+            metadata: {
+                userId: session.user.id || "",
+                userEmail: session.user.email || "",
                 purpose,
                 referenceId: referenceId || "",
-                ...(metadata || {}),
-            },
+                ...(metadata || {})
+            }
         });
 
         // Record pending payment
         await Payment.create({
-            userId          : session.user.id || session.user.email,
-            userEmail       : session.user.email,
-            provider        : "stripe",
-            type            : mode === "subscription" ? "subscription" : "one_time",
+            userId: session.user.id || session.user.email,
+            userEmail: session.user.email,
+            provider: "stripe",
+            type: mode === "subscription" ? "subscription" : "one_time",
             purpose,
             referenceId,
-            amount          : 0,        // filled on webhook
-            currency        : "usd",
-            stripeSessionId : checkoutSession.id,
-            status          : "pending",
+            amount: 0, // filled on webhook
+            currency: "usd",
+            stripeSessionId: checkoutSession.id,
+            status: "pending"
         });
 
-        return NextResponse.json({ url: checkoutSession.url, sessionId: checkoutSession.id });
+        return NextResponse.json({
+            url: checkoutSession.url,
+            sessionId: checkoutSession.id
+        });
     } catch (err: any) {
         console.error("[Stripe create-session]", err);
         return NextResponse.json({ error: err?.message || "Failed to create session." }, { status: 500 });

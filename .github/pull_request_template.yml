@@ -1,188 +1,188 @@
 name: Pull Request
 description: Create a pull request to contribute changes to this project
 body:
-  - type: textarea
-    id: summary
-    attributes:
-      label: 📋 Summary
-      description: |
-        Provide a brief summary of the changes in this PR.
-        What does this pull request do?
-      placeholder: |
-        This PR adds a new dark mode feature that allows users to toggle between light and dark themes.
-    validations:
-      required: true
-
-  - type: input
-    id: related_issue
-    attributes:
-      label: 🔗 Related Issue
-      description: Link to the issue this PR addresses
-      placeholder: "Closes #123 or Fixes #456"
-
-  - type: checkboxes
-    id: type_of_change
-    attributes:
-      label: 🚀 Type of Change
-      description: What type of change does this PR introduce?
-      options:
-        - label: 🐛 Bug fix (non-breaking change which fixes an issue)
-        - label: ✨ New feature (non-breaking change which adds functionality)
-        - label: 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
-        - label: 📚 Documentation update
-        - label: 🎨 Style/UI change
-        - label: ♻️ Code refactoring (no functional changes)
-        - label: ⚡ Performance improvement
-        - label: 🧪 Test addition or modification
-        - label: 🔧 Build/CI configuration change
-        - label: 🔒 Security improvement
-
-  - type: textarea
-    id: detailed_description
-    attributes:
-      label: 📝 Detailed Description
-      description: |
-        Provide a detailed description of the changes made in this PR.
-        Explain what was changed, why it was necessary, and how it was implemented.
-      placeholder: |
-        ### What was changed:
-        - Added dark mode toggle component
-        - Updated CSS variables for theme switching
-        - Modified header to include theme toggle
-
-        ### Why this change was necessary:
-        - Users requested a dark mode option for better night-time viewing
-        - Improves accessibility and user experience
-
-        ### How it was implemented:
-        - Used CSS custom properties for theme colors
-        - Added React context for theme state management
-        - Implemented localStorage persistence
-
-  - type: textarea
-    id: testing
-    attributes:
-      label: 🧪 Testing
-      description: |
-        Describe the tests you ran to verify your changes.
-        Include test environment details and test results.
-      placeholder: |
-        ### Test Environment:
-        - OS: Windows 11
-        - Browser: Chrome 120.0.6099.109
-        - Node version: 18.17.0
-        - Package manager: npm
-
-        ### Test Steps:
-        1. Navigate to the homepage
-        2. Click the dark mode toggle
-        3. Verify theme changes immediately
-        4. Refresh page and verify theme persists
-
-        ### Test Results:
-        ✅ All existing tests pass
-        ✅ New tests added and passing
-        ✅ Manual testing completed
-        ✅ Cross-browser testing completed
-
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: 📱 Screenshots/Videos
-      description: |
-        Add screenshots or videos to help explain your changes.
-        You can drag and drop images directly into this text area.
-      placeholder: |
-        ### Before:
-        [Add screenshots of the current state]
-
-        ### After:
-        [Add screenshots of the new state]
-
-  - type: checkboxes
-    id: code_quality_checklist
-    attributes:
-      label: ✅ Code Quality Checklist
-      description: Confirm that your code meets quality standards
-      options:
-        - label: My code follows the project's style guidelines
-          required: true
-        - label: I have performed a self-review of my code
-          required: true
-        - label: I have commented my code, particularly in hard-to-understand areas
-        - label: My changes generate no new warnings or errors
-          required: true
-        - label: I have removed any console.log statements and debug code
+    - type: textarea
+      id: summary
+      attributes:
+          label: 📋 Summary
+          description: |
+              Provide a brief summary of the changes in this PR.
+              What does this pull request do?
+          placeholder: |
+              This PR adds a new dark mode feature that allows users to toggle between light and dark themes.
+      validations:
           required: true
 
-  - type: checkboxes
-    id: testing_checklist
-    attributes:
-      label: 🧪 Testing Checklist
-      description: Confirm that your changes are properly tested
-      options:
-        - label: I have added tests that prove my fix is effective or that my feature works
-        - label: New and existing unit tests pass locally with my changes
-          required: true
-        - label: I have tested my changes in multiple browsers (if applicable)
-        - label: I have tested responsive design (if applicable)
+    - type: input
+      id: related_issue
+      attributes:
+          label: 🔗 Related Issue
+          description: Link to the issue this PR addresses
+          placeholder: "Closes #123 or Fixes #456"
 
-  - type: checkboxes
-    id: documentation_checklist
-    attributes:
-      label: 📚 Documentation Checklist
-      description: Confirm that documentation is updated
-      options:
-        - label: I have made corresponding changes to the documentation
-        - label: I have updated the README.md if necessary
-        - label: I have added/updated TypeScript types where applicable
+    - type: checkboxes
+      id: type_of_change
+      attributes:
+          label: 🚀 Type of Change
+          description: What type of change does this PR introduce?
+          options:
+              - label: 🐛 Bug fix (non-breaking change which fixes an issue)
+              - label: ✨ New feature (non-breaking change which adds functionality)
+              - label: 💥 Breaking change (fix or feature that would cause existing functionality to not work as expected)
+              - label: 📚 Documentation update
+              - label: 🎨 Style/UI change
+              - label: ♻️ Code refactoring (no functional changes)
+              - label: ⚡ Performance improvement
+              - label: 🧪 Test addition or modification
+              - label: 🔧 Build/CI configuration change
+              - label: 🔒 Security improvement
 
-  - type: checkboxes
-    id: dependencies_checklist
-    attributes:
-      label: 📦 Dependencies Checklist
-      description: Confirm dependency management
-      options:
-        - label: I have updated package.json if new dependencies were added
-        - label: I have verified that all dependencies are necessary
-        - label: I have checked for security vulnerabilities in new dependencies
+    - type: textarea
+      id: detailed_description
+      attributes:
+          label: 📝 Detailed Description
+          description: |
+              Provide a detailed description of the changes made in this PR.
+              Explain what was changed, why it was necessary, and how it was implemented.
+          placeholder: |
+              ### What was changed:
+              - Added dark mode toggle component
+              - Updated CSS variables for theme switching
+              - Modified header to include theme toggle
 
-  - type: textarea
-    id: migration_guide
-    attributes:
-      label: 🔄 Migration Guide
-      description: |
-        If this is a breaking change, provide migration instructions.
-        Leave empty if not applicable.
-      placeholder: |
-        ### Breaking Changes:
-        - The `oldFunction()` has been renamed to `newFunction()`
-        - Update your imports: `import { newFunction } from 'package'`
+              ### Why this change was necessary:
+              - Users requested a dark mode option for better night-time viewing
+              - Improves accessibility and user experience
 
-        ### Migration Steps:
-        1. Replace all instances of `oldFunction` with `newFunction`
-        2. Update any configuration files
-        3. Run tests to ensure compatibility
+              ### How it was implemented:
+              - Used CSS custom properties for theme colors
+              - Added React context for theme state management
+              - Implemented localStorage persistence
 
-  - type: textarea
-    id: questions_for_reviewers
-    attributes:
-      label: 🤔 Questions for Reviewers
-      description: |
-        Any specific areas you'd like reviewers to focus on or questions you have.
-      placeholder: |
-        - Should we consider adding more theme options in the future?
-        - Is the performance impact acceptable for the theme switching?
-        - Any concerns about the localStorage implementation?
+    - type: textarea
+      id: testing
+      attributes:
+          label: 🧪 Testing
+          description: |
+              Describe the tests you ran to verify your changes.
+              Include test environment details and test results.
+          placeholder: |
+              ### Test Environment:
+              - OS: Windows 11
+              - Browser: Chrome 120.0.6099.109
+              - Node version: 18.17.0
+              - Package manager: npm
 
-  - type: textarea
-    id: additional_notes
-    attributes:
-      label: 📄 Additional Notes
-      description: |
-        Any additional information that would be helpful for reviewers.
-      placeholder: |
-        - This PR is ready for review and merge
-        - Tested on multiple devices and browsers
-        - Performance impact is minimal
-        - Future enhancement: add more color themes
+              ### Test Steps:
+              1. Navigate to the homepage
+              2. Click the dark mode toggle
+              3. Verify theme changes immediately
+              4. Refresh page and verify theme persists
+
+              ### Test Results:
+              ✅ All existing tests pass
+              ✅ New tests added and passing
+              ✅ Manual testing completed
+              ✅ Cross-browser testing completed
+
+    - type: textarea
+      id: screenshots
+      attributes:
+          label: 📱 Screenshots/Videos
+          description: |
+              Add screenshots or videos to help explain your changes.
+              You can drag and drop images directly into this text area.
+          placeholder: |
+              ### Before:
+              [Add screenshots of the current state]
+
+              ### After:
+              [Add screenshots of the new state]
+
+    - type: checkboxes
+      id: code_quality_checklist
+      attributes:
+          label: ✅ Code Quality Checklist
+          description: Confirm that your code meets quality standards
+          options:
+              - label: My code follows the project's style guidelines
+                required: true
+              - label: I have performed a self-review of my code
+                required: true
+              - label: I have commented my code, particularly in hard-to-understand areas
+              - label: My changes generate no new warnings or errors
+                required: true
+              - label: I have removed any console.log statements and debug code
+                required: true
+
+    - type: checkboxes
+      id: testing_checklist
+      attributes:
+          label: 🧪 Testing Checklist
+          description: Confirm that your changes are properly tested
+          options:
+              - label: I have added tests that prove my fix is effective or that my feature works
+              - label: New and existing unit tests pass locally with my changes
+                required: true
+              - label: I have tested my changes in multiple browsers (if applicable)
+              - label: I have tested responsive design (if applicable)
+
+    - type: checkboxes
+      id: documentation_checklist
+      attributes:
+          label: 📚 Documentation Checklist
+          description: Confirm that documentation is updated
+          options:
+              - label: I have made corresponding changes to the documentation
+              - label: I have updated the README.md if necessary
+              - label: I have added/updated TypeScript types where applicable
+
+    - type: checkboxes
+      id: dependencies_checklist
+      attributes:
+          label: 📦 Dependencies Checklist
+          description: Confirm dependency management
+          options:
+              - label: I have updated package.json if new dependencies were added
+              - label: I have verified that all dependencies are necessary
+              - label: I have checked for security vulnerabilities in new dependencies
+
+    - type: textarea
+      id: migration_guide
+      attributes:
+          label: 🔄 Migration Guide
+          description: |
+              If this is a breaking change, provide migration instructions.
+              Leave empty if not applicable.
+          placeholder: |
+              ### Breaking Changes:
+              - The `oldFunction()` has been renamed to `newFunction()`
+              - Update your imports: `import { newFunction } from 'package'`
+
+              ### Migration Steps:
+              1. Replace all instances of `oldFunction` with `newFunction`
+              2. Update any configuration files
+              3. Run tests to ensure compatibility
+
+    - type: textarea
+      id: questions_for_reviewers
+      attributes:
+          label: 🤔 Questions for Reviewers
+          description: |
+              Any specific areas you'd like reviewers to focus on or questions you have.
+          placeholder: |
+              - Should we consider adding more theme options in the future?
+              - Is the performance impact acceptable for the theme switching?
+              - Any concerns about the localStorage implementation?
+
+    - type: textarea
+      id: additional_notes
+      attributes:
+          label: 📄 Additional Notes
+          description: |
+              Any additional information that would be helpful for reviewers.
+          placeholder: |
+              - This PR is ready for review and merge
+              - Tested on multiple devices and browsers
+              - Performance impact is minimal
+              - Future enhancement: add more color themes

@@ -18,7 +18,7 @@ export default function MuiXLicense() {
             orderNumber: "MUI-LOCAL-DEV",
             planScope: "premium",
             licenseModel: "subscription",
-            planVersion: "initial",
+            planVersion: "initial"
         });
 
         const licenseKey = process.env.NEXT_PUBLIC_MUI_X_LICENSE_KEY?.trim() || fallbackLicense;

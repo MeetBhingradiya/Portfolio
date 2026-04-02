@@ -19,7 +19,10 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const cart = await Cart.findOne({ userId: user.userId }).lean();
-        return NextResponse.json({ success: true, data: cart ?? { userId: user.userId, items: [] } });
+        return NextResponse.json({
+            success: true,
+            data: cart ?? { userId: user.userId, items: [] }
+        });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
     }
@@ -36,7 +39,11 @@ export async function POST(req: NextRequest) {
         const { productId, variantId, quantity = 1 } = body;
 
         // Validate product & variant
-        const product = await ShopProduct.findOne({ productId, isDeleted: false, status: "active" });
+        const product = await ShopProduct.findOne({
+            productId,
+            isDeleted: false,
+            status: "active"
+        });
         if (!product) return NextResponse.json({ success: false, error: "Product not found or unavailable" }, { status: 404 });
 
         const variant = product.variants.find((v: any) => v.variantId === variantId);
@@ -50,9 +57,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Check if same product+variant already in cart
-        const existing = cart.items.find(
-            (i: any) => i.productId === productId && i.variantId === variantId
-        );
+        const existing = cart.items.find((i: any) => i.productId === productId && i.variantId === variantId);
 
         if (existing) {
             existing.quantity = Math.min(existing.quantity + quantity, 99);
@@ -69,7 +74,7 @@ export async function POST(req: NextRequest) {
                 currency: variant.currency,
                 billingCycle: variant.billingCycle,
                 quantity,
-                addedAt: new Date(),
+                addedAt: new Date()
             });
         }
 
@@ -93,15 +98,11 @@ export async function PATCH(req: NextRequest) {
         const cart = await Cart.findOne({ userId: user.userId });
         if (!cart) return NextResponse.json({ success: false, error: "Cart not found" }, { status: 404 });
 
-        const item = cart.items.find(
-            (i: any) => i.productId === productId && i.variantId === variantId
-        );
+        const item = cart.items.find((i: any) => i.productId === productId && i.variantId === variantId);
         if (!item) return NextResponse.json({ success: false, error: "Item not in cart" }, { status: 404 });
 
         if (quantity <= 0) {
-            cart.items = cart.items.filter(
-                (i: any) => !(i.productId === productId && i.variantId === variantId)
-            );
+            cart.items = cart.items.filter((i: any) => !(i.productId === productId && i.variantId === variantId));
         } else {
             item.quantity = Math.min(quantity, 99);
         }
@@ -129,9 +130,7 @@ export async function DELETE(req: NextRequest) {
         if (clearAll) {
             cart.items = [];
         } else {
-            cart.items = cart.items.filter(
-                (i: any) => !(i.productId === productId && i.variantId === variantId)
-            );
+            cart.items = cart.items.filter((i: any) => !(i.productId === productId && i.variantId === variantId));
         }
 
         await cart.save();

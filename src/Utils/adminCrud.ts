@@ -68,18 +68,14 @@ export async function adminGetAll(
     }
 }
 
-export async function adminCreate(
-    request: NextRequest,
-    modelFn: ModelFn,
-    tags: string[] = []
-) {
+export async function adminCreate(request: NextRequest, modelFn: ModelFn, tags: string[] = []) {
     try {
         await requireAdmin(request.headers);
         await dbConnect();
         const body = await request.json();
         const Model = modelFn();
         const doc = await Model.create(body);
-        tags.forEach(t => revalidateTag(t, "max"));
+        tags.forEach((t) => revalidateTag(t, "max"));
         return NextResponse.json({ success: true, data: doc }, { status: 201 });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") return forbidden();
@@ -87,25 +83,15 @@ export async function adminCreate(
     }
 }
 
-export async function adminUpdate(
-    request: NextRequest,
-    modelFn: ModelFn,
-    idField: string,
-    id: string,
-    tags: string[] = []
-) {
+export async function adminUpdate(request: NextRequest, modelFn: ModelFn, idField: string, id: string, tags: string[] = []) {
     try {
         await requireAdmin(request.headers);
         await dbConnect();
         const body = await request.json();
         const Model = modelFn();
-        const doc = await Model.findOneAndUpdate(
-            { [idField]: id, isDeleted: { $ne: true } },
-            body,
-            { new: true, runValidators: true }
-        );
+        const doc = await Model.findOneAndUpdate({ [idField]: id, isDeleted: { $ne: true } }, body, { new: true, runValidators: true });
         if (!doc) return notFound(id);
-        tags.forEach(t => revalidateTag(t, "max"));
+        tags.forEach((t) => revalidateTag(t, "max"));
         return NextResponse.json({ success: true, data: doc });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") return forbidden();
@@ -113,24 +99,14 @@ export async function adminUpdate(
     }
 }
 
-export async function adminDelete(
-    request: NextRequest,
-    modelFn: ModelFn,
-    idField: string,
-    id: string,
-    tags: string[] = []
-) {
+export async function adminDelete(request: NextRequest, modelFn: ModelFn, idField: string, id: string, tags: string[] = []) {
     try {
         await requireAdmin(request.headers);
         await dbConnect();
         const Model = modelFn();
-        const doc = await Model.findOneAndUpdate(
-            { [idField]: id },
-            { isDeleted: true },
-            { new: true }
-        );
+        const doc = await Model.findOneAndUpdate({ [idField]: id }, { isDeleted: true }, { new: true });
         if (!doc) return notFound(id);
-        tags.forEach(t => revalidateTag(t, "max"));
+        tags.forEach((t) => revalidateTag(t, "max"));
         return NextResponse.json({ success: true, message: "Deleted" });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only") return forbidden();

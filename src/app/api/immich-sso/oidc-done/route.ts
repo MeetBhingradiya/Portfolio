@@ -20,6 +20,7 @@ import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist, ImmichAuthCode } from "@Models/ImmichWhitelist";
 import { getSession } from "@Library/auth";
 import { getIssuer } from "@Utils/OIDCKeys";
+import { Config as SConfig } from "@Config/Server";
 
 export const dynamic = "force-dynamic";
 
@@ -29,16 +30,17 @@ export async function GET(req: NextRequest) {
     // ── 1. Get better-auth session ──────────────────────────────────────────
     const session = await getSession(req.headers);
     if (!session?.user) {
-        return NextResponse.redirect(
-            new URL("/immich-sso?error=auth_required", baseUrl)
-        );
+        return NextResponse.redirect(new URL("/immich-sso?error=auth_required", baseUrl));
     }
 
     // ── 2. Read OIDC request cookie ─────────────────────────────────────────
     const requestToken = req.cookies.get("immich_sso_request")?.value;
     if (!requestToken) {
         return NextResponse.redirect(
-            new URL("/immich-sso?error=session_expired&error_description=OIDC+request+timed+out.+Please+go+back+to+Immich+and+try+again.", baseUrl)
+            new URL(
+                "/immich-sso?error=session_expired&error_description=OIDC+request+timed+out.+Please+go+back+to+Immich+and+try+again.",
+                baseUrl
+            )
         );
     }
 
@@ -51,11 +53,9 @@ export async function GET(req: NextRequest) {
     };
 
     try {
-        const secret = new TextEncoder().encode(
-            process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me"
-        );
+        const secret = new TextEncoder().encode(process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me");
         const { payload } = await jwtVerify(requestToken, secret, {
-            issuer: getIssuer(),
+            issuer: getIssuer()
         });
         oidcRequest = payload as typeof oidcRequest;
     } catch {
@@ -78,10 +78,7 @@ export async function GET(req: NextRequest) {
     // then fall back to email (for email-only whitelist entries).
     const entry = await ImmichWhitelist.findOne({
         enabled: true,
-        $or: [
-            ...(userId ? [{ userId }] : []),
-            { email: userEmail },
-        ],
+        $or: [...(userId ? [{ userId }] : []), { email: userEmail }]
     });
     if (!entry) {
         return redirectWithError(
@@ -112,14 +109,11 @@ export async function GET(req: NextRequest) {
         const mongoClient = new MongoClient(process.env.MONGODB_01);
         try {
             await mongoClient.connect();
-            const db = mongoClient.db("PRODUCTION_MeetBhingradiya");
+            const db = mongoClient.db(SConfig.Database.Name);
             // BA account collection stores: userId, providerId, providerAccountId
             const oauthAccount = await db.collection("account").findOne({
-                $or: [
-                    { userId: userId },
-                    { user_id: userId },
-                ],
-                providerId: "google",
+                $or: [{ userId: userId }, { user_id: userId }],
+                providerId: "google"
             });
             if (oauthAccount?.providerAccountId) {
                 sub = oauthAccount.providerAccountId as string;
@@ -145,7 +139,7 @@ export async function GET(req: NextRequest) {
         redirectUri: oidcRequest.redirectUri,
         scope: oidcRequest.scope,
         nonce: oidcRequest.nonce || undefined,
-        expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+        expiresAt: new Date(Date.now() + 5 * 60 * 1000) // 5 minutes
     });
 
     // ── 6. Redirect to Immich with code ─────────────────────────────────────
@@ -159,11 +153,7 @@ export async function GET(req: NextRequest) {
     return response;
 }
 
-function redirectWithError(
-    oidcRequest: { redirectUri: string; state: string },
-    error: string,
-    description: string
-): NextResponse {
+function redirectWithError(oidcRequest: { redirectUri: string; state: string }, error: string, description: string): NextResponse {
     const url = new URL(oidcRequest.redirectUri);
     url.searchParams.set("error", error);
     url.searchParams.set("error_description", description);

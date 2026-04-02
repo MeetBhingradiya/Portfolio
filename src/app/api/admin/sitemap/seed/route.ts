@@ -16,46 +16,201 @@ const STATIC_PAGES: {
     Group: string;
 }[] = [
     // ── Main ──────────────────────────────────────────────────────
-    { Endpoint: "/",                                    Frequency: "weekly",  Priority: 1.0, Group: "main" },
-    { Endpoint: "/projects",                            Frequency: "weekly",  Priority: 0.9, Group: "main" },
-    { Endpoint: "/blogs",                               Frequency: "daily",   Priority: 0.9, Group: "main" },
-    { Endpoint: "/timeline",                            Frequency: "monthly", Priority: 0.7, Group: "main" },
-    { Endpoint: "/experience",                          Frequency: "monthly", Priority: 0.7, Group: "main" },
-    { Endpoint: "/contact",                             Frequency: "yearly",  Priority: 0.7, Group: "main" },
-    { Endpoint: "/dashboard",                           Frequency: "weekly",  Priority: 0.6, Group: "main" },
-    { Endpoint: "/sitemap",                             Frequency: "monthly", Priority: 0.4, Group: "main" },
+    { Endpoint: "/", Frequency: "weekly", Priority: 1.0, Group: "main" },
+    {
+        Endpoint: "/projects",
+        Frequency: "weekly",
+        Priority: 0.9,
+        Group: "main"
+    },
+    { Endpoint: "/blogs", Frequency: "daily", Priority: 0.9, Group: "main" },
+    {
+        Endpoint: "/timeline",
+        Frequency: "monthly",
+        Priority: 0.7,
+        Group: "main"
+    },
+    {
+        Endpoint: "/experience",
+        Frequency: "monthly",
+        Priority: 0.7,
+        Group: "main"
+    },
+    { Endpoint: "/contact", Frequency: "yearly", Priority: 0.7, Group: "main" },
+    {
+        Endpoint: "/dashboard",
+        Frequency: "weekly",
+        Priority: 0.6,
+        Group: "main"
+    },
+    {
+        Endpoint: "/sitemap",
+        Frequency: "monthly",
+        Priority: 0.4,
+        Group: "main"
+    },
     // ── Tools ─────────────────────────────────────────────────────
-    { Endpoint: "/tools",                               Frequency: "weekly",  Priority: 0.8, Group: "tools" },
-    { Endpoint: "/tools/colour",                        Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/encrypt",                       Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/image",                         Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/json",                          Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/jwt",                           Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/markdown",                      Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/password",                      Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/pdf",                           Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/qr",                            Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/regexp",                        Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/todo",                          Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/uuid",                          Frequency: "yearly",  Priority: 0.5, Group: "tools" },
-    { Endpoint: "/tools/instagram",                     Frequency: "yearly",  Priority: 0.5, Group: "tools" },
+    { Endpoint: "/tools", Frequency: "weekly", Priority: 0.8, Group: "tools" },
+    {
+        Endpoint: "/tools/colour",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/encrypt",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/image",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/json",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/jwt",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/markdown",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/password",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/pdf",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/qr",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/regexp",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/todo",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/uuid",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
+    {
+        Endpoint: "/tools/instagram",
+        Frequency: "yearly",
+        Priority: 0.5,
+        Group: "tools"
+    },
     // ── Legal ─────────────────────────────────────────────────────
-    { Endpoint: "/privacy",                             Frequency: "yearly",  Priority: 0.3, Group: "legal" },
-    { Endpoint: "/terms",                               Frequency: "yearly",  Priority: 0.3, Group: "legal" },
-    { Endpoint: "/agreements/security",                 Frequency: "yearly",  Priority: 0.3, Group: "legal" },
-    { Endpoint: "/agreements/covered-products-privacy", Frequency: "yearly",  Priority: 0.3, Group: "legal" },
-    { Endpoint: "/agreements/covered-products-terms",   Frequency: "yearly",  Priority: 0.3, Group: "legal" },
+    {
+        Endpoint: "/privacy",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "legal"
+    },
+    { Endpoint: "/terms", Frequency: "yearly", Priority: 0.3, Group: "legal" },
+    {
+        Endpoint: "/agreements/security",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "legal"
+    },
+    {
+        Endpoint: "/agreements/covered-products-privacy",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "legal"
+    },
+    {
+        Endpoint: "/agreements/covered-products-terms",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "legal"
+    },
     // ── Auth ──────────────────────────────────────────────────────
-    { Endpoint: "/auth/login",                          Frequency: "yearly",  Priority: 0.3, Group: "auth" },
-    { Endpoint: "/auth/signup",                         Frequency: "yearly",  Priority: 0.3, Group: "auth" },
+    {
+        Endpoint: "/auth/login",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "auth"
+    },
+    {
+        Endpoint: "/auth/signup",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "auth"
+    },
     // ── Profile / Settings ────────────────────────────────────────
-    { Endpoint: "/settings",                            Frequency: "yearly",  Priority: 0.3, Group: "settings" },
-    { Endpoint: "/profile",                             Frequency: "monthly", Priority: 0.5, Group: "settings" },
-    { Endpoint: "/bookmarks",                           Frequency: "weekly",  Priority: 0.4, Group: "settings" },
-    { Endpoint: "/wallet",                              Frequency: "weekly",  Priority: 0.4, Group: "settings" },
-    { Endpoint: "/financial",                           Frequency: "weekly",  Priority: 0.4, Group: "settings" },
-    { Endpoint: "/tickets",                             Frequency: "weekly",  Priority: 0.4, Group: "settings" },
-    { Endpoint: "/timetable",                           Frequency: "monthly", Priority: 0.4, Group: "settings" },
+    {
+        Endpoint: "/settings",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "settings"
+    },
+    {
+        Endpoint: "/profile",
+        Frequency: "monthly",
+        Priority: 0.5,
+        Group: "settings"
+    },
+    {
+        Endpoint: "/bookmarks",
+        Frequency: "weekly",
+        Priority: 0.4,
+        Group: "settings"
+    },
+    {
+        Endpoint: "/wallet",
+        Frequency: "weekly",
+        Priority: 0.4,
+        Group: "settings"
+    },
+    {
+        Endpoint: "/financial",
+        Frequency: "weekly",
+        Priority: 0.4,
+        Group: "settings"
+    },
+    {
+        Endpoint: "/tickets",
+        Frequency: "weekly",
+        Priority: 0.4,
+        Group: "settings"
+    },
+    {
+        Endpoint: "/timetable",
+        Frequency: "monthly",
+        Priority: 0.4,
+        Group: "settings"
+    }
 ];
 
 export async function POST(req: NextRequest) {
@@ -76,11 +231,11 @@ export async function POST(req: NextRequest) {
                         Frequency: page.Frequency,
                         Group: page.Group,
                         Enabled: true,
-                        LastModified: new Date(),
-                    },
+                        LastModified: new Date()
+                    }
                 },
-                upsert: true,
-            },
+                upsert: true
+            }
         }));
 
         const result = await Model.bulkWrite(ops as any);
@@ -90,14 +245,10 @@ export async function POST(req: NextRequest) {
             message: `Seeded ${STATIC_PAGES.length} pages. ${result.upsertedCount} new, ${result.matchedCount} already existed.`,
             upserted: result.upsertedCount,
             existing: result.matchedCount,
-            total: STATIC_PAGES.length,
+            total: STATIC_PAGES.length
         });
     } catch (err: any) {
-        const status = err.message?.includes("Forbidden")
-            ? 403
-            : err.message?.includes("Unauthorized")
-            ? 401
-            : 500;
+        const status = err.message?.includes("Forbidden") ? 403 : err.message?.includes("Unauthorized") ? 401 : 500;
         return NextResponse.json({ success: false, error: err.message }, { status });
     }
 }

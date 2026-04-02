@@ -13,27 +13,23 @@ import { DailyCapital } from "@Models/DailyCapital";
 export async function GET(req: NextRequest) {
     try {
         await dbConnect();
-        const h    = await headers();
+        const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const q     = req.nextUrl.searchParams;
-        const from  = q.get("from");
-        const to    = q.get("to");
+        const q = req.nextUrl.searchParams;
+        const from = q.get("from");
+        const to = q.get("to");
         const limit = Math.min(500, parseInt(q.get("limit") || "365"));
 
         const match: Record<string, any> = { UserID: user.userId };
         if (from || to) {
             match.Date = {};
             if (from) match.Date.$gte = from;
-            if (to)   match.Date.$lte = to;
+            if (to) match.Date.$lte = to;
         }
 
-        const entries = await DailyCapital
-            .find(match)
-            .sort({ Date: -1 })
-            .limit(limit)
-            .lean();
+        const entries = await DailyCapital.find(match).sort({ Date: -1 }).limit(limit).lean();
 
         return NextResponse.json({ success: true, data: entries });
     } catch (err) {
@@ -46,7 +42,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         await dbConnect();
-        const h    = await headers();
+        const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
@@ -54,24 +50,38 @@ export async function POST(req: NextRequest) {
 
         if (!date || StartingCapital == null || EndingCapital == null) {
             return NextResponse.json(
-                { success: false, error: "Date, StartingCapital and EndingCapital are required" },
+                {
+                    success: false,
+                    error: "Date, StartingCapital and EndingCapital are required"
+                },
                 { status: 400 }
             );
         }
 
         if (StartingCapital <= 0) {
             return NextResponse.json(
-                { success: false, error: "StartingCapital must be greater than 0" },
+                {
+                    success: false,
+                    error: "StartingCapital must be greater than 0"
+                },
                 { status: 400 }
             );
         }
 
-        const NetPnL      = EndingCapital - StartingCapital;
+        const NetPnL = EndingCapital - StartingCapital;
         const DailyReturn = NetPnL / StartingCapital;
 
         const entry = await DailyCapital.findOneAndUpdate(
             { UserID: user.userId, Date: date },
-            { $set: { StartingCapital, EndingCapital, NetPnL, DailyReturn, Notes } },
+            {
+                $set: {
+                    StartingCapital,
+                    EndingCapital,
+                    NetPnL,
+                    DailyReturn,
+                    Notes
+                }
+            },
             { upsert: true, new: true }
         );
 
@@ -86,7 +96,7 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
     try {
         await dbConnect();
-        const h    = await headers();
+        const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 

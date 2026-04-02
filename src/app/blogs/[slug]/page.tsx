@@ -69,15 +69,23 @@ export default function BlogDetailPage({ params }: { params: Promise<{ slug: str
         if (liked || !blog) return;
         setLiked(true);
         setLikes((p) => p + 1);
-        await fetch(`/api/blogs?id=${blog._id}&action=like`, { method: "PATCH" });
+        await fetch(`/api/blogs?id=${blog._id}&action=like`, {
+            method: "PATCH"
+        });
     };
 
-    const canEdit = session?.user?.email && (session.user.email === blog?.authorEmail || session.user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL);
+    const canEdit =
+        session?.user?.email && (session.user.email === blog?.authorEmail || session.user.email === process.env.NEXT_PUBLIC_ADMIN_EMAIL);
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: palette.background }}>
-                <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: palette.accent }} />
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: palette.background }}>
+                <div
+                    className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ borderColor: palette.accent }}
+                />
             </div>
         );
     }
@@ -85,69 +93,118 @@ export default function BlogDetailPage({ params }: { params: Promise<{ slug: str
     if (!blog) return notFound();
 
     return (
-        <div className="min-h-screen" style={{ background: palette.background }}>
+        <div
+            className="min-h-screen"
+            style={{ background: palette.background }}>
             {/* Cover image */}
             {blog.featuredImage && (
                 <div className="w-full h-64 md:h-80 relative overflow-hidden">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={blog.featuredImage} alt={blog.title} className="w-full h-full object-cover" />
-                    <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, transparent 50%, " + palette.background + ")" }} />
+                    <img
+                        src={blog.featuredImage}
+                        alt={blog.title}
+                        className="w-full h-full object-cover"
+                    />
+                    <div
+                        className="absolute inset-0"
+                        style={{
+                            background: "linear-gradient(to bottom, transparent 50%, " + palette.background + ")"
+                        }}
+                    />
                 </div>
             )}
 
             <div className="max-w-3xl mx-auto px-4 py-10">
                 {/* Back link */}
-                <Link href="/blogs" className="inline-flex items-center gap-1.5 mb-6 text-sm" style={{ color: palette.textSecondary }}>
+                <Link
+                    href="/blogs"
+                    className="inline-flex items-center gap-1.5 mb-6 text-sm"
+                    style={{ color: palette.textSecondary }}>
                     <ArrowBackIcon style={{ fontSize: 16 }} /> All Posts
                 </Link>
 
                 {/* Category */}
                 {blog.category && (
-                    <span className="text-xs font-semibold px-2.5 py-1 rounded-full mb-4 inline-block"
-                        style={{ background: `${palette.accent}18`, color: palette.accent }}>
+                    <span
+                        className="text-xs font-semibold px-2.5 py-1 rounded-full mb-4 inline-block"
+                        style={{
+                            background: `${palette.accent}18`,
+                            color: palette.accent
+                        }}>
                         {blog.category}
                     </span>
                 )}
 
                 {/* Title */}
-                <h1 className="text-3xl md:text-4xl font-bold leading-tight mb-4" style={{ color: palette.textPrimary }}>
+                <h1
+                    className="text-3xl md:text-4xl font-bold leading-tight mb-4"
+                    style={{ color: palette.textPrimary }}>
                     {blog.title}
                 </h1>
 
                 {/* Meta row */}
-                <div className="flex flex-wrap items-center gap-4 mb-8 pb-6"
-                    style={{ borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}` }}>
+                <div
+                    className="flex flex-wrap items-center gap-4 mb-8 pb-6"
+                    style={{
+                        borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`
+                    }}>
                     <div className="flex items-center gap-2">
                         {blog.authorImage ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img src={blog.authorImage} alt={blog.authorName} className="w-8 h-8 rounded-full object-cover" />
+                            <img
+                                src={blog.authorImage}
+                                alt={blog.authorName}
+                                className="w-8 h-8 rounded-full object-cover"
+                            />
                         ) : (
-                            <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
-                                style={{ background: palette.accent + "30", color: palette.accent }}>
+                            <div
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold"
+                                style={{
+                                    background: palette.accent + "30",
+                                    color: palette.accent
+                                }}>
                                 {blog.authorName?.charAt(0) || "?"}
                             </div>
                         )}
-                        <span className="text-sm font-medium" style={{ color: palette.textPrimary }}>{blog.authorName}</span>
+                        <span
+                            className="text-sm font-medium"
+                            style={{ color: palette.textPrimary }}>
+                            {blog.authorName}
+                        </span>
                     </div>
                     {blog.publishedAt && (
-                        <span className="text-sm" style={{ color: palette.textSecondary }}>
-                            {new Date(blog.publishedAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}
+                        <span
+                            className="text-sm"
+                            style={{ color: palette.textSecondary }}>
+                            {new Date(blog.publishedAt).toLocaleDateString("en-US", {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric"
+                            })}
                         </span>
                     )}
                     {blog.readTime != null && (
-                        <span className="flex items-center gap-1 text-sm" style={{ color: palette.textSecondary }}>
+                        <span
+                            className="flex items-center gap-1 text-sm"
+                            style={{ color: palette.textSecondary }}>
                             <AccessTimeIcon style={{ fontSize: 14 }} /> {blog.readTime} min read
                         </span>
                     )}
                     {blog.views != null && (
-                        <span className="flex items-center gap-1 text-sm" style={{ color: palette.textSecondary }}>
+                        <span
+                            className="flex items-center gap-1 text-sm"
+                            style={{ color: palette.textSecondary }}>
                             <VisibilityIcon style={{ fontSize: 14 }} /> {blog.views} views
                         </span>
                     )}
                     {canEdit && (
                         <Link href={`/blogs/${blog.slug}/edit`}>
-                            <motion.button className="ml-auto flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium"
-                                style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
+                            <motion.button
+                                className="ml-auto flex items-center gap-1 px-3 py-1 rounded-lg text-xs font-medium"
+                                style={{
+                                    background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                    color: palette.textSecondary
+                                }}
                                 whileTap={{ scale: 0.95 }}>
                                 <EditIcon style={{ fontSize: 13 }} /> Edit
                             </motion.button>
@@ -162,10 +219,15 @@ export default function BlogDetailPage({ params }: { params: Promise<{ slug: str
 
                 {/* Tags */}
                 {blog.tags && blog.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-10 pt-6"
-                        style={{ borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}` }}>
+                    <div
+                        className="flex flex-wrap gap-2 mt-10 pt-6"
+                        style={{
+                            borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`
+                        }}>
                         {blog.tags.map((tag) => (
-                            <span key={tag} className="px-3 py-1 rounded-full text-xs"
+                            <span
+                                key={tag}
+                                className="px-3 py-1 rounded-full text-xs"
                                 style={{
                                     background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                     color: palette.textSecondary
@@ -186,12 +248,22 @@ export default function BlogDetailPage({ params }: { params: Promise<{ slug: str
                             background: liked ? "rgba(244,63,94,0.1)" : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
                             border: `1px solid ${liked ? "rgba(244,63,94,0.3)" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`
                         }}
-                        whileTap={{ scale: 0.95 }}
-                    >
-                        {liked
-                            ? <FavoriteIcon style={{ fontSize: 28, color: "#f43f5e" }} />
-                            : <FavoriteBorderIcon style={{ fontSize: 28, color: palette.textSecondary }} />}
-                        <span className="text-sm font-medium" style={{ color: liked ? "#f43f5e" : palette.textSecondary }}>
+                        whileTap={{ scale: 0.95 }}>
+                        {liked ? (
+                            <FavoriteIcon style={{ fontSize: 28, color: "#f43f5e" }} />
+                        ) : (
+                            <FavoriteBorderIcon
+                                style={{
+                                    fontSize: 28,
+                                    color: palette.textSecondary
+                                }}
+                            />
+                        )}
+                        <span
+                            className="text-sm font-medium"
+                            style={{
+                                color: liked ? "#f43f5e" : palette.textSecondary
+                            }}>
                             {likes} {likes === 1 ? "like" : "likes"}
                         </span>
                     </motion.button>

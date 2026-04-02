@@ -18,7 +18,7 @@ import {
     Refresh,
     Settings,
     ToggleOn,
-    ToggleOff,
+    ToggleOff
 } from "@mui/icons-material";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
@@ -26,8 +26,8 @@ import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 interface ProviderConfig {
     enabled: boolean;
-    apiKey: string;             // Write-only (blank = don't overwrite)
-    hasApiKey: boolean;         // Read-only flag from server
+    apiKey: string; // Write-only (blank = don't overwrite)
+    hasApiKey: boolean; // Read-only flag from server
     activeModel: string;
     customBaseUrl: string;
 }
@@ -50,44 +50,71 @@ interface AISettings {
         dailyRequests: number;
         monthlyRequests: number;
     };
-    availableProviders: Record<string, {
-        label: string;
-        models: readonly string[];
-    }>;
+    availableProviders: Record<
+        string,
+        {
+            label: string;
+            models: readonly string[];
+        }
+    >;
 }
 
 // ─── Provider metadata ────────────────────────────────────────────────────────
 
-const PROVIDER_META: Record<string, { label: string; color: string; emoji: string; apiKeyLabel: string; apiDocsUrl: string }> = {
+const PROVIDER_META: Record<
+    string,
+    {
+        label: string;
+        color: string;
+        emoji: string;
+        apiKeyLabel: string;
+        apiDocsUrl: string;
+    }
+> = {
     github: {
         label: "GitHub Models (Azure AI)",
         color: "#24292E",
         emoji: "🐙",
         apiKeyLabel: "GitHub Personal Access Token",
-        apiDocsUrl: "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens",
+        apiDocsUrl: "https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens"
     },
     google: {
         label: "Google Gemini",
         color: "#4285F4",
         emoji: "✨",
         apiKeyLabel: "Google AI Studio API Key",
-        apiDocsUrl: "https://aistudio.google.com/app/apikey",
+        apiDocsUrl: "https://aistudio.google.com/app/apikey"
     },
     perplexity: {
         label: "Perplexity AI",
         color: "#1F8EFA",
         emoji: "🔍",
         apiKeyLabel: "Perplexity API Key",
-        apiDocsUrl: "https://www.perplexity.ai/settings/api",
-    },
+        apiDocsUrl: "https://www.perplexity.ai/settings/api"
+    }
 };
 
 const FEATURE_META: Record<string, { label: string; description: string }> = {
-    taskCreation: { label: "AI Task Creation", description: "Create tasks from natural language descriptions" },
-    intelligentSearch: { label: "Intelligent Search", description: "AI-powered semantic search across items" },
-    habitSuggestion: { label: "Habit Suggestions", description: "Suggest habits based on goals" },
-    goalBreakdown: { label: "Goal Breakdown", description: "Break down goals into milestones automatically" },
-    ocrExtraction: { label: "OCR Text Extraction", description: "Extract task text from images using Tesseract.js" },
+    taskCreation: {
+        label: "AI Task Creation",
+        description: "Create tasks from natural language descriptions"
+    },
+    intelligentSearch: {
+        label: "Intelligent Search",
+        description: "AI-powered semantic search across items"
+    },
+    habitSuggestion: {
+        label: "Habit Suggestions",
+        description: "Suggest habits based on goals"
+    },
+    goalBreakdown: {
+        label: "Goal Breakdown",
+        description: "Break down goals into milestones automatically"
+    },
+    ocrExtraction: {
+        label: "OCR Text Extraction",
+        description: "Extract task text from images using Tesseract.js"
+    }
 };
 
 const defaultProvider = (): ProviderConfig => ({
@@ -95,7 +122,7 @@ const defaultProvider = (): ProviderConfig => ({
     apiKey: "",
     hasApiKey: false,
     activeModel: "",
-    customBaseUrl: "",
+    customBaseUrl: ""
 });
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -109,24 +136,24 @@ export default function AIProvidersAdminPage() {
         Providers: {
             github: defaultProvider(),
             google: defaultProvider(),
-            perplexity: defaultProvider(),
+            perplexity: defaultProvider()
         },
         Features: {
             taskCreation: true,
             intelligentSearch: true,
             habitSuggestion: true,
             goalBreakdown: true,
-            ocrExtraction: true,
+            ocrExtraction: true
         },
         RateLimitPerUser: {
             dailyRequests: 50,
-            monthlyRequests: 500,
+            monthlyRequests: 500
         },
         availableProviders: {
             github: { label: "GitHub Models", models: [] },
             google: { label: "Google Gemini", models: [] },
-            perplexity: { label: "Perplexity AI", models: [] },
-        },
+            perplexity: { label: "Perplexity AI", models: [] }
+        }
     });
 
     const [loading, setLoading] = useState(true);
@@ -145,7 +172,9 @@ export default function AIProvidersAdminPage() {
             if (json.success && Array.isArray(json.models) && json.models.length > 0) {
                 setFetchedModels((prev) => ({ ...prev, [pk]: json.models }));
             }
-        } catch { /* ignore */ } finally {
+        } catch {
+            /* ignore */
+        } finally {
             setFetchingModels((prev) => ({ ...prev, [pk]: false }));
         }
     }, []);
@@ -159,13 +188,24 @@ export default function AIProvidersAdminPage() {
                     ...prev,
                     ...json.data,
                     Providers: {
-                        github: { ...defaultProvider(), ...json.data?.Providers?.github },
-                        google: { ...defaultProvider(), ...json.data?.Providers?.google },
-                        perplexity: { ...defaultProvider(), ...json.data?.Providers?.perplexity },
-                    },
+                        github: {
+                            ...defaultProvider(),
+                            ...json.data?.Providers?.github
+                        },
+                        google: {
+                            ...defaultProvider(),
+                            ...json.data?.Providers?.google
+                        },
+                        perplexity: {
+                            ...defaultProvider(),
+                            ...json.data?.Providers?.perplexity
+                        }
+                    }
                 }));
             }
-        } catch { /* ignore */ } finally {
+        } catch {
+            /* ignore */
+        } finally {
             setLoading(false);
         }
     }, []);
@@ -195,8 +235,8 @@ export default function AIProvidersAdminPage() {
                     ActiveProvider: settings.ActiveProvider,
                     Providers: settings.Providers,
                     Features: settings.Features,
-                    RateLimitPerUser: settings.RateLimitPerUser,
-                }),
+                    RateLimitPerUser: settings.RateLimitPerUser
+                })
             });
             if (res.ok) {
                 setSaved(true);
@@ -204,7 +244,11 @@ export default function AIProvidersAdminPage() {
                 // Re-fetch settings to get updated hasApiKey flags, then refresh live models
                 await fetchSettings();
                 if (expandedProvider) {
-                    setFetchedModels((prev) => { const n = { ...prev }; delete n[expandedProvider]; return n; });
+                    setFetchedModels((prev) => {
+                        const n = { ...prev };
+                        delete n[expandedProvider];
+                        return n;
+                    });
                     fetchModels(expandedProvider);
                 }
             }
@@ -220,16 +264,16 @@ export default function AIProvidersAdminPage() {
                 ...prev.Providers,
                 [key]: {
                     ...prev.Providers[key as keyof typeof prev.Providers],
-                    [field]: value,
-                },
-            },
+                    [field]: value
+                }
+            }
         }));
     };
 
     const inputStyle = {
         background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
         color: palette.textPrimary,
-        border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`,
+        border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
     };
 
     if (loading) {
@@ -247,10 +291,14 @@ export default function AIProvidersAdminPage() {
                 <div className="flex items-center gap-3">
                     <Psychology sx={{ fontSize: 28, color: "#5E97F6" }} />
                     <div>
-                        <h1 className="text-xl font-bold" style={{ color: palette.textPrimary }}>
+                        <h1
+                            className="text-xl font-bold"
+                            style={{ color: palette.textPrimary }}>
                             AI Provider Settings
                         </h1>
-                        <p className="text-sm" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-sm"
+                            style={{ color: palette.textSecondary }}>
                             Configure AI providers for the Productivity Hub
                         </p>
                     </div>
@@ -259,18 +307,22 @@ export default function AIProvidersAdminPage() {
                     <motion.button
                         onClick={fetchSettings}
                         className="p-2 rounded-lg"
-                        style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
-                        whileTap={{ scale: 0.95 }}
-                    >
+                        style={{
+                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                            color: palette.textSecondary
+                        }}
+                        whileTap={{ scale: 0.95 }}>
                         <Refresh sx={{ fontSize: 18 }} />
                     </motion.button>
                     <motion.button
                         onClick={handleSave}
                         disabled={saving}
                         className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
-                        style={{ background: saved ? "#34C759" : "#5E97F6", color: "#fff" }}
-                        whileTap={{ scale: 0.95 }}
-                    >
+                        style={{
+                            background: saved ? "#34C759" : "#5E97F6",
+                            color: "#fff"
+                        }}
+                        whileTap={{ scale: 0.95 }}>
                         {saved ? <CheckCircle sx={{ fontSize: 16 }} /> : <Save sx={{ fontSize: 16 }} />}
                         {saving ? "Saving…" : saved ? "Saved!" : "Save Changes"}
                     </motion.button>
@@ -280,9 +332,13 @@ export default function AIProvidersAdminPage() {
             {/* Active Provider Selector */}
             <div
                 className="p-4 rounded-2xl space-y-3"
-                style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}` }}
-            >
-                <p className="text-sm font-bold" style={{ color: palette.textPrimary }}>
+                style={{
+                    background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}`
+                }}>
+                <p
+                    className="text-sm font-bold"
+                    style={{ color: palette.textPrimary }}>
                     Active Provider
                 </p>
                 <div className="flex gap-2 flex-wrap">
@@ -293,19 +349,21 @@ export default function AIProvidersAdminPage() {
                         return (
                             <motion.button
                                 key={pk}
-                                onClick={() => setSettings((prev) => ({ ...prev, ActiveProvider: pk }))}
+                                onClick={() =>
+                                    setSettings((prev) => ({
+                                        ...prev,
+                                        ActiveProvider: pk
+                                    }))
+                                }
                                 className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
                                 style={{
                                     background: isActive ? meta.color : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
                                     color: isActive ? "#fff" : palette.textSecondary,
-                                    opacity: !provConfig.enabled || !provConfig.hasApiKey ? 0.6 : 1,
+                                    opacity: !provConfig.enabled || !provConfig.hasApiKey ? 0.6 : 1
                                 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
+                                whileTap={{ scale: 0.95 }}>
                                 {meta.emoji} {meta.label}
-                                {!provConfig.enabled && (
-                                    <span className="text-xs opacity-60">(disabled)</span>
-                                )}
+                                {!provConfig.enabled && <span className="text-xs opacity-60">(disabled)</span>}
                             </motion.button>
                         );
                     })}
@@ -324,20 +382,26 @@ export default function AIProvidersAdminPage() {
                     <div
                         key={pk}
                         className="rounded-2xl overflow-hidden"
-                        style={{ border: `1.5px solid ${config.enabled ? meta.color + "60" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}` }}
-                    >
+                        style={{
+                            border: `1.5px solid ${config.enabled ? meta.color + "60" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
+                        }}>
                         {/* Header row */}
                         <div
                             className="flex items-center gap-3 p-4 cursor-pointer"
                             onClick={() => setExpandedProvider(isExpanded ? null : pk)}
-                            style={{ background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)" }}
-                        >
+                            style={{
+                                background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"
+                            }}>
                             <span className="text-xl">{meta.emoji}</span>
                             <div className="flex-1">
-                                <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>
+                                <p
+                                    className="font-bold text-sm"
+                                    style={{ color: palette.textPrimary }}>
                                     {meta.label}
                                 </p>
-                                <p className="text-xs" style={{ color: palette.textTertiary }}>
+                                <p
+                                    className="text-xs"
+                                    style={{ color: palette.textTertiary }}>
                                     {config.hasApiKey ? "API key configured" : "No API key"} ·
                                     {config.activeModel ? ` ${config.activeModel}` : " No model selected"}
                                 </p>
@@ -349,19 +413,26 @@ export default function AIProvidersAdminPage() {
                                     updateProvider(pk, "enabled", !config.enabled);
                                 }}
                                 className="flex-shrink-0"
-                                style={{ color: config.enabled ? meta.color : palette.textTertiary }}
-                                whileTap={{ scale: 0.9 }}
-                            >
-                                {config.enabled ? (
-                                    <ToggleOn sx={{ fontSize: 32 }} />
-                                ) : (
-                                    <ToggleOff sx={{ fontSize: 32 }} />
-                                )}
+                                style={{
+                                    color: config.enabled ? meta.color : palette.textTertiary
+                                }}
+                                whileTap={{ scale: 0.9 }}>
+                                {config.enabled ? <ToggleOn sx={{ fontSize: 32 }} /> : <ToggleOff sx={{ fontSize: 32 }} />}
                             </motion.button>
                             {isExpanded ? (
-                                <ExpandLess sx={{ fontSize: 20, color: palette.textTertiary }} />
+                                <ExpandLess
+                                    sx={{
+                                        fontSize: 20,
+                                        color: palette.textTertiary
+                                    }}
+                                />
                             ) : (
-                                <ExpandMore sx={{ fontSize: 20, color: palette.textTertiary }} />
+                                <ExpandMore
+                                    sx={{
+                                        fontSize: 20,
+                                        color: palette.textTertiary
+                                    }}
+                                />
                             )}
                         </div>
 
@@ -372,18 +443,23 @@ export default function AIProvidersAdminPage() {
                                     initial={{ height: 0, opacity: 0 }}
                                     animate={{ height: "auto", opacity: 1 }}
                                     exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden"
-                                >
-                                    <div className="p-4 space-y-4" style={{ borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}` }}>
+                                    className="overflow-hidden">
+                                    <div
+                                        className="p-4 space-y-4"
+                                        style={{
+                                            borderTop: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`
+                                        }}>
                                         {/* API Key */}
                                         <div className="space-y-1.5">
                                             <div className="flex items-center justify-between">
-                                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                                <label
+                                                    className="text-xs font-bold"
+                                                    style={{
+                                                        color: palette.textSecondary
+                                                    }}>
                                                     {meta.apiKeyLabel}
                                                     {config.hasApiKey && (
-                                                        <span className="ml-2 text-xs font-normal text-green-500">
-                                                            ✓ Configured
-                                                        </span>
+                                                        <span className="ml-2 text-xs font-normal text-green-500">✓ Configured</span>
                                                     )}
                                                 </label>
                                                 <a
@@ -391,8 +467,9 @@ export default function AIProvidersAdminPage() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     className="text-xs"
-                                                    style={{ color: "#5E97F6" }}
-                                                >
+                                                    style={{
+                                                        color: "#5E97F6"
+                                                    }}>
                                                     Get API Key →
                                                 </a>
                                             </div>
@@ -408,11 +485,29 @@ export default function AIProvidersAdminPage() {
                                                 />
                                                 <button
                                                     type="button"
-                                                    onClick={() => setShowSecrets((prev) => ({ ...prev, [pk]: !showSecret }))}
+                                                    onClick={() =>
+                                                        setShowSecrets((prev) => ({
+                                                            ...prev,
+                                                            [pk]: !showSecret
+                                                        }))
+                                                    }
                                                     className="absolute right-3 top-1/2 -translate-y-1/2"
-                                                    style={{ color: palette.textTertiary }}
-                                                >
-                                                    {showSecret ? <VisibilityOff sx={{ fontSize: 16 }} /> : <Visibility sx={{ fontSize: 16 }} />}
+                                                    style={{
+                                                        color: palette.textTertiary
+                                                    }}>
+                                                    {showSecret ? (
+                                                        <VisibilityOff
+                                                            sx={{
+                                                                fontSize: 16
+                                                            }}
+                                                        />
+                                                    ) : (
+                                                        <Visibility
+                                                            sx={{
+                                                                fontSize: 16
+                                                            }}
+                                                        />
+                                                    )}
                                                 </button>
                                             </div>
                                         </div>
@@ -424,26 +519,40 @@ export default function AIProvidersAdminPage() {
                                             return (
                                                 <div className="space-y-1.5">
                                                     <div className="flex items-center justify-between">
-                                                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                                        <label
+                                                            className="text-xs font-bold"
+                                                            style={{
+                                                                color: palette.textSecondary
+                                                            }}>
                                                             Active Model
                                                         </label>
                                                         <motion.button
                                                             onClick={() => fetchModels(pk)}
                                                             disabled={fetchingModels[pk] || !config.hasApiKey}
-                                                            title={!config.hasApiKey ? "Configure an API key first" : "Fetch live model list"}
+                                                            title={
+                                                                !config.hasApiKey ? "Configure an API key first" : "Fetch live model list"
+                                                            }
                                                             className="flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-lg"
                                                             style={{
                                                                 background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                                                                color: (fetchingModels[pk] || !config.hasApiKey) ? palette.textTertiary : palette.textSecondary,
-                                                                opacity: (fetchingModels[pk] || !config.hasApiKey) ? 0.45 : 1,
-                                                                cursor: !config.hasApiKey ? "not-allowed" : "pointer",
+                                                                color:
+                                                                    fetchingModels[pk] || !config.hasApiKey
+                                                                        ? palette.textTertiary
+                                                                        : palette.textSecondary,
+                                                                opacity: fetchingModels[pk] || !config.hasApiKey ? 0.45 : 1,
+                                                                cursor: !config.hasApiKey ? "not-allowed" : "pointer"
                                                             }}
-                                                            whileTap={{ scale: 0.9 }}
-                                                        >
+                                                            whileTap={{
+                                                                scale: 0.9
+                                                            }}>
                                                             {fetchingModels[pk] ? (
                                                                 <span className="w-3 h-3 rounded-full border border-current border-t-transparent animate-spin inline-block flex-shrink-0" />
                                                             ) : (
-                                                                <Refresh sx={{ fontSize: 12 }} />
+                                                                <Refresh
+                                                                    sx={{
+                                                                        fontSize: 12
+                                                                    }}
+                                                                />
                                                             )}
                                                             {fetchingModels[pk] ? "Fetching…" : "Refresh"}
                                                         </motion.button>
@@ -452,18 +561,28 @@ export default function AIProvidersAdminPage() {
                                                         value={config.activeModel}
                                                         onChange={(v) => updateProvider(pk, "activeModel", v)}
                                                         options={[
-                                                            { value: "", label: modelList.length ? `Default (${modelList[0]})` : "Default" },
-                                                            ...modelList.map((m) => ({ value: m, label: m })),
+                                                            {
+                                                                value: "",
+                                                                label: modelList.length ? `Default (${modelList[0]})` : "Default"
+                                                            },
+                                                            ...modelList.map((m) => ({
+                                                                value: m,
+                                                                label: m
+                                                            }))
                                                         ]}
                                                     />
-                                                    <p className="text-xs" style={{ color: palette.textTertiary }}>
+                                                    <p
+                                                        className="text-xs"
+                                                        style={{
+                                                            color: palette.textTertiary
+                                                        }}>
                                                         {fetchingModels[pk]
                                                             ? "Fetching live models…"
                                                             : liveModels
-                                                                ? `${liveModels.length} models fetched live`
-                                                                : config.hasApiKey
-                                                                    ? "Auto-fetching on expand, or click Refresh"
-                                                                    : `${modelList.length} built-in models — add an API key to fetch live`}
+                                                              ? `${liveModels.length} models fetched live`
+                                                              : config.hasApiKey
+                                                                ? "Auto-fetching on expand, or click Refresh"
+                                                                : `${modelList.length} built-in models — add an API key to fetch live`}
                                                     </p>
                                                 </div>
                                             );
@@ -471,7 +590,11 @@ export default function AIProvidersAdminPage() {
 
                                         {/* Custom base URL */}
                                         <div className="space-y-1.5">
-                                            <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                            <label
+                                                className="text-xs font-bold"
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
                                                 Custom Base URL (optional)
                                             </label>
                                             <input
@@ -494,11 +617,14 @@ export default function AIProvidersAdminPage() {
             {/* Features */}
             <div
                 className="p-4 rounded-2xl space-y-3"
-                style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}` }}
-            >
+                style={{
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
+                }}>
                 <div className="flex items-center gap-2">
                     <Settings sx={{ fontSize: 18, color: "#AF52DE" }} />
-                    <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>
+                    <p
+                        className="font-bold text-sm"
+                        style={{ color: palette.textPrimary }}>
                         AI Feature Flags
                     </p>
                 </div>
@@ -506,12 +632,18 @@ export default function AIProvidersAdminPage() {
                     {Object.entries(settings.Features).map(([key, value]) => {
                         const meta = FEATURE_META[key];
                         return (
-                            <div key={key} className="flex items-center justify-between gap-3">
+                            <div
+                                key={key}
+                                className="flex items-center justify-between gap-3">
                                 <div>
-                                    <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                                    <p
+                                        className="text-sm font-semibold"
+                                        style={{ color: palette.textPrimary }}>
                                         {meta?.label ?? key}
                                     </p>
-                                    <p className="text-xs" style={{ color: palette.textTertiary }}>
+                                    <p
+                                        className="text-xs"
+                                        style={{ color: palette.textTertiary }}>
                                         {meta?.description}
                                     </p>
                                 </div>
@@ -519,12 +651,16 @@ export default function AIProvidersAdminPage() {
                                     onClick={() =>
                                         setSettings((prev) => ({
                                             ...prev,
-                                            Features: { ...prev.Features, [key]: !value },
+                                            Features: {
+                                                ...prev.Features,
+                                                [key]: !value
+                                            }
                                         }))
                                     }
-                                    style={{ color: value ? "#34C759" : palette.textTertiary }}
-                                    whileTap={{ scale: 0.9 }}
-                                >
+                                    style={{
+                                        color: value ? "#34C759" : palette.textTertiary
+                                    }}
+                                    whileTap={{ scale: 0.9 }}>
                                     {value ? <ToggleOn sx={{ fontSize: 32 }} /> : <ToggleOff sx={{ fontSize: 32 }} />}
                                 </motion.button>
                             </div>
@@ -536,21 +672,31 @@ export default function AIProvidersAdminPage() {
             {/* Rate limits */}
             <div
                 className="p-4 rounded-2xl space-y-3"
-                style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}` }}
-            >
-                <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>
+                style={{
+                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
+                }}>
+                <p
+                    className="font-bold text-sm"
+                    style={{ color: palette.textPrimary }}>
                     Per-User Rate Limits
                 </p>
                 <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Daily Requests</label>
+                        <label
+                            className="text-xs font-bold"
+                            style={{ color: palette.textSecondary }}>
+                            Daily Requests
+                        </label>
                         <input
                             type="number"
                             value={settings.RateLimitPerUser.dailyRequests}
                             onChange={(e) =>
                                 setSettings((prev) => ({
                                     ...prev,
-                                    RateLimitPerUser: { ...prev.RateLimitPerUser, dailyRequests: parseInt(e.target.value) || 50 },
+                                    RateLimitPerUser: {
+                                        ...prev.RateLimitPerUser,
+                                        dailyRequests: parseInt(e.target.value) || 50
+                                    }
                                 }))
                             }
                             className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
@@ -560,14 +706,21 @@ export default function AIProvidersAdminPage() {
                         />
                     </div>
                     <div className="space-y-1.5">
-                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Monthly Requests</label>
+                        <label
+                            className="text-xs font-bold"
+                            style={{ color: palette.textSecondary }}>
+                            Monthly Requests
+                        </label>
                         <input
                             type="number"
                             value={settings.RateLimitPerUser.monthlyRequests}
                             onChange={(e) =>
                                 setSettings((prev) => ({
                                     ...prev,
-                                    RateLimitPerUser: { ...prev.RateLimitPerUser, monthlyRequests: parseInt(e.target.value) || 500 },
+                                    RateLimitPerUser: {
+                                        ...prev.RateLimitPerUser,
+                                        monthlyRequests: parseInt(e.target.value) || 500
+                                    }
                                 }))
                             }
                             className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"

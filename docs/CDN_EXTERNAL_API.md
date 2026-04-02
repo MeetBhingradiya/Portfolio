@@ -3,7 +3,8 @@
 > Last updated: 2026  
 > Author: Meet Bhingradiya
 
-Allow third-party applications to store and serve files through the same private GitHub CDN that powers this portfolio. Access is gated behind an **API key** issued by the site owner after manually approving an application.
+Allow third-party applications to store and serve files through the same private GitHub CDN that powers this portfolio. Access is gated
+behind an **API key** issued by the site owner after manually approving an application.
 
 ---
 
@@ -28,7 +29,8 @@ External App
     External App / Browser
 ```
 
-Public asset URLs (`/api/cdn/<assetId>`) never require an API key — the key is only needed to **upload** files or to proxy downloads through the rate-limited external endpoint.
+Public asset URLs (`/api/cdn/<assetId>`) never require an API key — the key is only needed to **upload** files or to proxy downloads through
+the rate-limited external endpoint.
 
 ---
 
@@ -56,32 +58,32 @@ Content-Type: application/json
 
 **Request body:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `applicantName` | string | ✅ | Your full name |
-| `applicantEmail` | string | ✅ | Contact email |
-| `applicantUserId` | string | – | Your user ID on this site (if registered) |
-| `appName` | string | ✅ | Name of your application |
-| `appDescription` | string | ✅ | Short description of your app |
-| `useCaseDetails` | string | ✅ | Why you need CDN access and how you'll use it |
-| `appWebsite` | string | – | Your app website |
-| `appGithub` | string | – | GitHub repo URL |
-| `appOrganisation` | string | – | Organisation name |
-| `requestedPlan` | `free\|basic\|pro\|enterprise` | – | Default: `free` |
-| `expectedMonthlyRequests` | number | – | Estimated monthly request volume |
+| Field                     | Type                           | Required | Description                                   |
+| ------------------------- | ------------------------------ | -------- | --------------------------------------------- |
+| `applicantName`           | string                         | ✅       | Your full name                                |
+| `applicantEmail`          | string                         | ✅       | Contact email                                 |
+| `applicantUserId`         | string                         | –        | Your user ID on this site (if registered)     |
+| `appName`                 | string                         | ✅       | Name of your application                      |
+| `appDescription`          | string                         | ✅       | Short description of your app                 |
+| `useCaseDetails`          | string                         | ✅       | Why you need CDN access and how you'll use it |
+| `appWebsite`              | string                         | –        | Your app website                              |
+| `appGithub`               | string                         | –        | GitHub repo URL                               |
+| `appOrganisation`         | string                         | –        | Organisation name                             |
+| `requestedPlan`           | `free\|basic\|pro\|enterprise` | –        | Default: `free`                               |
+| `expectedMonthlyRequests` | number                         | –        | Estimated monthly request volume              |
 
 **Example:**
 
 ```json
 {
-  "applicantName": "Jane Smith",
-  "applicantEmail": "jane@example.com",
-  "appName": "Acme Dashboard",
-  "appDescription": "Internal company dashboard that stores employee avatars and documents.",
-  "useCaseDetails": "We need to store ~50 employee profile pictures (PNG/JPEG) and ~200 PDFs per month. We will serve them from our own backend.",
-  "requestedPlan": "basic",
-  "expectedMonthlyRequests": 5000,
-  "appWebsite": "https://dashboard.acme.com"
+    "applicantName": "Jane Smith",
+    "applicantEmail": "jane@example.com",
+    "appName": "Acme Dashboard",
+    "appDescription": "Internal company dashboard that stores employee avatars and documents.",
+    "useCaseDetails": "We need to store ~50 employee profile pictures (PNG/JPEG) and ~200 PDFs per month. We will serve them from our own backend.",
+    "requestedPlan": "basic",
+    "expectedMonthlyRequests": 5000,
+    "appWebsite": "https://dashboard.acme.com"
 }
 ```
 
@@ -89,9 +91,9 @@ Content-Type: application/json
 
 ```json
 {
-  "applicationId": "6641f3a7c4e2b8d0a1f2c3d4",
-  "status": "pending",
-  "message": "Application submitted. You will be notified by email once reviewed."
+    "applicationId": "6641f3a7c4e2b8d0a1f2c3d4",
+    "status": "pending",
+    "message": "Application submitted. You will be notified by email once reviewed."
 }
 ```
 
@@ -105,15 +107,15 @@ GET /api/cdn/applications?email=jane@example.com
 
 ```json
 {
-  "applications": [
-    {
-      "_id": "6641f3a7c4e2b8d0a1f2c3d4",
-      "appName": "Acme Dashboard",
-      "status": "approved",
-      "requestedPlan": "basic",
-      "createdAt": "2026-03-01T12:00:00.000Z"
-    }
-  ]
+    "applications": [
+        {
+            "_id": "6641f3a7c4e2b8d0a1f2c3d4",
+            "appName": "Acme Dashboard",
+            "status": "approved",
+            "requestedPlan": "basic",
+            "createdAt": "2026-03-01T12:00:00.000Z"
+        }
+    ]
 }
 ```
 
@@ -125,11 +127,11 @@ An admin will contact you with your API key once the application is approved.
 
 Every external API request must include your API key using **one** of the following methods:
 
-| Method | Example |
-|--------|---------|
+| Method                 | Example                                   |
+| ---------------------- | ----------------------------------------- |
 | `Authorization` header | `Authorization: Bearer cdn_a1b2c3d4ef...` |
-| `X-CDN-Key` header | `X-CDN-Key: cdn_a1b2c3d4ef...` |
-| Query parameter | `?api_key=cdn_a1b2c3d4ef...` |
+| `X-CDN-Key` header     | `X-CDN-Key: cdn_a1b2c3d4ef...`            |
+| Query parameter        | `?api_key=cdn_a1b2c3d4ef...`              |
 
 > ⚠ Keep your API key secret. Never expose it in client-side JavaScript or public repositories.
 
@@ -137,12 +139,12 @@ Every external API request must include your API key using **one** of the follow
 
 ## Plans & Rate Limits
 
-| Plan | req/min | req/hour | req/day | Max file size |
-|------|---------|----------|---------|---------------|
-| `free` | 10 | 200 | 1,000 | 5 MB |
-| `basic` | 30 | 1,000 | 10,000 | 20 MB |
-| `pro` | 120 | 5,000 | 50,000 | 49 MB |
-| `enterprise` | 600 | 20,000 | 200,000 | 49 MB |
+| Plan         | req/min | req/hour | req/day | Max file size |
+| ------------ | ------- | -------- | ------- | ------------- |
+| `free`       | 10      | 200      | 1,000   | 5 MB          |
+| `basic`      | 30      | 1,000    | 10,000  | 20 MB         |
+| `pro`        | 120     | 5,000    | 50,000  | 49 MB         |
+| `enterprise` | 600     | 20,000   | 200,000 | 49 MB         |
 
 Rate limit windows are **sliding per calendar UTC bucket** (minute / hour / day).
 
@@ -160,8 +162,8 @@ X-RateLimit-Remaining-Day:    9831
 
 ```json
 {
-  "error": "Rate limit exceeded: 30 requests/minute.",
-  "retryAfter": 47
+    "error": "Rate limit exceeded: 30 requests/minute.",
+    "retryAfter": 47
 }
 ```
 
@@ -181,27 +183,27 @@ Content-Type: multipart/form-data
 
 **Form fields:**
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `file` | File | ✅ | The file to upload |
-| `type` | string | – | `avatar \| icon \| banner \| background \| video \| document \| other` |
-| `tags` | string | – | Comma-separated tags, e.g. `"profile,thumbnail"` |
-| `altText` | string | – | Accessibility description |
-| `context` | string | – | Owning entity reference, e.g. `"user:abc123"` |
+| Field     | Type   | Required | Description                                                            |
+| --------- | ------ | -------- | ---------------------------------------------------------------------- |
+| `file`    | File   | ✅       | The file to upload                                                     |
+| `type`    | string | –        | `avatar \| icon \| banner \| background \| video \| document \| other` |
+| `tags`    | string | –        | Comma-separated tags, e.g. `"profile,thumbnail"`                       |
+| `altText` | string | –        | Accessibility description                                              |
+| `context` | string | –        | Owning entity reference, e.g. `"user:abc123"`                          |
 
 **Success response (201):**
 
 ```json
 {
-  "assetId": "a1b2c3d4e5f6...",
-  "cdnUrl": "https://meetbhingradiya.vercel.app/api/cdn/a1b2c3d4e5f6...",
-  "filename": "avatar.png",
-  "githubRepo": "PrivateCloud-1",
-  "size": 148320,
-  "mimeType": "image/png",
-  "type": "avatar",
-  "checksumMd5": "d41d8cd98f00b204e9800998ecf8427e",
-  "checksumSha256": "e3b0c44298fc1c149afb..."
+    "assetId": "a1b2c3d4e5f6...",
+    "cdnUrl": "https://meetbhingradiya.vercel.app/api/cdn/a1b2c3d4e5f6...",
+    "filename": "avatar.png",
+    "githubRepo": "PrivateCloud-1",
+    "size": 148320,
+    "mimeType": "image/png",
+    "type": "avatar",
+    "checksumMd5": "d41d8cd98f00b204e9800998ecf8427e",
+    "checksumSha256": "e3b0c44298fc1c149afb..."
 }
 ```
 
@@ -226,9 +228,9 @@ form.append("tags", "profile,user");
 form.append("context", `user:${userId}`);
 
 const res = await fetch("https://meetbhingradiya.vercel.app/api/cdn/external/upload", {
-  method: "POST",
-  headers: { "Authorization": `Bearer ${CDN_API_KEY}` },
-  body: form,
+    method: "POST",
+    headers: { Authorization: `Bearer ${CDN_API_KEY}` },
+    body: form
 });
 
 const data = await res.json();
@@ -265,32 +267,32 @@ Authorization: Bearer cdn_<your-key>
 
 ```json
 {
-  "keyId": "key_a1b2c3d4",
-  "keyPrefix": "cdn_a1b2c3",
-  "appName": "Acme Dashboard",
-  "plan": "basic",
-  "status": "active",
-  "expiresAt": null,
-  "rateLimit": {
-    "requestsPerMinute": 30,
-    "requestsPerHour": 1000,
-    "requestsPerDay": 10000,
-    "maxFileSizeBytes": 20971520,
-    "allowUpload": true,
-    "allowDownload": true,
-    "allowedMimeTypes": []
-  },
-  "usage": {
-    "totalRequests": 1523,
-    "totalUploads": 88,
-    "totalDownloads": 1435,
-    "lastUsedAt": "2026-03-03T09:12:44.000Z",
-    "currentWindows": {
-      "minute": { "used": 3,   "limit": 30,    "remaining": 27   },
-      "hour":   { "used": 32,  "limit": 1000,  "remaining": 968  },
-      "day":    { "used": 169, "limit": 10000, "remaining": 9831 }
+    "keyId": "key_a1b2c3d4",
+    "keyPrefix": "cdn_a1b2c3",
+    "appName": "Acme Dashboard",
+    "plan": "basic",
+    "status": "active",
+    "expiresAt": null,
+    "rateLimit": {
+        "requestsPerMinute": 30,
+        "requestsPerHour": 1000,
+        "requestsPerDay": 10000,
+        "maxFileSizeBytes": 20971520,
+        "allowUpload": true,
+        "allowDownload": true,
+        "allowedMimeTypes": []
+    },
+    "usage": {
+        "totalRequests": 1523,
+        "totalUploads": 88,
+        "totalDownloads": 1435,
+        "lastUsedAt": "2026-03-03T09:12:44.000Z",
+        "currentWindows": {
+            "minute": { "used": 3, "limit": 30, "remaining": 27 },
+            "hour": { "used": 32, "limit": 1000, "remaining": 968 },
+            "day": { "used": 169, "limit": 10000, "remaining": 9831 }
+        }
     }
-  }
 }
 ```
 
@@ -298,19 +300,19 @@ Authorization: Bearer cdn_<your-key>
 
 ## Error Reference
 
-| HTTP Status | Meaning |
-|-------------|---------|
-| `400` | Bad request — missing required field |
-| `401` | Missing or malformed API key |
-| `403` | Key revoked, suspended, or expired |
-| `404` | Asset not found |
-| `409` | Duplicate application or key already exists |
-| `410` | Asset has been permanently deleted |
-| `413` | File exceeds the per-key size limit |
-| `415` | MIME type not allowed for this key |
-| `422` | Validation error — check the `error` field |
-| `429` | Rate limit exceeded — see `retryAfter` |
-| `500` | Internal server error |
+| HTTP Status | Meaning                                     |
+| ----------- | ------------------------------------------- |
+| `400`       | Bad request — missing required field        |
+| `401`       | Missing or malformed API key                |
+| `403`       | Key revoked, suspended, or expired          |
+| `404`       | Asset not found                             |
+| `409`       | Duplicate application or key already exists |
+| `410`       | Asset has been permanently deleted          |
+| `413`       | File exceeds the per-key size limit         |
+| `415`       | MIME type not allowed for this key          |
+| `422`       | Validation error — check the `error` field  |
+| `429`       | Rate limit exceeded — see `retryAfter`      |
+| `500`       | Internal server error                       |
 
 ---
 
@@ -334,17 +336,18 @@ issued (active)
 
 ## File Size & Type Limits
 
-| Asset type | Sub-folder in repo |
-|------------|-------------------|
-| `avatar` | `uploads/avatars/` |
-| `icon` | `uploads/icons/` |
-| `banner` | `uploads/banners/` |
+| Asset type   | Sub-folder in repo     |
+| ------------ | ---------------------- |
+| `avatar`     | `uploads/avatars/`     |
+| `icon`       | `uploads/icons/`       |
+| `banner`     | `uploads/banners/`     |
 | `background` | `uploads/backgrounds/` |
-| `video` | `uploads/videos/` |
-| `document` | `uploads/documents/` |
-| `other` | `uploads/misc/` |
+| `video`      | `uploads/videos/`      |
+| `document`   | `uploads/documents/`   |
+| `other`      | `uploads/misc/`        |
 
-Maximum per-file size is determined by your plan (see the table above). GitHub's hard limit is 100 MB, but the system caps uploads at **49 MB** for safety.
+Maximum per-file size is determined by your plan (see the table above). GitHub's hard limit is 100 MB, but the system caps uploads at **49
+MB** for safety.
 
 ---
 
@@ -390,7 +393,8 @@ Content-Type: application/json
 }
 ```
 
-> ⚠ The plaintext API key is returned **only in this response**. Copy and deliver it to the developer securely. It cannot be recovered later.
+> ⚠ The plaintext API key is returned **only in this response**. Copy and deliver it to the developer securely. It cannot be recovered
+> later.
 
 ### List / Manage API Keys
 

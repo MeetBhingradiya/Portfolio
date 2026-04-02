@@ -6,39 +6,27 @@
 
 import mongoose, { Schema, Document } from "mongoose";
 
-export type TicketStatus =
-    | "open"
-    | "in_progress"
-    | "waiting_customer"
-    | "resolved"
-    | "closed";
+export type TicketStatus = "open" | "in_progress" | "waiting_customer" | "resolved" | "closed";
 
 export type TicketPriority = "low" | "medium" | "high" | "urgent";
 
-export type TicketCategory =
-    | "general"
-    | "billing"
-    | "technical"
-    | "order"
-    | "refund"
-    | "account"
-    | "other";
+export type TicketCategory = "general" | "billing" | "technical" | "order" | "refund" | "account" | "other";
 
 export interface ITicketMessage {
     messageId: string;
-    senderId: string;      // userId
+    senderId: string; // userId
     senderEmail: string;
     senderName: string;
-    senderRole: string;    // "customer" | "employee" | "admin"
-    content: string;       // Markdown supported
+    senderRole: string; // "customer" | "employee" | "admin"
+    content: string; // Markdown supported
     attachments: string[]; // CDN URLs
-    isInternal: boolean;   // Internal note, hidden from customer
+    isInternal: boolean; // Internal note, hidden from customer
     createdAt: Date;
 }
 
 export interface ISupportTicket extends Document {
-    ticketId: string;      // e.g. TKT-00001
-    ticketNumber: number;  // auto-incrementing
+    ticketId: string; // e.g. TKT-00001
+    ticketNumber: number; // auto-incrementing
     userId: string;
     userEmail: string;
     userName: string;
@@ -52,7 +40,7 @@ export interface ISupportTicket extends Document {
     orderId?: string;
 
     // Assignment
-    assignedTo?: string;   // employee userId
+    assignedTo?: string; // employee userId
     assignedEmail?: string;
 
     messages: ITicketMessage[];
@@ -80,15 +68,23 @@ export interface ISupportTicket extends Document {
 
 const TicketMessageSchema = new Schema<ITicketMessage>(
     {
-        messageId: { type: String, required: true, default: () => require("uuid").v4() },
+        messageId: {
+            type: String,
+            required: true,
+            default: () => require("uuid").v4()
+        },
         senderId: { type: String, required: true },
         senderEmail: { type: String, required: true },
         senderName: { type: String, required: true },
-        senderRole: { type: String, required: true, enum: ["customer", "employee", "admin"] },
+        senderRole: {
+            type: String,
+            required: true,
+            enum: ["customer", "employee", "admin"]
+        },
         content: { type: String, required: true },
         attachments: { type: [String], default: [] },
         isInternal: { type: Boolean, default: false },
-        createdAt: { type: Date, default: Date.now },
+        createdAt: { type: Date, default: Date.now }
     },
     { _id: false }
 );
@@ -106,17 +102,17 @@ const SupportTicketSchema = new Schema<ISupportTicket>(
             type: String,
             required: true,
             enum: ["general", "billing", "technical", "order", "refund", "account", "other"],
-            default: "general",
+            default: "general"
         },
         priority: {
             type: String,
             enum: ["low", "medium", "high", "urgent"],
-            default: "medium",
+            default: "medium"
         },
         status: {
             type: String,
             enum: ["open", "in_progress", "waiting_customer", "resolved", "closed"],
-            default: "open",
+            default: "open"
         },
 
         orderId: { type: String },
@@ -140,7 +136,7 @@ const SupportTicketSchema = new Schema<ISupportTicket>(
         accessOtpExpiresAt: { type: Date, select: false },
         accessOtpAttempts: { type: Number, default: 0, select: false },
         accessSessionHash: { type: String, select: false },
-        accessSessionExpiresAt: { type: Date, select: false },
+        accessSessionExpiresAt: { type: Date, select: false }
     },
     { timestamps: true }
 );
@@ -148,9 +144,7 @@ const SupportTicketSchema = new Schema<ISupportTicket>(
 SupportTicketSchema.index({ status: 1, priority: -1, lastRepliedAt: -1 });
 SupportTicketSchema.index({ assignedTo: 1, status: 1 });
 
-export const SupportTicket =
-    mongoose.models.SupportTicket ||
-    mongoose.model<ISupportTicket>("SupportTicket", SupportTicketSchema);
+export const SupportTicket = mongoose.models.SupportTicket || mongoose.model<ISupportTicket>("SupportTicket", SupportTicketSchema);
 
 /**
  * Counter model for auto-incrementing ticket numbers
@@ -164,9 +158,7 @@ export interface ITicketCounter {
 
 const TicketCounterSchema = new Schema<ITicketCounter>({
     _id: { type: String, required: true },
-    seq: { type: Number, default: 0 },
+    seq: { type: Number, default: 0 }
 });
 
-export const TicketCounter =
-    mongoose.models.TicketCounter ||
-    mongoose.model<ITicketCounter>("TicketCounter", TicketCounterSchema);
+export const TicketCounter = mongoose.models.TicketCounter || mongoose.model<ITicketCounter>("TicketCounter", TicketCounterSchema);

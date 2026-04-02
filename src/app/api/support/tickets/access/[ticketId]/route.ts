@@ -34,14 +34,12 @@ function publicTicketShape(ticket: any) {
         createdAt: ticket.createdAt,
         lastRepliedAt: ticket.lastRepliedAt,
         satisfactionRating: ticket.satisfactionRating,
-        messages: (ticket.messages || []).filter((m: any) => !m.isInternal),
+        messages: (ticket.messages || []).filter((m: any) => !m.isInternal)
     };
 }
 
 function ticketQuery(id: string) {
-    return mongoose.isValidObjectId(id)
-        ? { $or: [{ _id: id }, { ticketId: id }] }
-        : { ticketId: id };
+    return mongoose.isValidObjectId(id) ? { $or: [{ _id: id }, { ticketId: id }] } : { ticketId: id };
 }
 
 function buildEmailHtml(ticketId: string, code: string, expiryMinutes: number) {
@@ -67,7 +65,7 @@ export async function POST(req: NextRequest, { params }: { params: { ticketId: s
 
         const ticket = await SupportTicket.findOne({
             ...ticketQuery(params.ticketId),
-            isDeleted: false,
+            isDeleted: false
         }).select("+accessSecretHash +accessOtpHash +accessOtpExpiresAt +accessOtpAttempts");
 
         if (!ticket || !ticket.accessSecretHash || !compareHash(ticket.accessSecretHash, providedSecret)) {
@@ -84,12 +82,16 @@ export async function POST(req: NextRequest, { params }: { params: { ticketId: s
             to: ticket.userEmail,
             subject: `OTP for support ticket ${ticket.ticketId}`,
             html: buildEmailHtml(ticket.ticketId, otp, OTP_EXPIRY_MINUTES),
-            text: `OTP for support ticket ${ticket.ticketId}: ${otp}. Expires in ${OTP_EXPIRY_MINUTES} minutes.`,
+            text: `OTP for support ticket ${ticket.ticketId}: ${otp}. Expires in ${OTP_EXPIRY_MINUTES} minutes.`
         });
 
         return NextResponse.json({
             success: true,
-            data: { otpSent: true, expiresInMinutes: OTP_EXPIRY_MINUTES, ticketId: ticket.ticketId },
+            data: {
+                otpSent: true,
+                expiresInMinutes: OTP_EXPIRY_MINUTES,
+                ticketId: ticket.ticketId
+            }
         });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message || "Failed to send OTP." }, { status: 500 });
@@ -104,12 +106,18 @@ export async function PATCH(req: NextRequest, { params }: { params: { ticketId: 
         const providedOtp = String(body?.otp || "").trim();
 
         if (!providedSecret || !/^\d{6}$/.test(providedOtp)) {
-            return NextResponse.json({ success: false, error: "Secret code and valid OTP are required." }, { status: 400 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Secret code and valid OTP are required."
+                },
+                { status: 400 }
+            );
         }
 
         const ticket = await SupportTicket.findOne({
             ...ticketQuery(params.ticketId),
-            isDeleted: false,
+            isDeleted: false
         }).select("+accessSecretHash +accessOtpHash +accessOtpExpiresAt +accessOtpAttempts +accessSessionHash +accessSessionExpiresAt");
 
         if (!ticket || !ticket.accessSecretHash || !compareHash(ticket.accessSecretHash, providedSecret)) {
@@ -121,7 +129,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { ticketId: 
         }
 
         if (ticket.accessOtpAttempts >= OTP_MAX_ATTEMPTS) {
-            return NextResponse.json({ success: false, error: "Too many OTP attempts. Request a new OTP." }, { status: 429 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Too many OTP attempts. Request a new OTP."
+                },
+                { status: 429 }
+            );
         }
 
         if (!compareHash(ticket.accessOtpHash, providedOtp)) {
@@ -143,8 +157,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { ticketId: 
             data: {
                 accessToken,
                 expiresInMinutes: SESSION_EXPIRY_MINUTES,
-                ticket: publicTicketShape(ticket.toObject()),
-            },
+                ticket: publicTicketShape(ticket.toObject())
+            }
         });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message || "Failed to verify OTP." }, { status: 500 });

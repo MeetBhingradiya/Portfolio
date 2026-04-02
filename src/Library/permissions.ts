@@ -24,14 +24,12 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
 
     // Collect permissions from all roles
     const roles = await RoleDefinition.find({ key: { $in: userRole.roles } });
-    roles.forEach(role => {
+    roles.forEach((role) => {
         role.permissions.forEach((perm: string) => allPermissions.add(perm));
     });
 
     // Add custom permissions (only granted ones)
-    userRole.permissions
-        .filter((p: any) => p.granted)
-        .forEach((p: any) => allPermissions.add(p.key));
+    userRole.permissions.filter((p: any) => p.granted).forEach((p: any) => allPermissions.add(p.key));
 
     return Array.from(allPermissions);
 }
@@ -53,7 +51,7 @@ export async function hasPermission(userId: string, permission: string): Promise
  */
 export async function hasAnyPermission(userId: string, permissions: string[]): Promise<boolean> {
     const userPerms = await getUserPermissions(userId);
-    return permissions.some(p => userPerms.includes(p));
+    return permissions.some((p) => userPerms.includes(p));
 }
 
 /**
@@ -61,7 +59,7 @@ export async function hasAnyPermission(userId: string, permissions: string[]): P
  */
 export async function hasAllPermissions(userId: string, permissions: string[]): Promise<boolean> {
     const userPerms = await getUserPermissions(userId);
-    return permissions.every(p => userPerms.includes(p));
+    return permissions.every((p) => userPerms.includes(p));
 }
 
 /**

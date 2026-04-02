@@ -37,10 +37,7 @@ function isRateLimited(ip: string): boolean {
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
     // Derive IP (Vercel / standard headers)
-    const ip =
-        req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-        req.headers.get("x-real-ip") ??
-        "unknown";
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? req.headers.get("x-real-ip") ?? "unknown";
 
     // Rate limit
     if (isRateLimited(ip)) {
@@ -64,13 +61,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     }
 
     // Sanitise path (no XSS in logs)
-    const path = String(body._u ?? "").slice(0, 120).replace(/[^\w\-/?.=]/g, "");
+    const path = String(body._u ?? "")
+        .slice(0, 120)
+        .replace(/[^\w\-/?.=]/g, "");
     const ts = typeof body._t === "number" ? new Date(body._t).toISOString() : "?";
 
     // Server-side log (visible in Vercel function logs / your log aggregator)
-    console.warn(
-        `[AntiDebugger] THREAT DETECTED | ip=${ip} | path=${path} | ts=${ts} | detail=${detail}`
-    );
+    console.warn(`[AntiDebugger] THREAT DETECTED | ip=${ip} | path=${path} | ts=${ts} | detail=${detail}`);
 
     return NextResponse.json({ ok: true }, { status: 200 });
 }

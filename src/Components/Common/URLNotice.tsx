@@ -20,24 +20,24 @@ import { toast } from "react-toastify";
 const NOTICE_MESSAGES: Record<string, { message: string; type: "error" | "warning" | "info" | "success" }> = {
     immich_access_denied: {
         message: "Access Denied — You are not authorized to access the photo library.",
-        type: "error",
+        type: "error"
     },
     immich_not_whitelisted: {
         message: "Access Denied — Your account is not on the Immich whitelist. Contact the administrator.",
-        type: "error",
+        type: "error"
     },
     photos_sign_in_required: {
         message: "Please sign in to your account before accessing the photo library.",
-        type: "info",
+        type: "info"
     },
     photos_access_denied: {
         message: "Access Denied — Your account does not have permission to view photos.",
-        type: "error",
+        type: "error"
     },
     photos_error: {
         message: "Something went wrong while verifying your photo library access. Please try again.",
-        type: "warning",
-    },
+        type: "warning"
+    }
 };
 
 export default function URLNotice() {
@@ -53,7 +53,7 @@ export default function URLNotice() {
         if (config) {
             toast[config.type](config.message, {
                 autoClose: 6000,
-                toastId: `notice-${notice}`, // deduplicate on rapid re-render
+                toastId: `notice-${notice}` // deduplicate on rapid re-render
             });
         }
 

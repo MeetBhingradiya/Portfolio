@@ -17,15 +17,17 @@ import { decryptStoredSecret } from "@Utils/SecretVault";
 async function fetchGitHubModels(apiKey: string, baseUrl: string): Promise<string[]> {
     const url = `${baseUrl}/models`;
     const res = await fetch(url, {
-        headers: { Authorization: `Bearer ${apiKey}`, "api-version": "2024-05-01-preview" },
-        cache: "no-store",
+        headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "api-version": "2024-05-01-preview"
+        },
+        cache: "no-store"
     });
     if (!res.ok) throw new Error(`GitHub Models API ${res.status}: ${await res.text()}`);
     const json = await res.json();
 
     // Azure AI inference returns { data: [{id,…}] } (OpenAI-compatible)
-    const items: { id?: string; name?: string }[] =
-        Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
+    const items: { id?: string; name?: string }[] = Array.isArray(json) ? json : Array.isArray(json?.data) ? json.data : [];
 
     return items
         .map((m) => (m.id ?? m.name ?? "").trim())
@@ -52,7 +54,7 @@ async function fetchPerplexityModels(apiKey: string): Promise<string[]> {
     const url = "https://api.perplexity.ai/models";
     const res = await fetch(url, {
         headers: { Authorization: `Bearer ${apiKey}` },
-        cache: "no-store",
+        cache: "no-store"
     });
     if (!res.ok) throw new Error(`Perplexity API ${res.status}: ${await res.text()}`);
     const json = await res.json();
@@ -75,7 +77,10 @@ export async function GET(req: NextRequest) {
         const provider = req.nextUrl.searchParams.get("provider") as AIProviderKey | null;
         if (!provider || !AI_PROVIDERS[provider]) {
             return NextResponse.json(
-                { success: false, error: "Invalid or missing provider query param" },
+                {
+                    success: false,
+                    error: "Invalid or missing provider query param"
+                },
                 { status: 400 }
             );
         }
@@ -86,7 +91,10 @@ export async function GET(req: NextRequest) {
 
         if (!apiKey) {
             return NextResponse.json(
-                { success: false, error: "No API key configured for this provider" },
+                {
+                    success: false,
+                    error: "No API key configured for this provider"
+                },
                 { status: 422 }
             );
         }

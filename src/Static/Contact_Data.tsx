@@ -4,19 +4,7 @@
  * Reusable across Contact Page, Homepage Section, and other components
  */
 
-import {
-    Email,
-    GitHub,
-    LinkedIn,
-    LocationOn,
-    CalendarMonth,
-    Download,
-    Work,
-    Code,
-    Security,
-    School,
-    VideoCall
-} from "@mui/icons-material";
+import { Email, GitHub, LinkedIn, LocationOn, CalendarMonth, Download, Work, Code, Security, School, VideoCall } from "@mui/icons-material";
 
 export interface ContactMethod {
     id: string;
@@ -179,12 +167,7 @@ export const services: ServiceCard[] = [
         icon: <Code />,
         price: "$50",
         duration: "per hour",
-        features: [
-            "Full-Stack Web Development",
-            "API Development & Integration",
-            "Database Design & Optimization",
-            "DevOps & CI/CD Setup"
-        ],
+        features: ["Full-Stack Web Development", "API Development & Integration", "Database Design & Optimization", "DevOps & CI/CD Setup"],
         popular: true,
         color: "#34C759",
         action: "/contact?template=custom-development"
@@ -196,12 +179,7 @@ export const services: ServiceCard[] = [
         icon: <Security />,
         price: "$100",
         duration: "per hour",
-        features: [
-            "Vulnerability Assessment",
-            "Penetration Testing",
-            "Code Security Review",
-            "Detailed Security Report"
-        ],
+        features: ["Vulnerability Assessment", "Penetration Testing", "Code Security Review", "Detailed Security Report"],
         color: "#FF3B30",
         action: "/contact?template=security-audit"
     }

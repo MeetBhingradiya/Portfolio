@@ -23,7 +23,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/image`,
         title: "Image Tools — Compress & Convert | Meet Bhingradiya Tools",
         description: "Compress images and convert to PDF client-side — no uploads needed.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Image Tools" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Image Tools"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

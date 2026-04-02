@@ -9,12 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@Library/auth";
-import {
-    hasPermission,
-    hasAnyPermission,
-    hasAllPermissions,
-    isAdminUser
-} from "@/Library/permissions";
+import { hasPermission, hasAnyPermission, hasAllPermissions, isAdminUser } from "@/Library/permissions";
 
 /**
  * Check if a request is from an authenticated admin account
@@ -26,7 +21,7 @@ export async function requireAdminEmail(req: NextRequest) {
         return {
             error: true,
             status: 401,
-            message: "Unauthorized: Not authenticated",
+            message: "Unauthorized: Not authenticated"
         };
     }
 
@@ -35,7 +30,7 @@ export async function requireAdminEmail(req: NextRequest) {
         return {
             error: true,
             status: 403,
-            message: "Forbidden: Admin access required",
+            message: "Forbidden: Admin access required"
         };
     }
 
@@ -52,7 +47,7 @@ export async function requirePermission(req: NextRequest, permission: string) {
         return {
             error: true,
             status: 401,
-            message: "Unauthorized: Not authenticated",
+            message: "Unauthorized: Not authenticated"
         };
     }
 
@@ -62,7 +57,7 @@ export async function requirePermission(req: NextRequest, permission: string) {
         return {
             error: true,
             status: 403,
-            message: `Forbidden: Permission required: ${permission}`,
+            message: `Forbidden: Permission required: ${permission}`
         };
     }
 
@@ -79,7 +74,7 @@ export async function requireAnyPermission(req: NextRequest, permissions: string
         return {
             error: true,
             status: 401,
-            message: "Unauthorized: Not authenticated",
+            message: "Unauthorized: Not authenticated"
         };
     }
 
@@ -89,7 +84,7 @@ export async function requireAnyPermission(req: NextRequest, permissions: string
         return {
             error: true,
             status: 403,
-            message: `Forbidden: One of these permissions required: ${permissions.join(", ")}`,
+            message: `Forbidden: One of these permissions required: ${permissions.join(", ")}`
         };
     }
 
@@ -106,7 +101,7 @@ export async function requireAllPermissions(req: NextRequest, permissions: strin
         return {
             error: true,
             status: 401,
-            message: "Unauthorized: Not authenticated",
+            message: "Unauthorized: Not authenticated"
         };
     }
 
@@ -116,7 +111,7 @@ export async function requireAllPermissions(req: NextRequest, permissions: strin
         return {
             error: true,
             status: 403,
-            message: `Forbidden: All of these permissions required: ${permissions.join(", ")}`,
+            message: `Forbidden: All of these permissions required: ${permissions.join(", ")}`
         };
     }
 
@@ -127,8 +122,5 @@ export async function requireAllPermissions(req: NextRequest, permissions: strin
  * Helper to return error response
  */
 export function permissionError(status: number, message: string) {
-    return NextResponse.json(
-        { error: message },
-        { status }
-    );
+    return NextResponse.json({ error: message }, { status });
 }

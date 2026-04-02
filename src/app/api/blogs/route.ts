@@ -16,8 +16,7 @@ import { getSession, requireAuth } from "@Library/auth";
 import slugify from "@sindresorhus/slugify";
 
 // ── helpers ──────────────────────────────────────────────────────
-const isAdmin = (email?: string | null) =>
-    !!email && !!process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL;
+const isAdmin = (email?: string | null) => !!email && !!process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL;
 
 const generateSlug = async (title: string): Promise<string> => {
     let base = slugify(title, { lowercase: true, separator: "-" });
@@ -67,11 +66,7 @@ export async function GET(req: NextRequest) {
                 return NextResponse.json({ success: false, error: "Blog not found" }, { status: 404 });
             }
             const isAuthor = blog.authorId === session?.user?.id;
-            const canView =
-                admin ||
-                isAuthor ||
-                blog.status === BlogStatus.Published ||
-                blog.status === BlogStatus.Unlisted;
+            const canView = admin || isAuthor || blog.status === BlogStatus.Published || blog.status === BlogStatus.Unlisted;
 
             if (!canView) {
                 return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
@@ -90,14 +85,13 @@ export async function GET(req: NextRequest) {
             }
             const query: any = { authorId: session.user.id };
             if (status) query.status = status;
-            const blogs = await Blog.find(query)
-                .select("-content")
-                .sort({ updatedAt: -1 })
-                .limit(limit)
-                .skip(skip)
-                .lean();
+            const blogs = await Blog.find(query).select("-content").sort({ updatedAt: -1 }).limit(limit).skip(skip).lean();
             const total = await Blog.countDocuments(query);
-            return NextResponse.json({ success: true, data: blogs, pagination: { total, limit, skip } });
+            return NextResponse.json({
+                success: true,
+                data: blogs,
+                pagination: { total, limit, skip }
+            });
         }
 
         // ── Admin pending queue ──
@@ -108,8 +102,14 @@ export async function GET(req: NextRequest) {
                 .limit(limit)
                 .skip(skip)
                 .lean();
-            const total = await Blog.countDocuments({ status: BlogStatus.PendingReview });
-            return NextResponse.json({ success: true, data: blogs, pagination: { total, limit, skip } });
+            const total = await Blog.countDocuments({
+                status: BlogStatus.PendingReview
+            });
+            return NextResponse.json({
+                success: true,
+                data: blogs,
+                pagination: { total, limit, skip }
+            });
         }
 
         // ── Public listing ──
@@ -148,7 +148,7 @@ export async function POST(req: NextRequest) {
         // Auto-generate slug if missing
         if (!body.slug && body.title) {
             body.slug = await generateSlug(body.title);
-        } else if (body.slug && await Blog.exists({ slug: body.slug })) {
+        } else if (body.slug && (await Blog.exists({ slug: body.slug }))) {
             return NextResponse.json({ success: false, error: "Slug already taken" }, { status: 400 });
         }
 
@@ -211,7 +211,10 @@ export async function PUT(req: NextRequest) {
         updateData.version = (existing.version || 1) + 1;
         updateData.lastEditedBy = session.user.id;
 
-        const blog = await Blog.findByIdAndUpdate(_id, updateData, { new: true, runValidators: true });
+        const blog = await Blog.findByIdAndUpdate(_id, updateData, {
+            new: true,
+            runValidators: true
+        });
         return NextResponse.json({ success: true, data: blog });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -241,14 +244,23 @@ export async function PATCH(req: NextRequest) {
                 return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
             }
             if (blog.status !== BlogStatus.Draft && blog.status !== BlogStatus.Rejected) {
-                return NextResponse.json({ success: false, error: "Only draft or rejected blogs can be submitted" }, { status: 400 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Only draft or rejected blogs can be submitted"
+                    },
+                    { status: 400 }
+                );
             }
             await Blog.findByIdAndUpdate(id, {
                 status: BlogStatus.PendingReview,
                 submittedAt: new Date(),
                 rejectionReason: undefined
             });
-            return NextResponse.json({ success: true, message: "Submitted for review" });
+            return NextResponse.json({
+                success: true,
+                message: "Submitted for review"
+            });
         }
 
         return NextResponse.json({ success: false, error: "Unknown action" }, { status: 400 });

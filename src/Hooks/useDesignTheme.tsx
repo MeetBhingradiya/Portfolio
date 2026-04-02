@@ -1,12 +1,6 @@
 "use client";
 
-import React, {
-    createContext,
-    useContext,
-    useEffect,
-    useState,
-    useMemo
-} from "react";
+import React, { createContext, useContext, useEffect, useState, useMemo } from "react";
 import { generateThemePalette, ThemePalette } from "@Utils/Theme_Palette_Generation";
 
 export type DesignTheme = "apple" | "samsung";
@@ -24,15 +18,9 @@ interface DesignThemeContextType {
     toggleColorMode: () => void;
 }
 
-const DesignThemeContext = createContext<DesignThemeContextType | undefined>(
-    undefined
-);
+const DesignThemeContext = createContext<DesignThemeContextType | undefined>(undefined);
 
-export function DesignThemeProvider({
-    children
-}: {
-    children: React.ReactNode;
-}) {
+export function DesignThemeProvider({ children }: { children: React.ReactNode }) {
     const [isInitialized, setIsInitialized] = useState(false);
     const [designTheme, setDesignTheme] = useState<DesignTheme>("samsung");
     const [colorMode, setColorMode] = useState<ColorMode>("dark");
@@ -46,10 +34,7 @@ export function DesignThemeProvider({
     }, [colorMode]);
 
     // Generate theme palette based on accent color
-    const palette = useMemo(
-        () => generateThemePalette(accentColor, actualColorMode),
-        [accentColor, actualColorMode]
-    );
+    const palette = useMemo(() => generateThemePalette(accentColor, actualColorMode), [accentColor, actualColorMode]);
 
     // Load saved preferences
     useEffect(() => {
@@ -61,11 +46,11 @@ export function DesignThemeProvider({
             // Load theme first
             const currentTheme = savedTheme || "samsung";
             setDesignTheme(currentTheme);
-            
+
             // Load color mode
             const currentMode = savedMode || "system";
             setColorMode(currentMode);
-            
+
             // Load or set accent color
             if (savedAccent) {
                 setAccentColor(savedAccent);
@@ -77,7 +62,7 @@ export function DesignThemeProvider({
                     setAccentColor("#007AFF"); // Apple Blue
                 }
             }
-            
+
             setIsInitialized(true);
         }
     }, []);
@@ -141,7 +126,7 @@ export function DesignThemeProvider({
         if (systemColor && colorMode === "system") {
             const savedAccent = localStorage.getItem("accentColor");
             const savedColorMode = localStorage.getItem("colorMode");
-            
+
             // Only apply system color if user hasn't manually set one
             if (!savedAccent || savedColorMode === "system") {
                 setAccentColor(systemColor);
@@ -244,19 +229,13 @@ export function DesignThemeProvider({
         toggleColorMode
     };
 
-    return (
-        <DesignThemeContext.Provider value={value}>
-            {children}
-        </DesignThemeContext.Provider>
-    );
+    return <DesignThemeContext.Provider value={value}>{children}</DesignThemeContext.Provider>;
 }
 
 export function useDesignTheme() {
     const context = useContext(DesignThemeContext);
     if (context === undefined) {
-        throw new Error(
-            "useDesignTheme must be used within a DesignThemeProvider"
-        );
+        throw new Error("useDesignTheme must be used within a DesignThemeProvider");
     }
     return context;
 }

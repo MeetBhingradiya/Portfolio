@@ -34,9 +34,15 @@ export const metadata: Metadata = {
         type: "website",
         url: `${Config.Origin}/projects`,
         title: "Projects | Meet Bhingradiya",
-        description:
-            "Personal and open-source projects — websites, web apps, Chrome extensions, npm packages and more.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Meet Bhingradiya Projects" }]
+        description: "Personal and open-source projects — websites, web apps, Chrome extensions, npm packages and more.",
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Meet Bhingradiya Projects"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

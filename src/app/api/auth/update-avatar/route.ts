@@ -11,9 +11,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@Library/auth";
 import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 function toObjectId(id: string): ObjectId | null {
-    try { return new ObjectId(id); } catch { return null; }
+    try {
+        return new ObjectId(id);
+    } catch {
+        return null;
+    }
 }
 
 /** Read per-provider avatar fields directly from MongoDB (bypasses stale session cache). */
@@ -22,15 +27,13 @@ async function getStoredAvatars(userId: string) {
     const client = new MongoClient(process.env.MONGODB_01);
     try {
         await client.connect();
-        const db = client.db("PRODUCTION_MeetBhingradiya");
+        const db = client.db(SConfig.Database.Name);
         const oid = toObjectId(userId);
-        const dbUser = await db.collection("user").findOne(
-            oid ? { $or: [{ id: userId }, { _id: oid }] } : { id: userId }
-        );
+        const dbUser = await db.collection("user").findOne(oid ? { $or: [{ id: userId }, { _id: oid }] } : { id: userId });
         return {
-            googleAvatar:    (dbUser?.googleAvatar    as string | null) ?? null,
-            githubAvatar:    (dbUser?.githubAvatar    as string | null) ?? null,
-            microsoftAvatar: (dbUser?.microsoftAvatar as string | null) ?? null,
+            googleAvatar: (dbUser?.googleAvatar as string | null) ?? null,
+            githubAvatar: (dbUser?.githubAvatar as string | null) ?? null,
+            microsoftAvatar: (dbUser?.microsoftAvatar as string | null) ?? null
         };
     } catch (err) {
         console.error("[update-avatar] MongoDB read failed:", err);
@@ -65,7 +68,9 @@ export async function POST(request: NextRequest) {
                 newImageUrl = stored.googleAvatar ?? null;
                 if (!newImageUrl) {
                     return NextResponse.json(
-                        { error: "No Google avatar available. Sign in with Google first." },
+                        {
+                            error: "No Google avatar available. Sign in with Google first."
+                        },
                         { status: 400 }
                     );
                 }
@@ -75,7 +80,9 @@ export async function POST(request: NextRequest) {
                 newImageUrl = stored.githubAvatar ?? null;
                 if (!newImageUrl) {
                     return NextResponse.json(
-                        { error: "No GitHub avatar available. Link your GitHub account first." },
+                        {
+                            error: "No GitHub avatar available. Link your GitHub account first."
+                        },
                         { status: 400 }
                     );
                 }
@@ -85,7 +92,9 @@ export async function POST(request: NextRequest) {
                 newImageUrl = stored.microsoftAvatar ?? null;
                 if (!newImageUrl) {
                     return NextResponse.json(
-                        { error: "No Microsoft avatar available. Link your Microsoft account first." },
+                        {
+                            error: "No Microsoft avatar available. Link your Microsoft account first."
+                        },
                         { status: 400 }
                     );
                 }
@@ -94,7 +103,9 @@ export async function POST(request: NextRequest) {
             case "custom":
                 if (!customImageUrl) {
                     return NextResponse.json(
-                        { error: "customImageUrl is required when avatarSource is 'custom'" },
+                        {
+                            error: "customImageUrl is required when avatarSource is 'custom'"
+                        },
                         { status: 400 }
                     );
                 }
@@ -109,15 +120,12 @@ export async function POST(request: NextRequest) {
 
         await auth.api.updateUser({
             headers: request.headers,
-            body: { image: newImageUrl },
+            body: { image: newImageUrl }
         });
 
         return NextResponse.json({ success: true, image: newImageUrl });
     } catch (error: any) {
         console.error("Failed to update avatar:", error);
-        return NextResponse.json(
-            { error: error.message || "Failed to update avatar" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: error.message || "Failed to update avatar" }, { status: 500 });
     }
 }

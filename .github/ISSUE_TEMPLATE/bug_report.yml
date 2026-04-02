@@ -1,159 +1,164 @@
 name: Bug report
 description: Report a bug to help us improve the project. Please make sure you're not purposefully causing an error!
-labels: [ "🐛 Type: Bug" ]
+labels: ["🐛 Type: Bug"]
 assignees: []
 body:
+    - type: checkboxes
+      id: prerequisites
+      attributes:
+          label: Before submitting a bug report...
+          options:
+              - label: |
+                    This bug wasn't already reported.
+                    (I have searched through existing issues)
+                required: true
+              - label: |
+                    I've cleared the cache/sessions folder and restarted the application.
+                required: true
+              - label: |
+                    I'm using the latest version of the project.
+                required: true
 
-  - type: checkboxes
-    id: prerequisites
-    attributes:
-      label: Before submitting a bug report...
-      options:
-        - label: |
-            This bug wasn't already reported.
-            (I have searched through existing issues)
+    - type: dropdown
+      id: severity
+      attributes:
+          label: Bug Severity
+          description: How severe is this bug?
+          options:
+              - Critical (Application crashes, data loss, security vulnerability)
+              - High (Major functionality broken, no workaround)
+              - Medium (Minor functionality broken, workaround available)
+              - Low (Cosmetic issue, doesn't affect functionality)
+          default: 2
+      validations:
           required: true
-        - label: |
-            I've cleared the cache/sessions folder and restarted the application.
-          required: true
-        - label: |
-            I'm using the latest version of the project.
-          required: true  - type: dropdown
-    id: severity
-    attributes:
-      label: Bug Severity
-      description: How severe is this bug?
-      options:
-        - Critical (Application crashes, data loss, security vulnerability)
-        - High (Major functionality broken, no workaround)
-        - Medium (Minor functionality broken, workaround available)
-        - Low (Cosmetic issue, doesn't affect functionality)
-      default: 2
-    validations:
-      required: true
-  
-  - type: dropdown
-    id: environment
-    attributes:
-      label: Environment
-      description: Where did this bug occur?
-      options:
-        - Production
-        - Development
-        - Staging
-        - Local development
-      default: 0
-    validations:
-      required: true
 
-  - type: dropdown
-    id: branch
-    attributes:
-      label: Branch
-      options:
-        - Release
-        - Development
-      default: 0
-    validations:
-      required: true  - type: input
-    id: commit
-    attributes:
-      label: Commit Hash
-      description: The commit where the bug was found
-      placeholder: 5fd7d6c (get using `git rev-parse --short HEAD`)
-  
-  - type: dropdown
-    id: browser
-    attributes:
-      label: Browser (if applicable)
-      description: Which browser are you using?
-      options:
-        - Not applicable
-        - Chrome
-        - Firefox
-        - Safari
-        - Edge
-        - Opera
-        - Other
-      default: 0
-  
-  - type: input
-    id: browser_version
-    attributes:
-      label: Browser Version (if applicable)
-      placeholder: e.g., Chrome 120.0.6099.109
-  
-  - type: dropdown
-    id: os
-    attributes:
-      label: Operating System
-      description: What operating system are you using?
-      options:
-        - Windows
-        - macOS
-        - Linux
-        - iOS
-        - Android
-        - Other
-      default: 0
-    validations:
-      required: true  - type: textarea
-    id: description
-    attributes:
-      label: Bug Description
-      description: |
-        A clear and concise description of what the bug is.
-        Include what you expected to happen vs. what actually happened.
-      placeholder: |
-        Expected: The login button should redirect to the dashboard.
-        Actual: The login button shows a 404 error.
-    validations:
-      required: true
-  
-  - type: textarea
-    id: steps_to_reproduce
-    attributes:
-      label: Steps to Reproduce
-      description: |
-        Provide step-by-step instructions to reproduce the bug.
-        Be as specific as possible.
-      placeholder: |
-        1. Go to login page
-        2. Enter valid credentials
-        3. Click 'Login' button
-        4. See error message
-    validations:
-      required: true  - type: textarea
-    id: logs
-    attributes:
-      label: Error Logs/Console Output
-      description: |
-        Copy and paste any error messages from the terminal, browser console, or application logs.
-        Please format code blocks using triple backticks (```).
-      placeholder: |
-        ```
-        Error: Cannot read property 'name' of undefined
-        at Component.render (/src/components/User.tsx:15:23)
-        ```
-  
-  - type: textarea
-    id: screenshots
-    attributes:
-      label: Screenshots/Videos
-      description: |
-        If applicable, add screenshots or videos to help explain the problem.
-        You can drag and drop images directly into this text area.
-      placeholder: Drag and drop screenshots here or paste image URLs.
-  
-  - type: textarea
-    id: additional_context
-    attributes:
-      label: Additional Context
-      description: |
-        Add any other context about the problem here.
-        Include device specs, network conditions, or any other relevant information.
-      placeholder: |
-        - Device: iPhone 14 Pro
-        - Screen resolution: 1920x1080
-        - Network: WiFi
-        - Any workarounds you've tried
+    - type: dropdown
+      id: environment
+      attributes:
+          label: Environment
+          description: Where did this bug occur?
+          options:
+              - Production
+              - Development
+              - Staging
+              - Local development
+          default: 0
+      validations:
+          required: true
+
+    - type: dropdown
+      id: branch
+      attributes:
+          label: Branch
+          options:
+              - Release
+              - Development
+          default: 0
+      validations:
+          required: true
+
+    - type: input
+      id: commit
+      attributes:
+          label: Commit Hash
+          description: The commit where the bug was found
+          placeholder: 5fd7d6c (get using git rev-parse --short HEAD)
+
+    - type: dropdown
+      id: browser
+      attributes:
+          label: Browser (if applicable)
+          description: Which browser are you using?
+          options:
+              - Not applicable
+              - Chrome
+              - Firefox
+              - Safari
+              - Edge
+              - Opera
+              - Other
+          default: 0
+
+    - type: input
+      id: browser_version
+      attributes:
+          label: Browser Version (if applicable)
+          placeholder: e.g., Chrome 120.0.6099.109
+
+    - type: dropdown
+      id: os
+      attributes:
+          label: Operating System
+          description: What operating system are you using?
+          options:
+              - Windows
+              - macOS
+              - Linux
+              - iOS
+              - Android
+              - Other
+          default: 0
+      validations:
+          required: true
+
+    - type: textarea
+      id: description
+      attributes:
+          label: Bug Description
+          description: |
+              A clear and concise description of what the bug is.
+              Include what you expected to happen vs. what actually happened.
+          placeholder: |
+              Expected: The login button should redirect to the dashboard.
+              Actual: The login button shows a 404 error.
+      validations:
+          required: true
+
+    - type: textarea
+      id: steps_to_reproduce
+      attributes:
+          label: Steps to Reproduce
+          description: |
+              Provide step-by-step instructions to reproduce the bug.
+              Be as specific as possible.
+          placeholder: |
+              1. Go to login page
+              2. Enter valid credentials
+              3. Click Login button
+              4. See error message
+      validations:
+          required: true
+
+    - type: textarea
+      id: logs
+      attributes:
+          label: Error Logs/Console Output
+          description: |
+              Copy and paste any error messages from the terminal, browser console, or application logs.
+              Please format code blocks using triple backticks.
+          placeholder: |
+              Error: Cannot read property 'name' of undefined
+              at Component.render (/src/components/User.tsx:15:23)
+
+    - type: textarea
+      id: screenshots
+      attributes:
+          label: Screenshots/Videos
+          description: |
+              If applicable, add screenshots or videos to help explain the problem.
+              You can drag and drop images directly into this text area.
+          placeholder: Drag and drop screenshots here or paste image URLs.
+
+    - type: textarea
+      id: additional_context
+      attributes:
+          label: Additional Context
+          description: |
+              Add any other context about the problem here.
+              Include device specs, network conditions, or any other relevant information.
+          placeholder: |
+              - Device: iPhone 14 Pro
+              - Screen resolution: 1920x1080
+              - Network: WiFi
+              - Any workarounds you've tried

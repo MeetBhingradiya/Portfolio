@@ -24,14 +24,7 @@
 
 import { useState, useCallback } from "react";
 
-export type CDNAssetType =
-    | "icon"
-    | "avatar"
-    | "banner"
-    | "background"
-    | "video"
-    | "document"
-    | "other";
+export type CDNAssetType = "icon" | "avatar" | "banner" | "background" | "video" | "document" | "other";
 
 export interface UploadOptions {
     /** Asset category — controls the repo subfolder */
@@ -87,71 +80,66 @@ export function useCDNUpload(): UseCDNUpload {
         setProgress(0);
     }, []);
 
-    const upload = useCallback(
-        async (file: File, opts: UploadOptions = {}): Promise<UploadResult> => {
-            setUploading(true);
-            setError("");
-            setProgress(0);
+    const upload = useCallback(async (file: File, opts: UploadOptions = {}): Promise<UploadResult> => {
+        setUploading(true);
+        setError("");
+        setProgress(0);
 
-            try {
-                const fd = new FormData();
-                fd.append("file", file);
-                if (opts.type) fd.append("type", opts.type);
-                if (opts.altText) fd.append("altText", opts.altText);
-                if (opts.context) fd.append("context", opts.context);
+        try {
+            const fd = new FormData();
+            fd.append("file", file);
+            if (opts.type) fd.append("type", opts.type);
+            if (opts.altText) fd.append("altText", opts.altText);
+            if (opts.context) fd.append("context", opts.context);
 
-                const tagsStr = Array.isArray(opts.tags)
-                    ? opts.tags.join(",")
-                    : opts.tags || "";
-                if (tagsStr) fd.append("tags", tagsStr);
+            const tagsStr = Array.isArray(opts.tags) ? opts.tags.join(",") : opts.tags || "";
+            if (tagsStr) fd.append("tags", tagsStr);
 
-                // Use XMLHttpRequest so we can track upload progress
-                const result = await new Promise<UploadResult>((resolve, reject) => {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/api/cdn/upload");
+            // Use XMLHttpRequest so we can track upload progress
+            const result = await new Promise<UploadResult>((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open("POST", "/api/cdn/upload");
 
-                    xhr.upload.addEventListener("progress", (e) => {
-                        if (e.lengthComputable) {
-                            setProgress(Math.round((e.loaded / e.total) * 100));
-                        }
-                    });
-
-                    xhr.addEventListener("load", () => {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            try {
-                                resolve(JSON.parse(xhr.responseText) as UploadResult);
-                            } catch {
-                                reject(new Error("Invalid response from CDN upload API"));
-                            }
-                        } else {
-                            try {
-                                const { error } = JSON.parse(xhr.responseText);
-                                reject(new Error(error || `Upload failed (${xhr.status})`));
-                            } catch {
-                                reject(new Error(`Upload failed (${xhr.status})`));
-                            }
-                        }
-                    });
-
-                    xhr.addEventListener("error", () => reject(new Error("Network error during upload")));
-                    xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
-
-                    xhr.send(fd);
+                xhr.upload.addEventListener("progress", (e) => {
+                    if (e.lengthComputable) {
+                        setProgress(Math.round((e.loaded / e.total) * 100));
+                    }
                 });
 
-                setProgress(100);
-                setLastResult(result);
-                return result;
-            } catch (e: any) {
-                const msg = e?.message || "Upload failed";
-                setError(msg);
-                throw new Error(msg);
-            } finally {
-                setUploading(false);
-            }
-        },
-        []
-    );
+                xhr.addEventListener("load", () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        try {
+                            resolve(JSON.parse(xhr.responseText) as UploadResult);
+                        } catch {
+                            reject(new Error("Invalid response from CDN upload API"));
+                        }
+                    } else {
+                        try {
+                            const { error } = JSON.parse(xhr.responseText);
+                            reject(new Error(error || `Upload failed (${xhr.status})`));
+                        } catch {
+                            reject(new Error(`Upload failed (${xhr.status})`));
+                        }
+                    }
+                });
+
+                xhr.addEventListener("error", () => reject(new Error("Network error during upload")));
+                xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+
+                xhr.send(fd);
+            });
+
+            setProgress(100);
+            setLastResult(result);
+            return result;
+        } catch (e: any) {
+            const msg = e?.message || "Upload failed";
+            setError(msg);
+            throw new Error(msg);
+        } finally {
+            setUploading(false);
+        }
+    }, []);
 
     return { upload, uploading, progress, error, lastResult, reset };
 }

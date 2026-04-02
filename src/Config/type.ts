@@ -7,7 +7,8 @@ export interface EmailConfig {
     dmca: string;
 }
 
-export type Date_Time_Format = `${number | string}-${number | string}-${number | string} ${number | string}:${number | string} ${"AM" | "PM"}`;
+export type Date_Time_Format =
+    `${number | string}-${number | string}-${number | string} ${number | string}:${number | string} ${"AM" | "PM"}`;
 
 export interface NotificationConfig {
     enabled: boolean;
@@ -25,7 +26,6 @@ export interface NotificationConfig {
     };
 }
 
-
 // ? Main Config Type Structures
 interface Common_Config_Type {
     Environment?: "development" | "production" | "test";
@@ -38,10 +38,13 @@ export interface Client_Config_Type extends Common_Config_Type {
 }
 
 export interface Server_Config_Type extends Common_Config_Type {
+    Database: {
+        Name: string;
+    };
     Immich_Origins: string[];
     Immich_Endpoints: {
         Mobile_Redirect: string;
         Authorization: string;
         User_Settings: string;
-    }
+    };
 }

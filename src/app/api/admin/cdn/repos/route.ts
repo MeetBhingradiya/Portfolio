@@ -17,23 +17,19 @@ export async function GET(req: NextRequest) {
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const force = req.nextUrl.searchParams.get("refresh") === "1";
-        const [repos, _] = await Promise.all([
-            listCDNRepos(force),
-            dbConnect(),
-        ]);
+        const [repos, _] = await Promise.all([listCDNRepos(force), dbConnect()]);
 
         // Per-repo asset counts from MongoDB
-        const counts: { _id: string; count: number; totalSize: number }[] =
-            await CDNAsset.aggregate([
-                { $match: { status: { $ne: "deleted" } } },
-                {
-                    $group: {
-                        _id: "$githubRepo",
-                        count: { $sum: 1 },
-                        totalSize: { $sum: "$size" },
-                    },
-                },
-            ]);
+        const counts: { _id: string; count: number; totalSize: number }[] = await CDNAsset.aggregate([
+            { $match: { status: { $ne: "deleted" } } },
+            {
+                $group: {
+                    _id: "$githubRepo",
+                    count: { $sum: 1 },
+                    totalSize: { $sum: "$size" }
+                }
+            }
+        ]);
 
         const countMap = Object.fromEntries(counts.map((c) => [c._id, c]));
 
@@ -43,7 +39,7 @@ export async function GET(req: NextRequest) {
             sizeKb: r.sizeKb,
             private: r.private,
             assetCount: countMap[r.name]?.count ?? 0,
-            assetBytes: countMap[r.name]?.totalSize ?? 0,
+            assetBytes: countMap[r.name]?.totalSize ?? 0
         }));
 
         return NextResponse.json({ repos: enriched });

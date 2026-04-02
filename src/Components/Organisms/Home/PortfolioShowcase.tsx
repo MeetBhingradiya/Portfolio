@@ -9,14 +9,7 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
-import {
-    Code,
-    Work,
-    School,
-    OpenInNew,
-    GitHub,
-    ChevronRight
-} from "@mui/icons-material";
+import { Code, Work, School, OpenInNew, GitHub, ChevronRight } from "@mui/icons-material";
 
 // --------------------------------------------------------------------------
 // Types (mirror Portfolio model shapes — only fields we select)
@@ -61,23 +54,38 @@ interface PortfolioShowcaseProps {
 // --------------------------------------------------------------------------
 
 function formatPeriod(start?: string, end?: string, current?: boolean) {
-    const fmt = (d?: string) => d ? new Date(d).toLocaleDateString("en-IN", { month: "short", year: "numeric" }) : "";
+    const fmt = (d?: string) =>
+        d
+            ? new Date(d).toLocaleDateString("en-IN", {
+                  month: "short",
+                  year: "numeric"
+              })
+            : "";
     return `${fmt(start)} – ${current ? "Present" : fmt(end)}`.replace(/^ – /, "");
 }
 
 function groupBy<T>(arr: T[], key: keyof T): Record<string, T[]> {
-    return arr.reduce((acc, item) => {
-        const k = String(item[key] ?? "Other");
-        (acc[k] = acc[k] || []).push(item);
-        return acc;
-    }, {} as Record<string, T[]>);
+    return arr.reduce(
+        (acc, item) => {
+            const k = String(item[key] ?? "Other");
+            (acc[k] = acc[k] || []).push(item);
+            return acc;
+        },
+        {} as Record<string, T[]>
+    );
 }
 
 // --------------------------------------------------------------------------
 // Sub-components
 // --------------------------------------------------------------------------
 
-function SectionHeader({ title, subtitle, icon, palette, isApple }: {
+function SectionHeader({
+    title,
+    subtitle,
+    icon,
+    palette,
+    isApple
+}: {
     title: string;
     subtitle?: string;
     icon: React.ReactNode;
@@ -90,22 +98,19 @@ function SectionHeader({ title, subtitle, icon, palette, isApple }: {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-        >
+            transition={{ duration: 0.5 }}>
             <div className="flex items-center gap-3">
                 <span style={{ color: palette.accent }}>{icon}</span>
                 <h2
                     className={isApple ? "text-3xl font-bold" : "text-4xl font-black"}
-                    style={{ color: palette.textPrimary }}
-                >
+                    style={{ color: palette.textPrimary }}>
                     {title}
                 </h2>
             </div>
             {subtitle && (
                 <p
                     className={isApple ? "text-base" : "text-lg font-medium"}
-                    style={{ color: palette.textSecondary }}
-                >
+                    style={{ color: palette.textSecondary }}>
                     {subtitle}
                 </p>
             )}
@@ -117,31 +122,28 @@ function SectionHeader({ title, subtitle, icon, palette, isApple }: {
 // Projects Section
 // --------------------------------------------------------------------------
 
-function ProjectsSection({ projects, palette, isDark, isApple }: {
-    projects: Project[];
-    palette: any;
-    isDark: boolean;
-    isApple: boolean;
-}) {
+function ProjectsSection({ projects, palette, isDark, isApple }: { projects: Project[]; palette: any; isDark: boolean; isApple: boolean }) {
     const [filter, setFilter] = useState<string>("All");
-    const types = ["All", ...Array.from(new Set(projects.map(p => p.Type ?? "Other")))];
-    const shown = filter === "All" ? projects : projects.filter(p => (p.Type ?? "Other") === filter);
+    const types = ["All", ...Array.from(new Set(projects.map((p) => p.Type ?? "Other")))];
+    const shown = filter === "All" ? projects : projects.filter((p) => (p.Type ?? "Other") === filter);
 
     const cardBase: React.CSSProperties = {
         background: isApple
             ? isDark
                 ? "linear-gradient(180deg,rgba(58,58,60,0.6) 0%,rgba(44,44,46,0.55) 100%)"
                 : "linear-gradient(180deg,rgba(255,255,255,0.65) 0%,rgba(250,250,250,0.6) 100%)"
-            : isDark ? "rgba(28,28,32,0.95)" : "#fff",
+            : isDark
+              ? "rgba(28,28,32,0.95)"
+              : "#fff",
         border: isApple
-            ? isDark ? "0.5px solid rgba(255,255,255,0.12)" : "0.5px solid rgba(255,255,255,0.8)"
+            ? isDark
+                ? "0.5px solid rgba(255,255,255,0.12)"
+                : "0.5px solid rgba(255,255,255,0.8)"
             : `1px solid ${palette.border}`,
         borderRadius: isApple ? "20px" : "24px",
         backdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
         WebkitBackdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
-        boxShadow: isApple
-            ? isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 16px rgba(0,0,0,0.08)"
-            : "none",
+        boxShadow: isApple ? (isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 16px rgba(0,0,0,0.08)") : "none",
         overflow: "hidden",
         position: "relative"
     };
@@ -160,7 +162,7 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
 
             {/* Filter pills */}
             <div className="flex flex-wrap gap-2 mb-8">
-                {types.map(t => (
+                {types.map((t) => (
                     <button
                         key={t}
                         onClick={() => setFilter(t)}
@@ -169,8 +171,7 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
                             background: filter === t ? palette.accent : "transparent",
                             color: filter === t ? "#fff" : palette.textSecondary,
                             border: `1px solid ${filter === t ? palette.accent : palette.border}`
-                        }}
-                    >
+                        }}>
                         {t}
                     </button>
                 ))}
@@ -186,8 +187,7 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
                         viewport={{ once: true }}
                         transition={{ duration: 0.45, delay: i * 0.06 }}
                         whileHover={{ y: -4, transition: { duration: 0.2 } }}
-                        className="flex flex-col p-6 gap-4"
-                    >
+                        className="flex flex-col p-6 gap-4">
                         {/* Apple glass sheen */}
                         {isApple && (
                             <div
@@ -205,26 +205,40 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
                             <div>
                                 <span
                                     className="text-xs font-bold uppercase tracking-widest"
-                                    style={{ color: palette.accent }}
-                                >
+                                    style={{ color: palette.accent }}>
                                     {project.Type ?? "Project"}
                                 </span>
                                 <h3
                                     className={isApple ? "text-lg font-semibold mt-1" : "text-xl font-bold mt-1"}
-                                    style={{ color: palette.textPrimary }}
-                                >
+                                    style={{ color: palette.textPrimary }}>
                                     {project.Title}
                                 </h3>
                             </div>
                             <div className="flex gap-2 shrink-0">
                                 {project.GitHubURL && (
-                                    <a href={project.GitHubURL} target="_blank" rel="noopener noreferrer">
-                                        <GitHub style={{ color: palette.textTertiary, fontSize: 20 }} />
+                                    <a
+                                        href={project.GitHubURL}
+                                        target="_blank"
+                                        rel="noopener noreferrer">
+                                        <GitHub
+                                            style={{
+                                                color: palette.textTertiary,
+                                                fontSize: 20
+                                            }}
+                                        />
                                     </a>
                                 )}
                                 {project.LiveURL && (
-                                    <a href={project.LiveURL} target="_blank" rel="noopener noreferrer">
-                                        <OpenInNew style={{ color: palette.accent, fontSize: 20 }} />
+                                    <a
+                                        href={project.LiveURL}
+                                        target="_blank"
+                                        rel="noopener noreferrer">
+                                        <OpenInNew
+                                            style={{
+                                                color: palette.accent,
+                                                fontSize: 20
+                                            }}
+                                        />
                                     </a>
                                 )}
                             </div>
@@ -233,15 +247,14 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
                         {project.Description && (
                             <p
                                 className="text-sm leading-relaxed line-clamp-3 relative z-10"
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 {project.Description}
                             </p>
                         )}
 
                         {!!project.TechStack?.length && (
                             <div className="flex flex-wrap gap-1.5 relative z-10 mt-auto">
-                                {project.TechStack.slice(0, 5).map(t => (
+                                {project.TechStack.slice(0, 5).map((t) => (
                                     <span
                                         key={t}
                                         className="px-2 py-0.5 rounded-full text-xs"
@@ -249,13 +262,14 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
                                             background: `${palette.accent}18`,
                                             color: palette.accent,
                                             border: `0.5px solid ${palette.accent}30`
-                                        }}
-                                    >
+                                        }}>
                                         {t}
                                     </span>
                                 ))}
                                 {(project.TechStack.length ?? 0) > 5 && (
-                                    <span className="text-xs" style={{ color: palette.textTertiary }}>
+                                    <span
+                                        className="text-xs"
+                                        style={{ color: palette.textTertiary }}>
                                         +{project.TechStack.length - 5}
                                     </span>
                                 )}
@@ -269,8 +283,7 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
                 <a
                     href="/projects"
                     className="inline-flex items-center gap-1 text-sm font-semibold"
-                    style={{ color: palette.accent }}
-                >
+                    style={{ color: palette.accent }}>
                     View all projects <ChevronRight fontSize="small" />
                 </a>
             </div>
@@ -282,12 +295,7 @@ function ProjectsSection({ projects, palette, isDark, isApple }: {
 // Skills Section
 // --------------------------------------------------------------------------
 
-function SkillsSection({ skills, palette, isDark, isApple }: {
-    skills: Skill[];
-    palette: any;
-    isDark: boolean;
-    isApple: boolean;
-}) {
+function SkillsSection({ skills, palette, isDark, isApple }: { skills: Skill[]; palette: any; isDark: boolean; isApple: boolean }) {
     if (!skills.length) return null;
     const grouped = groupBy(skills, "Category");
 
@@ -296,10 +304,13 @@ function SkillsSection({ skills, palette, isDark, isApple }: {
             className="py-20 px-4 md:px-8"
             style={{
                 background: isApple
-                    ? isDark ? "rgba(18,18,20,0.5)" : "rgba(245,245,247,0.5)"
-                    : isDark ? "rgba(18,18,22,0.6)" : "rgba(248,248,252,0.6)"
-            }}
-        >
+                    ? isDark
+                        ? "rgba(18,18,20,0.5)"
+                        : "rgba(245,245,247,0.5)"
+                    : isDark
+                      ? "rgba(18,18,22,0.6)"
+                      : "rgba(248,248,252,0.6)"
+            }}>
             <div className="max-w-7xl mx-auto">
                 <SectionHeader
                     title="Skills"
@@ -316,12 +327,10 @@ function SkillsSection({ skills, palette, isDark, isApple }: {
                             initial={{ opacity: 0, x: -20 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: ci * 0.08 }}
-                        >
+                            transition={{ duration: 0.5, delay: ci * 0.08 }}>
                             <h3
                                 className="text-xs font-black uppercase tracking-[0.15em] mb-4"
-                                style={{ color: palette.textTertiary }}
-                            >
+                                style={{ color: palette.textTertiary }}>
                                 {cat}
                             </h3>
                             <div className="flex flex-wrap gap-2.5">
@@ -331,28 +340,41 @@ function SkillsSection({ skills, palette, isDark, isApple }: {
                                         className="flex items-center gap-2 px-4 py-2 rounded-full"
                                         style={{
                                             background: isApple
-                                                ? isDark ? "rgba(58,58,60,0.55)" : "rgba(255,255,255,0.65)"
-                                                : isDark ? "rgba(38,38,42,0.9)" : "#fff",
+                                                ? isDark
+                                                    ? "rgba(58,58,60,0.55)"
+                                                    : "rgba(255,255,255,0.65)"
+                                                : isDark
+                                                  ? "rgba(38,38,42,0.9)"
+                                                  : "#fff",
                                             border: isApple
-                                                ? isDark ? "0.5px solid rgba(255,255,255,0.12)" : "0.5px solid rgba(255,255,255,0.8)"
+                                                ? isDark
+                                                    ? "0.5px solid rgba(255,255,255,0.12)"
+                                                    : "0.5px solid rgba(255,255,255,0.8)"
                                                 : `1px solid ${palette.border}`,
                                             backdropFilter: isApple ? "blur(20px)" : "none",
-                                            WebkitBackdropFilter: isApple ? "blur(20px)" : "none",
+                                            WebkitBackdropFilter: isApple ? "blur(20px)" : "none"
                                         }}
                                         initial={{ opacity: 0, scale: 0.85 }}
                                         whileInView={{ opacity: 1, scale: 1 }}
                                         viewport={{ once: true }}
-                                        transition={{ duration: 0.3, delay: ci * 0.08 + si * 0.03 }}
-                                        whileHover={{ scale: 1.05 }}
-                                    >
+                                        transition={{
+                                            duration: 0.3,
+                                            delay: ci * 0.08 + si * 0.03
+                                        }}
+                                        whileHover={{ scale: 1.05 }}>
                                         <span
                                             className={isApple ? "text-sm font-medium" : "text-sm font-bold"}
-                                            style={{ color: palette.textPrimary }}
-                                        >
+                                            style={{
+                                                color: palette.textPrimary
+                                            }}>
                                             {skill.Name}
                                         </span>
                                         {typeof skill.Level === "number" && (
-                                            <span className="text-xs" style={{ color: palette.accent }}>
+                                            <span
+                                                className="text-xs"
+                                                style={{
+                                                    color: palette.accent
+                                                }}>
                                                 {skill.Level}%
                                             </span>
                                         )}
@@ -371,7 +393,12 @@ function SkillsSection({ skills, palette, isDark, isApple }: {
 // Experience Section
 // --------------------------------------------------------------------------
 
-function ExperienceSection({ experiences, palette, isDark, isApple }: {
+function ExperienceSection({
+    experiences,
+    palette,
+    isDark,
+    isApple
+}: {
     experiences: Experience[];
     palette: any;
     isDark: boolean;
@@ -384,16 +411,18 @@ function ExperienceSection({ experiences, palette, isDark, isApple }: {
             ? isDark
                 ? "linear-gradient(180deg,rgba(58,58,60,0.6) 0%,rgba(44,44,46,0.55) 100%)"
                 : "linear-gradient(180deg,rgba(255,255,255,0.65) 0%,rgba(250,250,250,0.6) 100%)"
-            : isDark ? "rgba(28,28,32,0.95)" : "#fff",
+            : isDark
+              ? "rgba(28,28,32,0.95)"
+              : "#fff",
         border: isApple
-            ? isDark ? "0.5px solid rgba(255,255,255,0.12)" : "0.5px solid rgba(255,255,255,0.8)"
+            ? isDark
+                ? "0.5px solid rgba(255,255,255,0.12)"
+                : "0.5px solid rgba(255,255,255,0.8)"
             : `1px solid ${palette.border}`,
         borderRadius: isApple ? "20px" : "24px",
         backdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
         WebkitBackdropFilter: isApple ? "blur(40px) saturate(180%)" : "none",
-        boxShadow: isApple
-            ? isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 16px rgba(0,0,0,0.08)"
-            : "none",
+        boxShadow: isApple ? (isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 16px rgba(0,0,0,0.08)") : "none",
         position: "relative",
         overflow: "hidden"
     };
@@ -417,8 +446,7 @@ function ExperienceSection({ experiences, palette, isDark, isApple }: {
                         initial={{ opacity: 0, x: -24 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: i * 0.08 }}
-                    >
+                        transition={{ duration: 0.5, delay: i * 0.08 }}>
                         {isApple && (
                             <div
                                 className="absolute inset-x-0 top-0 h-1/4 pointer-events-none"
@@ -433,14 +461,12 @@ function ExperienceSection({ experiences, palette, isDark, isApple }: {
                             <div>
                                 <h3
                                     className={isApple ? "text-lg font-semibold" : "text-xl font-bold"}
-                                    style={{ color: palette.textPrimary }}
-                                >
+                                    style={{ color: palette.textPrimary }}>
                                     {exp.Role}
                                 </h3>
                                 <p
                                     className={isApple ? "text-base font-medium mt-0.5" : "text-base font-bold mt-0.5"}
-                                    style={{ color: palette.accent }}
-                                >
+                                    style={{ color: palette.accent }}>
                                     {exp.Company}
                                 </p>
                             </div>
@@ -449,16 +475,14 @@ function ExperienceSection({ experiences, palette, isDark, isApple }: {
                                 style={{
                                     background: exp.Current ? `${palette.accent}20` : `${palette.textTertiary}15`,
                                     color: exp.Current ? palette.accent : palette.textTertiary
-                                }}
-                            >
+                                }}>
                                 {formatPeriod(exp.StartDate, exp.EndDate, exp.Current)}
                             </span>
                         </div>
                         {exp.Description && (
                             <p
                                 className="text-sm leading-relaxed mt-3 line-clamp-2 relative z-10"
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 {exp.Description}
                             </p>
                         )}
@@ -470,8 +494,7 @@ function ExperienceSection({ experiences, palette, isDark, isApple }: {
                 <a
                     href="/timeline"
                     className="inline-flex items-center gap-1 text-sm font-semibold"
-                    style={{ color: palette.accent }}
-                >
+                    style={{ color: palette.accent }}>
                     Full timeline <ChevronRight fontSize="small" />
                 </a>
             </div>

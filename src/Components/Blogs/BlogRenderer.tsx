@@ -29,10 +29,14 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
     };
 
     return (
-        <div className="relative group rounded-xl overflow-hidden my-4"
-            style={{ border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}` }}>
+        <div
+            className="relative group rounded-xl overflow-hidden my-4"
+            style={{
+                border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
+            }}>
             {/* Header bar */}
-            <div className="flex items-center justify-between px-4 py-2"
+            <div
+                className="flex items-center justify-between px-4 py-2"
                 style={{
                     background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
                     borderBottom: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.06)"}`
@@ -44,13 +48,13 @@ function CodeBlock({ code, language }: { code: string; language: string }) {
                     style={{
                         background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
                         color: copied ? "#22c55e" : palette.textSecondary
-                    }}
-                >
+                    }}>
                     {copied ? <CheckIcon style={{ fontSize: 12 }} /> : <ContentCopyIcon style={{ fontSize: 12 }} />}
                     {copied ? "Copied" : "Copy"}
                 </button>
             </div>
-            <pre className="p-4 overflow-x-auto text-sm font-mono leading-relaxed m-0"
+            <pre
+                className="p-4 overflow-x-auto text-sm font-mono leading-relaxed m-0"
                 style={{
                     background: isDark ? "rgba(0,0,0,0.6)" : "rgba(248,248,252,1)",
                     color: isDark ? "#e2e8f0" : "#1e293b"
@@ -73,8 +77,7 @@ export default function BlogRenderer({ content, className = "" }: BlogRendererPr
     return (
         <div
             className={`blog-renderer ${className}`}
-            data-color-mode={isDark ? "dark" : "light"}
-        >
+            data-color-mode={isDark ? "dark" : "light"}>
             <MarkdownPreview
                 source={content}
                 wrapperElement={{ "data-color-mode": isDark ? "dark" : "light" } as any}
@@ -114,19 +117,25 @@ export default function BlogRenderer({ content, className = "" }: BlogRendererPr
                                     style={{
                                         background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)",
                                         color: palette.accent
-                                    }}
-                                >
+                                    }}>
                                     {children}
                                 </code>
                             );
                         }
 
-                        return <CodeBlock code={code} language={language} />;
+                        return (
+                            <CodeBlock
+                                code={code}
+                                language={language}
+                            />
+                        );
                     }
                 }}
             />
 
-            <style jsx global>{`
+            <style
+                jsx
+                global>{`
                 .blog-renderer .wmde-markdown {
                     background: transparent !important;
                     font-family: inherit !important;
@@ -140,14 +149,39 @@ export default function BlogRenderer({ content, className = "" }: BlogRendererPr
                     border: none !important;
                     padding-bottom: 0 !important;
                 }
-                .blog-renderer .wmde-markdown h1 { font-size: 2rem; margin-top: 1.2rem; margin-bottom: 0.4rem; }
-                .blog-renderer .wmde-markdown h2 { font-size: 1.5rem; margin-top: 1rem; margin-bottom: 0.3rem; }
-                .blog-renderer .wmde-markdown h3 { font-size: 1.25rem; margin-top: 0.8rem; margin-bottom: 0.25rem; }
-                .blog-renderer .wmde-markdown p { color: ${palette.textSecondary} !important; margin-top: 0.5rem; margin-bottom: 0.5rem; }
+                .blog-renderer .wmde-markdown h1 {
+                    font-size: 2rem;
+                    margin-top: 1.2rem;
+                    margin-bottom: 0.4rem;
+                }
+                .blog-renderer .wmde-markdown h2 {
+                    font-size: 1.5rem;
+                    margin-top: 1rem;
+                    margin-bottom: 0.3rem;
+                }
+                .blog-renderer .wmde-markdown h3 {
+                    font-size: 1.25rem;
+                    margin-top: 0.8rem;
+                    margin-bottom: 0.25rem;
+                }
+                .blog-renderer .wmde-markdown p {
+                    color: ${palette.textSecondary} !important;
+                    margin-top: 0.5rem;
+                    margin-bottom: 0.5rem;
+                }
                 .blog-renderer .wmde-markdown ul,
-                .blog-renderer .wmde-markdown ol { margin-top: 0.4rem; margin-bottom: 0.4rem; padding-left: 1.5rem; }
-                .blog-renderer .wmde-markdown li { margin-top: 0.15rem; margin-bottom: 0.15rem; }
-                .blog-renderer .wmde-markdown a { color: ${palette.accent} !important; }
+                .blog-renderer .wmde-markdown ol {
+                    margin-top: 0.4rem;
+                    margin-bottom: 0.4rem;
+                    padding-left: 1.5rem;
+                }
+                .blog-renderer .wmde-markdown li {
+                    margin-top: 0.15rem;
+                    margin-bottom: 0.15rem;
+                }
+                .blog-renderer .wmde-markdown a {
+                    color: ${palette.accent} !important;
+                }
                 .blog-renderer .wmde-markdown blockquote {
                     border-left: 3px solid ${palette.accent} !important;
                     background: ${palette.accent}10 !important;
@@ -177,7 +211,10 @@ export default function BlogRenderer({ content, className = "" }: BlogRendererPr
                 .blog-renderer .wmde-markdown hr {
                     border-color: ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"} !important;
                 }
-                .blog-renderer .wmde-markdown pre { margin: 0 !important; background: transparent !important; }
+                .blog-renderer .wmde-markdown pre {
+                    margin: 0 !important;
+                    background: transparent !important;
+                }
             `}</style>
         </div>
     );

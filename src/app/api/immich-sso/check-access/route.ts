@@ -18,7 +18,10 @@ export async function POST(req: NextRequest) {
         // Must be an authenticated user making their own access check
         const session = await getSession(req.headers);
         if (!session?.user?.email) {
-            return NextResponse.json({ granted: false, reason: "unauthenticated" });
+            return NextResponse.json({
+                granted: false,
+                reason: "unauthenticated"
+            });
         }
 
         const body = await req.json().catch(() => ({}));
@@ -26,18 +29,26 @@ export async function POST(req: NextRequest) {
 
         // Validate the requested email matches the session (prevent probing)
         if (!email || email.toLowerCase() !== session.user.email.toLowerCase()) {
-            return NextResponse.json({ granted: false, reason: "email_mismatch" });
+            return NextResponse.json({
+                granted: false,
+                reason: "email_mismatch"
+            });
         }
 
         await dbConnect();
 
         const entry = await ImmichWhitelist.findOne({
-            email: { $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
-            enabled: true,
+            email: {
+                $regex: new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i")
+            },
+            enabled: true
         }).lean();
 
         if (!entry) {
-            return NextResponse.json({ granted: false, reason: "not_whitelisted" });
+            return NextResponse.json({
+                granted: false,
+                reason: "not_whitelisted"
+            });
         }
 
         return NextResponse.json({ granted: true });

@@ -32,7 +32,9 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     if (!checkSubmitAbuse(ip)) {
         return NextResponse.json(
-            { error: "You have submitted too many applications. Please wait 24 hours." },
+            {
+                error: "You have submitted too many applications. Please wait 24 hours."
+            },
             { status: 429 }
         );
     }
@@ -51,16 +53,16 @@ export async function POST(req: NextRequest) {
             appOrganisation,
             requestedPlan,
             expectedMonthlyRequests,
-            useCaseDetails,
+            useCaseDetails
         } = body as Record<string, any>;
 
         // ── Validation ────────────────────────────────────────────────────
         const errors: string[] = [];
-        if (!applicantName?.trim())   errors.push("applicantName is required.");
-        if (!applicantEmail?.trim())  errors.push("applicantEmail is required.");
-        if (!appName?.trim())         errors.push("appName is required.");
-        if (!appDescription?.trim())  errors.push("appDescription is required.");
-        if (!useCaseDetails?.trim())  errors.push("useCaseDetails is required.");
+        if (!applicantName?.trim()) errors.push("applicantName is required.");
+        if (!applicantEmail?.trim()) errors.push("applicantEmail is required.");
+        if (!appName?.trim()) errors.push("appName is required.");
+        if (!appDescription?.trim()) errors.push("appDescription is required.");
+        if (!useCaseDetails?.trim()) errors.push("useCaseDetails is required.");
 
         const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (applicantEmail && !emailRe.test(applicantEmail)) {
@@ -80,36 +82,38 @@ export async function POST(req: NextRequest) {
         const duplicate = await CDNApplication.findOne({
             applicantEmail: applicantEmail.trim().toLowerCase(),
             appName: appName.trim(),
-            status: { $in: ["pending", "approved"] },
+            status: { $in: ["pending", "approved"] }
         }).lean();
 
         if (duplicate) {
             return NextResponse.json(
-                { error: "An active application for this app name already exists under your email." },
+                {
+                    error: "An active application for this app name already exists under your email."
+                },
                 { status: 409 }
             );
         }
 
         const doc = await CDNApplication.create({
-            applicantName:           applicantName.trim(),
-            applicantEmail:          applicantEmail.trim().toLowerCase(),
-            applicantUserId:         applicantUserId?.trim() || undefined,
-            appName:                 appName.trim(),
-            appDescription:          appDescription.trim(),
-            appWebsite:              appWebsite?.trim() || undefined,
-            appGithub:               appGithub?.trim() || undefined,
-            appOrganisation:         appOrganisation?.trim() || undefined,
-            requestedPlan:           plan,
+            applicantName: applicantName.trim(),
+            applicantEmail: applicantEmail.trim().toLowerCase(),
+            applicantUserId: applicantUserId?.trim() || undefined,
+            appName: appName.trim(),
+            appDescription: appDescription.trim(),
+            appWebsite: appWebsite?.trim() || undefined,
+            appGithub: appGithub?.trim() || undefined,
+            appOrganisation: appOrganisation?.trim() || undefined,
+            requestedPlan: plan,
             expectedMonthlyRequests: expectedMonthlyRequests ? Number(expectedMonthlyRequests) : undefined,
-            useCaseDetails:          useCaseDetails.trim(),
-            status:                  "pending",
+            useCaseDetails: useCaseDetails.trim(),
+            status: "pending"
         });
 
         return NextResponse.json(
             {
                 applicationId: doc._id.toString(),
                 status: doc.status,
-                message: "Application submitted. You will be notified by email once reviewed.",
+                message: "Application submitted. You will be notified by email once reviewed."
             },
             { status: 201 }
         );

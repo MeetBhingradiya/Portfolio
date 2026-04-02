@@ -12,7 +12,7 @@ export interface ICartItem {
     variantId: string;
     variantName: string;
     productType: string;
-    price: number;        // in cents, snapshot at add time
+    price: number; // in cents, snapshot at add time
     currency: string;
     billingCycle?: string;
     quantity: number;
@@ -38,7 +38,7 @@ const CartItemSchema = new Schema<ICartItem>(
         currency: { type: String, required: true, default: "USD" },
         billingCycle: { type: String },
         quantity: { type: Number, required: true, min: 1, default: 1 },
-        addedAt: { type: Date, default: Date.now },
+        addedAt: { type: Date, default: Date.now }
     },
     { _id: false }
 );
@@ -46,10 +46,9 @@ const CartItemSchema = new Schema<ICartItem>(
 const CartSchema = new Schema<ICart>(
     {
         userId: { type: String, required: true, unique: true, index: true },
-        items: { type: [CartItemSchema], default: [] },
+        items: { type: [CartItemSchema], default: [] }
     },
     { timestamps: true }
 );
 
-export const Cart =
-    mongoose.models.Cart || mongoose.model<ICart>("Cart", CartSchema);
+export const Cart = mongoose.models.Cart || mongoose.model<ICart>("Cart", CartSchema);

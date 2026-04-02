@@ -41,9 +41,7 @@ function isBypassPath(pathname: string): boolean {
 }
 
 // ── Fetch maintenance status with cache ─────────────────────────────────
-async function getMaintenanceStatus(
-    baseUrl: string
-): Promise<MaintenanceCache> {
+async function getMaintenanceStatus(baseUrl: string): Promise<MaintenanceCache> {
     if (Date.now() - cache.ts < CACHE_TTL_MS) {
         return cache;
     }
@@ -72,11 +70,7 @@ async function isAdminBypassed(request: NextRequest): Promise<boolean> {
     if (!bypassCookie) return false;
 
     try {
-        const secret = new TextEncoder().encode(
-            process.env.ADMIN_SIGNATURE ||
-                process.env.NEXTAUTH_SECRET ||
-                "fallback-secret-change-me"
-        );
+        const secret = new TextEncoder().encode(process.env.ADMIN_SIGNATURE || process.env.NEXTAUTH_SECRET || "fallback-secret-change-me");
         const { payload } = await jwtVerify(bypassCookie, secret);
         return payload.isAdmin === true;
     } catch {

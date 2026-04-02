@@ -19,7 +19,13 @@ export async function POST(req: NextRequest) {
 
         const ext = file.name.split(".").pop()?.toLowerCase();
         if (ext !== "md" && ext !== "markdown") {
-            return NextResponse.json({ success: false, error: "Only .md/.markdown files are accepted" }, { status: 415 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Only .md/.markdown files are accepted"
+                },
+                { status: 415 }
+            );
         }
 
         if (file.size > 2 * 1024 * 1024) {
@@ -51,7 +57,10 @@ export async function POST(req: NextRequest) {
             }
         }
 
-        return NextResponse.json({ success: true, data: { content, title, excerpt, tags } });
+        return NextResponse.json({
+            success: true,
+            data: { content, title, excerpt, tags }
+        });
     } catch (err: any) {
         if (err?.message === "Forbidden: Admin only" || err?.message?.includes("auth")) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });

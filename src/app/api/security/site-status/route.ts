@@ -16,10 +16,7 @@ export async function GET(): Promise<NextResponse> {
     try {
         await dbConnect();
         const settings = await getSiteSettings();
-        return NextResponse.json(
-            { maintenanceMode: settings.maintenanceMode ?? false },
-            { status: 200 }
-        );
+        return NextResponse.json({ maintenanceMode: settings.maintenanceMode ?? false }, { status: 200 });
     } catch {
         // On DB error fall back to "not in maintenance" so the shield
         // still redirects sensibly (home/back) rather than showing a

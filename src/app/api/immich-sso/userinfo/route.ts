@@ -22,14 +22,18 @@ export async function POST(req: NextRequest) {
 async function handleUserInfo(req: NextRequest): Promise<NextResponse> {
     // Extract Bearer token
     const authHeader = req.headers.get("authorization");
-    const token = authHeader?.startsWith("Bearer ")
-        ? authHeader.slice(7)
-        : null;
+    const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
 
     if (!token) {
         return NextResponse.json(
-            { error: "invalid_token", error_description: "Missing access token" },
-            { status: 401, headers: { "WWW-Authenticate": 'Bearer error="invalid_token"' } }
+            {
+                error: "invalid_token",
+                error_description: "Missing access token"
+            },
+            {
+                status: 401,
+                headers: { "WWW-Authenticate": 'Bearer error="invalid_token"' }
+            }
         );
     }
 
@@ -41,13 +45,19 @@ async function handleUserInfo(req: NextRequest): Promise<NextResponse> {
     try {
         const result = await jwtVerify(token, publicKey, {
             issuer,
-            algorithms: ["RS256"],
+            algorithms: ["RS256"]
         });
         payload = result.payload;
     } catch (err: any) {
         return NextResponse.json(
-            { error: "invalid_token", error_description: "Token verification failed" },
-            { status: 401, headers: { "WWW-Authenticate": 'Bearer error="invalid_token"' } }
+            {
+                error: "invalid_token",
+                error_description: "Token verification failed"
+            },
+            {
+                status: 401,
+                headers: { "WWW-Authenticate": 'Bearer error="invalid_token"' }
+            }
         );
     }
 
@@ -57,13 +67,13 @@ async function handleUserInfo(req: NextRequest): Promise<NextResponse> {
             email: payload.email as string,
             name: payload.name as string,
             email_verified: true,
-            preferred_username: (payload.email as string)?.split("@")[0],
+            preferred_username: (payload.email as string)?.split("@")[0]
         },
         {
             headers: {
                 "Cache-Control": "no-store",
-                "Access-Control-Allow-Origin": "*",
-            },
+                "Access-Control-Allow-Origin": "*"
+            }
         }
     );
 }
@@ -74,7 +84,7 @@ export async function OPTIONS() {
         headers: {
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Authorization, Content-Type",
-        },
+            "Access-Control-Allow-Headers": "Authorization, Content-Type"
+        }
     });
 }

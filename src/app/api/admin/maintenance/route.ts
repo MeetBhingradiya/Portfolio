@@ -20,14 +20,8 @@ const BYPASS_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 /** Create a signed bypass JWT for Edge middleware */
 async function makeBypassToken(): Promise<string> {
-    const secret = new TextEncoder().encode(
-        process.env.ADMIN_SIGNATURE || process.env.NEXTAUTH_SECRET || "fallback-secret-change-me"
-    );
-    return new SignJWT({ isAdmin: true })
-        .setProtectedHeader({ alg: "HS256" })
-        .setExpirationTime("7d")
-        .setIssuedAt()
-        .sign(secret);
+    const secret = new TextEncoder().encode(process.env.ADMIN_SIGNATURE || process.env.NEXTAUTH_SECRET || "fallback-secret-change-me");
+    return new SignJWT({ isAdmin: true }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("7d").setIssuedAt().sign(secret);
 }
 
 function setBypassCookie(response: NextResponse, token: string) {
@@ -92,7 +86,13 @@ export async function POST(req: NextRequest) {
         };
 
         if (typeof maintenanceMode !== "boolean") {
-            return NextResponse.json({ success: false, error: "maintenanceMode (boolean) is required" }, { status: 400 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "maintenanceMode (boolean) is required"
+                },
+                { status: 400 }
+            );
         }
 
         const session = await getSession(req.headers);

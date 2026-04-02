@@ -13,7 +13,7 @@ export const Config: Client_Config_Type = {
                 href: ""
             },
             dismissible: true
-        },
+        }
     ],
     Emails: {
         domain: "meetbhingradiya.shop",
@@ -24,4 +24,4 @@ export const Config: Client_Config_Type = {
         dmca: "dmca@meetbhingradiya.shop"
     },
     Origin: process.env.NODE_ENV === "production" ? "https://www.meetbhingradiya.in" : "http://localhost:3000"
-}
+};

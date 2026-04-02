@@ -23,7 +23,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/todo`,
         title: "Todo List | Meet Bhingradiya Tools",
         description: "Minimal drag-and-drop todo list that saves in the browser — no account needed.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Todo List Tool" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Todo List Tool"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

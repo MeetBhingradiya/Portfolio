@@ -27,11 +27,7 @@ export async function GET(request: NextRequest) {
         }
 
         // Fetch products
-        const products = await Product.find(query)
-            .select("-__v")
-            .limit(limit)
-            .skip(skip)
-            .sort({ CreateDate: -1 });
+        const products = await Product.find(query).select("-__v").limit(limit).skip(skip).sort({ CreateDate: -1 });
 
         const total = await Product.countDocuments(query);
 

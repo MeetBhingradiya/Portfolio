@@ -15,10 +15,9 @@ export default function PaperKnifeProvider({ children }: { children: ReactNode }
                 duration={2000}
                 toastOptions={{
                     className: "mt-10",
-                    style: { zIndex: 1100 },
+                    style: { zIndex: 1100 }
                 }}
             />
         </PipelineProvider>
     );
 }
-

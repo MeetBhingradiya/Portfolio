@@ -22,9 +22,15 @@ export const metadata: Metadata = {
         type: "website",
         url: `${Config.Origin}/tools/qr`,
         title: "QR Code Generator | Meet Bhingradiya Tools",
-        description:
-            "Generate custom QR codes for URLs, WiFi, UPI, vCard, email and more — free and client-side.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "QR Code Generator" }]
+        description: "Generate custom QR codes for URLs, WiFi, UPI, vCard, email and more — free and client-side.",
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "QR Code Generator"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

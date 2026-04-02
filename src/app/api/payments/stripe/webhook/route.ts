@@ -18,9 +18,9 @@ import { PLAN_DEFAULTS } from "@Models/CDNAPIKey";
 
 export async function POST(req: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-        apiVersion: "2026-02-25.clover",
+        apiVersion: "2026-02-25.clover"
     });
-    const rawBody   = await req.text();
+    const rawBody = await req.text();
     const signature = req.headers.get("stripe-signature") || "";
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
@@ -39,31 +39,32 @@ export async function POST(req: NextRequest) {
             // ── Checkout completed ────────────────────────────────────────
             case "checkout.session.completed": {
                 const sess = event.data.object as Stripe.Checkout.Session;
-                const paymentIntentId  = typeof sess.payment_intent === "string" ? sess.payment_intent : null;
-                const subscriptionId   = typeof sess.subscription   === "string" ? sess.subscription   : null;
+                const paymentIntentId = typeof sess.payment_intent === "string" ? sess.payment_intent : null;
+                const subscriptionId = typeof sess.subscription === "string" ? sess.subscription : null;
 
                 const update: Record<string, any> = {
-                    status          : "completed",
-                    amount          : sess.amount_total ?? 0,
-                    currency        : sess.currency?.toUpperCase() ?? "USD",
+                    status: "completed",
+                    amount: sess.amount_total ?? 0,
+                    currency: sess.currency?.toUpperCase() ?? "USD"
                 };
                 if (paymentIntentId) update.stripePaymentIntentId = paymentIntentId;
-                if (subscriptionId)  update.stripeSubscriptionId  = subscriptionId;
-                if (sess.customer)   update.stripeCustomerId       = sess.customer as string;
+                if (subscriptionId) update.stripeSubscriptionId = subscriptionId;
+                if (sess.customer) update.stripeCustomerId = sess.customer as string;
 
-                const rec = await Payment.findOneAndUpdate(
-                    { stripeSessionId: sess.id },
-                    update,
-                    { new: true }
-                );
+                const rec = await Payment.findOneAndUpdate({ stripeSessionId: sess.id }, update, { new: true });
 
                 // CDN plan upgrade fulfilment
                 if (rec?.purpose === "cdn_plan" && rec.referenceId && (sess.metadata as any)?.upgradePlan) {
                     const newPlan = (sess.metadata as any).upgradePlan as "free" | "basic" | "pro" | "enterprise";
-                    await CDNApplication.findByIdAndUpdate(rec.referenceId, { requestedPlan: newPlan });
+                    await CDNApplication.findByIdAndUpdate(rec.referenceId, {
+                        requestedPlan: newPlan
+                    });
                     await CDNAPIKey.updateMany(
                         { applicationId: rec.referenceId, status: "active" },
-                        { plan: newPlan, rateLimit: PLAN_DEFAULTS[newPlan] || PLAN_DEFAULTS.free }
+                        {
+                            plan: newPlan,
+                            rateLimit: PLAN_DEFAULTS[newPlan] || PLAN_DEFAULTS.free
+                        }
                     );
                 }
                 break;
@@ -75,10 +76,7 @@ export async function POST(req: NextRequest) {
                 // In Stripe API v2026, subscription is accessed via invoice.lines or parent object
                 const subId = (invoice as any).subscription as string | null | undefined;
                 if (subId) {
-                    await Payment.findOneAndUpdate(
-                        { stripeSubscriptionId: subId },
-                        { status: "completed", stripeInvoiceId: invoice.id }
-                    );
+                    await Payment.findOneAndUpdate({ stripeSubscriptionId: subId }, { status: "completed", stripeInvoiceId: invoice.id });
                 }
                 break;
             }
@@ -86,10 +84,7 @@ export async function POST(req: NextRequest) {
             // ── Subscription deleted / cancelled ──────────────────────────
             case "customer.subscription.deleted": {
                 const sub = event.data.object as Stripe.Subscription;
-                await Payment.findOneAndUpdate(
-                    { stripeSubscriptionId: sub.id },
-                    { status: "cancelled" }
-                );
+                await Payment.findOneAndUpdate({ stripeSubscriptionId: sub.id }, { status: "cancelled" });
                 break;
             }
 
@@ -99,8 +94,8 @@ export async function POST(req: NextRequest) {
                 await Payment.findOneAndUpdate(
                     { stripePaymentIntentId: pi.id },
                     {
-                        status        : "failed",
-                        failureReason : pi.last_payment_error?.message || "Payment failed",
+                        status: "failed",
+                        failureReason: pi.last_payment_error?.message || "Payment failed"
                     }
                 );
                 break;

@@ -13,12 +13,7 @@ import { useDesignTheme } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIBadge } from "@Components/Atoms/OneUI";
 import ToolCard from "@Components/Organisms/Tools/ToolCard";
-import {
-    TOOLS,
-    TOOL_CATEGORIES,
-    type ToolCategory,
-    type ToolDefinition
-} from "@/Static/ToolsDashboard";
+import { TOOLS, TOOL_CATEGORIES, type ToolCategory, type ToolDefinition } from "@/Static/ToolsDashboard";
 import {
     Search,
     Cloud,
@@ -76,8 +71,11 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, accent, delay =
             className="flex items-center gap-3"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, delay, ease: [0.25, 0.46, 0.45, 0.94] }}
-        >
+            transition={{
+                duration: 0.4,
+                delay,
+                ease: [0.25, 0.46, 0.45, 0.94]
+            }}>
             <div
                 className="flex items-center justify-center rounded-2xl"
                 style={{
@@ -88,21 +86,18 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, accent, delay =
                     border: `1.5px solid ${accent}30`,
                     borderRadius: isApple ? "14px" : "18px",
                     flexShrink: 0
-                }}
-            >
+                }}>
                 {icon}
             </div>
             <div>
                 <div
                     className={`${isApple ? "text-xl font-bold" : "text-2xl font-black"}`}
-                    style={{ color: palette.textPrimary }}
-                >
+                    style={{ color: palette.textPrimary }}>
                     {value}
                 </div>
                 <div
                     className="text-xs font-medium"
-                    style={{ color: palette.textSecondary }}
-                >
+                    style={{ color: palette.textSecondary }}>
                     {label}
                 </div>
             </div>
@@ -110,7 +105,14 @@ const StatCard: React.FC<StatCardProps> = ({ label, value, icon, accent, delay =
     );
 
     if (isApple) {
-        return <LiquidGlassCard intensity="subtle" enableTilt={false} enableGlow={false}>{inner}</LiquidGlassCard>;
+        return (
+            <LiquidGlassCard
+                intensity="subtle"
+                enableTilt={false}
+                enableGlow={false}>
+                {inner}
+            </LiquidGlassCard>
+        );
     }
     return <OneUICard interactive={false}>{inner}</OneUICard>;
 };
@@ -121,9 +123,21 @@ const SyncIndicator: React.FC<{ status: SyncStatus }> = ({ status }) => {
     const { palette } = useDesignTheme();
 
     const config = {
-        synced: { icon: <CloudDone sx={{ fontSize: 16 }} />, label: "Synced", color: "#34C759" },
-        syncing: { icon: <Cloud sx={{ fontSize: 16 }} />, label: "Syncing…", color: palette.accent },
-        offline: { icon: <CloudOff sx={{ fontSize: 16 }} />, label: "Offline", color: "#FF9500" }
+        synced: {
+            icon: <CloudDone sx={{ fontSize: 16 }} />,
+            label: "Synced",
+            color: "#34C759"
+        },
+        syncing: {
+            icon: <Cloud sx={{ fontSize: 16 }} />,
+            label: "Syncing…",
+            color: palette.accent
+        },
+        offline: {
+            icon: <CloudOff sx={{ fontSize: 16 }} />,
+            label: "Offline",
+            color: "#FF9500"
+        }
     }[status];
 
     return (
@@ -135,8 +149,7 @@ const SyncIndicator: React.FC<{ status: SyncStatus }> = ({ status }) => {
                 border: `1px solid ${config.color}30`
             }}
             animate={status === "syncing" ? { opacity: [1, 0.5, 1] } : {}}
-            transition={{ repeat: Infinity, duration: 1.5 }}
-        >
+            transition={{ repeat: Infinity, duration: 1.5 }}>
             {config.icon}
             {config.label}
         </motion.div>
@@ -160,11 +173,12 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({ category, count }) => {
             <div>
                 <h2
                     className={`${isApple ? "text-xl font-bold" : "text-2xl font-black"} leading-tight`}
-                    style={{ color: palette.textPrimary }}
-                >
+                    style={{ color: palette.textPrimary }}>
                     {cat.label}
                 </h2>
-                <p className="text-sm mt-0.5" style={{ color: palette.textSecondary }}>
+                <p
+                    className="text-sm mt-0.5"
+                    style={{ color: palette.textSecondary }}>
                     {cat.description}
                 </p>
             </div>
@@ -173,8 +187,7 @@ const CategoryHeader: React.FC<CategoryHeaderProps> = ({ category, count }) => {
                 style={{
                     background: palette.accentSubtle,
                     color: palette.accent
-                }}
-            >
+                }}>
                 {count}
             </span>
         </div>
@@ -195,19 +208,36 @@ export default function ToolsDashboardPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState<ToolCategory | "all">("all");
     const [viewMode, setViewMode] = useState<ViewMode>("grid");
-    const [visibilityData, setVisibilityData] = useState<Array<{toolId: string; enabled: boolean; featured: boolean; publicAccess: boolean}>>([]);
+    const [visibilityData, setVisibilityData] = useState<
+        Array<{
+            toolId: string;
+            enabled: boolean;
+            featured: boolean;
+            publicAccess: boolean;
+        }>
+    >([]);
     const [showFilters, setShowFilters] = useState(false);
 
     // ── Helpers for admin visibility ─────────────────────────────────────────
-    const getVis = useCallback((toolId: string) => {
-        const found = visibilityData.find((v) => v.toolId === toolId);
-        // If no admin config yet, default to enabled + public, not featured
-        return found ?? { toolId, enabled: true, featured: false, publicAccess: true };
-    }, [visibilityData]);
+    const getVis = useCallback(
+        (toolId: string) => {
+            const found = visibilityData.find((v) => v.toolId === toolId);
+            // If no admin config yet, default to enabled + public, not featured
+            return (
+                found ?? {
+                    toolId,
+                    enabled: true,
+                    featured: false,
+                    publicAccess: true
+                }
+            );
+        },
+        [visibilityData]
+    );
 
-    const isToolEnabled  = useCallback((id: string) => getVis(id).enabled,      [getVis]);
-    const isToolPublic   = useCallback((id: string) => getVis(id).publicAccess,  [getVis]);
-    const isToolFeatured = useCallback((id: string) => getVis(id).featured,      [getVis]);
+    const isToolEnabled = useCallback((id: string) => getVis(id).enabled, [getVis]);
+    const isToolPublic = useCallback((id: string) => getVis(id).publicAccess, [getVis]);
+    const isToolFeatured = useCallback((id: string) => getVis(id).featured, [getVis]);
 
     // ── Load prefs from localStorage (before DB sync) ────────────────────────
     useEffect(() => {
@@ -215,7 +245,9 @@ export default function ToolsDashboardPage() {
         try {
             const raw = localStorage.getItem("tool_prefs");
             if (raw) setPrefs(JSON.parse(raw));
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
 
         // Simulate DB sync
         setSyncStatus("syncing");
@@ -232,7 +264,9 @@ export default function ToolsDashboardPage() {
                     setVisibilityData(json.visibility);
                 }
             })
-            .catch(() => { /* graceful fallback — static defaults apply */ });
+            .catch(() => {
+                /* graceful fallback — static defaults apply */
+            });
     }, []);
 
     const savePrefs = useCallback((next: UserToolPrefs) => {
@@ -247,9 +281,7 @@ export default function ToolsDashboardPage() {
     const togglePin = useCallback(
         (id: string) => {
             const next = { ...prefs };
-            next.pinned = next.pinned.includes(id)
-                ? next.pinned.filter((p) => p !== id)
-                : [id, ...next.pinned];
+            next.pinned = next.pinned.includes(id) ? next.pinned.filter((p) => p !== id) : [id, ...next.pinned];
             savePrefs(next);
         },
         [prefs, savePrefs]
@@ -286,10 +318,7 @@ export default function ToolsDashboardPage() {
         return list;
     }, [searchQuery, activeCategory, prefs.pinned, isToolEnabled, isToolPublic]);
 
-    const featuredTools = useMemo(
-        () => TOOLS.filter((t) => isToolFeatured(t.id) && isToolEnabled(t.id)),
-        [isToolFeatured, isToolEnabled]
-    );
+    const featuredTools = useMemo(() => TOOLS.filter((t) => isToolFeatured(t.id) && isToolEnabled(t.id)), [isToolFeatured, isToolEnabled]);
 
     const toolsByCategory = useMemo(() => {
         const result: Partial<Record<ToolCategory, ToolDefinition[]>> = {};
@@ -301,10 +330,7 @@ export default function ToolsDashboardPage() {
         return result;
     }, [isToolEnabled, isToolPublic]);
 
-    const totalSynced = useMemo(
-        () => TOOLS.filter((t) => t.syncToDb).length,
-        []
-    );
+    const totalSynced = useMemo(() => TOOLS.filter((t) => t.syncToDb).length, []);
 
     const totalEnabled = useMemo(
         () => TOOLS.filter((t) => isToolEnabled(t.id) && isToolPublic(t.id)).length,
@@ -325,10 +351,11 @@ export default function ToolsDashboardPage() {
     return (
         <div
             className="min-h-screen"
-            style={{ background: palette.background }}
-        >
+            style={{ background: palette.background }}>
             {/* ── Subtle background decoration ── */}
-            <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: 0 }}>
+            <div
+                className="fixed inset-0 pointer-events-none overflow-hidden"
+                style={{ zIndex: 0 }}>
                 {isApple ? (
                     <>
                         <motion.div
@@ -338,7 +365,11 @@ export default function ToolsDashboardPage() {
                                 filter: "blur(60px)"
                             }}
                             animate={{ scale: [1, 1.1, 1], rotate: [0, 15, 0] }}
-                            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                            transition={{
+                                duration: 20,
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
                         />
                         <motion.div
                             className="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] rounded-full"
@@ -346,8 +377,15 @@ export default function ToolsDashboardPage() {
                                 background: `radial-gradient(circle, ${accentColor}12 0%, transparent 70%)`,
                                 filter: "blur(80px)"
                             }}
-                            animate={{ scale: [1.1, 1, 1.1], rotate: [15, 0, 15] }}
-                            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+                            animate={{
+                                scale: [1.1, 1, 1.1],
+                                rotate: [15, 0, 15]
+                            }}
+                            transition={{
+                                duration: 18,
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
                         />
                     </>
                 ) : (
@@ -362,35 +400,29 @@ export default function ToolsDashboardPage() {
             </div>
 
             <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-8 lg:px-12 py-10 space-y-10">
-
                 {/* ══ PAGE HEADER ════════════════════════════════════════════ */}
                 <motion.div
                     className="flex flex-col md:flex-row md:items-end justify-between gap-4"
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                >
+                    transition={{ duration: 0.5 }}>
                     <div>
                         <div className="flex items-center gap-2 mb-2">
                             <Terminal sx={{ fontSize: 18, color: palette.accent }} />
                             <span
                                 className="text-xs font-bold uppercase tracking-widest"
-                                style={{ color: palette.accent }}
-                            >
+                                style={{ color: palette.accent }}>
                                 Developer Toolkit
                             </span>
                         </div>
                         <h1
                             className={`${isApple ? "text-4xl font-bold" : "text-5xl font-black"} leading-none tracking-tight`}
-                            style={{ color: palette.textPrimary }}
-                        >
-                            Tools{" "}
-                            <span style={{ color: palette.accent }}>Dashboard</span>
+                            style={{ color: palette.textPrimary }}>
+                            Tools <span style={{ color: palette.accent }}>Dashboard</span>
                         </h1>
                         <p
                             className="mt-2 text-sm"
-                            style={{ color: palette.textSecondary }}
-                        >
+                            style={{ color: palette.textSecondary }}>
                             {TOOLS.length} tools · preferences sync to cloud
                         </p>
                     </div>
@@ -406,8 +438,7 @@ export default function ToolsDashboardPage() {
                             }}
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.96 }}
-                            onClick={() => router.push("/admin/tools")}
-                        >
+                            onClick={() => router.push("/admin/tools")}>
                             <AdminPanelSettings sx={{ fontSize: 14 }} />
                             Admin Panel
                         </motion.button>
@@ -453,13 +484,10 @@ export default function ToolsDashboardPage() {
                             <Bolt sx={{ fontSize: 18, color: "#34C759" }} />
                             <span
                                 className={`${isApple ? "text-lg font-bold" : "text-xl font-black"}`}
-                                style={{ color: palette.textPrimary }}
-                            >
+                                style={{ color: palette.textPrimary }}>
                                 Featured by Admin
                             </span>
-                            <OneUIBadge variant="success">
-                                {featuredTools.length} tools
-                            </OneUIBadge>
+                            <OneUIBadge variant="success">{featuredTools.length} tools</OneUIBadge>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -489,13 +517,12 @@ export default function ToolsDashboardPage() {
                                     ? "rgba(255,255,255,0.08)"
                                     : "rgba(255,255,255,0.6)"
                                 : isDark
-                                ? "rgba(40,40,45,0.9)"
-                                : "rgba(248,248,250,0.9)",
+                                  ? "rgba(40,40,45,0.9)"
+                                  : "rgba(248,248,250,0.9)",
                             border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.07)"}`,
                             backdropFilter: isApple ? "blur(16px)" : undefined,
                             borderRadius: isApple ? "14px" : "20px"
-                        }}
-                    >
+                        }}>
                         <Search sx={{ fontSize: 18, color: palette.textTertiary }} />
                         <input
                             type="text"
@@ -513,8 +540,7 @@ export default function ToolsDashboardPage() {
                                 onClick={() => setSearchQuery("")}
                                 className="text-xs"
                                 style={{ color: palette.textTertiary }}
-                                whileTap={{ scale: 0.9 }}
-                            >
+                                whileTap={{ scale: 0.9 }}>
                                 ✕
                             </motion.button>
                         )}
@@ -525,8 +551,7 @@ export default function ToolsDashboardPage() {
                         className="flex items-center gap-1 p-1.5 rounded-full"
                         style={{
                             background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
-                        }}
-                    >
+                        }}>
                         {(["grid", "list"] as ViewMode[]).map((m) => (
                             <motion.button
                                 key={m}
@@ -536,13 +561,8 @@ export default function ToolsDashboardPage() {
                                     color: viewMode === m ? "#fff" : palette.textTertiary
                                 }}
                                 onClick={() => setViewMode(m)}
-                                whileTap={{ scale: 0.92 }}
-                            >
-                                {m === "grid" ? (
-                                    <GridView sx={{ fontSize: 18 }} />
-                                ) : (
-                                    <ViewList sx={{ fontSize: 18 }} />
-                                )}
+                                whileTap={{ scale: 0.92 }}>
+                                {m === "grid" ? <GridView sx={{ fontSize: 18 }} /> : <ViewList sx={{ fontSize: 18 }} />}
                             </motion.button>
                         ))}
                     </div>
@@ -558,22 +578,15 @@ export default function ToolsDashboardPage() {
                                     key={tab.value}
                                     className="px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all"
                                     style={{
-                                        background: isActive
-                                            ? palette.accent
-                                            : isDark
-                                            ? "rgba(255,255,255,0.07)"
-                                            : "rgba(0,0,0,0.05)",
+                                        background: isActive ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                         color: isActive ? "#fff" : palette.textSecondary,
                                         border: isActive
                                             ? `1.5px solid ${palette.accent}`
                                             : `1.5px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`
                                     }}
-                                    onClick={() =>
-                                        setActiveCategory(tab.value as ToolCategory | "all")
-                                    }
+                                    onClick={() => setActiveCategory(tab.value as ToolCategory | "all")}
                                     whileHover={{ scale: 1.04 }}
-                                    whileTap={{ scale: 0.96 }}
-                                >
+                                    whileTap={{ scale: 0.96 }}>
                                     {tab.label}
                                 </motion.button>
                             );
@@ -589,18 +602,14 @@ export default function ToolsDashboardPage() {
                             key="filtered"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                        >
+                            exit={{ opacity: 0 }}>
                             {filteredTools.length === 0 ? (
                                 <div
                                     className="flex flex-col items-center justify-center py-24 gap-3"
-                                    style={{ color: palette.textSecondary }}
-                                >
+                                    style={{ color: palette.textSecondary }}>
                                     <Search sx={{ fontSize: 48, opacity: 0.3 }} />
                                     <p className="text-lg font-bold">No tools found</p>
-                                    <p className="text-sm opacity-70">
-                                        Try a different search term or category
-                                    </p>
+                                    <p className="text-sm opacity-70">Try a different search term or category</p>
                                 </div>
                             ) : (
                                 <div
@@ -608,8 +617,7 @@ export default function ToolsDashboardPage() {
                                         viewMode === "grid"
                                             ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                                             : "flex flex-col gap-3"
-                                    }
-                                >
+                                    }>
                                     {filteredTools.map((tool, i) => (
                                         <ToolCard
                                             key={tool.id}
@@ -631,17 +639,22 @@ export default function ToolsDashboardPage() {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="space-y-12"
-                        >
+                            className="space-y-12">
                             {/* Pinned section */}
                             {prefs.pinned.length > 0 && (
                                 <section>
                                     <div className="flex items-center gap-2 mb-4">
-                                        <PushPin sx={{ fontSize: 16, color: "#FF9500" }} />
+                                        <PushPin
+                                            sx={{
+                                                fontSize: 16,
+                                                color: "#FF9500"
+                                            }}
+                                        />
                                         <h2
                                             className={`${isApple ? "text-lg font-bold" : "text-xl font-black"}`}
-                                            style={{ color: palette.textPrimary }}
-                                        >
+                                            style={{
+                                                color: palette.textPrimary
+                                            }}>
                                             Pinned
                                         </h2>
                                     </div>
@@ -674,17 +687,24 @@ export default function ToolsDashboardPage() {
                                         key={cat}
                                         initial={{ opacity: 0, y: 20 }}
                                         whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true, margin: "-80px" }}
-                                        transition={{ duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] }}
-                                    >
-                                        <CategoryHeader category={cat} count={tools.length} />
+                                        viewport={{
+                                            once: true,
+                                            margin: "-80px"
+                                        }}
+                                        transition={{
+                                            duration: 0.45,
+                                            ease: [0.25, 0.46, 0.45, 0.94]
+                                        }}>
+                                        <CategoryHeader
+                                            category={cat}
+                                            count={tools.length}
+                                        />
                                         <div
                                             className={
                                                 viewMode === "grid"
                                                     ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
                                                     : "flex flex-col gap-3"
-                                            }
-                                        >
+                                            }>
                                             {tools.map((tool, i) => (
                                                 <ToolCard
                                                     key={tool.id}
@@ -709,15 +729,23 @@ export default function ToolsDashboardPage() {
                     initial={{ opacity: 0, y: 16 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.4 }}
-                >
+                    transition={{ duration: 0.4 }}>
                     {isApple ? (
-                        <LiquidGlassCard intensity="subtle" enableTilt={false} enableGlow={false}>
-                            <AdminNoticeBanner palette={palette} accentColor={accentColor} />
+                        <LiquidGlassCard
+                            intensity="subtle"
+                            enableTilt={false}
+                            enableGlow={false}>
+                            <AdminNoticeBanner
+                                palette={palette}
+                                accentColor={accentColor}
+                            />
                         </LiquidGlassCard>
                     ) : (
                         <OneUICard interactive={false}>
-                            <AdminNoticeBanner palette={palette} accentColor={accentColor} />
+                            <AdminNoticeBanner
+                                palette={palette}
+                                accentColor={accentColor}
+                            />
                         </OneUICard>
                     )}
                 </motion.div>
@@ -747,27 +775,27 @@ function AdminNoticeBanner({ palette, accentColor }: AdminNoticeBannerProps) {
                     background: `${accentColor}18`,
                     color: accentColor,
                     border: `1.5px solid ${accentColor}30`
-                }}
-            >
+                }}>
                 <AdminPanelSettings sx={{ fontSize: 24 }} />
             </div>
             <div className="flex-1">
                 <p
                     className="text-sm font-bold mb-0.5"
-                    style={{ color: palette.textPrimary }}
-                >
+                    style={{ color: palette.textPrimary }}>
                     Admin-managed defaults
                 </p>
-                <p className="text-xs leading-relaxed" style={{ color: palette.textSecondary }}>
-                    Tools marked{" "}
-                    <strong style={{ color: "#FF9500" }}>Admin</strong> have default settings
-                    controlled from the Admin Panel. Your personal preferences override these
-                    defaults and sync securely to the cloud when you&apos;re signed in.
+                <p
+                    className="text-xs leading-relaxed"
+                    style={{ color: palette.textSecondary }}>
+                    Tools marked <strong style={{ color: "#FF9500" }}>Admin</strong> have default settings controlled from the Admin Panel.
+                    Your personal preferences override these defaults and sync securely to the cloud when you&apos;re signed in.
                 </p>
             </div>
             <div className="flex items-center gap-2">
                 <CheckCircle sx={{ fontSize: 14, color: "#34C759" }} />
-                <span className="text-xs font-bold" style={{ color: "#34C759" }}>
+                <span
+                    className="text-xs font-bold"
+                    style={{ color: "#34C759" }}>
                     DB Sync Active
                 </span>
             </div>

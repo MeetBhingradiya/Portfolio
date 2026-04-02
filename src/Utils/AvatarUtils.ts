@@ -26,7 +26,7 @@ export function generateAvatarGradient(userId: string): string {
         "linear-gradient(135deg, #fd79a8 0%, #e84393 100%)",
         "linear-gradient(135deg, #74b9ff 0%, #0984e3 100%)",
         "linear-gradient(135deg, #55efc4 0%, #00b894 100%)",
-        "linear-gradient(135deg, #fab1a0 0%, #e17055 100%)",
+        "linear-gradient(135deg, #fab1a0 0%, #e17055 100%)"
     ];
 
     // Generate consistent index from user ID
@@ -63,7 +63,7 @@ export function getAvatarFromAccounts(accounts: any[], selectedProviderId?: stri
 
     // If user has selected a specific provider, use that
     if (selectedProviderId) {
-        const selectedAccount = accounts.find(acc => acc.providerId === selectedProviderId);
+        const selectedAccount = accounts.find((acc) => acc.providerId === selectedProviderId);
         if (selectedAccount?.image) return selectedAccount.image;
     }
 
@@ -71,11 +71,11 @@ export function getAvatarFromAccounts(accounts: any[], selectedProviderId?: stri
     const priority = ["google", "github", "discord"];
 
     for (const provider of priority) {
-        const account = accounts.find(acc => acc.providerId === provider);
+        const account = accounts.find((acc) => acc.providerId === provider);
         if (account?.image) return account.image;
     }
 
     // Fallback to any account with an image
-    const accountWithImage = accounts.find(acc => acc.image);
+    const accountWithImage = accounts.find((acc) => acc.image);
     return accountWithImage?.image || null;
 }

@@ -111,6 +111,4 @@ ProductSchema.index({ Status: 1 });
 ProductSchema.index({ isDeleted: 1 });
 ProductSchema.index({ "Metadata.Tags": 1 });
 
-export const Product =
-    mongoose.models.Product ||
-    mongoose.model<IProduct>("Product", ProductSchema);
+export const Product = mongoose.models.Product || mongoose.model<IProduct>("Product", ProductSchema);

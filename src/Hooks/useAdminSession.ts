@@ -61,7 +61,7 @@ export function useAdminSession() {
     const hasAnyPermission = (permissions: string[]): boolean => {
         if (!session) return false;
         if (session.isAdmin) return true;
-        return permissions.some(p => session.permissions.includes(p));
+        return permissions.some((p) => session.permissions.includes(p));
     };
 
     /**
@@ -70,7 +70,7 @@ export function useAdminSession() {
     const hasAllPermissions = (permissions: string[]): boolean => {
         if (!session) return false;
         if (session.isAdmin) return true;
-        return permissions.every(p => session.permissions.includes(p));
+        return permissions.every((p) => session.permissions.includes(p));
     };
 
     /**
@@ -87,6 +87,6 @@ export function useAdminSession() {
         hasPermission,
         hasAnyPermission,
         hasAllPermissions,
-        hasRole,
+        hasRole
     };
 }

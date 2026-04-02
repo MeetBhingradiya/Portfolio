@@ -10,13 +10,7 @@ import { motion } from "motion/react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
-import {
-    ArrowBack,
-    LocalShipping,
-    Receipt,
-    AssignmentReturn,
-    OpenInNew,
-} from "@mui/icons-material";
+import { ArrowBack, LocalShipping, Receipt, AssignmentReturn, OpenInNew } from "@mui/icons-material";
 
 interface OrderItem {
     productName: string;
@@ -64,7 +58,7 @@ const STATUS_COLORS: Record<string, string> = {
     refund_requested: "#FF3B30",
     refunded: "#8E8E93",
     failed: "#FF3B30",
-    on_hold: "#FF9500",
+    on_hold: "#FF9500"
 };
 
 const TIMELINE_STEPS = ["pending", "processing", "shipped", "delivered"];
@@ -78,9 +72,7 @@ export default function OrderDetailPage() {
     const [order, setOrder] = useState<Order | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const cardBg = isApple
-        ? isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)"
-        : isDark ? "rgba(24,24,28,0.98)" : "#fff";
+    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
     const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
     const br = isApple ? 20 : 24;
 
@@ -96,18 +88,31 @@ export default function OrderDetailPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: palette.background }}>
-                <div className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: palette.accent }} />
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: palette.background }}>
+                <div
+                    className="w-10 h-10 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{ borderColor: palette.accent }}
+                />
             </div>
         );
     }
 
     if (!order) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: palette.background }}>
-                <p className="text-xl font-bold" style={{ color: palette.textPrimary }}>Order not found</p>
+            <div
+                className="min-h-screen flex flex-col items-center justify-center gap-4"
+                style={{ background: palette.background }}>
+                <p
+                    className="text-xl font-bold"
+                    style={{ color: palette.textPrimary }}>
+                    Order not found
+                </p>
                 <Link href="/shop/orders">
-                    <motion.button className="px-5 py-2.5 rounded-xl font-bold" style={{ background: palette.accent, color: "#fff" }}>
+                    <motion.button
+                        className="px-5 py-2.5 rounded-xl font-bold"
+                        style={{ background: palette.accent, color: "#fff" }}>
                         My Orders
                     </motion.button>
                 </Link>
@@ -118,31 +123,49 @@ export default function OrderDetailPage() {
     const currentStep = TIMELINE_STEPS.indexOf(order.status);
 
     return (
-        <div className="min-h-screen py-12 px-4 md:px-8" style={{ background: palette.background }}>
+        <div
+            className="min-h-screen py-12 px-4 md:px-8"
+            style={{ background: palette.background }}>
             <div className="max-w-3xl mx-auto">
                 <Link href="/shop/orders">
-                    <motion.button whileHover={{ x: -3 }} className="flex items-center gap-2 text-sm font-bold mb-8" style={{ color: palette.accent }}>
+                    <motion.button
+                        whileHover={{ x: -3 }}
+                        className="flex items-center gap-2 text-sm font-bold mb-8"
+                        style={{ color: palette.accent }}>
                         <ArrowBack fontSize="small" /> My Orders
                     </motion.button>
                 </Link>
 
                 {/* Header */}
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-6">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-black font-mono mb-1" style={{ color: palette.accent }}>{order.orderId}</p>
-                            <h1 className={`${isApple ? "text-2xl font-semibold" : "text-3xl font-black"}`} style={{ color: palette.textPrimary }}>
+                            <p
+                                className="text-xs font-black font-mono mb-1"
+                                style={{ color: palette.accent }}>
+                                {order.orderId}
+                            </p>
+                            <h1
+                                className={`${isApple ? "text-2xl font-semibold" : "text-3xl font-black"}`}
+                                style={{ color: palette.textPrimary }}>
                                 Order Details
                             </h1>
                         </div>
                         <span
                             className="px-3 py-1.5 rounded-full text-sm font-black capitalize"
-                            style={{ background: `${STATUS_COLORS[order.status] ?? "#8E8E93"}18`, color: STATUS_COLORS[order.status] ?? "#8E8E93" }}
-                        >
+                            style={{
+                                background: `${STATUS_COLORS[order.status] ?? "#8E8E93"}18`,
+                                color: STATUS_COLORS[order.status] ?? "#8E8E93"
+                            }}>
                             {order.status.replace(/_/g, " ")}
                         </span>
                     </div>
-                    <p className="text-sm mt-1" style={{ color: palette.textSecondary }}>
+                    <p
+                        className="text-sm mt-1"
+                        style={{ color: palette.textSecondary }}>
                         Placed on {new Date(order.createdAt).toLocaleString()}
                     </p>
                 </motion.div>
@@ -156,20 +179,27 @@ export default function OrderDetailPage() {
                                     <div
                                         className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-black"
                                         style={{
-                                            background: i <= currentStep ? palette.accent : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                                            color: i <= currentStep ? "#fff" : palette.textTertiary,
-                                        }}
-                                    >
+                                            background:
+                                                i <= currentStep ? palette.accent : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                            color: i <= currentStep ? "#fff" : palette.textTertiary
+                                        }}>
                                         {i + 1}
                                     </div>
-                                    <p className="text-xs mt-1.5 capitalize font-semibold text-center" style={{ color: i <= currentStep ? palette.textPrimary : palette.textTertiary }}>
+                                    <p
+                                        className="text-xs mt-1.5 capitalize font-semibold text-center"
+                                        style={{
+                                            color: i <= currentStep ? palette.textPrimary : palette.textTertiary
+                                        }}>
                                         {step}
                                     </p>
                                 </div>
                                 {i < TIMELINE_STEPS.length - 1 && (
                                     <div
                                         className="flex-1 h-1 mx-2 rounded"
-                                        style={{ background: i < currentStep ? palette.accent : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" }}
+                                        style={{
+                                            background:
+                                                i < currentStep ? palette.accent : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"
+                                        }}
                                     />
                                 )}
                             </React.Fragment>
@@ -183,15 +213,28 @@ export default function OrderDetailPage() {
                         initial={{ opacity: 0, y: 8 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="flex items-center gap-4 px-5 py-4 rounded-2xl mb-4"
-                        style={{ background: `${palette.accent}10`, border: `1px solid ${palette.accent}30` }}
-                    >
+                        style={{
+                            background: `${palette.accent}10`,
+                            border: `1px solid ${palette.accent}30`
+                        }}>
                         <LocalShipping style={{ color: palette.accent }} />
                         <div className="flex-1">
-                            <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>Tracking Number</p>
-                            <p className="text-sm font-mono" style={{ color: palette.accent }}>{order.trackingNumber}</p>
+                            <p
+                                className="font-bold text-sm"
+                                style={{ color: palette.textPrimary }}>
+                                Tracking Number
+                            </p>
+                            <p
+                                className="text-sm font-mono"
+                                style={{ color: palette.accent }}>
+                                {order.trackingNumber}
+                            </p>
                         </div>
                         {order.trackingUrl && (
-                            <a href={order.trackingUrl} target="_blank" rel="noreferrer">
+                            <a
+                                href={order.trackingUrl}
+                                target="_blank"
+                                rel="noreferrer">
                                 <OpenInNew style={{ color: palette.accent }} />
                             </a>
                         )}
@@ -200,33 +243,70 @@ export default function OrderDetailPage() {
 
                 <div className="space-y-4">
                     {/* Items */}
-                    <div className="p-6 rounded-3xl" style={{ background: cardBg, border, backdropFilter: isApple ? "blur(20px)" : "none" }}>
+                    <div
+                        className="p-6 rounded-3xl"
+                        style={{
+                            background: cardBg,
+                            border,
+                            backdropFilter: isApple ? "blur(20px)" : "none"
+                        }}>
                         <div className="flex items-center gap-2 mb-4">
                             <Receipt style={{ color: palette.accent }} />
-                            <p className="font-black" style={{ color: palette.textPrimary }}>Items</p>
+                            <p
+                                className="font-black"
+                                style={{ color: palette.textPrimary }}>
+                                Items
+                            </p>
                         </div>
                         <div className="space-y-3">
                             {order.items.map((item, i) => (
-                                <div key={i} className="flex items-center justify-between">
+                                <div
+                                    key={i}
+                                    className="flex items-center justify-between">
                                     <div>
-                                        <p className="font-bold text-sm" style={{ color: palette.textPrimary }}>{item.productName}</p>
-                                        <p className="text-xs" style={{ color: palette.textSecondary }}>{item.variantLabel} × {item.quantity}</p>
+                                        <p
+                                            className="font-bold text-sm"
+                                            style={{
+                                                color: palette.textPrimary
+                                            }}>
+                                            {item.productName}
+                                        </p>
+                                        <p
+                                            className="text-xs"
+                                            style={{
+                                                color: palette.textSecondary
+                                            }}>
+                                            {item.variantLabel} × {item.quantity}
+                                        </p>
                                     </div>
-                                    <p className="font-black text-sm" style={{ color: palette.textPrimary }}>
+                                    <p
+                                        className="font-black text-sm"
+                                        style={{ color: palette.textPrimary }}>
                                         ${(item.totalPrice / 100).toFixed(2)}
                                     </p>
                                 </div>
                             ))}
                         </div>
-                        <div className="mt-4 pt-4 space-y-1.5 border-t" style={{ borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)" }}>
+                        <div
+                            className="mt-4 pt-4 space-y-1.5 border-t"
+                            style={{
+                                borderColor: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"
+                            }}>
                             {[
                                 ["Subtotal", order.subtotal],
                                 ["Shipping", order.shippingCost],
                                 ["Tax", order.tax],
-                                ...(order.discount > 0 ? [["Discount", -order.discount]] : []),
+                                ...(order.discount > 0 ? [["Discount", -order.discount]] : [])
                             ].map(([label, val]) => (
-                                <div key={label as string} className="flex justify-between text-sm">
-                                    <span style={{ color: palette.textSecondary }}>{label}</span>
+                                <div
+                                    key={label as string}
+                                    className="flex justify-between text-sm">
+                                    <span
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
+                                        {label}
+                                    </span>
                                     <span style={{ color: palette.textPrimary }}>${((val as number) / 100).toFixed(2)}</span>
                                 </div>
                             ))}
@@ -239,13 +319,31 @@ export default function OrderDetailPage() {
 
                     {/* Shipping Address */}
                     {order.shippingAddress && (
-                        <div className="p-6 rounded-3xl" style={{ background: cardBg, border, backdropFilter: isApple ? "blur(20px)" : "none" }}>
-                            <p className="font-black mb-3" style={{ color: palette.textPrimary }}>Shipping Address</p>
-                            <div className="text-sm space-y-0.5" style={{ color: palette.textSecondary }}>
-                                <p className="font-bold" style={{ color: palette.textPrimary }}>{order.shippingAddress.fullName}</p>
+                        <div
+                            className="p-6 rounded-3xl"
+                            style={{
+                                background: cardBg,
+                                border,
+                                backdropFilter: isApple ? "blur(20px)" : "none"
+                            }}>
+                            <p
+                                className="font-black mb-3"
+                                style={{ color: palette.textPrimary }}>
+                                Shipping Address
+                            </p>
+                            <div
+                                className="text-sm space-y-0.5"
+                                style={{ color: palette.textSecondary }}>
+                                <p
+                                    className="font-bold"
+                                    style={{ color: palette.textPrimary }}>
+                                    {order.shippingAddress.fullName}
+                                </p>
                                 <p>{order.shippingAddress.addressLine1}</p>
                                 {order.shippingAddress.addressLine2 && <p>{order.shippingAddress.addressLine2}</p>}
-                                <p>{order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
+                                <p>
+                                    {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}
+                                </p>
                                 <p>{order.shippingAddress.country}</p>
                             </div>
                         </div>
@@ -257,12 +355,24 @@ export default function OrderDetailPage() {
                             <motion.div
                                 whileTap={{ scale: 0.98 }}
                                 className="flex items-center gap-3 px-5 py-4 rounded-2xl cursor-pointer"
-                                style={{ background: "rgba(255,59,48,0.08)", border: "1px solid rgba(255,59,48,0.15)" }}
-                            >
+                                style={{
+                                    background: "rgba(255,59,48,0.08)",
+                                    border: "1px solid rgba(255,59,48,0.15)"
+                                }}>
                                 <AssignmentReturn style={{ color: "#FF3B30" }} />
                                 <div>
-                                    <p className="font-bold text-sm" style={{ color: "#FF3B30" }}>Request a Refund</p>
-                                    <p className="text-xs" style={{ color: palette.textSecondary }}>Having trouble? We're here to help.</p>
+                                    <p
+                                        className="font-bold text-sm"
+                                        style={{ color: "#FF3B30" }}>
+                                        Request a Refund
+                                    </p>
+                                    <p
+                                        className="text-xs"
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
+                                        Having trouble? We're here to help.
+                                    </p>
                                 </div>
                             </motion.div>
                         </Link>

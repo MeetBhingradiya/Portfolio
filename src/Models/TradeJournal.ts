@@ -9,30 +9,30 @@ export enum TradeSegment {
     FUTURES = "FUTURES",
     FOREX = "FOREX",
     CRYPTO = "CRYPTO",
-    COMMODITY = "COMMODITY",
+    COMMODITY = "COMMODITY"
 }
 
 export enum TradeDirection {
     LONG = "LONG",
-    SHORT = "SHORT",
+    SHORT = "SHORT"
 }
 
 export enum TradeHitStatus {
     NONE = "NONE",
     TARGET_ACHIEVED = "TARGET_ACHIEVED",
-    STOPLOSS_HIT = "STOPLOSS_HIT",
+    STOPLOSS_HIT = "STOPLOSS_HIT"
 }
 
 export enum TradePnLSign {
     PROFIT = "PROFIT",
-    LOSS = "LOSS",
+    LOSS = "LOSS"
 }
 
 export enum TradeResult {
     WIN = "WIN",
     LOSS = "LOSS",
     BREAKEVEN = "BREAKEVEN",
-    PENDING = "PENDING",
+    PENDING = "PENDING"
 }
 
 export enum SetupType {
@@ -46,7 +46,7 @@ export enum SetupType {
     SCALP = "SCALP",
     SWING = "SWING",
     POSITIONAL = "POSITIONAL",
-    OTHER = "OTHER",
+    OTHER = "OTHER"
 }
 
 export enum MarketCondition {
@@ -55,7 +55,7 @@ export enum MarketCondition {
     SIDEWAYS = "SIDEWAYS",
     VOLATILE = "VOLATILE",
     BREAKOUT = "BREAKOUT",
-    CONSOLIDATION = "CONSOLIDATION",
+    CONSOLIDATION = "CONSOLIDATION"
 }
 
 export enum EmotionalState {
@@ -66,7 +66,7 @@ export enum EmotionalState {
     REVENGE = "REVENGE",
     GREEDY = "GREEDY",
     FEARFUL = "FEARFUL",
-    DISCIPLINED = "DISCIPLINED",
+    DISCIPLINED = "DISCIPLINED"
 }
 
 export enum MistakeType {
@@ -80,13 +80,13 @@ export enum MistakeType {
     REVENGE_TRADE = "REVENGE_TRADE",
     IGNORED_PLAN = "IGNORED_PLAN",
     OVERTRADING = "OVERTRADING",
-    POOR_RISK_MANAGEMENT = "POOR_RISK_MANAGEMENT",
+    POOR_RISK_MANAGEMENT = "POOR_RISK_MANAGEMENT"
 }
 
 export enum OptionType {
     CALL = "CALL",
     PUT = "PUT",
-    NA = "NA",
+    NA = "NA"
 }
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
@@ -95,69 +95,104 @@ const TradeJournal_Schema = new mongoose.Schema(
     {
         TradeID: { type: String, default: v4, unique: true, index: true },
         DraftID: { type: String, sparse: true, index: true },
-        UserID:  { type: String, required: true, index: true },
+        UserID: { type: String, required: true, index: true },
         IsDraft: { type: Boolean, default: false, index: true },
         DraftUpdatedAt: { type: Date },
 
         // Basic Trade Info
-        Date:      { type: Date,   required: true, default: Date.now },
-        EntryTime: { type: String, match: /^(0[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i },
-        ExitTime:  { type: String },
-        Instrument:{ type: String, trim: true, uppercase: true },
+        Date: { type: Date, required: true, default: Date.now },
+        EntryTime: {
+            type: String,
+            match: /^(0[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i
+        },
+        ExitTime: { type: String },
+        Instrument: { type: String, trim: true, uppercase: true },
         InstrumentName: { type: String, trim: true, uppercase: true },
-        Segment:   { type: String, enum: Object.values(TradeSegment), default: TradeSegment.OPTIONS },
-        Direction: { type: String, enum: Object.values(TradeDirection), default: TradeDirection.SHORT },
-        PositionDuration: { type: String, enum: Object.values(TradeDirection), default: TradeDirection.SHORT },
+        Segment: {
+            type: String,
+            enum: Object.values(TradeSegment),
+            default: TradeSegment.OPTIONS
+        },
+        Direction: {
+            type: String,
+            enum: Object.values(TradeDirection),
+            default: TradeDirection.SHORT
+        },
+        PositionDuration: {
+            type: String,
+            enum: Object.values(TradeDirection),
+            default: TradeDirection.SHORT
+        },
 
         // Options-specific
-        OptionType:  { type: String, enum: Object.values(OptionType), default: OptionType.NA },
+        OptionType: {
+            type: String,
+            enum: Object.values(OptionType),
+            default: OptionType.NA
+        },
         StrikePrice: { type: Number },
-        Expiry:      { type: String },
+        Expiry: { type: String },
 
         // Position Details
-        EntryPrice:     { type: Number },
-        ExitPrice:      { type: Number },
-        StopLoss:       { type: Number },
-        Target:         { type: Number },
-        Quantity:       { type: Number },
-        LotSize:        { type: Number, default: 1 },
-        IsHit:          { type: String, enum: Object.values(TradeHitStatus), default: TradeHitStatus.NONE },
-        PnLAmount:      { type: Number, min: 0 },
-        PnLSign:        { type: String, enum: Object.values(TradePnLSign), default: TradePnLSign.PROFIT },
-        TotalCapital:   { type: Number },
+        EntryPrice: { type: Number },
+        ExitPrice: { type: Number },
+        StopLoss: { type: Number },
+        Target: { type: Number },
+        Quantity: { type: Number },
+        LotSize: { type: Number, default: 1 },
+        IsHit: {
+            type: String,
+            enum: Object.values(TradeHitStatus),
+            default: TradeHitStatus.NONE
+        },
+        PnLAmount: { type: Number, min: 0 },
+        PnLSign: {
+            type: String,
+            enum: Object.values(TradePnLSign),
+            default: TradePnLSign.PROFIT
+        },
+        TotalCapital: { type: Number },
         RiskPercentage: { type: Number },
 
         // Risk Metrics
-        PlannedRiskAmount:   { type: Number },
+        PlannedRiskAmount: { type: Number },
         PlannedRewardAmount: { type: Number },
-        PlannedRR:           { type: Number },
-        ActualRR:            { type: Number },
+        PlannedRR: { type: Number },
+        ActualRR: { type: Number },
 
         // Outcome
-        GrossPnL:             { type: Number, default: 0 },
-        Brokerage:            { type: Number, default: 0 },
-        Taxes:                { type: Number, default: 0 },
-        NetPnL:               { type: Number, default: 0 },
-        Result:               { type: String, enum: Object.values(TradeResult), default: TradeResult.PENDING },
+        GrossPnL: { type: Number, default: 0 },
+        Brokerage: { type: Number, default: 0 },
+        Taxes: { type: Number, default: 0 },
+        NetPnL: { type: Number, default: 0 },
+        Result: {
+            type: String,
+            enum: Object.values(TradeResult),
+            default: TradeResult.PENDING
+        },
         HoldingDurationMinutes: { type: Number },
 
         // Psychology & Execution
-        SetupType:       { type: String, enum: Object.values(SetupType) },
-        StrategyName:    { type: String, trim: true },
+        SetupType: { type: String, enum: Object.values(SetupType) },
+        StrategyName: { type: String, trim: true },
         MarketCondition: { type: String, enum: Object.values(MarketCondition) },
-        EmotionalState:  { type: String, enum: Object.values(EmotionalState) },
-        FollowedPlan:    { type: Boolean },
-        MistakeType:     { type: String, enum: Object.values(MistakeType), default: MistakeType.NONE },
+        EmotionalState: { type: String, enum: Object.values(EmotionalState) },
+        FollowedPlan: { type: Boolean },
+        MistakeType: {
+            type: String,
+            enum: Object.values(MistakeType),
+            default: MistakeType.NONE
+        },
 
         // Notes & Tags
         PreTradeAnalysis: { type: String },
-        PostTradeNotes:   { type: String },
-        Lessons:          { type: String },
-        Screenshots:      { type: [String], default: [] },
-        AttachmentUrls:   { type: [String], default: [] },
-        Tags:             { type: [String], default: [] },
+        PostTradeNotes: { type: String },
+        Lessons: { type: String },
+        Screenshots: { type: [String], default: [] },
+        AttachmentUrls: { type: [String], default: [] },
+        Tags: { type: [String], default: [] },
 
-        IsOpen: { type: Boolean, default: true },
+        IsOpen: { type: Boolean, default: true }
     },
     { timestamps: true }
 );
@@ -167,6 +202,4 @@ TradeJournal_Schema.index({ UserID: 1, Result: 1 });
 TradeJournal_Schema.index({ UserID: 1, Instrument: 1 });
 TradeJournal_Schema.index({ UserID: 1, IsDraft: 1, DraftUpdatedAt: -1 });
 
-export const TradeJournal =
-    mongoose.models.TradeJournal ||
-    mongoose.model("TradeJournal", TradeJournal_Schema);
+export const TradeJournal = mongoose.models.TradeJournal || mongoose.model("TradeJournal", TradeJournal_Schema);

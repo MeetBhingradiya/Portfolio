@@ -1,148 +1,148 @@
 name: Bug Fix Pull Request
 description: Submit a bug fix to resolve an existing issue
 body:
-  - type: textarea
-    id: bug_description
-    attributes:
-      label: 🔍 Bug Description
-      description: |
-        Describe the bug that this PR fixes.
-        What was the problem and how did it manifest?
-      placeholder: |
-        The login form was not validating email formats correctly, allowing invalid emails to be submitted.
-    validations:
-      required: true
-
-  - type: input
-    id: related_issue
-    attributes:
-      label: 🔗 Related Issue
-      description: Link to the bug report this PR fixes
-      placeholder: "Fixes #123"
-    validations:
-      required: true
-
-  - type: dropdown
-    id: bug_severity
-    attributes:
-      label: 🎯 Bug Severity
-      description: How severe was the bug that you fixed?
-      options:
-        - Critical (Application crashes, data loss, security vulnerability)
-        - High (Major functionality broken, no workaround)
-        - Medium (Minor functionality broken, workaround available)
-        - Low (Cosmetic issue, doesn't affect functionality)
-      default: 2
-    validations:
-      required: true
-
-  - type: textarea
-    id: root_cause
-    attributes:
-      label: 🎯 Root Cause
-      description: |
-        Explain what was causing the bug.
-        Include technical details about the underlying issue.
-      placeholder: |
-        The email validation regex pattern was missing the domain extension check, 
-        allowing emails like "user@domain" without ".com" to pass validation.
-    validations:
-      required: true
-
-  - type: textarea
-    id: solution
-    attributes:
-      label: 🔧 Solution
-      description: |
-        Describe how you fixed the bug.
-        Include the specific changes made and why this approach was chosen.
-      placeholder: |
-        - Updated the email validation regex to include proper domain extension checking
-        - Added unit tests to cover edge cases in email validation
-        - Updated error messages to be more specific about invalid formats
-    validations:
-      required: true
-
-  - type: textarea
-    id: reproduction_steps_before
-    attributes:
-      label: 🧪 Reproduction Steps (Before Fix)
-      description: |
-        How could someone reproduce the bug before your fix?
-      placeholder: |
-        1. Navigate to the login page
-        2. Enter an invalid email like "user@domain"
-        3. Click submit
-        4. Notice the form accepts the invalid email
-    validations:
-      required: true
-
-  - type: textarea
-    id: verification_steps_after
-    attributes:
-      label: ✅ Verification Steps (After Fix)
-      description: |
-        How can someone verify that the bug is now fixed?
-      placeholder: |
-        1. Navigate to the login page
-        2. Enter an invalid email like "user@domain"
-        3. Click submit
-        4. Observe that validation error appears
-        5. Enter a valid email like "user@domain.com"
-        6. Verify form submission works correctly
-
-  - type: checkboxes
-    id: test_results
-    attributes:
-      label: 🧪 Test Results
-      description: Confirm your testing results
-      options:
-        - label: Bug no longer reproduces
+    - type: textarea
+      id: bug_description
+      attributes:
+          label: 🔍 Bug Description
+          description: |
+              Describe the bug that this PR fixes.
+              What was the problem and how did it manifest?
+          placeholder: |
+              The login form was not validating email formats correctly, allowing invalid emails to be submitted.
+      validations:
           required: true
-        - label: No regression in existing functionality
-          required: true
-        - label: Edge cases tested
-          required: true
-        - label: Unit tests added/updated
-        - label: Integration tests pass
 
-  - type: textarea
-    id: screenshots_evidence
-    attributes:
-      label: 📸 Screenshots/Evidence
-      description: |
-        Add screenshots or other evidence showing the bug before and after the fix.
-      placeholder: |
-        ### Before (showing the bug):
-        [Add screenshots showing the bug in action]
-
-        ### After (showing the fix):
-        [Add screenshots showing the fix working correctly]
-
-  - type: checkboxes
-    id: bug_fix_checklist
-    attributes:
-      label: ✅ Bug Fix Checklist
-      description: Ensure your bug fix is complete
-      options:
-        - label: The bug is completely fixed
+    - type: input
+      id: related_issue
+      attributes:
+          label: 🔗 Related Issue
+          description: Link to the bug report this PR fixes
+          placeholder: "Fixes #123"
+      validations:
           required: true
-        - label: No new bugs introduced
-          required: true
-        - label: Code follows project standards
-          required: true
-        - label: Added/updated tests to prevent regression
-        - label: Documentation updated if necessary
-        - label: Verified fix works in multiple browsers (if applicable)
 
-  - type: textarea
-    id: additional_context
-    attributes:
-      label: 📄 Additional Context
-      description: |
-        Any additional information about this bug fix.
-        Include any known limitations or future considerations.
-      placeholder: |
-        - This fix addresses the immediate validation issue
-        - Future enhancement: implement more comprehensive email validation library
-        - Related to security improvement initiative
+    - type: dropdown
+      id: bug_severity
+      attributes:
+          label: 🎯 Bug Severity
+          description: How severe was the bug that you fixed?
+          options:
+              - Critical (Application crashes, data loss, security vulnerability)
+              - High (Major functionality broken, no workaround)
+              - Medium (Minor functionality broken, workaround available)
+              - Low (Cosmetic issue, doesn't affect functionality)
+          default: 2
+      validations:
+          required: true
+
+    - type: textarea
+      id: root_cause
+      attributes:
+          label: 🎯 Root Cause
+          description: |
+              Explain what was causing the bug.
+              Include technical details about the underlying issue.
+          placeholder: |
+              The email validation regex pattern was missing the domain extension check, 
+              allowing emails like "user@domain" without ".com" to pass validation.
+      validations:
+          required: true
+
+    - type: textarea
+      id: solution
+      attributes:
+          label: 🔧 Solution
+          description: |
+              Describe how you fixed the bug.
+              Include the specific changes made and why this approach was chosen.
+          placeholder: |
+              - Updated the email validation regex to include proper domain extension checking
+              - Added unit tests to cover edge cases in email validation
+              - Updated error messages to be more specific about invalid formats
+      validations:
+          required: true
+
+    - type: textarea
+      id: reproduction_steps_before
+      attributes:
+          label: 🧪 Reproduction Steps (Before Fix)
+          description: |
+              How could someone reproduce the bug before your fix?
+          placeholder: |
+              1. Navigate to the login page
+              2. Enter an invalid email like "user@domain"
+              3. Click submit
+              4. Notice the form accepts the invalid email
+      validations:
+          required: true
+
+    - type: textarea
+      id: verification_steps_after
+      attributes:
+          label: ✅ Verification Steps (After Fix)
+          description: |
+              How can someone verify that the bug is now fixed?
+          placeholder: |
+              1. Navigate to the login page
+              2. Enter an invalid email like "user@domain"
+              3. Click submit
+              4. Observe that validation error appears
+              5. Enter a valid email like "user@domain.com"
+              6. Verify form submission works correctly
+
+    - type: checkboxes
+      id: test_results
+      attributes:
+          label: 🧪 Test Results
+          description: Confirm your testing results
+          options:
+              - label: Bug no longer reproduces
+                required: true
+              - label: No regression in existing functionality
+                required: true
+              - label: Edge cases tested
+                required: true
+              - label: Unit tests added/updated
+              - label: Integration tests pass
+
+    - type: textarea
+      id: screenshots_evidence
+      attributes:
+          label: 📸 Screenshots/Evidence
+          description: |
+              Add screenshots or other evidence showing the bug before and after the fix.
+          placeholder: |
+              ### Before (showing the bug):
+              [Add screenshots showing the bug in action]
+
+              ### After (showing the fix):
+              [Add screenshots showing the fix working correctly]
+
+    - type: checkboxes
+      id: bug_fix_checklist
+      attributes:
+          label: ✅ Bug Fix Checklist
+          description: Ensure your bug fix is complete
+          options:
+              - label: The bug is completely fixed
+                required: true
+              - label: No new bugs introduced
+                required: true
+              - label: Code follows project standards
+                required: true
+              - label: Added/updated tests to prevent regression
+              - label: Documentation updated if necessary
+              - label: Verified fix works in multiple browsers (if applicable)
+
+    - type: textarea
+      id: additional_context
+      attributes:
+          label: 📄 Additional Context
+          description: |
+              Any additional information about this bug fix.
+              Include any known limitations or future considerations.
+          placeholder: |
+              - This fix addresses the immediate validation issue
+              - Future enhancement: implement more comprehensive email validation library
+              - Related to security improvement initiative

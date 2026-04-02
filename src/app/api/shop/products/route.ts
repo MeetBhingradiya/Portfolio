@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
             query.$or = [
                 { name: { $regex: search, $options: "i" } },
                 { description: { $regex: search, $options: "i" } },
-                { tags: { $in: [new RegExp(search, "i")] } },
+                { tags: { $in: [new RegExp(search, "i")] } }
             ];
         }
 
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             data: products,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
         });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -59,7 +59,10 @@ export async function POST(req: NextRequest) {
         if (!user?.isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 
         const body = await req.json();
-        const product = await ShopProduct.create({ ...body, createdBy: user.email });
+        const product = await ShopProduct.create({
+            ...body,
+            createdBy: user.email
+        });
         return NextResponse.json({ success: true, data: product }, { status: 201 });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 400 });

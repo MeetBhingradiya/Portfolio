@@ -23,7 +23,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/markdown`,
         title: "Markdown Preview Editor | Meet Bhingradiya Tools",
         description: "Write Markdown and preview HTML in real time. Export as HTML or .md.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Markdown Editor" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Markdown Editor"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

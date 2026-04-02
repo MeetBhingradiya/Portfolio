@@ -51,7 +51,7 @@ const initialFormState: TradeFormData = {
     Notes: "",
     Tags: "",
     AttachmentLinks: "",
-    ScreenshotCdnUrls: [],
+    ScreenshotCdnUrls: []
 };
 
 function formReducer(state: TradeFormData, action: FormAction): TradeFormData {
@@ -103,18 +103,27 @@ function toDraftPayload(form: TradeFormData) {
         Brokerage: form.Brokerage !== "" && form.Brokerage != null ? Number(form.Brokerage) : undefined,
         Taxes: form.Taxes !== "" && form.Taxes != null ? Number(form.Taxes) : undefined,
         PnLAmount: form.PnLAmount !== "" ? Number(form.PnLAmount) : undefined,
-        Tags: form.Tags ? form.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : [],
+        Tags: form.Tags
+            ? form.Tags.split(",")
+                  .map((t: string) => t.trim())
+                  .filter(Boolean)
+            : [],
         Screenshots: form.AttachmentLinks
-            ? form.AttachmentLinks.split(",").map((s: string) => s.trim()).filter(Boolean)
+            ? form.AttachmentLinks.split(",")
+                  .map((s: string) => s.trim())
+                  .filter(Boolean)
             : form.ScreenshotCdnUrls || [],
         IsDraft: true,
         DraftID: form.DraftID,
-        AttachmentUrls: Array.isArray(form.ScreenshotCdnUrls) ? form.ScreenshotCdnUrls : [],
+        AttachmentUrls: Array.isArray(form.ScreenshotCdnUrls) ? form.ScreenshotCdnUrls : []
     };
 }
 
 export function useTradeFormState(initialData?: Partial<TradeFormData>, options?: UseTradeFormStateOptions): UseTradeFormStateReturn {
-    const [form, dispatch] = useReducer(formReducer, { ...initialFormState, ...initialData });
+    const [form, dispatch] = useReducer(formReducer, {
+        ...initialFormState,
+        ...initialData
+    });
     const [hasDraft, setHasDraft] = useState(false);
     const [lastSaveTime, setLastSaveTime] = useState(0);
     const [draftSaving, setDraftSaving] = useState(false);
@@ -144,7 +153,11 @@ export function useTradeFormState(initialData?: Partial<TradeFormData>, options?
                     dispatch({ type: "MERGE_FORM", data: draftData });
                     if (draftId) {
                         draftIdRef.current = draftId;
-                        dispatch({ type: "SET_FIELD", key: "DraftID", value: draftId });
+                        dispatch({
+                            type: "SET_FIELD",
+                            key: "DraftID",
+                            value: draftId
+                        });
                     }
                     setHasDraft(true);
                     draftTimestampRef.current = parseInt(savedTimestamp);
@@ -184,13 +197,17 @@ export function useTradeFormState(initialData?: Partial<TradeFormData>, options?
                     const res = await fetch("/api/trade-journal/draft", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(toDraftPayload(form)),
+                        body: JSON.stringify(toDraftPayload(form))
                     });
                     const json = await res.json();
                     if (json.success && json.data?.DraftID) {
                         draftIdRef.current = json.data.DraftID;
                         localStorage.setItem(DRAFT_ID_KEY, json.data.DraftID);
-                        dispatch({ type: "SET_FIELD", key: "DraftID", value: json.data.DraftID });
+                        dispatch({
+                            type: "SET_FIELD",
+                            key: "DraftID",
+                            value: json.data.DraftID
+                        });
                     }
                 }
             } catch (e) {
@@ -209,29 +226,36 @@ export function useTradeFormState(initialData?: Partial<TradeFormData>, options?
     }, [form, enableBackendDraft, enableLocalDraft]);
 
     // Save draft on demand
-    const saveDraft = useCallback(async (asBackend = false) => {
-        if (!asBackend) return;
+    const saveDraft = useCallback(
+        async (asBackend = false) => {
+            if (!asBackend) return;
 
-        try {
-            const payload = toDraftPayload(form);
-            const res = await fetch("/api/trade-journal/draft", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
-            });
-            const json = await res.json();
-            if (json.success && json.data?.DraftID) {
-                draftIdRef.current = json.data.DraftID;
-                if (typeof window !== "undefined") {
-                    localStorage.setItem(DRAFT_ID_KEY, json.data.DraftID);
+            try {
+                const payload = toDraftPayload(form);
+                const res = await fetch("/api/trade-journal/draft", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const json = await res.json();
+                if (json.success && json.data?.DraftID) {
+                    draftIdRef.current = json.data.DraftID;
+                    if (typeof window !== "undefined") {
+                        localStorage.setItem(DRAFT_ID_KEY, json.data.DraftID);
+                    }
+                    dispatch({
+                        type: "SET_FIELD",
+                        key: "DraftID",
+                        value: json.data.DraftID
+                    });
                 }
-                dispatch({ type: "SET_FIELD", key: "DraftID", value: json.data.DraftID });
+                setLastSaveTime(Date.now());
+            } catch (e) {
+                console.error("Failed to save draft to backend:", e);
             }
-            setLastSaveTime(Date.now());
-        } catch (e) {
-            console.error("Failed to save draft to backend:", e);
-        }
-    }, [form]);
+        },
+        [form]
+    );
 
     const setField = useCallback((key: keyof TradeFormData, value: any) => {
         dispatch({ type: "SET_FIELD", key, value });
@@ -269,6 +293,6 @@ export function useTradeFormState(initialData?: Partial<TradeFormData>, options?
         hasDraft,
         draftAge,
         lastSaveTime,
-        draftSaving,
+        draftSaving
     };
 }

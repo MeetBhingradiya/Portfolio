@@ -18,8 +18,8 @@ function redactProviders(providers: Record<string, any>) {
             enabled: val?.enabled ?? false,
             publicKey: val?.publicKey ?? "",
             // Never send secret key to client
-            secretKeySet: !!(val?.secretKey),
-            extra: val?.extra ?? {},
+            secretKeySet: !!val?.secretKey,
+            extra: val?.extra ?? {}
         };
     }
     return out;
@@ -42,16 +42,16 @@ export async function GET(req: NextRequest) {
             productivityEnabled: doc.productivityEnabled ?? true,
             emailPolicies: {
                 verificationRateLimitWindowMinutes: doc.emailPolicies?.verificationRateLimitWindowMinutes ?? 720,
-                verificationRateLimitMax: doc.emailPolicies?.verificationRateLimitMax ?? 3,
+                verificationRateLimitMax: doc.emailPolicies?.verificationRateLimitMax ?? 3
             },
             phonePolicies: {
                 maxPhonesPerAccount: doc.phonePolicies?.maxPhonesPerAccount ?? 3,
                 maxAccountsPerPhone: doc.phonePolicies?.maxAccountsPerPhone ?? 3,
                 otpExpiryMinutes: doc.phonePolicies?.otpExpiryMinutes ?? 5,
-                otpMaxAttempts: doc.phonePolicies?.otpMaxAttempts ?? 5,
+                otpMaxAttempts: doc.phonePolicies?.otpMaxAttempts ?? 5
             },
-            paymentProviders: redactProviders((doc as any).paymentProviders?.toObject?.() ?? doc.paymentProviders ?? {}),
-        },
+            paymentProviders: redactProviders((doc as any).paymentProviders?.toObject?.() ?? doc.paymentProviders ?? {})
+        }
     });
 }
 
@@ -67,8 +67,8 @@ export async function PATCH(req: NextRequest) {
     const body = await req.json();
     const update: Record<string, any> = {};
 
-    if (typeof body.allowSignup === "boolean")  update.allowSignup  = body.allowSignup;
-    if (typeof body.shopEnabled === "boolean")   update.shopEnabled  = body.shopEnabled;
+    if (typeof body.allowSignup === "boolean") update.allowSignup = body.allowSignup;
+    if (typeof body.shopEnabled === "boolean") update.shopEnabled = body.shopEnabled;
     if (typeof body.productivityEnabled === "boolean") update.productivityEnabled = body.productivityEnabled;
 
     if (body.emailPolicies && typeof body.emailPolicies === "object") {
@@ -103,15 +103,12 @@ export async function PATCH(req: NextRequest) {
         for (const name of PROVIDERS) {
             const prov = body.paymentProviders[name];
             if (!prov) continue;
-            if (typeof prov.enabled === "boolean")
-                update[`paymentProviders.${name}.enabled`] = prov.enabled;
-            if (typeof prov.publicKey === "string")
-                update[`paymentProviders.${name}.publicKey`] = prov.publicKey;
+            if (typeof prov.enabled === "boolean") update[`paymentProviders.${name}.enabled`] = prov.enabled;
+            if (typeof prov.publicKey === "string") update[`paymentProviders.${name}.publicKey`] = prov.publicKey;
             // Only overwrite secretKey if explicitly provided and non-empty
             if (typeof prov.secretKey === "string" && prov.secretKey.length > 0 && !prov.secretKey.includes("•"))
                 update[`paymentProviders.${name}.secretKey`] = encryptStoredSecret(prov.secretKey);
-            if (prov.extra && typeof prov.extra === "object")
-                update[`paymentProviders.${name}.extra`] = prov.extra;
+            if (prov.extra && typeof prov.extra === "object") update[`paymentProviders.${name}.extra`] = prov.extra;
         }
     }
 
@@ -129,15 +126,15 @@ export async function PATCH(req: NextRequest) {
             productivityEnabled: doc.productivityEnabled,
             emailPolicies: {
                 verificationRateLimitWindowMinutes: doc.emailPolicies?.verificationRateLimitWindowMinutes ?? 720,
-                verificationRateLimitMax: doc.emailPolicies?.verificationRateLimitMax ?? 3,
+                verificationRateLimitMax: doc.emailPolicies?.verificationRateLimitMax ?? 3
             },
             phonePolicies: {
                 maxPhonesPerAccount: doc.phonePolicies?.maxPhonesPerAccount ?? 3,
                 maxAccountsPerPhone: doc.phonePolicies?.maxAccountsPerPhone ?? 3,
                 otpExpiryMinutes: doc.phonePolicies?.otpExpiryMinutes ?? 5,
-                otpMaxAttempts: doc.phonePolicies?.otpMaxAttempts ?? 5,
+                otpMaxAttempts: doc.phonePolicies?.otpMaxAttempts ?? 5
             },
-            paymentProviders: redactProviders((doc as any).paymentProviders?.toObject?.() ?? doc.paymentProviders ?? {}),
-        },
+            paymentProviders: redactProviders((doc as any).paymentProviders?.toObject?.() ?? doc.paymentProviders ?? {})
+        }
     });
 }

@@ -17,7 +17,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
         const order = await Order.findOne({
             $or: [{ orderId: params.id }, { _id: params.id }],
-            isDeleted: false,
+            isDeleted: false
         }).lean();
 
         if (!order) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         const body = await req.json();
         const order = await Order.findOne({
             $or: [{ orderId: params.id }, { _id: params.id }],
-            isDeleted: false,
+            isDeleted: false
         });
         if (!order) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 

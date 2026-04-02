@@ -14,7 +14,11 @@ export async function PATCH(request: NextRequest) {
         }
 
         await dbConnect();
-        const selected = await UserPhone.findOne({ _id: phoneId, userId: session.user.id, verified: true }).exec();
+        const selected = await UserPhone.findOne({
+            _id: phoneId,
+            userId: session.user.id,
+            verified: true
+        }).exec();
         if (!selected) {
             return NextResponse.json({ success: false, error: "Phone not found" }, { status: 404 });
         }
@@ -27,6 +31,12 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json({ success: true, data: { phones } });
     } catch (error: any) {
         const status = error?.message === "Unauthorized" ? 401 : 500;
-        return NextResponse.json({ success: false, error: error?.message || "Failed to set primary phone" }, { status });
+        return NextResponse.json(
+            {
+                success: false,
+                error: error?.message || "Failed to set primary phone"
+            },
+            { status }
+        );
     }
 }

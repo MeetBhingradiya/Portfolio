@@ -84,7 +84,10 @@ export async function POST(request: NextRequest) {
         // Check admin authorization
         if (!(await isAdmin(request))) {
             return NextResponse.json(
-                { success: false, error: "Unauthorized. Admin access required." },
+                {
+                    success: false,
+                    error: "Unauthorized. Admin access required."
+                },
                 { status: 403 }
             );
         }
@@ -117,7 +120,10 @@ export async function POST(request: NextRequest) {
         }
 
         // Check if slug already exists
-        const existingAgreement = await Agreement.findOne({ Slug, isDeleted: false });
+        const existingAgreement = await Agreement.findOne({
+            Slug,
+            isDeleted: false
+        });
         if (existingAgreement) {
             return NextResponse.json(
                 {

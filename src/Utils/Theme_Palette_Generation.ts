@@ -50,10 +50,10 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     return result
         ? {
-            r: parseInt(result[1], 16),
-            g: parseInt(result[2], 16),
-            b: parseInt(result[3], 16)
-        }
+              r: parseInt(result[1], 16),
+              g: parseInt(result[2], 16),
+              b: parseInt(result[3], 16)
+          }
         : { r: 0, g: 0, b: 0 };
 }
 
@@ -97,10 +97,7 @@ function addAlpha(hex: string, alpha: number): string {
 /**
  * Generate complete theme palette from accent color
  */
-export function generateThemePalette(
-    accentColor: string,
-    mode: "light" | "dark"
-): ThemePalette {
+export function generateThemePalette(accentColor: string, mode: "light" | "dark"): ThemePalette {
     const isLight = mode === "light";
 
     // Generate accent variations

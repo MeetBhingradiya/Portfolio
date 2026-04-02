@@ -8,10 +8,7 @@ import { requirePermission, permissionError } from "@Library/adminApiMiddleware"
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 
-export async function PATCH(
-    req: NextRequest,
-    context: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
         const auth = await requirePermission(req, "admin.site.settings");
         if (auth.error) {
@@ -30,8 +27,7 @@ export async function PATCH(
         if (body.label !== undefined) entry.label = body.label.trim();
         if (body.note !== undefined) entry.note = body.note?.trim() || undefined;
         // subOverride: empty string clears it, any other string sets it
-        if (body.subOverride !== undefined)
-            (entry as any).subOverride = body.subOverride?.trim() || undefined;
+        if (body.subOverride !== undefined) (entry as any).subOverride = body.subOverride?.trim() || undefined;
 
         await entry.save();
         return NextResponse.json({ success: true, data: entry });
@@ -43,10 +39,7 @@ export async function PATCH(
     }
 }
 
-export async function DELETE(
-    req: NextRequest,
-    context: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(req: NextRequest, context: { params: Promise<{ id: string }> }) {
     try {
         const auth = await requirePermission(req, "admin.site.settings");
         if (auth.error) {

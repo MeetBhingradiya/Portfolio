@@ -12,15 +12,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIBadge } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    PictureAsPdf,
-    CloudUpload,
-    Download,
-    Delete,
-    MergeType,
-    CallSplit,
-    DragIndicator
-} from "@mui/icons-material";
+import { PictureAsPdf, CloudUpload, Download, Delete, MergeType, CallSplit, DragIndicator } from "@mui/icons-material";
 
 interface PDFFile {
     id: string;
@@ -61,7 +53,9 @@ export default function PDFToolsPage() {
             if (f.type !== "application/pdf") continue;
             try {
                 const data = await f.arrayBuffer();
-                const doc = await PDFDocument.load(data, { ignoreEncryption: true });
+                const doc = await PDFDocument.load(data, {
+                    ignoreEncryption: true
+                });
                 newFiles.push({
                     id: crypto.randomUUID(),
                     name: f.name,
@@ -85,7 +79,9 @@ export default function PDFToolsPage() {
             const { PDFDocument } = await import("pdf-lib");
             const merged = await PDFDocument.create();
             for (const f of files) {
-                const src = await PDFDocument.load(f.data, { ignoreEncryption: true });
+                const src = await PDFDocument.load(f.data, {
+                    ignoreEncryption: true
+                });
                 const pages = await merged.copyPages(src, src.getPageIndices());
                 pages.forEach((p) => merged.addPage(p));
             }
@@ -103,7 +99,9 @@ export default function PDFToolsPage() {
         setProcessing(true);
         try {
             const { PDFDocument } = await import("pdf-lib");
-            const src = await PDFDocument.load(files[0].data, { ignoreEncryption: true });
+            const src = await PDFDocument.load(files[0].data, {
+                ignoreEncryption: true
+            });
             const pageIndices = parseRange(splitRange, src.getPageCount());
 
             const result = await PDFDocument.create();
@@ -124,25 +122,34 @@ export default function PDFToolsPage() {
             title="PDF Tools"
             description="Merge, split and extract PDF pages client-side"
             icon={<PictureAsPdf sx={{ fontSize: 24 }} />}
-            accentColor="#FF3B30"
-        >
+            accentColor="#FF3B30">
             <div className="space-y-6">
                 {/* Mode toggle */}
                 <div className="flex gap-1.5">
-                    {([
-                        { key: "merge" as Mode, icon: <MergeType sx={{ fontSize: 14 }} />, label: "Merge" },
-                        { key: "split" as Mode, icon: <CallSplit sx={{ fontSize: 14 }} />, label: "Split / Extract" }
-                    ]).map((m) => (
+                    {[
+                        {
+                            key: "merge" as Mode,
+                            icon: <MergeType sx={{ fontSize: 14 }} />,
+                            label: "Merge"
+                        },
+                        {
+                            key: "split" as Mode,
+                            icon: <CallSplit sx={{ fontSize: 14 }} />,
+                            label: "Split / Extract"
+                        }
+                    ].map((m) => (
                         <motion.button
                             key={m.key}
-                            onClick={() => { setMode(m.key); setFiles([]); }}
+                            onClick={() => {
+                                setMode(m.key);
+                                setFiles([]);
+                            }}
                             className="flex items-center gap-1.5 px-5 py-2 rounded-full text-sm font-bold"
                             style={{
                                 background: mode === m.key ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                 color: mode === m.key ? "#fff" : palette.textSecondary
                             }}
-                            whileTap={{ scale: 0.95 }}
-                        >
+                            whileTap={{ scale: 0.95 }}>
                             {m.icon} {m.label}
                         </motion.button>
                     ))}
@@ -161,19 +168,27 @@ export default function PDFToolsPage() {
                     <motion.div
                         onClick={() => fileRef.current?.click()}
                         onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => { e.preventDefault(); onFiles(e.dataTransfer.files); }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            onFiles(e.dataTransfer.files);
+                        }}
                         className="flex flex-col items-center justify-center gap-3 py-12 rounded-2xl cursor-pointer"
                         style={{
                             border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`,
                             background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)"
                         }}
-                        whileHover={{ scale: 1.005 }}
-                    >
+                        whileHover={{ scale: 1.005 }}>
                         <CloudUpload sx={{ fontSize: 40, color: palette.textTertiary }} />
-                        <p className="text-sm font-semibold" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-sm font-semibold"
+                            style={{ color: palette.textSecondary }}>
                             {mode === "merge" ? "Drop multiple PDFs here" : "Drop a PDF to split"}
                         </p>
-                        <p className="text-xs" style={{ color: palette.textTertiary }}>.pdf files only</p>
+                        <p
+                            className="text-xs"
+                            style={{ color: palette.textTertiary }}>
+                            .pdf files only
+                        </p>
                     </motion.div>
                 </Card>
 
@@ -189,9 +204,12 @@ export default function PDFToolsPage() {
                                 onClick={mergePDFs}
                                 disabled={processing || files.length < 2}
                                 className="px-5 py-2 rounded-full text-xs font-bold"
-                                style={{ background: palette.accent, color: "#fff", opacity: processing || files.length < 2 ? 0.5 : 1 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
+                                style={{
+                                    background: palette.accent,
+                                    color: "#fff",
+                                    opacity: processing || files.length < 2 ? 0.5 : 1
+                                }}
+                                whileTap={{ scale: 0.95 }}>
                                 {processing ? "Merging…" : "Merge All"}
                             </motion.button>
                         </div>
@@ -200,8 +218,7 @@ export default function PDFToolsPage() {
                             axis="y"
                             values={files}
                             onReorder={setFiles}
-                            className="space-y-2"
-                        >
+                            className="space-y-2">
                             <AnimatePresence>
                                 {files.map((f) => (
                                     <Reorder.Item
@@ -209,18 +226,52 @@ export default function PDFToolsPage() {
                                         value={f}
                                         initial={{ opacity: 0, x: -16 }}
                                         animate={{ opacity: 1, x: 0 }}
-                                        exit={{ opacity: 0, x: 16 }}
-                                    >
+                                        exit={{ opacity: 0, x: 16 }}>
                                         <Card>
                                             <div className="flex items-center gap-3">
-                                                <DragIndicator sx={{ fontSize: 18, color: palette.textTertiary, cursor: "grab" }} />
-                                                <PictureAsPdf sx={{ fontSize: 20, color: "#FF3B30" }} />
+                                                <DragIndicator
+                                                    sx={{
+                                                        fontSize: 18,
+                                                        color: palette.textTertiary,
+                                                        cursor: "grab"
+                                                    }}
+                                                />
+                                                <PictureAsPdf
+                                                    sx={{
+                                                        fontSize: 20,
+                                                        color: "#FF3B30"
+                                                    }}
+                                                />
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm font-semibold truncate" style={{ color: palette.textPrimary }}>{f.name}</p>
-                                                    <p className="text-[10px]" style={{ color: palette.textTertiary }}>{f.pages} page{f.pages !== 1 && "s"}</p>
+                                                    <p
+                                                        className="text-sm font-semibold truncate"
+                                                        style={{
+                                                            color: palette.textPrimary
+                                                        }}>
+                                                        {f.name}
+                                                    </p>
+                                                    <p
+                                                        className="text-[10px]"
+                                                        style={{
+                                                            color: palette.textTertiary
+                                                        }}>
+                                                        {f.pages} page
+                                                        {f.pages !== 1 && "s"}
+                                                    </p>
                                                 </div>
-                                                <motion.button onClick={() => removeFile(f.id)} className="p-1.5 rounded-lg" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }}>
-                                                    <Delete sx={{ fontSize: 14, color: "#FF3B30" }} />
+                                                <motion.button
+                                                    onClick={() => removeFile(f.id)}
+                                                    className="p-1.5 rounded-lg"
+                                                    style={{
+                                                        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
+                                                    }}
+                                                    whileTap={{ scale: 0.9 }}>
+                                                    <Delete
+                                                        sx={{
+                                                            fontSize: 14,
+                                                            color: "#FF3B30"
+                                                        }}
+                                                    />
                                                 </motion.button>
                                             </div>
                                         </Card>
@@ -238,13 +289,23 @@ export default function PDFToolsPage() {
                             <div className="flex items-center gap-3">
                                 <PictureAsPdf sx={{ fontSize: 20, color: "#FF3B30" }} />
                                 <div>
-                                    <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>{files[0].name}</p>
-                                    <p className="text-[10px]" style={{ color: palette.textTertiary }}>{files[0].pages} pages</p>
+                                    <p
+                                        className="text-sm font-semibold"
+                                        style={{ color: palette.textPrimary }}>
+                                        {files[0].name}
+                                    </p>
+                                    <p
+                                        className="text-[10px]"
+                                        style={{ color: palette.textTertiary }}>
+                                        {files[0].pages} pages
+                                    </p>
                                 </div>
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>
+                                <label
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
                                     Page range (e.g. 1-3, 5, 8-10)
                                 </label>
                                 <input
@@ -263,9 +324,12 @@ export default function PDFToolsPage() {
                                 onClick={splitPDF}
                                 disabled={processing}
                                 className="px-5 py-2 rounded-full text-xs font-bold"
-                                style={{ background: palette.accent, color: "#fff", opacity: processing ? 0.5 : 1 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
+                                style={{
+                                    background: palette.accent,
+                                    color: "#fff",
+                                    opacity: processing ? 0.5 : 1
+                                }}
+                                whileTap={{ scale: 0.95 }}>
                                 {processing ? "Extracting…" : "Extract Pages"}
                             </motion.button>
                         </div>

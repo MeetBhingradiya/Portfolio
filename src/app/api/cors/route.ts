@@ -56,22 +56,22 @@ export async function GET(req: NextRequest) {
             timeout: 10000,
             headers: {
                 "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-                Accept: "application/json, text/plain, */*",
-                "Accept-Language": "en-US,en;q=0.9",
-            },
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "en-US,en;q=0.9"
+            }
         });
 
         return NextResponse.json({
             status: response.status,
             statusText: response.statusText,
             headers: response.headers,
-            data: response.data,
+            data: response.data
         });
     } catch (error: any) {
         return NextResponse.json(
             {
                 error: error.message,
-                details: error.response?.data || null,
+                details: error.response?.data || null
             },
             { status: error.response?.status || 500 }
         );
@@ -99,20 +99,20 @@ export async function POST(req: NextRequest) {
             method: body.method || "GET",
             headers: body.headers || {},
             data: body.body,
-            timeout: 10000,
+            timeout: 10000
         });
 
         return NextResponse.json({
             status: response.status,
             statusText: response.statusText,
             headers: response.headers,
-            data: response.data,
+            data: response.data
         });
     } catch (error: any) {
         return NextResponse.json(
             {
                 error: error.message,
-                details: error.response?.data || null,
+                details: error.response?.data || null
             },
             { status: error.response?.status || 500 }
         );

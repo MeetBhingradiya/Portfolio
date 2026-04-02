@@ -48,21 +48,18 @@ export async function getUserRoleRecord(userId: string): Promise<IUserRole | nul
  * Loads RoleDefinition documents for the given role keys, merges their
  * permission arrays, then applies any per-user overrides.
  */
-export async function resolveEffectivePermissions(
-    roles: string[],
-    overrides: { key: string; granted: boolean }[]
-): Promise<Set<string>> {
+export async function resolveEffectivePermissions(roles: string[], overrides: { key: string; granted: boolean }[]): Promise<Set<string>> {
     await dbConnect();
     const defs = await RoleDefinition.find({ key: { $in: roles } }).lean();
 
     // Union of all role permissions
     const perms = new Set<string>();
-    defs.forEach(def => def.permissions.forEach(p => perms.add(p)));
+    defs.forEach((def) => def.permissions.forEach((p) => perms.add(p)));
 
     // Apply per-user overrides
-    overrides.forEach(o => {
+    overrides.forEach((o) => {
         if (o.granted) perms.add(o.key);
-        else           perms.delete(o.key);
+        else perms.delete(o.key);
     });
 
     return perms;
@@ -77,9 +74,7 @@ export async function getResolvedUser(headers: Headers): Promise<ResolvedUser | 
     const isAdmin = !!adminEmail && session.user.email === adminEmail;
 
     const dbRecord = await getUserRoleRecord(session.user.id);
-    const roles: AppRole[] = isAdmin
-        ? ["admin", "employee", "paid_customer", "user"]
-        : (dbRecord?.roles ?? ["user"]);
+    const roles: AppRole[] = isAdmin ? ["admin", "employee", "paid_customer", "user"] : (dbRecord?.roles ?? ["user"]);
 
     const overrides = isAdmin ? [] : (dbRecord?.permissions ?? []);
 
@@ -98,7 +93,7 @@ export async function getResolvedUser(headers: Headers): Promise<ResolvedUser | 
         permissionOverrides: overrides,
         isAdmin,
         isEmployee: isAdmin || roles.includes("employee"),
-        isPaidCustomer: isAdmin || roles.includes("paid_customer"),
+        isPaidCustomer: isAdmin || roles.includes("paid_customer")
     };
 }
 
@@ -119,7 +114,7 @@ export async function requireRole(headers: Headers, role: AppRole): Promise<Reso
         user: 0,
         paid_customer: 1,
         employee: 2,
-        admin: 3,
+        admin: 3
     };
 
     const requiredLevel = hierarchy[role] ?? 0;
@@ -133,5 +128,5 @@ export async function requireRole(headers: Headers, role: AppRole): Promise<Reso
 
 /** Quick helpers */
 export const requireEmployee = (h: Headers) => requireRole(h, "employee");
-export const requireAdmin    = (h: Headers) => requireRole(h, "admin");
-export const requireAuth     = (h: Headers) => requireRole(h, "user");
+export const requireAdmin = (h: Headers) => requireRole(h, "admin");
+export const requireAuth = (h: Headers) => requireRole(h, "user");

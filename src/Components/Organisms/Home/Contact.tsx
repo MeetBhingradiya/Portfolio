@@ -65,8 +65,7 @@ export default function ContactSection() {
                 background: isApple
                     ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, ${palette.accentSubtle} 0%, ${palette.background} 50%)`
                     : palette.background
-            }}
-        >
+            }}>
             {/* Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {isApple ? (
@@ -129,29 +128,23 @@ export default function ContactSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6 }}
-                    className="text-center mb-16"
-                >
+                    className="text-center mb-16">
                     <motion.div
                         className="inline-flex items-center gap-2 mb-6"
                         initial={{ opacity: 0, scale: 0.9 }}
                         whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.5 }}
-                    >
+                        transition={{ duration: 0.5 }}>
                         {isApple ? (
                             <div
                                 className="px-4 py-2 rounded-full"
                                 style={{
-                                    background: isDark
-                                        ? "rgba(255, 255, 255, 0.1)"
-                                        : "rgba(0, 0, 0, 0.05)",
+                                    background: isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.05)",
                                     backdropFilter: "blur(20px)"
-                                }}
-                            >
+                                }}>
                                 <span
                                     className="text-sm font-medium"
-                                    style={{ color: palette.accent }}
-                                >
+                                    style={{ color: palette.accent }}>
                                     Let's Connect
                                 </span>
                             </div>
@@ -162,16 +155,13 @@ export default function ContactSection() {
 
                     <h2
                         className={`${isApple ? "text-4xl md:text-5xl font-semibold" : "text-4xl md:text-5xl font-black"} mb-4`}
-                        style={{ color: palette.textPrimary }}
-                    >
+                        style={{ color: palette.textPrimary }}>
                         Get In Touch
                     </h2>
                     <p
                         className={`${isApple ? "text-lg" : "text-xl font-medium"} max-w-2xl mx-auto`}
-                        style={{ color: palette.textSecondary }}
-                    >
-                        Have a project in mind, want to collaborate, or just say hello?
-                        I'd love to hear from you.
+                        style={{ color: palette.textSecondary }}>
+                        Have a project in mind, want to collaborate, or just say hello? I'd love to hear from you.
                     </p>
 
                     {/* Availability Status */}
@@ -180,8 +170,7 @@ export default function ContactSection() {
                         initial={{ opacity: 0 }}
                         whileInView={{ opacity: 1 }}
                         viewport={{ once: true }}
-                        transition={{ delay: 0.3 }}
-                    >
+                        transition={{ delay: 0.3 }}>
                         <div className="flex items-center gap-2">
                             <div
                                 className="w-2.5 h-2.5 rounded-full animate-pulse"
@@ -191,8 +180,7 @@ export default function ContactSection() {
                             />
                             <span
                                 className="text-sm"
-                                style={{ color: palette.textTertiary }}
-                            >
+                                style={{ color: palette.textTertiary }}>
                                 {isBusinessHours() ? "Currently Available" : "Away"}
                             </span>
                         </div>
@@ -207,8 +195,7 @@ export default function ContactSection() {
                             />
                             <span
                                 className="text-sm"
-                                style={{ color: palette.textTertiary }}
-                            >
+                                style={{ color: palette.textTertiary }}>
                                 {getLocalTime()} IST
                             </span>
                         </div>
@@ -221,12 +208,10 @@ export default function ContactSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.1 }}
-                    className="mb-20"
-                >
+                    className="mb-20">
                     <h3
                         className={`${isApple ? "text-xl font-medium" : "text-xl font-bold"} mb-8 text-center`}
-                        style={{ color: palette.textPrimary }}
-                    >
+                        style={{ color: palette.textPrimary }}>
                         Looking to...
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -236,40 +221,41 @@ export default function ContactSection() {
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                            >
+                                transition={{
+                                    duration: 0.5,
+                                    delay: index * 0.1
+                                }}>
                                 <Link href={action.action}>
                                     <Card
                                         className="h-full cursor-pointer group"
                                         intensity={isApple ? "subtle" : undefined}
-                                        elevated={!isApple}
-                                    >
+                                        elevated={!isApple}>
                                         <div className="flex flex-col h-full">
                                             <div
                                                 className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-transform group-hover:scale-110"
                                                 style={{
                                                     background: `${action.color}20`,
                                                     color: action.color
-                                                }}
-                                            >
+                                                }}>
                                                 {action.icon}
                                             </div>
                                             <h4
                                                 className={`${isApple ? "font-medium text-base" : "font-bold"} mb-2`}
-                                                style={{ color: palette.textPrimary }}
-                                            >
+                                                style={{
+                                                    color: palette.textPrimary
+                                                }}>
                                                 {action.title}
                                             </h4>
                                             <p
                                                 className="text-sm flex-grow leading-relaxed"
-                                                style={{ color: palette.textSecondary }}
-                                            >
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
                                                 {action.description}
                                             </p>
                                             <div
                                                 className="flex items-center gap-1 mt-4 text-sm font-medium"
-                                                style={{ color: action.color }}
-                                            >
+                                                style={{ color: action.color }}>
                                                 Get Started
                                                 <ArrowForward className="text-sm transition-transform group-hover:translate-x-1" />
                                             </div>
@@ -287,12 +273,10 @@ export default function ContactSection() {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: 0.2 }}
-                    className="mb-20"
-                >
+                    className="mb-20">
                     <h3
                         className={`${isApple ? "text-xl font-medium" : "text-xl font-bold"} mb-8 text-center`}
-                        style={{ color: palette.textPrimary }}
-                    >
+                        style={{ color: palette.textPrimary }}>
                         Connect With Me
                     </h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -302,56 +286,54 @@ export default function ContactSection() {
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.08 }}
+                                transition={{
+                                    duration: 0.5,
+                                    delay: index * 0.08
+                                }}
                                 onMouseEnter={() => setHoveredCard(method.id)}
-                                onMouseLeave={() => setHoveredCard(null)}
-                            >
+                                onMouseLeave={() => setHoveredCard(null)}>
                                 <Link
                                     href={method.link}
                                     target={method.link.startsWith("http") ? "_blank" : undefined}
-                                    rel={method.link.startsWith("http") ? "noopener noreferrer" : undefined}
-                                >
+                                    rel={method.link.startsWith("http") ? "noopener noreferrer" : undefined}>
                                     <Card
                                         className="h-full cursor-pointer group"
                                         intensity={isApple ? "medium" : undefined}
-                                        elevated={!isApple}
-                                    >
+                                        elevated={!isApple}>
                                         <div className="flex items-start gap-4">
                                             <motion.div
                                                 className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0"
                                                 style={{
-                                                    background: hoveredCard === method.id
-                                                        ? method.color
-                                                        : `${method.color}20`,
-                                                    color: hoveredCard === method.id
-                                                        ? "#FFFFFF"
-                                                        : method.color
+                                                    background: hoveredCard === method.id ? method.color : `${method.color}20`,
+                                                    color: hoveredCard === method.id ? "#FFFFFF" : method.color
                                                 }}
                                                 animate={{
                                                     scale: hoveredCard === method.id ? 1.05 : 1
                                                 }}
-                                                transition={{ duration: 0.2 }}
-                                            >
+                                                transition={{ duration: 0.2 }}>
                                                 {method.icon}
                                             </motion.div>
                                             <div className="flex-grow">
                                                 <h4
                                                     className={`${isApple ? "font-medium" : "font-bold"} mb-1`}
-                                                    style={{ color: palette.textPrimary }}
-                                                >
+                                                    style={{
+                                                        color: palette.textPrimary
+                                                    }}>
                                                     {method.title}
                                                 </h4>
                                                 <p
                                                     className="text-sm mb-2"
-                                                    style={{ color: palette.textSecondary }}
-                                                >
+                                                    style={{
+                                                        color: palette.textSecondary
+                                                    }}>
                                                     {method.description}
                                                 </p>
                                                 {method.responseTime && (
                                                     <p
                                                         className="text-xs flex items-center gap-1"
-                                                        style={{ color: palette.textTertiary }}
-                                                    >
+                                                        style={{
+                                                            color: palette.textTertiary
+                                                        }}>
                                                         <Schedule className="text-xs" />
                                                         {method.responseTime}
                                                     </p>
@@ -359,7 +341,9 @@ export default function ContactSection() {
                                             </div>
                                             <ArrowForward
                                                 className="text-lg transition-transform group-hover:translate-x-1"
-                                                style={{ color: palette.textTertiary }}
+                                                style={{
+                                                    color: palette.textTertiary
+                                                }}
                                             />
                                         </div>
                                     </Card>
@@ -488,44 +472,45 @@ export default function ContactSection() {
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-                >
+                    transition={{ duration: 0.6, delay: 0.4 }}>
                     <Card
                         className="text-center"
                         intensity={isApple ? "strong" : undefined}
-                        elevated={!isApple}
-                    >
+                        elevated={!isApple}>
                         <div className="py-8 px-4">
                             <div
                                 className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6"
                                 style={{
                                     background: `${palette.accent}20`,
                                     color: palette.accent
-                                }}
-                            >
+                                }}>
                                 <Send className="text-2xl" />
                             </div>
                             <h3
                                 className={`${isApple ? "text-2xl font-semibold" : "text-2xl font-black"} mb-3`}
-                                style={{ color: palette.textPrimary }}
-                            >
+                                style={{ color: palette.textPrimary }}>
                                 Ready to Start a Project?
                             </h3>
                             <p
                                 className={`${isApple ? "text-base" : "text-lg"} max-w-xl mx-auto mb-8`}
-                                style={{ color: palette.textSecondary }}
-                            >
-                                Let's discuss your ideas and create something extraordinary together.
-                                I'm always excited to work on new challenges.
+                                style={{ color: palette.textSecondary }}>
+                                Let's discuss your ideas and create something extraordinary together. I'm always excited to work on new
+                                challenges.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                                 <Link href="/contact">
-                                    <Button variant="primary" icon={<Email />}>
+                                    <Button
+                                        variant="primary"
+                                        icon={<Email />}>
                                         Send a Message
                                     </Button>
                                 </Link>
-                                <Link href="https://calendly.com/meetbhingradiya" target="_blank">
-                                    <Button variant="secondary" icon={<CalendarMonth />}>
+                                <Link
+                                    href="https://calendly.com/meetbhingradiya"
+                                    target="_blank">
+                                    <Button
+                                        variant="secondary"
+                                        icon={<CalendarMonth />}>
                                         Schedule a Call
                                     </Button>
                                 </Link>

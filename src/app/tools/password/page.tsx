@@ -12,14 +12,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIBadge } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    Password,
-    ContentCopy,
-    Check,
-    Refresh,
-    History,
-    Delete
-} from "@mui/icons-material";
+import { Password, ContentCopy, Check, Refresh, History, Delete } from "@mui/icons-material";
 
 type GenMode = "random" | "passphrase" | "pin";
 
@@ -43,11 +36,56 @@ interface HistoryEntry {
 }
 
 const WORDLIST = [
-    "apple","banana","cherry","delta","eagle","falcon","gamma","harbor","igloo","jacket",
-    "kayak","lemon","mango","noble","ocean","pepper","quartz","river","solar","tiger",
-    "ultra","vivid","walnut","xenon","yacht","zephyr","alpha","bravo","coral","drift",
-    "ember","frost","globe","haven","ivory","jewel","karma","lunar","maple","nexus",
-    "oasis","prism","quest","ridge","storm","thorn","umbra","viper","wrath","xylem"
+    "apple",
+    "banana",
+    "cherry",
+    "delta",
+    "eagle",
+    "falcon",
+    "gamma",
+    "harbor",
+    "igloo",
+    "jacket",
+    "kayak",
+    "lemon",
+    "mango",
+    "noble",
+    "ocean",
+    "pepper",
+    "quartz",
+    "river",
+    "solar",
+    "tiger",
+    "ultra",
+    "vivid",
+    "walnut",
+    "xenon",
+    "yacht",
+    "zephyr",
+    "alpha",
+    "bravo",
+    "coral",
+    "drift",
+    "ember",
+    "frost",
+    "globe",
+    "haven",
+    "ivory",
+    "jewel",
+    "karma",
+    "lunar",
+    "maple",
+    "nexus",
+    "oasis",
+    "prism",
+    "quest",
+    "ridge",
+    "storm",
+    "thorn",
+    "umbra",
+    "viper",
+    "wrath",
+    "xylem"
 ];
 
 const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -129,7 +167,10 @@ export default function PasswordPage() {
             if (config.digits) charset += DIGITS;
             if (config.symbols) charset += SYMBOLS;
             if (config.excludeAmbiguous) {
-                charset = charset.split("").filter((c) => !AMBIGUOUS.includes(c)).join("");
+                charset = charset
+                    .split("")
+                    .filter((c) => !AMBIGUOUS.includes(c))
+                    .join("");
             }
             if (!charset) charset = LOWER;
             const arr = new Uint32Array(config.length);
@@ -151,7 +192,9 @@ export default function PasswordPage() {
     }, [mode, config]);
 
     // Generate on mount and mode change
-    React.useEffect(() => { generate(); }, [mode]);
+    React.useEffect(() => {
+        generate();
+    }, [mode]);
 
     const strength = useMemo(() => calcStrength(password), [password]);
 
@@ -171,18 +214,23 @@ export default function PasswordPage() {
                 <motion.button
                     onClick={() => setShowHistory(!showHistory)}
                     className="p-2 rounded-xl relative"
-                    style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)" }}
-                    whileTap={{ scale: 0.9 }}
-                >
+                    style={{
+                        background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)"
+                    }}
+                    whileTap={{ scale: 0.9 }}>
                     <History sx={{ fontSize: 16, color: palette.textTertiary }} />
                     {history.length > 0 && (
-                        <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center" style={{ background: palette.accent, color: "#fff" }}>
+                        <span
+                            className="absolute -top-1 -right-1 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center"
+                            style={{
+                                background: palette.accent,
+                                color: "#fff"
+                            }}>
                             {history.length}
                         </span>
                     )}
                 </motion.button>
-            }
-        >
+            }>
             <div className="space-y-6">
                 {/* Mode toggle */}
                 <div className="flex gap-1.5">
@@ -195,8 +243,7 @@ export default function PasswordPage() {
                                 background: mode === m ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                 color: mode === m ? "#fff" : palette.textSecondary
                             }}
-                            whileTap={{ scale: 0.95 }}
-                        >
+                            whileTap={{ scale: 0.95 }}>
                             {m === "pin" ? "PIN" : m}
                         </motion.button>
                     ))}
@@ -212,14 +259,32 @@ export default function PasswordPage() {
                                     background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
                                     color: palette.textPrimary,
                                     border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
-                                }}
-                            >
+                                }}>
                                 {password}
                             </div>
-                            <motion.button onClick={copy} className="p-2.5 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }}>
-                                {copied ? <Check sx={{ fontSize: 18, color: "#34C759" }} /> : <ContentCopy sx={{ fontSize: 18, color: palette.textTertiary }} />}
+                            <motion.button
+                                onClick={copy}
+                                className="p-2.5 rounded-xl"
+                                style={{
+                                    background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)"
+                                }}
+                                whileTap={{ scale: 0.9 }}>
+                                {copied ? (
+                                    <Check sx={{ fontSize: 18, color: "#34C759" }} />
+                                ) : (
+                                    <ContentCopy
+                                        sx={{
+                                            fontSize: 18,
+                                            color: palette.textTertiary
+                                        }}
+                                    />
+                                )}
                             </motion.button>
-                            <motion.button onClick={generate} className="p-2.5 rounded-xl" style={{ background: palette.accent }} whileTap={{ scale: 0.9 }}>
+                            <motion.button
+                                onClick={generate}
+                                className="p-2.5 rounded-xl"
+                                style={{ background: palette.accent }}
+                                whileTap={{ scale: 0.9 }}>
                                 <Refresh sx={{ fontSize: 18, color: "#fff" }} />
                             </motion.button>
                         </div>
@@ -227,15 +292,32 @@ export default function PasswordPage() {
                         {/* Strength meter */}
                         <div className="space-y-1.5">
                             <div className="flex justify-between items-center">
-                                <span className="text-xs font-bold" style={{ color: palette.textSecondary }}>Strength</span>
-                                <span className="text-xs font-bold" style={{ color: STRENGTH_COLORS[strength] }}>{STRENGTH_LABELS[strength]}</span>
+                                <span
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
+                                    Strength
+                                </span>
+                                <span
+                                    className="text-xs font-bold"
+                                    style={{
+                                        color: STRENGTH_COLORS[strength]
+                                    }}>
+                                    {STRENGTH_LABELS[strength]}
+                                </span>
                             </div>
                             <div className="flex gap-1 h-1.5">
                                 {Array.from({ length: 5 }, (_, i) => (
                                     <motion.div
                                         key={i}
                                         className="flex-1 rounded-full"
-                                        style={{ background: i <= strength ? STRENGTH_COLORS[strength] : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)" }}
+                                        style={{
+                                            background:
+                                                i <= strength
+                                                    ? STRENGTH_COLORS[strength]
+                                                    : isDark
+                                                      ? "rgba(255,255,255,0.08)"
+                                                      : "rgba(0,0,0,0.06)"
+                                        }}
                                         initial={{ scaleX: 0 }}
                                         animate={{ scaleX: 1 }}
                                         transition={{ delay: i * 0.05 }}
@@ -248,43 +330,85 @@ export default function PasswordPage() {
 
                 {/* Settings */}
                 <Card>
-                    <h3 className={`mb-4 ${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>Settings</h3>
+                    <h3
+                        className={`mb-4 ${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                        style={{ color: palette.textPrimary }}>
+                        Settings
+                    </h3>
 
                     {mode === "random" && (
                         <div className="space-y-5">
                             <div className="space-y-1.5">
                                 <div className="flex justify-between">
-                                    <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Length</label>
-                                    <span className="text-xs font-mono" style={{ color: palette.textTertiary }}>{config.length}</span>
+                                    <label
+                                        className="text-xs font-bold"
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
+                                        Length
+                                    </label>
+                                    <span
+                                        className="text-xs font-mono"
+                                        style={{ color: palette.textTertiary }}>
+                                        {config.length}
+                                    </span>
                                 </div>
                                 <input
-                                    type="range" min={4} max={128} value={config.length}
-                                    onChange={(e) => update({ length: Number(e.target.value) })}
+                                    type="range"
+                                    min={4}
+                                    max={128}
+                                    value={config.length}
+                                    onChange={(e) =>
+                                        update({
+                                            length: Number(e.target.value)
+                                        })
+                                    }
                                     className="w-full"
                                     style={{ accentColor: palette.accent }}
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-3">
-                                {([
+                                {[
                                     { key: "uppercase" as const, label: "A-Z" },
                                     { key: "lowercase" as const, label: "a-z" },
                                     { key: "digits" as const, label: "0-9" },
                                     { key: "symbols" as const, label: "!@#$" },
-                                    { key: "excludeAmbiguous" as const, label: "No ambiguous (I,l,1,O,0)" }
-                                ]).map((opt) => (
+                                    {
+                                        key: "excludeAmbiguous" as const,
+                                        label: "No ambiguous (I,l,1,O,0)"
+                                    }
+                                ].map((opt) => (
                                     <motion.button
                                         key={opt.key}
-                                        onClick={() => update({ [opt.key]: !config[opt.key] })}
+                                        onClick={() =>
+                                            update({
+                                                [opt.key]: !config[opt.key]
+                                            })
+                                        }
                                         className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold"
                                         style={{
-                                            background: config[opt.key] ? `${palette.accent}15` : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                                            background: config[opt.key]
+                                                ? `${palette.accent}15`
+                                                : isDark
+                                                  ? "rgba(255,255,255,0.05)"
+                                                  : "rgba(0,0,0,0.03)",
                                             color: config[opt.key] ? palette.accent : palette.textTertiary,
                                             border: `1px solid ${config[opt.key] ? `${palette.accent}30` : "transparent"}`
                                         }}
-                                        whileTap={{ scale: 0.97 }}
-                                    >
-                                        <span className="w-4 h-4 rounded-md border-2 flex items-center justify-center" style={{ borderColor: config[opt.key] ? palette.accent : palette.textTertiary }}>
-                                            {config[opt.key] && <Check sx={{ fontSize: 10, color: palette.accent }} />}
+                                        whileTap={{ scale: 0.97 }}>
+                                        <span
+                                            className="w-4 h-4 rounded-md border-2 flex items-center justify-center"
+                                            style={{
+                                                borderColor: config[opt.key] ? palette.accent : palette.textTertiary
+                                            }}>
+                                            {config[opt.key] && (
+                                                <Check
+                                                    sx={{
+                                                        fontSize: 10,
+                                                        color: palette.accent
+                                                    }}
+                                                />
+                                            )}
                                         </span>
                                         {opt.label}
                                     </motion.button>
@@ -297,18 +421,39 @@ export default function PasswordPage() {
                         <div className="space-y-4">
                             <div className="space-y-1.5">
                                 <div className="flex justify-between">
-                                    <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Word Count</label>
-                                    <span className="text-xs font-mono" style={{ color: palette.textTertiary }}>{config.wordCount}</span>
+                                    <label
+                                        className="text-xs font-bold"
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
+                                        Word Count
+                                    </label>
+                                    <span
+                                        className="text-xs font-mono"
+                                        style={{ color: palette.textTertiary }}>
+                                        {config.wordCount}
+                                    </span>
                                 </div>
                                 <input
-                                    type="range" min={3} max={12} value={config.wordCount}
-                                    onChange={(e) => update({ wordCount: Number(e.target.value) })}
+                                    type="range"
+                                    min={3}
+                                    max={12}
+                                    value={config.wordCount}
+                                    onChange={(e) =>
+                                        update({
+                                            wordCount: Number(e.target.value)
+                                        })
+                                    }
                                     className="w-full"
                                     style={{ accentColor: palette.accent }}
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Separator</label>
+                                <label
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
+                                    Separator
+                                </label>
                                 <div className="flex gap-2">
                                     {["-", "_", ".", " ", ""].map((sep) => (
                                         <motion.button
@@ -316,11 +461,15 @@ export default function PasswordPage() {
                                             onClick={() => update({ separator: sep })}
                                             className="px-3 py-1.5 rounded-full text-xs font-mono font-bold"
                                             style={{
-                                                background: config.separator === sep ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
+                                                background:
+                                                    config.separator === sep
+                                                        ? palette.accent
+                                                        : isDark
+                                                          ? "rgba(255,255,255,0.07)"
+                                                          : "rgba(0,0,0,0.04)",
                                                 color: config.separator === sep ? "#fff" : palette.textSecondary
                                             }}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
+                                            whileTap={{ scale: 0.95 }}>
                                             {sep === "" ? "none" : sep === " " ? "space" : `"${sep}"`}
                                         </motion.button>
                                     ))}
@@ -332,12 +481,27 @@ export default function PasswordPage() {
                     {mode === "pin" && (
                         <div className="space-y-1.5">
                             <div className="flex justify-between">
-                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>PIN Length</label>
-                                <span className="text-xs font-mono" style={{ color: palette.textTertiary }}>{config.pinLength}</span>
+                                <label
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
+                                    PIN Length
+                                </label>
+                                <span
+                                    className="text-xs font-mono"
+                                    style={{ color: palette.textTertiary }}>
+                                    {config.pinLength}
+                                </span>
                             </div>
                             <input
-                                type="range" min={4} max={12} value={config.pinLength}
-                                onChange={(e) => update({ pinLength: Number(e.target.value) })}
+                                type="range"
+                                min={4}
+                                max={12}
+                                value={config.pinLength}
+                                onChange={(e) =>
+                                    update({
+                                        pinLength: Number(e.target.value)
+                                    })
+                                }
                                 className="w-full"
                                 style={{ accentColor: palette.accent }}
                             />
@@ -348,8 +512,7 @@ export default function PasswordPage() {
                         onClick={generate}
                         className="mt-5 w-full py-2.5 rounded-xl text-sm font-bold"
                         style={{ background: palette.accent, color: "#fff" }}
-                        whileTap={{ scale: 0.98 }}
-                    >
+                        whileTap={{ scale: 0.98 }}>
                         Generate
                     </motion.button>
                 </Card>
@@ -357,13 +520,23 @@ export default function PasswordPage() {
                 {/* History */}
                 <AnimatePresence>
                     {showHistory && (
-                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden">
                             <Card>
                                 <div className="flex items-center justify-between mb-3">
-                                    <h3 className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>
+                                    <h3
+                                        className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                                        style={{ color: palette.textPrimary }}>
                                         History ({history.length})
                                     </h3>
-                                    <motion.button onClick={() => setHistory([])} className="text-xs font-bold" style={{ color: "#FF3B30" }} whileTap={{ scale: 0.95 }}>
+                                    <motion.button
+                                        onClick={() => setHistory([])}
+                                        className="text-xs font-bold"
+                                        style={{ color: "#FF3B30" }}
+                                        whileTap={{ scale: 0.95 }}>
                                         Clear
                                     </motion.button>
                                 </div>
@@ -371,12 +544,22 @@ export default function PasswordPage() {
                                     {history.map((h, i) => (
                                         <motion.button
                                             key={h.ts}
-                                            onClick={() => { setPassword(h.value); navigator.clipboard.writeText(h.value); }}
+                                            onClick={() => {
+                                                setPassword(h.value);
+                                                navigator.clipboard.writeText(h.value);
+                                            }}
                                             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-left"
-                                            style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)" }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
-                                            <span className="flex-1 text-xs font-mono truncate" style={{ color: palette.textPrimary }}>{h.value}</span>
+                                            style={{
+                                                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)"
+                                            }}
+                                            whileTap={{ scale: 0.98 }}>
+                                            <span
+                                                className="flex-1 text-xs font-mono truncate"
+                                                style={{
+                                                    color: palette.textPrimary
+                                                }}>
+                                                {h.value}
+                                            </span>
                                             <OneUIBadge variant={h.strength >= 4 ? "success" : h.strength >= 2 ? "warning" : "error"}>
                                                 {STRENGTH_LABELS[h.strength]}
                                             </OneUIBadge>

@@ -4,21 +4,15 @@
  * and admin-managed defaults.
  */
 
-export type ToolCategory =
-    | "generators"
-    | "converters"
-    | "dev-tools"
-    | "media"
-    | "security"
-    | "editor";
+export type ToolCategory = "generators" | "converters" | "dev-tools" | "media" | "security" | "editor";
 
 export type ToolBadge =
-    | "admin-managed"    // Default settings come from admin panel
-    | "db-sync"          // User preferences synced to DB
-    | "studio"           // Has a Studio / advanced mode
-    | "featured"         // Admin-featured tool
-    | "new"              // Recently added
-    | "beta";            // Beta feature
+    | "admin-managed" // Default settings come from admin panel
+    | "db-sync" // User preferences synced to DB
+    | "studio" // Has a Studio / advanced mode
+    | "featured" // Admin-featured tool
+    | "new" // Recently added
+    | "beta"; // Beta feature
 
 export interface ToolDefinition {
     /** Unique slug — matches the route under /Tools/<slug> */
@@ -47,11 +41,11 @@ export interface ToolDefinition {
 }
 
 export const TOOL_CATEGORIES: Record<ToolCategory, { label: string; description: string }> = {
-    generators: {
+    "generators": {
         label: "Generators",
         description: "Create codes, identifiers and secure credentials"
     },
-    converters: {
+    "converters": {
         label: "Converters",
         description: "Transform data between formats accurately"
     },
@@ -59,15 +53,15 @@ export const TOOL_CATEGORIES: Record<ToolCategory, { label: string; description:
         label: "Dev Tools",
         description: "Debug, inspect and explore developer utilities"
     },
-    media: {
+    "media": {
         label: "Media & Documents",
         description: "Work with images and PDF files"
     },
-    security: {
+    "security": {
         label: "Security",
         description: "Encrypt, decrypt and hash your data"
     },
-    editor: {
+    "editor": {
         label: "Editors & Pickers",
         description: "Rich editors, colour pickers and preview utilities"
     }
@@ -306,7 +300,7 @@ export const TOOLS: ToolDefinition[] = [
         adminManaged: false,
         syncToDb: false,
         shortcut: "G"
-    },
+    }
 ];
 
 /** Returns tools grouped by category (preserving TOOL_CATEGORIES order) */

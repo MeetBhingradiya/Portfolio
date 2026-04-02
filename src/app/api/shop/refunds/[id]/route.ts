@@ -18,7 +18,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
         const refund = await RefundRequest.findOne({
             $or: [{ refundId: params.id }, { _id: params.id }],
-            isDeleted: false,
+            isDeleted: false
         }).lean();
 
         if (!refund) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
@@ -48,7 +48,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
                 status,
                 reviewedBy: user.email,
                 reviewNote,
-                ...(status === "processed" ? { processedAt: new Date() } : {}),
+                ...(status === "processed" ? { processedAt: new Date() } : {})
             },
             { new: true }
         );

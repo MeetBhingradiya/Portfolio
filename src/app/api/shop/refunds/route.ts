@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             data: refunds,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
         });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -62,15 +62,16 @@ export async function POST(req: NextRequest) {
         // Check order is in refundable state
         const refundableStatuses = ["confirmed", "processing", "shipped", "delivered", "completed"];
         if (!user.isEmployee && !refundableStatuses.includes(order.status)) {
-            return NextResponse.json({
-                success: false,
-                error: `Order in status '${order.status}' is not eligible for refund`,
-            }, { status: 400 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: `Order in status '${order.status}' is not eligible for refund`
+                },
+                { status: 400 }
+            );
         }
 
-        const totalRefundAmount = (refundItems as any[]).reduce(
-            (s: number, i: any) => s + (i.refundAmount || 0), 0
-        );
+        const totalRefundAmount = (refundItems as any[]).reduce((s: number, i: any) => s + (i.refundAmount || 0), 0);
 
         const refund = await RefundRequest.create({
             orderId,
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
             attachments: attachments || [],
             refundItems,
             totalRefundAmount,
-            currency: (order as any).currency,
+            currency: (order as any).currency
         });
 
         // Update order status

@@ -65,9 +65,8 @@ export function CookieWarning() {
                     className="w-full rounded-2xl overflow-hidden mb-4"
                     style={{
                         background: "linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(239,68,68,0.12) 100%)",
-                        border: "1px solid rgba(245,158,11,0.4)",
-                    }}
-                >
+                        border: "1px solid rgba(245,158,11,0.4)"
+                    }}>
                     <div className="flex items-start gap-3 p-4 pr-3">
                         <Warning
                             className="mt-0.5 flex-shrink-0"
@@ -75,40 +74,44 @@ export function CookieWarning() {
                         />
 
                         <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm" style={{ color: "#f59e0b" }}>
+                            <p
+                                className="font-semibold text-sm"
+                                style={{ color: "#f59e0b" }}>
                                 Cookies are blocked
                             </p>
-                            <p className="text-xs mt-0.5 leading-relaxed" style={{ color: "#fcd34d" }}>
+                            <p
+                                className="text-xs mt-0.5 leading-relaxed"
+                                style={{ color: "#fcd34d" }}>
                                 Your browser is blocking cookies. Sign-in sessions and OAuth
-                                (Google&nbsp;/&nbsp;GitHub&nbsp;/&nbsp;Microsoft) won't work without them.
-                                Please allow cookies for this site in your browser settings or
-                                disable your tracking-prevention extension.
+                                (Google&nbsp;/&nbsp;GitHub&nbsp;/&nbsp;Microsoft) won't work without them. Please allow cookies for this
+                                site in your browser settings or disable your tracking-prevention extension.
                             </p>
 
                             {/* Browser-specific quick tips */}
                             <details className="mt-2">
                                 <summary
                                     className="text-xs cursor-pointer select-none"
-                                    style={{ color: "#fbbf24" }}
-                                >
+                                    style={{ color: "#fbbf24" }}>
                                     How to fix this ▸
                                 </summary>
-                                <ul className="mt-1.5 space-y-1 text-xs pl-3" style={{ color: "#fcd34d" }}>
+                                <ul
+                                    className="mt-1.5 space-y-1 text-xs pl-3"
+                                    style={{ color: "#fcd34d" }}>
                                     <li>
-                                        <strong>Chrome / Edge:</strong> Settings → Privacy and security →
-                                        Cookies → Allow all cookies (or add this site as an exception)
+                                        <strong>Chrome / Edge:</strong> Settings → Privacy and security → Cookies → Allow all cookies (or
+                                        add this site as an exception)
                                     </li>
                                     <li>
-                                        <strong>Firefox:</strong> Settings → Privacy &amp; Security →
-                                        Custom → uncheck Cookies, or add an exception for this site
+                                        <strong>Firefox:</strong> Settings → Privacy &amp; Security → Custom → uncheck Cookies, or add an
+                                        exception for this site
                                     </li>
                                     <li>
-                                        <strong>Safari:</strong> Settings → Privacy → uncheck "Prevent
-                                        cross-site tracking" and "Block all cookies"
+                                        <strong>Safari:</strong> Settings → Privacy → uncheck "Prevent cross-site tracking" and "Block all
+                                        cookies"
                                     </li>
                                     <li>
-                                        <strong>Brave:</strong> Click the Shields icon in the address bar
-                                        → set Cookies to "Allow all cookies"
+                                        <strong>Brave:</strong> Click the Shields icon in the address bar → set Cookies to "Allow all
+                                        cookies"
                                     </li>
                                 </ul>
                             </details>
@@ -118,8 +121,7 @@ export function CookieWarning() {
                             onClick={dismiss}
                             aria-label="Dismiss cookie warning"
                             className="flex-shrink-0 p-1 rounded-lg transition-opacity hover:opacity-70"
-                            style={{ color: "#f59e0b" }}
-                        >
+                            style={{ color: "#f59e0b" }}>
                             <Close fontSize="small" />
                         </button>
                     </div>

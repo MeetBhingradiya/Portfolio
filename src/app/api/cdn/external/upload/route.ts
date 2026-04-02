@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
             { error: rl.error, retryAfter: rl.retryAfter },
             {
                 status: 429,
-                headers: { "Retry-After": String(rl.retryAfter ?? 60) },
+                headers: { "Retry-After": String(rl.retryAfter ?? 60) }
             }
         );
     }
@@ -58,7 +58,9 @@ export async function POST(req: NextRequest) {
         const maxBytes = key.rateLimit.maxFileSizeBytes;
         if (file.size > maxBytes) {
             return NextResponse.json(
-                { error: `File too large. Your plan allows up to ${Math.round(maxBytes / 1024 / 1024)} MB per file.` },
+                {
+                    error: `File too large. Your plan allows up to ${Math.round(maxBytes / 1024 / 1024)} MB per file.`
+                },
                 { status: 413 }
             );
         }
@@ -74,31 +76,36 @@ export async function POST(req: NextRequest) {
             });
             if (!allowed) {
                 return NextResponse.json(
-                    { error: `MIME type "${mimeType}" is not allowed for this API key. Allowed: ${key.rateLimit.allowedMimeTypes.join(", ")}` },
+                    {
+                        error: `MIME type "${mimeType}" is not allowed for this API key. Allowed: ${key.rateLimit.allowedMimeTypes.join(", ")}`
+                    },
                     { status: 415 }
                 );
             }
         }
 
         // ── Resolve metadata ─────────────────────────────────────────────
-        const rawType    = (formData.get("type")    as string | null) || "";
-        const tags       = ((formData.get("tags")   as string | null) || "").split(",").map((t) => t.trim()).filter(Boolean);
-        const altText    = (formData.get("altText") as string | null) || undefined;
-        const context    = (formData.get("context") as string | null) || undefined;
+        const rawType = (formData.get("type") as string | null) || "";
+        const tags = ((formData.get("tags") as string | null) || "")
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean);
+        const altText = (formData.get("altText") as string | null) || undefined;
+        const context = (formData.get("context") as string | null) || undefined;
 
-        const ext            = path.extname(file.name) || "";
-        const assetId        = randomUUID().replace(/-/g, "");
+        const ext = path.extname(file.name) || "";
+        const assetId = randomUUID().replace(/-/g, "");
         const storedFilename = `${assetId}${ext}`;
 
         const validTypes: AssetType[] = ["icon", "avatar", "banner", "background", "video", "document", "other"];
-        const assetType: AssetType   = validTypes.includes(rawType as AssetType) ? (rawType as AssetType) : inferType(mimeType);
+        const assetType: AssetType = validTypes.includes(rawType as AssetType) ? (rawType as AssetType) : inferType(mimeType);
 
-        const folder     = assetType === "other" ? "misc" : `${assetType}s`;
+        const folder = assetType === "other" ? "misc" : `${assetType}s`;
         const githubPath = `uploads/${folder}/${storedFilename}`;
 
         // ── Checksums ────────────────────────────────────────────────────
-        const buffer        = Buffer.from(await file.arrayBuffer());
-        const checksumMd5   = createHash("md5").update(buffer).digest("hex");
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const checksumMd5 = createHash("md5").update(buffer).digest("hex");
         const checksumSha256 = createHash("sha256").update(buffer).digest("hex");
 
         // ── Upload to GitHub ─────────────────────────────────────────────
@@ -113,42 +120,42 @@ export async function POST(req: NextRequest) {
 
         const doc = await CDNAsset.create({
             assetId,
-            filename:         file.name,
+            filename: file.name,
             githubRepo,
             githubPath,
             sha,
             checksumMd5,
             checksumSha256,
             mimeType,
-            size:             file.size,
-            type:             assetType,
-            tags:             [...tags, `api-key:${key.keyId}`, `app:${key.appName}`],
+            size: file.size,
+            type: assetType,
+            tags: [...tags, `api-key:${key.keyId}`, `app:${key.appName}`],
             context,
-            uploadedBy:       `ext:${key.appName}:${key.keyId}`,
-            status:           "active",
-            lastChecked:      new Date(),
-            lastCheckOk:      true,
+            uploadedBy: `ext:${key.appName}:${key.keyId}`,
+            status: "active",
+            lastChecked: new Date(),
+            lastCheckOk: true,
             checksumVerified: true,
-            altText,
+            altText
         });
 
         const cdnUrl = `${Config.Origin}/api/cdn/${assetId}`;
 
         return NextResponse.json(
             {
-                assetId:       doc.assetId,
+                assetId: doc.assetId,
                 cdnUrl,
-                filename:      doc.filename,
-                githubRepo:    doc.githubRepo,
-                size:          doc.size,
-                mimeType:      doc.mimeType,
-                type:          doc.type,
-                checksumMd5:   doc.checksumMd5,
-                checksumSha256: doc.checksumSha256,
+                filename: doc.filename,
+                githubRepo: doc.githubRepo,
+                size: doc.size,
+                mimeType: doc.mimeType,
+                type: doc.type,
+                checksumMd5: doc.checksumMd5,
+                checksumSha256: doc.checksumSha256
             },
             {
                 status: 201,
-                headers: rateLimitHeaders(rl),
+                headers: rateLimitHeaders(rl)
             }
         );
     } catch (err: any) {

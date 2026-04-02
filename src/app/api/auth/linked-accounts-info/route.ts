@@ -11,9 +11,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@Library/auth";
 import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 function toObjectId(id: string): ObjectId | null {
-    try { return new ObjectId(id); } catch { return null; }
+    try {
+        return new ObjectId(id);
+    } catch {
+        return null;
+    }
 }
 
 export async function GET(request: NextRequest) {
@@ -37,16 +42,14 @@ export async function GET(request: NextRequest) {
             const client = new MongoClient(process.env.MONGODB_01);
             try {
                 await client.connect();
-                const db = client.db("PRODUCTION_MeetBhingradiya");
+                const db = client.db(SConfig.Database.Name);
                 const oid = toObjectId(user.id);
-                const dbUser = await db.collection("user").findOne(
-                    oid ? { $or: [{ id: user.id }, { _id: oid }] } : { id: user.id }
-                );
+                const dbUser = await db.collection("user").findOne(oid ? { $or: [{ id: user.id }, { _id: oid }] } : { id: user.id });
                 if (dbUser) {
-                    googleAvatar    = dbUser.googleAvatar    ?? googleAvatar;
-                    githubAvatar    = dbUser.githubAvatar    ?? githubAvatar;
+                    googleAvatar = dbUser.googleAvatar ?? googleAvatar;
+                    githubAvatar = dbUser.githubAvatar ?? githubAvatar;
                     microsoftAvatar = dbUser.microsoftAvatar ?? microsoftAvatar;
-                    currentImage    = dbUser.image           ?? currentImage;
+                    currentImage = dbUser.image ?? currentImage;
                 }
             } catch (err) {
                 console.error("[linked-accounts-info] MongoDB read failed:", err);
@@ -57,7 +60,9 @@ export async function GET(request: NextRequest) {
         }
 
         // Linked accounts list
-        const accounts = await auth.api.listUserAccounts({ headers: request.headers });
+        const accounts = await auth.api.listUserAccounts({
+            headers: request.headers
+        });
 
         const formattedAccounts = accounts.map((account: any) => {
             let image: string | null = null;
@@ -76,7 +81,7 @@ export async function GET(request: NextRequest) {
                 id: account.id,
                 providerId: account.providerId,
                 accountId: account.accountId,
-                image,
+                image
             };
         });
 
@@ -96,13 +101,10 @@ export async function GET(request: NextRequest) {
             githubAvatar,
             microsoftAvatar,
             // Current active image on the user profile
-            currentImage,
+            currentImage
         });
     } catch (error: any) {
         console.error("Failed to get linked accounts:", error);
-        return NextResponse.json(
-            { error: error.message || "Failed to get accounts" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: error.message || "Failed to get accounts" }, { status: 500 });
     }
 }

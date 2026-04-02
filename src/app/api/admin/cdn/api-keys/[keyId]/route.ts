@@ -34,11 +34,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     try {
         const auth = await requirePermission(req, "cdn.keys.manage");
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
-        const session  = await getSession(req.headers);
+        const session = await getSession(req.headers);
         await dbConnect();
         const { keyId } = await params;
 
-        const body = await req.json() as {
+        const body = (await req.json()) as {
             action?: "revoke" | "suspend" | "reinstate";
             revokeReason?: string;
             notes?: string;
@@ -53,27 +53,35 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         const now = new Date();
 
         if (body.action === "revoke") {
-            key.status       = "revoked";
-            key.revokedAt    = now;
-            key.revokedBy    = adminId;
+            key.status = "revoked";
+            key.revokedAt = now;
+            key.revokedBy = adminId;
             key.revokeReason = body.revokeReason?.trim() || undefined;
         } else if (body.action === "suspend") {
             key.status = "suspended";
         } else if (body.action === "reinstate") {
             // Only allow if not permanently revoked
             if (key.status === "revoked") {
-                return NextResponse.json({ error: "Revoked keys cannot be reinstated. Issue a new key." }, { status: 409 });
+                return NextResponse.json(
+                    {
+                        error: "Revoked keys cannot be reinstated. Issue a new key."
+                    },
+                    { status: 409 }
+                );
             }
-            key.status    = "active";
+            key.status = "active";
             key.revokedAt = undefined as any;
             key.revokedBy = undefined as any;
         }
 
-        if (body.notes !== undefined)    key.notes = body.notes.trim() || undefined as any;
-        if (body.expiresAt !== undefined) key.expiresAt = body.expiresAt ? new Date(body.expiresAt) : undefined as any;
+        if (body.notes !== undefined) key.notes = body.notes.trim() || (undefined as any);
+        if (body.expiresAt !== undefined) key.expiresAt = body.expiresAt ? new Date(body.expiresAt) : (undefined as any);
 
         if (body.rateLimitOverride) {
-            key.rateLimit = { ...key.rateLimit.toObject?.() ?? key.rateLimit, ...body.rateLimitOverride } as any;
+            key.rateLimit = {
+                ...(key.rateLimit.toObject?.() ?? key.rateLimit),
+                ...body.rateLimitOverride
+            } as any;
         }
 
         await key.save();
@@ -81,7 +89,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         return NextResponse.json({
             keyId: key.keyId,
             status: key.status,
-            message: `Key ${body.action ? body.action + "d" : "updated"} successfully.`,
+            message: `Key ${body.action ? body.action + "d" : "updated"} successfully.`
         });
     } catch (err: any) {
         console.error("[Admin CDN API Key PATCH]", err);
@@ -100,12 +108,11 @@ export async function DELETE(req: NextRequest, { params }: Params) {
         if (!key) return NextResponse.json({ error: "Key not found." }, { status: 404 });
 
         // Also purge rate windows
-        await Promise.all([
-            key.deleteOne(),
-            CDNRateWindow.deleteMany({ keyId }),
-        ]);
+        await Promise.all([key.deleteOne(), CDNRateWindow.deleteMany({ keyId })]);
 
-        return NextResponse.json({ message: `Key ${keyId} permanently deleted.` });
+        return NextResponse.json({
+            message: `Key ${keyId} permanently deleted.`
+        });
     } catch (err: any) {
         return NextResponse.json({ error: err?.message || "Failed." }, { status: 500 });
     }

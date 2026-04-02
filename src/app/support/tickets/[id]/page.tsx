@@ -7,18 +7,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
-import {
-    ArrowBack,
-    Send,
-    Circle,
-    Star,
-    StarOutline,
-    Lock,
-    LockOpen,
-    Person,
-    SupportAgent,
-    AdminPanelSettings,
-} from "@mui/icons-material";
+import { ArrowBack, Send, Circle, Star, StarOutline, Lock, LockOpen, Person, SupportAgent, AdminPanelSettings } from "@mui/icons-material";
 
 interface Message {
     messageId: string;
@@ -53,13 +42,13 @@ const STATUS_CFG: Record<string, { label: string; color: string }> = {
     in_progress: { label: "In Progress", color: "#007AFF" },
     waiting_customer: { label: "Awaiting Your Reply", color: "#FF9500" },
     resolved: { label: "Resolved", color: "#5AC8FA" },
-    closed: { label: "Closed", color: "#8E8E93" },
+    closed: { label: "Closed", color: "#8E8E93" }
 };
 
 const ROLE_ICON: Record<string, React.ReactNode> = {
     customer: <Person style={{ fontSize: 14 }} />,
     employee: <SupportAgent style={{ fontSize: 14 }} />,
-    admin: <AdminPanelSettings style={{ fontSize: 14 }} />,
+    admin: <AdminPanelSettings style={{ fontSize: 14 }} />
 };
 
 export default function TicketDetailPage({ params }: { params: { id: string } }) {
@@ -81,9 +70,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     const [accessLoading, setAccessLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const cardBg = isApple
-        ? isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)"
-        : isDark ? "rgba(24,24,28,0.98)" : "#fff";
+    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
     const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
     const br = isApple ? 20 : 24;
 
@@ -93,7 +80,9 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
         try {
             const headers: Record<string, string> = {};
             if (accessToken) headers["x-ticket-access-token"] = accessToken;
-            const res = await fetch(`/api/support/tickets/${params.id}`, { headers });
+            const res = await fetch(`/api/support/tickets/${params.id}`, {
+                headers
+            });
             const json = await res.json();
             if (json.success) setTicket(json.data);
             else {
@@ -113,7 +102,9 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
         const savedSecret = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-secret:${params.id}`) || "" : "";
         if (savedSecret) setSecretCode(savedSecret);
     }, [params.id]);
-    useEffect(() => { fetchTicket(); }, [params.id, accessToken]);
+    useEffect(() => {
+        fetchTicket();
+    }, [params.id, accessToken]);
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [ticket?.messages]);
@@ -126,9 +117,9 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
-                    ...(accessToken ? { "x-ticket-access-token": accessToken } : {}),
+                    ...(accessToken ? { "x-ticket-access-token": accessToken } : {})
                 },
-                body: JSON.stringify({ reply, isInternal }),
+                body: JSON.stringify({ reply, isInternal })
             });
             const json = await res.json();
             if (json.success) {
@@ -149,9 +140,9 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
-                ...(accessToken ? { "x-ticket-access-token": accessToken } : {}),
+                ...(accessToken ? { "x-ticket-access-token": accessToken } : {})
             },
-            body: JSON.stringify({ satisfactionRating: r }),
+            body: JSON.stringify({ satisfactionRating: r })
         });
         fetchTicket();
     };
@@ -164,7 +155,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
             const res = await fetch(`/api/support/tickets/access/${params.id}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ secretCode }),
+                body: JSON.stringify({ secretCode })
             });
             const json = await res.json();
             if (json.success) {
@@ -186,7 +177,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
             const res = await fetch(`/api/support/tickets/access/${params.id}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ secretCode, otp }),
+                body: JSON.stringify({ secretCode, otp })
             });
             const json = await res.json();
             if (json.success && json.data?.accessToken) {
@@ -206,25 +197,49 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
 
     if (loading) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: palette.background }}>
-                <div className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin" style={{ borderColor: palette.accent, borderTopColor: "transparent" }} />
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: palette.background }}>
+                <div
+                    className="w-8 h-8 rounded-full border-2 border-t-transparent animate-spin"
+                    style={{
+                        borderColor: palette.accent,
+                        borderTopColor: "transparent"
+                    }}
+                />
             </div>
         );
     }
 
     if (!ticket) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: palette.background }}>
-                <p className="text-lg font-bold" style={{ color: palette.textPrimary }}>Ticket not found</p>
-                {!!error && <p className="text-sm" style={{ color: "#FF3B30" }}>{error}</p>}
+            <div
+                className="min-h-screen flex flex-col items-center justify-center gap-4"
+                style={{ background: palette.background }}>
+                <p
+                    className="text-lg font-bold"
+                    style={{ color: palette.textPrimary }}>
+                    Ticket not found
+                </p>
+                {!!error && (
+                    <p
+                        className="text-sm"
+                        style={{ color: "#FF3B30" }}>
+                        {error}
+                    </p>
+                )}
                 {["Unauthorized", "Forbidden", "Invalid ticket credentials."].includes(error) && (
-                    <div className="w-full max-w-md p-4 rounded-2xl space-y-3" style={{ background: cardBg, border }}>
-                        <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                    <div
+                        className="w-full max-w-md p-4 rounded-2xl space-y-3"
+                        style={{ background: cardBg, border }}>
+                        <p
+                            className="text-sm font-semibold"
+                            style={{ color: palette.textPrimary }}>
                             Access this ticket with secret code + OTP
                         </p>
                         <input
                             value={secretCode}
-                            onChange={e => setSecretCode(e.target.value)}
+                            onChange={(e) => setSecretCode(e.target.value)}
                             placeholder="Ticket secret code"
                             className="w-full px-3 py-2 rounded-xl bg-transparent outline-none text-sm"
                             style={{ color: palette.textPrimary, border }}
@@ -232,7 +247,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                         {otpSent && (
                             <input
                                 value={otp}
-                                onChange={e => setOtp(e.target.value)}
+                                onChange={(e) => setOtp(e.target.value)}
                                 placeholder="6-digit OTP sent to ticket email"
                                 className="w-full px-3 py-2 rounded-xl bg-transparent outline-none text-sm"
                                 style={{ color: palette.textPrimary, border }}
@@ -243,8 +258,11 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                                 onClick={requestOtp}
                                 disabled={accessLoading || !secretCode.trim()}
                                 className="px-4 py-2 rounded-xl font-semibold text-sm"
-                                style={{ background: palette.accent, color: "#fff", opacity: accessLoading ? 0.7 : 1 }}
-                            >
+                                style={{
+                                    background: palette.accent,
+                                    color: "#fff",
+                                    opacity: accessLoading ? 0.7 : 1
+                                }}>
                                 Send OTP
                             </button>
                             {otpSent && (
@@ -252,8 +270,11 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                                     onClick={verifyOtp}
                                     disabled={accessLoading || !otp.trim()}
                                     className="px-4 py-2 rounded-xl font-semibold text-sm"
-                                    style={{ background: "#34C759", color: "#fff", opacity: accessLoading ? 0.7 : 1 }}
-                                >
+                                    style={{
+                                        background: "#34C759",
+                                        color: "#fff",
+                                        opacity: accessLoading ? 0.7 : 1
+                                    }}>
                                     Verify & Open
                                 </button>
                             )}
@@ -261,7 +282,9 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                     </div>
                 )}
                 <Link href="/support/tickets">
-                    <button className="px-5 py-2.5 rounded-xl font-bold text-white" style={{ background: palette.accent }}>
+                    <button
+                        className="px-5 py-2.5 rounded-xl font-bold text-white"
+                        style={{ background: palette.accent }}>
                         Back to Tickets
                     </button>
                 </Link>
@@ -269,11 +292,16 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
         );
     }
 
-    const statusCfg = STATUS_CFG[ticket.status] ?? { label: ticket.status, color: "#888" };
+    const statusCfg = STATUS_CFG[ticket.status] ?? {
+        label: ticket.status,
+        color: "#888"
+    };
     const isClosed = ["resolved", "closed"].includes(ticket.status);
 
     return (
-        <div className="min-h-screen py-12 px-4 md:px-8" style={{ background: palette.background }}>
+        <div
+            className="min-h-screen py-12 px-4 md:px-8"
+            style={{ background: palette.background }}>
             <div className="max-w-3xl mx-auto flex flex-col gap-5">
                 {/* Header */}
                 <div className="flex items-start gap-3">
@@ -281,28 +309,47 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                         <motion.button
                             whileTap={{ scale: 0.95 }}
                             className="p-2 rounded-xl mt-1"
-                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)" }}
-                        >
+                            style={{
+                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
+                            }}>
                             <ArrowBack style={{ color: palette.textSecondary }} />
                         </motion.button>
                     </Link>
                     <div className="flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <h1 className={`${isApple ? "text-xl font-semibold" : "text-2xl font-black"}`} style={{ color: palette.textPrimary }}>
+                            <h1
+                                className={`${isApple ? "text-xl font-semibold" : "text-2xl font-black"}`}
+                                style={{ color: palette.textPrimary }}>
                                 {ticket.subject}
                             </h1>
                             <span
                                 className="flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold"
-                                style={{ background: `${statusCfg.color}20`, color: statusCfg.color }}
-                            >
+                                style={{
+                                    background: `${statusCfg.color}20`,
+                                    color: statusCfg.color
+                                }}>
                                 <Circle style={{ fontSize: 8 }} /> {statusCfg.label}
                             </span>
                         </div>
                         <div className="flex items-center gap-3 mt-1 flex-wrap">
-                            <span className="text-xs font-semibold" style={{ color: palette.textTertiary }}>{ticket.ticketId}</span>
-                            <span className="text-xs capitalize" style={{ color: palette.textTertiary }}>{ticket.category}</span>
-                            <span className="text-xs capitalize" style={{ color: palette.textTertiary }}>{ticket.priority} priority</span>
-                            <span className="text-xs" style={{ color: palette.textTertiary }}>
+                            <span
+                                className="text-xs font-semibold"
+                                style={{ color: palette.textTertiary }}>
+                                {ticket.ticketId}
+                            </span>
+                            <span
+                                className="text-xs capitalize"
+                                style={{ color: palette.textTertiary }}>
+                                {ticket.category}
+                            </span>
+                            <span
+                                className="text-xs capitalize"
+                                style={{ color: palette.textTertiary }}>
+                                {ticket.priority} priority
+                            </span>
+                            <span
+                                className="text-xs"
+                                style={{ color: palette.textTertiary }}>
                                 Opened {new Date(ticket.createdAt).toLocaleDateString()}
                             </span>
                         </div>
@@ -312,8 +359,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                 {/* Messages thread */}
                 <div
                     className="p-5 space-y-4 max-h-[60vh] overflow-y-auto"
-                    style={{ background: cardBg, border, borderRadius: br }}
-                >
+                    style={{ background: cardBg, border, borderRadius: br }}>
                     <AnimatePresence>
                         {ticket.messages.map((msg, i) => {
                             const isMyMsg = msg.senderRole === "customer";
@@ -323,36 +369,66 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.03 }}
-                                    className={`flex gap-3 ${isMyMsg ? "flex-row-reverse" : ""}`}
-                                >
+                                    className={`flex gap-3 ${isMyMsg ? "flex-row-reverse" : ""}`}>
                                     {/* Avatar */}
                                     <div
                                         className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1"
                                         style={{
-                                            background: isMyMsg ? `${palette.accent}20` : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.07)",
-                                            color: isMyMsg ? palette.accent : palette.textSecondary,
-                                        }}
-                                    >
+                                            background: isMyMsg
+                                                ? `${palette.accent}20`
+                                                : isDark
+                                                  ? "rgba(255,255,255,0.1)"
+                                                  : "rgba(0,0,0,0.07)",
+                                            color: isMyMsg ? palette.accent : palette.textSecondary
+                                        }}>
                                         {ROLE_ICON[msg.senderRole]}
                                     </div>
                                     <div className={`flex-1 max-w-[80%] ${isMyMsg ? "items-end" : "items-start"} flex flex-col`}>
                                         <div className={`flex items-center gap-1.5 mb-1 ${isMyMsg ? "flex-row-reverse" : ""}`}>
-                                            <span className="text-xs font-bold" style={{ color: palette.textPrimary }}>
+                                            <span
+                                                className="text-xs font-bold"
+                                                style={{
+                                                    color: palette.textPrimary
+                                                }}>
                                                 {msg.senderName}
                                             </span>
-                                            <span className="text-xs capitalize px-1.5 py-0.5 rounded-full" style={{
-                                                background: msg.senderRole === "admin" ? "#FF2D5520" : msg.senderRole === "employee" ? "#007AFF20" : `${palette.accent}15`,
-                                                color: msg.senderRole === "admin" ? "#FF2D55" : msg.senderRole === "employee" ? "#007AFF" : palette.accent,
-                                            }}>
+                                            <span
+                                                className="text-xs capitalize px-1.5 py-0.5 rounded-full"
+                                                style={{
+                                                    background:
+                                                        msg.senderRole === "admin"
+                                                            ? "#FF2D5520"
+                                                            : msg.senderRole === "employee"
+                                                              ? "#007AFF20"
+                                                              : `${palette.accent}15`,
+                                                    color:
+                                                        msg.senderRole === "admin"
+                                                            ? "#FF2D55"
+                                                            : msg.senderRole === "employee"
+                                                              ? "#007AFF"
+                                                              : palette.accent
+                                                }}>
                                                 {msg.senderRole}
                                             </span>
                                             {msg.isInternal && (
-                                                <span className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full" style={{ background: "#FF950020", color: "#FF9500" }}>
+                                                <span
+                                                    className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full"
+                                                    style={{
+                                                        background: "#FF950020",
+                                                        color: "#FF9500"
+                                                    }}>
                                                     <Lock style={{ fontSize: 10 }} /> Internal
                                                 </span>
                                             )}
-                                            <span className="text-xs" style={{ color: palette.textTertiary }}>
-                                                {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                            <span
+                                                className="text-xs"
+                                                style={{
+                                                    color: palette.textTertiary
+                                                }}>
+                                                {new Date(msg.createdAt).toLocaleTimeString([], {
+                                                    hour: "2-digit",
+                                                    minute: "2-digit"
+                                                })}
                                             </span>
                                         </div>
                                         <div
@@ -361,12 +437,13 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                                                 background: isMyMsg
                                                     ? `${palette.accent}20`
                                                     : msg.isInternal
-                                                        ? "#FF950015"
-                                                        : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                                                      ? "#FF950015"
+                                                      : isDark
+                                                        ? "rgba(255,255,255,0.06)"
+                                                        : "rgba(0,0,0,0.04)",
                                                 color: palette.textPrimary,
-                                                borderRadius: isMyMsg ? "18px 4px 18px 18px" : "4px 18px 18px 18px",
-                                            }}
-                                        >
+                                                borderRadius: isMyMsg ? "18px 4px 18px 18px" : "4px 18px 18px 18px"
+                                            }}>
                                             {msg.content}
                                         </div>
                                     </div>
@@ -381,22 +458,30 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                 {isClosed && !ticket.satisfactionRating && (
                     <div
                         className="p-4 text-center space-y-2"
-                        style={{ background: cardBg, border, borderRadius: br }}
-                    >
-                        <p className="text-sm font-bold" style={{ color: palette.textPrimary }}>
+                        style={{
+                            background: cardBg,
+                            border,
+                            borderRadius: br
+                        }}>
+                        <p
+                            className="text-sm font-bold"
+                            style={{ color: palette.textPrimary }}>
                             How was your experience?
                         </p>
                         <div className="flex justify-center gap-1">
-                            {[1, 2, 3, 4, 5].map(r => (
+                            {[1, 2, 3, 4, 5].map((r) => (
                                 <motion.button
                                     key={r}
                                     whileTap={{ scale: 0.85 }}
                                     onClick={() => handleRating(r)}
-                                    style={{ color: r <= (rating || ticket.satisfactionRating || 0) ? "#FFCC00" : palette.textTertiary }}
-                                >
-                                    {r <= (rating || ticket.satisfactionRating || 0)
-                                        ? <Star style={{ fontSize: 28 }} />
-                                        : <StarOutline style={{ fontSize: 28 }} />}
+                                    style={{
+                                        color: r <= (rating || ticket.satisfactionRating || 0) ? "#FFCC00" : palette.textTertiary
+                                    }}>
+                                    {r <= (rating || ticket.satisfactionRating || 0) ? (
+                                        <Star style={{ fontSize: 28 }} />
+                                    ) : (
+                                        <StarOutline style={{ fontSize: 28 }} />
+                                    )}
                                 </motion.button>
                             ))}
                         </div>
@@ -405,9 +490,20 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
 
                 {/* Reply box */}
                 {!isClosed && (
-                    <div className="p-4 space-y-3" style={{ background: cardBg, border, borderRadius: br }}>
+                    <div
+                        className="p-4 space-y-3"
+                        style={{
+                            background: cardBg,
+                            border,
+                            borderRadius: br
+                        }}>
                         {!!error && (
-                            <p className="text-xs px-3 py-2 rounded-xl" style={{ color: "#FF3B30", background: "#FF3B3014" }}>
+                            <p
+                                className="text-xs px-3 py-2 rounded-xl"
+                                style={{
+                                    color: "#FF3B30",
+                                    background: "#FF3B3014"
+                                }}>
                                 {error}
                             </p>
                         )}
@@ -415,15 +511,17 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                             rows={4}
                             placeholder="Type your reply…"
                             value={reply}
-                            onChange={e => setReply(e.target.value)}
+                            onChange={(e) => setReply(e.target.value)}
                             className="w-full bg-transparent outline-none text-sm resize-none"
                             style={{ color: palette.textPrimary }}
-                            onKeyDown={e => {
+                            onKeyDown={(e) => {
                                 if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) handleSendReply();
                             }}
                         />
                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                            <span className="text-xs" style={{ color: palette.textTertiary }}>
+                            <span
+                                className="text-xs"
+                                style={{ color: palette.textTertiary }}>
                                 Ctrl+Enter to send
                             </span>
                             <motion.button
@@ -431,9 +529,18 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                                 onClick={handleSendReply}
                                 disabled={sending || !reply.trim()}
                                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm"
-                                style={{ background: palette.accent, color: "#fff", opacity: (sending || !reply.trim()) ? 0.6 : 1 }}
-                            >
-                                {sending ? "Sending…" : <><Send style={{ fontSize: 16 }} /> Send</>}
+                                style={{
+                                    background: palette.accent,
+                                    color: "#fff",
+                                    opacity: sending || !reply.trim() ? 0.6 : 1
+                                }}>
+                                {sending ? (
+                                    "Sending…"
+                                ) : (
+                                    <>
+                                        <Send style={{ fontSize: 16 }} /> Send
+                                    </>
+                                )}
                             </motion.button>
                         </div>
                     </div>

@@ -768,8 +768,7 @@ function SitemapItem({
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.3 }}
-            >
+                transition={{ duration: 0.3 }}>
                 <Link href={link.href}>
                     <motion.div
                         className={`${isApple ? "p-5 rounded-xl" : "p-6 rounded-2xl"} h-full relative overflow-hidden group cursor-pointer`}
@@ -785,12 +784,9 @@ function SitemapItem({
                             scale: 1.05,
                             y: -8,
                             borderColor: palette.accent,
-                            boxShadow: isApple
-                                ? `0 12px 40px ${palette.accent}25`
-                                : `0 12px 32px ${palette.accent}25`
+                            boxShadow: isApple ? `0 12px 40px ${palette.accent}25` : `0 12px 32px ${palette.accent}25`
                         }}
-                        transition={{ duration: 0.2 }}
-                    >
+                        transition={{ duration: 0.2 }}>
                         {/* Hover Gradient */}
                         <div
                             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -806,8 +802,7 @@ function SitemapItem({
                                 style={{
                                     background: `${palette.accent}15`,
                                     color: palette.accent
-                                }}
-                            >
+                                }}>
                                 {link.icon}
                             </div>
 
@@ -815,22 +810,21 @@ function SitemapItem({
                             <div>
                                 <h3
                                     className={`${isApple ? "text-lg font-semibold" : "text-xl font-bold"} mb-2`}
-                                    style={{ color: palette.textPrimary }}
-                                >
+                                    style={{ color: palette.textPrimary }}>
                                     {link.label}
                                 </h3>
                                 {link.description && (
                                     <p
                                         className={`${isApple ? "text-sm" : "text-base"} mb-3 line-clamp-2`}
-                                        style={{ color: palette.textSecondary }}
-                                    >
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
                                         {link.description}
                                     </p>
                                 )}
                                 <p
                                     className={`${isApple ? "text-xs" : "text-sm"} font-mono`}
-                                    style={{ color: palette.textTertiary }}
-                                >
+                                    style={{ color: palette.textTertiary }}>
                                     {link.href}
                                 </p>
                             </div>
@@ -848,8 +842,7 @@ function SitemapItem({
                 initial={{ opacity: 0, x: -10 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.2 }}
-            >
+                transition={{ duration: 0.2 }}>
                 <Link href={link.href}>
                     <motion.div
                         className={`${isApple ? "p-3 rounded-lg" : "p-4 rounded-xl"} relative overflow-hidden group cursor-pointer`}
@@ -861,8 +854,7 @@ function SitemapItem({
                             borderColor: palette.accent,
                             backgroundColor: `${palette.accent}08`
                         }}
-                        transition={{ duration: 0.2 }}
-                    >
+                        transition={{ duration: 0.2 }}>
                         <div className="relative z-10 flex items-center gap-3">
                             {/* Icon */}
                             <div
@@ -870,8 +862,7 @@ function SitemapItem({
                                 style={{
                                     background: `${palette.accent}15`,
                                     color: palette.accent
-                                }}
-                            >
+                                }}>
                                 {link.icon}
                             </div>
 
@@ -879,14 +870,12 @@ function SitemapItem({
                             <div className="flex-1 min-w-0">
                                 <h3
                                     className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"} truncate`}
-                                    style={{ color: palette.textPrimary }}
-                                >
+                                    style={{ color: palette.textPrimary }}>
                                     {link.label}
                                 </h3>
                                 <p
                                     className={`${isApple ? "text-xs" : "text-sm"} font-mono truncate`}
-                                    style={{ color: palette.textTertiary }}
-                                >
+                                    style={{ color: palette.textTertiary }}>
                                     {link.href}
                                 </p>
                             </div>
@@ -909,8 +898,7 @@ function SitemapItem({
                 initial={{ opacity: 0, x: -20 }}
                 whileInView={{ opacity: 1, x: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.3 }}
-            >
+                transition={{ duration: 0.3 }}>
                 <Link href={link.href}>
                     <motion.div
                         className={`${isApple ? "p-4 rounded-xl" : "p-5 rounded-2xl"} mb-3 relative overflow-hidden group`}
@@ -925,12 +913,9 @@ function SitemapItem({
                         whileHover={{
                             scale: 1.02,
                             borderColor: palette.accent,
-                            boxShadow: isApple
-                                ? `0 8px 32px ${palette.accent}20`
-                                : `0 8px 24px ${palette.accent}20`
+                            boxShadow: isApple ? `0 8px 32px ${palette.accent}20` : `0 8px 24px ${palette.accent}20`
                         }}
-                        transition={{ duration: 0.2 }}
-                    >
+                        transition={{ duration: 0.2 }}>
                         {/* Hover Gradient */}
                         <div
                             className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -946,8 +931,7 @@ function SitemapItem({
                                 style={{
                                     background: `${palette.accent}15`,
                                     color: palette.accent
-                                }}
-                            >
+                                }}>
                                 {link.icon}
                             </div>
 
@@ -956,8 +940,7 @@ function SitemapItem({
                                 <div className="flex items-center gap-2 mb-1">
                                     <h3
                                         className={`${isApple ? "text-base font-semibold" : "text-lg font-bold"}`}
-                                        style={{ color: palette.textPrimary }}
-                                    >
+                                        style={{ color: palette.textPrimary }}>
                                         {link.label}
                                     </h3>
                                     <OpenInNew
@@ -968,15 +951,15 @@ function SitemapItem({
                                 {link.description && (
                                     <p
                                         className={`${isApple ? "text-sm" : "text-base"}`}
-                                        style={{ color: palette.textSecondary }}
-                                    >
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
                                         {link.description}
                                     </p>
                                 )}
                                 <p
                                     className={`${isApple ? "text-xs" : "text-sm"} mt-2 font-mono`}
-                                    style={{ color: palette.textTertiary }}
-                                >
+                                    style={{ color: palette.textTertiary }}>
                                     {link.href}
                                 </p>
                             </div>
@@ -989,8 +972,7 @@ function SitemapItem({
                                         setIsExpanded(!isExpanded);
                                     }}
                                     className="flex-shrink-0"
-                                    style={{ color: palette.textSecondary }}
-                                >
+                                    style={{ color: palette.textSecondary }}>
                                     {isExpanded ? <ExpandLess /> : <ExpandMore />}
                                 </button>
                             )}
@@ -1005,8 +987,7 @@ function SitemapItem({
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
-                >
+                    transition={{ duration: 0.3 }}>
                     {link.children?.map((child, index) => (
                         <SitemapItem
                             key={index}
@@ -1033,23 +1014,27 @@ export default function SitemapContent() {
 
     // Filter and sort sitemap based on search and sort options
     const filteredSitemap = searchQuery
-        ? sitemapData.map(section => ({
-            ...section,
-            links: section.links.filter(link =>
-                link.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                link.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                link.href.toLowerCase().includes(searchQuery.toLowerCase())
-            )
-        })).filter(section => section.links.length > 0)
+        ? sitemapData
+              .map((section) => ({
+                  ...section,
+                  links: section.links.filter(
+                      (link) =>
+                          link.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          link.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          link.href.toLowerCase().includes(searchQuery.toLowerCase())
+                  )
+              }))
+              .filter((section) => section.links.length > 0)
         : sitemapData;
 
     // Sort links alphabetically if needed
-    const sortedSitemap = sortBy === "name"
-        ? filteredSitemap.map(section => ({
-            ...section,
-            links: [...section.links].sort((a, b) => a.label.localeCompare(b.label))
-        }))
-        : filteredSitemap;
+    const sortedSitemap =
+        sortBy === "name"
+            ? filteredSitemap.map((section) => ({
+                  ...section,
+                  links: [...section.links].sort((a, b) => a.label.localeCompare(b.label))
+              }))
+            : filteredSitemap;
 
     return (
         <div
@@ -1060,38 +1045,29 @@ export default function SitemapContent() {
                         ? `linear-gradient(180deg, ${palette.background} 0%, ${palette.backgroundSecondary} 100%)`
                         : `linear-gradient(180deg, ${palette.background} 0%, ${palette.backgroundElevated} 100%)`
                     : palette.background
-            }}
-        >
+            }}>
             {/* Header */}
             <div
                 className="border-b"
                 style={{
                     borderColor: palette.border,
-                    background: isApple
-                        ? isDark
-                            ? "rgba(28, 28, 30, 0.8)"
-                            : "rgba(255, 255, 255, 0.8)"
-                        : palette.surface,
+                    background: isApple ? (isDark ? "rgba(28, 28, 30, 0.8)" : "rgba(255, 255, 255, 0.8)") : palette.surface,
                     backdropFilter: "blur(20px)",
                     WebkitBackdropFilter: "blur(20px)"
-                }}
-            >
+                }}>
                 <div className="max-w-6xl mx-auto px-6 py-12">
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5 }}
-                    >
+                        transition={{ duration: 0.5 }}>
                         <h1
                             className={`${isApple ? "text-4xl md:text-5xl font-bold" : "text-5xl md:text-6xl font-black"} mb-4`}
-                            style={{ color: palette.textPrimary }}
-                        >
+                            style={{ color: palette.textPrimary }}>
                             Sitemap
                         </h1>
                         <p
                             className={`${isApple ? "text-lg" : "text-xl font-medium"} max-w-2xl`}
-                            style={{ color: palette.textSecondary }}
-                        >
+                            style={{ color: palette.textSecondary }}>
                             Navigate through all pages and sections of the website. Use the search to quickly find what you're looking for.
                         </p>
                     </motion.div>
@@ -1101,16 +1077,14 @@ export default function SitemapContent() {
                         className="mt-8 space-y-4"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
-                    >
+                        transition={{ duration: 0.5, delay: 0.1 }}>
                         {/* Search Input */}
                         <div
                             className={`${isApple ? "rounded-xl" : "rounded-2xl"} overflow-hidden`}
                             style={{
                                 background: palette.surface,
                                 border: `1px solid ${palette.border}`
-                            }}
-                        >
+                            }}>
                             <div className="flex items-center gap-3 px-4 py-3">
                                 <Search style={{ color: palette.textSecondary }} />
                                 <input
@@ -1130,30 +1104,38 @@ export default function SitemapContent() {
                             <div className="flex items-center gap-2">
                                 <span
                                     className={`${isApple ? "text-sm" : "text-base"} font-medium mr-2`}
-                                    style={{ color: palette.textSecondary }}
-                                >
+                                    style={{ color: palette.textSecondary }}>
                                     View:
                                 </span>
                                 {[
-                                    { mode: "grid" as ViewMode, icon: <GridView />, label: "Grid" },
-                                    { mode: "list" as ViewMode, icon: <ViewList />, label: "List" },
-                                    { mode: "compact" as ViewMode, icon: <ViewModule />, label: "Compact" }
+                                    {
+                                        mode: "grid" as ViewMode,
+                                        icon: <GridView />,
+                                        label: "Grid"
+                                    },
+                                    {
+                                        mode: "list" as ViewMode,
+                                        icon: <ViewList />,
+                                        label: "List"
+                                    },
+                                    {
+                                        mode: "compact" as ViewMode,
+                                        icon: <ViewModule />,
+                                        label: "Compact"
+                                    }
                                 ].map(({ mode, icon, label }) => (
                                     <motion.button
                                         key={mode}
                                         onClick={() => setViewMode(mode)}
                                         className={`${isApple ? "p-2.5 rounded-lg" : "p-3 rounded-xl"} relative overflow-hidden`}
                                         style={{
-                                            background: viewMode === mode
-                                                ? `${palette.accent}20`
-                                                : palette.surface,
+                                            background: viewMode === mode ? `${palette.accent}20` : palette.surface,
                                             border: `1px solid ${viewMode === mode ? palette.accent : palette.border}`,
                                             color: viewMode === mode ? palette.accent : palette.textSecondary
                                         }}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        title={label}
-                                    >
+                                        title={label}>
                                         {icon}
                                     </motion.button>
                                 ))}
@@ -1163,29 +1145,31 @@ export default function SitemapContent() {
                             <div className="flex items-center gap-2">
                                 <span
                                     className={`${isApple ? "text-sm" : "text-base"} font-medium mr-2`}
-                                    style={{ color: palette.textSecondary }}
-                                >
+                                    style={{ color: palette.textSecondary }}>
                                     Sort:
                                 </span>
                                 <div className="flex gap-2">
                                     {[
-                                        { key: "section" as const, label: "By Section" },
-                                        { key: "name" as const, label: "Alphabetical" }
+                                        {
+                                            key: "section" as const,
+                                            label: "By Section"
+                                        },
+                                        {
+                                            key: "name" as const,
+                                            label: "Alphabetical"
+                                        }
                                     ].map(({ key, label }) => (
                                         <motion.button
                                             key={key}
                                             onClick={() => setSortBy(key)}
                                             className={`${isApple ? "px-3 py-2 text-sm rounded-lg" : "px-4 py-2.5 text-base rounded-xl"} font-medium whitespace-nowrap`}
                                             style={{
-                                                background: sortBy === key
-                                                    ? `${palette.accent}20`
-                                                    : palette.surface,
+                                                background: sortBy === key ? `${palette.accent}20` : palette.surface,
                                                 border: `1px solid ${sortBy === key ? palette.accent : palette.border}`,
                                                 color: sortBy === key ? palette.accent : palette.textSecondary
                                             }}
                                             whileHover={{ scale: 1.02 }}
-                                            whileTap={{ scale: 0.98 }}
-                                        >
+                                            whileTap={{ scale: 0.98 }}>
                                             {label}
                                         </motion.button>
                                     ))}
@@ -1202,16 +1186,14 @@ export default function SitemapContent() {
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="text-center py-16"
-                    >
+                        className="text-center py-16">
                         <Search
                             className="text-6xl mb-4 mx-auto"
                             style={{ color: palette.textTertiary }}
                         />
                         <p
                             className={`${isApple ? "text-lg" : "text-xl font-medium"}`}
-                            style={{ color: palette.textSecondary }}
-                        >
+                            style={{ color: palette.textSecondary }}>
                             No pages found matching "{searchQuery}"
                         </p>
                     </motion.div>
@@ -1223,8 +1205,10 @@ export default function SitemapContent() {
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                            >
+                                transition={{
+                                    duration: 0.5,
+                                    delay: index * 0.1
+                                }}>
                                 {/* Section Header */}
                                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
                                     <div
@@ -1232,21 +1216,22 @@ export default function SitemapContent() {
                                         style={{
                                             background: `${palette.accent}15`,
                                             color: palette.accent
-                                        }}
-                                    >
+                                        }}>
                                         {section.icon}
                                     </div>
                                     <div className="flex-1">
                                         <h2
                                             className={`${isApple ? "text-xl sm:text-2xl font-bold" : "text-2xl sm:text-3xl font-black"}`}
-                                            style={{ color: palette.textPrimary }}
-                                        >
+                                            style={{
+                                                color: palette.textPrimary
+                                            }}>
                                             {section.title}
                                         </h2>
                                         <p
                                             className={`${isApple ? "text-sm" : "text-base"}`}
-                                            style={{ color: palette.textSecondary }}
-                                        >
+                                            style={{
+                                                color: palette.textSecondary
+                                            }}>
                                             {section.description}
                                         </p>
                                     </div>
@@ -1255,8 +1240,7 @@ export default function SitemapContent() {
                                         style={{
                                             background: `${palette.accent}15`,
                                             color: palette.accent
-                                        }}
-                                    >
+                                        }}>
                                         {section.links.length} {section.links.length === 1 ? "page" : "pages"}
                                     </div>
                                 </div>
@@ -1267,10 +1251,9 @@ export default function SitemapContent() {
                                         viewMode === "grid"
                                             ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
                                             : viewMode === "compact"
-                                                ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3"
-                                                : "space-y-0"
-                                    }
-                                >
+                                              ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3"
+                                              : "space-y-0"
+                                    }>
                                     {section.links.map((link, linkIndex) => (
                                         <SitemapItem
                                             key={linkIndex}
@@ -1291,8 +1274,7 @@ export default function SitemapContent() {
                     className="mt-12 sm:mt-16"
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                >
+                    viewport={{ once: true }}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
                         {/* Total Pages */}
                         <div
@@ -1302,18 +1284,15 @@ export default function SitemapContent() {
                                     ? `linear-gradient(135deg, ${palette.accent}15 0%, ${palette.accent}05 100%)`
                                     : `${palette.accent}10`,
                                 border: `1px solid ${palette.accent}30`
-                            }}
-                        >
+                            }}>
                             <p
                                 className={`${isApple ? "text-3xl sm:text-4xl font-bold" : "text-4xl sm:text-5xl font-black"} mb-2`}
-                                style={{ color: palette.accent }}
-                            >
+                                style={{ color: palette.accent }}>
                                 {sitemapData.reduce((acc, section) => acc + section.links.length, 0)}
                             </p>
                             <p
                                 className={`${isApple ? "text-sm" : "text-base font-medium"}`}
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 Total Pages
                             </p>
                         </div>
@@ -1326,18 +1305,15 @@ export default function SitemapContent() {
                                     ? `linear-gradient(135deg, ${palette.accent}15 0%, ${palette.accent}05 100%)`
                                     : `${palette.accent}10`,
                                 border: `1px solid ${palette.accent}30`
-                            }}
-                        >
+                            }}>
                             <p
                                 className={`${isApple ? "text-3xl sm:text-4xl font-bold" : "text-4xl sm:text-5xl font-black"} mb-2`}
-                                style={{ color: palette.accent }}
-                            >
+                                style={{ color: palette.accent }}>
                                 {sitemapData.length}
                             </p>
                             <p
                                 className={`${isApple ? "text-sm" : "text-base font-medium"}`}
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 Sections
                             </p>
                         </div>
@@ -1350,21 +1326,28 @@ export default function SitemapContent() {
                                     ? `linear-gradient(135deg, ${palette.accent}15 0%, ${palette.accent}05 100%)`
                                     : `${palette.accent}10`,
                                 border: `1px solid ${palette.accent}30`
-                            }}
-                        >
+                            }}>
                             <div className="flex justify-center mb-2">
                                 {viewMode === "grid" ? (
-                                    <GridView className="text-3xl sm:text-4xl" style={{ color: palette.accent }} />
+                                    <GridView
+                                        className="text-3xl sm:text-4xl"
+                                        style={{ color: palette.accent }}
+                                    />
                                 ) : viewMode === "list" ? (
-                                    <ViewList className="text-3xl sm:text-4xl" style={{ color: palette.accent }} />
+                                    <ViewList
+                                        className="text-3xl sm:text-4xl"
+                                        style={{ color: palette.accent }}
+                                    />
                                 ) : (
-                                    <ViewModule className="text-3xl sm:text-4xl" style={{ color: palette.accent }} />
+                                    <ViewModule
+                                        className="text-3xl sm:text-4xl"
+                                        style={{ color: palette.accent }}
+                                    />
                                 )}
                             </div>
                             <p
                                 className={`${isApple ? "text-sm" : "text-base font-medium"} capitalize`}
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 {viewMode} View
                             </p>
                         </div>
@@ -1377,18 +1360,15 @@ export default function SitemapContent() {
                                     ? `linear-gradient(135deg, ${palette.accent}15 0%, ${palette.accent}05 100%)`
                                     : `${palette.accent}10`,
                                 border: `1px solid ${palette.accent}30`
-                            }}
-                        >
+                            }}>
                             <p
                                 className={`${isApple ? "text-3xl sm:text-4xl font-bold" : "text-4xl sm:text-5xl font-black"} mb-2`}
-                                style={{ color: palette.accent }}
-                            >
+                                style={{ color: palette.accent }}>
                                 {sortedSitemap.reduce((acc, section) => acc + section.links.length, 0)}
                             </p>
                             <p
                                 className={`${isApple ? "text-sm" : "text-base font-medium"}`}
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 Showing
                             </p>
                         </div>

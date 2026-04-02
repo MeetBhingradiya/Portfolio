@@ -11,9 +11,21 @@ import mongoose from "mongoose";
 const QRDefaults = new mongoose.Schema(
     {
         size: { type: Number, default: 300, min: 100, max: 2048 },
-        errorCorrection: { type: String, default: "M", enum: ["L", "M", "Q", "H"] },
-        dotStyle: { type: String, default: "rounded", enum: ["rounded", "dots", "classy", "classy-rounded", "square", "extra-rounded"] },
-        cornerStyle: { type: String, default: "square", enum: ["square", "dot", "extra-rounded"] },
+        errorCorrection: {
+            type: String,
+            default: "M",
+            enum: ["L", "M", "Q", "H"]
+        },
+        dotStyle: {
+            type: String,
+            default: "rounded",
+            enum: ["rounded", "dots", "classy", "classy-rounded", "square", "extra-rounded"]
+        },
+        cornerStyle: {
+            type: String,
+            default: "square",
+            enum: ["square", "dot", "extra-rounded"]
+        },
         foreground: { type: String, default: "#000000" },
         background: { type: String, default: "#FFFFFF" }
     },
@@ -22,7 +34,11 @@ const QRDefaults = new mongoose.Schema(
 
 const UUIDDefaults = new mongoose.Schema(
     {
-        version: { type: String, default: "v4", enum: ["v1", "v4", "v5", "nil"] },
+        version: {
+            type: String,
+            default: "v4",
+            enum: ["v1", "v4", "v5", "nil"]
+        },
         uppercase: { type: Boolean, default: false },
         noDashes: { type: Boolean, default: false },
         braces: { type: Boolean, default: false },
@@ -33,7 +49,11 @@ const UUIDDefaults = new mongoose.Schema(
 
 const PasswordDefaults = new mongoose.Schema(
     {
-        mode: { type: String, default: "random", enum: ["random", "passphrase", "pin"] },
+        mode: {
+            type: String,
+            default: "random",
+            enum: ["random", "passphrase", "pin"]
+        },
         length: { type: Number, default: 16, min: 4, max: 128 },
         uppercase: { type: Boolean, default: true },
         lowercase: { type: Boolean, default: true },
@@ -49,7 +69,11 @@ const PasswordDefaults = new mongoose.Schema(
 
 const JSONDefaults = new mongoose.Schema(
     {
-        direction: { type: String, default: "json-to-js", enum: ["json-to-js", "js-to-json"] },
+        direction: {
+            type: String,
+            default: "json-to-js",
+            enum: ["json-to-js", "js-to-json"]
+        },
         autoFormat: { type: Boolean, default: true }
     },
     { _id: false }
@@ -57,7 +81,11 @@ const JSONDefaults = new mongoose.Schema(
 
 const JWTDefaults = new mongoose.Schema(
     {
-        defaultTab: { type: String, default: "decode", enum: ["decode", "build", "reference"] },
+        defaultTab: {
+            type: String,
+            default: "decode",
+            enum: ["decode", "build", "reference"]
+        },
         defaultAlgorithm: { type: String, default: "HS256" }
     },
     { _id: false }
@@ -67,18 +95,34 @@ const RegExpDefaults = new mongoose.Schema(
     {
         defaultFlags: { type: String, default: "g" },
         showPresets: { type: Boolean, default: false },
-        defaultTab: { type: String, default: "match", enum: ["match", "replace"] }
+        defaultTab: {
+            type: String,
+            default: "match",
+            enum: ["match", "replace"]
+        }
     },
     { _id: false }
 );
 
 const ImageDefaults = new mongoose.Schema(
     {
-        mode: { type: String, default: "compress", enum: ["compress", "to-pdf"] },
+        mode: {
+            type: String,
+            default: "compress",
+            enum: ["compress", "to-pdf"]
+        },
         quality: { type: Number, default: 0.7, min: 0.1, max: 1 },
         maxWidth: { type: Number, default: 1920, min: 320, max: 3840 },
-        outputFormat: { type: String, default: "jpeg", enum: ["jpeg", "png", "webp"] },
-        pdfOrientation: { type: String, default: "portrait", enum: ["portrait", "landscape"] }
+        outputFormat: {
+            type: String,
+            default: "jpeg",
+            enum: ["jpeg", "png", "webp"]
+        },
+        pdfOrientation: {
+            type: String,
+            default: "portrait",
+            enum: ["portrait", "landscape"]
+        }
     },
     { _id: false }
 );
@@ -92,23 +136,43 @@ const PDFDefaults = new mongoose.Schema(
 
 const EncryptDefaults = new mongoose.Schema(
     {
-        algorithm: { type: String, default: "AES", enum: ["AES", "DES", "TripleDES", "Rabbit", "RC4"] },
-        direction: { type: String, default: "encrypt", enum: ["encrypt", "decrypt"] }
+        algorithm: {
+            type: String,
+            default: "AES",
+            enum: ["AES", "DES", "TripleDES", "Rabbit", "RC4"]
+        },
+        direction: {
+            type: String,
+            default: "encrypt",
+            enum: ["encrypt", "decrypt"]
+        }
     },
     { _id: false }
 );
 
 const MarkdownDefaults = new mongoose.Schema(
     {
-        viewMode: { type: String, default: "split", enum: ["split", "editor", "preview"] }
+        viewMode: {
+            type: String,
+            default: "split",
+            enum: ["split", "editor", "preview"]
+        }
     },
     { _id: false }
 );
 
 const ColourDefaults = new mongoose.Schema(
     {
-        defaultTab: { type: String, default: "picker", enum: ["picker", "palette", "contrast"] },
-        harmony: { type: String, default: "analogous", enum: ["complementary", "analogous", "triadic", "split-comp", "tetradic"] },
+        defaultTab: {
+            type: String,
+            default: "picker",
+            enum: ["picker", "palette", "contrast"]
+        },
+        harmony: {
+            type: String,
+            default: "analogous",
+            enum: ["complementary", "analogous", "triadic", "split-comp", "tetradic"]
+        },
         defaultHue: { type: Number, default: 210, min: 0, max: 360 },
         defaultSaturation: { type: Number, default: 80, min: 0, max: 100 },
         defaultLightness: { type: Number, default: 55, min: 0, max: 100 }
@@ -118,7 +182,11 @@ const ColourDefaults = new mongoose.Schema(
 
 const TodoDefaults = new mongoose.Schema(
     {
-        defaultFilter: { type: String, default: "all", enum: ["all", "active", "completed"] }
+        defaultFilter: {
+            type: String,
+            default: "all",
+            enum: ["all", "active", "completed"]
+        }
     },
     { _id: false }
 );
@@ -130,9 +198,13 @@ const InstagramDefaults = new mongoose.Schema(
             default: "not-following-back",
             enum: ["not-following-back", "close-friends", "pending-requests", "request-history", "recently-unfollowed", "blocked"]
         },
-        showDates:          { type: Boolean, default: true },
+        showDates: { type: Boolean, default: true },
         useRegExpByDefault: { type: Boolean, default: false },
-        maxListHeight:      { type: String, default: "normal", enum: ["compact", "normal", "tall"] }
+        maxListHeight: {
+            type: String,
+            default: "normal",
+            enum: ["compact", "normal", "tall"]
+        }
     },
     { _id: false }
 );
@@ -172,7 +244,7 @@ const ToolSettings_Schema = new mongoose.Schema(
         encrypt: { type: EncryptDefaults, default: () => ({}) },
         markdown: { type: MarkdownDefaults, default: () => ({}) },
         colour: { type: ColourDefaults, default: () => ({}) },
-        todo:   { type: TodoDefaults,   default: () => ({}) },
+        todo: { type: TodoDefaults, default: () => ({}) },
         instagram: { type: InstagramDefaults, default: () => ({}) },
 
         // Global controls
@@ -274,5 +346,4 @@ export interface IToolSettings extends mongoose.Document {
 }
 
 export const ToolSettings_Model: mongoose.Model<IToolSettings> =
-    mongoose.models?.ToolSettings ||
-    mongoose.model<IToolSettings>("ToolSettings", ToolSettings_Schema);
+    mongoose.models?.ToolSettings || mongoose.model<IToolSettings>("ToolSettings", ToolSettings_Schema);

@@ -43,42 +43,42 @@ export type NavItemKey =
  */
 export const sidebarPermissions: Record<NavItemKey, string[]> = {
     // Core admin pages (requires admin email or admin role)
-    dashboard: [],
-    users: ["admin.users.view", "admin.users.manage"],
-    roles: ["admin.roles.manage"],
+    "dashboard": [],
+    "users": ["admin.users.view", "admin.users.manage"],
+    "roles": ["admin.roles.manage"],
 
     // Support module
-    tickets: ["support.tickets.view"],
-    faq: ["admin.faq.manage"],
-    employee: ["support.tickets.view"],
+    "tickets": ["support.tickets.view"],
+    "faq": ["admin.faq.manage"],
+    "employee": ["support.tickets.view"],
 
     // Shop module
-    products: ["shop.products.manage"],
-    orders: ["shop.orders.view"],
-    refunds: ["shop.refunds.view"],
+    "products": ["shop.products.manage"],
+    "orders": ["shop.orders.view"],
+    "refunds": ["shop.refunds.view"],
 
     // Portfolio module
-    sitemap: ["portfolio.manage"],
-    projects: ["portfolio.manage"],
-    skills: ["portfolio.manage"],
-    education: ["portfolio.manage"],
-    experience: ["portfolio.manage"],
-    certificates: ["portfolio.manage"],
+    "sitemap": ["portfolio.manage"],
+    "projects": ["portfolio.manage"],
+    "skills": ["portfolio.manage"],
+    "education": ["portfolio.manage"],
+    "experience": ["portfolio.manage"],
+    "certificates": ["portfolio.manage"],
     "test-scores": ["portfolio.manage"],
-    resume: ["portfolio.manage"],
-    blogs: ["content.blog.manage"],
+    "resume": ["portfolio.manage"],
+    "blogs": ["content.blog.manage"],
 
     // System/Settings module (admin only)
-    features: ["admin.site.settings"],
-    tools: ["admin.site.settings"],
+    "features": ["admin.site.settings"],
+    "tools": ["admin.site.settings"],
     "tool-settings": ["admin.site.settings"],
     "ai-providers": ["admin.site.settings"],
-    maintenance: ["admin.site.settings"],
+    "maintenance": ["admin.site.settings"],
     "immich-access": ["admin.site.settings"],
     "db-sync": ["admin.site.settings"],
-    cdn: ["cdn.keys.view", "cdn.keys.manage"],
+    "cdn": ["cdn.keys.view", "cdn.keys.manage"],
     "cdn-applications": ["cdn.applications.view", "cdn.applications.review"],
-    "cdn-api-keys": ["cdn.keys.view", "cdn.keys.manage"],
+    "cdn-api-keys": ["cdn.keys.view", "cdn.keys.manage"]
 };
 
 /**

@@ -8,25 +8,20 @@ import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
 import { ProductivityGoal, GoalStatus, GOAL_XP } from "@Models/ProductivityGoal";
-import {
-    UserProductivityStats,
-    getOrCreateStats,
-    computeLevel,
-    ACHIEVEMENTS,
-} from "@Models/UserProductivityStats";
+import { UserProductivityStats, getOrCreateStats, computeLevel, ACHIEVEMENTS } from "@Models/UserProductivityStats";
 
-export async function GET(
-    _req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
-        const h    = await headers();
+        const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const goal   = await ProductivityGoal.findOne({ GoalID: id, UserID: user.userId }).lean();
+        const goal = await ProductivityGoal.findOne({
+            GoalID: id,
+            UserID: user.userId
+        }).lean();
         if (!goal) return NextResponse.json({ success: false, error: "Goal not found" }, { status: 404 });
 
         return NextResponse.json({ success: true, data: goal });
@@ -36,37 +31,45 @@ export async function GET(
     }
 }
 
-export async function PUT(
-    req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
-        const h    = await headers();
+        const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const { id } = await params;
-        const body   = await req.json();
+        const body = await req.json();
 
-        const goal = await ProductivityGoal.findOne({ GoalID: id, UserID: user.userId });
+        const goal = await ProductivityGoal.findOne({
+            GoalID: id,
+            UserID: user.userId
+        });
         if (!goal) return NextResponse.json({ success: false, error: "Goal not found" }, { status: 404 });
 
-        const wasCompleted    = goal.Status === GoalStatus.COMPLETED;
+        const wasCompleted = goal.Status === GoalStatus.COMPLETED;
         const isCompletingNow = !wasCompleted && body.Status === GoalStatus.COMPLETED;
 
         const allowed = [
-            "Title", "Description", "Category", "Emoji", "Color", "Status",
-            "StartDate", "TargetDate", "Tags", "Archived",
-            "LinkedTaskIDs", "LinkedHabitIDs", "LinkedReminderIDs",
+            "Title",
+            "Description",
+            "Category",
+            "Emoji",
+            "Color",
+            "Status",
+            "StartDate",
+            "TargetDate",
+            "Tags",
+            "Archived",
+            "LinkedTaskIDs",
+            "LinkedHabitIDs",
+            "LinkedReminderIDs"
         ];
 
         const update: Record<string, unknown> = {};
         for (const key of allowed) {
             if (key in body) {
-                update[key] = (["StartDate", "TargetDate"].includes(key) && body[key])
-                    ? new Date(body[key] as string)
-                    : body[key];
+                update[key] = ["StartDate", "TargetDate"].includes(key) && body[key] ? new Date(body[key] as string) : body[key];
             }
         }
 
@@ -81,51 +84,70 @@ export async function PUT(
         // Handle completion
         if (isCompletingNow) {
             update.CompletedAt = new Date();
-            update.XPEarned    = GOAL_XP;
+            update.XPEarned = GOAL_XP;
 
-            const stats             = await getOrCreateStats(user.userId);
-            const newXP             = stats.TotalXP + GOAL_XP;
-            const levelInfo         = computeLevel(newXP);
-            const earnedIds         = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
+            const stats = await getOrCreateStats(user.userId);
+            const newXP = stats.TotalXP + GOAL_XP;
+            const levelInfo = computeLevel(newXP);
+            const earnedIds = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
             const newGoalsCompleted = stats.TotalGoalsCompleted + 1;
 
-            const newAchievements: { id: string; EarnedAt: Date; XPAwarded: number }[] = [];
+            const newAchievements: {
+                id: string;
+                EarnedAt: Date;
+                XPAwarded: number;
+            }[] = [];
             let bonusXP = 0;
 
-            const checks: Record<string, boolean> = { goals_5: newGoalsCompleted >= 5 };
+            const checks: Record<string, boolean> = {
+                goals_5: newGoalsCompleted >= 5
+            };
             for (const ach of ACHIEVEMENTS) {
                 if (earnedIds.has(ach.id) || !(ach.id in checks)) continue;
                 if (checks[ach.id]) {
-                    newAchievements.push({ id: ach.id, EarnedAt: new Date(), XPAwarded: ach.xpReward });
+                    newAchievements.push({
+                        id: ach.id,
+                        EarnedAt: new Date(),
+                        XPAwarded: ach.xpReward
+                    });
                     bonusXP += ach.xpReward;
                 }
             }
 
-            const finalXP    = newXP + bonusXP;
+            const finalXP = newXP + bonusXP;
             const finalLevel = computeLevel(finalXP);
 
             await UserProductivityStats.updateOne(
                 { UserID: user.userId },
                 {
-                    $set: { TotalXP: finalXP, Level: finalLevel.level, LevelTitle: finalLevel.title },
+                    $set: {
+                        TotalXP: finalXP,
+                        Level: finalLevel.level,
+                        LevelTitle: finalLevel.title
+                    },
                     $inc: { TotalGoalsCompleted: 1 },
                     $push: {
                         XPHistory: {
                             $each: [
                                 {
-                                    Amount: GOAL_XP, Reason: `Goal completed: ${goal.Title}`,
-                                    Source: "goal", SourceID: id, EarnedAt: new Date(),
+                                    Amount: GOAL_XP,
+                                    Reason: `Goal completed: ${goal.Title}`,
+                                    Source: "goal",
+                                    SourceID: id,
+                                    EarnedAt: new Date()
                                 },
                                 ...newAchievements.map((a) => ({
                                     Amount: a.XPAwarded,
                                     Reason: `Achievement: ${ACHIEVEMENTS.find((x) => x.id === a.id)?.title ?? a.id}`,
-                                    Source: "achievement" as const, SourceID: a.id, EarnedAt: new Date(),
-                                })),
+                                    Source: "achievement" as const,
+                                    SourceID: a.id,
+                                    EarnedAt: new Date()
+                                }))
                             ],
-                            $slice: -500,
+                            $slice: -500
                         },
-                        EarnedAchievements: { $each: newAchievements },
-                    },
+                        EarnedAchievements: { $each: newAchievements }
+                    }
                 },
                 { upsert: true }
             );
@@ -144,18 +166,18 @@ export async function PUT(
     }
 }
 
-export async function DELETE(
-    _req: NextRequest,
-    { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
-        const h    = await headers();
+        const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id }  = await params;
-        const deleted = await ProductivityGoal.findOneAndDelete({ GoalID: id, UserID: user.userId });
+        const { id } = await params;
+        const deleted = await ProductivityGoal.findOneAndDelete({
+            GoalID: id,
+            UserID: user.userId
+        });
         if (!deleted) return NextResponse.json({ success: false, error: "Goal not found" }, { status: 404 });
 
         return NextResponse.json({ success: true, message: "Goal deleted" });

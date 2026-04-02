@@ -7,10 +7,7 @@ export async function GET(req: NextRequest) {
 
     // Not authenticated
     if (!session?.user) {
-        return NextResponse.json(
-            { error: "Unauthorized" },
-            { status: 401 }
-        );
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Get user roles and permissions
@@ -24,6 +21,6 @@ export async function GET(req: NextRequest) {
         canAccessAdmin,
         email: session.user.email,
         roles,
-        permissions,
+        permissions
     });
 }

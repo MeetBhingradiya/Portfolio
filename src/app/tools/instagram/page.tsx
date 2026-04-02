@@ -8,13 +8,7 @@
 
 "use client";
 
-import React, {
-    useState,
-    useCallback,
-    useMemo,
-    useRef,
-    useEffect,
-} from "react";
+import React, { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import JSZip from "jszip";
 import { useDesignTheme } from "@Hooks";
@@ -42,7 +36,7 @@ import {
     CheckCircle,
     HourglassEmpty,
     ExpandMore,
-    ExpandLess,
+    ExpandLess
 } from "@mui/icons-material";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -63,13 +57,7 @@ interface ParsedData {
     blocked: IGProfile[];
 }
 
-type TabId =
-    | "not-following-back"
-    | "close-friends"
-    | "pending-requests"
-    | "request-history"
-    | "recently-unfollowed"
-    | "blocked";
+type TabId = "not-following-back" | "close-friends" | "pending-requests" | "request-history" | "recently-unfollowed" | "blocked";
 
 interface TabDef {
     id: TabId;
@@ -90,7 +78,7 @@ function extractProfiles(entries: any[]): IGProfile[] {
             if (sld.length === 0) continue;
             const first = sld[0];
             const username: string =
-                (entry.title && entry.title.trim())
+                entry.title && entry.title.trim()
                     ? entry.title.trim()
                     : (first.value ?? first.href?.split("/").filter(Boolean).pop() ?? "");
             const href: string = first.href ?? `https://www.instagram.com/${username}`;
@@ -152,7 +140,7 @@ function buildData(raw: Partial<ParsedData>): ParsedData {
         pendingRequests: raw.pendingRequests ?? [],
         requestHistory: raw.requestHistory ?? [],
         recentlyUnfollowed: raw.recentlyUnfollowed ?? [],
-        blocked: raw.blocked ?? [],
+        blocked: raw.blocked ?? []
     };
 }
 
@@ -162,7 +150,7 @@ function formatDate(ts: number): string {
         return new Intl.DateTimeFormat("en-GB", {
             day: "2-digit",
             month: "short",
-            year: "numeric",
+            year: "numeric"
         }).format(new Date(ts * 1000));
     } catch {
         return "—";
@@ -170,14 +158,7 @@ function formatDate(ts: number): string {
 }
 
 function exportCSV(profiles: IGProfile[], filename: string) {
-    const rows = [
-        ["Username", "Profile URL", "Date"],
-        ...profiles.map((p) => [
-            p.username,
-            p.href,
-            formatDate(p.timestamp),
-        ]),
-    ];
+    const rows = [["Username", "Profile URL", "Date"], ...profiles.map((p) => [p.username, p.href, formatDate(p.timestamp)])];
     const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
@@ -196,43 +177,43 @@ const TABS: TabDef[] = [
         label: "Not Following Back",
         icon: <PersonRemove fontSize="small" />,
         color: "#FF3B30",
-        description: "Accounts you follow that don't follow you back",
+        description: "Accounts you follow that don't follow you back"
     },
     {
         id: "close-friends",
         label: "Close Friends",
         icon: <StarBorder fontSize="small" />,
         color: "#FFD60A",
-        description: "People on your Close Friends list",
+        description: "People on your Close Friends list"
     },
     {
         id: "pending-requests",
         label: "Pending Requests",
         icon: <HourglassEmpty fontSize="small" />,
         color: "#FF9500",
-        description: "Follow requests you've sent that are still pending",
+        description: "Follow requests you've sent that are still pending"
     },
     {
         id: "request-history",
         label: "Request History",
         icon: <History fontSize="small" />,
         color: "#AF52DE",
-        description: "All follow requests you've ever sent",
+        description: "All follow requests you've ever sent"
     },
     {
         id: "recently-unfollowed",
         label: "Recently Unfollowed",
         icon: <PersonOff fontSize="small" />,
         color: "#5AC8FA",
-        description: "Accounts you've recently unfollowed",
+        description: "Accounts you've recently unfollowed"
     },
     {
         id: "blocked",
         label: "Blocked",
         icon: <Block fontSize="small" />,
         color: "#FF2D55",
-        description: "Accounts you've blocked",
-    },
+        description: "Accounts you've blocked"
+    }
 ];
 
 // ─── Profile Row ──────────────────────────────────────────────────────────────
@@ -255,8 +236,12 @@ const ProfileRow: React.FC<{
     };
 
     const rowBg = isApple
-        ? isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.025)"
-        : isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)";
+        ? isDark
+            ? "rgba(255,255,255,0.04)"
+            : "rgba(0,0,0,0.025)"
+        : isDark
+          ? "rgba(255,255,255,0.03)"
+          : "rgba(0,0,0,0.02)";
 
     return (
         <motion.div
@@ -264,13 +249,11 @@ const ProfileRow: React.FC<{
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.4) }}
             className="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl group"
-            style={{ background: rowBg }}
-        >
+            style={{ background: rowBg }}>
             {/* Avatar placeholder */}
             <div
                 className="w-9 h-9 rounded-full flex-shrink-0 flex items-center justify-center text-sm font-bold select-none"
-                style={{ background: `${accent}20`, color: accent }}
-            >
+                style={{ background: `${accent}20`, color: accent }}>
                 {profile.username.charAt(0).toUpperCase()}
             </div>
 
@@ -278,12 +261,13 @@ const ProfileRow: React.FC<{
             <div className="flex-1 min-w-0">
                 <p
                     className="text-sm font-semibold truncate"
-                    style={{ color: palette.textPrimary }}
-                >
+                    style={{ color: palette.textPrimary }}>
                     @{profile.username}
                 </p>
                 {profile.timestamp > 0 && showDates && (
-                    <p className="text-xs" style={{ color: palette.textTertiary }}>
+                    <p
+                        className="text-xs"
+                        style={{ color: palette.textTertiary }}>
                         {formatDate(profile.timestamp)}
                     </p>
                 )}
@@ -295,10 +279,12 @@ const ProfileRow: React.FC<{
                     onClick={copyUsername}
                     title="Copy username"
                     className="p-1.5 rounded-lg transition-colors"
-                    style={{ color: palette.textSecondary }}
-                >
+                    style={{ color: palette.textSecondary }}>
                     {copied ? (
-                        <Check sx={{ fontSize: 15 }} style={{ color: "#34C759" }} />
+                        <Check
+                            sx={{ fontSize: 15 }}
+                            style={{ color: "#34C759" }}
+                        />
                     ) : (
                         <ContentCopy sx={{ fontSize: 15 }} />
                     )}
@@ -309,8 +295,7 @@ const ProfileRow: React.FC<{
                     rel="noopener noreferrer"
                     title="Open Instagram profile"
                     className="p-1.5 rounded-lg transition-colors"
-                    style={{ color: palette.textSecondary }}
-                >
+                    style={{ color: palette.textSecondary }}>
                     <OpenInNew sx={{ fontSize: 15 }} />
                 </a>
             </div>
@@ -320,8 +305,8 @@ const ProfileRow: React.FC<{
 
 const LIST_HEIGHT: Record<string, string> = {
     compact: "360px",
-    normal:  "580px",
-    tall:    "800px",
+    normal: "580px",
+    tall: "800px"
 };
 
 // ─── Main Component ───────────────────────────────────────────────────────────
@@ -360,9 +345,7 @@ export default function InstagramAnalyserPage() {
             const zip = await JSZip.loadAsync(file);
             const bucket: Partial<ParsedData> = {};
 
-            const jsonFiles = Object.entries(zip.files).filter(
-                ([name, f]) => !f.dir && name.toLowerCase().endsWith(".json")
-            );
+            const jsonFiles = Object.entries(zip.files).filter(([name, f]) => !f.dir && name.toLowerCase().endsWith(".json"));
 
             await Promise.all(
                 jsonFiles.map(async ([name, f]) => {
@@ -378,9 +361,7 @@ export default function InstagramAnalyserPage() {
             );
 
             if (!bucket.following && !bucket.followers) {
-                setParseError(
-                    "No Instagram data found in this ZIP. Make sure you're uploading the official Instagram data export."
-                );
+                setParseError("No Instagram data found in this ZIP. Make sure you're uploading the official Instagram data export.");
                 setLoading(false);
                 return;
             }
@@ -410,7 +391,9 @@ export default function InstagramAnalyserPage() {
                 })
             );
             if (!bucket.following && !bucket.followers) {
-                setParseError("No recognised Instagram JSON files found. Please upload files from the export's followers_and_following folder.");
+                setParseError(
+                    "No recognised Instagram JSON files found. Please upload files from the export's followers_and_following folder."
+                );
                 setLoading(false);
                 return;
             }
@@ -521,11 +504,16 @@ export default function InstagramAnalyserPage() {
             switch (tabId) {
                 case "not-following-back":
                     return data.following.filter((f) => !followerSet.has(f.username.toLowerCase())).length;
-                case "close-friends": return data.closeFriends.length;
-                case "pending-requests": return data.pendingRequests.length;
-                case "request-history": return data.requestHistory.length;
-                case "recently-unfollowed": return data.recentlyUnfollowed.length;
-                case "blocked": return data.blocked.length;
+                case "close-friends":
+                    return data.closeFriends.length;
+                case "pending-requests":
+                    return data.pendingRequests.length;
+                case "request-history":
+                    return data.requestHistory.length;
+                case "recently-unfollowed":
+                    return data.recentlyUnfollowed.length;
+                case "blocked":
+                    return data.blocked.length;
             }
         },
         [data]
@@ -533,9 +521,7 @@ export default function InstagramAnalyserPage() {
 
     // ── Styles ────────────────────────────────────────────────────────────
     const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
-    const cardBg = isApple
-        ? isDark ? "rgba(28,28,32,0.80)" : "rgba(255,255,255,0.80)"
-        : isDark ? "rgba(24,24,28,0.98)" : "#fff";
+    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.80)" : "rgba(255,255,255,0.80)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
 
     const inputStyle: React.CSSProperties = {
         background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
@@ -545,7 +531,7 @@ export default function InstagramAnalyserPage() {
         outline: "none",
         padding: "8px 12px",
         fontSize: 14,
-        width: "100%",
+        width: "100%"
     };
 
     // ── Render ────────────────────────────────────────────────────────────
@@ -554,15 +540,13 @@ export default function InstagramAnalyserPage() {
             title="Instagram Analyser"
             description="Analyse your Instagram export — who doesn't follow back, close friends, follow request history and more."
             icon={<Instagram />}
-            accentColor={ACCENT}
-        >
+            accentColor={ACCENT}>
             {/* ── Upload zone (shown until data is loaded) ── */}
             {!data && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.4 }}
-                >
+                    transition={{ duration: 0.4 }}>
                     <Card>
                         <div
                             ref={dropRef}
@@ -577,35 +561,45 @@ export default function InstagramAnalyserPage() {
                                 background: isDragging
                                     ? `${ACCENT}10`
                                     : isApple
-                                    ? isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"
-                                    : "transparent",
+                                      ? isDark
+                                          ? "rgba(255,255,255,0.03)"
+                                          : "rgba(0,0,0,0.02)"
+                                      : "transparent",
                                 transition: "all 0.2s ease",
-                                padding: 40,
+                                padding: 40
                             }}
-                            onClick={() => fileInputRef.current?.click()}
-                        >
+                            onClick={() => fileInputRef.current?.click()}>
                             <motion.div
                                 animate={isDragging ? { scale: 1.15 } : { scale: 1 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                            >
+                                transition={{
+                                    type: "spring",
+                                    stiffness: 300,
+                                    damping: 20
+                                }}>
                                 <FolderZip
-                                    sx={{ fontSize: 64, color: ACCENT, opacity: isDragging ? 1 : 0.7 }}
+                                    sx={{
+                                        fontSize: 64,
+                                        color: ACCENT,
+                                        opacity: isDragging ? 1 : 0.7
+                                    }}
                                 />
                             </motion.div>
                             <h3
                                 className="text-xl font-bold mt-4 mb-2"
-                                style={{ color: palette.textPrimary }}
-                            >
+                                style={{ color: palette.textPrimary }}>
                                 Drop your Instagram export here
                             </h3>
                             <p
                                 className="text-sm max-w-xs"
-                                style={{ color: palette.textSecondary }}
-                            >
-                                Upload the <strong>.zip</strong> file from
-                                &ldquo;Download your information&rdquo;, or drop the
-                                individual <strong>.json</strong> files from the{" "}
-                                <code className="text-xs px-1 py-0.5 rounded" style={{ background: `${ACCENT}20`, color: ACCENT }}>
+                                style={{ color: palette.textSecondary }}>
+                                Upload the <strong>.zip</strong> file from &ldquo;Download your information&rdquo;, or drop the individual{" "}
+                                <strong>.json</strong> files from the{" "}
+                                <code
+                                    className="text-xs px-1 py-0.5 rounded"
+                                    style={{
+                                        background: `${ACCENT}20`,
+                                        color: ACCENT
+                                    }}>
                                     followers_and_following
                                 </code>{" "}
                                 folder all at once.
@@ -615,13 +609,14 @@ export default function InstagramAnalyserPage() {
                                 style={{
                                     background: ACCENT,
                                     color: "#fff",
-                                    boxShadow: `0 4px 14px ${ACCENT}50`,
-                                }}
-                            >
+                                    boxShadow: `0 4px 14px ${ACCENT}50`
+                                }}>
                                 <Upload sx={{ fontSize: 18 }} />
                                 Choose File
                             </div>
-                            <p className="text-xs mt-3" style={{ color: palette.textTertiary }}>
+                            <p
+                                className="text-xs mt-3"
+                                style={{ color: palette.textTertiary }}>
                                 Everything is processed entirely in your browser — no data is uploaded.
                             </p>
                             <input
@@ -639,14 +634,27 @@ export default function InstagramAnalyserPage() {
                         </div>
 
                         {/* How to export guide */}
-                        <div className="mt-6 p-4 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)", border }}>
-                            <p className="text-xs font-semibold mb-2" style={{ color: palette.textSecondary }}>
+                        <div
+                            className="mt-6 p-4 rounded-xl"
+                            style={{
+                                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
+                                border
+                            }}>
+                            <p
+                                className="text-xs font-semibold mb-2"
+                                style={{ color: palette.textSecondary }}>
                                 How to get your Instagram data export:
                             </p>
-                            <ol className="text-xs space-y-1" style={{ color: palette.textTertiary }}>
+                            <ol
+                                className="text-xs space-y-1"
+                                style={{ color: palette.textTertiary }}>
                                 <li>1. Go to Instagram → Settings → Your activity → Download your information</li>
-                                <li>2. Select <strong>JSON</strong> as the format and choose &ldquo;Some of your information&rdquo;</li>
-                                <li>3. Tick <em>Connections</em> → Request download</li>
+                                <li>
+                                    2. Select <strong>JSON</strong> as the format and choose &ldquo;Some of your information&rdquo;
+                                </li>
+                                <li>
+                                    3. Tick <em>Connections</em> → Request download
+                                </li>
                                 <li>4. Download the ZIP when Instagram emails you the link</li>
                             </ol>
                         </div>
@@ -660,13 +668,18 @@ export default function InstagramAnalyserPage() {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 className="flex items-center justify-center gap-3 mt-6"
-                                style={{ color: palette.textSecondary }}
-                            >
+                                style={{ color: palette.textSecondary }}>
                                 <motion.div
                                     className="w-5 h-5 border-2 rounded-full"
-                                    style={{ borderColor: `${ACCENT} transparent ${ACCENT} transparent` }}
+                                    style={{
+                                        borderColor: `${ACCENT} transparent ${ACCENT} transparent`
+                                    }}
                                     animate={{ rotate: 360 }}
-                                    transition={{ repeat: Infinity, duration: 0.9, ease: "linear" }}
+                                    transition={{
+                                        repeat: Infinity,
+                                        duration: 0.9,
+                                        ease: "linear"
+                                    }}
                                 />
                                 <span className="text-sm">Parsing export…</span>
                             </motion.div>
@@ -681,8 +694,11 @@ export default function InstagramAnalyserPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}
                                 className="mt-4 p-4 rounded-xl text-sm"
-                                style={{ background: "#FF3B3020", color: "#FF3B30", border: "1px solid #FF3B3040" }}
-                            >
+                                style={{
+                                    background: "#FF3B3020",
+                                    color: "#FF3B30",
+                                    border: "1px solid #FF3B3040"
+                                }}>
                                 {parseError}
                             </motion.div>
                         )}
@@ -696,15 +712,13 @@ export default function InstagramAnalyserPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.35 }}
-                    className="space-y-5"
-                >
+                    className="space-y-5">
                     {/* ── Top bar: summary + reset ── */}
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <button
                             onClick={() => setExpandedStats((s) => !s)}
                             className="flex items-center gap-2 text-sm font-semibold"
-                            style={{ color: palette.textPrimary }}
-                        >
+                            style={{ color: palette.textPrimary }}>
                             <CheckCircle sx={{ fontSize: 18, color: "#34C759" }} />
                             Export loaded — {data.following.length} following · {data.followers.length} followers
                             {expandedStats ? <ExpandLess sx={{ fontSize: 17 }} /> : <ExpandMore sx={{ fontSize: 17 }} />}
@@ -717,8 +731,10 @@ export default function InstagramAnalyserPage() {
                                 setActiveTab("not-following-back");
                             }}
                             className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full font-semibold"
-                            style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", color: palette.textSecondary }}
-                        >
+                            style={{
+                                background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                color: palette.textSecondary
+                            }}>
                             <Close sx={{ fontSize: 14 }} />
                             Load new export
                         </button>
@@ -732,24 +748,42 @@ export default function InstagramAnalyserPage() {
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.25 }}
-                                className="overflow-hidden"
-                            >
+                                className="overflow-hidden">
                                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 pb-1">
                                     {TABS.map((tab) => {
                                         const count = tabCount(tab.id);
                                         return (
                                             <button
                                                 key={tab.id}
-                                                onClick={() => { setActiveTab(tab.id); setExpandedStats(false); }}
+                                                onClick={() => {
+                                                    setActiveTab(tab.id);
+                                                    setExpandedStats(false);
+                                                }}
                                                 className="flex flex-col items-center gap-1 p-3 rounded-2xl text-center transition-transform active:scale-95"
                                                 style={{
                                                     background: activeTab === tab.id ? `${tab.color}20` : cardBg,
-                                                    border: activeTab === tab.id ? `1.5px solid ${tab.color}60` : border,
-                                                }}
-                                            >
-                                                <span style={{ color: tab.color }}>{tab.icon}</span>
-                                                <span className="text-xl font-black" style={{ color: palette.textPrimary }}>{count}</span>
-                                                <span className="text-[10px] leading-tight" style={{ color: palette.textTertiary }}>{tab.label}</span>
+                                                    border: activeTab === tab.id ? `1.5px solid ${tab.color}60` : border
+                                                }}>
+                                                <span
+                                                    style={{
+                                                        color: tab.color
+                                                    }}>
+                                                    {tab.icon}
+                                                </span>
+                                                <span
+                                                    className="text-xl font-black"
+                                                    style={{
+                                                        color: palette.textPrimary
+                                                    }}>
+                                                    {count}
+                                                </span>
+                                                <span
+                                                    className="text-[10px] leading-tight"
+                                                    style={{
+                                                        color: palette.textTertiary
+                                                    }}>
+                                                    {tab.label}
+                                                </span>
                                             </button>
                                         );
                                     })}
@@ -771,9 +805,8 @@ export default function InstagramAnalyserPage() {
                                     style={{
                                         background: active ? `${tab.color}20` : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
                                         color: active ? tab.color : palette.textSecondary,
-                                        border: `1.5px solid ${active ? `${tab.color}60` : "transparent"}`,
-                                    }}
-                                >
+                                        border: `1.5px solid ${active ? `${tab.color}60` : "transparent"}`
+                                    }}>
                                     {tab.icon}
                                     <span className="hidden sm:inline">{tab.label}</span>
                                     {count > 0 && (
@@ -781,9 +814,8 @@ export default function InstagramAnalyserPage() {
                                             className="text-xs px-1.5 py-0.5 rounded-full font-bold min-w-[20px] text-center"
                                             style={{
                                                 background: active ? tab.color : isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)",
-                                                color: active ? "#fff" : palette.textSecondary,
-                                            }}
-                                        >
+                                                color: active ? "#fff" : palette.textSecondary
+                                            }}>
                                             {count}
                                         </span>
                                     )}
@@ -799,17 +831,23 @@ export default function InstagramAnalyserPage() {
                             <div>
                                 <div className="flex items-center gap-2 mb-0.5">
                                     <span style={{ color: activeTabDef.color }}>{activeTabDef.icon}</span>
-                                    <h2 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                    <h2
+                                        className="text-lg font-bold"
+                                        style={{ color: palette.textPrimary }}>
                                         {activeTabDef.label}
                                     </h2>
                                     <span
                                         className="text-xs px-2 py-0.5 rounded-full font-bold"
-                                        style={{ background: `${activeTabDef.color}20`, color: activeTabDef.color }}
-                                    >
+                                        style={{
+                                            background: `${activeTabDef.color}20`,
+                                            color: activeTabDef.color
+                                        }}>
                                         {rawList.length}
                                     </span>
                                 </div>
-                                <p className="text-xs" style={{ color: palette.textTertiary }}>
+                                <p
+                                    className="text-xs"
+                                    style={{ color: palette.textTertiary }}>
                                     {activeTabDef.description}
                                 </p>
                             </div>
@@ -820,16 +858,29 @@ export default function InstagramAnalyserPage() {
                                     <button
                                         onClick={copyAllUsernames}
                                         className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                                        style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)", color: palette.textSecondary }}
-                                    >
-                                        {copiedAll ? <Check sx={{ fontSize: 14, color: "#34C759" }} /> : <ContentCopy sx={{ fontSize: 14 }} />}
+                                        style={{
+                                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+                                            color: palette.textSecondary
+                                        }}>
+                                        {copiedAll ? (
+                                            <Check
+                                                sx={{
+                                                    fontSize: 14,
+                                                    color: "#34C759"
+                                                }}
+                                            />
+                                        ) : (
+                                            <ContentCopy sx={{ fontSize: 14 }} />
+                                        )}
                                         {copiedAll ? "Copied!" : "Copy all"}
                                     </button>
                                     <button
                                         onClick={() => exportCSV(filteredList, `instagram_${activeTab}.csv`)}
                                         className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                                        style={{ background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)", color: palette.textSecondary }}
-                                    >
+                                        style={{
+                                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)",
+                                            color: palette.textSecondary
+                                        }}>
                                         <Download sx={{ fontSize: 14 }} />
                                         CSV
                                     </button>
@@ -858,8 +909,7 @@ export default function InstagramAnalyserPage() {
                                     <button
                                         className="absolute right-3 top-1/2 -translate-y-1/2"
                                         onClick={() => setSearchQuery("")}
-                                        style={{ color: palette.textTertiary }}
-                                    >
+                                        style={{ color: palette.textTertiary }}>
                                         <Close sx={{ fontSize: 15 }} />
                                     </button>
                                 )}
@@ -870,13 +920,16 @@ export default function InstagramAnalyserPage() {
                                 onClick={() => setUseRegExp((v) => !v)}
                                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-colors flex-shrink-0"
                                 style={{
-                                    background: useRegExp ? `${activeTabDef.color}20` : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                                    background: useRegExp
+                                        ? `${activeTabDef.color}20`
+                                        : isDark
+                                          ? "rgba(255,255,255,0.06)"
+                                          : "rgba(0,0,0,0.04)",
                                     color: useRegExp ? activeTabDef.color : palette.textSecondary,
-                                    border: `1.5px solid ${useRegExp ? `${activeTabDef.color}50` : "transparent"}`,
-                                }}
-                            >
+                                    border: `1.5px solid ${useRegExp ? `${activeTabDef.color}50` : "transparent"}`
+                                }}>
                                 <FilterList sx={{ fontSize: 15 }} />
-                                .*  RegExp
+                                .* RegExp
                             </button>
                         </div>
 
@@ -888,8 +941,10 @@ export default function InstagramAnalyserPage() {
                                     animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
                                     className="text-xs mb-3 px-3 py-1.5 rounded-lg"
-                                    style={{ background: "#FF3B3015", color: "#FF3B30" }}
-                                >
+                                    style={{
+                                        background: "#FF3B3015",
+                                        color: "#FF3B30"
+                                    }}>
                                     Invalid RegExp: {regexpError}
                                 </motion.p>
                             )}
@@ -897,7 +952,9 @@ export default function InstagramAnalyserPage() {
 
                         {/* Results count when filtering */}
                         {searchQuery && !regexpError && (
-                            <p className="text-xs mb-3" style={{ color: palette.textTertiary }}>
+                            <p
+                                className="text-xs mb-3"
+                                style={{ color: palette.textTertiary }}>
                                 Showing {filteredList.length} of {rawList.length} results
                             </p>
                         )}
@@ -905,27 +962,51 @@ export default function InstagramAnalyserPage() {
                         {/* ── Profile list ── */}
                         {rawList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-16 gap-3">
-                                <span style={{ color: palette.textTertiary, opacity: 0.4, fontSize: 48 }}>
+                                <span
+                                    style={{
+                                        color: palette.textTertiary,
+                                        opacity: 0.4,
+                                        fontSize: 48
+                                    }}>
                                     {activeTabDef.icon}
                                 </span>
-                                <p className="text-sm" style={{ color: palette.textTertiary }}>
+                                <p
+                                    className="text-sm"
+                                    style={{ color: palette.textTertiary }}>
                                     {activeTab === "not-following-back"
                                         ? "Everyone you follow also follows you back 🎉"
                                         : "No data available for this category"}
                                 </p>
-                                <p className="text-xs" style={{ color: palette.textTertiary, opacity: 0.6 }}>
+                                <p
+                                    className="text-xs"
+                                    style={{
+                                        color: palette.textTertiary,
+                                        opacity: 0.6
+                                    }}>
                                     {activeTab !== "not-following-back" && "This file may not have been included in your export."}
                                 </p>
                             </div>
                         ) : filteredList.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-12 gap-2">
-                                <Search sx={{ fontSize: 40, color: palette.textTertiary, opacity: 0.3 }} />
-                                <p className="text-sm" style={{ color: palette.textTertiary }}>
+                                <Search
+                                    sx={{
+                                        fontSize: 40,
+                                        color: palette.textTertiary,
+                                        opacity: 0.3
+                                    }}
+                                />
+                                <p
+                                    className="text-sm"
+                                    style={{ color: palette.textTertiary }}>
                                     No results for &ldquo;{searchQuery}&rdquo;
                                 </p>
                             </div>
                         ) : (
-                            <div className="space-y-1.5 overflow-y-auto pr-0.5 -mr-1" style={{ maxHeight: LIST_HEIGHT[igDefaults?.maxListHeight ?? "normal"] ?? "580px" }}>
+                            <div
+                                className="space-y-1.5 overflow-y-auto pr-0.5 -mr-1"
+                                style={{
+                                    maxHeight: LIST_HEIGHT[igDefaults?.maxListHeight ?? "normal"] ?? "580px"
+                                }}>
                                 <AnimatePresence mode="popLayout">
                                     {filteredList.map((profile, index) => (
                                         <ProfileRow
@@ -945,7 +1026,9 @@ export default function InstagramAnalyserPage() {
                     </Card>
 
                     {/* ── Privacy notice ── */}
-                    <p className="text-xs text-center" style={{ color: palette.textTertiary }}>
+                    <p
+                        className="text-xs text-center"
+                        style={{ color: palette.textTertiary }}>
                         🔒 All analysis runs entirely in your browser. No data is ever sent to any server.
                     </p>
                 </motion.div>

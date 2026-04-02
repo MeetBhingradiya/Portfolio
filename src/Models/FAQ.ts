@@ -9,13 +9,13 @@ export interface IFAQ extends Document {
     faqId: string;
     question: string;
     answer: string;
-    category: string;     // e.g. "General", "Billing", "Technical", "Orders"
-    order: number;        // display sort order
+    category: string; // e.g. "General", "Billing", "Technical", "Orders"
+    order: number; // display sort order
     isPublished: boolean;
-    helpful: number;      // upvotes
-    notHelpful: number;   // downvotes
+    helpful: number; // upvotes
+    notHelpful: number; // downvotes
     tags: string[];
-    createdBy: string;    // admin email
+    createdBy: string; // admin email
     createdAt: Date;
     updatedAt: Date;
 }
@@ -30,18 +30,22 @@ const FAQSchema = new Schema<IFAQ>(
         },
         question: { type: String, required: true, trim: true },
         answer: { type: String, required: true, trim: true },
-        category: { type: String, required: true, default: "General", trim: true },
+        category: {
+            type: String,
+            required: true,
+            default: "General",
+            trim: true
+        },
         order: { type: Number, default: 0 },
         isPublished: { type: Boolean, default: true },
         helpful: { type: Number, default: 0 },
         notHelpful: { type: Number, default: 0 },
         tags: { type: [String], default: [] },
-        createdBy: { type: String, required: true },
+        createdBy: { type: String, required: true }
     },
     { timestamps: true }
 );
 
 FAQSchema.index({ category: 1, order: 1 });
 
-export const FAQ =
-    mongoose.models.FAQ || mongoose.model<IFAQ>("FAQ", FAQSchema);
+export const FAQ = mongoose.models.FAQ || mongoose.model<IFAQ>("FAQ", FAQSchema);

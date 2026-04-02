@@ -23,13 +23,18 @@ const PhoneOtpChallengeSchema = new Schema<IPhoneOtpChallenge>(
         otpHash: { type: String, required: true },
         attempts: { type: Number, default: 0 },
         consumed: { type: Boolean, default: false, index: true },
-        expiresAt: { type: Date, required: true },
+        expiresAt: { type: Date, required: true }
     },
     { timestamps: true }
 );
 
 PhoneOtpChallengeSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
-PhoneOtpChallengeSchema.index({ userId: 1, phoneNumber: 1, consumed: 1, createdAt: -1 });
+PhoneOtpChallengeSchema.index({
+    userId: 1,
+    phoneNumber: 1,
+    consumed: 1,
+    createdAt: -1
+});
 
 export const PhoneOtpChallenge =
     (mongoose.models.PhoneOtpChallenge as mongoose.Model<IPhoneOtpChallenge>) ||

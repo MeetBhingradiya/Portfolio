@@ -12,7 +12,7 @@ import {
     computeLevel,
     LEVEL_XP_THRESHOLDS,
     LEVEL_TITLES,
-    ACHIEVEMENTS,
+    ACHIEVEMENTS
 } from "@Models/UserProductivityStats";
 
 export async function GET(_req: NextRequest) {
@@ -32,7 +32,7 @@ export async function GET(_req: NextRequest) {
                 ...earned,
                 title: meta?.title ?? earned.id,
                 description: meta?.description ?? "",
-                emoji: meta?.emoji ?? "🏆",
+                emoji: meta?.emoji ?? "🏆"
             };
         });
 
@@ -47,11 +47,11 @@ export async function GET(_req: NextRequest) {
                 levelInfo: {
                     ...levelInfo,
                     nextLevelXP,
-                    nextLevelTitle: LEVEL_TITLES[nextLevelIdx] ?? null,
+                    nextLevelTitle: LEVEL_TITLES[nextLevelIdx] ?? null
                 },
                 achievements: achievementsWithMeta,
-                allAchievements: ACHIEVEMENTS,
-            },
+                allAchievements: ACHIEVEMENTS
+            }
         });
     } catch (err) {
         console.error("GET /api/productivity/stats:", err);
@@ -74,7 +74,7 @@ export async function POST(_req: NextRequest) {
             // Already updated today
             return NextResponse.json({
                 success: true,
-                data: { streak: stats.DailyStreak, alreadyPinged: true },
+                data: { streak: stats.DailyStreak, alreadyPinged: true }
             });
         }
 
@@ -86,19 +86,27 @@ export async function POST(_req: NextRequest) {
         const newLongest = Math.max(stats.LongestDailyStreak, newStreak);
 
         const earnedIds = new Set(stats.EarnedAchievements.map((a: { id: string }) => a.id));
-        const newAchievements: { id: string; EarnedAt: Date; XPAwarded: number }[] = [];
+        const newAchievements: {
+            id: string;
+            EarnedAt: Date;
+            XPAwarded: number;
+        }[] = [];
         let bonusXP = 0;
 
         const checks: Record<string, boolean> = {
             daily_streak_3: newStreak >= 3,
             daily_streak_7: newStreak >= 7,
-            daily_streak_30: newStreak >= 30,
+            daily_streak_30: newStreak >= 30
         };
 
         for (const ach of ACHIEVEMENTS) {
             if (earnedIds.has(ach.id) || !(ach.id in checks)) continue;
             if (checks[ach.id]) {
-                newAchievements.push({ id: ach.id, EarnedAt: new Date(), XPAwarded: ach.xpReward });
+                newAchievements.push({
+                    id: ach.id,
+                    EarnedAt: new Date(),
+                    XPAwarded: ach.xpReward
+                });
                 bonusXP += ach.xpReward;
             }
         }
@@ -115,25 +123,25 @@ export async function POST(_req: NextRequest) {
                     LongestDailyStreak: newLongest,
                     TotalXP: newXP,
                     Level: levelInfo.level,
-                    LevelTitle: levelInfo.title,
+                    LevelTitle: levelInfo.title
                 },
                 ...(newAchievements.length > 0
                     ? {
-                        $push: {
-                            EarnedAchievements: { $each: newAchievements },
-                            XPHistory: {
-                                $each: newAchievements.map((a) => ({
-                                    Amount: a.XPAwarded,
-                                    Reason: `Achievement: ${ACHIEVEMENTS.find((x) => x.id === a.id)?.title ?? a.id}`,
-                                    Source: "achievement",
-                                    SourceID: a.id,
-                                    EarnedAt: new Date(),
-                                })),
-                                $slice: -500,
-                            },
-                        },
-                    }
-                    : {}),
+                          $push: {
+                              EarnedAchievements: { $each: newAchievements },
+                              XPHistory: {
+                                  $each: newAchievements.map((a) => ({
+                                      Amount: a.XPAwarded,
+                                      Reason: `Achievement: ${ACHIEVEMENTS.find((x) => x.id === a.id)?.title ?? a.id}`,
+                                      Source: "achievement",
+                                      SourceID: a.id,
+                                      EarnedAt: new Date()
+                                  })),
+                                  $slice: -500
+                              }
+                          }
+                      }
+                    : {})
             },
             { upsert: true }
         );
@@ -144,8 +152,8 @@ export async function POST(_req: NextRequest) {
                 streak: newStreak,
                 longestStreak: newLongest,
                 xpAwarded: bonusXP,
-                newAchievements,
-            },
+                newAchievements
+            }
         });
     } catch (err) {
         console.error("POST /api/productivity/stats:", err);

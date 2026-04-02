@@ -3,138 +3,138 @@ description: Suggest a new feature or enhancement for this project
 labels: ["✨ Type: Feature Request"]
 assignees: []
 body:
-  - type: checkboxes
-    id: prerequisites
-    attributes:
-      label: Before submitting a feature request...
-      options:
-        - label: |
-            I have searched existing feature requests and this hasn't been suggested before.
+    - type: checkboxes
+      id: prerequisites
+      attributes:
+          label: Before submitting a feature request...
+          options:
+              - label: |
+                    I have searched existing feature requests and this hasn't been suggested before.
+                required: true
+              - label: |
+                    This feature aligns with the project's goals and scope.
+                required: true
+
+    - type: dropdown
+      id: feature_type
+      attributes:
+          label: Feature Type
+          description: What type of feature is this?
+          options:
+              - New functionality
+              - Enhancement to existing feature
+              - Performance improvement
+              - User interface improvement
+              - Developer experience improvement
+              - Integration with external service
+              - Other
+          default: 0
+      validations:
           required: true
-        - label: |
-            This feature aligns with the project's goals and scope.
+
+    - type: dropdown
+      id: priority
+      attributes:
+          label: Priority
+          description: How important is this feature?
+          options:
+              - High (Critical for project success)
+              - Medium (Important but not urgent)
+              - Low (Nice to have)
+          default: 1
+      validations:
           required: true
-  
-  - type: dropdown
-    id: feature_type
-    attributes:
-      label: Feature Type
-      description: What type of feature is this?
-      options:
-        - New functionality
-        - Enhancement to existing feature
-        - Performance improvement
-        - User interface improvement
-        - Developer experience improvement
-        - Integration with external service
-        - Other
-      default: 0
-    validations:
-      required: true
-  
-  - type: dropdown
-    id: priority
-    attributes:
-      label: Priority
-      description: How important is this feature?
-      options:
-        - High (Critical for project success)
-        - Medium (Important but not urgent)
-        - Low (Nice to have)
-      default: 1
-    validations:
-      required: true
-  
-  - type: textarea
-    id: description
-    attributes:
-      label: Feature Description
-      description: |
-        A clear and concise description of what the feature is.
-        Provide as much detail as possible about what you want to happen.
-      placeholder: |
-        I would like to see a dark mode toggle that allows users to switch between light and dark themes.
-    validations:
-      required: true
-  - type: textarea
-    id: user_story
-    attributes:
-      label: User Story
-      description: |
-        Describe this feature as a user story.
-        Format: "As a [type of user], I want [goal] so that [benefit]"
-      placeholder: |
-        As a website visitor, I want to toggle between light and dark modes so that I can use the site comfortably in different lighting conditions.
-    validations:
-      required: true
 
-  - type: textarea
-    id: motivation
-    attributes:
-      label: Problem/Motivation
-      description: |
-        Explain the problem this feature will solve or the benefit it will provide.
-        What pain point does this address?
-      placeholder: |
-        Currently, the website only has a light theme, which can be harsh on the eyes during night usage or in low-light environments.
-    validations:
-      required: true
-  
-  - type: textarea
-    id: proposed_solution
-    attributes:
-      label: Proposed Solution
-      description: |
-        Describe your preferred solution and how you envision the feature working.
-        Include any specific implementation details if you have them.
-      placeholder: |
-        Add a toggle button in the header that switches between light and dark CSS themes.
-        The preference should be saved in localStorage and persist across sessions.
+    - type: textarea
+      id: description
+      attributes:
+          label: Feature Description
+          description: |
+              A clear and concise description of what the feature is.
+              Provide as much detail as possible about what you want to happen.
+          placeholder: |
+              I would like to see a dark mode toggle that allows users to switch between light and dark themes.
+      validations:
+          required: true
+    - type: textarea
+      id: user_story
+      attributes:
+          label: User Story
+          description: |
+              Describe this feature as a user story.
+              Format: "As a [type of user], I want [goal] so that [benefit]"
+          placeholder: |
+              As a website visitor, I want to toggle between light and dark modes so that I can use the site comfortably in different lighting conditions.
+      validations:
+          required: true
 
-  - type: textarea
-    id: alternatives
-    attributes:
-      label: Alternative Solutions
-      description: |
-        Describe any alternative solutions or features you've considered.
-        Why is your proposed solution better?
-      placeholder: |
-        - Auto-detect system theme preference
-        - Multiple theme options instead of just light/dark
-        - Time-based automatic switching
-  - type: textarea
-    id: acceptance_criteria
-    attributes:
-      label: Acceptance Criteria
-      description: |
-        Define specific, measurable criteria for when this feature is complete.
-        Use a checklist format if possible.
-      placeholder: |
-        - [ ] Toggle button is visible in the header
-        - [ ] Clicking toggle switches between light and dark themes
-        - [ ] Theme preference persists across browser sessions
-        - [ ] All components support both themes
-        - [ ] Feature works on mobile devices
-  
-  - type: textarea
-    id: mockups
-    attributes:
-      label: Mockups/Screenshots
-      description: |
-        If you have any mockups, wireframes, or reference screenshots, please attach them here.
-        You can drag and drop images directly into this text area.
-      placeholder: Drag and drop mockups here or paste image URLs.
+    - type: textarea
+      id: motivation
+      attributes:
+          label: Problem/Motivation
+          description: |
+              Explain the problem this feature will solve or the benefit it will provide.
+              What pain point does this address?
+          placeholder: |
+              Currently, the website only has a light theme, which can be harsh on the eyes during night usage or in low-light environments.
+      validations:
+          required: true
 
-  - type: textarea
-    id: additional_context
-    attributes:
-      label: Additional Context
-      description: |
-        Add any other context, screenshots, or examples about the feature request here.
-        Include links to similar implementations in other projects if relevant.
-      placeholder: |
-        Reference implementations:
-        - GitHub's dark mode toggle
-        - Discord's theme switching
-        
-        Related discussions or issues: #123
+    - type: textarea
+      id: proposed_solution
+      attributes:
+          label: Proposed Solution
+          description: |
+              Describe your preferred solution and how you envision the feature working.
+              Include any specific implementation details if you have them.
+          placeholder: |
+              Add a toggle button in the header that switches between light and dark CSS themes.
+              The preference should be saved in localStorage and persist across sessions.
+
+    - type: textarea
+      id: alternatives
+      attributes:
+          label: Alternative Solutions
+          description: |
+              Describe any alternative solutions or features you've considered.
+              Why is your proposed solution better?
+          placeholder: |
+              - Auto-detect system theme preference
+              - Multiple theme options instead of just light/dark
+              - Time-based automatic switching
+    - type: textarea
+      id: acceptance_criteria
+      attributes:
+          label: Acceptance Criteria
+          description: |
+              Define specific, measurable criteria for when this feature is complete.
+              Use a checklist format if possible.
+          placeholder: |
+              - [ ] Toggle button is visible in the header
+              - [ ] Clicking toggle switches between light and dark themes
+              - [ ] Theme preference persists across browser sessions
+              - [ ] All components support both themes
+              - [ ] Feature works on mobile devices
+
+    - type: textarea
+      id: mockups
+      attributes:
+          label: Mockups/Screenshots
+          description: |
+              If you have any mockups, wireframes, or reference screenshots, please attach them here.
+              You can drag and drop images directly into this text area.
+          placeholder: Drag and drop mockups here or paste image URLs.
+
+    - type: textarea
+      id: additional_context
+      attributes:
+          label: Additional Context
+          description: |
+              Add any other context, screenshots, or examples about the feature request here.
+              Include links to similar implementations in other projects if relevant.
+          placeholder: |
+              Reference implementations:
+              - GitHub's dark mode toggle
+              - Discord's theme switching
+
+              Related discussions or issues: #123

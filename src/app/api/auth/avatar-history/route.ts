@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
         const docs = await CDNAsset.find({
             type: "avatar",
             status: "active",
-            context,
+            context
         })
             .sort({ createdAt: -1 })
             .limit(24)
@@ -27,15 +27,12 @@ export async function GET(request: NextRequest) {
             assetId: doc.assetId,
             url: `/api/cdn/${doc.assetId}`,
             altText: doc.altText || "Previous profile avatar",
-            createdAt: doc.createdAt,
+            createdAt: doc.createdAt
         }));
 
         return NextResponse.json({ history });
     } catch (error: any) {
         console.error("[avatar-history]", error);
-        return NextResponse.json(
-            { error: error?.message || "Failed to load avatar history" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: error?.message || "Failed to load avatar history" }, { status: 500 });
     }
 }

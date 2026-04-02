@@ -18,11 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         // Vote endpoint doesn't require admin
         if (body.vote === "helpful" || body.vote === "notHelpful") {
             const field = body.vote === "helpful" ? "helpful" : "notHelpful";
-            const faq = await FAQ.findByIdAndUpdate(
-                id,
-                { $inc: { [field]: 1 } },
-                { returnDocument: "after" }
-            );
+            const faq = await FAQ.findByIdAndUpdate(id, { $inc: { [field]: 1 } }, { returnDocument: "after" });
             return NextResponse.json({ success: true, data: faq });
         }
 
@@ -30,7 +26,9 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const user = await getResolvedUser(h);
         if (!user?.isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 
-        const faq = await FAQ.findByIdAndUpdate(id, body, { returnDocument: "after" });
+        const faq = await FAQ.findByIdAndUpdate(id, body, {
+            returnDocument: "after"
+        });
         return NextResponse.json({ success: true, data: faq });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 400 });

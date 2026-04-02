@@ -8,13 +8,7 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
-import {
-    ArrowBack,
-    Lock,
-    CheckCircle,
-    LocalShipping,
-    CreditCard,
-} from "@mui/icons-material";
+import { ArrowBack, Lock, CheckCircle, LocalShipping, CreditCard } from "@mui/icons-material";
 
 interface CartItem {
     productId: string;
@@ -28,7 +22,11 @@ interface CartItem {
 }
 
 function formatPrice(price: number, currency: string) {
-    return new Intl.NumberFormat("en-US", { style: "currency", currency, minimumFractionDigits: 0 }).format(price / 100);
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 0
+    }).format(price / 100);
 }
 
 export default function CheckoutPage() {
@@ -52,21 +50,19 @@ export default function CheckoutPage() {
         city: "",
         state: "",
         postalCode: "",
-        country: "India",
+        country: "India"
     });
     const [paymentMethod, setPaymentMethod] = useState("card");
     const [customerNote, setCustomerNote] = useState("");
 
-    const cardBg = isApple
-        ? isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)"
-        : isDark ? "rgba(24,24,28,0.98)" : "#fff";
+    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
     const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
     const br = isApple ? 20 : 24;
 
     useEffect(() => {
         fetch("/api/shop/cart")
-            .then(r => r.json())
-            .then(j => {
+            .then((r) => r.json())
+            .then((j) => {
                 if (j.success) {
                     const cartItems = j.data?.items ?? [];
                     setItems(cartItems);
@@ -86,14 +82,14 @@ export default function CheckoutPage() {
             const body: any = {
                 useCart: true,
                 paymentMethod,
-                customerNote,
+                customerNote
             };
             if (hasPhysical) body.shippingAddress = shipping;
 
             const res = await fetch("/api/shop/orders", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body),
+                body: JSON.stringify(body)
             });
             const json = await res.json();
             if (json.success) {
@@ -116,26 +112,33 @@ export default function CheckoutPage() {
         padding: "10px 14px",
         width: "100%",
         outline: "none",
-        fontSize: 14,
+        fontSize: 14
     };
 
     if (success) {
         return (
-            <div className="min-h-screen flex items-center justify-center" style={{ background: palette.background }}>
+            <div
+                className="min-h-screen flex items-center justify-center"
+                style={{ background: palette.background }}>
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-center p-10 rounded-3xl max-w-sm"
-                    style={{ background: cardBg, border }}
-                >
+                    style={{ background: cardBg, border }}>
                     <CheckCircle style={{ fontSize: 72, color: "#34C759" }} />
-                    <h2 className="text-2xl font-black mt-4 mb-2" style={{ color: palette.textPrimary }}>
+                    <h2
+                        className="text-2xl font-black mt-4 mb-2"
+                        style={{ color: palette.textPrimary }}>
                         Order Placed!
                     </h2>
-                    <p className="text-sm" style={{ color: palette.textSecondary }}>
+                    <p
+                        className="text-sm"
+                        style={{ color: palette.textSecondary }}>
                         Order ID: <span className="font-bold">{success}</span>
                     </p>
-                    <p className="text-xs mt-2" style={{ color: palette.textTertiary }}>
+                    <p
+                        className="text-xs mt-2"
+                        style={{ color: palette.textTertiary }}>
                         Redirecting to your order…
                     </p>
                 </motion.div>
@@ -144,22 +147,29 @@ export default function CheckoutPage() {
     }
 
     return (
-        <div className="min-h-screen py-12 px-4 md:px-8" style={{ background: palette.background }}>
+        <div
+            className="min-h-screen py-12 px-4 md:px-8"
+            style={{ background: palette.background }}>
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center gap-3 mb-8">
                     <Link href="/shop/cart">
                         <motion.button
                             whileTap={{ scale: 0.95 }}
                             className="p-2 rounded-xl"
-                            style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)" }}
-                        >
+                            style={{
+                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
+                            }}>
                             <ArrowBack style={{ color: palette.textSecondary }} />
                         </motion.button>
                     </Link>
-                    <h1 className={`${isApple ? "text-3xl font-semibold" : "text-4xl font-black"}`} style={{ color: palette.textPrimary }}>
+                    <h1
+                        className={`${isApple ? "text-3xl font-semibold" : "text-4xl font-black"}`}
+                        style={{ color: palette.textPrimary }}>
                         Checkout
                     </h1>
-                    <div className="flex items-center gap-1 ml-auto text-xs" style={{ color: palette.textSecondary }}>
+                    <div
+                        className="flex items-center gap-1 ml-auto text-xs"
+                        style={{ color: palette.textSecondary }}>
                         <Lock style={{ fontSize: 14 }} /> Secure Checkout
                     </div>
                 </div>
@@ -171,31 +181,61 @@ export default function CheckoutPage() {
                         {hasPhysical && (
                             <div
                                 className="p-6 space-y-4"
-                                style={{ background: cardBg, border, borderRadius: br }}
-                            >
+                                style={{
+                                    background: cardBg,
+                                    border,
+                                    borderRadius: br
+                                }}>
                                 <div className="flex items-center gap-2 mb-2">
                                     <LocalShipping style={{ color: palette.accent }} />
-                                    <h2 className="font-bold" style={{ color: palette.textPrimary }}>Shipping Address</h2>
+                                    <h2
+                                        className="font-bold"
+                                        style={{ color: palette.textPrimary }}>
+                                        Shipping Address
+                                    </h2>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     {[
-                                        { label: "Full Name *", key: "fullName" },
+                                        {
+                                            label: "Full Name *",
+                                            key: "fullName"
+                                        },
                                         { label: "Phone", key: "phone" },
-                                        { label: "Address Line 1 *", key: "addressLine1" },
-                                        { label: "Address Line 2", key: "addressLine2" },
+                                        {
+                                            label: "Address Line 1 *",
+                                            key: "addressLine1"
+                                        },
+                                        {
+                                            label: "Address Line 2",
+                                            key: "addressLine2"
+                                        },
                                         { label: "City *", key: "city" },
                                         { label: "State *", key: "state" },
-                                        { label: "Postal Code *", key: "postalCode" },
-                                        { label: "Country *", key: "country" },
-                                    ].map(f => (
-                                        <div key={f.key} className={f.key === "addressLine1" || f.key === "addressLine2" ? "sm:col-span-2" : ""}>
-                                            <label className="text-xs font-semibold mb-1 block" style={{ color: palette.textSecondary }}>
+                                        {
+                                            label: "Postal Code *",
+                                            key: "postalCode"
+                                        },
+                                        { label: "Country *", key: "country" }
+                                    ].map((f) => (
+                                        <div
+                                            key={f.key}
+                                            className={f.key === "addressLine1" || f.key === "addressLine2" ? "sm:col-span-2" : ""}>
+                                            <label
+                                                className="text-xs font-semibold mb-1 block"
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
                                                 {f.label}
                                             </label>
                                             <input
                                                 style={inputStyle}
                                                 value={(shipping as any)[f.key]}
-                                                onChange={e => setShipping(p => ({ ...p, [f.key]: e.target.value }))}
+                                                onChange={(e) =>
+                                                    setShipping((p) => ({
+                                                        ...p,
+                                                        [f.key]: e.target.value
+                                                    }))
+                                                }
                                             />
                                         </div>
                                     ))}
@@ -206,37 +246,58 @@ export default function CheckoutPage() {
                         {/* Payment */}
                         <div
                             className="p-6 space-y-4"
-                            style={{ background: cardBg, border, borderRadius: br }}
-                        >
+                            style={{
+                                background: cardBg,
+                                border,
+                                borderRadius: br
+                            }}>
                             <div className="flex items-center gap-2 mb-2">
                                 <CreditCard style={{ color: palette.accent }} />
-                                <h2 className="font-bold" style={{ color: palette.textPrimary }}>Payment Method</h2>
+                                <h2
+                                    className="font-bold"
+                                    style={{ color: palette.textPrimary }}>
+                                    Payment Method
+                                </h2>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                {["card", "upi", "paypal", "crypto"].map(m => (
+                                {["card", "upi", "paypal", "crypto"].map((m) => (
                                     <motion.button
                                         key={m}
                                         whileTap={{ scale: 0.96 }}
                                         onClick={() => setPaymentMethod(m)}
                                         className="py-3 rounded-xl text-sm font-bold capitalize"
                                         style={{
-                                            background: paymentMethod === m ? `${palette.accent}20` : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
+                                            background:
+                                                paymentMethod === m
+                                                    ? `${palette.accent}20`
+                                                    : isDark
+                                                      ? "rgba(255,255,255,0.05)"
+                                                      : "rgba(0,0,0,0.04)",
                                             border: `2px solid ${paymentMethod === m ? palette.accent : "transparent"}`,
-                                            color: paymentMethod === m ? palette.accent : palette.textSecondary,
-                                        }}
-                                    >
+                                            color: paymentMethod === m ? palette.accent : palette.textSecondary
+                                        }}>
                                         {m.toUpperCase()}
                                     </motion.button>
                                 ))}
                             </div>
-                            <p className="text-xs" style={{ color: palette.textTertiary }}>
+                            <p
+                                className="text-xs"
+                                style={{ color: palette.textTertiary }}>
                                 Payment gateway integration will be wired here (Stripe / Razorpay / PayPal).
                             </p>
                         </div>
 
                         {/* Note */}
-                        <div className="p-6" style={{ background: cardBg, border, borderRadius: br }}>
-                            <label className="text-sm font-semibold mb-2 block" style={{ color: palette.textPrimary }}>
+                        <div
+                            className="p-6"
+                            style={{
+                                background: cardBg,
+                                border,
+                                borderRadius: br
+                            }}>
+                            <label
+                                className="text-sm font-semibold mb-2 block"
+                                style={{ color: palette.textPrimary }}>
                                 Order Note (optional)
                             </label>
                             <textarea
@@ -244,7 +305,7 @@ export default function CheckoutPage() {
                                 placeholder="Any special instructions…"
                                 style={{ ...inputStyle, resize: "vertical" }}
                                 value={customerNote}
-                                onChange={e => setCustomerNote(e.target.value)}
+                                onChange={(e) => setCustomerNote(e.target.value)}
                             />
                         </div>
                     </div>
@@ -252,29 +313,46 @@ export default function CheckoutPage() {
                     {/* Summary */}
                     <div
                         className="h-fit p-6 space-y-4"
-                        style={{ background: cardBg, border, borderRadius: br }}
-                    >
-                        <h2 className={`${isApple ? "text-xl font-semibold" : "text-2xl font-black"}`} style={{ color: palette.textPrimary }}>
+                        style={{
+                            background: cardBg,
+                            border,
+                            borderRadius: br
+                        }}>
+                        <h2
+                            className={`${isApple ? "text-xl font-semibold" : "text-2xl font-black"}`}
+                            style={{ color: palette.textPrimary }}>
                             Order Summary
                         </h2>
                         <div className="space-y-2">
-                            {items.map(i => (
-                                <div key={`${i.productId}-${i.variantId}`} className="flex justify-between text-sm" style={{ color: palette.textSecondary }}>
-                                    <span>{i.productName} × {i.quantity}</span>
+                            {items.map((i) => (
+                                <div
+                                    key={`${i.productId}-${i.variantId}`}
+                                    className="flex justify-between text-sm"
+                                    style={{ color: palette.textSecondary }}>
+                                    <span>
+                                        {i.productName} × {i.quantity}
+                                    </span>
                                     <span>{formatPrice(i.price * i.quantity, i.currency)}</span>
                                 </div>
                             ))}
                         </div>
                         <div
                             className="pt-4 border-t flex justify-between font-black text-lg"
-                            style={{ borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)", color: palette.textPrimary }}
-                        >
+                            style={{
+                                borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)",
+                                color: palette.textPrimary
+                            }}>
                             <span>Total</span>
                             <span>{formatPrice(subtotal, currency)}</span>
                         </div>
 
                         {error && (
-                            <p className="text-sm text-center py-2 rounded-xl" style={{ background: "#FF3B3015", color: "#FF3B30" }}>
+                            <p
+                                className="text-sm text-center py-2 rounded-xl"
+                                style={{
+                                    background: "#FF3B3015",
+                                    color: "#FF3B30"
+                                }}>
                                 {error}
                             </p>
                         )}
@@ -284,12 +362,17 @@ export default function CheckoutPage() {
                             onClick={handlePlaceOrder}
                             disabled={placing || loading || items.length === 0}
                             className="w-full py-3.5 rounded-xl font-bold flex items-center justify-center gap-2"
-                            style={{ background: palette.accent, color: "#fff", opacity: placing ? 0.7 : 1 }}
-                        >
+                            style={{
+                                background: palette.accent,
+                                color: "#fff",
+                                opacity: placing ? 0.7 : 1
+                            }}>
                             {placing ? "Placing Order…" : "Place Order"}
                         </motion.button>
 
-                        <div className="flex items-center justify-center gap-1 text-xs" style={{ color: palette.textTertiary }}>
+                        <div
+                            className="flex items-center justify-center gap-1 text-xs"
+                            style={{ color: palette.textTertiary }}>
                             <Lock style={{ fontSize: 12 }} />
                             <span>256-bit SSL encrypted transaction</span>
                         </div>

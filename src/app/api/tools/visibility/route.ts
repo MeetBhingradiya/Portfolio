@@ -13,12 +13,25 @@ const SINGLETON_ID = "tool_settings_singleton";
 export async function GET() {
     try {
         await dbConnect();
-        const doc = await ToolSettings_Model.findOne({ ConfigID: SINGLETON_ID })
+        const doc = (await ToolSettings_Model.findOne({
+            ConfigID: SINGLETON_ID
+        })
             .select("visibility")
-            .lean() as { visibility?: Array<{ toolId: string; enabled: boolean; featured: boolean; publicAccess: boolean }> } | null;
+            .lean()) as {
+            visibility?: Array<{
+                toolId: string;
+                enabled: boolean;
+                featured: boolean;
+                publicAccess: boolean;
+            }>;
+        } | null;
 
-        const visibility: Array<{ toolId: string; enabled: boolean; featured: boolean; publicAccess: boolean }> =
-            doc?.visibility ?? [];
+        const visibility: Array<{
+            toolId: string;
+            enabled: boolean;
+            featured: boolean;
+            publicAccess: boolean;
+        }> = doc?.visibility ?? [];
 
         return NextResponse.json({ success: true, visibility });
     } catch (err) {

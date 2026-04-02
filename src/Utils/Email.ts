@@ -7,22 +7,22 @@
 import nodemailer from "nodemailer";
 
 const createTransporter = () => {
-  const port = parseInt((process.env.SMTP_PORT || "587").trim(), 10);
-  const secureEnv = (process.env.SMTP_SECURE || "").trim().toLowerCase();
-  const secure = secureEnv === "true" || port === 465;
+    const port = parseInt((process.env.SMTP_PORT || "587").trim(), 10);
+    const secureEnv = (process.env.SMTP_SECURE || "").trim().toLowerCase();
+    const secure = secureEnv === "true" || port === 465;
 
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port,
-    secure,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-    connectionTimeout: 10000,
-    greetingTimeout: 10000,
-    socketTimeout: 15000,
-  });
+    return nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port,
+        secure,
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS
+        },
+        connectionTimeout: 10000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000
+    });
 };
 
 interface SendEmailOptions {
@@ -39,7 +39,7 @@ export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
         to,
         subject,
         html,
-        text,
+        text
     });
 }
 
@@ -89,9 +89,11 @@ function renderEmailShell(opts: {
             </td>
           </tr>
 
-          ${opts.note
-              ? `<tr><td style="padding:0 30px 24px 30px;"><div style="border-radius:12px;background:${opts.accent}14;border:1px solid ${opts.accent}38;padding:12px 14px;color:#334155;font-size:12px;line-height:1.55;">${opts.note}</div></td></tr>`
-              : ""}
+          ${
+              opts.note
+                  ? `<tr><td style="padding:0 30px 24px 30px;"><div style="border-radius:12px;background:${opts.accent}14;border:1px solid ${opts.accent}38;padding:12px 14px;color:#334155;font-size:12px;line-height:1.55;">${opts.note}</div></td></tr>`
+                  : ""
+          }
 
           <tr>
             <td style="padding:18px 30px;border-top:1px solid #e5e7eb;background:#fafafa;color:#94a3b8;font-size:12px;line-height:1.6;text-align:center;">
@@ -108,31 +110,31 @@ function renderEmailShell(opts: {
 }
 
 function getPublicBaseUrl(): string {
-  const raw = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  const normalized = (raw || "https://www.meetbhingradiya.in").trim();
-  if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
-    return normalized.replace(/\/$/, "");
-  }
-  return `https://${normalized.replace(/\/$/, "")}`;
+    const raw = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    const normalized = (raw || "https://www.meetbhingradiya.in").trim();
+    if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
+        return normalized.replace(/\/$/, "");
+    }
+    return `https://${normalized.replace(/\/$/, "")}`;
 }
 
 function toAbsoluteAssetUrl(path: string): string {
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
-  const base = getPublicBaseUrl();
-  const cleaned = path.startsWith("/") ? path : `/${path}`;
-  return `${base}${cleaned}`;
+    if (path.startsWith("http://") || path.startsWith("https://")) {
+        return path;
+    }
+    const base = getPublicBaseUrl();
+    const cleaned = path.startsWith("/") ? path : `/${path}`;
+    return `${base}${cleaned}`;
 }
 
 export function verificationEmailTemplate(opts: {
     name?: string;
     verificationUrl: string;
     expiresInMinutes: number;
-  verificationImageUrl?: string;
+    verificationImageUrl?: string;
 }): string {
     const accent = "#2563eb";
-  const verificationImageUrl = toAbsoluteAssetUrl(opts.verificationImageUrl || "/assets/EmailConfirm.svg");
+    const verificationImageUrl = toAbsoluteAssetUrl(opts.verificationImageUrl || "/assets/EmailConfirm.svg");
 
     return renderEmailShell({
         preheader: "Confirm your email to activate your account.",
@@ -164,15 +166,11 @@ export function verificationEmailTemplate(opts: {
             This secure link expires in <strong>${opts.expiresInMinutes} minutes</strong>. If this was not you, you can safely ignore this email.
           </p>
         `,
-        note: "For your safety, email verification links are single-use and time-limited.",
+        note: "For your safety, email verification links are single-use and time-limited."
     });
 }
 
-export function deleteAccountVerificationEmail(opts: {
-    name?: string;
-    verificationUrl: string;
-    expiresInHours: number;
-}): string {
+export function deleteAccountVerificationEmail(opts: { name?: string; verificationUrl: string; expiresInHours: number }): string {
     const accent = "#b91c1c";
 
     return renderEmailShell({
@@ -205,7 +203,7 @@ export function deleteAccountVerificationEmail(opts: {
             This confirmation link expires in <strong>${opts.expiresInHours} hours</strong>. If you did not request this, ignore this message.
           </p>
         `,
-        note: "Security recommendation: if this request was not initiated by you, reset your password immediately.",
+        note: "Security recommendation: if this request was not initiated by you, reset your password immediately."
     });
 }
 
@@ -248,7 +246,7 @@ export function loginNotificationEmail(opts: {
             If this wasn’t you, reset your password and revoke unknown sessions immediately.
           </p>
         `,
-        note: "Security tip: enable two-factor authentication to protect future logins.",
+        note: "Security tip: enable two-factor authentication to protect future logins."
     });
 }
 

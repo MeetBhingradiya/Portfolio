@@ -38,29 +38,29 @@ const PROVIDERS: Provider[] = [
         label: "Continue with Google",
         icon: "https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg",
         bg: "#fff",
-        color: "#444",
+        color: "#444"
     },
     {
         id: "github",
         label: "Continue with GitHub",
         icon: "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png",
         bg: "#24292e",
-        color: "#fff",
+        color: "#fff"
     },
     {
         id: "microsoft",
         label: "Continue with Microsoft",
         icon: "https://upload.wikimedia.org/wikipedia/commons/4/44/Microsoft_logo.svg",
         bg: "#0078d4",
-        color: "#fff",
+        color: "#fff"
     },
     {
         id: "apple",
         label: "Continue with Apple",
         icon: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg",
         bg: "#000",
-        color: "#fff",
-    },
+        color: "#fff"
+    }
 ];
 
 type GateState = "checking" | "show_providers" | "redirecting";
@@ -90,7 +90,7 @@ export default function ImmichSSOPage() {
             try {
                 const res = await fetch("/api/immich-sso/validate-gate", {
                     method: "POST",
-                    credentials: "include",
+                    credentials: "include"
                 });
                 const data = await res.json();
 
@@ -132,7 +132,7 @@ export default function ImmichSSOPage() {
         try {
             await authClient.signIn.social({
                 provider: provider.id,
-                callbackURL: "/api/immich-sso/oidc-done",
+                callbackURL: "/api/immich-sso/oidc-done"
             });
         } catch (e: any) {
             setError(e?.message || "Sign-in failed. Please try again.");
@@ -140,9 +140,7 @@ export default function ImmichSSOPage() {
         }
     };
 
-    const cardBg = isApple
-        ? isDark ? "rgba(28,28,32,0.82)" : "rgba(255,255,255,0.82)"
-        : isDark ? "rgba(24,24,28,0.98)" : "#fff";
+    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.82)" : "rgba(255,255,255,0.82)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
 
     const borderColor = isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)";
 
@@ -151,15 +149,16 @@ export default function ImmichSSOPage() {
         return (
             <div
                 className="min-h-screen flex flex-col items-center justify-center gap-4 p-4"
-                style={{ background: palette.background }}
-            >
+                style={{ background: palette.background }}>
                 <div
                     className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
                     style={{
-                        borderColor: `${palette.accent} transparent transparent transparent`,
+                        borderColor: `${palette.accent} transparent transparent transparent`
                     }}
                 />
-                <p className="text-sm font-medium" style={{ color: palette.textSecondary }}>
+                <p
+                    className="text-sm font-medium"
+                    style={{ color: palette.textSecondary }}>
                     {statusMsg}
                 </p>
             </div>
@@ -174,15 +173,13 @@ export default function ImmichSSOPage() {
                 background: palette.background,
                 backgroundImage: isApple
                     ? `radial-gradient(ellipse at 30% 20%, ${palette.accent}22 0%, transparent 60%), radial-gradient(ellipse at 70% 80%, ${palette.accentLight}18 0%, transparent 60%)`
-                    : undefined,
-            }}
-        >
+                    : undefined
+            }}>
             <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="w-full max-w-sm"
-            >
+                className="w-full max-w-sm">
                 {/* Card */}
                 <div
                     className="rounded-3xl p-8"
@@ -190,17 +187,13 @@ export default function ImmichSSOPage() {
                         background: cardBg,
                         backdropFilter: isApple ? "blur(24px) saturate(180%)" : "none",
                         border: `1px solid ${borderColor}`,
-                        boxShadow: isDark
-                            ? "0 24px 80px rgba(0,0,0,0.5)"
-                            : "0 24px 80px rgba(0,0,0,0.12)",
-                    }}
-                >
+                        boxShadow: isDark ? "0 24px 80px rgba(0,0,0,0.5)" : "0 24px 80px rgba(0,0,0,0.12)"
+                    }}>
                     {/* Header */}
                     <div className="text-center mb-8">
                         <div
                             className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-4"
-                            style={{ background: `${palette.accent}18` }}
-                        >
+                            style={{ background: `${palette.accent}18` }}>
                             <Image
                                 src={IMMICH_LOGO_CDN}
                                 alt="Immich"
@@ -212,11 +205,12 @@ export default function ImmichSSOPage() {
                         </div>
                         <h1
                             className={`${isApple ? "text-2xl font-bold" : "text-3xl font-black"} mb-1`}
-                            style={{ color: palette.textPrimary }}
-                        >
+                            style={{ color: palette.textPrimary }}>
                             Immich Access
                         </h1>
-                        <p className="text-sm" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-sm"
+                            style={{ color: palette.textSecondary }}>
                             Sign in with your account to access photos
                         </p>
                     </div>
@@ -230,9 +224,8 @@ export default function ImmichSSOPage() {
                             style={{
                                 background: "#ff3b3018",
                                 border: "1px solid #ff3b3040",
-                                color: "#ff3b30",
-                            }}
-                        >
+                                color: "#ff3b30"
+                            }}>
                             {error}
                         </motion.div>
                     )}
@@ -249,23 +242,13 @@ export default function ImmichSSOPage() {
                                 disabled={!!loadingProvider}
                                 className="flex items-center gap-3 w-full px-4 py-3 rounded-2xl font-semibold text-sm transition-all"
                                 style={{
-                                    background:
-                                        loadingProvider === provider.id
-                                            ? `${provider.bg}cc`
-                                            : provider.bg,
+                                    background: loadingProvider === provider.id ? `${provider.bg}cc` : provider.bg,
                                     color: provider.color,
-                                    border:
-                                        provider.id === "google"
-                                            ? "1px solid rgba(0,0,0,0.12)"
-                                            : undefined,
-                                    opacity:
-                                        loadingProvider && loadingProvider !== provider.id
-                                            ? 0.5
-                                            : 1,
+                                    border: provider.id === "google" ? "1px solid rgba(0,0,0,0.12)" : undefined,
+                                    opacity: loadingProvider && loadingProvider !== provider.id ? 0.5 : 1,
                                     cursor: loadingProvider ? "not-allowed" : "pointer",
-                                    minHeight: 48,
-                                }}
-                            >
+                                    minHeight: 48
+                                }}>
                                 {loadingProvider === provider.id ? (
                                     <div
                                         className="w-5 h-5 rounded-full border-2 border-current border-t-transparent animate-spin"
@@ -281,11 +264,7 @@ export default function ImmichSSOPage() {
                                         style={{ flexShrink: 0 }}
                                     />
                                 )}
-                                <span className="flex-1 text-left">
-                                    {loadingProvider === provider.id
-                                        ? "Signing in…"
-                                        : provider.label}
-                                </span>
+                                <span className="flex-1 text-left">{loadingProvider === provider.id ? "Signing in…" : provider.label}</span>
                             </motion.button>
                         ))}
                     </div>
@@ -293,8 +272,7 @@ export default function ImmichSSOPage() {
                     {/* Footer note */}
                     <p
                         className="text-xs text-center mt-6"
-                        style={{ color: palette.textTertiary }}
-                    >
+                        style={{ color: palette.textTertiary }}>
                         Access is restricted to whitelisted accounts.
                         <br />
                         Contact the administrator if you need access.
@@ -304,10 +282,8 @@ export default function ImmichSSOPage() {
                 {/* Branding */}
                 <p
                     className="text-center text-xs mt-4"
-                    style={{ color: palette.textTertiary }}
-                >
-                    Secured by{" "}
-                    <span style={{ color: palette.accent }}>meetbhingradiya.in</span>
+                    style={{ color: palette.textTertiary }}>
+                    Secured by <span style={{ color: palette.accent }}>meetbhingradiya.in</span>
                 </p>
             </motion.div>
         </div>

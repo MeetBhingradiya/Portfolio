@@ -24,7 +24,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/json`,
         title: "JSON ↔ JS Object Converter | Meet Bhingradiya Tools",
         description: "Format, minify and convert JSON ↔ JavaScript Objects with Monaco editor.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "JSON Formatter Tool" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "JSON Formatter Tool"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

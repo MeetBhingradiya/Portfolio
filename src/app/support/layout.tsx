@@ -10,7 +10,7 @@ import { getSession } from "@Library/auth";
 
 export const metadata = {
     title: "Support | Meet Bhingradiya",
-    description: "Help center, FAQ, and support tickets.",
+    description: "Help center, FAQ, and support tickets."
 };
 
 export default async function SupportLayout({ children }: { children: React.ReactNode }) {

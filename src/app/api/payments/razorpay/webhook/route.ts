@@ -14,8 +14,8 @@ import { CDNAPIKey } from "@Models/CDNAPIKey";
 import { PLAN_DEFAULTS } from "@Models/CDNAPIKey";
 
 export async function POST(req: NextRequest) {
-    const secret    = process.env.RAZORPAY_WEBHOOK_SECRET!;
-    const rawBody   = await req.text();
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET!;
+    const rawBody = await req.text();
     const signature = req.headers.get("x-razorpay-signature") || "";
 
     // Validate webhook signature
@@ -47,7 +47,10 @@ export async function POST(req: NextRequest) {
                 if (payment?.order_id) {
                     await Payment.findOneAndUpdate(
                         { razorpayOrderId: payment.order_id },
-                        { status: "failed", failureReason: payment.error_description || "Payment failed" }
+                        {
+                            status: "failed",
+                            failureReason: payment.error_description || "Payment failed"
+                        }
                     );
                 }
                 break;
@@ -58,13 +61,19 @@ export async function POST(req: NextRequest) {
                 if (sub?.id) {
                     const rec = await Payment.findOneAndUpdate(
                         { razorpaySubscriptionId: sub.id },
-                        { status: "completed", amount: sub.current_end - sub.current_start },
+                        {
+                            status: "completed",
+                            amount: sub.current_end - sub.current_start
+                        },
                         { new: true }
                     );
                     // Re-activate key if it was suspended due to payment lapse
                     if (rec?.referenceId) {
                         await CDNAPIKey.updateMany(
-                            { applicationId: rec.referenceId, status: "suspended" },
+                            {
+                                applicationId: rec.referenceId,
+                                status: "suspended"
+                            },
                             { status: "active" }
                         );
                     }
@@ -75,10 +84,7 @@ export async function POST(req: NextRequest) {
             case "subscription.halted": {
                 const sub = payload.subscription?.entity;
                 if (sub?.id) {
-                    await Payment.findOneAndUpdate(
-                        { razorpaySubscriptionId: sub.id },
-                        { status: "cancelled" }
-                    );
+                    await Payment.findOneAndUpdate({ razorpaySubscriptionId: sub.id }, { status: "cancelled" });
                 }
                 break;
             }

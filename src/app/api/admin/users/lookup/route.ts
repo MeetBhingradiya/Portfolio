@@ -25,17 +25,22 @@ export async function GET(req: NextRequest) {
         const db = mongoose.connection.db;
         if (!db) return NextResponse.json({ success: false, error: "DB not connected." }, { status: 500 });
 
-        const user = await db.collection("user").findOne(
-            { email },
-            { projection: { _id: 1, id: 1, name: 1, email: 1, image: 1 } }
-        );
+        const user = await db.collection("user").findOne({ email }, { projection: { _id: 1, id: 1, name: 1, email: 1, image: 1 } });
 
         if (!user) return NextResponse.json({ success: false, error: "No user found with this email." }, { status: 404 });
 
         // Better Auth uses _id as the user id
         const userId = (user.id as string) || user._id.toString();
 
-        return NextResponse.json({ success: true, user: { id: userId, name: user.name, email: user.email, image: user.image } });
+        return NextResponse.json({
+            success: true,
+            user: {
+                id: userId,
+                name: user.name,
+                email: user.email,
+                image: user.image
+            }
+        });
     } catch (err: any) {
         const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
         return NextResponse.json({ success: false, error: err.message }, { status });

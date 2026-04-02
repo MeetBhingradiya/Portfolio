@@ -13,15 +13,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIBadge } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    Image as ImageIcon,
-    CloudUpload,
-    Download,
-    Delete,
-    Compress,
-    PictureAsPdf,
-    Settings
-} from "@mui/icons-material";
+import { Image as ImageIcon, CloudUpload, Download, Delete, Compress, PictureAsPdf, Settings } from "@mui/icons-material";
 
 interface ImageFile {
     id: string;
@@ -97,8 +89,15 @@ export default function ImageToolsPage() {
                     const ctx = canvas.getContext("2d")!;
                     ctx.drawImage(bitmap, 0, 0, w, h);
                     const mime = `image/${outputFormat}`;
-                    const blob = await canvas.convertToBlob({ type: mime, quality });
-                    return { ...img, compressedBlob: blob, compressedSize: blob.size };
+                    const blob = await canvas.convertToBlob({
+                        type: mime,
+                        quality
+                    });
+                    return {
+                        ...img,
+                        compressedBlob: blob,
+                        compressedSize: blob.size
+                    };
                 } catch {
                     return img;
                 }
@@ -156,15 +155,22 @@ export default function ImageToolsPage() {
             title="Image Tools"
             description="Compress images & convert to PDF — 100% client-side"
             icon={<ImageIcon sx={{ fontSize: 24 }} />}
-            accentColor="#FF9500"
-        >
+            accentColor="#FF9500">
             <div className="space-y-6">
                 {/* Mode toggle */}
                 <div className="flex gap-1.5">
-                    {([
-                        { key: "compress" as Mode, icon: <Compress sx={{ fontSize: 14 }} />, label: "Compress" },
-                        { key: "to-pdf" as Mode, icon: <PictureAsPdf sx={{ fontSize: 14 }} />, label: "Images → PDF" }
-                    ]).map((m) => (
+                    {[
+                        {
+                            key: "compress" as Mode,
+                            icon: <Compress sx={{ fontSize: 14 }} />,
+                            label: "Compress"
+                        },
+                        {
+                            key: "to-pdf" as Mode,
+                            icon: <PictureAsPdf sx={{ fontSize: 14 }} />,
+                            label: "Images → PDF"
+                        }
+                    ].map((m) => (
                         <motion.button
                             key={m.key}
                             onClick={() => setMode(m.key)}
@@ -173,8 +179,7 @@ export default function ImageToolsPage() {
                                 background: mode === m.key ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                 color: mode === m.key ? "#fff" : palette.textSecondary
                             }}
-                            whileTap={{ scale: 0.95 }}
-                        >
+                            whileTap={{ scale: 0.95 }}>
                             {m.icon} {m.label}
                         </motion.button>
                     ))}
@@ -193,31 +198,45 @@ export default function ImageToolsPage() {
                     <motion.div
                         onClick={() => fileRef.current?.click()}
                         onDragOver={(e) => e.preventDefault()}
-                        onDrop={(e) => { e.preventDefault(); onFiles(e.dataTransfer.files); }}
+                        onDrop={(e) => {
+                            e.preventDefault();
+                            onFiles(e.dataTransfer.files);
+                        }}
                         className="flex flex-col items-center justify-center gap-3 py-12 rounded-2xl cursor-pointer"
                         style={{
                             border: `2px dashed ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.10)"}`,
                             background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.01)"
                         }}
-                        whileHover={{ scale: 1.005 }}
-                    >
+                        whileHover={{ scale: 1.005 }}>
                         <CloudUpload sx={{ fontSize: 40, color: palette.textTertiary }} />
-                        <p className="text-sm font-semibold" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-sm font-semibold"
+                            style={{ color: palette.textSecondary }}>
                             Drop images here or click to browse
                         </p>
-                        <p className="text-xs" style={{ color: palette.textTertiary }}>PNG, JPEG, WebP, AVIF</p>
+                        <p
+                            className="text-xs"
+                            style={{ color: palette.textTertiary }}>
+                            PNG, JPEG, WebP, AVIF
+                        </p>
                     </motion.div>
                 </Card>
 
                 {/* Settings */}
                 {mode === "compress" && images.length > 0 && (
                     <Card>
-                        <h3 className={`flex items-center gap-2 mb-4 ${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>
+                        <h3
+                            className={`flex items-center gap-2 mb-4 ${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                            style={{ color: palette.textPrimary }}>
                             <Settings sx={{ fontSize: 16 }} /> Compression Settings
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Quality ({Math.round(quality * 100)}%)</label>
+                                <label
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
+                                    Quality ({Math.round(quality * 100)}%)
+                                </label>
                                 <input
                                     type="range"
                                     min={0.1}
@@ -226,11 +245,19 @@ export default function ImageToolsPage() {
                                     value={quality}
                                     onChange={(e) => setQuality(Number(e.target.value))}
                                     className="w-full accent-current"
-                                    style={{ color: palette.accent } as React.CSSProperties}
+                                    style={
+                                        {
+                                            color: palette.accent
+                                        } as React.CSSProperties
+                                    }
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Max Width ({maxWidth}px)</label>
+                                <label
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
+                                    Max Width ({maxWidth}px)
+                                </label>
                                 <input
                                     type="range"
                                     min={320}
@@ -239,11 +266,19 @@ export default function ImageToolsPage() {
                                     value={maxWidth}
                                     onChange={(e) => setMaxWidth(Number(e.target.value))}
                                     className="w-full accent-current"
-                                    style={{ color: palette.accent } as React.CSSProperties}
+                                    style={
+                                        {
+                                            color: palette.accent
+                                        } as React.CSSProperties
+                                    }
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Format</label>
+                                <label
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
+                                    Format
+                                </label>
                                 <div className="flex gap-1.5">
                                     {(["jpeg", "png", "webp"] as const).map((f) => (
                                         <motion.button
@@ -251,11 +286,15 @@ export default function ImageToolsPage() {
                                             onClick={() => setOutputFormat(f)}
                                             className="px-3 py-1.5 rounded-full text-xs font-bold uppercase"
                                             style={{
-                                                background: outputFormat === f ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
+                                                background:
+                                                    outputFormat === f
+                                                        ? palette.accent
+                                                        : isDark
+                                                          ? "rgba(255,255,255,0.07)"
+                                                          : "rgba(0,0,0,0.04)",
                                                 color: outputFormat === f ? "#fff" : palette.textSecondary
                                             }}
-                                            whileTap={{ scale: 0.95 }}
-                                        >
+                                            whileTap={{ scale: 0.95 }}>
                                             {f}
                                         </motion.button>
                                     ))}
@@ -267,7 +306,9 @@ export default function ImageToolsPage() {
 
                 {mode === "to-pdf" && images.length > 0 && (
                     <Card>
-                        <h3 className={`flex items-center gap-2 mb-4 ${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>
+                        <h3
+                            className={`flex items-center gap-2 mb-4 ${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                            style={{ color: palette.textPrimary }}>
                             <Settings sx={{ fontSize: 16 }} /> PDF Settings
                         </h3>
                         <div className="flex gap-2">
@@ -277,11 +318,11 @@ export default function ImageToolsPage() {
                                     onClick={() => setPdfOrientation(o)}
                                     className="px-4 py-2 rounded-full text-xs font-bold capitalize"
                                     style={{
-                                        background: pdfOrientation === o ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
+                                        background:
+                                            pdfOrientation === o ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
                                         color: pdfOrientation === o ? "#fff" : palette.textSecondary
                                     }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
+                                    whileTap={{ scale: 0.95 }}>
                                     {o}
                                 </motion.button>
                             ))}
@@ -295,18 +336,28 @@ export default function ImageToolsPage() {
                         {mode === "compress" && (
                             <div className="flex items-center justify-between">
                                 <div className="flex gap-3">
-                                    <OneUIBadge variant="neutral">{images.length} image{images.length !== 1 && "s"}</OneUIBadge>
+                                    <OneUIBadge variant="neutral">
+                                        {images.length} image
+                                        {images.length !== 1 && "s"}
+                                    </OneUIBadge>
                                     <OneUIBadge variant="info">{formatBytes(totalOriginal)}</OneUIBadge>
-                                    {savings > 0 && <OneUIBadge variant="success">-{savings}% ({formatBytes(totalOriginal - totalCompressed)} saved)</OneUIBadge>}
+                                    {savings > 0 && (
+                                        <OneUIBadge variant="success">
+                                            -{savings}% ({formatBytes(totalOriginal - totalCompressed)} saved)
+                                        </OneUIBadge>
+                                    )}
                                 </div>
                                 <div className="flex gap-2">
                                     <motion.button
                                         onClick={compressAll}
                                         disabled={processing}
                                         className="px-5 py-2 rounded-full text-xs font-bold"
-                                        style={{ background: palette.accent, color: "#fff", opacity: processing ? 0.6 : 1 }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
+                                        style={{
+                                            background: palette.accent,
+                                            color: "#fff",
+                                            opacity: processing ? 0.6 : 1
+                                        }}
+                                        whileTap={{ scale: 0.95 }}>
                                         {processing ? "Processing…" : "Compress All"}
                                     </motion.button>
                                 </div>
@@ -315,14 +366,20 @@ export default function ImageToolsPage() {
 
                         {mode === "to-pdf" && (
                             <div className="flex items-center justify-between">
-                                <OneUIBadge variant="neutral">{images.length} image{images.length !== 1 && "s"}</OneUIBadge>
+                                <OneUIBadge variant="neutral">
+                                    {images.length} image
+                                    {images.length !== 1 && "s"}
+                                </OneUIBadge>
                                 <motion.button
                                     onClick={generatePDF}
                                     disabled={processing}
                                     className="px-5 py-2 rounded-full text-xs font-bold"
-                                    style={{ background: palette.accent, color: "#fff", opacity: processing ? 0.6 : 1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
+                                    style={{
+                                        background: palette.accent,
+                                        color: "#fff",
+                                        opacity: processing ? 0.6 : 1
+                                    }}
+                                    whileTap={{ scale: 0.95 }}>
                                     {processing ? "Generating…" : "Generate PDF"}
                                 </motion.button>
                             </div>
@@ -336,28 +393,73 @@ export default function ImageToolsPage() {
                                         layout
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.8 }}
-                                    >
+                                        exit={{ opacity: 0, scale: 0.8 }}>
                                         <Card>
                                             <div className="space-y-2">
-                                                <div className="relative aspect-square rounded-xl overflow-hidden" style={{ background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)" }}>
-                                                    <img src={img.preview} alt={img.file.name} className="w-full h-full object-cover" />
+                                                <div
+                                                    className="relative aspect-square rounded-xl overflow-hidden"
+                                                    style={{
+                                                        background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.02)"
+                                                    }}>
+                                                    <img
+                                                        src={img.preview}
+                                                        alt={img.file.name}
+                                                        className="w-full h-full object-cover"
+                                                    />
                                                 </div>
-                                                <p className="text-xs font-semibold truncate" style={{ color: palette.textPrimary }}>{img.file.name}</p>
+                                                <p
+                                                    className="text-xs font-semibold truncate"
+                                                    style={{
+                                                        color: palette.textPrimary
+                                                    }}>
+                                                    {img.file.name}
+                                                </p>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px]" style={{ color: palette.textTertiary }}>{formatBytes(img.originalSize)}</span>
+                                                    <span
+                                                        className="text-[10px]"
+                                                        style={{
+                                                            color: palette.textTertiary
+                                                        }}>
+                                                        {formatBytes(img.originalSize)}
+                                                    </span>
                                                     {img.compressedSize !== undefined && (
                                                         <OneUIBadge variant="success">{formatBytes(img.compressedSize)}</OneUIBadge>
                                                     )}
                                                 </div>
                                                 <div className="flex gap-1.5">
                                                     {img.compressedBlob && (
-                                                        <motion.button onClick={() => downloadCompressed(img)} className="p-1.5 rounded-lg" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }}>
-                                                            <Download sx={{ fontSize: 14, color: palette.accent }} />
+                                                        <motion.button
+                                                            onClick={() => downloadCompressed(img)}
+                                                            className="p-1.5 rounded-lg"
+                                                            style={{
+                                                                background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
+                                                            }}
+                                                            whileTap={{
+                                                                scale: 0.9
+                                                            }}>
+                                                            <Download
+                                                                sx={{
+                                                                    fontSize: 14,
+                                                                    color: palette.accent
+                                                                }}
+                                                            />
                                                         </motion.button>
                                                     )}
-                                                    <motion.button onClick={() => removeImage(img.id)} className="p-1.5 rounded-lg" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }}>
-                                                        <Delete sx={{ fontSize: 14, color: "#FF3B30" }} />
+                                                    <motion.button
+                                                        onClick={() => removeImage(img.id)}
+                                                        className="p-1.5 rounded-lg"
+                                                        style={{
+                                                            background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
+                                                        }}
+                                                        whileTap={{
+                                                            scale: 0.9
+                                                        }}>
+                                                        <Delete
+                                                            sx={{
+                                                                fontSize: 14,
+                                                                color: "#FF3B30"
+                                                            }}
+                                                        />
                                                     </motion.button>
                                                 </div>
                                             </div>

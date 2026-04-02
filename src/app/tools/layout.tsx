@@ -29,8 +29,7 @@ export const metadata: Metadata = {
         type: "website",
         url: `${Config.Origin}/tools`,
         title: "Developer Tools | Meet Bhingradiya",
-        description:
-            "Free client-side developer tools — QR, UUID, JWT, JSON, PDF, Markdown, RegExp, colours, passwords and more.",
+        description: "Free client-side developer tools — QR, UUID, JWT, JSON, PDF, Markdown, RegExp, colours, passwords and more.",
         images: [
             {
                 url: "/assets/og-image.png",
@@ -43,8 +42,7 @@ export const metadata: Metadata = {
     twitter: {
         card: "summary_large_image",
         title: "Developer Tools | Meet Bhingradiya",
-        description:
-            "Free online tools — QR, UUID, JWT, JSON, PDF, Markdown, RegExp, colours, passwords and more.",
+        description: "Free online tools — QR, UUID, JWT, JSON, PDF, Markdown, RegExp, colours, passwords and more.",
         images: ["/assets/og-image.png"]
     }
 };

@@ -13,15 +13,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIBadge } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    Fingerprint,
-    ContentCopy,
-    Check,
-    Delete,
-    Download,
-    Refresh,
-    History
-} from "@mui/icons-material";
+import { Fingerprint, ContentCopy, Check, Delete, Download, Refresh, History } from "@mui/icons-material";
 
 type UUIDVersion = "v1" | "v4" | "v5" | "nil";
 
@@ -94,7 +86,11 @@ export default function UUIDPage() {
                 default:
                     value = v4();
             }
-            results.push({ value: formatUUID(value), version: uuidVersion, timestamp: Date.now() });
+            results.push({
+                value: formatUUID(value),
+                version: uuidVersion,
+                timestamp: Date.now()
+            });
         }
         setGenerated(results);
         setHistory((prev) => [...results, ...prev].slice(0, 50));
@@ -123,7 +119,9 @@ export default function UUIDPage() {
     };
 
     const exportHistory = () => {
-        const blob = new Blob([JSON.stringify(history, null, 2)], { type: "application/json" });
+        const blob = new Blob([JSON.stringify(history, null, 2)], {
+            type: "application/json"
+        });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -143,14 +141,15 @@ export default function UUIDPage() {
             title="UUID Generator"
             description="Generate v1, v4, v5 and NIL identifiers"
             icon={<Fingerprint sx={{ fontSize: 24 }} />}
-            accentColor="#5E97F6"
-        >
+            accentColor="#5E97F6">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* ── Left : Config ── */}
                 <div className="lg:col-span-1 space-y-5">
                     <Card>
                         <div className="space-y-4">
-                            <h3 className={`${isApple ? "text-base font-semibold" : "text-lg font-black"}`} style={{ color: palette.textPrimary }}>
+                            <h3
+                                className={`${isApple ? "text-base font-semibold" : "text-lg font-black"}`}
+                                style={{ color: palette.textPrimary }}>
                                 Version
                             </h3>
                             <div className="grid grid-cols-2 gap-2">
@@ -160,14 +159,30 @@ export default function UUIDPage() {
                                         onClick={() => setUuidVersion(ver.value)}
                                         className="flex flex-col items-start p-3 rounded-2xl text-left"
                                         style={{
-                                            background: uuidVersion === ver.value ? `${palette.accent}18` : isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                                            background:
+                                                uuidVersion === ver.value
+                                                    ? `${palette.accent}18`
+                                                    : isDark
+                                                      ? "rgba(255,255,255,0.05)"
+                                                      : "rgba(0,0,0,0.03)",
                                             border: `1.5px solid ${uuidVersion === ver.value ? `${palette.accent}40` : "transparent"}`,
                                             borderRadius: isApple ? "12px" : "16px"
                                         }}
-                                        whileTap={{ scale: 0.96 }}
-                                    >
-                                        <span className="text-sm font-bold" style={{ color: uuidVersion === ver.value ? palette.accent : palette.textPrimary }}>{ver.label}</span>
-                                        <span className="text-[10px]" style={{ color: palette.textTertiary }}>{ver.desc}</span>
+                                        whileTap={{ scale: 0.96 }}>
+                                        <span
+                                            className="text-sm font-bold"
+                                            style={{
+                                                color: uuidVersion === ver.value ? palette.accent : palette.textPrimary
+                                            }}>
+                                            {ver.label}
+                                        </span>
+                                        <span
+                                            className="text-[10px]"
+                                            style={{
+                                                color: palette.textTertiary
+                                            }}>
+                                            {ver.desc}
+                                        </span>
                                     </motion.button>
                                 ))}
                             </div>
@@ -175,12 +190,43 @@ export default function UUIDPage() {
                             {uuidVersion === "v5" && (
                                 <div className="space-y-3 mt-3">
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Name</label>
-                                        <input value={v5Name} onChange={(e) => setV5Name(e.target.value)} placeholder="Enter name" className="w-full px-3 py-2 rounded-xl text-sm outline-none" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}` }} />
+                                        <label
+                                            className="text-xs font-bold"
+                                            style={{
+                                                color: palette.textSecondary
+                                            }}>
+                                            Name
+                                        </label>
+                                        <input
+                                            value={v5Name}
+                                            onChange={(e) => setV5Name(e.target.value)}
+                                            placeholder="Enter name"
+                                            className="w-full px-3 py-2 rounded-xl text-sm outline-none"
+                                            style={{
+                                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
+                                                color: palette.textPrimary,
+                                                border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
+                                            }}
+                                        />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Namespace</label>
-                                        <input value={v5Namespace} onChange={(e) => setV5Namespace(e.target.value)} className="w-full px-3 py-2 rounded-xl text-sm font-mono outline-none" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}` }} />
+                                        <label
+                                            className="text-xs font-bold"
+                                            style={{
+                                                color: palette.textSecondary
+                                            }}>
+                                            Namespace
+                                        </label>
+                                        <input
+                                            value={v5Namespace}
+                                            onChange={(e) => setV5Namespace(e.target.value)}
+                                            className="w-full px-3 py-2 rounded-xl text-sm font-mono outline-none"
+                                            style={{
+                                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
+                                                color: palette.textPrimary,
+                                                border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
+                                            }}
+                                        />
                                     </div>
                                 </div>
                             )}
@@ -189,25 +235,76 @@ export default function UUIDPage() {
 
                     <Card>
                         <div className="space-y-4">
-                            <h3 className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>Options</h3>
+                            <h3
+                                className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                                style={{ color: palette.textPrimary }}>
+                                Options
+                            </h3>
                             <div className="space-y-1.5">
-                                <label className="text-xs font-bold" style={{ color: palette.textSecondary }}>Count: {count}</label>
-                                <input type="range" min={1} max={100} value={count} onChange={(e) => setCount(Number(e.target.value))} className="w-full" style={{ accentColor: palette.accent }} />
+                                <label
+                                    className="text-xs font-bold"
+                                    style={{ color: palette.textSecondary }}>
+                                    Count: {count}
+                                </label>
+                                <input
+                                    type="range"
+                                    min={1}
+                                    max={100}
+                                    value={count}
+                                    onChange={(e) => setCount(Number(e.target.value))}
+                                    className="w-full"
+                                    style={{ accentColor: palette.accent }}
+                                />
                             </div>
                             {[
-                                { label: "Uppercase", checked: uppercase, toggle: () => setUppercase((p) => !p) },
-                                { label: "Remove dashes", checked: noDashes, toggle: () => setNoDashes((p) => !p) },
-                                { label: "Add braces { }", checked: braces, toggle: () => setBraces((p) => !p) }
+                                {
+                                    label: "Uppercase",
+                                    checked: uppercase,
+                                    toggle: () => setUppercase((p) => !p)
+                                },
+                                {
+                                    label: "Remove dashes",
+                                    checked: noDashes,
+                                    toggle: () => setNoDashes((p) => !p)
+                                },
+                                {
+                                    label: "Add braces { }",
+                                    checked: braces,
+                                    toggle: () => setBraces((p) => !p)
+                                }
                             ].map((opt) => (
-                                <label key={opt.label} className="flex items-center justify-between cursor-pointer">
-                                    <span className="text-sm" style={{ color: palette.textSecondary }}>{opt.label}</span>
+                                <label
+                                    key={opt.label}
+                                    className="flex items-center justify-between cursor-pointer">
+                                    <span
+                                        className="text-sm"
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
+                                        {opt.label}
+                                    </span>
                                     <motion.div
                                         onClick={opt.toggle}
                                         className="w-10 h-6 rounded-full relative cursor-pointer"
-                                        style={{ background: opt.checked ? palette.accent : isDark ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.12)" }}
-                                        whileTap={{ scale: 0.95 }}
-                                    >
-                                        <motion.div className="absolute top-1 w-4 h-4 rounded-full bg-white" animate={{ left: opt.checked ? 20 : 4 }} transition={{ type: "spring", stiffness: 500, damping: 30 }} />
+                                        style={{
+                                            background: opt.checked
+                                                ? palette.accent
+                                                : isDark
+                                                  ? "rgba(255,255,255,0.15)"
+                                                  : "rgba(0,0,0,0.12)"
+                                        }}
+                                        whileTap={{ scale: 0.95 }}>
+                                        <motion.div
+                                            className="absolute top-1 w-4 h-4 rounded-full bg-white"
+                                            animate={{
+                                                left: opt.checked ? 20 : 4
+                                            }}
+                                            transition={{
+                                                type: "spring",
+                                                stiffness: 500,
+                                                damping: 30
+                                            }}
+                                        />
                                     </motion.div>
                                 </label>
                             ))}
@@ -217,10 +314,12 @@ export default function UUIDPage() {
                     <motion.button
                         onClick={generate}
                         className="w-full flex items-center justify-center gap-2 px-6 py-4 rounded-full text-base font-bold"
-                        style={{ background: `linear-gradient(135deg, #5E97F6, #4285F4)`, color: "#fff" }}
+                        style={{
+                            background: `linear-gradient(135deg, #5E97F6, #4285F4)`,
+                            color: "#fff"
+                        }}
                         whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.97 }}
-                    >
+                        whileTap={{ scale: 0.97 }}>
                         <Refresh sx={{ fontSize: 20 }} />
                         Generate {count > 1 ? `${count} UUIDs` : "UUID"}
                     </motion.button>
@@ -232,18 +331,29 @@ export default function UUIDPage() {
                     <Card>
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className={`${isApple ? "text-base font-semibold" : "text-lg font-black"}`} style={{ color: palette.textPrimary }}>
+                                <h3
+                                    className={`${isApple ? "text-base font-semibold" : "text-lg font-black"}`}
+                                    style={{ color: palette.textPrimary }}>
                                     Generated ({generated.length})
                                 </h3>
                                 {generated.length > 1 && (
-                                    <motion.button onClick={copyAll} className="text-xs font-bold px-3 py-1.5 rounded-full" style={{ background: `${palette.accent}18`, color: palette.accent }} whileTap={{ scale: 0.95 }}>
+                                    <motion.button
+                                        onClick={copyAll}
+                                        className="text-xs font-bold px-3 py-1.5 rounded-full"
+                                        style={{
+                                            background: `${palette.accent}18`,
+                                            color: palette.accent
+                                        }}
+                                        whileTap={{ scale: 0.95 }}>
                                         Copy All
                                     </motion.button>
                                 )}
                             </div>
 
                             {generated.length === 0 ? (
-                                <p className="text-center py-10 text-sm" style={{ color: palette.textTertiary }}>
+                                <p
+                                    className="text-center py-10 text-sm"
+                                    style={{ color: palette.textTertiary }}>
                                     Click Generate to create UUIDs
                                 </p>
                             ) : (
@@ -258,11 +368,27 @@ export default function UUIDPage() {
                                             style={{
                                                 background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
                                                 border: `1px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"}`
-                                            }}
-                                        >
-                                            <code className="text-sm font-mono break-all" style={{ color: palette.textPrimary }}>{g.value}</code>
-                                            <motion.button onClick={() => copy(g.value)} whileTap={{ scale: 0.9 }} style={{ color: copied === g.value ? "#34C759" : palette.textTertiary, flexShrink: 0, marginLeft: 8 }}>
-                                                {copied === g.value ? <Check sx={{ fontSize: 16 }} /> : <ContentCopy sx={{ fontSize: 16 }} />}
+                                            }}>
+                                            <code
+                                                className="text-sm font-mono break-all"
+                                                style={{
+                                                    color: palette.textPrimary
+                                                }}>
+                                                {g.value}
+                                            </code>
+                                            <motion.button
+                                                onClick={() => copy(g.value)}
+                                                whileTap={{ scale: 0.9 }}
+                                                style={{
+                                                    color: copied === g.value ? "#34C759" : palette.textTertiary,
+                                                    flexShrink: 0,
+                                                    marginLeft: 8
+                                                }}>
+                                                {copied === g.value ? (
+                                                    <Check sx={{ fontSize: 16 }} />
+                                                ) : (
+                                                    <ContentCopy sx={{ fontSize: 16 }} />
+                                                )}
                                             </motion.button>
                                         </motion.div>
                                     ))}
@@ -274,22 +400,46 @@ export default function UUIDPage() {
                     {/* Validate */}
                     <Card>
                         <div className="space-y-3">
-                            <h3 className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>Validate</h3>
+                            <h3
+                                className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                                style={{ color: palette.textPrimary }}>
+                                Validate
+                            </h3>
                             <div className="flex gap-2">
                                 <input
                                     value={validateInput}
-                                    onChange={(e) => { setValidateInput(e.target.value); setValidationResult(null); }}
+                                    onChange={(e) => {
+                                        setValidateInput(e.target.value);
+                                        setValidationResult(null);
+                                    }}
                                     onKeyDown={(e) => e.key === "Enter" && doValidate()}
                                     placeholder="Paste a UUID to validate…"
                                     className="flex-1 px-4 py-2.5 rounded-xl text-sm font-mono outline-none"
-                                    style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)", color: palette.textPrimary, border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}` }}
+                                    style={{
+                                        background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
+                                        color: palette.textPrimary,
+                                        border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
+                                    }}
                                 />
-                                <motion.button onClick={doValidate} className="px-4 rounded-full text-sm font-bold" style={{ background: palette.accent, color: "#fff" }} whileTap={{ scale: 0.95 }}>
+                                <motion.button
+                                    onClick={doValidate}
+                                    className="px-4 rounded-full text-sm font-bold"
+                                    style={{
+                                        background: palette.accent,
+                                        color: "#fff"
+                                    }}
+                                    whileTap={{ scale: 0.95 }}>
                                     Check
                                 </motion.button>
                             </div>
                             {validationResult && (
-                                <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm font-bold" style={{ color: validationResult.startsWith("Valid") ? "#34C759" : "#FF3B30" }}>
+                                <motion.p
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="text-sm font-bold"
+                                    style={{
+                                        color: validationResult.startsWith("Valid") ? "#34C759" : "#FF3B30"
+                                    }}>
                                     {validationResult}
                                 </motion.p>
                             )}
@@ -300,17 +450,33 @@ export default function UUIDPage() {
                     <Card>
                         <div className="space-y-3">
                             <div className="flex items-center justify-between">
-                                <h3 className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`} style={{ color: palette.textPrimary }}>
+                                <h3
+                                    className={`${isApple ? "text-sm font-semibold" : "text-base font-black"}`}
+                                    style={{ color: palette.textPrimary }}>
                                     <History sx={{ fontSize: 16, marginRight: 4 }} />
                                     History ({history.length})
                                 </h3>
                                 <div className="flex gap-2">
                                     {history.length > 0 && (
                                         <>
-                                            <motion.button onClick={exportHistory} className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)", color: palette.textSecondary }} whileTap={{ scale: 0.95 }}>
+                                            <motion.button
+                                                onClick={exportHistory}
+                                                className="text-xs font-bold px-2.5 py-1 rounded-full"
+                                                style={{
+                                                    background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                                                    color: palette.textSecondary
+                                                }}
+                                                whileTap={{ scale: 0.95 }}>
                                                 <Download sx={{ fontSize: 14 }} /> JSON
                                             </motion.button>
-                                            <motion.button onClick={() => setHistory([])} className="text-xs font-bold px-2.5 py-1 rounded-full" style={{ background: "rgba(255,59,48,.12)", color: "#FF3B30" }} whileTap={{ scale: 0.95 }}>
+                                            <motion.button
+                                                onClick={() => setHistory([])}
+                                                className="text-xs font-bold px-2.5 py-1 rounded-full"
+                                                style={{
+                                                    background: "rgba(255,59,48,.12)",
+                                                    color: "#FF3B30"
+                                                }}
+                                                whileTap={{ scale: 0.95 }}>
                                                 Clear
                                             </motion.button>
                                         </>
@@ -319,13 +485,25 @@ export default function UUIDPage() {
                             </div>
                             <div className="max-h-40 overflow-y-auto space-y-1 pr-1">
                                 {history.slice(0, 20).map((h, i) => (
-                                    <div key={`${h.value}-${h.timestamp}-${i}`} className="flex items-center justify-between py-1">
-                                        <code className="text-xs font-mono truncate" style={{ color: palette.textSecondary }}>{h.value}</code>
+                                    <div
+                                        key={`${h.value}-${h.timestamp}-${i}`}
+                                        className="flex items-center justify-between py-1">
+                                        <code
+                                            className="text-xs font-mono truncate"
+                                            style={{
+                                                color: palette.textSecondary
+                                            }}>
+                                            {h.value}
+                                        </code>
                                         <OneUIBadge variant="neutral">{h.version}</OneUIBadge>
                                     </div>
                                 ))}
                                 {history.length === 0 && (
-                                    <p className="text-xs text-center py-4" style={{ color: palette.textTertiary }}>No history yet</p>
+                                    <p
+                                        className="text-xs text-center py-4"
+                                        style={{ color: palette.textTertiary }}>
+                                        No history yet
+                                    </p>
                                 )}
                             </div>
                         </div>

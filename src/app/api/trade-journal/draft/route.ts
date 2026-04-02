@@ -12,7 +12,10 @@ export async function GET() {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const draft = await TradeJournal.findOne({ UserID: user.userId, IsDraft: true })
+        const draft = await TradeJournal.findOne({
+            UserID: user.userId,
+            IsDraft: true
+        })
             .sort({ DraftUpdatedAt: -1, updatedAt: -1 })
             .lean();
 
@@ -38,7 +41,7 @@ export async function POST(req: NextRequest) {
             UserID: user.userId,
             IsDraft: true,
             DraftID: draftId,
-            DraftUpdatedAt: new Date(),
+            DraftUpdatedAt: new Date()
         };
 
         const draft = await TradeJournal.findOneAndUpdate(

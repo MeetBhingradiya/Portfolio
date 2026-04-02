@@ -15,10 +15,7 @@ import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubDownload } from "@Utils/GitHubCDN";
 
-export async function GET(
-    _req: NextRequest,
-    { params }: { params: Promise<{ assetId: string }> }
-) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ assetId: string }> }) {
     const { assetId } = await params;
 
     try {
@@ -39,13 +36,19 @@ export async function GET(
             // Mark as missing so admin dashboard surfaces the warning
             await CDNAsset.updateOne(
                 { assetId },
-                { $set: { status: "missing", lastChecked: new Date(), lastCheckOk: false } }
+                {
+                    $set: {
+                        status: "missing",
+                        lastChecked: new Date(),
+                        lastCheckOk: false
+                    }
+                }
             );
             return NextResponse.json(
                 { error: "Asset file not found in storage" },
                 {
                     status: 404,
-                    headers: { "Cache-Control": "public, max-age=300" },
+                    headers: { "Cache-Control": "public, max-age=300" }
                 }
             );
         }
@@ -57,14 +60,11 @@ export async function GET(
                 "Content-Length": String(result.size),
                 "Cache-Control": "public, max-age=31536000, immutable",
                 "X-Asset-Id": asset.assetId,
-                "X-Asset-Type": asset.type,
-            },
+                "X-Asset-Type": asset.type
+            }
         });
     } catch (err: any) {
         console.error("[CDN Serve]", assetId, err);
-        return NextResponse.json(
-            { error: "Internal error" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: "Internal error" }, { status: 500 });
     }
 }

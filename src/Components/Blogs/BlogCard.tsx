@@ -21,12 +21,36 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; label: string }> = {
-    [BlogStatus.Draft]: { bg: "rgba(148,163,184,0.15)", text: "#94a3b8", label: "Draft" },
-    [BlogStatus.PendingReview]: { bg: "rgba(245,158,11,0.12)", text: "#f59e0b", label: "Pending" },
-    [BlogStatus.Published]: { bg: "rgba(34,197,94,0.12)", text: "#22c55e", label: "Published" },
-    [BlogStatus.Unlisted]: { bg: "rgba(129,140,248,0.12)", text: "#818cf8", label: "Unlisted" },
-    [BlogStatus.Private]: { bg: "rgba(107,114,128,0.12)", text: "#6b7280", label: "Private" },
-    [BlogStatus.Rejected]: { bg: "rgba(239,68,68,0.12)", text: "#ef4444", label: "Rejected" }
+    [BlogStatus.Draft]: {
+        bg: "rgba(148,163,184,0.15)",
+        text: "#94a3b8",
+        label: "Draft"
+    },
+    [BlogStatus.PendingReview]: {
+        bg: "rgba(245,158,11,0.12)",
+        text: "#f59e0b",
+        label: "Pending"
+    },
+    [BlogStatus.Published]: {
+        bg: "rgba(34,197,94,0.12)",
+        text: "#22c55e",
+        label: "Published"
+    },
+    [BlogStatus.Unlisted]: {
+        bg: "rgba(129,140,248,0.12)",
+        text: "#818cf8",
+        label: "Unlisted"
+    },
+    [BlogStatus.Private]: {
+        bg: "rgba(107,114,128,0.12)",
+        text: "#6b7280",
+        label: "Private"
+    },
+    [BlogStatus.Rejected]: {
+        bg: "rgba(239,68,68,0.12)",
+        text: "#ef4444",
+        label: "Rejected"
+    }
 };
 
 export interface BlogCardData {
@@ -61,24 +85,33 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
 
     const dateStr = blog.publishedAt || blog.createdAt;
     const formattedDate = dateStr
-        ? new Date(dateStr).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        ? new Date(dateStr).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric"
+          })
         : null;
 
     return (
-        <Link href={`/blogs/${blog.slug}`} tabIndex={-1}>
+        <Link
+            href={`/blogs/${blog.slug}`}
+            tabIndex={-1}>
             <motion.article
                 className="flex flex-col overflow-hidden cursor-pointer"
                 style={{
                     background: isApple
-                        ? isDark ? "rgba(28,28,32,0.65)" : "rgba(255,255,255,0.65)"
-                        : isDark ? "rgba(20,20,28,0.95)" : "#fff",
+                        ? isDark
+                            ? "rgba(28,28,32,0.65)"
+                            : "rgba(255,255,255,0.65)"
+                        : isDark
+                          ? "rgba(20,20,28,0.95)"
+                          : "#fff",
                     border: `1px solid ${isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}`,
                     backdropFilter: isApple ? "blur(20px)" : "none",
                     borderRadius: isApple ? 18 : 18
                 }}
                 whileHover={{ y: -4, scale: 1.01 }}
-                transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            >
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}>
                 {/* Cover image */}
                 {blog.featuredImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
@@ -86,7 +119,9 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
                         src={blog.featuredImage}
                         alt={blog.title}
                         className="w-full object-cover aspect-video"
-                        style={{ borderRadius: `${isApple ? 18 : 18}px ${isApple ? 18 : 18}px 0 0` }}
+                        style={{
+                            borderRadius: `${isApple ? 18 : 18}px ${isApple ? 18 : 18}px 0 0`
+                        }}
                     />
                 ) : (
                     <div
@@ -95,8 +130,7 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
                             background: `linear-gradient(135deg, ${categoryColor}22, ${categoryColor}44)`,
                             borderRadius: `${isApple ? 18 : 18}px ${isApple ? 18 : 18}px 0 0`,
                             color: categoryColor
-                        }}
-                    >
+                        }}>
                         {blog.title.charAt(0).toUpperCase()}
                     </div>
                 )}
@@ -111,16 +145,17 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
                                     background: `${categoryColor}18`,
                                     color: categoryColor,
                                     border: `1px solid ${categoryColor}35`
-                                }}
-                            >
+                                }}>
                                 {blog.category}
                             </span>
                         )}
                         {showStatus && statusInfo && (
                             <span
                                 className="text-xs font-medium px-2 py-0.5 rounded-full"
-                                style={{ background: statusInfo.bg, color: statusInfo.text }}
-                            >
+                                style={{
+                                    background: statusInfo.bg,
+                                    color: statusInfo.text
+                                }}>
                                 {statusInfo.label}
                             </span>
                         )}
@@ -129,14 +164,15 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
                     {/* Title */}
                     <h3
                         className="font-bold leading-snug line-clamp-2"
-                        style={{ color: palette.textPrimary, fontSize: 16 }}
-                    >
+                        style={{ color: palette.textPrimary, fontSize: 16 }}>
                         {blog.title}
                     </h3>
 
                     {/* Excerpt */}
                     {blog.excerpt && (
-                        <p className="text-sm line-clamp-2 leading-relaxed" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-sm line-clamp-2 leading-relaxed"
+                            style={{ color: palette.textSecondary }}>
                             {blog.excerpt}
                         </p>
                     )}
@@ -151,13 +187,14 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
                                     style={{
                                         background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
                                         color: palette.textSecondary
-                                    }}
-                                >
+                                    }}>
                                     #{tag}
                                 </span>
                             ))}
                             {blog.tags.length > 3 && (
-                                <span className="text-xs px-1" style={{ color: palette.textSecondary }}>
+                                <span
+                                    className="text-xs px-1"
+                                    style={{ color: palette.textSecondary }}>
                                     +{blog.tags.length - 3}
                                 </span>
                             )}
@@ -169,21 +206,33 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
                         <div className="flex items-center gap-2">
                             {blog.authorImage ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={blog.authorImage} alt={blog.authorName} className="w-6 h-6 rounded-full object-cover" />
+                                <img
+                                    src={blog.authorImage}
+                                    alt={blog.authorName}
+                                    className="w-6 h-6 rounded-full object-cover"
+                                />
                             ) : (
                                 <div
                                     className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold"
-                                    style={{ background: palette.accent + "30", color: palette.accent }}
-                                >
+                                    style={{
+                                        background: palette.accent + "30",
+                                        color: palette.accent
+                                    }}>
                                     {blog.authorName?.charAt(0) || "?"}
                                 </div>
                             )}
                             <div>
-                                <span className="text-xs font-medium" style={{ color: palette.textSecondary }}>
+                                <span
+                                    className="text-xs font-medium"
+                                    style={{ color: palette.textSecondary }}>
                                     {blog.authorName || "Unknown"}
                                 </span>
                                 {formattedDate && (
-                                    <span className="text-xs ml-1" style={{ color: palette.textSecondary }}>
+                                    <span
+                                        className="text-xs ml-1"
+                                        style={{
+                                            color: palette.textSecondary
+                                        }}>
                                         · {formattedDate}
                                     </span>
                                 )}
@@ -192,18 +241,27 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
 
                         <div className="flex items-center gap-3">
                             {blog.readTime != null && (
-                                <span className="flex items-center gap-0.5 text-xs" style={{ color: palette.textSecondary }}>
-                                    <AccessTimeIcon style={{ fontSize: 11 }} />{blog.readTime}m
+                                <span
+                                    className="flex items-center gap-0.5 text-xs"
+                                    style={{ color: palette.textSecondary }}>
+                                    <AccessTimeIcon style={{ fontSize: 11 }} />
+                                    {blog.readTime}m
                                 </span>
                             )}
                             {blog.views != null && (
-                                <span className="flex items-center gap-0.5 text-xs" style={{ color: palette.textSecondary }}>
-                                    <VisibilityIcon style={{ fontSize: 11 }} />{blog.views}
+                                <span
+                                    className="flex items-center gap-0.5 text-xs"
+                                    style={{ color: palette.textSecondary }}>
+                                    <VisibilityIcon style={{ fontSize: 11 }} />
+                                    {blog.views}
                                 </span>
                             )}
                             {blog.likes != null && (
-                                <span className="flex items-center gap-0.5 text-xs" style={{ color: "#f43f5e" }}>
-                                    <FavoriteIcon style={{ fontSize: 11 }} />{blog.likes}
+                                <span
+                                    className="flex items-center gap-0.5 text-xs"
+                                    style={{ color: "#f43f5e" }}>
+                                    <FavoriteIcon style={{ fontSize: 11 }} />
+                                    {blog.likes}
                                 </span>
                             )}
                         </div>

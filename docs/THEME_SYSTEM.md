@@ -2,7 +2,8 @@
 
 ## Overview
 
-This portfolio features a cutting-edge dual-theme system inspired by **Apple's Liquid Glass** and **Samsung's One UI 7 Book** design languages. Both themes are fully adaptable to light and dark modes with dynamic accent color generation.
+This portfolio features a cutting-edge dual-theme system inspired by **Apple's Liquid Glass** and **Samsung's One UI 7 Book** design
+languages. Both themes are fully adaptable to light and dark modes with dynamic accent color generation.
 
 ## Design Themes
 
@@ -18,6 +19,7 @@ This portfolio features a cutting-edge dual-theme system inspired by **Apple's L
 - **Minimalist Spacing**: Comfortable padding with generous breathing room
 
 **Visual Characteristics:**
+
 - Border radius: 16-20px
 - Backdrop blur: 10-30px with saturation 120-180%
 - Semi-transparent backgrounds: 50-80% opacity
@@ -36,6 +38,7 @@ Bold, readable, and thumb-friendly design featuring:
 - **Rounded Elements**: 24-28px border radius for friendly appearance
 
 **Visual Characteristics:**
+
 - Border radius: 24-28px
 - Solid backgrounds with clear elevation
 - Bold shadows for depth
@@ -50,45 +53,42 @@ The system automatically generates a complete color palette from a single accent
 
 ```typescript
 {
-  accent,           // Primary brand color
-  accentLight,      // 30% lighter variant
-  accentDark,       // 20% darker variant
-  accentSubtle,     // 10% opacity overlay
-  
-  // Backgrounds (light/dark adaptive)
-  background,
-  backgroundElevated,
-  backgroundSecondary,
-  backgroundTertiary,
-  
-  // Surfaces (cards, modals)
-  surface,
-  surfaceElevated,
-  surfaceSecondary,
-  
-  // Text colors
-  textPrimary,
-  textSecondary,
-  textTertiary,
-  textOnAccent,
-  
-  // Borders
-  border,
-  borderSubtle,
-  
-  // Shadows
-  shadowSm, shadowMd, shadowLg,
-  
-  // Effects
-  glassBg,
-  glassBlur,
-  liquidGlow
+    (accent, // Primary brand color
+        accentLight, // 30% lighter variant
+        accentDark, // 20% darker variant
+        accentSubtle, // 10% opacity overlay
+        // Backgrounds (light/dark adaptive)
+        background,
+        backgroundElevated,
+        backgroundSecondary,
+        backgroundTertiary,
+        // Surfaces (cards, modals)
+        surface,
+        surfaceElevated,
+        surfaceSecondary,
+        // Text colors
+        textPrimary,
+        textSecondary,
+        textTertiary,
+        textOnAccent,
+        // Borders
+        border,
+        borderSubtle,
+        // Shadows
+        shadowSm,
+        shadowMd,
+        shadowLg,
+        // Effects
+        glassBg,
+        glassBlur,
+        liquidGlow);
 }
 ```
 
 ### Preset Colors
 
 **Apple Colors:**
+
 - Blue (#007AFF) - Default
 - Purple (#AF52DE)
 - Pink (#FF2D55)
@@ -99,6 +99,7 @@ The system automatically generates a complete color palette from a single accent
 - Teal (#5AC8FA)
 
 **Samsung Colors:**
+
 - Blue (#5E97F6) - Default
 - Purple (#9C6FFF)
 - Pink (#FF6B9D)
@@ -111,16 +112,11 @@ The system automatically generates a complete color palette from a single accent
 ### Apple Liquid Glass Components
 
 ```tsx
-import {
-  LiquidGlassCard,
-  LiquidGlassButton,
-  LiquidGlassNav,
-  LiquidGlassModal,
-  LiquidGlassSection
-} from "@Components/LiquidGlass";
+import { LiquidGlassCard, LiquidGlassButton, LiquidGlassNav, LiquidGlassModal, LiquidGlassSection } from "@Components/LiquidGlass";
 ```
 
 **Features:**
+
 - Tilt effect on hover (3D perspective)
 - Dynamic glow that follows cursor
 - Blur intensity levels (subtle, medium, strong)
@@ -129,19 +125,11 @@ import {
 ### Samsung One UI Components
 
 ```tsx
-import {
-  OneUICard,
-  OneUIButton,
-  OneUIHeader,
-  OneUIBadge,
-  OneUIListItem,
-  OneUITabs,
-  OneUISection,
-  OneUIDivider
-} from "@Components/OneUI";
+import { OneUICard, OneUIButton, OneUIHeader, OneUIBadge, OneUIListItem, OneUITabs, OneUISection, OneUIDivider } from "@Components/OneUI";
 ```
 
 **Features:**
+
 - Bold, readable text hierarchy
 - Large touch targets (min 48px height)
 - Generous spacing (comfortable/relaxed/spacious)
@@ -190,11 +178,11 @@ All preferences are saved to localStorage.
 import { DesignThemeProvider } from "@Hooks/useDesignTheme";
 
 export default function App() {
-  return (
-    <DesignThemeProvider>
-      <YourComponents />
-    </DesignThemeProvider>
-  );
+    return (
+        <DesignThemeProvider>
+            <YourComponents />
+        </DesignThemeProvider>
+    );
 }
 ```
 
@@ -204,31 +192,28 @@ export default function App() {
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 
 function MyComponent() {
-  const {
-    designTheme,      // "apple" | "samsung"
-    colorMode,        // "light" | "dark"
-    accentColor,      // Current accent color hex
-    palette,          // Generated color palette
-    setDesignTheme,   // Switch theme
-    setColorMode,     // Switch mode
-    setAccentColor,   // Change accent
-    toggleColorMode   // Toggle light/dark
-  } = useDesignTheme();
-  
-  // Use theme values
-  const isApple = designTheme === "apple";
-  
-  return (
-    <div style={{ color: palette.textPrimary }}>
-      {/* Your content */}
-    </div>
-  );
+    const {
+        designTheme, // "apple" | "samsung"
+        colorMode, // "light" | "dark"
+        accentColor, // Current accent color hex
+        palette, // Generated color palette
+        setDesignTheme, // Switch theme
+        setColorMode, // Switch mode
+        setAccentColor, // Change accent
+        toggleColorMode // Toggle light/dark
+    } = useDesignTheme();
+
+    // Use theme values
+    const isApple = designTheme === "apple";
+
+    return <div style={{ color: palette.textPrimary }}>{/* Your content */}</div>;
 }
 ```
 
 ## Landing Page Sections
 
 ### 1. Hero Section
+
 - Personal introduction
 - Role animation
 - Availability status
@@ -236,24 +221,28 @@ function MyComponent() {
 - Primary CTAs
 
 ### 2. Projects Section
+
 - Featured projects grid
 - GitHub stats
 - Tech stack tags
 - Live links
 
 ### 3. Skills Section
+
 - Visual skill bars
 - Category grouping
 - Proficiency percentages
 - Icon representations
 
 ### 4. Experience Section
+
 - Timeline format
 - Role descriptions
 - Key achievements
 - Period indicators
 
 ### 5. Footer
+
 - Navigation links
 - Social media
 - Legal pages
@@ -292,11 +281,11 @@ Edit `src/Utils/themeGenerator.ts`:
 
 ```typescript
 export const PRESET_COLORS = {
-  apple: {
-    // Add your color
-    custom: "#YOUR_HEX"
-  }
-}
+    apple: {
+        // Add your color
+        custom: "#YOUR_HEX"
+    }
+};
 ```
 
 ### Creating Custom Components
@@ -305,30 +294,33 @@ Follow the pattern in existing components:
 
 ```tsx
 export const MyComponent = () => {
-  const { designTheme, palette } = useDesignTheme();
-  const isApple = designTheme === "apple";
-  
-  return (
-    <div style={{
-      background: isApple ? palette.glassBg : palette.surface,
-      backdropFilter: isApple ? palette.glassBlur : "none",
-      borderRadius: isApple ? "16px" : "24px"
-    }}>
-      {/* Content */}
-    </div>
-  );
-}
+    const { designTheme, palette } = useDesignTheme();
+    const isApple = designTheme === "apple";
+
+    return (
+        <div
+            style={{
+                background: isApple ? palette.glassBg : palette.surface,
+                backdropFilter: isApple ? palette.glassBlur : "none",
+                borderRadius: isApple ? "16px" : "24px"
+            }}>
+            {/* Content */}
+        </div>
+    );
+};
 ```
 
 ## Design Principles
 
 ### Apple Theme
+
 - **Less is more** - Minimal UI, maximum impact
 - **Fluid interactions** - Natural, physics-based animations
 - **Depth through blur** - Layered transparency
 - **Precision** - Pixel-perfect alignment
 
 ### Samsung Theme
+
 - **Bold is beautiful** - Strong typography
 - **Comfort first** - Generous spacing
 - **Clear hierarchy** - Obvious importance levels
@@ -337,6 +329,7 @@ export const MyComponent = () => {
 ## Credits
 
 Inspired by:
+
 - Apple's macOS and iOS design languages
 - Samsung's One UI 7 design system
 - Material Design 3 principles

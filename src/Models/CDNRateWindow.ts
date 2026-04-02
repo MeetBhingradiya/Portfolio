@@ -20,20 +20,24 @@ import mongoose, { Schema, Document } from "mongoose";
 export type WindowType = "minute" | "hour" | "day";
 
 export interface ICDNRateWindow extends Document {
-    keyId:      string;          // references CDNAPIKey.keyId
+    keyId: string; // references CDNAPIKey.keyId
     windowType: WindowType;
-    bucket:     string;          // ISO-like bucket string e.g. "2026-03-03T14:05" for minute
-    count:      number;
-    expiresAt:  Date;
+    bucket: string; // ISO-like bucket string e.g. "2026-03-03T14:05" for minute
+    count: number;
+    expiresAt: Date;
 }
 
 const CDNRateWindowSchema = new Schema<ICDNRateWindow>(
     {
-        keyId:      { type: String, required: true, index: true },
-        windowType: { type: String, enum: ["minute", "hour", "day"], required: true },
-        bucket:     { type: String, required: true },
-        count:      { type: Number, required: true, default: 0 },
-        expiresAt:  { type: Date, required: true },
+        keyId: { type: String, required: true, index: true },
+        windowType: {
+            type: String,
+            enum: ["minute", "hour", "day"],
+            required: true
+        },
+        bucket: { type: String, required: true },
+        count: { type: Number, required: true, default: 0 },
+        expiresAt: { type: Date, required: true }
     },
     { timestamps: false }
 );
@@ -41,6 +45,4 @@ const CDNRateWindowSchema = new Schema<ICDNRateWindow>(
 CDNRateWindowSchema.index({ keyId: 1, windowType: 1, bucket: 1 }, { unique: true });
 CDNRateWindowSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 }); // MongoDB TTL auto-delete
 
-export const CDNRateWindow =
-    mongoose.models.CDNRateWindow ||
-    mongoose.model<ICDNRateWindow>("CDNRateWindow", CDNRateWindowSchema);
+export const CDNRateWindow = mongoose.models.CDNRateWindow || mongoose.model<ICDNRateWindow>("CDNRateWindow", CDNRateWindowSchema);

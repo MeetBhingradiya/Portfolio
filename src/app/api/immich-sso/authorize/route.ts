@@ -20,13 +20,7 @@ import { normalizeHeader } from "@Utils/NormalizeHeader";
 
 export const dynamic = "force-dynamic";
 
-function oidcError(
-    redirectUri: string | null,
-    state: string | null,
-    error: string,
-    description: string,
-    baseUrl: string
-): NextResponse {
+function oidcError(redirectUri: string | null, state: string | null, error: string, description: string, baseUrl: string): NextResponse {
     if (redirectUri) {
         const url = new URL(redirectUri);
         url.searchParams.set("error", error);
@@ -36,10 +30,7 @@ function oidcError(
     }
     // Can't redirect - show error page
     return NextResponse.redirect(
-        new URL(
-            `/immich-sso?error=${encodeURIComponent(error)}&error_description=${encodeURIComponent(description)}`,
-            baseUrl
-        )
+        new URL(`/immich-sso?error=${encodeURIComponent(error)}&error_description=${encodeURIComponent(description)}`, baseUrl)
     );
 }
 
@@ -65,13 +56,7 @@ export async function GET(req: NextRequest) {
     // Validate client
     const clientCheck = validateClient(clientId);
     if (!clientCheck.valid) {
-        return oidcError(
-            redirectUri,
-            state,
-            "unauthorized_client",
-            clientCheck.reason || "Invalid client_id",
-            baseUrl
-        );
+        return oidcError(redirectUri, state, "unauthorized_client", clientCheck.reason || "Invalid client_id", baseUrl);
     }
 
     // Validate redirect_uri
@@ -80,13 +65,7 @@ export async function GET(req: NextRequest) {
     }
 
     if (!isRedirectUriAllowed(redirectUri)) {
-        return oidcError(
-            null,
-            state,
-            "invalid_request",
-            "redirect_uri is not allowed",
-            baseUrl
-        );
+        return oidcError(null, state, "invalid_request", "redirect_uri is not allowed", baseUrl);
     }
 
     // - Origin / Referer validation ----------------------------------------
@@ -106,10 +85,10 @@ export async function GET(req: NextRequest) {
     const isImmichUserAgent = userAgentLower.includes("immich");
     const isMobileUserAgent = Boolean(
         parsedUserAgent?.isAndroid ||
-            parsedUserAgent?.isiPhone ||
-            parsedUserAgent?.isiPad ||
-            parsedUserAgent?.isMobile ||
-            parsedUserAgent?.isMobileNative
+        parsedUserAgent?.isiPhone ||
+        parsedUserAgent?.isiPad ||
+        parsedUserAgent?.isMobile ||
+        parsedUserAgent?.isMobileNative
     );
 
     // Fallback for mobile app/webview flows without reliable browser headers.
@@ -125,20 +104,14 @@ export async function GET(req: NextRequest) {
             origin,
             referer,
             redirectUri,
-            userAgent: userAgentSource,
+            userAgent: userAgentSource
         });
         return NextResponse.redirect(new URL("/?notice=immich_access_denied", baseUrl));
     }
 
     // Validate response_type
     if (responseType !== "code") {
-        return oidcError(
-            redirectUri,
-            state,
-            "unsupported_response_type",
-            "Only 'code' response_type is supported",
-            baseUrl
-        );
+        return oidcError(redirectUri, state, "unsupported_response_type", "Only 'code' response_type is supported", baseUrl);
     }
 
     // Build a short-lived signed JWT containing the OIDC request params
@@ -148,7 +121,7 @@ export async function GET(req: NextRequest) {
         redirectUri,
         scope,
         state: state || "",
-        nonce: nonce || "",
+        nonce: nonce || ""
     })
         .setProtectedHeader({ alg: "HS256" })
         .setIssuedAt()
@@ -164,7 +137,7 @@ export async function GET(req: NextRequest) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: 600, // 10 minutes
-        path: "/",
+        path: "/"
     });
 
     return response;

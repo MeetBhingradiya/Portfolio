@@ -19,9 +19,12 @@ export async function GET(_req: NextRequest) {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const assets = await WalletAsset.find({ UserID: user.userId, IsArchived: { $ne: true } })
+        const assets = (await WalletAsset.find({
+            UserID: user.userId,
+            IsArchived: { $ne: true }
+        })
             .sort({ createdAt: -1 })
-            .lean() as any[];
+            .lean()) as any[];
 
         // Build a map for quick bank lookup
         const bankMap = new Map<string, any>();
@@ -30,30 +33,28 @@ export async function GET(_req: NextRequest) {
         }
 
         // For UPI_APP assets, inject the linked bank's balance
-        const enriched = assets.map(a => {
+        const enriched = assets.map((a) => {
             if (a.Type === WalletAssetType.UPI_APP && a.LinkedAssetID) {
                 const bank = bankMap.get(a.LinkedAssetID);
                 return {
                     ...a,
                     Balance: bank?.Balance ?? 0,
-                    LinkedBankName: bank?.Name ?? null,
+                    LinkedBankName: bank?.Name ?? null
                 };
             }
             return a;
         });
 
         // Total balance = only BANK + DIGITAL_WALLET + CASH (UPI mirrors bank, don't double-count)
-        const totalBalance = enriched
-            .filter(a => a.Type !== WalletAssetType.UPI_APP)
-            .reduce((s, a) => s + (a.Balance ?? 0), 0);
+        const totalBalance = enriched.filter((a) => a.Type !== WalletAssetType.UPI_APP).reduce((s, a) => s + (a.Balance ?? 0), 0);
 
         return NextResponse.json({
             success: true,
             data: {
                 assets: enriched,
                 totalBalance: parseFloat(totalBalance.toFixed(2)),
-                count: enriched.length,
-            },
+                count: enriched.length
+            }
         });
     } catch (err) {
         console.error("GET /api/wallet/assets:", err);
@@ -78,39 +79,55 @@ export async function POST(req: NextRequest) {
         // Validate UPI_APP requires a linked bank
         if (type === WalletAssetType.UPI_APP) {
             if (!body.LinkedAssetID) {
-                return NextResponse.json({ success: false, error: "UPI App must be linked to a Bank account" }, { status: 400 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "UPI App must be linked to a Bank account"
+                    },
+                    { status: 400 }
+                );
             }
             const bank = await WalletAsset.findOne({
                 AssetID: body.LinkedAssetID,
                 UserID: user.userId,
                 Type: WalletAssetType.BANK,
-                IsArchived: { $ne: true },
+                IsArchived: { $ne: true }
             });
             if (!bank) {
-                return NextResponse.json({ success: false, error: "Linked asset must be an active Bank account" }, { status: 400 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Linked asset must be an active Bank account"
+                    },
+                    { status: 400 }
+                );
             }
         }
 
-        const initialBalance = type === WalletAssetType.UPI_APP ? 0 : (parseFloat(body.InitialBalance) || 0);
+        const initialBalance = type === WalletAssetType.UPI_APP ? 0 : parseFloat(body.InitialBalance) || 0;
 
         const toArr = (v: unknown): string[] => {
             if (Array.isArray(v)) return v.map(String).filter(Boolean);
-            if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
+            if (typeof v === "string")
+                return v
+                    .split(",")
+                    .map((s) => s.trim())
+                    .filter(Boolean);
             return [];
         };
 
         const asset = await WalletAsset.create({
-            UserID:         user.userId,
-            Name:           name,
-            Icon:           body.Icon || undefined,
-            Type:           type,
-            Balance:        initialBalance,
+            UserID: user.userId,
+            Name: name,
+            Icon: body.Icon || undefined,
+            Type: type,
+            Balance: initialBalance,
             InitialBalance: initialBalance,
-            Currency:       body.Currency || "INR",
-            LinkedAssetID:  body.LinkedAssetID || undefined,
-            UPIIds:         toArr(body.UPIIds),
-            Color:          body.Color || "",
-            Notes:          body.Notes || undefined,
+            Currency: body.Currency || "INR",
+            LinkedAssetID: body.LinkedAssetID || undefined,
+            UPIIds: toArr(body.UPIIds),
+            Color: body.Color || "",
+            Notes: body.Notes || undefined
         });
 
         return NextResponse.json({ success: true, data: asset }, { status: 201 });
@@ -136,15 +153,13 @@ export async function PUT(req: NextRequest) {
         // Process UPIIds if provided
         if (body.UPIIds !== undefined) {
             if (typeof body.UPIIds === "string") {
-                body.UPIIds = body.UPIIds.split(",").map((s: string) => s.trim()).filter(Boolean);
+                body.UPIIds = body.UPIIds.split(",")
+                    .map((s: string) => s.trim())
+                    .filter(Boolean);
             }
         }
 
-        const asset = await WalletAsset.findOneAndUpdate(
-            { AssetID: id, UserID: user.userId },
-            { $set: body },
-            { new: true }
-        );
+        const asset = await WalletAsset.findOneAndUpdate({ AssetID: id, UserID: user.userId }, { $set: body }, { new: true });
         if (!asset) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 
         return NextResponse.json({ success: true, data: asset });
@@ -168,15 +183,15 @@ export async function DELETE(req: NextRequest) {
         // Check for linked transactions
         const txnCount = await WalletTransaction.countDocuments({
             UserID: user.userId,
-            $or: [{ FromAssetID: id }, { ToAssetID: id }],
+            $or: [{ FromAssetID: id }, { ToAssetID: id }]
         });
 
         if (txnCount > 0) {
-            await WalletAsset.updateOne(
-                { AssetID: id, UserID: user.userId },
-                { $set: { IsArchived: true } }
-            );
-            return NextResponse.json({ success: true, data: { archived: true, transactionCount: txnCount } });
+            await WalletAsset.updateOne({ AssetID: id, UserID: user.userId }, { $set: { IsArchived: true } });
+            return NextResponse.json({
+                success: true,
+                data: { archived: true, transactionCount: txnCount }
+            });
         }
 
         await WalletAsset.deleteOne({ AssetID: id, UserID: user.userId });

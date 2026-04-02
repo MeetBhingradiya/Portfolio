@@ -27,7 +27,7 @@ import {
     AutoStories,
     CloudUpload,
     Rocket,
-    AccountBalanceWallet,
+    AccountBalanceWallet
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
@@ -37,8 +37,8 @@ export default function SettingsPage() {
 
     React.useEffect(() => {
         fetch("/api/admin/is-admin")
-            .then(r => r.json())
-            .then(j => setCanAccessAdmin(j.canAccessAdmin === true))
+            .then((r) => r.json())
+            .then((j) => setCanAccessAdmin(j.canAccessAdmin === true))
             .catch(() => setCanAccessAdmin(false));
     }, []);
 
@@ -110,20 +110,29 @@ export default function SettingsPage() {
         return (
             <div className="min-h-screen flex items-center justify-center p-6">
                 <div className="text-center">
-                    <Warning className="text-6xl mb-4" style={{ color: palette.accent }} />
-                    <h1 className="text-2xl font-bold mb-2" style={{ color: palette.textPrimary }}>
+                    <Warning
+                        className="text-6xl mb-4"
+                        style={{ color: palette.accent }}
+                    />
+                    <h1
+                        className="text-2xl font-bold mb-2"
+                        style={{ color: palette.textPrimary }}>
                         Authentication Required
                     </h1>
-                    <p className="mb-6" style={{ color: palette.textSecondary }}>
+                    <p
+                        className="mb-6"
+                        style={{ color: palette.textSecondary }}>
                         Please sign in to access settings
                     </p>
                     <Link href="/auth/signin">
                         <motion.button
                             className="px-6 py-3 rounded-xl font-semibold"
-                            style={{ background: palette.accent, color: "#ffffff" }}
+                            style={{
+                                background: palette.accent,
+                                color: "#ffffff"
+                            }}
                             whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                        >
+                            whileTap={{ scale: 0.95 }}>
                             Sign In
                         </motion.button>
                     </Link>
@@ -133,21 +142,28 @@ export default function SettingsPage() {
     }
 
     return (
-        <div className="min-h-screen" style={{ background: palette.background }}>
+        <div
+            className="min-h-screen"
+            style={{ background: palette.background }}>
             <div className="max-w-4xl mx-auto px-4 py-8">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center gap-4 mb-2">
-                        <div className="p-3 rounded-2xl" style={{ background: `${palette.accent}20` }}>
-                            <Settings className="text-3xl" style={{ color: palette.accent }} />
+                        <div
+                            className="p-3 rounded-2xl"
+                            style={{ background: `${palette.accent}20` }}>
+                            <Settings
+                                className="text-3xl"
+                                style={{ color: palette.accent }}
+                            />
                         </div>
                         <div>
-                            <h1 className="text-3xl font-bold" style={{ color: palette.textPrimary }}>
+                            <h1
+                                className="text-3xl font-bold"
+                                style={{ color: palette.textPrimary }}>
                                 Settings
                             </h1>
-                            <p style={{ color: palette.textSecondary }}>
-                                Manage your account preferences and settings
-                            </p>
+                            <p style={{ color: palette.textSecondary }}>Manage your account preferences and settings</p>
                         </div>
                     </div>
                 </div>
@@ -156,12 +172,9 @@ export default function SettingsPage() {
                 <motion.div
                     className="mb-6 p-6 rounded-2xl"
                     style={{
-                        background: isApple
-                            ? isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)"
-                            : palette.surface,
+                        background: isApple ? (isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)") : palette.surface,
                         border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)"}`
-                    }}
-                >
+                    }}>
                     <div className="flex items-center gap-4">
                         <UserAvatar
                             userId={user?.id || ""}
@@ -171,10 +184,14 @@ export default function SettingsPage() {
                             size={64}
                         />
                         <div className="flex-1">
-                            <h3 className="text-xl font-bold" style={{ color: palette.textPrimary }}>
+                            <h3
+                                className="text-xl font-bold"
+                                style={{ color: palette.textPrimary }}>
                                 {user?.name || "User"}
                             </h3>
-                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                            <p
+                                className="text-sm"
+                                style={{ color: palette.textSecondary }}>
                                 {user?.email}
                             </p>
                         </div>
@@ -184,35 +201,40 @@ export default function SettingsPage() {
                 {/* Settings Sections */}
                 <div className="space-y-4 flex flex-col gap-1">
                     {settingsSections.map((section) => (
-                        <Link key={section.id} href={section.href}>
+                        <Link
+                            key={section.id}
+                            href={section.href}>
                             <motion.div
                                 className="p-6 rounded-2xl cursor-pointer"
                                 style={{
-                                    background: isApple
-                                        ? isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)"
-                                        : palette.surface,
+                                    background: isApple ? (isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)") : palette.surface,
                                     border: `1px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)"}`
                                 }}
                                 whileHover={{
                                     scale: 1.01,
-                                    backgroundColor: isApple
-                                        ? isDark ? "rgba(44, 44, 48, 0.7)" : "rgba(255, 255, 255, 0.7)"
-                                        : undefined
-                                }}
-                            >
+                                    backgroundColor: isApple ? (isDark ? "rgba(44, 44, 48, 0.7)" : "rgba(255, 255, 255, 0.7)") : undefined
+                                }}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex gap-4 flex-1">
-                                        <div 
-                                            className="p-3 rounded-xl" 
-                                            style={{ background: `${palette.accent}15` }}
-                                        >
-                                            <div style={{ color: palette.accent }}>
+                                        <div
+                                            className="p-3 rounded-xl"
+                                            style={{
+                                                background: `${palette.accent}15`
+                                            }}>
+                                            <div
+                                                style={{
+                                                    color: palette.accent
+                                                }}>
                                                 {section.icon}
                                             </div>
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                <h3
+                                                    className="text-lg font-bold"
+                                                    style={{
+                                                        color: palette.textPrimary
+                                                    }}>
                                                     {section.title}
                                                 </h3>
                                                 {section.badge && (
@@ -221,13 +243,16 @@ export default function SettingsPage() {
                                                         style={{
                                                             background: `${palette.accent}20`,
                                                             color: palette.accent
-                                                        }}
-                                                    >
+                                                        }}>
                                                         {section.badge}
                                                     </span>
                                                 )}
                                             </div>
-                                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                            <p
+                                                className="text-sm"
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
                                                 {section.description}
                                             </p>
                                         </div>
@@ -241,7 +266,8 @@ export default function SettingsPage() {
                     {/* Trade Journal — available to all authenticated users */}
                     <>
                         <div className="pt-2 pb-1">
-                            <p className="text-xs font-semibold uppercase tracking-widest"
+                            <p
+                                className="text-xs font-semibold uppercase tracking-widest"
                                 style={{ color: palette.textTertiary }}>
                                 Tools
                             </p>
@@ -251,28 +277,45 @@ export default function SettingsPage() {
                                 className="p-6 rounded-2xl cursor-pointer"
                                 style={{
                                     background: isApple
-                                        ? isDark ? "rgba(34,197,94,0.14)" : "rgba(34,197,94,0.08)"
+                                        ? isDark
+                                            ? "rgba(34,197,94,0.14)"
+                                            : "rgba(34,197,94,0.08)"
                                         : `${palette.accent}12`,
                                     border: `1.5px solid ${isDark ? "rgba(34,197,94,0.30)" : "rgba(34,197,94,0.22)"}`
                                 }}
-                                whileHover={{ scale: 1.01 }}
-                            >
+                                whileHover={{ scale: 1.01 }}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex gap-4 flex-1">
-                                        <div className="p-3 rounded-xl" style={{ background: "rgba(34,197,94,0.15)" }}>
+                                        <div
+                                            className="p-3 rounded-xl"
+                                            style={{
+                                                background: "rgba(34,197,94,0.15)"
+                                            }}>
                                             <AutoStories style={{ color: "#16a34a" }} />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                <h3
+                                                    className="text-lg font-bold"
+                                                    style={{
+                                                        color: palette.textPrimary
+                                                    }}>
                                                     Trade Journal
                                                 </h3>
-                                                <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
-                                                    style={{ background: "rgba(34,197,94,0.18)", color: "#16a34a" }}>
+                                                <span
+                                                    className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                                    style={{
+                                                        background: "rgba(34,197,94,0.18)",
+                                                        color: "#16a34a"
+                                                    }}>
                                                     CRUD + Analytics
                                                 </span>
                                             </div>
-                                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                            <p
+                                                className="text-sm"
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
                                                 Log trades, review performance, and validate your trading edge
                                             </p>
                                         </div>
@@ -286,28 +329,45 @@ export default function SettingsPage() {
                                 className="p-6 rounded-2xl cursor-pointer"
                                 style={{
                                     background: isApple
-                                        ? isDark ? "rgba(175,82,222,0.14)" : "rgba(175,82,222,0.08)"
+                                        ? isDark
+                                            ? "rgba(175,82,222,0.14)"
+                                            : "rgba(175,82,222,0.08)"
                                         : `${palette.accent}12`,
                                     border: `1.5px solid ${isDark ? "rgba(175,82,222,0.30)" : "rgba(175,82,222,0.22)"}`
                                 }}
-                                whileHover={{ scale: 1.01 }}
-                            >
+                                whileHover={{ scale: 1.01 }}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex gap-4 flex-1">
-                                        <div className="p-3 rounded-xl" style={{ background: "rgba(175,82,222,0.15)" }}>
+                                        <div
+                                            className="p-3 rounded-xl"
+                                            style={{
+                                                background: "rgba(175,82,222,0.15)"
+                                            }}>
                                             <Rocket style={{ color: "#AF52DE" }} />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                <h3
+                                                    className="text-lg font-bold"
+                                                    style={{
+                                                        color: palette.textPrimary
+                                                    }}>
                                                     Productivity Hub
                                                 </h3>
-                                                <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
-                                                    style={{ background: "rgba(175,82,222,0.18)", color: "#AF52DE" }}>
+                                                <span
+                                                    className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                                    style={{
+                                                        background: "rgba(175,82,222,0.18)",
+                                                        color: "#AF52DE"
+                                                    }}>
                                                     Tasks · Habits · Goals
                                                 </span>
                                             </div>
-                                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                            <p
+                                                className="text-sm"
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
                                                 Gamified tasks, habits, goals and reminders with XP & streaks
                                             </p>
                                         </div>
@@ -321,28 +381,45 @@ export default function SettingsPage() {
                                 className="p-6 rounded-2xl cursor-pointer"
                                 style={{
                                     background: isApple
-                                        ? isDark ? "rgba(6,182,212,0.14)" : "rgba(6,182,212,0.08)"
+                                        ? isDark
+                                            ? "rgba(6,182,212,0.14)"
+                                            : "rgba(6,182,212,0.08)"
                                         : `${palette.accent}12`,
                                     border: `1.5px solid ${isDark ? "rgba(6,182,212,0.30)" : "rgba(6,182,212,0.22)"}`
                                 }}
-                                whileHover={{ scale: 1.01 }}
-                            >
+                                whileHover={{ scale: 1.01 }}>
                                 <div className="flex items-center justify-between">
                                     <div className="flex gap-4 flex-1">
-                                        <div className="p-3 rounded-xl" style={{ background: "rgba(6,182,212,0.15)" }}>
+                                        <div
+                                            className="p-3 rounded-xl"
+                                            style={{
+                                                background: "rgba(6,182,212,0.15)"
+                                            }}>
                                             <AccountBalanceWallet style={{ color: "#06b6d4" }} />
                                         </div>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
-                                                <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                <h3
+                                                    className="text-lg font-bold"
+                                                    style={{
+                                                        color: palette.textPrimary
+                                                    }}>
                                                     Paisa Manager
                                                 </h3>
-                                                <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
-                                                    style={{ background: "rgba(6,182,212,0.18)", color: "#06b6d4" }}>
+                                                <span
+                                                    className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                                    style={{
+                                                        background: "rgba(6,182,212,0.18)",
+                                                        color: "#06b6d4"
+                                                    }}>
                                                     Wallet · Expenses · Analytics
                                                 </span>
                                             </div>
-                                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                            <p
+                                                className="text-sm"
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
                                                 Track assets, log transactions, manage contacts &amp; spending analytics
                                             </p>
                                         </div>
@@ -357,7 +434,8 @@ export default function SettingsPage() {
                     {canAccessAdmin && (
                         <>
                             <div className="pt-2 pb-1">
-                                <p className="text-xs font-semibold uppercase tracking-widest"
+                                <p
+                                    className="text-xs font-semibold uppercase tracking-widest"
                                     style={{ color: palette.textTertiary }}>
                                     Administration
                                 </p>
@@ -367,28 +445,45 @@ export default function SettingsPage() {
                                     className="p-6 rounded-2xl cursor-pointer"
                                     style={{
                                         background: isApple
-                                            ? isDark ? "rgba(220, 50, 50, 0.18)" : "rgba(220, 50, 50, 0.10)"
+                                            ? isDark
+                                                ? "rgba(220, 50, 50, 0.18)"
+                                                : "rgba(220, 50, 50, 0.10)"
                                             : `${palette.accent}12`,
                                         border: `1.5px solid ${isDark ? "rgba(220,50,50,0.35)" : "rgba(220,50,50,0.25)"}`
                                     }}
-                                    whileHover={{ scale: 1.01 }}
-                                >
+                                    whileHover={{ scale: 1.01 }}>
                                     <div className="flex items-center justify-between">
                                         <div className="flex gap-4 flex-1">
-                                            <div className="p-3 rounded-xl" style={{ background: "rgba(220,50,50,0.15)" }}>
+                                            <div
+                                                className="p-3 rounded-xl"
+                                                style={{
+                                                    background: "rgba(220,50,50,0.15)"
+                                                }}>
                                                 <AdminPanelSettings style={{ color: "#DC3232" }} />
                                             </div>
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-2 mb-1">
-                                                    <h3 className="text-lg font-bold" style={{ color: palette.textPrimary }}>
+                                                    <h3
+                                                        className="text-lg font-bold"
+                                                        style={{
+                                                            color: palette.textPrimary
+                                                        }}>
                                                         Admin Portal
                                                     </h3>
-                                                    <span className="px-2 py-0.5 text-xs font-semibold rounded-full"
-                                                        style={{ background: "rgba(220,50,50,0.2)", color: "#DC3232" }}>
+                                                    <span
+                                                        className="px-2 py-0.5 text-xs font-semibold rounded-full"
+                                                        style={{
+                                                            background: "rgba(220,50,50,0.2)",
+                                                            color: "#DC3232"
+                                                        }}>
                                                         Staff Access
                                                     </span>
                                                 </div>
-                                                <p className="text-sm" style={{ color: palette.textSecondary }}>
+                                                <p
+                                                    className="text-sm"
+                                                    style={{
+                                                        color: palette.textSecondary
+                                                    }}>
                                                     Manage portfolio content, users, sitemap, and resume builder
                                                 </p>
                                             </div>

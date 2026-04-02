@@ -6,12 +6,7 @@
 
 import type { Metadata } from "next";
 import { Config } from "@Config/Client";
-import {
-    cachedEducation,
-    cachedExperience,
-    cachedCertificates,
-    cachedTestScores
-} from "@Utils/portfolioCache";
+import { cachedEducation, cachedExperience, cachedCertificates, cachedTestScores } from "@Utils/portfolioCache";
 import TimelineView from "@Components/Organisms/Timeline/TimelineView";
 
 export const revalidate = 43200;
@@ -36,9 +31,15 @@ export const metadata: Metadata = {
         type: "website",
         url: `${Config.Origin}/timeline`,
         title: "Career Timeline | Meet Bhingradiya",
-        description:
-            "Chronological timeline of education, work experience, certificates and exam scores.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Meet Bhingradiya Career Timeline" }]
+        description: "Chronological timeline of education, work experience, certificates and exam scores.",
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "Meet Bhingradiya Career Timeline"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

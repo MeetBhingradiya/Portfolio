@@ -11,15 +11,15 @@ import mongoose from "mongoose";
 
 const DailyCapital_Schema = new mongoose.Schema(
     {
-        UserID:           { type: String, required: true, index: true },
-        Date:             { type: String, required: true }, // "YYYY-MM-DD"
+        UserID: { type: String, required: true, index: true },
+        Date: { type: String, required: true }, // "YYYY-MM-DD"
 
-        StartingCapital:  { type: Number, required: true },
-        EndingCapital:    { type: Number, required: true },
-        NetPnL:           { type: Number, required: true }, // EndingCapital - StartingCapital
-        DailyReturn:      { type: Number, required: true }, // NetPnL / StartingCapital
+        StartingCapital: { type: Number, required: true },
+        EndingCapital: { type: Number, required: true },
+        NetPnL: { type: Number, required: true }, // EndingCapital - StartingCapital
+        DailyReturn: { type: Number, required: true }, // NetPnL / StartingCapital
 
-        Notes:            { type: String },
+        Notes: { type: String }
     },
     { timestamps: true }
 );
@@ -27,6 +27,4 @@ const DailyCapital_Schema = new mongoose.Schema(
 // Unique day per user
 DailyCapital_Schema.index({ UserID: 1, Date: 1 }, { unique: true });
 
-export const DailyCapital =
-    mongoose.models.DailyCapital ||
-    mongoose.model("DailyCapital", DailyCapital_Schema);
+export const DailyCapital = mongoose.models.DailyCapital || mongoose.model("DailyCapital", DailyCapital_Schema);

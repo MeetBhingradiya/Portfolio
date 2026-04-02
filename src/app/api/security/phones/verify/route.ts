@@ -8,12 +8,20 @@ export async function POST(request: NextRequest) {
     try {
         const session = await requireUser(request);
         const body = await request.json();
-        const phoneNumber = String(body?.phoneNumber || "").trim().replace(/\s+/g, "");
+        const phoneNumber = String(body?.phoneNumber || "")
+            .trim()
+            .replace(/\s+/g, "");
         const code = String(body?.code || "").trim();
         const makePrimary = body?.makePrimary !== false;
 
         if (!session.user.emailVerified) {
-            return NextResponse.json({ success: false, error: "Verify email before adding phone numbers." }, { status: 400 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Verify email before adding phone numbers."
+                },
+                { status: 400 }
+            );
         }
 
         if (!E164_PHONE_REGEX.test(phoneNumber)) {
@@ -29,7 +37,7 @@ export async function POST(request: NextRequest) {
         const challenge = await PhoneOtpChallenge.findOne({
             userId: session.user.id,
             phoneNumber,
-            consumed: false,
+            consumed: false
         })
             .sort({ createdAt: -1 })
             .exec();
@@ -40,7 +48,13 @@ export async function POST(request: NextRequest) {
 
         const policies = await getPhonePolicies();
         if (challenge.attempts >= policies.otpMaxAttempts) {
-            return NextResponse.json({ success: false, error: "Too many OTP attempts. Request a new code." }, { status: 429 });
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Too many OTP attempts. Request a new code."
+                },
+                { status: 429 }
+            );
         }
 
         const codeHash = createHash("sha256").update(code).digest("hex");
@@ -53,8 +67,15 @@ export async function POST(request: NextRequest) {
         challenge.consumed = true;
         await challenge.save();
 
-        const existing = await UserPhone.findOne({ userId: session.user.id, phoneNumber }).exec();
-        const firstPhoneForUser = (await UserPhone.countDocuments({ userId: session.user.id, verified: true })) === 0;
+        const existing = await UserPhone.findOne({
+            userId: session.user.id,
+            phoneNumber
+        }).exec();
+        const firstPhoneForUser =
+            (await UserPhone.countDocuments({
+                userId: session.user.id,
+                verified: true
+            })) === 0;
 
         if (existing) {
             existing.verified = true;
@@ -73,7 +94,7 @@ export async function POST(request: NextRequest) {
                 phoneNumber,
                 verified: true,
                 verifiedAt: new Date(),
-                isPrimary: makePrimary || firstPhoneForUser,
+                isPrimary: makePrimary || firstPhoneForUser
             });
         }
 
@@ -82,6 +103,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, data: { phones } });
     } catch (error: any) {
         const status = error?.message === "Unauthorized" ? 401 : 500;
-        return NextResponse.json({ success: false, error: error?.message || "Failed to verify phone" }, { status });
+        return NextResponse.json(
+            {
+                success: false,
+                error: error?.message || "Failed to verify phone"
+            },
+            { status }
+        );
     }
 }

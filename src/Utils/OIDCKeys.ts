@@ -9,11 +9,7 @@
  * To generate a persistent key and write it as an env var, run:
  *   node -e "const {generateKeyPair,exportJWK}=require('jose');(async()=>{const k=await generateKeyPair('RS256',{modulusLength:2048});const j=await exportJWK(k.privateKey);j.kid='immich-sso-1';console.log(JSON.stringify(j));})()"
  */
-import {
-    generateKeyPair,
-    exportJWK,
-    importJWK,
-} from "jose";
+import { generateKeyPair, exportJWK, importJWK } from "jose";
 import { Config as CConfig } from "@Config/Client";
 import { Config as SConfig } from "@Config/Server";
 
@@ -53,16 +49,15 @@ export async function getOIDCKeys(): Promise<OIDCKeySet> {
             privateKey,
             publicKey,
             kid,
-            publicJwk: { ...publicJwk, kid, use: "sig", alg: "RS256" },
+            publicJwk: { ...publicJwk, kid, use: "sig", alg: "RS256" }
         };
     } else {
         // ----- Ephemeral key (dev only) -----
         console.warn(
-            "[ImmichSSO] No IMMICH_SSO_PRIVATE_KEY_JWK set — using ephemeral RSA key. " +
-            "Tokens will be invalid after server restart."
+            "[ImmichSSO] No IMMICH_SSO_PRIVATE_KEY_JWK set — using ephemeral RSA key. " + "Tokens will be invalid after server restart."
         );
         const { privateKey, publicKey } = await generateKeyPair("RS256", {
-            modulusLength: 2048,
+            modulusLength: 2048
         });
         const exportedPub = await exportJWK(publicKey);
         const kid = `ephemeral-${Date.now()}`;
@@ -70,7 +65,7 @@ export async function getOIDCKeys(): Promise<OIDCKeySet> {
             privateKey,
             publicKey,
             kid,
-            publicJwk: { ...exportedPub, kid, use: "sig", alg: "RS256" },
+            publicJwk: { ...exportedPub, kid, use: "sig", alg: "RS256" }
         };
     }
 
@@ -83,10 +78,7 @@ export function getIssuer(): string {
 }
 
 /** Validate OIDC client credentials */
-export function validateClient(
-    clientId: string,
-    clientSecret?: string
-): { valid: boolean; reason?: string } {
+export function validateClient(clientId: string, clientSecret?: string): { valid: boolean; reason?: string } {
     const expectedId = process.env.IMMICH_SSO_CLIENT_ID || "immich";
     const expectedSecret = process.env.IMMICH_SSO_CLIENT_SECRET;
 
@@ -107,12 +99,8 @@ export function isRedirectUriAllowed(uri: string): boolean {
         return value.replace(/\/$/, "");
     };
 
-    const allowedOrigins = new Set(
-        [CConfig.Origin, ...SConfig.Immich_Origins].map(normalizeOrigin)
-    );
-    const allowedPaths = new Set(
-        Object.values(SConfig.Immich_Endpoints).map(normalizePath)
-    );
+    const allowedOrigins = new Set([CConfig.Origin, ...SConfig.Immich_Origins].map(normalizeOrigin));
+    const allowedPaths = new Set(Object.values(SConfig.Immich_Endpoints).map(normalizePath));
 
     if (allowedOrigins.size === 0 || allowedPaths.size === 0) return true;
 

@@ -118,6 +118,4 @@ const AgreementSchema = new Schema<IAgreement>(
     }
 );
 
-export const Agreement =
-    mongoose.models.Agreement ||
-    mongoose.model<IAgreement>("Agreement", AgreementSchema);
+export const Agreement = mongoose.models.Agreement || mongoose.model<IAgreement>("Agreement", AgreementSchema);

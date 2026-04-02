@@ -10,14 +10,7 @@ import { v4 as uuidv4 } from "uuid";
 
 /* ─────────────────────────── PROJECTS ─────────────────────────── */
 
-export type ProjectType =
-    | "website"
-    | "webapp"
-    | "chrome_extension"
-    | "npm_package"
-    | "playstore_app"
-    | "github_repo"
-    | "other";
+export type ProjectType = "website" | "webapp" | "chrome_extension" | "npm_package" | "playstore_app" | "github_repo" | "other";
 
 export interface IProject extends Document {
     ProjectID: string;
@@ -75,7 +68,13 @@ const ProjectSchema = new Schema<IProject>(
     {
         ProjectID: { type: String, default: uuidv4, unique: true, index: true },
         Title: { type: String, required: true, trim: true },
-        Slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
+        Slug: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true
+        },
         Description: { type: String, required: true },
         LongDescription: { type: String },
         Type: {
@@ -83,7 +82,11 @@ const ProjectSchema = new Schema<IProject>(
             enum: ["website", "webapp", "chrome_extension", "npm_package", "playstore_app", "github_repo", "other"],
             default: "webapp"
         },
-        Status: { type: String, enum: ["active", "archived", "wip"], default: "active" },
+        Status: {
+            type: String,
+            enum: ["active", "archived", "wip"],
+            default: "active"
+        },
         Featured: { type: Boolean, default: false },
         Links: {
             live: String,
@@ -118,16 +121,7 @@ const ProjectSchema = new Schema<IProject>(
 
 /* ─────────────────────────── SKILLS ─────────────────────────── */
 
-export type SkillCategory =
-    | "languages"
-    | "frameworks"
-    | "databases"
-    | "devops"
-    | "cloud"
-    | "tools"
-    | "design"
-    | "soft_skills"
-    | "other";
+export type SkillCategory = "languages" | "frameworks" | "databases" | "devops" | "cloud" | "tools" | "design" | "soft_skills" | "other";
 
 export interface ISkill extends Document {
     SkillID: string;
@@ -190,7 +184,12 @@ export interface IEducation extends Document {
 
 const EducationSchema = new Schema<IEducation>(
     {
-        EducationID: { type: String, default: uuidv4, unique: true, index: true },
+        EducationID: {
+            type: String,
+            default: uuidv4,
+            unique: true,
+            index: true
+        },
         Institution: { type: String, required: true, trim: true },
         Degree: { type: String, required: true, trim: true },
         FieldOfStudy: { type: String, required: true, trim: true },
@@ -217,14 +216,7 @@ const EducationSchema = new Schema<IEducation>(
 
 /* ─────────────────────────── EXPERIENCE ─────────────────────────── */
 
-export type EmploymentType =
-    | "full_time"
-    | "part_time"
-    | "contract"
-    | "freelance"
-    | "internship"
-    | "volunteer"
-    | "self_employed";
+export type EmploymentType = "full_time" | "part_time" | "contract" | "freelance" | "internship" | "volunteer" | "self_employed";
 
 export interface IExperience extends Document {
     ExperienceID: string;
@@ -251,7 +243,12 @@ export interface IExperience extends Document {
 
 const ExperienceSchema = new Schema<IExperience>(
     {
-        ExperienceID: { type: String, default: uuidv4, unique: true, index: true },
+        ExperienceID: {
+            type: String,
+            default: uuidv4,
+            unique: true,
+            index: true
+        },
         Company: { type: String, required: true, trim: true },
         Role: { type: String, required: true, trim: true },
         EmploymentType: {
@@ -294,8 +291,8 @@ export interface ICertificate extends Document {
     CredentialURL?: string;
     Description?: string;
     Skills: string[];
-    Image?: string;   // Certificate image URL
-    Logo?: string;    // Issuer logo URL
+    Image?: string; // Certificate image URL
+    Logo?: string; // Issuer logo URL
     Published: boolean;
     Order: number;
     isDeleted: boolean;
@@ -305,7 +302,12 @@ export interface ICertificate extends Document {
 
 const CertificateSchema = new Schema<ICertificate>(
     {
-        CertificateID: { type: String, default: uuidv4, unique: true, index: true },
+        CertificateID: {
+            type: String,
+            default: uuidv4,
+            unique: true,
+            index: true
+        },
         Title: { type: String, required: true, trim: true },
         IssuingOrganization: { type: String, required: true, trim: true },
         IssuedDate: { type: Date, required: true },
@@ -339,7 +341,7 @@ export interface ITestScore extends Document {
     Year: number;
     Subject?: string;
     Description?: string;
-    Proofs: string[];   // Screenshot URLs on s3/cloudflare
+    Proofs: string[]; // Screenshot URLs on s3/cloudflare
     CertificateURL?: string;
     Order: number;
     isDeleted: boolean;
@@ -349,7 +351,12 @@ export interface ITestScore extends Document {
 
 const TestScoreSchema = new Schema<ITestScore>(
     {
-        TestScoreID: { type: String, default: uuidv4, unique: true, index: true },
+        TestScoreID: {
+            type: String,
+            default: uuidv4,
+            unique: true,
+            index: true
+        },
         ExamName: { type: String, required: true, trim: true },
         ExamType: {
             type: String,
@@ -381,7 +388,7 @@ export interface ISitemapEntry extends Document {
     Priority: number;
     Frequency: SitemapFrequency;
     Enabled: boolean;
-    Group?: string;   // e.g. "profiles", "projects", "blogs"
+    Group?: string; // e.g. "profiles", "projects", "blogs"
     LastModified?: Date;
     createdAt: Date;
     updatedAt: Date;
@@ -407,8 +414,7 @@ const SitemapEntrySchema = new Schema<ISitemapEntry>(
 /* ─────────────────────── MODEL EXPORTS ─────────────────────── */
 
 function getModel<T extends Document>(name: string, schema: Schema) {
-    return (mongoose.models[name] as mongoose.Model<T>) ||
-        mongoose.model<T>(name, schema);
+    return (mongoose.models[name] as mongoose.Model<T>) || mongoose.model<T>(name, schema);
 }
 
 export const Project_Model = () => getModel<IProject>("Project", ProjectSchema);

@@ -50,12 +50,10 @@ const config: Config = {
                 },
                 glow: {
                     "0%": {
-                        boxShadow:
-                            "0 0 5px theme(colors.blue.400), 0 0 10px theme(colors.blue.400), 0 0 15px theme(colors.blue.400)"
+                        boxShadow: "0 0 5px theme(colors.blue.400), 0 0 10px theme(colors.blue.400), 0 0 15px theme(colors.blue.400)"
                     },
                     "100%": {
-                        boxShadow:
-                            "0 0 10px theme(colors.purple.400), 0 0 20px theme(colors.purple.400), 0 0 30px theme(colors.purple.400)"
+                        boxShadow: "0 0 10px theme(colors.purple.400), 0 0 20px theme(colors.purple.400), 0 0 30px theme(colors.purple.400)"
                     }
                 },
                 adminPulse: {

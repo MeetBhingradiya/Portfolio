@@ -13,11 +13,7 @@ import { UserRole } from "@Models/UserRole";
 import { getResolvedUser } from "@Utils/RolePermissions";
 
 async function nextOrderNumber(): Promise<number> {
-    const counter = await OrderCounter.findByIdAndUpdate(
-        "order",
-        { $inc: { seq: 1 } },
-        { new: true, upsert: true }
-    );
+    const counter = await OrderCounter.findByIdAndUpdate("order", { $inc: { seq: 1 } }, { new: true, upsert: true });
     return counter.seq;
 }
 
@@ -48,7 +44,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             data: orders,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
         });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 500 });
@@ -76,7 +72,10 @@ export async function POST(req: NextRequest) {
             }
 
             for (const ci of cart.items) {
-                const product = await ShopProduct.findOne({ productId: ci.productId, isDeleted: false });
+                const product = await ShopProduct.findOne({
+                    productId: ci.productId,
+                    isDeleted: false
+                });
                 if (!product) continue;
                 const variant = product.variants.find((v: any) => v.variantId === ci.variantId);
                 if (!variant) continue;
@@ -93,7 +92,7 @@ export async function POST(req: NextRequest) {
                     unitPrice: variant.price,
                     totalPrice: lineTotal,
                     currency: variant.currency,
-                    billingCycle: variant.billingCycle,
+                    billingCycle: variant.billingCycle
                 });
             }
 
@@ -132,7 +131,7 @@ export async function POST(req: NextRequest) {
             paymentStatus: "pending",
             paymentMethod,
             shippingAddress,
-            customerNote,
+            customerNote
         });
 
         // Automatically grant paid_customer role if not already
@@ -140,8 +139,12 @@ export async function POST(req: NextRequest) {
             await UserRole.findOneAndUpdate(
                 { userId: user.userId },
                 {
-                    $setOnInsert: { userId: user.userId, email: user.email, grantedBy: "system" },
-                    $addToSet: { roles: "paid_customer" },
+                    $setOnInsert: {
+                        userId: user.userId,
+                        email: user.email,
+                        grantedBy: "system"
+                    },
+                    $addToSet: { roles: "paid_customer" }
                 },
                 { upsert: true, new: true }
             );

@@ -5,12 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
-import {
-    AIProviderSettings_Model,
-    getAIProviderSettings,
-    AI_PROVIDERS,
-    type AIProviderKey,
-} from "@Models/AIProviderSettings";
+import { AIProviderSettings_Model, getAIProviderSettings, AI_PROVIDERS, type AIProviderKey } from "@Models/AIProviderSettings";
 import { encryptStoredSecret } from "@Utils/SecretVault";
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
@@ -40,8 +35,8 @@ export async function GET(_req: NextRequest) {
             data: {
                 ...obj,
                 Providers: providers,
-                availableProviders: AI_PROVIDERS,
-            },
+                availableProviders: AI_PROVIDERS
+            }
         });
     } catch (err: unknown) {
         if (err instanceof Error && err.message === "Forbidden: requires role 'admin'") {
@@ -68,18 +63,26 @@ export async function PATCH(req: NextRequest) {
         const body = await req.json();
         const { ActiveProvider, Providers, Features, RateLimitPerUser } = body as {
             ActiveProvider?: AIProviderKey;
-            Providers?: Record<AIProviderKey, {
-                enabled?: boolean;
-                apiKey?: string;
-                activeModel?: string;
-                customBaseUrl?: string;
-            }>;
+            Providers?: Record<
+                AIProviderKey,
+                {
+                    enabled?: boolean;
+                    apiKey?: string;
+                    activeModel?: string;
+                    customBaseUrl?: string;
+                }
+            >;
             Features?: Record<string, boolean>;
-            RateLimitPerUser?: { dailyRequests?: number; monthlyRequests?: number };
+            RateLimitPerUser?: {
+                dailyRequests?: number;
+                monthlyRequests?: number;
+            };
         };
 
         const settings = await getAIProviderSettings();
-        const updateSet: Record<string, unknown> = { LastUpdatedBy: admin.email };
+        const updateSet: Record<string, unknown> = {
+            LastUpdatedBy: admin.email
+        };
 
         if (ActiveProvider && Object.keys(AI_PROVIDERS).includes(ActiveProvider)) {
             updateSet.ActiveProvider = ActiveProvider;
@@ -123,13 +126,12 @@ export async function PATCH(req: NextRequest) {
             }
         }
 
-        await AIProviderSettings_Model.updateOne(
-            { ConfigID: "ai_provider_settings_singleton" },
-            { $set: updateSet },
-            { upsert: true }
-        );
+        await AIProviderSettings_Model.updateOne({ ConfigID: "ai_provider_settings_singleton" }, { $set: updateSet }, { upsert: true });
 
-        return NextResponse.json({ success: true, message: "AI provider settings updated" });
+        return NextResponse.json({
+            success: true,
+            message: "AI provider settings updated"
+        });
     } catch (err: unknown) {
         if (err instanceof Error && err.message === "Forbidden: requires role 'admin'") {
             return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });

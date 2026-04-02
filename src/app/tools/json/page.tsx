@@ -12,15 +12,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIBadge } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    DataObject,
-    ContentCopy,
-    Check,
-    SwapHoriz,
-    Compress,
-    FormatAlignLeft,
-    Delete
-} from "@mui/icons-material";
+import { DataObject, ContentCopy, Check, SwapHoriz, Compress, FormatAlignLeft, Delete } from "@mui/icons-material";
 
 const SAMPLE_JSON = `{
   "name": "Meet Bhingradiya",
@@ -147,7 +139,9 @@ export default function JsonPage() {
             if (direction === "json-to-js") {
                 setLeft(JSON.stringify(JSON.parse(left), null, 2));
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     };
 
     const minifyLeft = () => {
@@ -155,7 +149,9 @@ export default function JsonPage() {
             if (direction === "json-to-js") {
                 setLeft(JSON.stringify(JSON.parse(left)));
             }
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     };
 
     const copy = (text: string, side: "left" | "right") => {
@@ -178,26 +174,36 @@ export default function JsonPage() {
             title="JSON ↔ JS Object"
             description="Convert between JSON and JavaScript Object literal"
             icon={<DataObject sx={{ fontSize: 24 }} />}
-            accentColor="#FF9F0A"
-        >
+            accentColor="#FF9F0A">
             <div className="space-y-6">
                 {/* Direction toggle */}
                 <div className="flex items-center gap-3">
                     <div className="flex gap-1.5">
-                        {([
-                            { key: "json-to-js" as Direction, label: "JSON → JS Object" },
-                            { key: "js-to-json" as Direction, label: "JS Object → JSON" }
-                        ]).map((d) => (
+                        {[
+                            {
+                                key: "json-to-js" as Direction,
+                                label: "JSON → JS Object"
+                            },
+                            {
+                                key: "js-to-json" as Direction,
+                                label: "JS Object → JSON"
+                            }
+                        ].map((d) => (
                             <motion.button
                                 key={d.key}
-                                onClick={() => { setDirection(d.key); setLeft(""); setRight(""); setError(null); }}
+                                onClick={() => {
+                                    setDirection(d.key);
+                                    setLeft("");
+                                    setRight("");
+                                    setError(null);
+                                }}
                                 className="px-5 py-2 rounded-full text-sm font-bold"
                                 style={{
-                                    background: direction === d.key ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                                    background:
+                                        direction === d.key ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                     color: direction === d.key ? "#fff" : palette.textSecondary
                                 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
+                                whileTap={{ scale: 0.95 }}>
                                 {d.label}
                             </motion.button>
                         ))}
@@ -207,22 +213,59 @@ export default function JsonPage() {
                     <div className="flex gap-1 ml-auto">
                         {direction === "json-to-js" && (
                             <>
-                                <motion.button onClick={formatLeft} className="p-2 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }} title="Format">
-                                    <FormatAlignLeft sx={{ fontSize: 14, color: palette.textTertiary }} />
+                                <motion.button
+                                    onClick={formatLeft}
+                                    className="p-2 rounded-xl"
+                                    style={{
+                                        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
+                                    }}
+                                    whileTap={{ scale: 0.9 }}
+                                    title="Format">
+                                    <FormatAlignLeft
+                                        sx={{
+                                            fontSize: 14,
+                                            color: palette.textTertiary
+                                        }}
+                                    />
                                 </motion.button>
-                                <motion.button onClick={minifyLeft} className="p-2 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }} title="Minify">
-                                    <Compress sx={{ fontSize: 14, color: palette.textTertiary }} />
+                                <motion.button
+                                    onClick={minifyLeft}
+                                    className="p-2 rounded-xl"
+                                    style={{
+                                        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"
+                                    }}
+                                    whileTap={{ scale: 0.9 }}
+                                    title="Minify">
+                                    <Compress
+                                        sx={{
+                                            fontSize: 14,
+                                            color: palette.textTertiary
+                                        }}
+                                    />
                                 </motion.button>
                             </>
                         )}
-                        <motion.button onClick={swap} className="p-2 rounded-xl" style={{ background: palette.accent }} whileTap={{ scale: 0.9 }} title="Swap">
+                        <motion.button
+                            onClick={swap}
+                            className="p-2 rounded-xl"
+                            style={{ background: palette.accent }}
+                            whileTap={{ scale: 0.9 }}
+                            title="Swap">
                             <SwapHoriz sx={{ fontSize: 14, color: "#fff" }} />
                         </motion.button>
                     </div>
                 </div>
 
                 {error && (
-                    <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} className="px-4 py-2 rounded-xl text-xs font-bold" style={{ background: "#FF3B3015", color: "#FF3B30", border: "1px solid #FF3B3030" }}>
+                    <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="px-4 py-2 rounded-xl text-xs font-bold"
+                        style={{
+                            background: "#FF3B3015",
+                            color: "#FF3B30",
+                            border: "1px solid #FF3B3030"
+                        }}>
                         {error}
                     </motion.div>
                 )}
@@ -235,14 +278,41 @@ export default function JsonPage() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <OneUIBadge variant="info">{leftLabel}</OneUIBadge>
-                                    <span className="text-[10px] font-mono" style={{ color: palette.textTertiary }}>{left.length} chars</span>
+                                    <span
+                                        className="text-[10px] font-mono"
+                                        style={{ color: palette.textTertiary }}>
+                                        {left.length} chars
+                                    </span>
                                 </div>
                                 <div className="flex gap-1">
-                                    <motion.button onClick={() => copy(left, "left")} whileTap={{ scale: 0.9 }}>
-                                        {copied === "left" ? <Check sx={{ fontSize: 14, color: "#34C759" }} /> : <ContentCopy sx={{ fontSize: 14, color: palette.textTertiary }} />}
+                                    <motion.button
+                                        onClick={() => copy(left, "left")}
+                                        whileTap={{ scale: 0.9 }}>
+                                        {copied === "left" ? (
+                                            <Check
+                                                sx={{
+                                                    fontSize: 14,
+                                                    color: "#34C759"
+                                                }}
+                                            />
+                                        ) : (
+                                            <ContentCopy
+                                                sx={{
+                                                    fontSize: 14,
+                                                    color: palette.textTertiary
+                                                }}
+                                            />
+                                        )}
                                     </motion.button>
-                                    <motion.button onClick={() => setLeft("")} whileTap={{ scale: 0.9 }}>
-                                        <Delete sx={{ fontSize: 14, color: palette.textTertiary }} />
+                                    <motion.button
+                                        onClick={() => setLeft("")}
+                                        whileTap={{ scale: 0.9 }}>
+                                        <Delete
+                                            sx={{
+                                                fontSize: 14,
+                                                color: palette.textTertiary
+                                            }}
+                                        />
                                     </motion.button>
                                 </div>
                             </div>
@@ -263,10 +333,30 @@ export default function JsonPage() {
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <OneUIBadge variant="success">{rightLabel}</OneUIBadge>
-                                    <span className="text-[10px] font-mono" style={{ color: palette.textTertiary }}>{right.length} chars</span>
+                                    <span
+                                        className="text-[10px] font-mono"
+                                        style={{ color: palette.textTertiary }}>
+                                        {right.length} chars
+                                    </span>
                                 </div>
-                                <motion.button onClick={() => copy(right, "right")} whileTap={{ scale: 0.9 }}>
-                                    {copied === "right" ? <Check sx={{ fontSize: 14, color: "#34C759" }} /> : <ContentCopy sx={{ fontSize: 14, color: palette.textTertiary }} />}
+                                <motion.button
+                                    onClick={() => copy(right, "right")}
+                                    whileTap={{ scale: 0.9 }}>
+                                    {copied === "right" ? (
+                                        <Check
+                                            sx={{
+                                                fontSize: 14,
+                                                color: "#34C759"
+                                            }}
+                                        />
+                                    ) : (
+                                        <ContentCopy
+                                            sx={{
+                                                fontSize: 14,
+                                                color: palette.textTertiary
+                                            }}
+                                        />
+                                    )}
                                 </motion.button>
                             </div>
                             <div
@@ -276,8 +366,7 @@ export default function JsonPage() {
                                     color: palette.textPrimary,
                                     border: `1.5px solid ${isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)"}`,
                                     minHeight: 400
-                                }}
-                            >
+                                }}>
                                 {right || "Output will appear here"}
                             </div>
                         </div>

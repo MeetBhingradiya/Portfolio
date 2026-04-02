@@ -8,6 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@Library/auth";
 import { MongoClient, ObjectId } from "mongodb";
 import { symmetricDecrypt } from "better-auth/crypto";
+import { Config as SConfig } from "@Config/Server";
 
 /** Safely convert a string to ObjectId, return null on failure */
 function toObjectId(id: string): ObjectId | null {
@@ -51,16 +52,16 @@ export async function POST(request: NextRequest) {
 
         if (providerId === "apple") {
             return NextResponse.json(
-                { error: "APPLE_NO_AVATAR", message: "Apple Sign In does not provide profile pictures." },
+                {
+                    error: "APPLE_NO_AVATAR",
+                    message: "Apple Sign In does not provide profile pictures."
+                },
                 { status: 400 }
             );
         }
 
         if (!["google", "github", "microsoft"].includes(providerId)) {
-            return NextResponse.json(
-                { error: `Avatar sync not supported for ${providerId}` },
-                { status: 400 }
-            );
+            return NextResponse.json({ error: `Avatar sync not supported for ${providerId}` }, { status: 400 });
         }
 
         const userId = session.user.id;
@@ -72,23 +73,18 @@ export async function POST(request: NextRequest) {
 
         try {
             await client.connect();
-            const db = client.db("PRODUCTION_MeetBhingradiya");
+            const db = client.db(SConfig.Database.Name);
 
             // Locate the OAuth account record (user_id may be string or ObjectId)
-            const userIdQuery = objectId
-                ? { $or: [{ user_id: userId }, { user_id: objectId }] }
-                : { user_id: userId };
+            const userIdQuery = objectId ? { $or: [{ user_id: userId }, { user_id: objectId }] } : { user_id: userId };
 
             const account = await db.collection("account").findOne({
                 ...userIdQuery,
-                providerId,
+                providerId
             });
 
             if (!account) {
-                return NextResponse.json(
-                    { error: `No ${providerId} account linked` },
-                    { status: 404 }
-                );
+                return NextResponse.json({ error: `No ${providerId} account linked` }, { status: 404 });
             }
 
             console.log(`[sync-avatar] Found ${providerId} account:`, account.accountId);
@@ -103,13 +99,15 @@ export async function POST(request: NextRequest) {
 
                 if (!accessToken) {
                     return NextResponse.json(
-                        { error: "Cannot decrypt Google access token. Please re-link your Google account." },
+                        {
+                            error: "Cannot decrypt Google access token. Please re-link your Google account."
+                        },
                         { status: 400 }
                     );
                 }
 
                 const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                    headers: { Authorization: `Bearer ${accessToken}` },
+                    headers: { Authorization: `Bearer ${accessToken}` }
                 });
 
                 if (!res.ok) {
@@ -119,7 +117,7 @@ export async function POST(request: NextRequest) {
                     return NextResponse.json(
                         {
                             error: "GOOGLE_TOKEN_EXPIRED",
-                            message: "Your Google access token has expired. Please sign out and sign in again with Google to refresh it.",
+                            message: "Your Google access token has expired. Please sign out and sign in again with Google to refresh it."
                         },
                         { status: 401 }
                     );
@@ -130,7 +128,9 @@ export async function POST(request: NextRequest) {
 
                 if (!imageUrl) {
                     return NextResponse.json(
-                        { error: "Google account does not have a profile picture." },
+                        {
+                            error: "Google account does not have a profile picture."
+                        },
                         { status: 400 }
                     );
                 }
@@ -153,7 +153,9 @@ export async function POST(request: NextRequest) {
                 } catch (e) {
                     console.error("[sync-avatar] GitHub avatar HEAD check failed:", e);
                     return NextResponse.json(
-                        { error: "Could not reach GitHub avatar URL. Please try again later." },
+                        {
+                            error: "Could not reach GitHub avatar URL. Please try again later."
+                        },
                         { status: 500 }
                     );
                 }
@@ -170,34 +172,36 @@ export async function POST(request: NextRequest) {
 
                 if (!accessToken) {
                     return NextResponse.json(
-                        { error: "Cannot decrypt Microsoft access token. Please re-link your Microsoft account." },
+                        {
+                            error: "Cannot decrypt Microsoft access token. Please re-link your Microsoft account."
+                        },
                         { status: 400 }
                     );
                 }
 
-                const photoRes = await fetch(
-                    "https://graph.microsoft.com/v1.0/me/photos/48x48/$value",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${accessToken}`,
-                            "Content-Type": "image/jpeg",
-                        },
+                const photoRes = await fetch("https://graph.microsoft.com/v1.0/me/photos/48x48/$value", {
+                    headers: {
+                        "Authorization": `Bearer ${accessToken}`,
+                        "Content-Type": "image/jpeg"
                     }
-                );
+                });
 
                 if (!photoRes.ok) {
                     if (photoRes.status === 401) {
                         return NextResponse.json(
                             {
                                 error: "MICROSOFT_TOKEN_EXPIRED",
-                                message: "Your Microsoft access token has expired. Please sign out and sign in again with Microsoft to refresh it.",
+                                message:
+                                    "Your Microsoft access token has expired. Please sign out and sign in again with Microsoft to refresh it."
                             },
                             { status: 401 }
                         );
                     }
                     // 404 = no photo set
                     return NextResponse.json(
-                        { error: "Your Microsoft account does not have a profile picture." },
+                        {
+                            error: "Your Microsoft account does not have a profile picture."
+                        },
                         { status: 400 }
                     );
                 }
@@ -213,12 +217,10 @@ export async function POST(request: NextRequest) {
             // ── Persist to MongoDB + Better Auth ───────────────────────────────────
             if (imageUrl) {
                 // 1. Write the provider-specific avatar field directly (input:false additionalField)
-                const userQuery = objectId
-                    ? { $or: [{ id: userId }, { _id: objectId }] }
-                    : { id: userId };
+                const userQuery = objectId ? { $or: [{ id: userId }, { _id: objectId }] } : { id: userId };
 
                 await db.collection("user").updateOne(userQuery, {
-                    $set: { [avatarField!]: imageUrl, image: imageUrl },
+                    $set: { [avatarField!]: imageUrl, image: imageUrl }
                 });
 
                 console.log(`[sync-avatar] ✅ Wrote ${avatarField} + image to MongoDB`);
@@ -234,9 +236,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, image: imageUrl });
     } catch (error: any) {
         console.error("[sync-avatar] Unexpected error:", error);
-        return NextResponse.json(
-            { error: error.message || "Failed to sync profile image" },
-            { status: 500 }
-        );
+        return NextResponse.json({ error: error.message || "Failed to sync profile image" }, { status: 500 });
     }
 }

@@ -22,10 +22,7 @@ export async function GET(req: NextRequest) {
 
         const query: any = {};
         if (search) {
-            query.$or = [
-                { email: { $regex: search, $options: "i" } },
-                { userId: { $regex: search, $options: "i" } },
-            ];
+            query.$or = [{ email: { $regex: search, $options: "i" } }, { userId: { $regex: search, $options: "i" } }];
         }
         if (role) query.roles = role;
 
@@ -39,7 +36,7 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({
             success: true,
             data,
-            pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+            pagination: { page, limit, total, pages: Math.ceil(total / limit) }
         });
     } catch (err: any) {
         const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
@@ -67,10 +64,7 @@ export async function POST(req: NextRequest) {
             if (!db) {
                 return NextResponse.json({ success: false, error: "DB not ready" }, { status: 503 });
             }
-            const user = await db.collection("user").findOne(
-                { email: email.toLowerCase() },
-                { projection: { _id: 1 } }
-            );
+            const user = await db.collection("user").findOne({ email: email.toLowerCase() }, { projection: { _id: 1 } });
             if (!user) {
                 return NextResponse.json({ success: false, error: "No user found with that email" }, { status: 404 });
             }
@@ -85,7 +79,7 @@ export async function POST(req: NextRequest) {
                 roles: roles ?? ["user"],
                 permissions: permissions ?? [],
                 notes,
-                grantedBy: admin.email,
+                grantedBy: admin.email
             },
             { upsert: true, new: true }
         );

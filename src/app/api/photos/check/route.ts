@@ -20,7 +20,7 @@ export async function GET(_req: NextRequest) {
         await dbConnect();
         const entry = await ImmichWhitelist.findOne({
             email: session.user.email.toLowerCase(),
-            enabled: true,
+            enabled: true
         }).lean();
 
         return NextResponse.json({ allowed: !!entry });

@@ -12,15 +12,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    Article,
-    ContentCopy,
-    Check,
-    Download,
-    Visibility,
-    Edit,
-    VerticalSplit
-} from "@mui/icons-material";
+import { Article, ContentCopy, Check, Download, Visibility, Edit, VerticalSplit } from "@mui/icons-material";
 
 const SAMPLE = `# Hello Markdown
 
@@ -73,29 +65,45 @@ function markdownToHtml(md: string): string {
     });
 
     // Inline code
-    html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-size:0.875em">$1</code>');
+    html = html.replace(
+        /`([^`]+)`/g,
+        '<code style="background:rgba(0,0,0,0.06);padding:2px 6px;border-radius:4px;font-size:0.875em">$1</code>'
+    );
 
     // Images
     html = html.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img alt="$1" src="$2" style="max-width:100%;border-radius:8px" />');
 
     // Links
-    html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" style="color:#007AFF;text-decoration:underline">$1</a>');
+    html = html.replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" rel="noopener" style="color:#007AFF;text-decoration:underline">$1</a>'
+    );
 
     // Tables
     html = html.replace(/(?:^\|.+\|\n)+/gm, (tableBlock) => {
         const rows = tableBlock.trim().split("\n");
         if (rows.length < 2) return tableBlock;
-        const headerCells = rows[0].split("|").filter(Boolean).map((c) => c.trim());
+        const headerCells = rows[0]
+            .split("|")
+            .filter(Boolean)
+            .map((c) => c.trim());
         const isSep = /^[\s|:-]+$/.test(rows[1]);
         const bodyStart = isSep ? 2 : 1;
 
         let t = '<table style="width:100%;border-collapse:collapse;margin:12px 0"><thead><tr>';
-        headerCells.forEach((c) => { t += `<th style="border:1px solid rgba(0,0,0,0.12);padding:8px;text-align:left">${c}</th>`; });
+        headerCells.forEach((c) => {
+            t += `<th style="border:1px solid rgba(0,0,0,0.12);padding:8px;text-align:left">${c}</th>`;
+        });
         t += "</tr></thead><tbody>";
         for (let i = bodyStart; i < rows.length; i++) {
-            const cells = rows[i].split("|").filter(Boolean).map((c) => c.trim());
+            const cells = rows[i]
+                .split("|")
+                .filter(Boolean)
+                .map((c) => c.trim());
             t += "<tr>";
-            cells.forEach((c) => { t += `<td style="border:1px solid rgba(0,0,0,0.12);padding:8px">${c}</td>`; });
+            cells.forEach((c) => {
+                t += `<td style="border:1px solid rgba(0,0,0,0.12);padding:8px">${c}</td>`;
+            });
             t += "</tr>";
         }
         t += "</tbody></table>";
@@ -123,7 +131,10 @@ function markdownToHtml(md: string): string {
     html = html.replace(/~~(.+?)~~/g, "<del>$1</del>");
 
     // Blockquotes
-    html = html.replace(/^> (.+)$/gm, '<blockquote style="border-left:3px solid rgba(0,0,0,0.15);padding:4px 12px;margin:8px 0;color:rgba(0,0,0,0.65)">$1</blockquote>');
+    html = html.replace(
+        /^> (.+)$/gm,
+        '<blockquote style="border-left:3px solid rgba(0,0,0,0.15);padding:4px 12px;margin:8px 0;color:rgba(0,0,0,0.65)">$1</blockquote>'
+    );
 
     // Unordered lists
     html = html.replace(/^- (.+)$/gm, '<li style="margin:2px 0;list-style-type:disc;margin-left:20px">$1</li>');
@@ -194,27 +205,72 @@ export default function MarkdownPage() {
             accentColor="#64D2FF"
             actions={
                 <div className="flex gap-1.5">
-                    <motion.button onClick={() => copy(source)} className="p-2 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }}>
-                        {copied ? <Check sx={{ fontSize: 16, color: "#34C759" }} /> : <ContentCopy sx={{ fontSize: 16, color: palette.textTertiary }} />}
+                    <motion.button
+                        onClick={() => copy(source)}
+                        className="p-2 rounded-xl"
+                        style={{
+                            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)"
+                        }}
+                        whileTap={{ scale: 0.9 }}>
+                        {copied ? (
+                            <Check sx={{ fontSize: 16, color: "#34C759" }} />
+                        ) : (
+                            <ContentCopy
+                                sx={{
+                                    fontSize: 16,
+                                    color: palette.textTertiary
+                                }}
+                            />
+                        )}
                     </motion.button>
-                    <motion.button onClick={() => download(source, "document.md")} className="p-2 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }} title="Download .md">
+                    <motion.button
+                        onClick={() => download(source, "document.md")}
+                        className="p-2 rounded-xl"
+                        style={{
+                            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)"
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        title="Download .md">
                         <Download sx={{ fontSize: 16, color: palette.textTertiary }} />
                     </motion.button>
-                    <motion.button onClick={() => download(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Markdown Export</title></head><body>${preview}</body></html>`, "document.html")} className="p-2 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)" }} whileTap={{ scale: 0.9 }} title="Download .html">
+                    <motion.button
+                        onClick={() =>
+                            download(
+                                `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Markdown Export</title></head><body>${preview}</body></html>`,
+                                "document.html"
+                            )
+                        }
+                        className="p-2 rounded-xl"
+                        style={{
+                            background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)"
+                        }}
+                        whileTap={{ scale: 0.9 }}
+                        title="Download .html">
                         <Article sx={{ fontSize: 16, color: palette.textTertiary }} />
                     </motion.button>
                 </div>
-            }
-        >
+            }>
             <div className="space-y-4">
                 {/* View mode + stats */}
                 <div className="flex items-center justify-between">
                     <div className="flex gap-1.5">
-                        {([
-                            { key: "split" as ViewMode, icon: <VerticalSplit sx={{ fontSize: 14 }} />, label: "Split" },
-                            { key: "editor" as ViewMode, icon: <Edit sx={{ fontSize: 14 }} />, label: "Editor" },
-                            { key: "preview" as ViewMode, icon: <Visibility sx={{ fontSize: 14 }} />, label: "Preview" }
-                        ]).map((v) => (
+                        {[
+                            {
+                                key: "split" as ViewMode,
+                                icon: <VerticalSplit sx={{ fontSize: 14 }} />,
+                                label: "Split"
+                            },
+                            {
+                                key: "editor" as ViewMode,
+                                icon: <Edit sx={{ fontSize: 14 }} />,
+                                label: "Editor"
+                            },
+                            {
+                                key: "preview" as ViewMode,
+                                icon: <Visibility sx={{ fontSize: 14 }} />,
+                                label: "Preview"
+                            }
+                        ].map((v) => (
                             <motion.button
                                 key={v.key}
                                 onClick={() => setView(v.key)}
@@ -223,13 +279,14 @@ export default function MarkdownPage() {
                                     background: view === v.key ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.04)",
                                     color: view === v.key ? "#fff" : palette.textSecondary
                                 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
+                                whileTap={{ scale: 0.95 }}>
                                 {v.icon} {v.label}
                             </motion.button>
                         ))}
                     </div>
-                    <p className="text-[10px] font-mono" style={{ color: palette.textTertiary }}>
+                    <p
+                        className="text-[10px] font-mono"
+                        style={{ color: palette.textTertiary }}>
                         {wordCount} words · {charCount} chars
                     </p>
                 </div>
@@ -252,7 +309,11 @@ export default function MarkdownPage() {
                         <Card>
                             <div
                                 className="prose prose-sm max-w-none px-4 py-3 rounded-xl overflow-y-auto"
-                                style={{ minHeight: 500, color: palette.textPrimary, fontSize: 14 }}
+                                style={{
+                                    minHeight: 500,
+                                    color: palette.textPrimary,
+                                    fontSize: 14
+                                }}
                                 dangerouslySetInnerHTML={{ __html: preview }}
                             />
                         </Card>

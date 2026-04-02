@@ -11,19 +11,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { LiquidGlassCard, LiquidGlassButton } from "@Components/Atoms/LiquidGlass/index";
 import { OneUICard, OneUIButton, OneUIBadge } from "@Components/Atoms/OneUI/index";
-import {
-    GitHub,
-    LinkedIn,
-    Email,
-    Download,
-    ArrowForward,
-    LocationOn,
-    Code,
-    Work,
-    Star,
-    TrendingUp,
-    Schedule
-} from "@mui/icons-material";
+import { GitHub, LinkedIn, Email, Download, ArrowForward, LocationOn, Code, Work, Star, TrendingUp, Schedule } from "@mui/icons-material";
 
 const roles = [
     "Full Stack Developer",
@@ -61,16 +49,7 @@ const keyHighlights = [
     }
 ];
 
-const expertise = [
-    "React & Next.js",
-    "TypeScript",
-    "Node.js",
-    "Python",
-    "DevOps",
-    "System Design",
-    "Cloud Architecture",
-    "Security"
-];
+const expertise = ["React & Next.js", "TypeScript", "Node.js", "Python", "DevOps", "System Design", "Cloud Architecture", "Security"];
 
 export default function ModernHero() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
@@ -109,8 +88,7 @@ export default function ModernHero() {
                 background: isApple
                     ? `radial-gradient(circle at ${mousePosition.x}% ${mousePosition.y}%, ${palette.accentSubtle} 0%, ${palette.background} 50%)`
                     : palette.background
-            }}
-        >
+            }}>
             {/* Animated Background Elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {isApple ? (
@@ -178,8 +156,7 @@ export default function ModernHero() {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6 }}
-                        >
+                            transition={{ duration: 0.6 }}>
                             {isApple ? (
                                 <div
                                     className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-semibold relative overflow-hidden"
@@ -189,15 +166,12 @@ export default function ModernHero() {
                                         background: isDark
                                             ? "linear-gradient(180deg, rgba(58, 58, 60, 0.7) 0%, rgba(44, 44, 46, 0.65) 100%)"
                                             : "linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 250, 0.65) 100%)",
-                                        border: isDark
-                                            ? "0.5px solid rgba(255, 255, 255, 0.15)"
-                                            : "0.5px solid rgba(255, 255, 255, 0.8)",
+                                        border: isDark ? "0.5px solid rgba(255, 255, 255, 0.15)" : "0.5px solid rgba(255, 255, 255, 0.8)",
                                         boxShadow: isDark
                                             ? "0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
                                             : "0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(255, 255, 255, 1) inset",
                                         color: "#34C759"
-                                    }}
-                                >
+                                    }}>
                                     <div
                                         className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
                                         style={{
@@ -211,7 +185,7 @@ export default function ModernHero() {
                                     <span className="relative z-10">Available for Project Management roles</span>
                                 </div>
                             ) : (
-                                <OneUIBadge variant="success" >
+                                <OneUIBadge variant="success">
                                     <div className="flex flex-row gap-1 items-center">
                                         <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse mr-2" />
                                         Available for Project Management roles
@@ -225,12 +199,10 @@ export default function ModernHero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.6, delay: 0.1 }}
-                            className="space-y-4"
-                        >
+                            className="space-y-4">
                             <h1
                                 className={`${isApple ? "text-5xl md:text-7xl font-extrabold" : "text-6xl md:text-8xl font-black"} leading-tight`}
-                                style={{ color: palette.textPrimary }}
-                            >
+                                style={{ color: palette.textPrimary }}>
                                 Meet Bhingradiya
                             </h1>
 
@@ -238,8 +210,7 @@ export default function ModernHero() {
                             <div className="flex items-center gap-3 flex-wrap">
                                 <span
                                     className={`${isApple ? "text-2xl md:text-3xl font-semibold" : "text-3xl md:text-4xl font-bold"}`}
-                                    style={{ color: palette.textSecondary }}
-                                >
+                                    style={{ color: palette.textSecondary }}>
                                     I&apos;m a
                                 </span>
                                 <div className="relative h-12 md:h-14 overflow-hidden">
@@ -251,8 +222,7 @@ export default function ModernHero() {
                                             initial={{ y: 50, opacity: 0 }}
                                             animate={{ y: 0, opacity: 1 }}
                                             exit={{ y: -50, opacity: 0 }}
-                                            transition={{ duration: 0.5 }}
-                                        >
+                                            transition={{ duration: 0.5 }}>
                                             {roles[currentRoleIndex]}
                                         </motion.span>
                                     </AnimatePresence>
@@ -266,11 +236,9 @@ export default function ModernHero() {
                             style={{ color: palette.textSecondary }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.2 }}
-                        >
-                            Passionate software engineer specializing in building scalable
-                            applications, leading projects, and creating exceptional user
-                            experiences. Expert in modern web technologies and cloud architecture.
+                            transition={{ duration: 0.6, delay: 0.2 }}>
+                            Passionate software engineer specializing in building scalable applications, leading projects, and creating
+                            exceptional user experiences. Expert in modern web technologies and cloud architecture.
                         </motion.p>
 
                         {/* Location */}
@@ -279,12 +247,9 @@ export default function ModernHero() {
                             style={{ color: palette.textTertiary }}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.25 }}
-                        >
+                            transition={{ duration: 0.6, delay: 0.25 }}>
                             <LocationOn className="text-lg" />
-                            <span className={isApple ? "text-sm" : "text-base font-semibold"}>
-                                Surat, Gujarat, India
-                            </span>
+                            <span className={isApple ? "text-sm" : "text-base font-semibold"}>Surat, Gujarat, India</span>
                         </motion.div>
 
                         {/* CTAs */}
@@ -292,14 +257,12 @@ export default function ModernHero() {
                             className="flex flex-wrap gap-4"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.3 }}
-                        >
+                            transition={{ duration: 0.6, delay: 0.3 }}>
                             <Button
                                 variant="primary"
                                 size={isApple ? "md" : "lg"}
                                 icon={<Email />}
-                                onClick={() => window.location.href = "/contact"}
-                            >
+                                onClick={() => (window.location.href = "/contact")}>
                                 Get In Touch
                             </Button>
 
@@ -307,8 +270,7 @@ export default function ModernHero() {
                                 variant="secondary"
                                 size={isApple ? "md" : "lg"}
                                 icon={<Download />}
-                                onClick={() => window.open("/resume.pdf", "_blank")}
-                            >
+                                onClick={() => window.open("/resume.pdf", "_blank")}>
                                 Download Resume
                             </Button>
                         </motion.div>
@@ -318,13 +280,11 @@ export default function ModernHero() {
                             className="flex items-center gap-4"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.6, delay: 0.35 }}
-                        >
+                            transition={{ duration: 0.6, delay: 0.35 }}>
                             <a
                                 href="https://github.com/MeetBhingradiya"
                                 target="_blank"
-                                rel="noopener noreferrer"
-                            >
+                                rel="noopener noreferrer">
                                 <motion.div
                                     className={`${isApple ? "p-3" : "p-4"} rounded-full relative overflow-hidden`}
                                     style={{
@@ -348,8 +308,7 @@ export default function ModernHero() {
                                         color: palette.textPrimary
                                     }}
                                     whileHover={{ scale: 1.08, y: -2 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
+                                    whileTap={{ scale: 0.95 }}>
                                     {isApple && (
                                         <div
                                             className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
@@ -368,8 +327,7 @@ export default function ModernHero() {
                             <a
                                 href="https://linkedin.com/in/meetbhingradiya"
                                 target="_blank"
-                                rel="noopener noreferrer"
-                            >
+                                rel="noopener noreferrer">
                                 <motion.div
                                     className={`${isApple ? "p-3" : "p-4"} rounded-full relative overflow-hidden`}
                                     style={{
@@ -393,8 +351,7 @@ export default function ModernHero() {
                                         color: palette.textPrimary
                                     }}
                                     whileHover={{ scale: 1.08, y: -2 }}
-                                    whileTap={{ scale: 0.95 }}
-                                >
+                                    whileTap={{ scale: 0.95 }}>
                                     {isApple && (
                                         <div
                                             className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
@@ -419,39 +376,37 @@ export default function ModernHero() {
                             className="grid grid-cols-2 gap-5"
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.4 }}
-                        >
+                            transition={{ duration: 0.6, delay: 0.4 }}>
                             {keyHighlights.map((highlight, index) => (
                                 <Card
                                     key={index}
                                     className={isApple ? "p-6" : "p-7"}
                                     intensity={isApple ? "medium" : undefined}
-                                    elevated={!isApple}
-                                >
+                                    elevated={!isApple}>
                                     <motion.div
                                         initial={{ opacity: 0, y: 20 }}
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{
                                             duration: 0.6,
                                             delay: 0.5 + index * 0.1
-                                        }}
-                                    >
+                                        }}>
                                         <div
                                             className={`${isApple ? "text-2xl" : "text-4xl"} mb-4`}
-                                            style={{ color: highlight.color }}
-                                        >
+                                            style={{ color: highlight.color }}>
                                             {highlight.icon}
                                         </div>
                                         <div
                                             className={`${isApple ? "text-xs" : "text-xs font-black"} uppercase tracking-[0.15em] mb-2`}
-                                            style={{ color: palette.textTertiary }}
-                                        >
+                                            style={{
+                                                color: palette.textTertiary
+                                            }}>
                                             {highlight.label}
                                         </div>
                                         <div
                                             className={`${isApple ? "text-xl font-bold" : "text-3xl font-black leading-tight"}`}
-                                            style={{ color: palette.textPrimary }}
-                                        >
+                                            style={{
+                                                color: palette.textPrimary
+                                            }}>
                                             {highlight.value}
                                         </div>
                                     </motion.div>
@@ -463,17 +418,14 @@ export default function ModernHero() {
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.6, delay: 0.8 }}
-                        >
+                            transition={{ duration: 0.6, delay: 0.8 }}>
                             <Card
                                 className={isApple ? "p-6" : "p-8"}
                                 intensity={isApple ? "medium" : undefined}
-                                elevated={!isApple}
-                            >
+                                elevated={!isApple}>
                                 <h3
                                     className={`${isApple ? "text-sm font-semibold" : "text-sm font-black"} uppercase tracking-[0.15em] mb-5`}
-                                    style={{ color: palette.textTertiary }}
-                                >
+                                    style={{ color: palette.textTertiary }}>
                                     Core Expertise
                                 </h3>
                                 <div className="flex flex-wrap gap-2.5">
@@ -482,13 +434,9 @@ export default function ModernHero() {
                                             key={skill}
                                             className={`${isApple ? "px-3 py-1.5 text-xs rounded-lg relative overflow-hidden" : "px-4 py-2 text-sm rounded-full font-bold"}`}
                                             style={{
-                                                background: isApple
-                                                    ? `${palette.accent}15`
-                                                    : palette.accentSubtle,
+                                                background: isApple ? `${palette.accent}15` : palette.accentSubtle,
                                                 color: palette.accent,
-                                                border: isApple
-                                                    ? `0.5px solid ${palette.accent}30`
-                                                    : `1px solid ${palette.accent}30`,
+                                                border: isApple ? `0.5px solid ${palette.accent}30` : `1px solid ${palette.accent}30`,
                                                 backdropFilter: isApple ? "blur(10px)" : "none",
                                                 WebkitBackdropFilter: isApple ? "blur(10px)" : "none"
                                             }}
@@ -501,8 +449,7 @@ export default function ModernHero() {
                                             whileHover={{
                                                 scale: 1.05,
                                                 background: isApple ? `${palette.accent}25` : palette.accentSubtle
-                                            }}
-                                        >
+                                            }}>
                                             {isApple && (
                                                 <span
                                                     className="absolute inset-0 pointer-events-none"
@@ -526,17 +473,14 @@ export default function ModernHero() {
                     className="absolute bottom-10 left-1/2 transform -translate-x-1/2"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    transition={{ duration: 1, delay: 1.2 }}
-                >
+                    transition={{ duration: 1, delay: 1.2 }}>
                     <motion.div
                         className="flex flex-col items-center gap-2"
                         animate={{ y: [0, 10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity }}
-                    >
+                        transition={{ duration: 2, repeat: Infinity }}>
                         <span
                             className={`${isApple ? "text-xs" : "text-sm font-semibold"}`}
-                            style={{ color: palette.textTertiary }}
-                        >
+                            style={{ color: palette.textTertiary }}>
                             Scroll to explore
                         </span>
                         <ArrowForward

@@ -61,7 +61,7 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                     userAgent: item.session.userAgent,
                     createdAt: item.session.createdAt,
                     updatedAt: item.session.updatedAt,
-                    user: item.user,
+                    user: item.user
                 }));
                 setAccounts(formatted);
             }
@@ -79,7 +79,7 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
         setSwitching(true);
         try {
             const { error } = await authClient.multiSession.setActive({
-                sessionToken,
+                sessionToken
             });
 
             if (error) {
@@ -105,7 +105,7 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
 
         try {
             const { error } = await authClient.multiSession.revoke({
-                sessionToken,
+                sessionToken
             });
 
             if (error) {
@@ -155,22 +155,19 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                     className="relative w-full max-w-md rounded-2xl shadow-2xl overflow-hidden"
                     style={{
                         backgroundColor: isDark ? palette.surface : palette.background,
-                        border: `1px solid ${palette.border}`,
+                        border: `1px solid ${palette.border}`
                     }}
                     initial={{ scale: 0.9, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.9, opacity: 0 }}
-                    onClick={(e) => e.stopPropagation()}
-                >
+                    onClick={(e) => e.stopPropagation()}>
                     {/* Header */}
                     <div
                         className="flex items-center justify-between p-6 border-b"
-                        style={{ borderColor: palette.border }}
-                    >
+                        style={{ borderColor: palette.border }}>
                         <h2
                             className="text-xl font-semibold"
-                            style={{ color: palette.textPrimary }}
-                        >
+                            style={{ color: palette.textPrimary }}>
                             Switch Account
                         </h2>
                         <button
@@ -178,9 +175,8 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                             className="p-2 rounded-lg transition-colors hover:bg-opacity-10"
                             style={{
                                 color: palette.textSecondary,
-                                backgroundColor: `${palette.textSecondary}10`,
-                            }}
-                        >
+                                backgroundColor: `${palette.textSecondary}10`
+                            }}>
                             <Close />
                         </button>
                     </div>
@@ -200,13 +196,12 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                                     style={{
                                         fontSize: 64,
                                         color: palette.textSecondary,
-                                        opacity: 0.5,
+                                        opacity: 0.5
                                     }}
                                 />
                                 <p
                                     className="mt-4 text-base"
-                                    style={{ color: palette.textSecondary }}
-                                >
+                                    style={{ color: palette.textSecondary }}>
                                     No saved accounts. Sign in to add one.
                                 </p>
                             </div>
@@ -220,15 +215,10 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                                             key={account.id}
                                             className="flex items-center justify-between p-4 rounded-xl border transition-all"
                                             style={{
-                                                borderColor: isActive
-                                                    ? palette.accent
-                                                    : palette.border,
-                                                backgroundColor: isActive
-                                                    ? palette.accentSubtle
-                                                    : "transparent",
+                                                borderColor: isActive ? palette.accent : palette.border,
+                                                backgroundColor: isActive ? palette.accentSubtle : "transparent"
                                             }}
-                                            whileHover={{ scale: 1.02 }}
-                                        >
+                                            whileHover={{ scale: 1.02 }}>
                                             <div className="flex items-center gap-3 flex-1">
                                                 {/* Avatar */}
                                                 <UserAvatar
@@ -243,14 +233,16 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                                                 <div className="flex-1">
                                                     <p
                                                         className="font-medium text-sm"
-                                                        style={{ color: palette.textPrimary }}
-                                                    >
+                                                        style={{
+                                                            color: palette.textPrimary
+                                                        }}>
                                                         {account.user.name || account.user.email}
                                                     </p>
                                                     <p
                                                         className="text-xs"
-                                                        style={{ color: palette.textSecondary }}
-                                                    >
+                                                        style={{
+                                                            color: palette.textSecondary
+                                                        }}>
                                                         {account.user.email}
                                                     </p>
                                                 </div>
@@ -260,9 +252,8 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                                                         className="flex items-center gap-1 px-2 py-1 rounded text-xs font-medium"
                                                         style={{
                                                             backgroundColor: palette.accent,
-                                                            color: "#fff",
-                                                        }}
-                                                    >
+                                                            color: "#fff"
+                                                        }}>
                                                         <Check fontSize="small" />
                                                         Active
                                                     </div>
@@ -279,9 +270,8 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                                                         style={{
                                                             backgroundColor: palette.accent,
                                                             color: "#fff",
-                                                            opacity: switching ? 0.5 : 1,
-                                                        }}
-                                                    >
+                                                            opacity: switching ? 0.5 : 1
+                                                        }}>
                                                         Switch
                                                     </button>
                                                 )}
@@ -290,9 +280,8 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                                                     className="p-2 rounded-lg transition-colors"
                                                     style={{
                                                         color: "#ef4444",
-                                                        backgroundColor: "#ef444410",
-                                                    }}
-                                                >
+                                                        backgroundColor: "#ef444410"
+                                                    }}>
                                                     <DeleteOutline fontSize="small" />
                                                 </button>
                                             </div>
@@ -306,16 +295,14 @@ export default function SwitchAccountModal({ isOpen, onClose }: SwitchAccountMod
                     {/* Footer */}
                     <div
                         className="p-6 border-t"
-                        style={{ borderColor: palette.border }}
-                    >
+                        style={{ borderColor: palette.border }}>
                         <button
                             onClick={handleAddAccount}
                             className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-medium transition-all"
                             style={{
                                 backgroundColor: palette.accentSubtle,
-                                color: palette.accent,
-                            }}
-                        >
+                                color: palette.accent
+                            }}>
                             <Add />
                             Add Another Account
                         </button>

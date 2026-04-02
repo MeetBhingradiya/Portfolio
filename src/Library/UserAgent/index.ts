@@ -364,10 +364,7 @@ class UserAgent {
                 }
 
                 // If the UA does not start with Mozilla guess the user agent.
-                if (
-                    string.indexOf("Mozilla") !== 0 &&
-                    /^([\d\w\-\.]+)\/[\d\w\.\-]+/i.test(string)
-                ) {
+                if (string.indexOf("Mozilla") !== 0 && /^([\d\w\-\.]+)\/[\d\w\.\-]+/i.test(string)) {
                     this.Agent.isAuthoritative = false;
                     return RegExp.$1;
                 }
@@ -470,19 +467,13 @@ class UserAgent {
                 break;
             default:
                 if (this.Agent.browser !== "unknown") {
-                    regex = new RegExp(
-                        this.Agent.browser + "[\\/ ]([\\d\\w\\.\\-]+)",
-                        "i"
-                    );
+                    regex = new RegExp(this.Agent.browser + "[\\/ ]([\\d\\w\\.\\-]+)", "i");
                     if (regex.test(string)) {
                         return RegExp.$1;
                     }
                 } else {
                     this.testWebkit();
-                    if (
-                        this.Agent.isWebkit &&
-                        this._Versions.WebKit.test(string)
-                    ) {
+                    if (this.Agent.isWebkit && this._Versions.WebKit.test(string)) {
                         return RegExp.$1;
                     }
                     return "unknown";
@@ -866,10 +857,9 @@ class UserAgent {
 
     private testSmartTV = () => {
         var ua = this;
-        ua.Agent.isSmartTV = new RegExp(
-            "smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv",
-            "gi"
-        ).test(ua.Agent.source.toLowerCase());
+        ua.Agent.isSmartTV = new RegExp("smart-tv|smarttv|googletv|appletv|hbbtv|pov_tv|netcast.tv", "gi").test(
+            ua.Agent.source.toLowerCase()
+        );
     };
 
     private testAndroidTablet = () => {
@@ -881,10 +871,7 @@ class UserAgent {
 
     private testWebkit = () => {
         var ua = this;
-        if (
-            ua.Agent.browser === "unknown" &&
-            /applewebkit/i.test(ua.Agent.source)
-        ) {
+        if (ua.Agent.browser === "unknown" && /applewebkit/i.test(ua.Agent.source)) {
             ua.Agent.browser = "Apple WebKit";
             ua.Agent.isWebkit = true;
         }

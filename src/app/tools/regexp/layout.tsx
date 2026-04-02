@@ -24,7 +24,14 @@ export const metadata: Metadata = {
         url: `${Config.Origin}/tools/regexp`,
         title: "RegExp Tester | Meet Bhingradiya Tools",
         description: "Test and debug regular expressions in real time with flag toggles and highlighting.",
-        images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "RegExp Tester" }]
+        images: [
+            {
+                url: "/assets/og-image.png",
+                width: 1200,
+                height: 630,
+                alt: "RegExp Tester"
+            }
+        ]
     },
     twitter: {
         card: "summary_large_image",

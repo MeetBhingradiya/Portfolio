@@ -16,8 +16,8 @@ import { Payment } from "@Models/Payment";
 
 export async function POST(req: NextRequest) {
     const razorpay = new Razorpay({
-        key_id    : process.env.RAZORPAY_KEY_ID!,
-        key_secret: process.env.RAZORPAY_KEY_SECRET!,
+        key_id: process.env.RAZORPAY_KEY_ID!,
+        key_secret: process.env.RAZORPAY_KEY_SECRET!
     });
     try {
         const session = await getSession(req.headers);
@@ -30,36 +30,36 @@ export async function POST(req: NextRequest) {
 
         // Create order in Razorpay
         const order = await razorpay.orders.create({
-            amount  : Math.round(amount),
+            amount: Math.round(amount),
             currency,
-            notes   : {
-                userId      : session.user.id    || "",
-                userEmail   : session.user.email || "",
+            notes: {
+                userId: session.user.id || "",
+                userEmail: session.user.email || "",
                 purpose,
-                referenceId : referenceId || "",
-                ...(notes || {}),
-            },
+                referenceId: referenceId || "",
+                ...(notes || {})
+            }
         });
 
         // Save pending payment record
         await Payment.create({
-            userId            : session.user.id    || session.user.email,
-            userEmail         : session.user.email,
-            provider          : "razorpay",
-            type              : "one_time",
+            userId: session.user.id || session.user.email,
+            userEmail: session.user.email,
+            provider: "razorpay",
+            type: "one_time",
             purpose,
             referenceId,
             amount,
             currency,
-            razorpayOrderId   : order.id,
-            status            : "pending",
+            razorpayOrderId: order.id,
+            status: "pending"
         });
 
         return NextResponse.json({
-            orderId  : order.id,
-            amount   : order.amount,
-            currency : order.currency,
-            keyId    : process.env.RAZORPAY_KEY_ID,
+            orderId: order.id,
+            amount: order.amount,
+            currency: order.currency,
+            keyId: process.env.RAZORPAY_KEY_ID
         });
     } catch (err: any) {
         console.error("[Razorpay create-order]", err);

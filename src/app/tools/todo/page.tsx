@@ -11,16 +11,7 @@ import { useDesignTheme, useToolDefaults } from "@Hooks";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard } from "@Components/Atoms/OneUI";
 import ToolPageWrapper from "@Components/Organisms/Tools/ToolPageWrapper";
-import {
-    CheckCircleOutline,
-    RadioButtonUnchecked,
-    Delete,
-    Add,
-    FilterList,
-    Edit,
-    Save,
-    ChecklistRtl
-} from "@mui/icons-material";
+import { CheckCircleOutline, RadioButtonUnchecked, Delete, Add, FilterList, Edit, Save, ChecklistRtl } from "@mui/icons-material";
 
 interface TodoItem {
     id: string;
@@ -58,7 +49,9 @@ export default function TodoPage() {
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) setTodos(JSON.parse(raw));
-        } catch { /* ignore */ }
+        } catch {
+            /* ignore */
+        }
     }, []);
 
     // Persist
@@ -71,16 +64,19 @@ export default function TodoPage() {
         if (!text) return;
         setTodos((prev) => [
             ...prev,
-            { id: crypto.randomUUID(), text, completed: false, createdAt: Date.now() }
+            {
+                id: crypto.randomUUID(),
+                text,
+                completed: false,
+                createdAt: Date.now()
+            }
         ]);
         setInput("");
     }, [input]);
 
-    const toggleTodo = (id: string) =>
-        setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+    const toggleTodo = (id: string) => setTodos((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
 
-    const deleteTodo = (id: string) =>
-        setTodos((prev) => prev.filter((t) => t.id !== id));
+    const deleteTodo = (id: string) => setTodos((prev) => prev.filter((t) => t.id !== id));
 
     const saveEdit = () => {
         if (!editId) return;
@@ -110,8 +106,7 @@ export default function TodoPage() {
             title="Todo"
             description="Simple task list with local storage"
             icon={<ChecklistRtl sx={{ fontSize: 24 }} />}
-            accentColor="#5E97F6"
-        >
+            accentColor="#5E97F6">
             <div className="max-w-2xl mx-auto space-y-5">
                 {/* ── Add input ── */}
                 <Card>
@@ -137,8 +132,7 @@ export default function TodoPage() {
                                 color: "#fff",
                                 minWidth: 48
                             }}
-                            whileTap={{ scale: 0.93 }}
-                        >
+                            whileTap={{ scale: 0.93 }}>
                             <Add sx={{ fontSize: 20 }} />
                         </motion.button>
                     </div>
@@ -153,11 +147,11 @@ export default function TodoPage() {
                                 onClick={() => setFilter(f.value)}
                                 className="px-3 py-1.5 rounded-full text-xs font-bold"
                                 style={{
-                                    background: filter === f.value ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                                    background:
+                                        filter === f.value ? palette.accent : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
                                     color: filter === f.value ? "#fff" : palette.textSecondary
                                 }}
-                                whileTap={{ scale: 0.95 }}
-                            >
+                                whileTap={{ scale: 0.95 }}>
                                 {f.label}
                             </motion.button>
                         ))}
@@ -167,9 +161,11 @@ export default function TodoPage() {
                         <motion.button
                             onClick={clearCompleted}
                             className="text-xs font-bold px-3 py-1.5 rounded-full"
-                            style={{ color: "#FF3B30", background: "rgba(255,59,48,.12)" }}
-                            whileTap={{ scale: 0.95 }}
-                        >
+                            style={{
+                                color: "#FF3B30",
+                                background: "rgba(255,59,48,.12)"
+                            }}
+                            whileTap={{ scale: 0.95 }}>
                             Clear done
                         </motion.button>
                     )}
@@ -184,12 +180,9 @@ export default function TodoPage() {
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
                                 className="text-center py-16"
-                                style={{ color: palette.textTertiary }}
-                            >
+                                style={{ color: palette.textTertiary }}>
                                 <ChecklistRtl sx={{ fontSize: 48, opacity: 0.3 }} />
-                                <p className="mt-3 text-sm">
-                                    {filter === "all" ? "No tasks yet — add one above" : `No ${filter} tasks`}
-                                </p>
+                                <p className="mt-3 text-sm">{filter === "all" ? "No tasks yet — add one above" : `No ${filter} tasks`}</p>
                             </motion.div>
                         )}
 
@@ -200,16 +193,16 @@ export default function TodoPage() {
                                 initial={{ opacity: 0, y: 12 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, x: -60 }}
-                                transition={{ duration: 0.25 }}
-                            >
+                                transition={{ duration: 0.25 }}>
                                 <Card>
                                     <div className="flex items-center gap-3">
                                         {/* Checkbox */}
                                         <motion.button
                                             onClick={() => toggleTodo(todo.id)}
                                             whileTap={{ scale: 0.85 }}
-                                            style={{ color: todo.completed ? "#34C759" : palette.textTertiary }}
-                                        >
+                                            style={{
+                                                color: todo.completed ? "#34C759" : palette.textTertiary
+                                            }}>
                                             {todo.completed ? (
                                                 <CheckCircleOutline sx={{ fontSize: 24 }} />
                                             ) : (
@@ -234,8 +227,9 @@ export default function TodoPage() {
                                         ) : (
                                             <span
                                                 className={`flex-1 text-sm ${todo.completed ? "line-through opacity-50" : ""}`}
-                                                style={{ color: palette.textPrimary }}
-                                            >
+                                                style={{
+                                                    color: palette.textPrimary
+                                                }}>
                                                 {todo.text}
                                             </span>
                                         )}
@@ -243,23 +237,31 @@ export default function TodoPage() {
                                         {/* Actions */}
                                         <div className="flex items-center gap-1">
                                             {editId === todo.id ? (
-                                                <motion.button onClick={saveEdit} whileTap={{ scale: 0.9 }} style={{ color: "#34C759" }}>
+                                                <motion.button
+                                                    onClick={saveEdit}
+                                                    whileTap={{ scale: 0.9 }}
+                                                    style={{
+                                                        color: "#34C759"
+                                                    }}>
                                                     <Save sx={{ fontSize: 18 }} />
                                                 </motion.button>
                                             ) : (
                                                 <motion.button
-                                                    onClick={() => { setEditId(todo.id); setEditText(todo.text); }}
+                                                    onClick={() => {
+                                                        setEditId(todo.id);
+                                                        setEditText(todo.text);
+                                                    }}
                                                     whileTap={{ scale: 0.9 }}
-                                                    style={{ color: palette.textTertiary }}
-                                                >
+                                                    style={{
+                                                        color: palette.textTertiary
+                                                    }}>
                                                     <Edit sx={{ fontSize: 18 }} />
                                                 </motion.button>
                                             )}
                                             <motion.button
                                                 onClick={() => deleteTodo(todo.id)}
                                                 whileTap={{ scale: 0.9 }}
-                                                style={{ color: "#FF3B30" }}
-                                            >
+                                                style={{ color: "#FF3B30" }}>
                                                 <Delete sx={{ fontSize: 18 }} />
                                             </motion.button>
                                         </div>

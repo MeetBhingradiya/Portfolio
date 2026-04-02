@@ -19,6 +19,9 @@ export async function GET() {
             maintenanceMessage: settings.maintenanceMessage
         });
     } catch {
-        return NextResponse.json({ maintenanceMode: false, maintenanceMessage: "" });
+        return NextResponse.json({
+            maintenanceMode: false,
+            maintenanceMessage: ""
+        });
     }
 }

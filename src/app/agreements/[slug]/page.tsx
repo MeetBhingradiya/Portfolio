@@ -46,7 +46,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
             description: descriptions[slug] || "Legal agreements and policies.",
             type: "website",
             url: canonicalSlug,
-            images: [{ url: "/assets/og-image.png", width: 1200, height: 630, alt: "Meet Bhingradiya" }]
+            images: [
+                {
+                    url: "/assets/og-image.png",
+                    width: 1200,
+                    height: 630,
+                    alt: "Meet Bhingradiya"
+                }
+            ]
         },
         twitter: {
             card: "summary",

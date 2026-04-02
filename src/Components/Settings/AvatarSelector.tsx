@@ -35,10 +35,14 @@ type AvatarSource = "google" | "github" | "microsoft" | "initials" | "custom";
 
 function providerIcon(providerId: string) {
     switch (providerId) {
-        case "google":    return <Google fontSize="small" />;
-        case "github":    return <GitHub fontSize="small" />;
-        case "microsoft": return <Microsoft fontSize="small" />;
-        default:          return null;
+        case "google":
+            return <Google fontSize="small" />;
+        case "github":
+            return <GitHub fontSize="small" />;
+        case "microsoft":
+            return <Microsoft fontSize="small" />;
+        default:
+            return null;
     }
 }
 
@@ -110,7 +114,7 @@ export function AvatarSelector() {
             const res = await fetch("/api/auth/update-avatar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ avatarSource: "custom", customImageUrl }),
+                body: JSON.stringify({ avatarSource: "custom", customImageUrl })
             });
             if (!res.ok) {
                 const err = await res.json();
@@ -134,7 +138,7 @@ export function AvatarSelector() {
             const importRes = await fetch("/api/auth/avatar-import-url", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ imageUrl: importUrl.trim() }),
+                body: JSON.stringify({ imageUrl: importUrl.trim() })
             });
             const importData = await importRes.json();
             if (!importRes.ok) {
@@ -158,7 +162,7 @@ export function AvatarSelector() {
             const res = await fetch("/api/auth/update-avatar", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ avatarSource: source }),
+                body: JSON.stringify({ avatarSource: source })
             });
             if (!res.ok) {
                 const err = await res.json();
@@ -190,29 +194,41 @@ export function AvatarSelector() {
     // (not from accounts[].image, which can be empty if listUserAccounts fails).
     const availableOAuthSources: { providerId: AvatarSource; image: string }[] = [];
     if (accountsInfo?.googleAvatar) {
-        availableOAuthSources.push({ providerId: "google", image: accountsInfo.googleAvatar });
+        availableOAuthSources.push({
+            providerId: "google",
+            image: accountsInfo.googleAvatar
+        });
     }
     if (accountsInfo?.githubAvatar) {
-        availableOAuthSources.push({ providerId: "github", image: accountsInfo.githubAvatar });
+        availableOAuthSources.push({
+            providerId: "github",
+            image: accountsInfo.githubAvatar
+        });
     }
     if (accountsInfo?.microsoftAvatar) {
-        availableOAuthSources.push({ providerId: "microsoft", image: accountsInfo.microsoftAvatar });
+        availableOAuthSources.push({
+            providerId: "microsoft",
+            image: accountsInfo.microsoftAvatar
+        });
     }
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold" style={{ color: palette.textPrimary }}>
+            <h3
+                className="text-lg font-semibold"
+                style={{ color: palette.textPrimary }}>
                 Profile Avatar
             </h3>
-            <p className="text-sm" style={{ color: palette.textSecondary }}>
+            <p
+                className="text-sm"
+                style={{ color: palette.textSecondary }}>
                 Choose your profile picture from a connected account or use gradient initials.
             </p>
 
             {/* Current avatar preview */}
             <div
                 className="flex items-center gap-4 p-4 rounded-xl"
-                style={{ background: `${palette.accent}10` }}
-            >
+                style={{ background: `${palette.accent}10` }}>
                 <UserAvatar
                     userId={user?.id || ""}
                     name={user?.name}
@@ -221,15 +237,19 @@ export function AvatarSelector() {
                     size={64}
                 />
                 <div>
-                    <p className="font-medium" style={{ color: palette.textPrimary }}>
+                    <p
+                        className="font-medium"
+                        style={{ color: palette.textPrimary }}>
                         Current Avatar
                     </p>
-                    <p className="text-sm" style={{ color: palette.textSecondary }}>
+                    <p
+                        className="text-sm"
+                        style={{ color: palette.textSecondary }}>
                         {selectedSource === "initials"
                             ? "Gradient with initials"
                             : selectedSource === "custom"
-                                ? "Custom avatar"
-                                : `From ${providerLabel(selectedSource)}`}
+                              ? "Custom avatar"
+                              : `From ${providerLabel(selectedSource)}`}
                     </p>
                 </div>
             </div>
@@ -247,12 +267,11 @@ export function AvatarSelector() {
                             className="w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left"
                             style={{
                                 borderColor: isActive ? palette.accent : palette.border,
-                                background:  isActive ? `${palette.accent}15` : "transparent",
-                                opacity: saving ? 0.6 : 1,
+                                background: isActive ? `${palette.accent}15` : "transparent",
+                                opacity: saving ? 0.6 : 1
                             }}
                             whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                        >
+                            whileTap={{ scale: 0.98 }}>
                             {/* Provider avatar preview */}
                             <div className="relative w-12 h-12 rounded-full overflow-hidden flex-shrink-0">
                                 <Image
@@ -266,14 +285,16 @@ export function AvatarSelector() {
 
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-2">
-                                    <span style={{ color: palette.accent }}>
-                                        {providerIcon(providerId)}
-                                    </span>
-                                    <p className="font-medium" style={{ color: palette.textPrimary }}>
+                                    <span style={{ color: palette.accent }}>{providerIcon(providerId)}</span>
+                                    <p
+                                        className="font-medium"
+                                        style={{ color: palette.textPrimary }}>
                                         {providerLabel(providerId)} Profile Picture
                                     </p>
                                 </div>
-                                <p className="text-sm truncate" style={{ color: palette.textSecondary }}>
+                                <p
+                                    className="text-sm truncate"
+                                    style={{ color: palette.textSecondary }}>
                                     {image}
                                 </p>
                             </div>
@@ -290,12 +311,11 @@ export function AvatarSelector() {
                     className="w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left"
                     style={{
                         borderColor: selectedSource === "initials" ? palette.accent : palette.border,
-                        background:  selectedSource === "initials" ? `${palette.accent}15` : "transparent",
-                        opacity: saving ? 0.6 : 1,
+                        background: selectedSource === "initials" ? `${palette.accent}15` : "transparent",
+                        opacity: saving ? 0.6 : 1
                     }}
                     whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                >
+                    whileTap={{ scale: 0.98 }}>
                     <UserAvatar
                         userId={user?.id || ""}
                         name={user?.name}
@@ -304,16 +324,18 @@ export function AvatarSelector() {
                         size={48}
                     />
                     <div className="flex-1">
-                        <p className="font-medium" style={{ color: palette.textPrimary }}>
+                        <p
+                            className="font-medium"
+                            style={{ color: palette.textPrimary }}>
                             Gradient with Initials
                         </p>
-                        <p className="text-sm" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-sm"
+                            style={{ color: palette.textSecondary }}>
                             Unique gradient generated from your profile
                         </p>
                     </div>
-                    {selectedSource === "initials" && (
-                        <Check style={{ color: palette.accent }} />
-                    )}
+                    {selectedSource === "initials" && <Check style={{ color: palette.accent }} />}
                 </motion.button>
             </div>
 
@@ -321,14 +343,16 @@ export function AvatarSelector() {
             {availableOAuthSources.length === 0 && (
                 <div
                     className="p-4 rounded-xl text-center"
-                    style={{ background: `${palette.accent}10` }}
-                >
-                    <p className="text-sm mb-1 font-semibold" style={{ color: palette.textPrimary }}>
+                    style={{ background: `${palette.accent}10` }}>
+                    <p
+                        className="text-sm mb-1 font-semibold"
+                        style={{ color: palette.textPrimary }}>
                         No provider avatars found yet
                     </p>
-                    <p className="text-sm" style={{ color: palette.textSecondary }}>
-                        Sign in or link a Google / GitHub account. Your avatar will be captured
-                        automatically and appear here.
+                    <p
+                        className="text-sm"
+                        style={{ color: palette.textSecondary }}>
+                        Sign in or link a Google / GitHub account. Your avatar will be captured automatically and appear here.
                     </p>
                 </div>
             )}
@@ -342,9 +366,13 @@ export function AvatarSelector() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 10 }}
                         className="p-4 rounded-xl border-2"
-                        style={{ borderColor: palette.accent, background: `${palette.accent}08` }}
-                    >
-                        <p className="font-semibold text-sm mb-3" style={{ color: palette.textPrimary }}>
+                        style={{
+                            borderColor: palette.accent,
+                            background: `${palette.accent}08`
+                        }}>
+                        <p
+                            className="font-semibold text-sm mb-3"
+                            style={{ color: palette.textPrimary }}>
                             Upload Custom Avatar
                         </p>
                         <CDNAvatarUpload
@@ -364,25 +392,32 @@ export function AvatarSelector() {
                         className="w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all text-left"
                         style={{
                             borderColor: selectedSource === "custom" ? palette.accent : palette.border,
-                            background: selectedSource === "custom" ? `${palette.accent}15` : "transparent",
+                            background: selectedSource === "custom" ? `${palette.accent}15` : "transparent"
                         }}
                         whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                    >
+                        whileTap={{ scale: 0.98 }}>
                         <div
                             style={{
-                                width: 48, height: 48, borderRadius: "50%", flexShrink: 0,
+                                width: 48,
+                                height: 48,
+                                borderRadius: "50%",
+                                flexShrink: 0,
                                 background: `${palette.accent}20`,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                            }}
-                        >
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center"
+                            }}>
                             <CloudUpload style={{ color: palette.accent }} />
                         </div>
                         <div className="flex-1">
-                            <p className="font-medium" style={{ color: palette.textPrimary }}>
+                            <p
+                                className="font-medium"
+                                style={{ color: palette.textPrimary }}>
                                 Upload Custom Avatar
                             </p>
-                            <p className="text-sm" style={{ color: palette.textSecondary }}>
+                            <p
+                                className="text-sm"
+                                style={{ color: palette.textSecondary }}>
                                 Upload your own image with crop &amp; rotate
                             </p>
                         </div>
@@ -394,12 +429,18 @@ export function AvatarSelector() {
             {/* Import from image URL */}
             <div
                 className="p-4 rounded-xl border"
-                style={{ borderColor: palette.border, background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)" }}
-            >
-                <p className="font-semibold text-sm" style={{ color: palette.textPrimary }}>
+                style={{
+                    borderColor: palette.border,
+                    background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"
+                }}>
+                <p
+                    className="font-semibold text-sm"
+                    style={{ color: palette.textPrimary }}>
                     Import Avatar From URL
                 </p>
-                <p className="text-xs mt-1 mb-3" style={{ color: palette.textSecondary }}>
+                <p
+                    className="text-xs mt-1 mb-3"
+                    style={{ color: palette.textSecondary }}>
                     Paste a direct image URL. It will be fetched, uploaded to your CDN, and set as your profile avatar.
                 </p>
                 <div className="flex gap-2">
@@ -412,7 +453,7 @@ export function AvatarSelector() {
                         style={{
                             border: `1px solid ${palette.border}`,
                             background: isDark ? "rgba(255,255,255,0.04)" : "#ffffff",
-                            color: palette.textPrimary,
+                            color: palette.textPrimary
                         }}
                     />
                     <motion.button
@@ -422,16 +463,21 @@ export function AvatarSelector() {
                         style={{
                             background: importingUrl || saving || !importUrl.trim() ? palette.textTertiary : palette.accent,
                             color: "#fff",
-                            cursor: importingUrl || saving || !importUrl.trim() ? "not-allowed" : "pointer",
+                            cursor: importingUrl || saving || !importUrl.trim() ? "not-allowed" : "pointer"
                         }}
-                        whileHover={{ scale: importingUrl || saving || !importUrl.trim() ? 1 : 1.02 }}
-                        whileTap={{ scale: importingUrl || saving || !importUrl.trim() ? 1 : 0.98 }}
-                    >
+                        whileHover={{
+                            scale: importingUrl || saving || !importUrl.trim() ? 1 : 1.02
+                        }}
+                        whileTap={{
+                            scale: importingUrl || saving || !importUrl.trim() ? 1 : 0.98
+                        }}>
                         {importingUrl ? "Importing..." : "Import"}
                     </motion.button>
                 </div>
                 {importError && (
-                    <p className="text-xs mt-2" style={{ color: "#ef4444" }}>
+                    <p
+                        className="text-xs mt-2"
+                        style={{ color: "#ef4444" }}>
                         {importError}
                     </p>
                 )}
@@ -440,14 +486,15 @@ export function AvatarSelector() {
             {/* Previous custom avatars */}
             {avatarHistory.length > 0 && (
                 <div className="space-y-2">
-                    <p className="text-sm font-semibold" style={{ color: palette.textPrimary }}>
+                    <p
+                        className="text-sm font-semibold"
+                        style={{ color: palette.textPrimary }}>
                         Your Previous Avatars
                     </p>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                         {avatarHistory.map((item) => {
                             const isActive = Boolean(
-                                accountsInfo?.currentImage &&
-                                accountsInfo.currentImage.endsWith(`/api/cdn/${item.assetId}`)
+                                accountsInfo?.currentImage && accountsInfo.currentImage.endsWith(`/api/cdn/${item.assetId}`)
                             );
                             return (
                                 <button
@@ -457,10 +504,9 @@ export function AvatarSelector() {
                                     className="relative rounded-full overflow-hidden aspect-square border-2"
                                     style={{
                                         borderColor: isActive ? palette.accent : palette.border,
-                                        opacity: saving || importingUrl ? 0.6 : 1,
+                                        opacity: saving || importingUrl ? 0.6 : 1
                                     }}
-                                    title={item.altText || "Previous avatar"}
-                                >
+                                    title={item.altText || "Previous avatar"}>
                                     <Image
                                         src={item.url}
                                         alt={item.altText || "Previous avatar"}
@@ -471,8 +517,10 @@ export function AvatarSelector() {
                                     {isActive && (
                                         <span
                                             className="absolute bottom-1 right-1 rounded-full p-0.5"
-                                            style={{ background: palette.accent, color: "#fff" }}
-                                        >
+                                            style={{
+                                                background: palette.accent,
+                                                color: "#fff"
+                                            }}>
                                             <Check style={{ fontSize: 14 }} />
                                         </span>
                                     )}

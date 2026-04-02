@@ -4,6 +4,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import { MongoClient } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 export async function GET(req: NextRequest) {
     try {
@@ -22,16 +23,13 @@ export async function GET(req: NextRequest) {
 
         const client = new MongoClient(process.env.MONGODB_01);
         await client.connect();
-        const db = client.db("PRODUCTION_MeetBhingradiya");
+        const db = client.db(SConfig.Database.Name);
         const userCollection = db.collection("user");
         const roleCollection = db.collection("userroles");
 
         const query: any = {};
         if (search) {
-            query.$or = [
-                { name: { $regex: search, $options: "i" } },
-                { email: { $regex: search, $options: "i" } }
-            ];
+            query.$or = [{ name: { $regex: search, $options: "i" } }, { email: { $regex: search, $options: "i" } }];
         }
 
         const total = await userCollection.countDocuments(query);
@@ -43,26 +41,25 @@ export async function GET(req: NextRequest) {
             .toArray();
 
         // Enrich with role data from UserRole collection
-        const emails = users.map(u => (u.email ?? "").toLowerCase());
-        const roleRecords = await roleCollection
-            .find({ email: { $in: emails } })
-            .toArray();
+        const emails = users.map((u) => (u.email ?? "").toLowerCase());
+        const roleRecords = await roleCollection.find({ email: { $in: emails } }).toArray();
 
         const roleMap: Record<string, { roles: string[]; permissions: any[] }> = {};
         for (const r of roleRecords) {
-            roleMap[r.email] = { roles: r.roles ?? ["user"], permissions: r.permissions ?? [] };
+            roleMap[r.email] = {
+                roles: r.roles ?? ["user"],
+                permissions: r.permissions ?? []
+            };
         }
 
-        const enriched = users.map(u => ({
+        const enriched = users.map((u) => ({
             ...u,
             roles: roleMap[(u.email ?? "").toLowerCase()]?.roles ?? ["user"],
-            hasRoleRecord: !!roleMap[(u.email ?? "").toLowerCase()],
+            hasRoleRecord: !!roleMap[(u.email ?? "").toLowerCase()]
         }));
 
         // Apply role filter after enrichment
-        const filtered = roleFilter
-            ? enriched.filter(u => u.roles.includes(roleFilter))
-            : enriched;
+        const filtered = roleFilter ? enriched.filter((u) => u.roles.includes(roleFilter)) : enriched;
 
         await client.close();
 

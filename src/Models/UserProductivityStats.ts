@@ -9,21 +9,21 @@ import mongoose from "mongoose";
 
 /** XP required to reach each level (index = level - 1) */
 export const LEVEL_XP_THRESHOLDS = [
-    0,      // Level 1  — Beginner
-    100,    // Level 2  — Apprentice
-    250,    // Level 3  — Learner
-    500,    // Level 4  — Practitioner
-    900,    // Level 5  — Achiever
-    1400,   // Level 6  — Specialist
-    2000,   // Level 7  — Expert
-    2800,   // Level 8  — Master
-    3800,   // Level 9  — Champion
-    5000,   // Level 10 — Legend
-    6500,   // Level 11 — Prodigy
-    8500,   // Level 12 — Titan
-    11000,  // Level 13 — Immortal
-    14000,  // Level 14 — Mythic
-    18000,  // Level 15 — God
+    0, // Level 1  — Beginner
+    100, // Level 2  — Apprentice
+    250, // Level 3  — Learner
+    500, // Level 4  — Practitioner
+    900, // Level 5  — Achiever
+    1400, // Level 6  — Specialist
+    2000, // Level 7  — Expert
+    2800, // Level 8  — Master
+    3800, // Level 9  — Champion
+    5000, // Level 10 — Legend
+    6500, // Level 11 — Prodigy
+    8500, // Level 12 — Titan
+    11000, // Level 13 — Immortal
+    14000, // Level 14 — Mythic
+    18000 // Level 15 — God
 ];
 
 export const LEVEL_TITLES = [
@@ -41,7 +41,7 @@ export const LEVEL_TITLES = [
     "Titan",
     "Immortal",
     "Mythic",
-    "God",
+    "God"
 ];
 
 /** Compute level and progress from total XP */
@@ -74,7 +74,7 @@ export function computeLevel(totalXP: number): {
         title: LEVEL_TITLES[level - 1] ?? "God",
         xpForCurrentLevel,
         xpForNextLevel,
-        progress,
+        progress
     };
 }
 
@@ -90,50 +90,235 @@ export interface AchievementDefinition {
 
 export const ACHIEVEMENTS: AchievementDefinition[] = [
     // Task achievements
-    { id: "first_task", title: "First Step", description: "Complete your first task", emoji: "🎉", xpReward: 20 },
-    { id: "tasks_10", title: "Getting Started", description: "Complete 10 tasks", emoji: "✅", xpReward: 50 },
-    { id: "tasks_50", title: "Task Master", description: "Complete 50 tasks", emoji: "🏅", xpReward: 100 },
-    { id: "tasks_100", title: "Centurion", description: "Complete 100 tasks", emoji: "💯", xpReward: 200 },
-    { id: "tasks_500", title: "Unstoppable", description: "Complete 500 tasks", emoji: "⚡", xpReward: 500 },
-    { id: "urgent_task", title: "Fire Fighter", description: "Complete an urgent task", emoji: "🔥", xpReward: 30 },
-    { id: "early_task", title: "Ahead of Schedule", description: "Complete a task before its due date", emoji: "⏰", xpReward: 25 },
+    {
+        id: "first_task",
+        title: "First Step",
+        description: "Complete your first task",
+        emoji: "🎉",
+        xpReward: 20
+    },
+    {
+        id: "tasks_10",
+        title: "Getting Started",
+        description: "Complete 10 tasks",
+        emoji: "✅",
+        xpReward: 50
+    },
+    {
+        id: "tasks_50",
+        title: "Task Master",
+        description: "Complete 50 tasks",
+        emoji: "🏅",
+        xpReward: 100
+    },
+    {
+        id: "tasks_100",
+        title: "Centurion",
+        description: "Complete 100 tasks",
+        emoji: "💯",
+        xpReward: 200
+    },
+    {
+        id: "tasks_500",
+        title: "Unstoppable",
+        description: "Complete 500 tasks",
+        emoji: "⚡",
+        xpReward: 500
+    },
+    {
+        id: "urgent_task",
+        title: "Fire Fighter",
+        description: "Complete an urgent task",
+        emoji: "🔥",
+        xpReward: 30
+    },
+    {
+        id: "early_task",
+        title: "Ahead of Schedule",
+        description: "Complete a task before its due date",
+        emoji: "⏰",
+        xpReward: 25
+    },
 
     // Habit achievements
-    { id: "first_habit", title: "New Habit", description: "Create your first habit", emoji: "🌱", xpReward: 20 },
-    { id: "habit_streak_3", title: "Three in a Row", description: "Maintain a 3-day habit streak", emoji: "3️⃣", xpReward: 30 },
-    { id: "habit_streak_7", title: "Week Warrior", description: "Maintain a 7-day habit streak", emoji: "📅", xpReward: 75 },
-    { id: "habit_streak_30", title: "Monthly Master", description: "Maintain a 30-day habit streak", emoji: "🗓️", xpReward: 300 },
-    { id: "habit_streak_100", title: "Century Streak", description: "Maintain a 100-day habit streak", emoji: "💎", xpReward: 1000 },
-    { id: "habits_5", title: "Habit Builder", description: "Have 5 active habits", emoji: "📋", xpReward: 50 },
+    {
+        id: "first_habit",
+        title: "New Habit",
+        description: "Create your first habit",
+        emoji: "🌱",
+        xpReward: 20
+    },
+    {
+        id: "habit_streak_3",
+        title: "Three in a Row",
+        description: "Maintain a 3-day habit streak",
+        emoji: "3️⃣",
+        xpReward: 30
+    },
+    {
+        id: "habit_streak_7",
+        title: "Week Warrior",
+        description: "Maintain a 7-day habit streak",
+        emoji: "📅",
+        xpReward: 75
+    },
+    {
+        id: "habit_streak_30",
+        title: "Monthly Master",
+        description: "Maintain a 30-day habit streak",
+        emoji: "🗓️",
+        xpReward: 300
+    },
+    {
+        id: "habit_streak_100",
+        title: "Century Streak",
+        description: "Maintain a 100-day habit streak",
+        emoji: "💎",
+        xpReward: 1000
+    },
+    {
+        id: "habits_5",
+        title: "Habit Builder",
+        description: "Have 5 active habits",
+        emoji: "📋",
+        xpReward: 50
+    },
 
     // Goal achievements
-    { id: "first_goal", title: "Dream Big", description: "Set your first goal", emoji: "🎯", xpReward: 25 },
-    { id: "short_goal_done", title: "Quick Win", description: "Complete a short-term goal", emoji: "🏆", xpReward: 100 },
-    { id: "long_goal_done", title: "Long Haul", description: "Complete a long-term goal", emoji: "🌟", xpReward: 500 },
-    { id: "goals_5", title: "Goal Setter", description: "Complete 5 goals", emoji: "🎖️", xpReward: 200 },
-    { id: "milestone_done", title: "Milestone Reached", description: "Complete your first milestone", emoji: "🏁", xpReward: 50 },
+    {
+        id: "first_goal",
+        title: "Dream Big",
+        description: "Set your first goal",
+        emoji: "🎯",
+        xpReward: 25
+    },
+    {
+        id: "short_goal_done",
+        title: "Quick Win",
+        description: "Complete a short-term goal",
+        emoji: "🏆",
+        xpReward: 100
+    },
+    {
+        id: "long_goal_done",
+        title: "Long Haul",
+        description: "Complete a long-term goal",
+        emoji: "🌟",
+        xpReward: 500
+    },
+    {
+        id: "goals_5",
+        title: "Goal Setter",
+        description: "Complete 5 goals",
+        emoji: "🎖️",
+        xpReward: 200
+    },
+    {
+        id: "milestone_done",
+        title: "Milestone Reached",
+        description: "Complete your first milestone",
+        emoji: "🏁",
+        xpReward: 50
+    },
 
     // Streak achievements
-    { id: "daily_streak_3", title: "Consistent", description: "Use the app 3 days in a row", emoji: "🔄", xpReward: 30 },
-    { id: "daily_streak_7", title: "Weekly Regular", description: "Use the app 7 days in a row", emoji: "📆", xpReward: 70 },
-    { id: "daily_streak_30", title: "Dedicated", description: "Use the app 30 days in a row", emoji: "🔑", xpReward: 250 },
-    { id: "daily_streak_60", title: "Committed", description: "Use the app 60 days in a row", emoji: "🏅", xpReward: 500 },
-    { id: "daily_streak_100", title: "Unbreakable", description: "Use the app 100 days in a row", emoji: "🏆", xpReward: 1000 },
+    {
+        id: "daily_streak_3",
+        title: "Consistent",
+        description: "Use the app 3 days in a row",
+        emoji: "🔄",
+        xpReward: 30
+    },
+    {
+        id: "daily_streak_7",
+        title: "Weekly Regular",
+        description: "Use the app 7 days in a row",
+        emoji: "📆",
+        xpReward: 70
+    },
+    {
+        id: "daily_streak_30",
+        title: "Dedicated",
+        description: "Use the app 30 days in a row",
+        emoji: "🔑",
+        xpReward: 250
+    },
+    {
+        id: "daily_streak_60",
+        title: "Committed",
+        description: "Use the app 60 days in a row",
+        emoji: "🏅",
+        xpReward: 500
+    },
+    {
+        id: "daily_streak_100",
+        title: "Unbreakable",
+        description: "Use the app 100 days in a row",
+        emoji: "🏆",
+        xpReward: 1000
+    },
 
     // Level achievements
-    { id: "level_5", title: "Rising Star", description: "Reach Level 5", emoji: "⭐", xpReward: 100 },
-    { id: "level_10", title: "Legend", description: "Reach Level 10", emoji: "👑", xpReward: 500 },
+    {
+        id: "level_5",
+        title: "Rising Star",
+        description: "Reach Level 5",
+        emoji: "⭐",
+        xpReward: 100
+    },
+    {
+        id: "level_10",
+        title: "Legend",
+        description: "Reach Level 10",
+        emoji: "👑",
+        xpReward: 500
+    },
 
     // Reminder achievements
-    { id: "first_reminder", title: "Never Forget", description: "Create your first reminder", emoji: "🔔", xpReward: 15 },
-    { id: "reminders_10", title: "Reminder Maker", description: "Create 10 reminders", emoji: "📢", xpReward: 50 },
-    { id: "reminders_50", title: "Reminder Master", description: "Create 50 reminders", emoji: "📣", xpReward: 200 },
-    { id: "reminders_100", title: "Reminder Emperor", description: "Create 100 reminders", emoji: "📣", xpReward: 500 },
+    {
+        id: "first_reminder",
+        title: "Never Forget",
+        description: "Create your first reminder",
+        emoji: "🔔",
+        xpReward: 15
+    },
+    {
+        id: "reminders_10",
+        title: "Reminder Maker",
+        description: "Create 10 reminders",
+        emoji: "📢",
+        xpReward: 50
+    },
+    {
+        id: "reminders_50",
+        title: "Reminder Master",
+        description: "Create 50 reminders",
+        emoji: "📣",
+        xpReward: 200
+    },
+    {
+        id: "reminders_100",
+        title: "Reminder Emperor",
+        description: "Create 100 reminders",
+        emoji: "📣",
+        xpReward: 500
+    },
 
     // AI achievements
-    { id: "ai_task_created", title: "AI Pioneer", description: "Create a task using AI", emoji: "🤖", xpReward: 20 },
-    { id: "ai_search_performed", title: "AI Explorer", description: "Perform a search using AI", emoji: "🔍", xpReward: 10 },
-
+    {
+        id: "ai_task_created",
+        title: "AI Pioneer",
+        description: "Create a task using AI",
+        emoji: "🤖",
+        xpReward: 20
+    },
+    {
+        id: "ai_search_performed",
+        title: "AI Explorer",
+        description: "Perform a search using AI",
+        emoji: "🔍",
+        xpReward: 10
+    }
 ];
 
 // ─── Sub-schema ───────────────────────────────────────────────────────────────
@@ -142,7 +327,7 @@ const EarnedAchievementSchema = new mongoose.Schema(
     {
         id: { type: String, required: true },
         EarnedAt: { type: Date, default: Date.now },
-        XPAwarded: { type: Number, default: 0 },
+        XPAwarded: { type: Number, default: 0 }
     },
     { _id: false }
 );
@@ -154,10 +339,10 @@ const XPHistoryEntrySchema = new mongoose.Schema(
         Source: {
             type: String,
             enum: ["task", "habit", "goal", "reminder", "achievement", "streak", "bonus"],
-            default: "task",
+            default: "task"
         },
         SourceID: { type: String },
-        EarnedAt: { type: Date, default: Date.now },
+        EarnedAt: { type: Date, default: Date.now }
     },
     { _id: false }
 );
@@ -209,7 +394,7 @@ const UserProductivityStats_Schema = new mongoose.Schema(
         AISearchesPerformed: { type: Number, default: 0 },
 
         // Reset history — dates when user wiped all their productivity data
-        ResetHistory: { type: [Date], default: [] },
+        ResetHistory: { type: [Date], default: [] }
     },
     { timestamps: true }
 );
@@ -258,8 +443,7 @@ export interface IUserProductivityStats extends mongoose.Document {
 }
 
 export const UserProductivityStats: mongoose.Model<IUserProductivityStats> =
-    mongoose.models.UserProductivityStats ||
-    mongoose.model<IUserProductivityStats>("UserProductivityStats", UserProductivityStats_Schema);
+    mongoose.models.UserProductivityStats || mongoose.model<IUserProductivityStats>("UserProductivityStats", UserProductivityStats_Schema);
 
 /**
  * Get or create the stats document for a user.

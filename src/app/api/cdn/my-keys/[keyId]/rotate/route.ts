@@ -17,8 +17,12 @@ import { sendEmail, cdnKeyIssuedEmail } from "@Utils/Email";
 
 type Params = { params: Promise<{ keyId: string }> };
 
-function generateRawKey(): string { return `cdn_${randomBytes(24).toString("hex")}`; }
-function generateKeyId(): string  { return `key_${randomBytes(8).toString("hex")}`; }
+function generateRawKey(): string {
+    return `cdn_${randomBytes(24).toString("hex")}`;
+}
+function generateKeyId(): string {
+    return `key_${randomBytes(8).toString("hex")}`;
+}
 
 export async function POST(req: NextRequest, { params }: Params) {
     try {
@@ -32,17 +36,25 @@ export async function POST(req: NextRequest, { params }: Params) {
         const { keyId } = await params;
 
         // Verify ownership
-        const existingKey = await CDNAPIKey.findOne({ keyId, applicantEmail: email });
+        const existingKey = await CDNAPIKey.findOne({
+            keyId,
+            applicantEmail: email
+        });
         if (!existingKey) {
             return NextResponse.json({ error: "Key not found or not owned by your account." }, { status: 404 });
         }
         if (existingKey.status !== "active") {
-            return NextResponse.json({ error: `Key is ${existingKey.status} and cannot be rotated.` }, { status: 409 });
+            return NextResponse.json(
+                {
+                    error: `Key is ${existingKey.status} and cannot be rotated.`
+                },
+                { status: 409 }
+            );
         }
 
         // Revoke old key
-        existingKey.status     = "revoked";
-        existingKey.revokedAt  = new Date();
+        existingKey.status = "revoked";
+        existingKey.revokedAt = new Date();
         existingKey.revokeReason = "User-initiated rotation";
         await existingKey.save();
 
@@ -50,42 +62,42 @@ export async function POST(req: NextRequest, { params }: Params) {
         await CDNRateWindow.deleteMany({ keyId });
 
         // Issue new key
-        const rawKey    = generateRawKey();
-        const newKeyId  = generateKeyId();
-        const keyHash   = hashAPIKey(rawKey);
+        const rawKey = generateRawKey();
+        const newKeyId = generateKeyId();
+        const keyHash = hashAPIKey(rawKey);
         const keyPrefix = rawKey.slice(0, 12);
 
         const newKey = await CDNAPIKey.create({
-            keyId          : newKeyId,
+            keyId: newKeyId,
             keyHash,
             keyPrefix,
-            applicationId  : existingKey.applicationId,
-            appName        : existingKey.appName,
-            applicantEmail : email,
-            plan           : existingKey.plan,
-            rateLimit      : existingKey.rateLimit,
-            issuedBy       : `user:${email}`,
-            notes          : `Rotated from ${keyId}`,
+            applicationId: existingKey.applicationId,
+            appName: existingKey.appName,
+            applicantEmail: email,
+            plan: existingKey.plan,
+            rateLimit: existingKey.rateLimit,
+            issuedBy: `user:${email}`,
+            notes: `Rotated from ${keyId}`
         });
 
         // Email new key — fire & forget
         sendEmail({
-            to     : email,
+            to: email,
             subject: `CDN API Key Rotated — ${existingKey.appName}`,
-            html   : cdnKeyIssuedEmail({
-                appName      : existingKey.appName,
+            html: cdnKeyIssuedEmail({
+                appName: existingKey.appName,
                 applicantName: session.user.name || email,
-                plan         : existingKey.plan,
+                plan: existingKey.plan,
                 rawKey,
-                keyPrefix,
-            }),
-        }).catch(err => console.error("[CDN rotate email]", err));
+                keyPrefix
+            })
+        }).catch((err) => console.error("[CDN rotate email]", err));
 
         return NextResponse.json({
-            message  : "Key rotated successfully. Store the new key — it cannot be retrieved again.",
-            newKeyId : newKey.keyId,
+            message: "Key rotated successfully. Store the new key — it cannot be retrieved again.",
+            newKeyId: newKey.keyId,
             keyPrefix,
-            rawKey,
+            rawKey
         });
     } catch (err: any) {
         console.error("[CDN my-keys rotate POST]", err);

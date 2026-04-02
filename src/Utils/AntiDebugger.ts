@@ -63,7 +63,7 @@ const CFG = {
     /** ms — delay before taking the drastic action (avoid false positives) */
     ACTION_DEBOUNCE_MS: 2_500,
     /** number of independent detections before acting */
-    DETECTION_QUORUM: 2,
+    DETECTION_QUORUM: 2
 } as const;
 
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -90,7 +90,7 @@ function getPristineNatives(): {
             perfNow: () => performance.now(),
             dateNow: Date.now,
             getOwnPropDesc: Object.getOwnPropertyDescriptor,
-            jsonStringify: JSON.stringify,
+            jsonStringify: JSON.stringify
         };
     }
 
@@ -105,10 +105,8 @@ function getPristineNatives(): {
             toString: iwin.Function.prototype.toString,
             perfNow: iwin.performance.now.bind(iwin.performance),
             dateNow: iwin.Date.now.bind(iwin.Date),
-            getOwnPropDesc: iwin.Object.getOwnPropertyDescriptor.bind(
-                iwin.Object
-            ),
-            jsonStringify: iwin.JSON.stringify.bind(iwin.JSON),
+            getOwnPropDesc: iwin.Object.getOwnPropertyDescriptor.bind(iwin.Object),
+            jsonStringify: iwin.JSON.stringify.bind(iwin.JSON)
         };
 
         iframe.remove();
@@ -120,7 +118,7 @@ function getPristineNatives(): {
             perfNow: () => performance.now(),
             dateNow: Date.now,
             getOwnPropDesc: Object.getOwnPropertyDescriptor,
-            jsonStringify: JSON.stringify,
+            jsonStringify: JSON.stringify
         };
     }
 }
@@ -129,10 +127,7 @@ function getPristineNatives(): {
 /*  Helper — native code check                                                  */
 /* ─────────────────────────────────────────────────────────────────────────── */
 
-function isNative(
-    fn: Function,
-    pristineToString: typeof Function.prototype.toString
-): boolean {
+function isNative(fn: Function, pristineToString: typeof Function.prototype.toString): boolean {
     try {
         const src = pristineToString.call(fn);
         return /\[native code\]/.test(src);
@@ -219,14 +214,11 @@ export class AntiDebuggerEngine {
             const deltaDate = dateNow() - t0d;
 
             // If EITHER timer shows a pause it's suspicious
-            if (
-                deltaPerf > CFG.TIMING_THRESHOLD_MS ||
-                deltaDate > CFG.TIMING_THRESHOLD_MS
-            ) {
+            if (deltaPerf > CFG.TIMING_THRESHOLD_MS || deltaDate > CFG.TIMING_THRESHOLD_MS) {
                 self._report({
                     channel: "timing",
                     detail: `debugger pause detected — perf:${deltaPerf.toFixed(1)}ms date:${deltaDate}ms`,
-                    ts: dateNow(),
+                    ts: dateNow()
                 });
             }
         }, CFG.POLL_INTERVAL_MS);
@@ -273,7 +265,7 @@ export class AntiDebuggerEngine {
             this._report({
                 channel: "toString-integrity",
                 detail: `toString hook detected — pristineNative:${pristineIsNative} topNative:${topLevelIsNative} sameRef:${sameRef}`,
-                ts: this._natives.dateNow(),
+                ts: this._natives.dateNow()
             });
         }
     }
@@ -295,7 +287,7 @@ export class AntiDebuggerEngine {
                 this._report({
                     channel: "console-hook",
                     detail: `console.${m} is not native`,
-                    ts: this._natives.dateNow(),
+                    ts: this._natives.dateNow()
                 });
                 return; // one report per check cycle
             }
@@ -308,7 +300,7 @@ export class AntiDebuggerEngine {
                 this._report({
                     channel: "console-hook",
                     detail: `console.${m} has getter — possible Proxy/hook`,
-                    ts: this._natives.dateNow(),
+                    ts: this._natives.dateNow()
                 });
                 return;
             }
@@ -333,7 +325,7 @@ export class AntiDebuggerEngine {
             this._report({
                 channel: "timing",
                 detail: `timing API hooked — perf.now native:${perfNowNative} Date.now native:${dateNowNative}`,
-                ts: this._natives.dateNow(),
+                ts: this._natives.dateNow()
             });
         }
     }
@@ -358,7 +350,7 @@ export class AntiDebuggerEngine {
                 this._report({
                     channel: "proxy-trap",
                     detail: `window prototype unexpected: ${proto}`,
-                    ts: this._natives.dateNow(),
+                    ts: this._natives.dateNow()
                 });
             }
 
@@ -371,7 +363,7 @@ export class AntiDebuggerEngine {
                 this._report({
                     channel: "proxy-trap",
                     detail: "window[crypto] !== Reflect.get(window, 'crypto')",
-                    ts: this._natives.dateNow(),
+                    ts: this._natives.dateNow()
                 });
             }
         } catch {
@@ -379,7 +371,7 @@ export class AntiDebuggerEngine {
             this._report({
                 channel: "proxy-trap",
                 detail: "proxy detection threw unexpectedly",
-                ts: this._natives.dateNow(),
+                ts: this._natives.dateNow()
             });
         }
     }
@@ -400,11 +392,11 @@ export class AntiDebuggerEngine {
      */
     private _checkKnownExtensionScripts(): void {
         const markers = [
-            atob("YWFkQnlwYXNz"),         // "aadBypass"
-            atob("X19hYWRfYnlwYXNz"),     // "__aad_bypass"
+            atob("YWFkQnlwYXNz"), // "aadBypass"
+            atob("X19hYWRfYnlwYXNz"), // "__aad_bypass"
             atob("ZGVidWdnZXJCeXBhc3M="), // "debuggerBypass"
             atob("X19kZWJ1Z19ieXBhc3M="), // "__debug_bypass"
-            atob("YW50aURlYnVn"),          // "antiDebug"
+            atob("YW50aURlYnVn") // "antiDebug"
         ];
 
         for (const marker of markers) {
@@ -412,7 +404,7 @@ export class AntiDebuggerEngine {
                 this._report({
                     channel: "extension-script",
                     detail: `extension marker found: window["${marker}"]`,
-                    ts: this._natives.dateNow(),
+                    ts: this._natives.dateNow()
                 });
                 return;
             }
@@ -426,7 +418,7 @@ export class AntiDebuggerEngine {
                 this._report({
                     channel: "extension-script",
                     detail: `extension script injected: ${src.slice(0, 60)}`,
-                    ts: this._natives.dateNow(),
+                    ts: this._natives.dateNow()
                 });
                 return;
             }
@@ -445,14 +437,11 @@ export class AntiDebuggerEngine {
         const widthDelta = window.outerWidth - window.innerWidth;
         const heightDelta = window.outerHeight - window.innerHeight;
 
-        if (
-            widthDelta > CFG.DEVTOOLS_WIDTH_THRESHOLD ||
-            heightDelta > CFG.DEVTOOLS_WIDTH_THRESHOLD
-        ) {
+        if (widthDelta > CFG.DEVTOOLS_WIDTH_THRESHOLD || heightDelta > CFG.DEVTOOLS_WIDTH_THRESHOLD) {
             this._report({
                 channel: "devtools-size",
                 detail: `devtools size delta — w:${widthDelta}px h:${heightDelta}px`,
-                ts: this._natives.dateNow(),
+                ts: this._natives.dateNow()
             });
         }
     }
@@ -488,11 +477,7 @@ export class AntiDebuggerEngine {
     private _scheduleAction(report: ThreatReport): void {
         if (this._actionTimer) return; // already scheduled
         this._actionTimer = setTimeout(() => {
-            if (
-                this._active &&
-                this._reports.length >= CFG.DETECTION_QUORUM &&
-                this._actionHandler
-            ) {
+            if (this._active && this._reports.length >= CFG.DETECTION_QUORUM && this._actionHandler) {
                 this._actionHandler(report);
             }
         }, CFG.ACTION_DEBOUNCE_MS);

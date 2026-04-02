@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
             return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         }
 
-        const { privateKey } = await generateKeyPair("RS256", { modulusLength: 2048, extractable: true });
+        const { privateKey } = await generateKeyPair("RS256", {
+            modulusLength: 2048,
+            extractable: true
+        });
         const jwk = await exportJWK(privateKey);
         jwk.kid = `immich-sso-${Date.now()}`;
 

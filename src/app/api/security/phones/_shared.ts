@@ -11,7 +11,7 @@ export async function getPhonePolicies() {
         maxPhonesPerAccount: Number(process.env.PHONE_MAX_PER_ACCOUNT || "3"),
         maxAccountsPerPhone: Number(process.env.PHONE_MAX_ACCOUNTS_PER_NUMBER || "3"),
         otpExpiryMinutes: Number(process.env.PHONE_OTP_EXPIRY_MINUTES || "5"),
-        otpMaxAttempts: Number(process.env.PHONE_OTP_MAX_ATTEMPTS || "5"),
+        otpMaxAttempts: Number(process.env.PHONE_OTP_MAX_ATTEMPTS || "5")
     };
 
     try {
@@ -21,7 +21,7 @@ export async function getPhonePolicies() {
             maxPhonesPerAccount: settings.phonePolicies?.maxPhonesPerAccount ?? fallback.maxPhonesPerAccount,
             maxAccountsPerPhone: settings.phonePolicies?.maxAccountsPerPhone ?? fallback.maxAccountsPerPhone,
             otpExpiryMinutes: settings.phonePolicies?.otpExpiryMinutes ?? fallback.otpExpiryMinutes,
-            otpMaxAttempts: settings.phonePolicies?.otpMaxAttempts ?? fallback.otpMaxAttempts,
+            otpMaxAttempts: settings.phonePolicies?.otpMaxAttempts ?? fallback.otpMaxAttempts
         };
     } catch {
         return fallback;

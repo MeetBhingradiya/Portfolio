@@ -1,21 +1,21 @@
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
-    target-branch: "Development"
-    labels:
-      - "🛍️ Scope : Dependencies"
-      - "🚀 Type : Update"
-      - "📦 Package : NPM"
-    schedule:
-      interval: "monthly"
+    - package-ecosystem: "npm"
+      directory: "/"
+      target-branch: "Development"
+      labels:
+          - "🛍️ Scope : Dependencies"
+          - "🚀 Type : Update"
+          - "📦 Package : NPM"
+      schedule:
+          interval: "monthly"
 
-  - package-ecosystem: "pip"
-    directory: "/"
-    target-branch: "Development"
-    schedule:
-      interval: "monthly"
-    labels:
-      - "🛍️ Scope : Dependencies"
-      - "🚀 Type : Update"
-      - "📦 Package : PIP"
+    - package-ecosystem: "pip"
+      directory: "/"
+      target-branch: "Development"
+      schedule:
+          interval: "monthly"
+      labels:
+          - "🛍️ Scope : Dependencies"
+          - "🚀 Type : Update"
+          - "📦 Package : PIP"

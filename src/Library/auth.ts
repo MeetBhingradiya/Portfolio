@@ -18,6 +18,7 @@ import { UserAgent } from "@Library/UserAgent";
 import { IPData } from "@Utils/IPData";
 import { getSiteSettings } from "@Models/SiteSettings";
 import { getClientIp } from "@Library/IP";
+import { Config as SConfig } from "@Config/Server";
 
 const verificationEmailRateLimitStore = new Map<string, number[]>();
 const E164_PHONE_REGEX = /^\+[1-9]\d{7,14}$/;
@@ -54,7 +55,7 @@ type EmailSecurityPolicies = {
 function getEmailPoliciesFromEnv(): EmailSecurityPolicies {
     return {
         verificationRateLimitWindowMinutes: Number(process.env.EMAIL_VERIFICATION_WINDOW_MINUTES || "720"),
-        verificationRateLimitMax: Number(process.env.EMAIL_VERIFICATION_MAX_PER_WINDOW || "3"),
+        verificationRateLimitMax: Number(process.env.EMAIL_VERIFICATION_MAX_PER_WINDOW || "3")
     };
 }
 
@@ -65,18 +66,14 @@ async function getEmailSecurityPolicies(): Promise<EmailSecurityPolicies> {
         return {
             verificationRateLimitWindowMinutes:
                 settings.emailPolicies?.verificationRateLimitWindowMinutes ?? fallback.verificationRateLimitWindowMinutes,
-            verificationRateLimitMax:
-                settings.emailPolicies?.verificationRateLimitMax ?? fallback.verificationRateLimitMax,
+            verificationRateLimitMax: settings.emailPolicies?.verificationRateLimitMax ?? fallback.verificationRateLimitMax
         };
     } catch {
         return fallback;
     }
 }
 
-function consumeVerificationRateLimit(
-    email: string,
-    policies: EmailSecurityPolicies
-): { allowed: boolean; retryAfterSeconds: number } {
+function consumeVerificationRateLimit(email: string, policies: EmailSecurityPolicies): { allowed: boolean; retryAfterSeconds: number } {
     const windowMs = Math.max(1, policies.verificationRateLimitWindowMinutes) * 60 * 1000;
     const maxPerWindow = Math.max(1, policies.verificationRateLimitMax);
 
@@ -89,7 +86,7 @@ function consumeVerificationRateLimit(
         const retryAfterMs = Math.max(0, windowMs - (now - fresh[0]));
         return {
             allowed: false,
-            retryAfterSeconds: Math.ceil(retryAfterMs / 1000),
+            retryAfterSeconds: Math.ceil(retryAfterMs / 1000)
         };
     }
 
@@ -98,31 +95,29 @@ function consumeVerificationRateLimit(
     return { allowed: true, retryAfterSeconds: 0 };
 }
 
-function getDeviceContext(userAgentSource: string): { platform: string; deviceType: string; browser: string } {
+function getDeviceContext(userAgentSource: string): {
+    platform: string;
+    deviceType: string;
+    browser: string;
+} {
     if (!userAgentSource) {
         return {
             platform: "Unknown Platform",
             deviceType: "Unknown Device",
-            browser: "Unknown Browser",
+            browser: "Unknown Browser"
         };
     }
 
     const parsed = new UserAgent(userAgentSource).parse();
-    const platform = parsed.platform !== "unknown" ? parsed.platform : (parsed.os !== "unknown" ? parsed.os : "Unknown Platform");
+    const platform = parsed.platform !== "unknown" ? parsed.platform : parsed.os !== "unknown" ? parsed.os : "Unknown Platform";
     const browser = parsed.browser !== "unknown" ? parsed.browser : "Unknown Browser";
 
-    const deviceType = parsed.isTablet
-        ? "Tablet"
-        : parsed.isMobile
-            ? "Mobile"
-            : parsed.isDesktop
-                ? "Desktop"
-                : "Unknown Device";
+    const deviceType = parsed.isTablet ? "Tablet" : parsed.isMobile ? "Mobile" : parsed.isDesktop ? "Desktop" : "Unknown Device";
 
     return {
         platform: toTitleCase(String(platform)),
         deviceType,
-        browser: toTitleCase(String(browser)),
+        browser: toTitleCase(String(browser))
     };
 }
 
@@ -161,8 +156,8 @@ async function sendLoginNotificationEmail(input: {
             deviceType: device.deviceType,
             browser: device.browser,
             loginAt: new Date().toISOString(),
-            eventPath: input.eventPath,
-        }),
+            eventPath: input.eventPath
+        })
     });
 }
 
@@ -174,7 +169,7 @@ let dbAdapter: any = undefined;
 if (!isBuildTime && process.env.MONGODB_01) {
     try {
         const client = new MongoClient(process.env.MONGODB_01);
-        const db = client.db("PRODUCTION_MeetBhingradiya");
+        const db = client.db(SConfig.Database.Name);
 
         // Compatibility migration for older account documents that used `user_id`.
         // Better Auth credential sign-in queries by `userId`.
@@ -182,14 +177,14 @@ if (!isBuildTime && process.env.MONGODB_01) {
             .updateMany(
                 {
                     userId: { $exists: false },
-                    user_id: { $exists: true },
+                    user_id: { $exists: true }
                 },
                 [
                     {
                         $set: {
-                            userId: "$user_id",
-                        },
-                    },
+                            userId: "$user_id"
+                        }
+                    }
                 ]
             )
             .then((res) => {
@@ -236,15 +231,15 @@ export const auth = betterAuth({
                     html: verificationEmailTemplate({
                         name: user.name,
                         verificationUrl: url,
-                        expiresInMinutes: 60,
-                    }),
+                        expiresInMinutes: 60
+                    })
                 });
                 console.log(`[Auth] Verification email sent to ${user.email}`);
             } catch (error) {
                 // Never block sign-up flow on mail delivery issues.
                 console.error(`[Auth] Failed to send verification email to ${user.email}:`, error);
             }
-        },
+        }
     },
 
     // Email and password authentication
@@ -253,22 +248,22 @@ export const auth = betterAuth({
         requireEmailVerification: true,
         // OAuth users are auto-verified via their provider
         disableSignUp: false, // Allow sign-up for email/password users
-        autoSignIn: true, // Auto sign-in after sign-up
+        autoSignIn: true // Auto sign-in after sign-up
     },
 
     // Plugins configuration
     plugins: [
         username({
             minUsernameLength: 3,
-            maxUsernameLength: 30,
+            maxUsernameLength: 30
         }),
         twoFactor({
-            issuer: "Meet Bhingradiya Portfolio",
+            issuer: "Meet Bhingradiya Portfolio"
         }),
         passkey({
             rpName: "Meet Bhingradiya Portfolio",
             rpID: "meetbhingradiya.in",
-            origin: Config.Origin,
+            origin: Config.Origin
         }),
         phoneNumber({
             expiresIn: 5 * 60,
@@ -277,110 +272,115 @@ export const auth = betterAuth({
             phoneNumberValidator: (phone) => E164_PHONE_REGEX.test(phone),
             sendOTP: async ({ phoneNumber: phone, code }) => {
                 await sendPhoneOtpSms(phone, code);
-            },
+            }
         }),
-        multiSession(),
+        multiSession()
     ],
 
     // Social providers configuration
     socialProviders: {
-        google: process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-            ? {
-                prompt: "select_account",
-                clientId: process.env.GOOGLE_CLIENT_ID,
-                clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                scope: ["email", "profile", "openid"],
-                // Override getUserInfo to always fetch from the userinfo endpoint.
-                // Decoding the id_token alone omits `picture` in some flows.
-                getUserInfo: async (token) => {
-                    let profile: Record<string, any> | null = null;
+        google:
+            process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+                ? ({
+                      prompt: "select_account",
+                      clientId: process.env.GOOGLE_CLIENT_ID,
+                      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                      scope: ["email", "profile", "openid"],
+                      // Override getUserInfo to always fetch from the userinfo endpoint.
+                      // Decoding the id_token alone omits `picture` in some flows.
+                      getUserInfo: async (token) => {
+                          let profile: Record<string, any> | null = null;
 
-                    // 1. Prefer the userinfo endpoint (always includes `picture`)
-                    if (token.accessToken) {
-                        try {
-                            const res = await fetch(
-                                "https://www.googleapis.com/oauth2/v3/userinfo",
-                                { headers: { Authorization: `Bearer ${token.accessToken}` } }
-                            );
-                            if (res.ok) profile = await res.json();
-                        } catch (e) {
-                            console.error("[Google] Failed to fetch userinfo:", e);
-                        }
-                    }
+                          // 1. Prefer the userinfo endpoint (always includes `picture`)
+                          if (token.accessToken) {
+                              try {
+                                  const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                                      headers: {
+                                          Authorization: `Bearer ${token.accessToken}`
+                                      }
+                                  });
+                                  if (res.ok) profile = await res.json();
+                              } catch (e) {
+                                  console.error("[Google] Failed to fetch userinfo:", e);
+                              }
+                          }
 
-                    // 2. Fallback: decode id_token
-                    if (!profile && token.idToken) {
-                        const { decodeJwt } = await import("jose");
-                        profile = decodeJwt(token.idToken) as Record<string, any>;
-                    }
+                          // 2. Fallback: decode id_token
+                          if (!profile && token.idToken) {
+                              const { decodeJwt } = await import("jose");
+                              profile = decodeJwt(token.idToken) as Record<string, any>;
+                          }
 
-                    if (!profile) return null;
+                          if (!profile) return null;
 
-                    const picture: string | null = profile.picture ?? null;
-                    return {
-                        user: {
-                            id: profile.sub as string,
-                            name: profile.name as string,
-                            email: profile.email as string,
-                            image: picture,
-                            emailVerified: profile.email_verified as boolean,
-                            googleAvatar: picture,
-                        },
-                        data: profile,
-                    };
-                },
-            } as GoogleOptions
-            : undefined,
+                          const picture: string | null = profile.picture ?? null;
+                          return {
+                              user: {
+                                  id: profile.sub as string,
+                                  name: profile.name as string,
+                                  email: profile.email as string,
+                                  image: picture,
+                                  emailVerified: profile.email_verified as boolean,
+                                  googleAvatar: picture
+                              },
+                              data: profile
+                          };
+                      }
+                  } as GoogleOptions)
+                : undefined,
 
-        github: process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-            ? {
-                clientId: process.env.GITHUB_CLIENT_ID,
-                clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                scope: ["user:email"],
-                mapProfileToUser: (profile) => ({
-                    name: profile.name || profile.login,
-                    email: profile.email,
-                    image: profile.avatar_url || undefined,
-                    emailVerified: true,
-                    githubAvatar: profile.avatar_url || null,
-                }),
-            }
-            : undefined,
+        github:
+            process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+                ? {
+                      clientId: process.env.GITHUB_CLIENT_ID,
+                      clientSecret: process.env.GITHUB_CLIENT_SECRET,
+                      scope: ["user:email"],
+                      mapProfileToUser: (profile) => ({
+                          name: profile.name || profile.login,
+                          email: profile.email,
+                          image: profile.avatar_url || undefined,
+                          emailVerified: true,
+                          githubAvatar: profile.avatar_url || null
+                      })
+                  }
+                : undefined,
 
-        microsoft: process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET
-            ? {
-                clientId: process.env.MICROSOFT_CLIENT_ID,
-                clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-                // Microsoft's built-in getUserInfo already fetches the profile photo
-                // from Graph API as a base64 data URL and sets profile.picture.
-                // We capture it into microsoftAvatar via mapProfileToUser.
-                mapProfileToUser: (profile) => {
-                    const pic: string | undefined = (profile as any).picture || undefined;
-                    return {
-                        name: (profile as any).displayName || profile.name,
-                        image: pic,
-                        microsoftAvatar: pic ?? null,
-                    };
-                },
-            }
-            : undefined,
+        microsoft:
+            process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET
+                ? {
+                      clientId: process.env.MICROSOFT_CLIENT_ID,
+                      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+                      // Microsoft's built-in getUserInfo already fetches the profile photo
+                      // from Graph API as a base64 data URL and sets profile.picture.
+                      // We capture it into microsoftAvatar via mapProfileToUser.
+                      mapProfileToUser: (profile) => {
+                          const pic: string | undefined = (profile as any).picture || undefined;
+                          return {
+                              name: (profile as any).displayName || profile.name,
+                              image: pic,
+                              microsoftAvatar: pic ?? null
+                          };
+                      }
+                  }
+                : undefined,
 
-        apple: process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
-            ? {
-                clientId: process.env.APPLE_CLIENT_ID,
-                clientSecret: process.env.APPLE_CLIENT_SECRET,
-                // Apple provides name only on first sign-in; no profile picture.
-                mapProfileToUser: (profile) => ({
-                    name: profile.name || profile.email?.split('@')[0] || "User",
-                    image: undefined, // Apple does not provide profile images
-                }),
-            }
-            : undefined,
+        apple:
+            process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
+                ? {
+                      clientId: process.env.APPLE_CLIENT_ID,
+                      clientSecret: process.env.APPLE_CLIENT_SECRET,
+                      // Apple provides name only on first sign-in; no profile picture.
+                      mapProfileToUser: (profile) => ({
+                          name: profile.name || profile.email?.split("@")[0] || "User",
+                          image: undefined // Apple does not provide profile images
+                      })
+                  }
+                : undefined
     },
 
     // Session configuration
     session: {
-        expiresIn: 60 * 60 * 24 * 7, // 7 days
+        expiresIn: 60 * 60 * 24 * 7 // 7 days
     },
 
     // Base URL and secret
@@ -388,9 +388,7 @@ export const auth = betterAuth({
     secret: process.env.BETTER_AUTH_SECRET!,
 
     // CORS and trusted origins configuration
-    trustedOrigins: [
-        Config.Origin,
-    ].filter(Boolean) as string[],
+    trustedOrigins: [Config.Origin].filter(Boolean) as string[],
 
     // Advanced security options
     advanced: {
@@ -398,7 +396,7 @@ export const auth = betterAuth({
             enabled: false
         },
         useSecureCookies: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax"
     },
 
     databaseHooks: {
@@ -421,15 +419,15 @@ export const auth = betterAuth({
                 },
                 after: async (user) => {
                     console.log(`[Auth] User created: ${user.email}`);
-                },
-            },
+                }
+            }
         },
         account: {
             create: {
                 after: async (account) => {
                     console.log(`[Auth] Account created: provider=${account.providerId}, accountId=${account.accountId}`);
-                },
-            },
+                }
+            }
         },
         session: {
             create: {
@@ -455,14 +453,14 @@ export const auth = betterAuth({
                             name: user.name,
                             userAgent,
                             ipAddress,
-                            eventPath: path || undefined,
+                            eventPath: path || undefined
                         });
                     } catch (error) {
                         console.error("[Auth] Failed to send login notification email:", error);
                     }
-                },
-            },
-        },
+                }
+            }
+        }
     },
 
     // Account settings
@@ -485,7 +483,7 @@ export const auth = betterAuth({
             email: "email",
             name: "name",
             image: "image",
-            emailVerified: "emailVerified",
+            emailVerified: "emailVerified"
         },
         additionalFields: {
             // Stores the avatar URL fetched from each provider at sign-in time.
@@ -494,25 +492,25 @@ export const auth = betterAuth({
                 type: "string",
                 required: false,
                 defaultValue: null,
-                input: false,  // not directly settable by the client
+                input: false // not directly settable by the client
             },
             githubAvatar: {
                 type: "string",
                 required: false,
                 defaultValue: null,
-                input: false,
+                input: false
             },
             // Microsoft profile photo (base64 data URL from Graph API)
             microsoftAvatar: {
                 type: "string",
                 required: false,
                 defaultValue: null,
-                input: false,
-            },
+                input: false
+            }
         },
         changeEmail: {
             enabled: true,
-            updateEmailWithoutVerification: false,
+            updateEmailWithoutVerification: false
         },
         deleteUser: {
             enabled: true,
@@ -523,12 +521,12 @@ export const auth = betterAuth({
                     html: deleteAccountVerificationEmail({
                         name: user.name,
                         verificationUrl: url,
-                        expiresInHours: 24,
-                    }),
+                        expiresInHours: 24
+                    })
                 });
-            },
+            }
         }
-    },
+    }
 });
 
 // Export helper functions

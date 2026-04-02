@@ -7,24 +7,13 @@ interface DeploymentCheckState {
 
 const DeploymentCheckState: DeploymentCheckState = {
     CommitMessage: "",
-    BlockKeywords: [
-        "NO_DEPLOY",
-        "SKIP_DEPLOY",
-        "DEPLOY_BLOCKED",
-        "DEPLOY_DISABLED",
-        "STOP_DEPLOY",
-        "README",
-        "No Deploy",
-        "no deploy"
-    ]
+    BlockKeywords: ["NO_DEPLOY", "SKIP_DEPLOY", "DEPLOY_BLOCKED", "DEPLOY_DISABLED", "STOP_DEPLOY", "README", "No Deploy", "no deploy"]
 };
 
 function isDeployBlockedByCommitMessage(commitMessage: string): boolean {
     for (const keyword of DeploymentCheckState.BlockKeywords) {
         if (commitMessage.includes(keyword)) {
-            console.log(
-                `🚫 Deployment blocked by commit message containing "${keyword}".`
-            );
+            console.log(`🚫 Deployment blocked by commit message containing "${keyword}".`);
             return true;
         }
     }
@@ -33,9 +22,7 @@ function isDeployBlockedByCommitMessage(commitMessage: string): boolean {
 
 (async function main() {
     const commitMessage = execSync("git log -1 --pretty=%B").toString().trim();
-    const branch = execSync("git rev-parse --abbrev-ref HEAD")
-        .toString()
-        .trim();
+    const branch = execSync("git rev-parse --abbrev-ref HEAD").toString().trim();
 
     console.log(`📝 Commit Message: "${commitMessage}"`);
     console.log(`🌿 Branch: ${branch}`);

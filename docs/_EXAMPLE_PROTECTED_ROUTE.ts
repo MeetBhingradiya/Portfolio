@@ -25,7 +25,10 @@ export async function exampleAdminOnly(req: NextRequest) {
 
     const session = result.session;
     // Only admin (ADMIN_EMAIL) can access
-    return NextResponse.json({ message: "Admin endpoint", user: session.user.email });
+    return NextResponse.json({
+        message: "Admin endpoint",
+        user: session.user.email
+    });
 }
 
 // Example 2: Endpoint requiring specific permission
@@ -37,37 +40,40 @@ export async function exampleWithPermission(req: NextRequest) {
 
     const session = result.session;
     // User must have "shop.orders.view" permission
-    return NextResponse.json({ message: "Orders data", userId: session.user.id });
+    return NextResponse.json({
+        message: "Orders data",
+        userId: session.user.id
+    });
 }
 
 // Example 3: Endpoint requiring ANY of multiple permissions (OR logic)
 export async function exampleWithAnyPermission(req: NextRequest) {
-    const result = await requireAnyPermission(req, [
-        "shop.orders.view",
-        "shop.refunds.view"
-    ]);
+    const result = await requireAnyPermission(req, ["shop.orders.view", "shop.refunds.view"]);
     if (result.error) {
         return permissionError(result.status, result.message);
     }
 
     const session = result.session;
     // User must have at least one of the permissions
-    return NextResponse.json({ message: "Orders or refunds data", userId: session.user.id });
+    return NextResponse.json({
+        message: "Orders or refunds data",
+        userId: session.user.id
+    });
 }
 
 // Example 4: Endpoint requiring ALL permissions (AND logic)
 export async function exampleWithAllPermissions(req: NextRequest) {
-    const result = await requireAllPermissions(req, [
-        "shop.orders.view",
-        "shop.orders.update"
-    ]);
+    const result = await requireAllPermissions(req, ["shop.orders.view", "shop.orders.update"]);
     if (result.error) {
         return permissionError(result.status, result.message);
     }
 
     const session = result.session;
     // User must have ALL permissions to update orders
-    return NextResponse.json({ message: "Can update orders", userId: session.user.id });
+    return NextResponse.json({
+        message: "Can update orders",
+        userId: session.user.id
+    });
 }
 
 // Example 5: Complete GET endpoint with permission check
@@ -90,10 +96,7 @@ export async function GET(req: NextRequest) {
 
     // Step 4: Validate input
     if (limit > 100 || limit < 1) {
-        return NextResponse.json(
-            { error: "Invalid limit (1-100)" },
-            { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid limit (1-100)" }, { status: 400 });
     }
 
     // Step 5: Fetch data (would use your database here)
@@ -127,19 +130,13 @@ export async function POST(req: NextRequest) {
     try {
         body = await req.json();
     } catch {
-        return NextResponse.json(
-            { error: "Invalid JSON" },
-            { status: 400 }
-        );
+        return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
     }
 
     // Step 4: Validate required fields
     const { name, price, description } = body;
     if (!name || !price) {
-        return NextResponse.json(
-            { error: "Missing required fields: name, price" },
-            { status: 400 }
-        );
+        return NextResponse.json({ error: "Missing required fields: name, price" }, { status: 400 });
     }
 
     // Step 5: Create product (would use your database here)

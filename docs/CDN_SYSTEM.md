@@ -3,10 +3,11 @@
 > Last updated: 2025  
 > Author: Meet Bhingradiya
 
-A private, unlimited-storage CDN backed by one or more private GitHub repositories.
-Files are never exposed with a public GitHub URL — everything is proxied through the Next.js API, authenticated with a PAT, and served with long-lived `Cache-Control` headers.
+A private, unlimited-storage CDN backed by one or more private GitHub repositories. Files are never exposed with a public GitHub URL —
+everything is proxied through the Next.js API, authenticated with a PAT, and served with long-lived `Cache-Control` headers.
 
 The CDN now runs in **privacy compaction mode**:
+
 - After each upload/delete mutation, the repository branch is force-compacted to a **single commit**.
 - Historical file revisions are intentionally removed from normal branch history.
 - Admin version-history/restore-by-commit features are disabled.
@@ -72,10 +73,10 @@ GitHub → Settings → Developer Settings → Personal access tokens → Fine-g
 
 Required permissions (for the `PrivateCloud-*` repos):
 
-| Scope | Permission |
-|-------|-----------|
+| Scope    | Permission   |
+| -------- | ------------ |
 | Contents | Read & Write |
-| Metadata | Read |
+| Metadata | Read         |
 
 ### 3. Add Environment Variables
 
@@ -128,17 +129,18 @@ context   (optional) — "<kind>:<id>" e.g. "user:abc123", "company:Google"
 ```
 
 **Response:**
+
 ```json
 {
-  "assetId": "550e8400-e29b-41d4-a716-446655440000",
-  "cdnUrl": "/api/cdn/550e8400-...",
-  "filename": "avatar.png",
-  "githubRepo": "PrivateCloud-1",
-  "size": 148320,
-  "mimeType": "image/png",
-  "type": "avatar",
-  "checksumMd5": "d41d8cd98f00b204e9800998ecf8427e",
-  "checksumSha256": "e3b0c44298fc1c149afb..."
+    "assetId": "550e8400-e29b-41d4-a716-446655440000",
+    "cdnUrl": "/api/cdn/550e8400-...",
+    "filename": "avatar.png",
+    "githubRepo": "PrivateCloud-1",
+    "size": 148320,
+    "mimeType": "image/png",
+    "type": "avatar",
+    "checksumMd5": "d41d8cd98f00b204e9800998ecf8427e",
+    "checksumSha256": "e3b0c44298fc1c149afb..."
 }
 ```
 
@@ -186,7 +188,7 @@ await upload(file, {
     type: "avatar",
     context: `user:${session.user.id}`,
     tags: ["profile", "avatar"],
-    altText: `${session.user.name} profile picture`,
+    altText: `${session.user.name} profile picture`
 });
 ```
 
@@ -202,14 +204,14 @@ await upload(bannerFile, {
     type: "banner",
     context: `project:${project.slug}`,
     tags: ["project", "banner", project.slug],
-    altText: `${project.title} hero image`,
+    altText: `${project.title} hero image`
 });
 
 // Screenshot
 await upload(screenshotFile, {
     type: "banner",
     context: `project:${project.slug}`,
-    tags: ["project", "screenshot", project.slug],
+    tags: ["project", "screenshot", project.slug]
 });
 ```
 
@@ -224,7 +226,7 @@ await upload(logoFile, {
     type: "icon",
     context: `institute:${institute.name.replace(/\s+/g, "_")}`,
     tags: ["education", "logo", "institute"],
-    altText: `${institute.name} logo`,
+    altText: `${institute.name} logo`
 });
 ```
 
@@ -239,7 +241,7 @@ await upload(iconFile, {
     type: "icon",
     context: `company:${company.name.replace(/\s+/g, "_")}`,
     tags: ["company", "logo", "experience"],
-    altText: `${company.name} logo`,
+    altText: `${company.name} logo`
 });
 ```
 
@@ -254,7 +256,7 @@ await upload(certFile, {
     type: "document",
     context: `cert:${cert.id}`,
     tags: ["certificate", cert.issuer.toLowerCase()],
-    altText: `${cert.title} certificate from ${cert.issuer}`,
+    altText: `${cert.title} certificate from ${cert.issuer}`
 });
 ```
 
@@ -268,7 +270,7 @@ Store `cdnUrl` in `Certificate.image` or `Certificate.document`.
 await upload(bgFile, {
     type: "background",
     context: "global",
-    tags: ["background", "hero"],
+    tags: ["background", "hero"]
 });
 ```
 
@@ -299,6 +301,7 @@ POST /api/admin/cdn/check
 ```
 
 Calls `GET contents/<path>` for every active asset. Detects:
+
 - Files still present (SHA may have changed externally → updated in MongoDB)
 - Files missing on GitHub → `status: "missing"`
 - Previously missing files re-appearing → `status: "active"` restored
@@ -314,13 +317,14 @@ POST /api/admin/cdn/check?deep=1
 Downloads every active file and computes MD5. Compares against stored `checksumMd5`.
 
 Returns:
+
 ```json
 {
-  "checked": 42,
-  "restored": 0,
-  "nowMissing": 0,
-  "checksumMismatch": 1,
-  "mismatchIds": ["550e8400-..."]
+    "checked": 42,
+    "restored": 0,
+    "nowMissing": 0,
+    "checksumMismatch": 1,
+    "mismatchIds": ["550e8400-..."]
 }
 ```
 
@@ -343,24 +347,24 @@ Navigate to `/admin/cdn` to:
 
 ## Asset Types Reference
 
-| `type` | Use case |
-|--------|----------|
-| `avatar` | User profile pictures |
-| `icon` | Company / institute / tool logos |
-| `banner` | Project hero images, screenshots, banners |
-| `background` | Page/section background images |
-| `video` | Short demo clips |
-| `document` | PDFs, certificates, exported files |
-| `other` | Anything else |
+| `type`       | Use case                                  |
+| ------------ | ----------------------------------------- |
+| `avatar`     | User profile pictures                     |
+| `icon`       | Company / institute / tool logos          |
+| `banner`     | Project hero images, screenshots, banners |
+| `background` | Page/section background images            |
+| `video`      | Short demo clips                          |
+| `document`   | PDFs, certificates, exported files        |
+| `other`      | Anything else                             |
 
 ## Context Format Reference
 
-| Entity | Recommended `context` |
-|--------|-----------------------|
-| User | `user:<userId>` |
-| Project | `project:<slug>` |
-| Company | `company:<CompanyName>` |
-| Institute | `institute:<InstituteName>` |
-| Certificate | `cert:<certId>` |
-| Course | `course:<courseId>` |
-| Global/shared | `global` |
+| Entity        | Recommended `context`       |
+| ------------- | --------------------------- |
+| User          | `user:<userId>`             |
+| Project       | `project:<slug>`            |
+| Company       | `company:<CompanyName>`     |
+| Institute     | `institute:<InstituteName>` |
+| Certificate   | `cert:<certId>`             |
+| Course        | `course:<courseId>`         |
+| Global/shared | `global`                    |

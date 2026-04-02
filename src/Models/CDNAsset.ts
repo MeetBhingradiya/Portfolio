@@ -9,26 +9,26 @@ export type AssetType = "icon" | "avatar" | "banner" | "background" | "video" | 
 export type AssetStatus = "active" | "missing" | "deleted";
 
 export interface ICDNAsset extends Document {
-    assetId: string;         // Unique nanoid — used in CDN URLs  /api/cdn/<assetId>
-    filename: string;        // Original file name (e.g. "profile.png")
-    githubRepo: string;      // Which repo holds this file (e.g. "PrivateCloud-1")
-    githubPath: string;      // Path inside repo (e.g. "uploads/avatars/abc123.png")
-    sha: string;             // GitHub blob SHA — required for updates/deletions
-    checksumMd5: string;     // MD5 hex of raw file bytes (fast, for dedup)
-    checksumSha256: string;  // SHA-256 hex of raw file bytes (strong integrity)
-    mimeType: string;        // MIME type detected at upload
-    size: number;            // File size in bytes
-    type: AssetType;         // Categorisation for admin filtering
-    tags: string[];          // Free-form tags for searching
-    context?: string;        // Owning entity e.g. "user:abc", "project:xyz", "company:Google"
-    uploadedBy: string;      // User ID or "system"
-    status: AssetStatus;     // Updated by integrity checks
-    lastChecked?: Date;      // Last time GitHub confirmed the file exists
-    lastCheckOk?: boolean;   // Result of the last integrity check
+    assetId: string; // Unique nanoid — used in CDN URLs  /api/cdn/<assetId>
+    filename: string; // Original file name (e.g. "profile.png")
+    githubRepo: string; // Which repo holds this file (e.g. "PrivateCloud-1")
+    githubPath: string; // Path inside repo (e.g. "uploads/avatars/abc123.png")
+    sha: string; // GitHub blob SHA — required for updates/deletions
+    checksumMd5: string; // MD5 hex of raw file bytes (fast, for dedup)
+    checksumSha256: string; // SHA-256 hex of raw file bytes (strong integrity)
+    mimeType: string; // MIME type detected at upload
+    size: number; // File size in bytes
+    type: AssetType; // Categorisation for admin filtering
+    tags: string[]; // Free-form tags for searching
+    context?: string; // Owning entity e.g. "user:abc", "project:xyz", "company:Google"
+    uploadedBy: string; // User ID or "system"
+    status: AssetStatus; // Updated by integrity checks
+    lastChecked?: Date; // Last time GitHub confirmed the file exists
+    lastCheckOk?: boolean; // Result of the last integrity check
     checksumVerified?: boolean; // Whether last check confirmed checksum still matches
     createdAt: Date;
     updatedAt: Date;
-    altText?: string;        // Accessibility description
+    altText?: string; // Accessibility description
 }
 
 const CDNAssetSchema = new Schema<ICDNAsset>(
@@ -38,7 +38,7 @@ const CDNAssetSchema = new Schema<ICDNAsset>(
             required: true,
             unique: true,
             index: true,
-            trim: true,
+            trim: true
         },
         filename: { type: String, required: true, trim: true },
         githubRepo: { type: String, required: true, trim: true, index: true },
@@ -51,7 +51,7 @@ const CDNAssetSchema = new Schema<ICDNAsset>(
         type: {
             type: String,
             enum: ["icon", "avatar", "banner", "background", "video", "document", "other"],
-            default: "other",
+            default: "other"
         },
         tags: { type: [String], default: [] },
         context: { type: String, trim: true, index: true, sparse: true },
@@ -60,12 +60,12 @@ const CDNAssetSchema = new Schema<ICDNAsset>(
             type: String,
             enum: ["active", "missing", "deleted"],
             default: "active",
-            index: true,
+            index: true
         },
         lastChecked: { type: Date },
         lastCheckOk: { type: Boolean },
         checksumVerified: { type: Boolean },
-        altText: { type: String, trim: true },
+        altText: { type: String, trim: true }
     },
     { timestamps: true }
 );
@@ -78,6 +78,4 @@ CDNAssetSchema.index({ githubRepo: 1, githubPath: 1 }, { unique: true });
 CDNAssetSchema.index({ type: 1, status: 1 });
 CDNAssetSchema.index({ githubRepo: 1, status: 1 });
 
-export const CDNAsset =
-    mongoose.models.CDNAsset ||
-    mongoose.model<ICDNAsset>("CDNAsset", CDNAssetSchema);
+export const CDNAsset = mongoose.models.CDNAsset || mongoose.model<ICDNAsset>("CDNAsset", CDNAssetSchema);

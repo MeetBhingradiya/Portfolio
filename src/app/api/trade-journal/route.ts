@@ -17,8 +17,16 @@ function toNum(v: unknown): number | undefined {
 }
 
 function toArray(v: unknown): string[] {
-    if (Array.isArray(v)) return v.map(String).map(s => s.trim()).filter(Boolean);
-    if (typeof v === "string") return v.split(",").map(s => s.trim()).filter(Boolean);
+    if (Array.isArray(v))
+        return v
+            .map(String)
+            .map((s) => s.trim())
+            .filter(Boolean);
+    if (typeof v === "string")
+        return v
+            .split(",")
+            .map((s) => s.trim())
+            .filter(Boolean);
     return [];
 }
 
@@ -40,15 +48,16 @@ function computePnL(direction: string, entryPrice?: number, exitPrice?: number, 
     if (entryPrice == null || exitPrice == null) return undefined;
     const qty = quantity ?? 1;
     const lot = lotSize ?? 1;
-    const raw = direction === TradeDirection.SHORT
-        ? (entryPrice - exitPrice) * qty * lot
-        : (exitPrice - entryPrice) * qty * lot;
+    const raw = direction === TradeDirection.SHORT ? (entryPrice - exitPrice) * qty * lot : (exitPrice - entryPrice) * qty * lot;
     return Number(raw.toFixed(2));
 }
 
 function parseAmPmMinutes(t?: string): number | undefined {
     if (!t || !AM_PM_TIME_RE.test(t.trim())) return undefined;
-    const m = t.trim().toUpperCase().match(/^(\d{2}):(\d{2})\s?(AM|PM)$/);
+    const m = t
+        .trim()
+        .toUpperCase()
+        .match(/^(\d{2}):(\d{2})\s?(AM|PM)$/);
     if (!m) return undefined;
     let h = Number(m[1]);
     const min = Number(m[2]);
@@ -67,14 +76,14 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const q = req.nextUrl.searchParams;
-        const page      = Math.max(1, parseInt(q.get("page")  || "1"));
-        const limit     = Math.min(50, parseInt(q.get("limit") || "20"));
-        const result    = q.get("result");
-        const segment   = q.get("segment");
+        const page = Math.max(1, parseInt(q.get("page") || "1"));
+        const limit = Math.min(50, parseInt(q.get("limit") || "20"));
+        const result = q.get("result");
+        const segment = q.get("segment");
         const direction = q.get("direction");
-        const from      = q.get("from");
-        const to        = q.get("to");
-        const search    = q.get("search");
+        const from = q.get("from");
+        const to = q.get("to");
+        const search = q.get("search");
 
         const includeDrafts = q.get("includeDrafts") === "1";
         const onlyDrafts = q.get("onlyDrafts") === "1";
@@ -83,20 +92,20 @@ export async function GET(req: NextRequest) {
         if (onlyDrafts) query.IsDraft = true;
         else if (!includeDrafts) query.IsDraft = { $ne: true };
 
-        if (result)    query.Result    = result;
-        if (segment)   query.Segment   = segment;
+        if (result) query.Result = result;
+        if (segment) query.Segment = segment;
         if (direction) query.Direction = direction;
         if (from || to) {
             query.Date = {};
             if (from) query.Date.$gte = new Date(from);
-            if (to)   query.Date.$lte = new Date(to);
+            if (to) query.Date.$lte = new Date(to);
         }
         if (search) {
             query.$or = [
-                { Instrument:     { $regex: search, $options: "i" } },
-                { StrategyName:   { $regex: search, $options: "i" } },
+                { Instrument: { $regex: search, $options: "i" } },
+                { StrategyName: { $regex: search, $options: "i" } },
                 { PostTradeNotes: { $regex: search, $options: "i" } },
-                { Tags:           { $in: [new RegExp(search, "i")] } },
+                { Tags: { $in: [new RegExp(search, "i")] } }
             ];
         }
 
@@ -109,24 +118,41 @@ export async function GET(req: NextRequest) {
                 .lean(),
             TradeJournal.aggregate([
                 { $match: query },
-                { $group: {
-                    _id: null,
-                    wins:      { $sum: { $cond: [{ $eq: ["$Result", "WIN"] },       1, 0] } },
-                    losses:    { $sum: { $cond: [{ $eq: ["$Result", "LOSS"] },      1, 0] } },
-                    breakeven: { $sum: { $cond: [{ $eq: ["$Result", "BREAKEVEN"] }, 1, 0] } },
-                    netPnl:    { $sum: "$NetPnL" },
-                } },
-            ]),
+                {
+                    $group: {
+                        _id: null,
+                        wins: {
+                            $sum: { $cond: [{ $eq: ["$Result", "WIN"] }, 1, 0] }
+                        },
+                        losses: {
+                            $sum: {
+                                $cond: [{ $eq: ["$Result", "LOSS"] }, 1, 0]
+                            }
+                        },
+                        breakeven: {
+                            $sum: {
+                                $cond: [{ $eq: ["$Result", "BREAKEVEN"] }, 1, 0]
+                            }
+                        },
+                        netPnl: { $sum: "$NetPnL" }
+                    }
+                }
+            ])
         ]);
 
-        const sm = summaryAgg[0] ?? { wins: 0, losses: 0, breakeven: 0, netPnl: 0 };
+        const sm = summaryAgg[0] ?? {
+            wins: 0,
+            losses: 0,
+            breakeven: 0,
+            netPnl: 0
+        };
         const closed = sm.wins + sm.losses + sm.breakeven;
         const summary = {
-            wins:      sm.wins,
-            losses:    sm.losses,
+            wins: sm.wins,
+            losses: sm.losses,
             breakeven: sm.breakeven,
-            netPnl:    parseFloat((sm.netPnl ?? 0).toFixed(2)),
-            winRate:   closed > 0 ? parseFloat(((sm.wins / closed) * 100).toFixed(1)) : 0,
+            netPnl: parseFloat((sm.netPnl ?? 0).toFixed(2)),
+            winRate: closed > 0 ? parseFloat(((sm.wins / closed) * 100).toFixed(1)) : 0
         };
 
         return NextResponse.json({
@@ -134,8 +160,13 @@ export async function GET(req: NextRequest) {
             data: {
                 trades,
                 summary,
-                pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
-            },
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
         });
     } catch (err) {
         console.error("GET /api/trade-journal:", err);
@@ -155,11 +186,19 @@ export async function POST(req: NextRequest) {
 
         const isDraft = Boolean(body.IsDraft);
         const tradeDate = body.Date;
-        const entryTime = String(body.EntryTime || "").trim().toUpperCase();
-        const exitTime = String(body.ExitTime || "").trim().toUpperCase();
+        const entryTime = String(body.EntryTime || "")
+            .trim()
+            .toUpperCase();
+        const exitTime = String(body.ExitTime || "")
+            .trim()
+            .toUpperCase();
 
-        const instrumentName = String(body.InstrumentName || body.Instrument || "").trim().toUpperCase();
-        const instrument = String(body.Instrument || instrumentName).trim().toUpperCase();
+        const instrumentName = String(body.InstrumentName || body.Instrument || "")
+            .trim()
+            .toUpperCase();
+        const instrument = String(body.Instrument || instrumentName)
+            .trim()
+            .toUpperCase();
         const segment = String(body.Segment || "OPTIONS").toUpperCase();
         const direction = String(body.PositionDuration || body.Direction || "SHORT").toUpperCase();
 
@@ -174,45 +213,59 @@ export async function POST(req: NextRequest) {
         const brokerage = toNum(body.Brokerage) ?? 0;
         const taxes = toNum(body.Taxes) ?? 0;
         const explicitPnlAmount = toNum(body.PnLAmount);
-        const pnlSign = String(body.PnLSign || "").toUpperCase() === TradePnLSign.LOSS
-            ? TradePnLSign.LOSS
-            : TradePnLSign.PROFIT;
+        const pnlSign = String(body.PnLSign || "").toUpperCase() === TradePnLSign.LOSS ? TradePnLSign.LOSS : TradePnLSign.PROFIT;
 
         const optionTypeMap: Record<string, string> = {
-            CE: "CALL", CALL: "CALL",
-            PE: "PUT", PUT: "PUT",
-            NA: "NA",
+            CE: "CALL",
+            CALL: "CALL",
+            PE: "PUT",
+            PUT: "PUT",
+            NA: "NA"
         };
-        const resolvedOptionType = body.OptionType
-            ? (optionTypeMap[String(body.OptionType).toUpperCase()] ?? "NA")
-            : "NA";
+        const resolvedOptionType = body.OptionType ? (optionTypeMap[String(body.OptionType).toUpperCase()] ?? "NA") : "NA";
 
         if (!isDraft) {
             if (!tradeDate || !entryTime || !exitTime || !instrumentName || entryPrice == null || exitPrice == null) {
-                return NextResponse.json({ success: false, error: "Date, EntryTime, ExitTime, Instrument, EntryPrice, ExitPrice are required" }, { status: 400 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Date, EntryTime, ExitTime, Instrument, EntryPrice, ExitPrice are required"
+                    },
+                    { status: 400 }
+                );
             }
             if (!AM_PM_TIME_RE.test(entryTime) || !AM_PM_TIME_RE.test(exitTime)) {
-                return NextResponse.json({ success: false, error: "EntryTime and ExitTime must be in hh:mm AM/PM format" }, { status: 400 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "EntryTime and ExitTime must be in hh:mm AM/PM format"
+                    },
+                    { status: 400 }
+                );
             }
             if (quantity == null && toNum(body.LotSize) == null) {
-                return NextResponse.json({ success: false, error: "Either Quantity or Lot Size is required" }, { status: 400 });
+                return NextResponse.json(
+                    {
+                        success: false,
+                        error: "Either Quantity or Lot Size is required"
+                    },
+                    { status: 400 }
+                );
             }
         }
 
         const computedRawPnL = computePnL(direction, entryPrice, exitPrice, quantity, lotSize);
-        const signedProvidedPnl = explicitPnlAmount != null
-            ? (pnlSign === TradePnLSign.LOSS ? -Math.abs(explicitPnlAmount) : Math.abs(explicitPnlAmount))
-            : undefined;
+        const signedProvidedPnl =
+            explicitPnlAmount != null
+                ? pnlSign === TradePnLSign.LOSS
+                    ? -Math.abs(explicitPnlAmount)
+                    : Math.abs(explicitPnlAmount)
+                : undefined;
         const grossPnl = toNum(body.GrossPnL) ?? signedProvidedPnl ?? computedRawPnL ?? 0;
         const netPnl = toNum(body.NetPnL) ?? Number((grossPnl - brokerage - taxes).toFixed(2));
 
-        const result = exitPrice == null
-            ? TradeResult.PENDING
-            : netPnl > 0
-                ? TradeResult.WIN
-                : netPnl < 0
-                    ? TradeResult.LOSS
-                    : TradeResult.BREAKEVEN;
+        const result =
+            exitPrice == null ? TradeResult.PENDING : netPnl > 0 ? TradeResult.WIN : netPnl < 0 ? TradeResult.LOSS : TradeResult.BREAKEVEN;
 
         let actualRR: number | undefined;
         if (entryPrice != null && exitPrice != null && stopLoss != null && stopLoss !== entryPrice) {
@@ -220,15 +273,14 @@ export async function POST(req: NextRequest) {
         }
 
         const inferredHit = computeHitStatus(direction, exitPrice, stopLoss, target);
-        const isHit = String(body.IsHit || "").toUpperCase() === "AUTO"
-            ? inferredHit
-            : (String(body.IsHit || inferredHit).toUpperCase() as TradeHitStatus);
+        const isHit =
+            String(body.IsHit || "").toUpperCase() === "AUTO"
+                ? inferredHit
+                : (String(body.IsHit || inferredHit).toUpperCase() as TradeHitStatus);
 
         const entryMinutes = parseAmPmMinutes(entryTime);
         const exitMinutes = parseAmPmMinutes(exitTime);
-        const holdingDurationMinutes = entryMinutes != null && exitMinutes != null
-            ? exitMinutes - entryMinutes
-            : undefined;
+        const holdingDurationMinutes = entryMinutes != null && exitMinutes != null ? exitMinutes - entryMinutes : undefined;
 
         const orUndef = (v: unknown) => (v === "" || v == null ? undefined : v);
 
@@ -281,7 +333,7 @@ export async function POST(req: NextRequest) {
             Screenshots: toArray(body.Screenshots || body.AttachmentLinks),
             AttachmentUrls: toArray(body.AttachmentUrls || body.ScreenshotCdnUrls),
             Tags: toArray(body.Tags),
-            IsOpen: exitPrice == null,
+            IsOpen: exitPrice == null
         };
 
         let trade;

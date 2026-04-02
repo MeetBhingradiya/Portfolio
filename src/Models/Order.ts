@@ -28,7 +28,7 @@ export interface IOrderItem {
     variantName: string;
     productType: string;
     quantity: number;
-    unitPrice: number;   // in cents at time of purchase
+    unitPrice: number; // in cents at time of purchase
     totalPrice: number;
     currency: string;
     // For subscriptions
@@ -51,23 +51,23 @@ export interface IShippingAddress {
 }
 
 export interface IOrder extends Document {
-    orderId: string;         // e.g. ORD-20250001
+    orderId: string; // e.g. ORD-20250001
     orderNumber: number;
     userId: string;
     userEmail: string;
     userName: string;
 
     items: IOrderItem[];
-    subtotal: number;        // in cents
-    discount: number;        // in cents
-    tax: number;             // in cents
-    shippingCost: number;    // in cents
-    total: number;           // in cents
+    subtotal: number; // in cents
+    discount: number; // in cents
+    tax: number; // in cents
+    shippingCost: number; // in cents
+    total: number; // in cents
     currency: string;
 
     status: OrderStatus;
     paymentStatus: PaymentStatus;
-    paymentMethod?: string;  // "card", "upi", "paypal", etc.
+    paymentMethod?: string; // "card", "upi", "paypal", etc.
     paymentTransactionId?: string;
 
     // Shipping (for physical orders)
@@ -103,7 +103,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
         billingCycle: { type: String },
         subscriptionEndsAt: { type: Date },
         licenseKey: { type: String },
-        downloadUrl: { type: String },
+        downloadUrl: { type: String }
     },
     { _id: false }
 );
@@ -117,7 +117,7 @@ const ShippingAddressSchema = new Schema<IShippingAddress>(
         city: { type: String, required: true },
         state: { type: String, required: true },
         postalCode: { type: String, required: true },
-        country: { type: String, required: true },
+        country: { type: String, required: true }
     },
     { _id: false }
 );
@@ -140,14 +140,25 @@ const OrderSchema = new Schema<IOrder>(
 
         status: {
             type: String,
-            enum: ["pending", "payment_processing", "confirmed", "processing", "shipped",
-                "delivered", "completed", "cancelled", "refund_requested", "refunded", "failed"],
-            default: "pending",
+            enum: [
+                "pending",
+                "payment_processing",
+                "confirmed",
+                "processing",
+                "shipped",
+                "delivered",
+                "completed",
+                "cancelled",
+                "refund_requested",
+                "refunded",
+                "failed"
+            ],
+            default: "pending"
         },
         paymentStatus: {
             type: String,
             enum: ["pending", "paid", "failed", "refunded", "partially_refunded"],
-            default: "pending",
+            default: "pending"
         },
         paymentMethod: { type: String },
         paymentTransactionId: { type: String },
@@ -162,7 +173,7 @@ const OrderSchema = new Schema<IOrder>(
         customerNote: { type: String },
         adminNote: { type: String },
 
-        isDeleted: { type: Boolean, default: false },
+        isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true }
 );
@@ -170,11 +181,11 @@ const OrderSchema = new Schema<IOrder>(
 OrderSchema.index({ status: 1, createdAt: -1 });
 OrderSchema.index({ paymentStatus: 1 });
 
-export const Order =
-    mongoose.models.Order || mongoose.model<IOrder>("Order", OrderSchema);
+export const Order = mongoose.models.Order || mongoose.model<IOrder>("Order", OrderSchema);
 
 // Counter for auto-incrementing order numbers
-const OrderCounterSchema = new Schema({ _id: String, seq: { type: Number, default: 0 } });
-export const OrderCounter =
-    mongoose.models.OrderCounter ||
-    mongoose.model("OrderCounter", OrderCounterSchema);
+const OrderCounterSchema = new Schema({
+    _id: String,
+    seq: { type: Number, default: 0 }
+});
+export const OrderCounter = mongoose.models.OrderCounter || mongoose.model("OrderCounter", OrderCounterSchema);

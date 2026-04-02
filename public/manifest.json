@@ -1,51 +1,51 @@
 {
-  "name": "Productivity Hub",
-  "short_name": "Productivity",
-  "description": "Tasks, Habits, Goals & Reminders — your personal productivity dashboard",
-  "start_url": "/tools/productivity",
-  "scope": "/tools/productivity",
-  "display": "standalone",
-  "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#1c1c1e",
-  "theme_color": "#AF52DE",
-  "orientation": "portrait-primary",
-  "lang": "en",
-  "categories": ["productivity", "utilities"],
-  "icons": [
-    {
-      "src": "/favicon.ico",
-      "sizes": "48x48",
-      "type": "image/x-icon"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "Tasks",
-      "short_name": "Tasks",
-      "description": "View and manage your tasks",
-      "url": "/tools/productivity/tasks",
-      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
-    },
-    {
-      "name": "Habits",
-      "short_name": "Habits",
-      "description": "Track your daily habits",
-      "url": "/tools/productivity/habits",
-      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
-    },
-    {
-      "name": "Goals",
-      "short_name": "Goals",
-      "description": "Manage your goals",
-      "url": "/tools/productivity/goals",
-      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
-    },
-    {
-      "name": "Reminders",
-      "short_name": "Reminders",
-      "description": "View upcoming reminders",
-      "url": "/tools/productivity/reminders",
-      "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
-    }
-  ]
+    "name": "Productivity Hub",
+    "short_name": "Productivity",
+    "description": "Tasks, Habits, Goals & Reminders — your personal productivity dashboard",
+    "start_url": "/tools/productivity",
+    "scope": "/tools/productivity",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "background_color": "#1c1c1e",
+    "theme_color": "#AF52DE",
+    "orientation": "portrait-primary",
+    "lang": "en",
+    "categories": ["productivity", "utilities"],
+    "icons": [
+        {
+            "src": "/favicon.ico",
+            "sizes": "48x48",
+            "type": "image/x-icon"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Tasks",
+            "short_name": "Tasks",
+            "description": "View and manage your tasks",
+            "url": "/tools/productivity/tasks",
+            "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+        },
+        {
+            "name": "Habits",
+            "short_name": "Habits",
+            "description": "Track your daily habits",
+            "url": "/tools/productivity/habits",
+            "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+        },
+        {
+            "name": "Goals",
+            "short_name": "Goals",
+            "description": "Manage your goals",
+            "url": "/tools/productivity/goals",
+            "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+        },
+        {
+            "name": "Reminders",
+            "short_name": "Reminders",
+            "description": "View upcoming reminders",
+            "url": "/tools/productivity/reminders",
+            "icons": [{ "src": "/favicon.ico", "sizes": "48x48" }]
+        }
+    ]
 }

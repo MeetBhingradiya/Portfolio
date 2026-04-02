@@ -8,16 +8,13 @@
 import React, { useCallback, useRef, useState } from "react";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks";
-import {
-    CheckCircle,
-    CloudUpload,
-    Close,
-    DocumentScanner,
-    Warning,
-} from "@mui/icons-material";
+import { CheckCircle, CloudUpload, Close, DocumentScanner, Warning } from "@mui/icons-material";
 import type { TradeFormData } from "./TradeForm";
 
-type ParsedResult = Partial<TradeFormData> & { _ocrRaw?: string; _score?: number };
+type ParsedResult = Partial<TradeFormData> & {
+    _ocrRaw?: string;
+    _score?: number;
+};
 
 function numFromText(text: string): number | null {
     const cleaned = text.replace(/[^\d.+-]/g, "");
@@ -27,7 +24,7 @@ function numFromText(text: string): number | null {
 
 function allNums(text: string): number[] {
     return Array.from(text.matchAll(/[+-]?\d[\d,]*(?:\.\d+)?/g))
-        .map(m => numFromText(m[0]))
+        .map((m) => numFromText(m[0]))
         .filter((n): n is number => n !== null);
 }
 
@@ -43,8 +40,18 @@ function parseExpiryToken(token: string): string | undefined {
     if (!m) return undefined;
 
     const monthMap: Record<string, string> = {
-        JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06",
-        JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12",
+        JAN: "01",
+        FEB: "02",
+        MAR: "03",
+        APR: "04",
+        MAY: "05",
+        JUN: "06",
+        JUL: "07",
+        AUG: "08",
+        SEP: "09",
+        OCT: "10",
+        NOV: "11",
+        DEC: "12"
     };
 
     const dd = String(Number(m[1])).padStart(2, "0");
@@ -126,7 +133,10 @@ function applyFinalPnlSanity(parsed: ParsedResult): ParsedResult {
 export function parseOcrText(raw: string): ParsedResult {
     const result: ParsedResult = { _ocrRaw: raw };
     const upper = raw.toUpperCase();
-    const lines = raw.split(/\n+/).map(l => l.trim()).filter(Boolean);
+    const lines = raw
+        .split(/\n+/)
+        .map((l) => l.trim())
+        .filter(Boolean);
     let estCharges: number | undefined;
     let sawBuyPlaced = false;
     let sawSellPlaced = false;
@@ -222,15 +232,15 @@ export function parseOcrText(raw: string): ParsedResult {
     }
 
     // Robust net PnL parse from the exact line, ignoring percent and OCR symbols like '%'.
-    const netLineText = lines.find(l => /net\s*profit\s*&?\s*loss/i.test(l));
+    const netLineText = lines.find((l) => /net\s*profit\s*&?\s*loss/i.test(l));
     if (netLineText) {
         const cleaned = netLineText.replace(/\s+/g, " ");
         const signMatch = cleaned.match(/[:\s]([+-])/);
         const amountCandidates = Array.from(cleaned.matchAll(/\d{1,3}(?:,\d{3})*(?:\.\d+)?|\d+(?:\.\d+)?/g))
-            .map(m => numFromText(m[0]))
+            .map((m) => numFromText(m[0]))
             .filter((n): n is number => n !== null);
         // Prefer currency-like values, not percentages.
-        const amount = amountCandidates.find(n => n >= 100) ?? amountCandidates[0];
+        const amount = amountCandidates.find((n) => n >= 100) ?? amountCandidates[0];
         if (amount != null) {
             result.PnLAmount = Math.abs(amount);
             result.PnLSign = signMatch?.[1] === "-" ? "LOSS" : "PROFIT";
@@ -295,7 +305,7 @@ async function preprocessForOcr(file: File): Promise<Blob[]> {
     const variants: Blob[] = [];
 
     const pushCanvasBlob = async (canvas: HTMLCanvasElement) => {
-        const blob = await new Promise<Blob | null>(resolve => canvas.toBlob(resolve, "image/png", 1));
+        const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/png", 1));
         if (blob) variants.push(blob);
     };
 
@@ -359,9 +369,7 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
     const [extracted, setExtracted] = useState<Partial<TradeFormData> | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
 
-    const surfaceBg = isApple
-        ? isDark ? "rgba(38,38,42,0.95)" : "rgba(255,255,255,0.95)"
-        : palette.surface;
+    const surfaceBg = isApple ? (isDark ? "rgba(38,38,42,0.95)" : "rgba(255,255,255,0.95)") : palette.surface;
     const borderColor = isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)";
 
     const processFile = useCallback(async (file: File) => {
@@ -382,13 +390,13 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                     if (m.status === "recognizing text") {
                         setProgress(Math.round((m.progress ?? 0) * 100));
                     }
-                },
+                }
             });
 
             await worker.setParameters({
                 tessedit_pageseg_mode: 6 as any,
                 preserve_interword_spaces: "1",
-                tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:+-./()%, ",
+                tessedit_char_whitelist: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789:+-./()%, "
             });
 
             let bestParsed: ParsedResult = {};
@@ -421,11 +429,14 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
         }
     }, []);
 
-    const handleDrop = useCallback((e: React.DragEvent) => {
-        e.preventDefault();
-        const file = e.dataTransfer.files[0];
-        if (file) processFile(file);
-    }, [processFile]);
+    const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) processFile(file);
+        },
+        [processFile]
+    );
 
     const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -437,9 +448,7 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
         onClose();
     };
 
-    const fieldCount = extracted
-        ? Object.entries(extracted).filter(([, v]) => v !== "" && v != null).length
-        : 0;
+    const fieldCount = extracted ? Object.entries(extracted).filter(([, v]) => v !== "" && v != null).length : 0;
 
     return (
         <motion.div
@@ -447,26 +456,43 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             className="fixed inset-0 z-[200] flex items-center justify-center p-4"
-            style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(4px)" }}
-            onClick={e => { if (e.target === e.currentTarget) onClose(); }}
-        >
+            style={{
+                background: "rgba(0,0,0,0.55)",
+                backdropFilter: "blur(4px)"
+            }}
+            onClick={(e) => {
+                if (e.target === e.currentTarget) onClose();
+            }}>
             <div
                 className="w-full max-w-2xl rounded-2xl p-6 shadow-2xl overflow-y-auto max-h-[90vh]"
-                style={{ background: surfaceBg, border: `1px solid ${borderColor}` }}
-            >
+                style={{
+                    background: surfaceBg,
+                    border: `1px solid ${borderColor}`
+                }}>
                 <div className="flex items-center justify-between mb-5">
                     <div className="flex items-center gap-3">
-                        <div className="p-2 rounded-xl" style={{ background: `${palette.accent}18` }}>
+                        <div
+                            className="p-2 rounded-xl"
+                            style={{ background: `${palette.accent}18` }}>
                             <DocumentScanner style={{ color: palette.accent }} />
                         </div>
                         <div>
-                            <h2 className="font-bold text-lg" style={{ color: palette.textPrimary }}>OCR Scan</h2>
-                            <p className="text-xs" style={{ color: palette.textSecondary }}>
+                            <h2
+                                className="font-bold text-lg"
+                                style={{ color: palette.textPrimary }}>
+                                OCR Scan
+                            </h2>
+                            <p
+                                className="text-xs"
+                                style={{ color: palette.textSecondary }}>
                                 Upload a trade screenshot. Optimized for dark broker summary + order logs.
                             </p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-1.5 rounded-lg" style={{ color: palette.textSecondary }}>
+                    <button
+                        onClick={onClose}
+                        className="p-1.5 rounded-lg"
+                        style={{ color: palette.textSecondary }}>
                         <Close />
                     </button>
                 </div>
@@ -474,19 +500,31 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                 {status === "idle" && (
                     <div
                         className="flex flex-col items-center justify-center gap-3 p-10 rounded-2xl cursor-pointer"
-                        style={{ border: `2px dashed ${palette.accent}50`, background: `${palette.accent}08` }}
-                        onDragOver={e => e.preventDefault()}
+                        style={{
+                            border: `2px dashed ${palette.accent}50`,
+                            background: `${palette.accent}08`
+                        }}
+                        onDragOver={(e) => e.preventDefault()}
                         onDrop={handleDrop}
-                        onClick={() => fileRef.current?.click()}
-                    >
+                        onClick={() => fileRef.current?.click()}>
                         <CloudUpload style={{ color: palette.accent, fontSize: 42 }} />
-                        <p className="font-semibold" style={{ color: palette.textPrimary }}>
+                        <p
+                            className="font-semibold"
+                            style={{ color: palette.textPrimary }}>
                             Drop screenshot here or click to browse
                         </p>
-                        <p className="text-xs" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-xs"
+                            style={{ color: palette.textSecondary }}>
                             Uses enhanced preprocessing plus multi-pass OCR for better extraction.
                         </p>
-                        <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+                        <input
+                            ref={fileRef}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={handleFile}
+                        />
                     </div>
                 )}
 
@@ -500,10 +538,14 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                                 style={{ border: `1px solid ${borderColor}` }}
                             />
                         )}
-                        <p className="text-sm font-medium text-center" style={{ color: palette.textSecondary }}>
+                        <p
+                            className="text-sm font-medium text-center"
+                            style={{ color: palette.textSecondary }}>
                             Enhancing + scanning image... {progress}%
                         </p>
-                        <div className="h-2 rounded-full overflow-hidden" style={{ background: `${palette.accent}18` }}>
+                        <div
+                            className="h-2 rounded-full overflow-hidden"
+                            style={{ background: `${palette.accent}18` }}>
                             <motion.div
                                 className="h-full rounded-full"
                                 style={{ background: palette.accent }}
@@ -521,8 +563,10 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                         <button
                             onClick={() => setStatus("idle")}
                             className="px-4 py-2 rounded-xl text-sm font-semibold"
-                            style={{ background: `${palette.accent}20`, color: palette.accent }}
-                        >
+                            style={{
+                                background: `${palette.accent}20`,
+                                color: palette.accent
+                            }}>
                             Try Again
                         </button>
                     </div>
@@ -543,13 +587,18 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                             className="p-4 rounded-xl"
                             style={{
                                 background: isDark ? "rgba(34,197,94,0.08)" : "rgba(34,197,94,0.06)",
-                                border: "1px solid rgba(34,197,94,0.20)",
-                            }}
-                        >
+                                border: "1px solid rgba(34,197,94,0.20)"
+                            }}>
                             <div className="flex items-center gap-2 mb-3">
-                                <CheckCircle style={{ color: "#22c55e" }} fontSize="small" />
-                                <p className="font-semibold text-sm" style={{ color: "#22c55e" }}>
-                                    Detected {fieldCount} field{fieldCount !== 1 ? "s" : ""}
+                                <CheckCircle
+                                    style={{ color: "#22c55e" }}
+                                    fontSize="small"
+                                />
+                                <p
+                                    className="font-semibold text-sm"
+                                    style={{ color: "#22c55e" }}>
+                                    Detected {fieldCount} field
+                                    {fieldCount !== 1 ? "s" : ""}
                                 </p>
                             </div>
                             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -559,10 +608,20 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                                         <div
                                             key={k}
                                             className="text-xs flex items-center justify-between px-3 py-1.5 rounded-lg"
-                                            style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }}
-                                        >
-                                            <span style={{ color: palette.textSecondary }}>{k}</span>
-                                            <span className="font-semibold ml-1 truncate max-w-[90px]" style={{ color: palette.textPrimary }}>
+                                            style={{
+                                                background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)"
+                                            }}>
+                                            <span
+                                                style={{
+                                                    color: palette.textSecondary
+                                                }}>
+                                                {k}
+                                            </span>
+                                            <span
+                                                className="font-semibold ml-1 truncate max-w-[90px]"
+                                                style={{
+                                                    color: palette.textPrimary
+                                                }}>
                                                 {String(v)}
                                             </span>
                                         </div>
@@ -571,7 +630,9 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                         </div>
 
                         <details>
-                            <summary className="text-xs cursor-pointer" style={{ color: palette.textTertiary }}>
+                            <summary
+                                className="text-xs cursor-pointer"
+                                style={{ color: palette.textTertiary }}>
                                 View raw OCR text
                             </summary>
                             <pre
@@ -579,9 +640,8 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                                 style={{
                                     background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
                                     color: palette.textSecondary,
-                                    border: `1px solid ${borderColor}`,
-                                }}
-                            >
+                                    border: `1px solid ${borderColor}`
+                                }}>
                                 {rawText}
                             </pre>
                         </details>
@@ -590,17 +650,25 @@ export default function OcrScanner({ onExtracted, onClose }: Props) {
                             <motion.button
                                 onClick={applyAndClose}
                                 className="flex-1 py-2.5 rounded-xl font-semibold"
-                                style={{ background: palette.accent, color: "#fff" }}
+                                style={{
+                                    background: palette.accent,
+                                    color: "#fff"
+                                }}
                                 whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.97 }}
-                            >
+                                whileTap={{ scale: 0.97 }}>
                                 Apply to Form
                             </motion.button>
                             <button
-                                onClick={() => { setStatus("idle"); setPreview(null); setExtracted(null); }}
+                                onClick={() => {
+                                    setStatus("idle");
+                                    setPreview(null);
+                                    setExtracted(null);
+                                }}
                                 className="px-4 py-2.5 rounded-xl font-semibold"
-                                style={{ background: `${palette.accent}20`, color: palette.accent }}
-                            >
+                                style={{
+                                    background: `${palette.accent}20`,
+                                    color: palette.accent
+                                }}>
                                 Scan Again
                             </button>
                         </div>

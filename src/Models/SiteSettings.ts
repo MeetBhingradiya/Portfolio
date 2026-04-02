@@ -7,10 +7,10 @@ import mongoose from "mongoose";
 
 const PaymentProviderSchema = new mongoose.Schema(
     {
-        enabled:   { type: Boolean, default: false },
+        enabled: { type: Boolean, default: false },
         publicKey: { type: String, default: "" },
         secretKey: { type: String, default: "" }, // Encrypted at rest
-        extra:     { type: mongoose.Schema.Types.Mixed, default: {} },
+        extra: { type: mongoose.Schema.Types.Mixed, default: {} }
     },
     { _id: false }
 );
@@ -54,12 +54,12 @@ const SiteSettings_Schema = new mongoose.Schema(
             maxPhonesPerAccount: { type: Number, default: 3 },
             maxAccountsPerPhone: { type: Number, default: 3 },
             otpExpiryMinutes: { type: Number, default: 5 },
-            otpMaxAttempts: { type: Number, default: 5 },
+            otpMaxAttempts: { type: Number, default: 5 }
         },
         // ── Email Security Policies ───────────────────────────────────────
         emailPolicies: {
             verificationRateLimitWindowMinutes: { type: Number, default: 720 },
-            verificationRateLimitMax: { type: Number, default: 3 },
+            verificationRateLimitMax: { type: Number, default: 3 }
         },
         // ── Payment Providers ────────────────────────────────────────────
         paymentProviders: {
@@ -67,7 +67,7 @@ const SiteSettings_Schema = new mongoose.Schema(
             razorpay: { type: PaymentProviderSchema, default: () => ({}) },
             paypal: { type: PaymentProviderSchema, default: () => ({}) },
             lemonSqueezy: { type: PaymentProviderSchema, default: () => ({}) },
-            paddle: { type: PaymentProviderSchema, default: () => ({}) },
+            paddle: { type: PaymentProviderSchema, default: () => ({}) }
         }
     },
     {
@@ -113,17 +113,20 @@ export interface ISiteSettings extends mongoose.Document {
 }
 
 export const SiteSettings_Model: mongoose.Model<ISiteSettings> =
-    mongoose.models.SiteSettings ||
-    mongoose.model<ISiteSettings>("SiteSettings", SiteSettings_Schema);
+    mongoose.models.SiteSettings || mongoose.model<ISiteSettings>("SiteSettings", SiteSettings_Schema);
 
 /**
  * Get the singleton SiteSettings document.
  * Creates it with defaults if it doesn't exist.
  */
 export async function getSiteSettings(): Promise<ISiteSettings> {
-    let doc = await SiteSettings_Model.findOne({ ConfigID: "site_settings_singleton" });
+    let doc = await SiteSettings_Model.findOne({
+        ConfigID: "site_settings_singleton"
+    });
     if (!doc) {
-        doc = await SiteSettings_Model.create({ ConfigID: "site_settings_singleton" });
+        doc = await SiteSettings_Model.create({
+            ConfigID: "site_settings_singleton"
+        });
     }
     return doc;
 }

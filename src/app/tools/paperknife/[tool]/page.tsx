@@ -34,7 +34,11 @@ export default function PaperKnifeToolPage() {
 
         const getVis = (toolId: string) => {
             const found = visibility.find((v) => v.toolId === toolId);
-            const vis = found ?? { enabled: true, featured: false, publicAccess: true };
+            const vis = found ?? {
+                enabled: true,
+                featured: false,
+                publicAccess: true
+            };
             return vis.enabled && vis.publicAccess;
         };
 
@@ -52,4 +56,3 @@ export default function PaperKnifeToolPage() {
     const Component = entry.component;
     return <Component />;
 }
-

@@ -29,7 +29,7 @@ export function UserAvatar({
     size = 40,
     className = "",
     showBorder = false,
-    borderColor = "#fff",
+    borderColor = "#fff"
 }: UserAvatarProps) {
     const initials = getInitials(name, email);
     const gradient = generateAvatarGradient(userId);
@@ -41,9 +41,8 @@ export function UserAvatar({
                 style={{
                     width: size,
                     height: size,
-                    border: showBorder ? `2px solid ${borderColor}` : "none",
-                }}
-            >
+                    border: showBorder ? `2px solid ${borderColor}` : "none"
+                }}>
                 <img
                     src={image}
                     alt={name || email || "User avatar"}
@@ -66,10 +65,9 @@ export function UserAvatar({
                         background: gradient,
                         color: "#fff",
                         fontSize: size * 0.4,
-                        fontWeight: 600,
+                        fontWeight: 600
                     }}
-                    className="rounded-full flex items-center justify-center"
-                >
+                    className="rounded-full flex items-center justify-center">
                     {initials}
                 </div>
             </div>
@@ -87,9 +85,8 @@ export function UserAvatar({
                 color: "#fff",
                 fontSize: size * 0.4,
                 fontWeight: 600,
-                border: showBorder ? `2px solid ${borderColor}` : "none",
-            }}
-        >
+                border: showBorder ? `2px solid ${borderColor}` : "none"
+            }}>
             {initials}
         </div>
     );

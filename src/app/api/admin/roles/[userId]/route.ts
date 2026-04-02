@@ -20,12 +20,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ us
         const { roles, permissions, notes } = body;
         const record = await UserRole.findOneAndUpdate(
             { userId },
-            { $set: {
-                ...(roles !== undefined    && { roles: roles.length > 0 ? roles : ["user"] }),
-                ...(permissions !== undefined && { permissions }),
-                ...(notes !== undefined    && { notes }),
-                grantedBy: admin.email,
-            }},
+            {
+                $set: {
+                    ...(roles !== undefined && {
+                        roles: roles.length > 0 ? roles : ["user"]
+                    }),
+                    ...(permissions !== undefined && { permissions }),
+                    ...(notes !== undefined && { notes }),
+                    grantedBy: admin.email
+                }
+            },
             { new: true, runValidators: false }
         );
         if (!record) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });

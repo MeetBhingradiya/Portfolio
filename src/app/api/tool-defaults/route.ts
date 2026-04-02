@@ -26,15 +26,15 @@ export async function GET() {
             doc = {} as any;
         }
 
-        return NextResponse.json({ success: true, data: doc }, {
-            headers: {
-                "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300"
-            }
-        });
-    } catch (err: any) {
         return NextResponse.json(
-            { success: false, error: "Failed to load tool defaults" },
-            { status: 500 }
+            { success: true, data: doc },
+            {
+                headers: {
+                    "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300"
+                }
+            }
         );
+    } catch (err: any) {
+        return NextResponse.json({ success: false, error: "Failed to load tool defaults" }, { status: 500 });
     }
 }

@@ -21,8 +21,7 @@ export const metadata: Metadata = {
         type: "website",
         url: `${Config.Origin}/contact`,
         title: "Contact | Meet Bhingradiya",
-        description:
-            "Get in touch for freelance projects, collaborations or job opportunities.",
+        description: "Get in touch for freelance projects, collaborations or job opportunities.",
         images: [
             {
                 url: "/assets/og-image.png",

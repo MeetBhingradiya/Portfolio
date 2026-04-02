@@ -23,7 +23,7 @@ const PhoneOtpChallengeSchema = new Schema<IPhoneOtpChallenge>(
         otpHash: { type: String, required: true },
         attempts: { type: Number, default: 0 },
         consumed: { type: Boolean, default: false, index: true },
-        expiresAt: { type: Date, required: true, index: true },
+        expiresAt: { type: Date, required: true },
     },
     { timestamps: true }
 );

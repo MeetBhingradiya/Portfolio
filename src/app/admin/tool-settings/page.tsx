@@ -23,7 +23,6 @@ import {
     Lock,
     Article,
     Palette,
-    ChecklistRtl,
     Tag,
     CheckCircle,
     ExpandMore,
@@ -134,22 +133,43 @@ const INITIAL_DEFAULTS: ToolDefaults = {
     visibility: []
 };
 
-// Tool metadata for rendering sections
-const TOOL_SECTIONS = [
+// Tool metadata for rendering default-settings sections
+const TOOL_DEFAULT_SECTIONS = [
     { id: "qr", name: "QR Generator", icon: <QrCode2 fontSize="small" />, color: "#34C759" },
     { id: "uuid", name: "UUID Generator", icon: <Fingerprint fontSize="small" />, color: "#5E97F6" },
     { id: "password", name: "Password Generator", icon: <Password fontSize="small" />, color: "#FF3B30" },
-    { id: "todo", name: "Todo List", icon: <ChecklistRtl fontSize="small" />, color: "#FF9500" },
     { id: "regexp", name: "RegExp Tester", icon: <Code fontSize="small" />, color: "#FF2D55" },
     { id: "jwt", name: "JWT Debugger", icon: <VpnKey fontSize="small" />, color: "#AF52DE" },
     { id: "json", name: "JSON ↔ JS Object", icon: <DataObject fontSize="small" />, color: "#FF9500" },
     { id: "image", name: "Image Tools", icon: <ImageIcon fontSize="small" />, color: "#5AC8FA" },
-    { id: "pdf", name: "PDF Tools", icon: <PictureAsPdf fontSize="small" />, color: "#FF3B30" },
     { id: "markdown", name: "Markdown Preview", icon: <Article fontSize="small" />, color: "#007AFF" },
     { id: "colour", name: "Colour Studio", icon: <Palette fontSize="small" />, color: "#FF2D55" },
     { id: "encrypt", name: "Encrypt / Decrypt", icon: <Lock fontSize="small" />, color: "#FF9500" },
     { id: "hash", name: "Hash Generator", icon: <Tag fontSize="small" />, color: "#FFCC00" },
     { id: "instagram", name: "Instagram Analyser", icon: <Instagram fontSize="small" />, color: "#E1306C" },
+];
+
+// Tool metadata for visibility controls (includes PaperKnife suite + sub-tools)
+const TOOL_VISIBILITY_SECTIONS = [
+    ...TOOL_DEFAULT_SECTIONS,
+    { id: "paperknife", name: "PaperKnife PDF Suite", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-merge", name: "PaperKnife: Merge PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-split", name: "PaperKnife: Split PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-compress", name: "PaperKnife: Compress PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-protect", name: "PaperKnife: Protect PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-unlock", name: "PaperKnife: Unlock PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-rotate-pdf", name: "PaperKnife: Rotate PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-rearrange-pdf", name: "PaperKnife: Rearrange PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-page-numbers", name: "PaperKnife: Page Numbers", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-watermark", name: "PaperKnife: Watermark", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-metadata", name: "PaperKnife: Metadata", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-signature", name: "PaperKnife: Signature", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-grayscale", name: "PaperKnife: Grayscale", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-pdf-to-image", name: "PaperKnife: PDF to Image", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-image-to-pdf", name: "PaperKnife: Image to PDF", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-extract-images", name: "PaperKnife: Extract Images", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-pdf-to-text", name: "PaperKnife: PDF to Text", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
+    { id: "paperknife-repair", name: "PaperKnife: Repair", icon: <PictureAsPdf fontSize="small" />, color: "#F43F5E" },
 ];
 
 
@@ -220,14 +240,14 @@ export default function ToolSettingsPage() {
     const toggleAccordion = (id: string) => setUi(s => ({ ...s, expandedTool: s.expandedTool === id ? null : id }));
 
     // ── "Select all" derived state ──────────────────────────────────────
-    const allEnabled  = TOOL_SECTIONS.every((t) => getVisibility(t.id).enabled);
-    const allFeatured = TOOL_SECTIONS.every((t) => getVisibility(t.id).featured);
-    const allPublic   = TOOL_SECTIONS.every((t) => getVisibility(t.id).publicAccess);
+    const allEnabled  = TOOL_VISIBILITY_SECTIONS.every((t) => getVisibility(t.id).enabled);
+    const allFeatured = TOOL_VISIBILITY_SECTIONS.every((t) => getVisibility(t.id).featured);
+    const allPublic   = TOOL_VISIBILITY_SECTIONS.every((t) => getVisibility(t.id).publicAccess);
 
     const toggleAllField = (field: "enabled" | "featured" | "publicAccess", value: boolean) => {
         setDefaults((prev) => {
             const existing = prev.visibility ?? [];
-            const next = TOOL_SECTIONS.map((tool) => {
+            const next = TOOL_VISIBILITY_SECTIONS.map((tool) => {
                 const found = existing.find((v) => v.toolId === tool.id);
                 const base = found ?? { toolId: tool.id, enabled: true, featured: false, publicAccess: true };
                 return { ...base, [field]: value };
@@ -375,7 +395,7 @@ export default function ToolSettingsPage() {
                                                         accent="#007AFF" isDark={isDark} />
                                                 </div>
                                             </div>
-                                            {TOOL_SECTIONS.map((tool) => {
+                                            {TOOL_VISIBILITY_SECTIONS.map((tool) => {
                                                 const vis = getVisibility(tool.id);
                                                 return (
                                                     <div key={tool.id}
@@ -425,7 +445,7 @@ export default function ToolSettingsPage() {
                             </p>
                         </div>
                         <div className="space-y-2">
-                            {TOOL_SECTIONS.map((tool) => {
+                            {TOOL_DEFAULT_SECTIONS.map((tool) => {
                                 const isOpen = ui.expandedTool === tool.id;
                                 return (
                                     <div key={tool.id} className="rounded-2xl overflow-hidden"

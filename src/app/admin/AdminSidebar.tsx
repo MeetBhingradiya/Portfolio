@@ -68,7 +68,7 @@ interface NavItem {
     icon: React.ReactNode;
     exact?: boolean;
     group: string;
-    permKey: "dashboard" | "users" | "roles" | "tickets" | "faq" | "employee" | "products" | "orders" | "refunds" | "sitemap" | "projects" | "skills" | "education" | "experience" | "certificates" | "test-scores" | "resume" | "blogs" | "features" | "tool-settings" | "ai-providers" | "maintenance" | "immich-access" | "cdn" | "cdn-applications" | "cdn-api-keys";
+    permKey: "dashboard" | "users" | "roles" | "tickets" | "faq" | "employee" | "products" | "orders" | "refunds" | "sitemap" | "projects" | "skills" | "education" | "experience" | "certificates" | "test-scores" | "resume" | "blogs" | "features" | "tools" | "tool-settings" | "ai-providers" | "maintenance" | "immich-access" | "cdn" | "cdn-applications" | "cdn-api-keys";
 }
 
 const allNavItems: NavItem[] = [
@@ -91,6 +91,7 @@ const allNavItems: NavItem[] = [
     { href: "/admin/resume",               label: "Resume Builder",icon: <PictureAsPdf fontSize="small" />,   group: "portfolio", permKey: "resume" },
     { href: "/admin/blogs",                label: "Blogs",        icon: <Article fontSize="small" />,         group: "portfolio", permKey: "blogs" },
     { href: "/admin/features",             label: "Features",     icon: <ToggleOn fontSize="small" />,        group: "system", permKey: "features" },
+    { href: "/admin/tools",                label: "Tools",        icon: <Build fontSize="small" />,           group: "system", permKey: "tools" },
     { href: "/admin/tool-settings",        label: "Tool Settings",icon: <Build fontSize="small" />,           group: "system", permKey: "tool-settings" },
     { href: "/admin/ai-providers",         label: "AI Providers", icon: <Psychology fontSize="small" />,      group: "system", permKey: "ai-providers" },
     { href: "/admin/maintenance",          label: "Maintenance",  icon: <Construction fontSize="small" />,    group: "system", permKey: "maintenance" },

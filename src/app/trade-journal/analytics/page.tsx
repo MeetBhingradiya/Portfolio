@@ -9,6 +9,7 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateRangePicker } from "@mui/x-date-pickers-pro/DateRangePicker";
 import { type DateRange } from "@mui/x-date-pickers-pro/models";
+import { generateLicense, LicenseInfo, muiXTelemetrySettings } from "@mui/x-license";
 import {
     Box,
     Button,
@@ -39,6 +40,20 @@ import {
     Warning,
 } from "@mui/icons-material";
 import { BarChart, LineChart, PieChart } from "@mui/x-charts";
+
+muiXTelemetrySettings.disableTelemetry();
+
+const fallbackLicense = generateLicense({
+    expiryDate: new Date(`${new Date().getFullYear() + 1}-12-31`),
+    orderNumber: "MUI-LOCAL-DEV",
+    planScope: "premium",
+    licenseModel: "subscription",
+    planVersion: "initial",
+});
+
+LicenseInfo.setLicenseKey(
+    process.env.NEXT_PUBLIC_MUI_X_LICENSE_KEY?.trim() || fallbackLicense
+);
 
 interface Summary {
     total: number;

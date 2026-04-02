@@ -26,6 +26,7 @@ export type NavItemKey =
     | "resume"
     | "blogs"
     | "features"
+    | "tools"
     | "tool-settings"
     | "ai-providers"
     | "maintenance"
@@ -68,6 +69,7 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
 
     // System/Settings module (admin only)
     features: ["admin.site.settings"],
+    tools: ["admin.site.settings"],
     "tool-settings": ["admin.site.settings"],
     "ai-providers": ["admin.site.settings"],
     maintenance: ["admin.site.settings"],

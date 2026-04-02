@@ -181,6 +181,22 @@ export const TOOLS: ToolDefinition[] = [
         syncToDb: true,
         shortcut: "R"
     },
+    {
+        id: "paperknife",
+        name: "PaperKnife PDF Suite",
+        description: "Privacy-first local PDF toolkit with merge, split, protect, OCR and more",
+        longDescription:
+            "Complete PaperKnife toolkit integrated directly in this Next.js app. Includes merge, split, compress, rotate, rearrange, metadata cleanup, signatures, PDF-to-image, image-to-PDF, text extraction and repair flows, all processed client-side.",
+        category: "media",
+        iconName: "Layers",
+        accentColor: "#F43F5E",
+        route: "/tools/paperknife",
+        badges: ["new", "featured", "admin-managed"],
+        isPublic: true,
+        adminManaged: true,
+        syncToDb: false,
+        shortcut: "P"
+    },
     // ── Media & Documents ────────────────────────────────────────────────────
     {
         id: "image",
@@ -202,42 +218,7 @@ export const TOOLS: ToolDefinition[] = [
         syncToDb: false,
         shortcut: "I"
     },
-    {
-        id: "pdf",
-        name: "PDF Tools",
-        description: "Merge multiple PDFs or split a single PDF",
-        longDescription:
-            "Reorder, merge and export multiple PDF files into one. Or extract specific pages / page ranges from a PDF without any server upload.",
-        category: "media",
-        iconName: "PictureAsPdf",
-        accentColor: "#FF3B30",
-        route: "/tools/pdf",
-        badges: ["admin-managed"],
-        isPublic: true,
-        adminManaged: true,
-        modes: [
-            { label: "Merge", route: "/tools/pdf?mode=merge" },
-            { label: "Split", route: "/tools/pdf?mode=split" }
-        ],
-        syncToDb: false,
-        shortcut: "F"
-    },    // ── Dev Tools (continued) ────────────────────────────────────────────────────────────
-    {
-        id: "todo",
-        name: "Todo List",
-        description: "A minimal, fast task manager with filter and sync",
-        longDescription:
-            "Manage tasks with a clean, distraction-free interface. Supports active/completed filtering, bulk clear and cloud sync when signed in.",
-        category: "dev-tools",
-        iconName: "ChecklistRtl",
-        accentColor: "#FF9500",
-        route: "/tools/todo",
-        badges: ["db-sync", "admin-managed"],
-        isPublic: true,
-        adminManaged: true,
-        syncToDb: true,
-        shortcut: "T"
-    },    // ── Security ──────────────────────────────────────────────────────────────
+    // ── Security ──────────────────────────────────────────────────────────────
     {
         id: "encrypt",
         name: "Encrypt / Decrypt",

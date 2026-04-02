@@ -2,7 +2,7 @@
 node_modules
 .venv
 old_src
-
+__pycache__
 # ^ Build files
 .next
 

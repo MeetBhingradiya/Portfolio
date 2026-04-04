@@ -2,7 +2,7 @@
 
 | Version     | Date       | Description                     |
 | ----------- | ---------- | ------------------------------- |
-| 1.0.1       | 23-02-2026 |                                 |
+| 1.0.1       | 01-04-2026 | PDF Kit                         |
 | 1.0.0       | 23-02-2026 | First stable production release |
 | 0.0.6 Alpha | 01-03-2026 | Alpha release                   |
 | 0.0.5 Alpha | 01-01-2026 | Alpha release                   |

@@ -42,7 +42,7 @@ await hasAllPermissions(userId: string, permissions: string[]): Promise<boolean>
 await getUserRoles(userId: string): Promise<string[]>
 await hasRole(userId: string, role: string): Promise<boolean>
 
-// Check admin email
+// Check admin email for fully system access
 isAdminEmail(email: string): boolean
 ```
 

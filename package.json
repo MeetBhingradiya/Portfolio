@@ -6,6 +6,8 @@
         "dev": "next dev --turbo",
         "build": "NODE_OPTIONS=--max-old-space-size=8192 next build",
         "typecheck": "tsc --noEmit",
+        "test": "bun test",
+        "test:watch": "bun test --watch",
         "start": "next start",
         "lint": "next lint",
         "prettier": "bunx prettier --write .",

@@ -7,7 +7,7 @@
 5. 6 Max Buy/Sell Orders per day
 6. Monday & Friday are No Trade Days
 7. Dhan Account will be Mine so i can Monitor & Kill Switch if needed.
-8. ATM Only with 10 Lots (65 Quantity) per trade
+8. ATM Only with 10 Lots (65 Quantity per lot) per trade
 9. No Youtube, Instagram or Even Telegram
 10. Capital is Your Main Focus, not just More Trades or More Profit. Always Protect Your Capital.
 11. Before Placing Trade must be Stop Loss & Target in Place. No Moving Stop Loss or Target Once Trade is Placed.

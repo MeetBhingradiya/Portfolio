@@ -57,7 +57,7 @@ export const contactMethods: ContactMethod[] = [
         title: "LinkedIn",
         description: "Professional networking and career opportunities",
         icon: <LinkedIn />,
-        link: "https://linkedin.com/in/meetbhingradiya",
+        link: "https://linkedin.com/in/meet-bhingradiya",
         type: "social",
         color: "#0A66C2",
         available: true,

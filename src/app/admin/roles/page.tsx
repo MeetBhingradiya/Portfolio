@@ -18,6 +18,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useAdminSession } from "@Hooks/useAdminSession";
 import {
     ManageAccounts,
     Add,
@@ -147,6 +148,7 @@ function PermCategoryRow({ catKey, perms, editUserPerms, toggleUserPerm, isDark,
 
 export default function AdminRolesPage() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
+    const { session } = useAdminSession();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
 
@@ -346,6 +348,20 @@ export default function AdminRolesPage() {
 
     const saveUserRecord = async () => {
         if (!user.active) return;
+
+        const isSelfTarget =
+            !!session?.email &&
+            !!user.active.email &&
+            session.email.toLowerCase() === user.active.email.toLowerCase();
+        const removesAdminFromSelf = isSelfTarget && !user.roles.includes("admin");
+
+        if (removesAdminFromSelf) {
+            const ok = window.confirm(
+                "You are removing your own admin role. This can lock you out of admin access. Continue?"
+            );
+            if (!ok) return;
+        }
+
         patchUser({ saving: true, saveError: "" });
         try {
             const res = await fetch(`/api/admin/roles/${user.active.userId}`, {
@@ -354,7 +370,8 @@ export default function AdminRolesPage() {
                 body: JSON.stringify({
                     roles: user.roles.length > 0 ? user.roles : ["user"],
                     permissions: user.perms.filter((p) => p.granted),
-                    notes: user.notes
+                    notes: user.notes,
+                    confirmSelfRoleChange: removesAdminFromSelf
                 })
             });
             const json = await res.json();
@@ -369,9 +386,21 @@ export default function AdminRolesPage() {
 
     const deleteUserRecord = async () => {
         if (!user.active) return;
-        if (!confirm("Remove all role assignments for this user?")) return;
+
+        const isSelfTarget =
+            !!session?.email &&
+            !!user.active.email &&
+            session.email.toLowerCase() === user.active.email.toLowerCase();
+        const confirmMessage = isSelfTarget
+            ? "You are removing your own role assignment record. This can remove admin access. Continue?"
+            : "Remove all role assignments for this user?";
+
+        if (!confirm(confirmMessage)) return;
+
         await fetch(`/api/admin/roles/${user.active.userId}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ confirmSelfRoleChange: isSelfTarget })
         });
         patchUser({ active: null });
         fetchUsers();

@@ -46,6 +46,17 @@ interface DataState {
     projects: any[];
 }
 
+interface ResumePreset {
+    key: string;
+    label: string;
+    title: string;
+    summary: string;
+    keywordsByCategory: Partial<Record<Category, string[]>>;
+    includeAll?: Category[];
+    iconKey: "code" | "preview" | "work" | "school" | "folder";
+    pinnedIdsByCategory?: Partial<Record<Category, string[]>>;
+}
+
 /* ───────── Section config ───────── */
 const SECTIONS: {
     key: Category;
@@ -105,6 +116,145 @@ const SECTIONS: {
     }
 ];
 
+const DEFAULT_ROLE_PRESETS: ResumePreset[] = [
+    {
+        key: "fullstack",
+        label: "Full Stack",
+        title: "Full Stack Developer",
+        summary: "Full stack developer focused on scalable frontend and backend systems, API design, and production-ready delivery.",
+        keywordsByCategory: {
+            skills: ["react", "next", "node", "typescript", "mongodb", "api", "full stack"],
+            projects: ["dashboard", "api", "full stack", "admin", "auth", "cms"],
+            experience: ["full stack", "developer", "web", "backend", "frontend"],
+            certificates: ["web", "javascript", "node", "react"],
+            testScores: ["programming", "coding", "aptitude"]
+        },
+        includeAll: ["education"],
+        iconKey: "code"
+    },
+    {
+        key: "frontend",
+        label: "Frontend",
+        title: "Frontend Developer",
+        summary: "Frontend engineer crafting responsive, accessible, and high-performance interfaces using modern React ecosystems.",
+        keywordsByCategory: {
+            skills: ["react", "next", "tailwind", "css", "ui", "frontend", "typescript"],
+            projects: ["landing", "ui", "frontend", "design", "theme", "portfolio"],
+            experience: ["frontend", "ui", "design system", "react"],
+            certificates: ["frontend", "ui", "web"]
+        },
+        includeAll: ["education"],
+        iconKey: "preview"
+    },
+    {
+        key: "backend",
+        label: "Backend",
+        title: "Backend Developer",
+        summary: "Backend developer experienced in secure APIs, role-based systems, integrations, and robust data workflows.",
+        keywordsByCategory: {
+            skills: ["node", "api", "mongodb", "database", "security", "backend"],
+            projects: ["api", "backend", "auth", "db", "sync", "server"],
+            experience: ["backend", "api", "server", "integration", "database"],
+            certificates: ["backend", "database", "security"]
+        },
+        includeAll: ["education"],
+        iconKey: "work"
+    }
+];
+
+function getPresetIcon(iconKey: ResumePreset["iconKey"]): React.ReactNode {
+    switch (iconKey) {
+        case "code":
+            return <Code fontSize="small" />;
+        case "preview":
+            return <Preview fontSize="small" />;
+        case "school":
+            return <School fontSize="small" />;
+        case "folder":
+            return <Folder fontSize="small" />;
+        case "work":
+        default:
+            return <Work fontSize="small" />;
+    }
+}
+
+function slugifyPresetKey(input: string): string {
+    return input
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 48);
+}
+
+function flattenToSearchText(value: unknown): string {
+    if (value == null) return "";
+    if (typeof value === "string") return value.toLowerCase();
+    if (typeof value === "number" || typeof value === "boolean") return String(value).toLowerCase();
+    if (Array.isArray(value)) return value.map((v) => flattenToSearchText(v)).join(" ");
+    if (typeof value === "object") return Object.values(value).map((v) => flattenToSearchText(v)).join(" ");
+    return "";
+}
+
+function createEmptySelection(): SelectionState {
+    return {
+        skills: new Set(),
+        education: new Set(),
+        experience: new Set(),
+        certificates: new Set(),
+        testScores: new Set(),
+        projects: new Set()
+    };
+}
+
+function createSelectionFromPreset(data: DataState, preset: ResumePreset): SelectionState {
+    const next = createEmptySelection();
+
+    SECTIONS.forEach((section) => {
+        const items = (data as any)[section.key] as any[];
+        const pinned = preset.pinnedIdsByCategory?.[section.key] ?? [];
+        const itemIds = new Set(items.map((item) => item[section.idField]));
+        if (pinned.length > 0) {
+            pinned.forEach((id) => {
+                if (itemIds.has(id)) (next[section.key] as Set<string>).add(id);
+            });
+        }
+
+        const keywords = preset.keywordsByCategory[section.key] ?? [];
+        const includeAll = preset.includeAll?.includes(section.key) ?? false;
+
+        items.forEach((item) => {
+            const itemId = item[section.idField];
+            if (itemId == null) return;
+            if (includeAll) {
+                (next[section.key] as Set<string>).add(itemId);
+                return;
+            }
+
+            const searchable = flattenToSearchText(item);
+            if (keywords.some((k) => searchable.includes(k.toLowerCase()))) {
+                (next[section.key] as Set<string>).add(itemId);
+            }
+        });
+    });
+
+    // Keep output usable even when keyword matching is too strict.
+    if (next.experience.size === 0) {
+        data.experience.slice(0, 2).forEach((i) => next.experience.add(i.ExperienceID));
+    }
+    if (next.projects.size === 0) {
+        data.projects.slice(0, 3).forEach((i) => next.projects.add(i.ProjectID));
+    }
+    if (next.skills.size === 0) {
+        data.skills.slice(0, 8).forEach((i) => next.skills.add(i.SkillID));
+    }
+    if (next.education.size === 0) {
+        data.education.slice(0, 2).forEach((i) => next.education.add(i.EducationID));
+    }
+
+    return next;
+}
+
 /* ───────── Helper: toggle all ───────── */
 function toggleAll(set: Set<string>, ids: string[]): Set<string> {
     if (ids.every((id) => set.has(id))) {
@@ -145,6 +295,27 @@ export default function ResumeBuilderPage() {
     const [collapsed, setCollapsed] = useState<Partial<Record<Category, boolean>>>({});
     const [ui, setUi] = useState({ generating: false, previewMode: false });
     const patchUi = useCallback((p: Partial<{ generating: boolean; previewMode: boolean }>) => setUi((s) => ({ ...s, ...p })), []);
+    const [activePresetKey, setActivePresetKey] = useState<string>("");
+    const [pendingPresetPdfName, setPendingPresetPdfName] = useState<string | null>(null);
+    const [presets, setPresets] = useState<ResumePreset[]>(DEFAULT_ROLE_PRESETS);
+    const [presetState, setPresetState] = useState({ loading: false, saving: false, error: "" });
+    const patchPresetState = useCallback(
+        (p: Partial<{ loading: boolean; saving: boolean; error: string }>) =>
+            setPresetState((s) => ({ ...s, ...p })),
+        []
+    );
+    const [presetEditorOpen, setPresetEditorOpen] = useState(false);
+    const [editingPresetKey, setEditingPresetKey] = useState<string | null>(null);
+    const [presetDraft, setPresetDraft] = useState<ResumePreset>({
+        key: "",
+        label: "",
+        title: "",
+        summary: "",
+        keywordsByCategory: {},
+        includeAll: [],
+        iconKey: "code",
+        pinnedIdsByCategory: {}
+    });
 
     // Meta fields for the resume header
     const [meta, setMeta] = useState({
@@ -159,6 +330,166 @@ export default function ResumeBuilderPage() {
         summary:
             "Passionate full-stack developer with expertise in modern web technologies and a focus on building scalable, user-centric applications."
     });
+
+    const clonePreset = useCallback((p: ResumePreset): ResumePreset => {
+        const clonedKeywords: Partial<Record<Category, string[]>> = {};
+        const clonedPinned: Partial<Record<Category, string[]>> = {};
+        SECTIONS.forEach((s) => {
+            if (p.keywordsByCategory[s.key]) clonedKeywords[s.key] = [...(p.keywordsByCategory[s.key] ?? [])];
+            if (p.pinnedIdsByCategory?.[s.key]) clonedPinned[s.key] = [...(p.pinnedIdsByCategory?.[s.key] ?? [])];
+        });
+        return {
+            ...p,
+            includeAll: [...(p.includeAll ?? [])],
+            keywordsByCategory: clonedKeywords,
+            pinnedIdsByCategory: clonedPinned
+        };
+    }, []);
+
+    const fetchPresets = useCallback(async () => {
+        patchPresetState({ loading: true, error: "" });
+        try {
+            const res = await fetch("/api/admin/resume-presets");
+            const json = await res.json();
+            if (!res.ok || !json.success) {
+                throw new Error(json.error || `Failed to load presets (${res.status})`);
+            }
+
+            const incoming = Array.isArray(json.data) ? json.data : [];
+            const validated = incoming
+                .filter((p: ResumePreset) => p && typeof p.key === "string" && typeof p.label === "string" && typeof p.title === "string")
+                .map((p: ResumePreset) => ({
+                    key: p.key,
+                    label: p.label,
+                    title: p.title,
+                    summary: p.summary ?? "",
+                    keywordsByCategory: p.keywordsByCategory ?? {},
+                    includeAll: p.includeAll ?? [],
+                    iconKey: p.iconKey ?? "code",
+                    pinnedIdsByCategory: p.pinnedIdsByCategory ?? {}
+                })) as ResumePreset[];
+
+            setPresets(validated);
+        } catch (err: any) {
+            patchPresetState({ error: err?.message || "Failed to load presets" });
+        } finally {
+            patchPresetState({ loading: false });
+        }
+    }, [patchPresetState]);
+
+    useEffect(() => {
+        fetchPresets();
+    }, [fetchPresets]);
+
+    const openCreatePreset = useCallback(() => {
+        setEditingPresetKey(null);
+        setPresetDraft({
+            key: "",
+            label: "",
+            title: meta.title,
+            summary: meta.summary,
+            keywordsByCategory: {},
+            includeAll: [],
+            iconKey: "code",
+            pinnedIdsByCategory: {}
+        });
+        setPresetEditorOpen(true);
+    }, [meta.title, meta.summary]);
+
+    const openEditPreset = useCallback(
+        (preset: ResumePreset) => {
+            setEditingPresetKey(preset.key);
+            setPresetDraft(clonePreset(preset));
+            setPresetEditorOpen(true);
+        },
+        [clonePreset]
+    );
+
+    const savePresetDraft = useCallback(async () => {
+        const baseKey = slugifyPresetKey(presetDraft.key || presetDraft.label || presetDraft.title);
+        if (!baseKey || !presetDraft.label.trim() || !presetDraft.title.trim()) return;
+
+        const cleaned: ResumePreset = {
+            ...presetDraft,
+            key: editingPresetKey || baseKey,
+            label: presetDraft.label.trim(),
+            title: presetDraft.title.trim(),
+            summary: presetDraft.summary.trim(),
+            includeAll: [...(presetDraft.includeAll ?? [])]
+        };
+
+        patchPresetState({ saving: true, error: "" });
+        try {
+            if (editingPresetKey) {
+                const res = await fetch(`/api/admin/resume-presets/${encodeURIComponent(editingPresetKey)}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        label: cleaned.label,
+                        title: cleaned.title,
+                        summary: cleaned.summary,
+                        keywordsByCategory: cleaned.keywordsByCategory,
+                        includeAll: cleaned.includeAll,
+                        iconKey: cleaned.iconKey,
+                        pinnedIdsByCategory: cleaned.pinnedIdsByCategory ?? {}
+                    })
+                });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || `Failed to update preset (${res.status})`);
+                setActivePresetKey(editingPresetKey);
+            } else {
+                const res = await fetch("/api/admin/resume-presets", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(cleaned)
+                });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || `Failed to create preset (${res.status})`);
+                setActivePresetKey(json.data?.key || cleaned.key);
+            }
+
+            await fetchPresets();
+            setPresetEditorOpen(false);
+            setEditingPresetKey(null);
+        } catch (err: any) {
+            patchPresetState({ error: err?.message || "Failed to save preset" });
+        } finally {
+            patchPresetState({ saving: false });
+        }
+    }, [presetDraft, editingPresetKey, patchPresetState, fetchPresets]);
+
+    const deletePreset = useCallback(
+        async (key: string) => {
+            if (!window.confirm("Delete this preset?")) return;
+            patchPresetState({ saving: true, error: "" });
+            try {
+                const res = await fetch(`/api/admin/resume-presets/${encodeURIComponent(key)}`, { method: "DELETE" });
+                const json = await res.json();
+                if (!res.ok || !json.success) throw new Error(json.error || `Failed to delete preset (${res.status})`);
+
+                await fetchPresets();
+            } catch (err: any) {
+                patchPresetState({ error: err?.message || "Failed to delete preset" });
+            } finally {
+                patchPresetState({ saving: false });
+            }
+
+            if (activePresetKey === key) setActivePresetKey("");
+            if (editingPresetKey === key) {
+                setPresetEditorOpen(false);
+                setEditingPresetKey(null);
+            }
+        },
+        [activePresetKey, editingPresetKey, patchPresetState, fetchPresets]
+    );
+
+    const captureCurrentSelectionToDraft = useCallback(() => {
+        const pinned: Partial<Record<Category, string[]>> = {};
+        SECTIONS.forEach((section) => {
+            pinned[section.key] = Array.from(selection[section.key]);
+        });
+        setPresetDraft((prev) => ({ ...prev, pinnedIdsByCategory: pinned }));
+    }, [selection]);
 
     /* Fetch all data */
     const fetchAll = useCallback(async () => {
@@ -205,7 +536,7 @@ export default function ResumeBuilderPage() {
 
     const toggleSection = (category: Category) => {
         const sec = SECTIONS.find((s) => s.key === category)!;
-        const ids = (data as any)[category].map((item: any) => item[sec.idField]) as string[];
+        const ids = (ds.data as any)[category].map((item: any) => item[sec.idField]) as string[];
         setSelection((prev) => ({
             ...prev,
             [category]: toggleAll(prev[category], ids)
@@ -213,7 +544,7 @@ export default function ResumeBuilderPage() {
     };
 
     /* PDF generation via html2canvas + jsPDF */
-    const handleGeneratePDF = async () => {
+    const handleGeneratePDF = useCallback(async (customFileName?: string) => {
         if (!previewRef.current) return;
         patchUi({ generating: true });
         try {
@@ -241,11 +572,79 @@ export default function ResumeBuilderPage() {
                 pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
                 heightLeft -= pdf.internal.pageSize.getHeight();
             }
-            pdf.save(`${meta.name.replace(/\s+/g, "_")}_Resume.pdf`);
+            pdf.save(customFileName || `${meta.name.replace(/\s+/g, "_")}_Resume.pdf`);
         } finally {
             patchUi({ generating: false });
         }
-    };
+    }, [meta.name, patchUi]);
+
+    const applyPreset = useCallback(
+        (preset: ResumePreset, directDownload = false) => {
+            const presetSelection = createSelectionFromPreset(ds.data, preset);
+            setSelection(presetSelection);
+            setMeta((prev) => ({
+                ...prev,
+                title: preset.title,
+                summary: preset.summary
+            }));
+            setActivePresetKey(preset.key);
+            patchUi({ previewMode: true });
+
+            if (directDownload) {
+                const safeName = `${meta.name.replace(/\s+/g, "_")}_${preset.key}_Resume.pdf`;
+                setPendingPresetPdfName(safeName);
+            }
+        },
+        [ds.data, meta.name, patchUi]
+    );
+
+    const setDraftKeywords = useCallback((category: Category, rawValue: string) => {
+        const tokens = rawValue
+            .split(",")
+            .map((t) => t.trim().toLowerCase())
+            .filter(Boolean);
+
+        setPresetDraft((prev) => ({
+            ...prev,
+            keywordsByCategory: {
+                ...prev.keywordsByCategory,
+                [category]: tokens
+            }
+        }));
+    }, []);
+
+    const toggleDraftIncludeAll = useCallback((category: Category) => {
+        setPresetDraft((prev) => {
+            const current = new Set(prev.includeAll ?? []);
+            if (current.has(category)) current.delete(category);
+            else current.add(category);
+            return {
+                ...prev,
+                includeAll: Array.from(current)
+            };
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!pendingPresetPdfName || ds.loading || ui.generating || !ui.previewMode) return;
+
+        let cancelled = false;
+        const attemptDownload = async () => {
+            if (cancelled) return;
+            if (!previewRef.current) {
+                window.setTimeout(attemptDownload, 80);
+                return;
+            }
+            await handleGeneratePDF(pendingPresetPdfName);
+            if (!cancelled) setPendingPresetPdfName(null);
+        };
+
+        window.setTimeout(attemptDownload, 120);
+
+        return () => {
+            cancelled = true;
+        };
+    }, [pendingPresetPdfName, ds.loading, ui.generating, ui.previewMode, handleGeneratePDF]);
 
     // Style helpers
     const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.95)" : "#fff";
@@ -319,7 +718,7 @@ export default function ResumeBuilderPage() {
                         }}
                         whileHover={{ scale: 1.03 }}
                         whileTap={{ scale: 0.97 }}
-                        onClick={handleGeneratePDF}
+                        onClick={() => handleGeneratePDF()}
                         disabled={ui.generating}>
                         <PictureAsPdf fontSize="small" />
                         {ui.generating ? "Generating…" : "Download PDF"}
@@ -330,6 +729,281 @@ export default function ResumeBuilderPage() {
             <div className={`flex gap-6 ${ui.previewMode ? "flex-col xl:flex-row" : "flex-col"}`}>
                 {/* Left: Controls */}
                 <div className={ui.previewMode ? "xl:w-96 flex-shrink-0" : "w-full"}>
+                    {/* Resume presets */}
+                    <div
+                        className="rounded-2xl p-5 mb-4"
+                        style={{
+                            background: cardBg,
+                            border: `1px solid ${borderColor}`
+                        }}>
+                        <h2
+                            className="text-sm font-black uppercase tracking-wide mb-1"
+                            style={{ color: palette.textTertiary }}>
+                            Resume Presets
+                        </h2>
+                        <p
+                            className="text-xs mb-3"
+                            style={{ color: palette.textSecondary }}>
+                            Create and maintain editable role presets for one-click resume sharing.
+                        </p>
+                        <div className="mb-3 flex gap-2">
+                            <motion.button
+                                className="px-3 py-2 rounded-lg text-xs font-bold"
+                                style={{
+                                    background: palette.accent,
+                                    color: "#fff",
+                                    opacity: presetState.loading || presetState.saving ? 0.7 : 1
+                                }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={openCreatePreset}
+                                disabled={presetState.loading || presetState.saving}>
+                                New Preset
+                            </motion.button>
+                            <motion.button
+                                className="px-3 py-2 rounded-lg text-xs font-semibold"
+                                style={{
+                                    background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                    color: palette.textSecondary,
+                                    opacity: presetState.loading || presetState.saving ? 0.7 : 1
+                                }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={captureCurrentSelectionToDraft}
+                                disabled={presetState.loading || presetState.saving}>
+                                Capture Current Selection
+                            </motion.button>
+                        </div>
+
+                        {presetState.error && (
+                            <div
+                                className="mb-3 p-2 rounded-lg text-xs"
+                                style={{
+                                    background: "rgba(220,50,50,0.12)",
+                                    color: "#DC3232",
+                                    border: "1px solid rgba(220,50,50,0.2)"
+                                }}>
+                                {presetState.error}
+                            </div>
+                        )}
+
+                        {presetEditorOpen && (
+                            <div
+                                className="mb-3 p-3 rounded-xl border"
+                                style={{
+                                    borderColor,
+                                    background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"
+                                }}>
+                                <p
+                                    className="text-xs font-black uppercase tracking-wide mb-2"
+                                    style={{ color: palette.textTertiary }}>
+                                    {editingPresetKey ? "Edit Preset" : "Create Preset"}
+                                </p>
+                                <div className="grid grid-cols-2 gap-2 mb-2">
+                                    <input
+                                        value={presetDraft.label}
+                                        onChange={(e) => setPresetDraft((prev) => ({ ...prev, label: e.target.value }))}
+                                        placeholder="Preset label"
+                                        className="px-2.5 py-2 text-xs rounded-lg outline-none"
+                                        style={inputStyle}
+                                    />
+                                    <select
+                                        value={presetDraft.iconKey}
+                                        onChange={(e) =>
+                                            setPresetDraft((prev) => ({
+                                                ...prev,
+                                                iconKey: e.target.value as ResumePreset["iconKey"]
+                                            }))
+                                        }
+                                        className="px-2.5 py-2 text-xs rounded-lg outline-none"
+                                        style={inputStyle}>
+                                        <option value="code">Code</option>
+                                        <option value="preview">Preview</option>
+                                        <option value="work">Work</option>
+                                        <option value="school">School</option>
+                                        <option value="folder">Folder</option>
+                                    </select>
+                                </div>
+                                <input
+                                    value={presetDraft.title}
+                                    onChange={(e) => setPresetDraft((prev) => ({ ...prev, title: e.target.value }))}
+                                    placeholder="Role title"
+                                    className="w-full px-2.5 py-2 text-xs rounded-lg outline-none mb-2"
+                                    style={inputStyle}
+                                />
+                                <textarea
+                                    value={presetDraft.summary}
+                                    onChange={(e) => setPresetDraft((prev) => ({ ...prev, summary: e.target.value }))}
+                                    placeholder="Preset summary"
+                                    rows={2}
+                                    className="w-full px-2.5 py-2 text-xs rounded-lg outline-none mb-2"
+                                    style={{ ...inputStyle, resize: "vertical" }}
+                                />
+
+                                <div className="space-y-1.5 mb-2">
+                                    {SECTIONS.map((section) => {
+                                        const includeAll = (presetDraft.includeAll ?? []).includes(section.key);
+                                        const keywords = (presetDraft.keywordsByCategory[section.key] ?? []).join(", ");
+                                        return (
+                                            <div key={section.key}>
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <span
+                                                        className="text-[11px] font-semibold"
+                                                        style={{ color: palette.textSecondary }}>
+                                                        {section.label}
+                                                    </span>
+                                                    <motion.button
+                                                        className="px-2 py-1 rounded-md text-[10px] font-semibold"
+                                                        style={{
+                                                            background: includeAll
+                                                                ? `${palette.accent}20`
+                                                                : isDark
+                                                                  ? "rgba(255,255,255,0.08)"
+                                                                  : "rgba(0,0,0,0.06)",
+                                                            color: includeAll ? palette.accent : palette.textSecondary
+                                                        }}
+                                                        whileHover={{ scale: 1.02 }}
+                                                        whileTap={{ scale: 0.98 }}
+                                                        onClick={() => toggleDraftIncludeAll(section.key)}>
+                                                        Include All
+                                                    </motion.button>
+                                                </div>
+                                                <input
+                                                    value={keywords}
+                                                    onChange={(e) => setDraftKeywords(section.key, e.target.value)}
+                                                    placeholder="keywords, comma separated"
+                                                    className="w-full px-2.5 py-2 text-[11px] rounded-lg outline-none"
+                                                    style={inputStyle}
+                                                />
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <motion.button
+                                        className="px-3 py-2 rounded-lg text-xs font-bold"
+                                        style={{ background: palette.accent, color: "#fff", opacity: presetState.saving ? 0.7 : 1 }}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={savePresetDraft}
+                                        disabled={presetState.saving}>
+                                        {presetState.saving ? "Saving..." : "Save Preset"}
+                                    </motion.button>
+                                    <motion.button
+                                        className="px-3 py-2 rounded-lg text-xs font-semibold"
+                                        style={{
+                                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                            color: palette.textSecondary
+                                        }}
+                                        whileHover={{ scale: 1.02 }}
+                                        whileTap={{ scale: 0.98 }}
+                                        onClick={() => {
+                                            setPresetEditorOpen(false);
+                                            setEditingPresetKey(null);
+                                        }}>
+                                        Cancel
+                                    </motion.button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            {presets.map((preset) => {
+                                const active = activePresetKey === preset.key;
+                                return (
+                                    <div
+                                        key={preset.key}
+                                        className="rounded-xl border p-3"
+                                        style={{
+                                            borderColor: active ? `${palette.accent}55` : borderColor,
+                                            background: active
+                                                ? `${palette.accent}12`
+                                                : isDark
+                                                  ? "rgba(255,255,255,0.02)"
+                                                  : "rgba(0,0,0,0.015)"
+                                        }}>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <span
+                                                className="inline-flex items-center gap-2 text-sm font-bold"
+                                                style={{ color: active ? palette.accent : palette.textPrimary }}>
+                                                {getPresetIcon(preset.iconKey)}
+                                                {preset.label}
+                                            </span>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <motion.button
+                                                className="flex-1 px-3 py-2 rounded-lg text-xs font-semibold"
+                                                style={{
+                                                    background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                                    color: palette.textSecondary,
+                                                    opacity: presetState.loading || presetState.saving ? 0.7 : 1
+                                                }}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => applyPreset(preset, false)}
+                                                disabled={presetState.loading || presetState.saving}>
+                                                Apply
+                                            </motion.button>
+                                            <motion.button
+                                                className="flex-1 px-3 py-2 rounded-lg text-xs font-bold"
+                                                style={{
+                                                    background: palette.accent,
+                                                    color: "#fff",
+                                                    opacity: ds.loading || ui.generating || presetState.loading || presetState.saving ? 0.7 : 1
+                                                }}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => applyPreset(preset, true)}
+                                                disabled={ds.loading || ui.generating || presetState.loading || presetState.saving}>
+                                                Direct PDF
+                                            </motion.button>
+                                            <motion.button
+                                                className="px-2 py-2 rounded-lg text-xs font-semibold"
+                                                style={{
+                                                    background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                                    color: palette.textSecondary
+                                                }}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => openEditPreset(preset)}
+                                                disabled={presetState.loading || presetState.saving}>
+                                                Edit
+                                            </motion.button>
+                                            <motion.button
+                                                className="px-2 py-2 rounded-lg text-xs font-semibold"
+                                                style={{
+                                                    background: "rgba(220,50,50,0.12)",
+                                                    color: "#DC3232"
+                                                }}
+                                                whileHover={{ scale: 1.02 }}
+                                                whileTap={{ scale: 0.98 }}
+                                                onClick={() => deletePreset(preset.key)}
+                                                disabled={presetState.loading || presetState.saving}>
+                                                Delete
+                                            </motion.button>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+
+                            {!presetState.loading && presets.length === 0 && (
+                                <div
+                                    className="rounded-xl border p-3 text-xs"
+                                    style={{ borderColor, color: palette.textTertiary }}>
+                                    No presets yet. Create one and keep updating it anytime.
+                                </div>
+                            )}
+                            {presetState.loading && (
+                                <div
+                                    className="rounded-xl border p-3 text-xs"
+                                    style={{ borderColor, color: palette.textTertiary }}>
+                                    Loading presets...
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     {/* Meta info */}
                     <div
                         className="rounded-2xl p-5 mb-4"

@@ -41,7 +41,7 @@ const statCards: StatCard[] = [
         href: "/admin/users",
         icon: <People />,
         color: "#007AFF",
-        requiredPermissions: ["admin.users.manage"]
+        requiredPermissions: ["admin.users.view", "admin.users.manage"]
     },
     {
         label: "Projects",
@@ -145,7 +145,7 @@ const quickActions: QuickAction[] = [
         label: "View Users",
         href: "/admin/users",
         icon: <People fontSize="small" />,
-        requiredPermissions: ["admin.users.manage"]
+        requiredPermissions: ["admin.users.view", "admin.users.manage"]
     }
 ];
 
@@ -265,9 +265,14 @@ export default function AdminDashboard() {
                     if (j.success) {
                         const val = j.pagination?.total ?? j.data?.length ?? 0;
                         setCounts((prev) => ({ ...prev, [card.label]: val }));
+                    } else {
+                        // Avoid endless loading shimmer when endpoint is denied or fails.
+                        setCounts((prev) => ({ ...prev, [card.label]: 0 }));
                     }
                 })
-                .catch(() => {});
+                .catch(() => {
+                    setCounts((prev) => ({ ...prev, [card.label]: 0 }));
+                });
         });
     }, [visibleStatCards, loading]);
 

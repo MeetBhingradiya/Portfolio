@@ -9,6 +9,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useAdminSession } from "@Hooks/useAdminSession";
 import { Search, Delete, Person, ChevronLeft, ChevronRight, Refresh, ManageAccounts, Shield, Close, Save } from "@mui/icons-material";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
@@ -54,6 +55,7 @@ interface RoleModal {
 
 export default function UsersPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
+    const { session } = useAdminSession();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
@@ -158,6 +160,20 @@ export default function UsersPage() {
 
     const saveRoles = async () => {
         if (!modal) return;
+
+        const isSelfTarget =
+            !!session?.email &&
+            !!modal.user.email &&
+            session.email.toLowerCase() === modal.user.email.toLowerCase();
+        const removesAdminFromSelf = isSelfTarget && !modal.roles.includes("admin");
+
+        if (removesAdminFromSelf) {
+            const ok = window.confirm(
+                "You are removing your own admin role. This can lock you out of admin access. Continue?"
+            );
+            if (!ok) return;
+        }
+
         setModal((m) => (m ? { ...m, saving: true, error: "" } : m));
         try {
             const res = await fetch("/api/admin/roles", {
@@ -167,7 +183,8 @@ export default function UsersPage() {
                     userId: modal.user._id,
                     email: modal.user.email,
                     roles: modal.roles,
-                    permissions: []
+                    permissions: [],
+                    confirmSelfRoleChange: removesAdminFromSelf
                 })
             });
             const json = await res.json();

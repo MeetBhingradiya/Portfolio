@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
         if (!admin) return permissionError(401, "Unauthorized: Not authenticated");
 
         const body = await req.json();
-        let { userId, email, roles, permissions, notes } = body;
+        let { userId, email, roles, permissions, notes, confirmSelfRoleChange } = body;
 
         if (!email) {
             return NextResponse.json({ success: false, error: "email is required" }, { status: 400 });
@@ -71,11 +71,25 @@ export async function POST(req: NextRequest) {
             userId = String(user._id);
         }
 
+        const normalizedEmail = String(email).toLowerCase();
+        const isSelfTarget = userId === admin.id || normalizedEmail === String(admin.email ?? "").toLowerCase();
+        const removesAdminFromSelf = isSelfTarget && Array.isArray(roles) && !roles.includes("admin");
+
+        if (removesAdminFromSelf && !confirmSelfRoleChange) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Self role change confirmation required"
+                },
+                { status: 409 }
+            );
+        }
+
         const record = await UserRole.findOneAndUpdate(
             { userId },
             {
                 userId,
-                email: email.toLowerCase(),
+                email: normalizedEmail,
                 roles: roles ?? ["user"],
                 permissions: permissions ?? [],
                 notes,

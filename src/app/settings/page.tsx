@@ -404,7 +404,7 @@ export default function SettingsPage() {
                                                     style={{
                                                         color: palette.textPrimary
                                                     }}>
-                                                    Paisa Manager
+                                                    Wallet & Expenses Manager
                                                 </h3>
                                                 <span
                                                     className="px-2 py-0.5 text-xs font-semibold rounded-full"

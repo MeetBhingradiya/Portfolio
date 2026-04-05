@@ -7,13 +7,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { RoleDefinition, seedBuiltinRoles } from "@Models/RoleDefinition";
-import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
+import { permissionError, requireAnyPermission, requirePermission } from "@Library/adminApiMiddleware";
 import { ALL_PERMISSION_KEYS } from "@Config/Permissions";
 
 export async function GET(req: NextRequest) {
     try {
         await dbConnect();
-        const auth = await requirePermission(req, "admin.roles.manage");
+        const auth = await requireAnyPermission(req, ["admin.roles.manage", "admin.users.manage"]);
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         await seedBuiltinRoles(); // idempotent — only inserts if missing
 

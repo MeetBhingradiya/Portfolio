@@ -7,13 +7,13 @@
  * Used by the Roles manager when adding a new user by email.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
+import { permissionError, requireAnyPermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@Utils/dbConnect";
 import mongoose from "mongoose";
 
 export async function GET(req: NextRequest) {
     try {
-        const auth = await requirePermission(req, "admin.users.view");
+        const auth = await requireAnyPermission(req, ["admin.users.view", "admin.users.manage"]);
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
 
         const email = req.nextUrl.searchParams.get("email")?.toLowerCase().trim();

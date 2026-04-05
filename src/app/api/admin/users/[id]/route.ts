@@ -2,7 +2,7 @@
  * Admin Users - Get/Delete a single user
  */
 import { NextRequest, NextResponse } from "next/server";
-import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
+import { permissionError, requireAnyPermission, requirePermission } from "@Library/adminApiMiddleware";
 import { MongoClient, ObjectId } from "mongodb";
 import { Config as SConfig } from "@Config/Server";
 
@@ -16,7 +16,7 @@ async function getDB() {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const auth = await requirePermission(req, "admin.users.view");
+        const auth = await requireAnyPermission(req, ["admin.users.view", "admin.users.manage"]);
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
         const { id } = await params;
         const { client, col } = await getDB();

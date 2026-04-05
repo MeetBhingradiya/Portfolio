@@ -17,7 +17,24 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ us
         if (!admin) return permissionError(401, "Unauthorized: Not authenticated");
 
         const body = await req.json();
-        const { roles, permissions, notes } = body;
+        const { roles, permissions, notes, confirmSelfRoleChange } = body;
+
+        const existing = await UserRole.findOne({ userId }).lean();
+        const existingEmail = String(existing?.email ?? "").toLowerCase();
+        const adminEmail = String(admin.email ?? "").toLowerCase();
+        const isSelfTarget = userId === admin.id || (existingEmail.length > 0 && existingEmail === adminEmail);
+        const removesAdminFromSelf = isSelfTarget && Array.isArray(roles) && !roles.includes("admin");
+
+        if (removesAdminFromSelf && !confirmSelfRoleChange) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Self role change confirmation required"
+                },
+                { status: 409 }
+            );
+        }
+
         const record = await UserRole.findOneAndUpdate(
             { userId },
             {
@@ -46,6 +63,26 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ u
         await dbConnect();
         const auth = await requirePermission(req, "admin.roles.manage");
         if (auth.error) return permissionError(auth.status ?? 403, auth.message ?? "Forbidden");
+
+        const admin = auth.session?.user;
+        if (!admin) return permissionError(401, "Unauthorized: Not authenticated");
+
+        const body = await req.json().catch(() => ({}));
+        const confirmSelfRoleChange = Boolean(body?.confirmSelfRoleChange);
+        const existing = await UserRole.findOne({ userId }).lean();
+        const existingEmail = String(existing?.email ?? "").toLowerCase();
+        const adminEmail = String(admin.email ?? "").toLowerCase();
+        const isSelfTarget = userId === admin.id || (existingEmail.length > 0 && existingEmail === adminEmail);
+
+        if (isSelfTarget && !confirmSelfRoleChange) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "Self role change confirmation required"
+                },
+                { status: 409 }
+            );
+        }
 
         await UserRole.findOneAndDelete({ userId });
         return NextResponse.json({ success: true });

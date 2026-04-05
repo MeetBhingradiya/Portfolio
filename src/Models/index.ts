@@ -42,6 +42,7 @@ export * from "./Payment";
 
 // ? Role Definitions (admin-editable role → permissions bundles)
 export * from "./RoleDefinition";
+export * from "./ResumePreset";
 
 // ? Productivity System (Tasks, Habits, Goals, Reminders, Stats, AI)
 export * from "./ProductivityTask";
@@ -51,7 +52,7 @@ export * from "./ProductivityReminder";
 export * from "./UserProductivityStats";
 export * from "./AIProviderSettings";
 
-// ? Wallet & Expenses (Paisa Manager)
+// ? Wallet & Expenses
 export * from "./WalletAsset";
 export * from "./WalletTransaction";
 export * from "./WalletContact";

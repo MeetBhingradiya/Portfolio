@@ -122,7 +122,8 @@ interface NavItem {
     | "db-sync"
     | "cdn"
     | "cdn-applications"
-    | "cdn-api-keys";
+    | "cdn-api-keys"
+    | "docgen";
 }
 
 const allNavItems: NavItem[] = [
@@ -245,6 +246,13 @@ const allNavItems: NavItem[] = [
         icon: <PictureAsPdf fontSize="small" />,
         group: "portfolio",
         permKey: "resume"
+    },
+    {
+        href: "/admin/docgen",
+        label: "Doc Generator",
+        icon: <Article fontSize="small" />,
+        group: "portfolio",
+        permKey: "docgen"
     },
     {
         href: "/admin/blogs",

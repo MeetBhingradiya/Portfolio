@@ -34,7 +34,8 @@ export type NavItemKey =
     | "db-sync"
     | "cdn"
     | "cdn-applications"
-    | "cdn-api-keys";
+    | "cdn-api-keys"
+    | "docgen";
 
 /**
  * Navigation item to required permission(s) mapping
@@ -78,7 +79,8 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
     "db-sync": ["admin.site.settings"],
     "cdn": ["cdn.keys.view", "cdn.keys.manage"],
     "cdn-applications": ["cdn.applications.view", "cdn.applications.review"],
-    "cdn-api-keys": ["cdn.keys.view", "cdn.keys.manage"]
+    "cdn-api-keys": ["cdn.keys.view", "cdn.keys.manage"],
+    "docgen": ["admin.site.settings"]
 };
 
 /**

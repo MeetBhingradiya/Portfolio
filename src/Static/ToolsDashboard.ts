@@ -300,6 +300,22 @@ export const TOOLS: ToolDefinition[] = [
         adminManaged: false,
         syncToDb: false,
         shortcut: "G"
+    },
+    // ── Admin-only ───────────────────────────────────────────────────────────
+    {
+        id: "docgen",
+        name: "JSON → PDF Doc Generator",
+        description: "Generate structured PDF documents from a JSON payload",
+        longDescription:
+            "Admin-only document generation tool. Accepts a structured JSON payload and produces a styled PDF with configurable blocks (title, description, step-by-step, code, source references, footer), optional institution logo/header, draft watermark, page numbers and an embedded tamper-evident SHA-256 hash block.",
+        category: "media",
+        iconName: "Article",
+        accentColor: "#6366F1",
+        route: "/admin/docgen",
+        badges: ["new", "admin-managed"],
+        isPublic: false,
+        adminManaged: true,
+        syncToDb: false
     }
 ];
 

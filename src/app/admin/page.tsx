@@ -13,6 +13,7 @@ import Link from "next/link";
 import {
     People,
     Folder,
+    Description,
     Code,
     School,
     Work,
@@ -49,6 +50,14 @@ const statCards: StatCard[] = [
         href: "/admin/projects",
         icon: <Folder />,
         color: "#AF52DE",
+        requiredPermissions: ["portfolio.manage"]
+    },
+    {
+        label: "Documents",
+        apiPath: "/api/admin/documents",
+        href: "/admin/documents",
+        icon: <Description />,
+        color: "#4F46E5",
         requiredPermissions: ["portfolio.manage"]
     },
     {

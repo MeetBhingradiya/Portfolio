@@ -36,6 +36,7 @@ import {
     ChevronRight,
     AdminPanelSettings,
     Folder,
+    Description,
     Build,
     PhotoCamera,
     CloudUpload,
@@ -106,6 +107,7 @@ interface NavItem {
     | "refunds"
     | "sitemap"
     | "projects"
+    | "documents"
     | "skills"
     | "education"
     | "experience"
@@ -203,6 +205,13 @@ const allNavItems: NavItem[] = [
         icon: <Folder fontSize="small" />,
         group: "portfolio",
         permKey: "projects"
+    },
+    {
+        href: "/admin/documents",
+        label: "Documents",
+        icon: <Description fontSize="small" />,
+        group: "portfolio",
+        permKey: "documents"
     },
     {
         href: "/admin/skills",

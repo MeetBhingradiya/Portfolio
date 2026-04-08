@@ -18,6 +18,7 @@ export type NavItemKey =
     | "refunds"
     | "sitemap"
     | "projects"
+    | "documents"
     | "skills"
     | "education"
     | "experience"
@@ -60,6 +61,7 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
     // Portfolio module
     "sitemap": ["portfolio.manage"],
     "projects": ["portfolio.manage"],
+    "documents": ["portfolio.manage"],
     "skills": ["portfolio.manage"],
     "education": ["portfolio.manage"],
     "experience": ["portfolio.manage"],

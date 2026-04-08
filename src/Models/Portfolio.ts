@@ -326,6 +326,118 @@ const CertificateSchema = new Schema<ICertificate>(
     { timestamps: true, versionKey: false }
 );
 
+/* ─────────────────────────── DOCUMENTS ─────────────────────────── */
+
+export type DocumentPrivacy = "public" | "unlisted" | "link_expiry" | "email" | "account";
+export type DocumentTextAlignment = "left" | "center" | "right" | "justify";
+export type DocumentBlockMoveMode = "dnd" | "buttons" | "both";
+
+export interface IDocumentLink {
+    LinkID: string;
+    Label?: string;
+    URL: string;
+    ExpiresAt?: Date;
+}
+
+export interface IDocumentCodeBlock {
+    BlockID: string;
+    Language?: string;
+    Code: string;
+    Alignment: DocumentTextAlignment;
+    Order: number;
+}
+
+export interface IDocument extends Document {
+    DocumentID: string;
+    Title: string;
+    Slug: string;
+    Description?: string;
+    Body?: string;
+    Privacy: DocumentPrivacy;
+    LinkExpiresAt?: Date;
+    AccessEmails: string[];
+    AccessAccounts: string[];
+    Links: IDocumentLink[];
+    VerificationURL?: string;
+    VerificationQRCode?: string;
+    CodeBlocks: IDocumentCodeBlock[];
+    CodeBlockMoveMode: DocumentBlockMoveMode;
+    DefaultAlignment: DocumentTextAlignment;
+    Published: boolean;
+    Order: number;
+    isDeleted: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+}
+
+const DocumentSchema = new Schema<IDocument>(
+    {
+        DocumentID: {
+            type: String,
+            default: uuidv4,
+            unique: true,
+            index: true
+        },
+        Title: { type: String, required: true, trim: true },
+        Slug: {
+            type: String,
+            required: true,
+            unique: true,
+            lowercase: true,
+            trim: true
+        },
+        Description: { type: String },
+        Body: { type: String },
+        Privacy: {
+            type: String,
+            enum: ["public", "unlisted", "link_expiry", "email", "account"],
+            default: "public"
+        },
+        LinkExpiresAt: { type: Date },
+        AccessEmails: [{ type: String, lowercase: true, trim: true }],
+        AccessAccounts: [{ type: String, trim: true }],
+        Links: [
+            {
+                _id: false,
+                LinkID: { type: String, default: uuidv4 },
+                Label: { type: String, trim: true },
+                URL: { type: String, required: true, trim: true },
+                ExpiresAt: { type: Date }
+            }
+        ],
+        VerificationURL: { type: String, trim: true },
+        VerificationQRCode: { type: String, trim: true },
+        CodeBlocks: [
+            {
+                _id: false,
+                BlockID: { type: String, default: uuidv4 },
+                Language: { type: String, trim: true },
+                Code: { type: String, required: true },
+                Alignment: {
+                    type: String,
+                    enum: ["left", "center", "right", "justify"],
+                    default: "left"
+                },
+                Order: { type: Number, default: 0 }
+            }
+        ],
+        CodeBlockMoveMode: {
+            type: String,
+            enum: ["dnd", "buttons", "both"],
+            default: "both"
+        },
+        DefaultAlignment: {
+            type: String,
+            enum: ["left", "center", "right", "justify"],
+            default: "left"
+        },
+        Published: { type: Boolean, default: true },
+        Order: { type: Number, default: 0 },
+        isDeleted: { type: Boolean, default: false }
+    },
+    { timestamps: true, versionKey: false }
+);
+
 /* ─────────────────────────── TEST SCORES ─────────────────────────── */
 
 export type TestExamType = "gate" | "ddcet" | "jee" | "cat" | "gmat" | "gre" | "toefl" | "ielts" | "custom";
@@ -422,5 +534,6 @@ export const Skill_Model = () => getModel<ISkill>("Skill", SkillSchema);
 export const Education_Model = () => getModel<IEducation>("Education", EducationSchema);
 export const Experience_Model = () => getModel<IExperience>("Experience", ExperienceSchema);
 export const Certificate_Model = () => getModel<ICertificate>("Certificate", CertificateSchema);
+export const Document_Model = () => getModel<IDocument>("Document", DocumentSchema);
 export const TestScore_Model = () => getModel<ITestScore>("TestScore", TestScoreSchema);
 export const SitemapEntry_Model = () => getModel<ISitemapEntry>("SitemapEntry", SitemapEntrySchema);

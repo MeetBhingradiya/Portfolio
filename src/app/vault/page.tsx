@@ -26,7 +26,10 @@ import {
     Warning,
     CheckCircle,
     NavigateBefore,
-    NavigateNext
+    NavigateNext,
+    Visibility,
+    ContentCopy,
+    Add
 } from "@mui/icons-material";
 
 const ACCENT = "#6366F1";
@@ -51,8 +54,22 @@ interface VaultDoc {
     size: number;
     type: string;
     isShared: boolean;
+    activeShareCount?: number;
+    expiredShareCount?: number;
+    inactiveShareCount?: number;
     tags: string[];
     createdAt: string;
+}
+
+interface ShareLink {
+    linkId: string;
+    token: string;
+    status: "active" | "revoked" | "deleted";
+    expiresAt?: string;
+    createdAt: string;
+    lastUsedAt?: string;
+    url: string;
+    expired?: boolean;
 }
 
 interface StorageInfo {
@@ -106,6 +123,11 @@ export default function VaultPage() {
     const [noAccess, setNoAccess] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
     const [shareTarget, setShareTarget] = useState<VaultDoc | null>(null);
+    const [shareLinks, setShareLinks] = useState<ShareLink[]>([]);
+    const [shareExpiresAt, setShareExpiresAt] = useState("");
+    const [shareLoading, setShareLoading] = useState(false);
+    const [shareFilter, setShareFilter] = useState<"" | "active" | "revoked_deleted" | "expired">("");
+    const [previewTarget, setPreviewTarget] = useState<any | null>(null);
     const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
 
     const card = {
@@ -131,6 +153,7 @@ export default function VaultPage() {
         const sp = new URLSearchParams({ page: String(page) });
         if (typeFilter !== "ALL") sp.set("type", typeFilter);
         if (search) sp.set("search", search);
+        if (shareFilter) sp.set("sharedFilter", shareFilter);
         const r = await fetch(`/api/vault/documents?${sp}`);
         if (r.status === 403) { setNoAccess(true); setLoading(false); return; }
         const j = await r.json();
@@ -138,7 +161,7 @@ export default function VaultPage() {
         setTotal(j.total ?? 0);
         setPages(j.pages ?? 1);
         setLoading(false);
-    }, [page, typeFilter, search]);
+    }, [page, typeFilter, search, shareFilter]);
 
     useEffect(() => { fetchStorage(); }, [fetchStorage]);
     useEffect(() => { fetchDocs(); }, [fetchDocs]);
@@ -155,19 +178,77 @@ export default function VaultPage() {
         }
     }
 
-    async function handleToggleShare(doc: VaultDoc) {
-        const r = await fetch(`/api/vault/documents/${doc.docId}`, {
+    async function performShareAction(docId: string, shareAction: any, okMessage?: string) {
+        setShareLoading(true);
+        const r = await fetch(`/api/vault/documents/${docId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ isShared: !doc.isShared })
+            body: JSON.stringify({ shareAction })
         });
+        const j = await r.json();
+        setShareLoading(false);
         if (r.ok) {
-            showToast(doc.isShared ? "Sharing disabled" : "Share link created");
-            setShareTarget(null);
+            if (okMessage) showToast(okMessage);
+            setShareLinks(j.shareLinks || []);
             fetchDocs();
         } else {
-            showToast("Failed to update sharing", false);
+            showToast(j.error || "Failed to update sharing", false);
         }
+    }
+
+    async function openShareManager(doc: VaultDoc) {
+        setShareTarget(doc);
+        setShareLoading(true);
+        const r = await fetch(`/api/vault/documents/${doc.docId}`);
+        const j = await r.json();
+        setShareLoading(false);
+        const links = (j?.doc?.shareLinks || []).map((link: any) => ({
+            ...link,
+            url: `${window.location.origin}/vault/share/${link.token}`,
+            expired: !!(link.expiresAt && new Date(link.expiresAt) <= new Date())
+        }));
+        setShareLinks(links);
+    }
+
+    async function copyLink(link: ShareLink) {
+        try {
+            if (navigator.clipboard?.writeText) {
+                await navigator.clipboard.writeText(link.url);
+            } else {
+                const ta = document.createElement("textarea");
+                ta.value = link.url;
+                ta.style.position = "fixed";
+                ta.style.left = "-9999px";
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                document.execCommand("copy");
+                document.body.removeChild(ta);
+            }
+            showToast("Share link copied");
+        } catch {
+            showToast("Failed to copy link", false);
+        }
+    }
+
+    async function openPreview(docId: string) {
+        const r = await fetch(`/api/vault/documents/${docId}`);
+        const j = await r.json();
+        if (!r.ok || !j?.doc) {
+            showToast("Failed to load preview", false);
+            return;
+        }
+        const firstAssetId = j.doc?.chunks?.[0]?.assetId;
+        if (!firstAssetId) {
+            showToast("Preview unavailable", false);
+            return;
+        }
+        setPreviewTarget({
+            filename: j.doc.filename,
+            mimeType: j.doc.mimeType,
+            previewUrl: `/api/cdn/${firstAssetId}`,
+            isChunked: j.doc.isChunked
+        });
     }
 
     if (noAccess) {
@@ -196,6 +277,7 @@ export default function VaultPage() {
 
     const pct = storage ? Math.min(100, (storage.usedBytes / storage.limitBytes) * 100) : 0;
     const barColor = pct > 90 ? "#EF4444" : pct > 70 ? "#F59E0B" : ACCENT;
+    const minShareDatetime = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
     return (
         <div
@@ -291,6 +373,22 @@ export default function VaultPage() {
                             options={TYPE_OPTS}
                         />
                     </div>
+                    <div className="w-56">
+                        <CustomSelect
+                            value={shareFilter || "all"}
+                            onChange={(v) => {
+                                const next = v === "all" ? "" : (v as "active" | "revoked_deleted" | "expired");
+                                setShareFilter(next);
+                                setPage(1);
+                            }}
+                            options={[
+                                { value: "all", label: "All Share States" },
+                                { value: "active", label: "Shared by me (active)" },
+                                { value: "revoked_deleted", label: "Revoked / Deleted links" },
+                                { value: "expired", label: "Expired links" }
+                            ]}
+                        />
+                    </div>
                 </div>
 
                 {/* File Grid */}
@@ -372,12 +470,12 @@ export default function VaultPage() {
 
                                 {/* Actions */}
                                 <div className="flex items-center gap-2 mt-auto pt-2" style={{ borderTop: `1px solid ${borderColor}` }}>
-                                    {doc.isShared && (
+                                    {(doc.activeShareCount ?? 0) > 0 && (
                                         <span
                                             className="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full"
                                             style={{ background: "rgba(34,197,94,0.15)", color: "#16a34a" }}>
                                             <LinkOutlined style={{ fontSize: 12 }} />
-                                            Shared
+                                            Shared ({doc.activeShareCount})
                                         </span>
                                     )}
                                     <div className="ml-auto flex gap-1">
@@ -386,8 +484,17 @@ export default function VaultPage() {
                                             style={{ color: palette.textTertiary }}
                                             whileHover={{ scale: 1.1, color: ACCENT }}
                                             whileTap={{ scale: 0.9 }}
-                                            title={doc.isShared ? "Manage share link" : "Share file"}
-                                            onClick={() => setShareTarget(doc)}>
+                                            title="Preview file"
+                                            onClick={() => openPreview(doc.docId)}>
+                                            <Visibility fontSize="small" />
+                                        </motion.button>
+                                        <motion.button
+                                            className="p-1.5 rounded-lg"
+                                            style={{ color: palette.textTertiary }}
+                                            whileHover={{ scale: 1.1, color: ACCENT }}
+                                            whileTap={{ scale: 0.9 }}
+                                            title="Manage share links"
+                                            onClick={() => openShareManager(doc)}>
                                             <Share fontSize="small" />
                                         </motion.button>
                                         <motion.button
@@ -509,23 +616,88 @@ export default function VaultPage() {
                             <h3
                                 className="font-bold mb-1"
                                 style={{ color: palette.textPrimary }}>
-                                {shareTarget.isShared ? "Sharing Active" : "Share File"}
+                                Manage Share Links
                             </h3>
                             <p
                                 className="text-sm mb-4"
                                 style={{ color: palette.textSecondary }}>
-                                {shareTarget.isShared
-                                    ? "Anyone with the link can view this file's details."
-                                    : "Generate a public share link for this file."}
+                                Create, revoke, re-enable, and delete links for this file.
                             </p>
-                            <motion.button
-                                className="w-full py-2.5 rounded-xl text-sm font-semibold mb-3"
-                                style={{ background: shareTarget.isShared ? "rgba(239,68,68,0.15)" : `${ACCENT}18`, color: shareTarget.isShared ? "#EF4444" : ACCENT }}
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => handleToggleShare(shareTarget)}>
-                                {shareTarget.isShared ? "Revoke Share Link" : "Generate Share Link"}
-                            </motion.button>
+
+                            <div className="flex items-end gap-2 mb-3">
+                                <div className="flex-1">
+                                    <label htmlFor="share-expiry" className="text-xs block mb-1" style={{ color: palette.textTertiary }}>
+                                        Expiry (optional)
+                                    </label>
+                                    <input
+                                        id="share-expiry"
+                                        type="datetime-local"
+                                        value={shareExpiresAt}
+                                        min={minShareDatetime}
+                                        onChange={(e) => setShareExpiresAt(e.target.value)}
+                                        className="w-full px-3 py-2 rounded-xl text-sm outline-none"
+                                        style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", color: palette.textPrimary }}
+                                    />
+                                </div>
+                                <motion.button
+                                    className="px-3 py-2 rounded-xl text-sm font-semibold"
+                                    style={{ background: `${ACCENT}18`, color: ACCENT }}
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    disabled={shareLoading}
+                                    onClick={() =>
+                                        performShareAction(
+                                            shareTarget.docId,
+                                            { type: "create", expiresAt: shareExpiresAt || undefined },
+                                            "Share link created"
+                                        )
+                                    }>
+                                    <span className="flex items-center gap-1"><Add fontSize="small" />Create</span>
+                                </motion.button>
+                            </div>
+
+                            <div className="max-h-64 overflow-y-auto space-y-2 mb-3">
+                                {shareLoading && shareLinks.length === 0 ? (
+                                    <div className="text-sm" style={{ color: palette.textTertiary }}>Loading links…</div>
+                                ) : shareLinks.length === 0 ? (
+                                    <div className="text-sm" style={{ color: palette.textTertiary }}>No share links yet</div>
+                                ) : (
+                                    shareLinks
+                                        .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+                                        .map((link) => (
+                                            <div key={link.linkId} className="p-2 rounded-xl" style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)" }}>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-xs" style={{ color: palette.textSecondary }}>
+                                                        {link.status.toUpperCase()}
+                                                        {link.expired ? " · EXPIRED" : ""}
+                                                    </span>
+                                                    <div className="flex items-center gap-1">
+                                                        <button className="text-xs px-2 py-1 rounded-lg" style={{ background: `${ACCENT}15`, color: ACCENT }} onClick={() => copyLink(link)}>
+                                                            <span className="flex items-center gap-1"><ContentCopy style={{ fontSize: 12 }} />Copy</span>
+                                                        </button>
+                                                        {link.status === "active" ? (
+                                                            <button className="text-xs px-2 py-1 rounded-lg" style={{ background: "rgba(239,68,68,0.15)", color: "#EF4444" }} onClick={() => performShareAction(shareTarget.docId, { type: "revoke", linkId: link.linkId }, "Share link revoked")}>
+                                                                Revoke
+                                                            </button>
+                                                        ) : link.status === "revoked" ? (
+                                                            <button className="text-xs px-2 py-1 rounded-lg" style={{ background: "rgba(34,197,94,0.15)", color: "#16a34a" }} onClick={() => performShareAction(shareTarget.docId, { type: "reenable", linkId: link.linkId }, "Share link re-enabled")}>
+                                                                Re-enable
+                                                            </button>
+                                                        ) : null}
+                                                        {link.status !== "deleted" && (
+                                                            <button className="text-xs px-2 py-1 rounded-lg" style={{ background: "rgba(107,114,128,0.2)", color: palette.textSecondary }} onClick={() => performShareAction(shareTarget.docId, { type: "delete", linkId: link.linkId }, "Share link deleted")}>
+                                                                Delete
+                                                            </button>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                <div className="text-[11px] truncate mt-1" style={{ color: palette.textTertiary }}>
+                                                    {link.url}
+                                                </div>
+                                            </div>
+                                        ))
+                                )}
+                            </div>
                             <motion.button
                                 className="w-full py-2 rounded-xl text-sm"
                                 style={{ color: palette.textTertiary }}
@@ -534,6 +706,52 @@ export default function VaultPage() {
                                 onClick={() => setShareTarget(null)}>
                                 Close
                             </motion.button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Preview dialog */}
+            <AnimatePresence>
+                {previewTarget && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        style={{ background: "rgba(0,0,0,0.7)" }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setPreviewTarget(null)}>
+                        <motion.div
+                            className="p-4 rounded-2xl w-full max-w-5xl"
+                            style={card}
+                            initial={{ scale: 0.95 }}
+                            animate={{ scale: 1 }}
+                            exit={{ scale: 0.95 }}
+                            onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="font-semibold" style={{ color: palette.textPrimary }}>{previewTarget.filename}</h3>
+                                <button onClick={() => setPreviewTarget(null)} style={{ color: palette.textTertiary }}>Close</button>
+                            </div>
+                            {previewTarget.isChunked ? (
+                                <div className="text-sm p-4 rounded-xl" style={{ background: "rgba(245,158,11,0.15)", color: "#F59E0B" }}>
+                                    Preview is only available for single-chunk files. Please download the file to view all content.
+                                </div>
+                            ) : previewTarget.mimeType?.startsWith("image/") ? (
+                                <img src={previewTarget.previewUrl} alt={previewTarget.filename} className="w-full max-h-[75vh] object-contain rounded-xl" />
+                            ) : previewTarget.mimeType?.startsWith("video/") ? (
+                                <video src={previewTarget.previewUrl} controls className="w-full max-h-[75vh] rounded-xl bg-black" />
+                            ) : previewTarget.mimeType === "application/pdf" ? (
+                                <iframe
+                                    src={previewTarget.previewUrl}
+                                    className="w-full h-[75vh] rounded-xl"
+                                    title={previewTarget.filename}
+                                    sandbox="allow-same-origin allow-scripts"
+                                />
+                            ) : (
+                                <a href={previewTarget.previewUrl} target="_blank" rel="noreferrer" className="underline text-sm" style={{ color: ACCENT }}>
+                                    Open preview in new tab
+                                </a>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}

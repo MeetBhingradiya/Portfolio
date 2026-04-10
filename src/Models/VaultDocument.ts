@@ -7,6 +7,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export type VaultFileType = "pdf" | "document" | "presentation" | "image" | "video" | "other";
+export type VaultShareLinkStatus = "active" | "revoked" | "deleted";
 
 export interface IVaultChunk {
     chunkIndex: number;
@@ -15,6 +16,18 @@ export interface IVaultChunk {
     githubPath: string;
     sha: string;
     size: number;
+}
+
+export interface IVaultShareLink {
+    linkId: string;
+    token: string;
+    status: VaultShareLinkStatus;
+    expiresAt?: Date;
+    createdBy: string;
+    createdAt: Date;
+    lastUsedAt?: Date;
+    revokedAt?: Date;
+    deletedAt?: Date;
 }
 
 export interface IVaultDocument extends Document {
@@ -30,10 +43,12 @@ export interface IVaultDocument extends Document {
     chunks: IVaultChunk[];
     isChunked: boolean; // true when file was split (> 49 MB per chunk)
 
-    // Sharing
-    shareToken?: string; // random token for public share link
-    shareExpires?: Date; // optional expiry
-    isShared: boolean;
+    // Sharing (new)
+    shareLinks: IVaultShareLink[];
+    // Legacy sharing fields retained for backward compatibility with existing records
+    shareToken?: string; // deprecated
+    shareExpires?: Date; // deprecated
+    isShared: boolean; // deprecated
 
     // Organisation
     tags: string[];
@@ -54,6 +69,26 @@ const VaultChunkSchema = new Schema<IVaultChunk>(
         githubPath: { type: String, required: true, trim: true },
         sha: { type: String, required: true, trim: true },
         size: { type: Number, required: true, min: 0 }
+    },
+    { _id: false }
+);
+
+const VaultShareLinkSchema = new Schema<IVaultShareLink>(
+    {
+        linkId: { type: String, required: true, trim: true },
+        token: { type: String, required: true, trim: true },
+        status: {
+            type: String,
+            enum: ["active", "revoked", "deleted"],
+            default: "active",
+            index: true
+        },
+        expiresAt: { type: Date },
+        createdBy: { type: String, required: true, trim: true },
+        createdAt: { type: Date, default: Date.now },
+        lastUsedAt: { type: Date },
+        revokedAt: { type: Date },
+        deletedAt: { type: Date }
     },
     { _id: false }
 );
@@ -87,6 +122,7 @@ const VaultDocumentSchema = new Schema<IVaultDocument>(
         chunks: { type: [VaultChunkSchema], default: [] },
         isChunked: { type: Boolean, default: false },
 
+        shareLinks: { type: [VaultShareLinkSchema], default: [] },
         shareToken: { type: String, trim: true, sparse: true, index: true },
         shareExpires: { type: Date },
         isShared: { type: Boolean, default: false, index: true },
@@ -106,6 +142,7 @@ const VaultDocumentSchema = new Schema<IVaultDocument>(
 
 VaultDocumentSchema.index({ userId: 1, status: 1 });
 VaultDocumentSchema.index({ userId: 1, type: 1, status: 1 });
+VaultDocumentSchema.index({ "shareLinks.token": 1 }, { sparse: true });
 VaultDocumentSchema.index({ filename: "text", tags: "text", description: "text" });
 
 export const VaultDocument =

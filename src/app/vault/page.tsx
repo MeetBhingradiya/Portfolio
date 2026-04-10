@@ -745,7 +745,7 @@ export default function VaultPage() {
                                     src={previewTarget.previewUrl}
                                     className="w-full h-[75vh] rounded-xl"
                                     title={previewTarget.filename}
-                                    sandbox="allow-same-origin"
+                                    sandbox="allow-same-origin allow-scripts"
                                 />
                             ) : (
                                 <a href={previewTarget.previewUrl} target="_blank" rel="noreferrer" className="underline text-sm" style={{ color: ACCENT }}>

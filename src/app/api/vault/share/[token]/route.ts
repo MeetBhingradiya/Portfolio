@@ -59,7 +59,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
             return NextResponse.json({ error: "This share link is no longer active" }, { status: 410 });
         }
 
-        if (matchedLink.expiresAt && new Date(matchedLink.expiresAt) <= new Date()) {
+        if (matchedLink.expiresAt && new Date(matchedLink.expiresAt) < new Date()) {
             return NextResponse.json({ error: "This share link has expired" }, { status: 410 });
         }
 

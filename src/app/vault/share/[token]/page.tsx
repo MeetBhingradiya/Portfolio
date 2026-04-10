@@ -63,7 +63,7 @@ export default function SharedVaultPage({ params }: { params: Promise<{ token: s
                                     src={state.doc.previewUrl}
                                     title={state.doc.filename}
                                     className="w-full h-[75vh]"
-                                    sandbox="allow-same-origin"
+                                    sandbox="allow-same-origin allow-scripts"
                                 />
                             ) : (
                                 <a href={state.doc.previewUrl} className="inline-block p-4 underline" target="_blank" rel="noreferrer">

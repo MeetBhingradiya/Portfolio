@@ -141,8 +141,8 @@ export default function VaultAccessPage() {
         }
 
         searchTimer.current = setTimeout(async () => {
-            setUserLoading(true);
             try {
+                setUserLoading(true);
                 const r = await fetch(`/api/admin/users?search=${encodeURIComponent(query)}&limit=8`);
                 const j = await r.json();
                 setUserSuggestions(j.data ?? []);
@@ -150,6 +150,7 @@ export default function VaultAccessPage() {
                 setUserSuggestions([]);
             } finally {
                 setUserLoading(false);
+                searchTimer.current = null;
             }
         }, 250);
     }, []);

@@ -277,6 +277,7 @@ export default function VaultPage() {
 
     const pct = storage ? Math.min(100, (storage.usedBytes / storage.limitBytes) * 100) : 0;
     const barColor = pct > 90 ? "#EF4444" : pct > 70 ? "#F59E0B" : ACCENT;
+    const minShareDatetime = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
 
     return (
         <div
@@ -632,6 +633,7 @@ export default function VaultPage() {
                                         id="share-expiry"
                                         type="datetime-local"
                                         value={shareExpiresAt}
+                                        min={minShareDatetime}
                                         onChange={(e) => setShareExpiresAt(e.target.value)}
                                         className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                                         style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", color: palette.textPrimary }}

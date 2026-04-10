@@ -177,7 +177,7 @@ export async function POST(req: NextRequest) {
             VaultAccess.updateOne(
                 { userId },
                 { $inc: { fileCount: 1, usedBytes: file.size }, $set: { lastActivity: new Date() } }
-            ).catch(() => {});
+            ).catch((e) => console.error("[Vault Upload] single-chunk cache update failed", e));
 
             return NextResponse.json({ docId, complete: true }, { status: 201 });
         }
@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
         VaultAccess.updateOne(
             { userId },
             { $inc: { fileCount: 1, usedBytes: totalSize }, $set: { lastActivity: new Date() } }
-        ).catch(() => {});
+        ).catch((e) => console.error("[Vault Upload] multi-chunk cache update failed", e));
 
         return NextResponse.json({ docId, complete: true }, { status: 201 });
     } catch (err: any) {

@@ -108,11 +108,11 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
         await VaultDocument.updateOne({ docId: id, userId }, { $set: { status: "deleted" } });
 
-        // Update cached stats
+        // Update cached stats (fire-and-forget — actual usage recalculated in /api/vault/storage)
         VaultAccess.updateOne(
             { userId },
             { $inc: { fileCount: -1, usedBytes: -doc.size }, $set: { lastActivity: new Date() } }
-        ).catch(() => {});
+        ).catch((e) => console.error("[Vault DELETE] cache update failed", e));
 
         return NextResponse.json({ success: true });
     } catch (err: any) {

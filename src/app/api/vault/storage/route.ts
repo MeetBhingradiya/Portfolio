@@ -34,8 +34,10 @@ export async function GET(req: NextRequest) {
         const usedBytes = agg?.total ?? 0;
         const fileCount = agg?.count ?? 0;
 
-        // Keep cached values in sync (fire-and-forget)
-        VaultAccess.updateOne({ userId }, { $set: { usedBytes, fileCount } }).catch(() => {});
+        // Keep cached values in sync (fire-and-forget — actual usage recalculated on every call)
+        VaultAccess.updateOne({ userId }, { $set: { usedBytes, fileCount } }).catch((e) =>
+            console.error("[Vault Storage] cache sync failed", e)
+        );
 
         return NextResponse.json({
             usedBytes,

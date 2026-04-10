@@ -138,11 +138,11 @@ export async function POST(req: NextRequest) {
             status: "active"
         });
 
-        // Update cached stats
+        // Update cached stats (fire-and-forget — actual usage recalculated in /api/vault/storage)
         VaultAccess.updateOne(
             { userId },
             { $inc: { fileCount: 1, usedBytes: size }, $set: { lastActivity: new Date() } }
-        ).catch(() => {});
+        ).catch((e) => console.error("[Vault Create] cache update failed", e));
 
         return NextResponse.json({ docId: doc.docId }, { status: 201 });
     } catch (err: any) {

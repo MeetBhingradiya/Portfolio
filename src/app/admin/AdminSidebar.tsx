@@ -61,7 +61,8 @@ import {
     VisibilityOff,
     Menu as MenuIcon,
     Close,
-    ArrowBack
+    ArrowBack,
+    Lock
 } from "@mui/icons-material";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -121,6 +122,7 @@ interface NavItem {
     | "ai-providers"
     | "maintenance"
     | "immich-access"
+    | "vault-access"
     | "db-sync"
     | "cdn"
     | "cdn-applications"
@@ -304,6 +306,13 @@ const allNavItems: NavItem[] = [
         icon: <PhotoCamera fontSize="small" />,
         group: "system",
         permKey: "immich-access"
+    },
+    {
+        href: "/admin/vault-access",
+        label: "Vault Access",
+        icon: <Lock fontSize="small" />,
+        group: "system",
+        permKey: "vault-access"
     },
     {
         href: "/admin/db-sync",

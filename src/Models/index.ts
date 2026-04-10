@@ -60,3 +60,7 @@ export * from "./WalletContact";
 // ? Security: linked phone numbers + OTP challenges
 export * from "./UserPhone";
 export * from "./PhoneOtpChallenge";
+
+// ? Private Vault (encrypted document storage)
+export * from "./VaultDocument";
+export * from "./VaultAccess";

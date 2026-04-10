@@ -112,6 +112,7 @@ export default function VaultPage() {
         background: isApple ? (isDark ? "rgba(38, 38, 42, 0.7)" : "rgba(255,255,255,0.7)") : palette.surface,
         border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
     };
+    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
 
     const showToast = (msg: string, ok = true) => {
         setToast({ msg, ok });

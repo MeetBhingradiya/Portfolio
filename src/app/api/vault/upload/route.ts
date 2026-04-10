@@ -10,10 +10,10 @@
  *   tags        — comma-separated tags (optional, first chunk only)
  *   description — description text (optional, first chunk only)
  *
- * For files ≤ 49 MB a single chunk is expected (totalChunks = 1).
- * For larger files the client slices the file into ≤ 49 MB segments and
- * sends them sequentially; on the final chunk the VaultDocument record is
- * created automatically.
+ * For files ≤ 48 MB a single chunk is expected (totalChunks = 1).
+ * For larger files the client slices the file into ≤ 48 MB segments and
+ * sends them sequentially; the server accepts up to 49 MB per chunk.
+ * On the final chunk the VaultDocument record is created automatically.
  *
  * Files are stored in the GitHub CDN via the existing githubUpload utility.
  */
@@ -31,8 +31,10 @@ const CHUNK_MAX = 49 * 1024 * 1024; // 49 MB — GitHub hard limit
 
 // In-memory accumulator for in-progress multi-chunk uploads.
 // Key: docId (generated on first chunk).
-// NOTE: This only works within a single serverless instance lifetime.
-// For production with multiple instances a Redis cache would be needed.
+// LIMITATION: This only works within a single serverless instance lifetime.
+// For production with multiple instances or long-running uploads, a Redis
+// or database-backed session store would be required. For single-instance
+// deployments (e.g. Vercel edge with sticky routing) this is sufficient.
 const pendingChunks = new Map<
     string,
     {

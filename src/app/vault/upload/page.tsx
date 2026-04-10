@@ -1,6 +1,6 @@
 /**
  * Vault — Upload Page
- * Supports large files by splitting them into 49 MB chunks before upload.
+ * Supports large files by splitting them into 48 MB chunks before upload.
  * Each chunk is sent to POST /api/vault/upload sequentially.
  */
 

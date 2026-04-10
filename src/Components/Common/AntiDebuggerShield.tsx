@@ -138,10 +138,11 @@ function handleThreat(detail: string): void {
 export default function AntiDebuggerShield(): null {
     useEffect(() => {
         // ── Guard: only activate in production (or when forced) ──────────
+        const forceOff = process.env.ANTI_DEBUG === "false";
         const forceOn = process.env.ANTI_DEBUG === "true";
         const isProd = process.env.NODE_ENV === "production";
 
-        if (!isProd && !forceOn) return;
+        if (forceOff || (!isProd && !forceOn)) return;
 
         // ── Start the engine ─────────────────────────────────────────────
         antiDebugger.start((report) => {

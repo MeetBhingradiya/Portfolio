@@ -154,6 +154,12 @@ export default function VaultAccessPage() {
         }, 250);
     }, []);
 
+    useEffect(() => {
+        return () => {
+            if (searchTimer.current) clearTimeout(searchTimer.current);
+        };
+    }, []);
+
     async function handleGrant() {
         const { email, label, limitMb } = addForm;
         if (!email || !label) {

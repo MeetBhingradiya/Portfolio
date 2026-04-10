@@ -93,7 +93,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
             } else if (!body.isShared) {
                 doc.shareLinks = (doc.shareLinks || []).map((link) =>
                     link.status === "active"
-                        ? { ...link, status: "revoked", revokedAt: new Date() }
+                        ? ({ ...link, status: "revoked", revokedAt: new Date() } as IVaultShareLink)
                         : link
                 );
                 patch.shareToken = undefined;

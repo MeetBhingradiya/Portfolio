@@ -59,7 +59,12 @@ export default function SharedVaultPage({ params }: { params: Promise<{ token: s
                             ) : state.doc.mimeType?.startsWith("video/") ? (
                                 <video src={state.doc.previewUrl} controls className="w-full max-h-[70vh] bg-black" />
                             ) : state.doc.mimeType === "application/pdf" ? (
-                                <iframe src={state.doc.previewUrl} title={state.doc.filename} className="w-full h-[75vh]" />
+                                <iframe
+                                    src={state.doc.previewUrl}
+                                    title={state.doc.filename}
+                                    className="w-full h-[75vh]"
+                                    sandbox="allow-same-origin"
+                                />
                             ) : (
                                 <a href={state.doc.previewUrl} className="inline-block p-4 underline" target="_blank" rel="noreferrer">
                                     Open file preview

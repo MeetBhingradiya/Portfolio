@@ -91,6 +91,9 @@ export async function POST(req: NextRequest) {
         if (!resolvedEmail && !resolvedLabel) {
             return NextResponse.json({ success: false, error: "Provide at least email or name/label" }, { status: 400 });
         }
+        if (!resolvedEmail && !process.env.MONGODB_01) {
+            return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
+        }
 
         if (process.env.MONGODB_01) {
             const client = new MongoClient(process.env.MONGODB_01);

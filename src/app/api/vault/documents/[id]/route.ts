@@ -207,6 +207,9 @@ async function applyShareAction(
         if (expiresAt && Number.isNaN(expiresAt.getTime())) {
             return { ok: false, status: 400, error: "Invalid expiry date" };
         }
+        if (expiresAt && expiresAt <= new Date()) {
+            return { ok: false, status: 400, error: "Expiry date must be in the future" };
+        }
         const active = getActiveLinks(links);
         const activeExpiring = active.filter((l) => !!l.expiresAt);
         const activeNonExpiring = active.filter((l) => !l.expiresAt);

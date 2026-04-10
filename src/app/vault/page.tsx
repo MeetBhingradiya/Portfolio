@@ -625,10 +625,11 @@ export default function VaultPage() {
 
                             <div className="flex items-end gap-2 mb-3">
                                 <div className="flex-1">
-                                    <label className="text-xs block mb-1" style={{ color: palette.textTertiary }}>
+                                    <label htmlFor="share-expiry" className="text-xs block mb-1" style={{ color: palette.textTertiary }}>
                                         Expiry (optional)
                                     </label>
                                     <input
+                                        id="share-expiry"
                                         type="datetime-local"
                                         value={shareExpiresAt}
                                         onChange={(e) => setShareExpiresAt(e.target.value)}
@@ -738,7 +739,12 @@ export default function VaultPage() {
                             ) : previewTarget.mimeType?.startsWith("video/") ? (
                                 <video src={previewTarget.previewUrl} controls className="w-full max-h-[75vh] rounded-xl bg-black" />
                             ) : previewTarget.mimeType === "application/pdf" ? (
-                                <iframe src={previewTarget.previewUrl} className="w-full h-[75vh] rounded-xl" title={previewTarget.filename} />
+                                <iframe
+                                    src={previewTarget.previewUrl}
+                                    className="w-full h-[75vh] rounded-xl"
+                                    title={previewTarget.filename}
+                                    sandbox="allow-same-origin"
+                                />
                             ) : (
                                 <a href={previewTarget.previewUrl} target="_blank" rel="noreferrer" className="underline text-sm" style={{ color: ACCENT }}>
                                     Open preview in new tab

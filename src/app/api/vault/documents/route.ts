@@ -34,10 +34,18 @@ export async function GET(req: NextRequest) {
         const type = sp.get("type") || "ALL";
         const search = sp.get("search")?.trim() || "";
         const shared = sp.get("shared");
+        const sharedFilter = sp.get("sharedFilter") || "";
 
         const query: Record<string, unknown> = { userId, status: "active" };
         if (type !== "ALL") query.type = type.toLowerCase();
         if (shared === "true") query.isShared = true;
+        if (sharedFilter === "active") query["shareLinks.status"] = "active";
+        if (sharedFilter === "revoked_deleted") query["shareLinks.status"] = { $in: ["revoked", "deleted"] };
+        if (sharedFilter === "expired") {
+            query.shareLinks = {
+                $elemMatch: { status: "active", expiresAt: { $lte: new Date() } }
+            };
+        }
         if (search) {
             query.$or = [
                 { filename: { $regex: search, $options: "i" } },
@@ -56,8 +64,25 @@ export async function GET(req: NextRequest) {
             VaultDocument.countDocuments(query)
         ]);
 
+        const docsWithShareMeta = docs.map((doc: any) => {
+            const links = Array.isArray(doc.shareLinks) ? doc.shareLinks : [];
+            const now = new Date();
+            const activeLinks = links.filter(
+                (l: any) => l.status === "active" && (!l.expiresAt || new Date(l.expiresAt) > now)
+            );
+            const expiredLinks = links.filter(
+                (l: any) => l.status === "active" && l.expiresAt && new Date(l.expiresAt) <= now
+            );
+            return {
+                ...doc,
+                activeShareCount: activeLinks.length,
+                expiredShareCount: expiredLinks.length,
+                inactiveShareCount: links.filter((l: any) => l.status === "revoked" || l.status === "deleted").length
+            };
+        });
+
         return NextResponse.json({
-            docs,
+            docs: docsWithShareMeta,
             total,
             page,
             pages: Math.ceil(total / PAGE_SIZE)
@@ -134,6 +159,7 @@ export async function POST(req: NextRequest) {
             isChunked,
             tags: (tags as string[]).slice(0, 20).map((t: string) => t.trim()).filter(Boolean),
             description: String(description).slice(0, 1000),
+            shareLinks: [],
             isShared: false,
             status: "active"
         });

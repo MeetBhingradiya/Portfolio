@@ -170,6 +170,7 @@ export async function POST(req: NextRequest) {
                 isChunked: false,
                 tags,
                 description,
+                shareLinks: [],
                 isShared: false,
                 status: "active"
             });
@@ -236,6 +237,7 @@ export async function POST(req: NextRequest) {
             isChunked: true,
             tags: pending.tags,
             description: pending.description,
+            shareLinks: [],
             isShared: false,
             status: "active"
         });

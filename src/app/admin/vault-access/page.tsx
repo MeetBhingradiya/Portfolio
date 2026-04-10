@@ -7,7 +7,7 @@
  */
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import {
@@ -23,9 +23,9 @@ import {
     ToggleOff,
     Storage,
     Warning,
-    CheckCircle,
-    Person
+    CheckCircle
 } from "@mui/icons-material";
+import Image from "next/image";
 
 const ACCENT = "#6366F1";
 const DEFAULT_LIMIT_MB = 500;
@@ -43,12 +43,25 @@ interface VaultEntry {
     lastActivity?: string;
     fileCount: number;
     usedBytes: number;
+    account?: {
+        _id: string;
+        name?: string;
+        email?: string;
+        image?: string;
+        googleAvatar?: string;
+        githubAvatar?: string;
+        microsoftAvatar?: string;
+    } | null;
 }
 
 interface BAUser {
     _id: string;
     name?: string;
     email?: string;
+    image?: string;
+    googleAvatar?: string;
+    githubAvatar?: string;
+    microsoftAvatar?: string;
 }
 
 function formatBytes(bytes: number): string {
@@ -71,19 +84,20 @@ export default function VaultAccessPage() {
     // Add form state
     const [showAdd, setShowAdd] = useState(false);
     const [addForm, setAddForm] = useState({
-        userId: "",
         email: "",
         label: "",
         note: "",
         limitMb: DEFAULT_LIMIT_MB,
         saving: false,
-        error: ""
+        error: "",
+        selectedUser: null as BAUser | null
     });
 
     // User suggestions
-    const [users, setUsers] = useState<BAUser[]>([]);
     const [userSearch, setUserSearch] = useState("");
+    const [userLoading, setUserLoading] = useState(false);
     const [userSuggestions, setUserSuggestions] = useState<BAUser[]>([]);
+    const searchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // Edit state
     const [editId, setEditId] = useState<string | null>(null);
@@ -114,29 +128,36 @@ export default function VaultAccessPage() {
         }
     }, []);
 
-    const fetchUsers = useCallback(async () => {
-        try {
-            const r = await fetch("/api/admin/users?limit=200");
-            const j = await r.json();
-            setUsers(j.users ?? j.data ?? []);
-        } catch {}
+    useEffect(() => { fetchEntries(); }, [fetchEntries]);
+
+    const searchUsers = useCallback((query: string) => {
+        setUserSearch(query);
+        if (searchTimer.current) clearTimeout(searchTimer.current);
+
+        if (!query.trim()) {
+            setUserSuggestions([]);
+            setUserLoading(false);
+            return;
+        }
+
+        searchTimer.current = setTimeout(async () => {
+            setUserLoading(true);
+            try {
+                const r = await fetch(`/api/admin/users?search=${encodeURIComponent(query)}&limit=8`);
+                const j = await r.json();
+                setUserSuggestions(j.data ?? []);
+            } catch {
+                setUserSuggestions([]);
+            } finally {
+                setUserLoading(false);
+            }
+        }, 250);
     }, []);
 
-    useEffect(() => { fetchEntries(); fetchUsers(); }, [fetchEntries, fetchUsers]);
-
-    // Filter user suggestions
-    useEffect(() => {
-        if (!userSearch.trim()) { setUserSuggestions([]); return; }
-        const q = userSearch.toLowerCase();
-        setUserSuggestions(
-            users.filter((u) => u.email?.toLowerCase().includes(q) || u.name?.toLowerCase().includes(q)).slice(0, 6)
-        );
-    }, [userSearch, users]);
-
     async function handleGrant() {
-        const { userId, email, label, limitMb } = addForm;
-        if (!userId || !email || !label) {
-            setAddForm((p) => ({ ...p, error: "User ID, email and label are required" }));
+        const { email, label, limitMb } = addForm;
+        if (!email || !label) {
+            setAddForm((p) => ({ ...p, error: "Email and label are required" }));
             return;
         }
         setAddForm((p) => ({ ...p, saving: true, error: "" }));
@@ -144,7 +165,6 @@ export default function VaultAccessPage() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                userId,
                 email,
                 label,
                 note: addForm.note,
@@ -157,8 +177,9 @@ export default function VaultAccessPage() {
         if (j.success) {
             showToast("Access granted");
             setShowAdd(false);
-            setAddForm({ userId: "", email: "", label: "", note: "", limitMb: DEFAULT_LIMIT_MB, saving: false, error: "" });
+            setAddForm({ email: "", label: "", note: "", limitMb: DEFAULT_LIMIT_MB, saving: false, error: "", selectedUser: null });
             setUserSearch("");
+            setUserSuggestions([]);
             fetchEntries();
         } else {
             setAddForm((p) => ({ ...p, error: j.error || "Failed to grant access" }));
@@ -204,7 +225,12 @@ export default function VaultAccessPage() {
 
     const filtered = entries.filter((e) => {
         const q = search.toLowerCase();
-        return !q || e.email.includes(q) || e.label.toLowerCase().includes(q);
+        return (
+            !q ||
+            e.email.toLowerCase().includes(q) ||
+            e.label.toLowerCase().includes(q) ||
+            e.account?.name?.toLowerCase().includes(q)
+        );
     });
 
     return (
@@ -316,7 +342,19 @@ export default function VaultAccessPage() {
                                     <div
                                         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                                         style={{ background: `${ACCENT}18` }}>
-                                        <Person style={{ fontSize: 20, color: ACCENT }} />
+                                        {entry.account?.image || entry.account?.googleAvatar || entry.account?.githubAvatar || entry.account?.microsoftAvatar ? (
+                                            <Image
+                                                src={entry.account.image || entry.account.googleAvatar || entry.account.githubAvatar || entry.account.microsoftAvatar || ""}
+                                                alt={entry.account?.name || entry.label}
+                                                width={40}
+                                                height={40}
+                                                className="w-10 h-10 rounded-xl object-cover"
+                                            />
+                                        ) : (
+                                            <span className="text-sm font-semibold" style={{ color: ACCENT }}>
+                                                {(entry.account?.name || entry.label || entry.email || "?").charAt(0).toUpperCase()}
+                                            </span>
+                                        )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         {isEditing ? (
@@ -395,7 +433,7 @@ export default function VaultAccessPage() {
                                                     </span>
                                                 </div>
                                                 <p className="text-xs mt-0.5" style={{ color: palette.textSecondary }}>
-                                                    {entry.email}
+                                                    {entry.account?.email || entry.email}
                                                 </p>
                                                 {entry.note && (
                                                     <p className="text-xs mt-1 italic" style={{ color: palette.textTertiary }}>
@@ -508,8 +546,8 @@ export default function VaultAccessPage() {
                                     <input
                                         type="text"
                                         value={userSearch}
-                                        onChange={(e) => setUserSearch(e.target.value)}
-                                        placeholder="Type email or name…"
+                                        onChange={(e) => searchUsers(e.target.value)}
+                                        placeholder="Type name or email…"
                                         className="w-full px-3 py-2 rounded-xl text-sm outline-none"
                                         style={{
                                             background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
@@ -517,10 +555,15 @@ export default function VaultAccessPage() {
                                             border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`
                                         }}
                                     />
-                                    {userSuggestions.length > 0 && (
+                                    {(userLoading || userSuggestions.length > 0) && (
                                         <div
                                             className="absolute left-0 right-0 mt-1 rounded-xl z-10 overflow-hidden shadow-xl"
                                             style={card}>
+                                            {userLoading && (
+                                                <div className="px-3 py-2 text-xs" style={{ color: palette.textTertiary }}>
+                                                    Searching accounts…
+                                                </div>
+                                            )}
                                             {userSuggestions.map((u) => (
                                                 <button
                                                     key={u._id}
@@ -529,14 +572,28 @@ export default function VaultAccessPage() {
                                                     onClick={() => {
                                                         setAddForm((p) => ({
                                                             ...p,
-                                                            userId: u._id,
                                                             email: u.email ?? "",
-                                                            label: u.name ?? u.email ?? ""
+                                                            label: u.name ?? u.email ?? "",
+                                                            selectedUser: u
                                                         }));
                                                         setUserSearch(u.email ?? "");
                                                         setUserSuggestions([]);
                                                     }}>
-                                                    <Person fontSize="small" style={{ color: ACCENT }} />
+                                                    <span className="w-7 h-7 rounded-full overflow-hidden flex items-center justify-center shrink-0" style={{ background: `${ACCENT}20` }}>
+                                                        {u.image || u.googleAvatar || u.githubAvatar || u.microsoftAvatar ? (
+                                                            <Image
+                                                                src={u.image || u.googleAvatar || u.githubAvatar || u.microsoftAvatar || ""}
+                                                                alt={u.name || u.email || "user"}
+                                                                width={28}
+                                                                height={28}
+                                                                className="w-7 h-7 object-cover"
+                                                            />
+                                                        ) : (
+                                                            <span className="text-xs font-semibold" style={{ color: ACCENT }}>
+                                                                {(u.name || u.email || "?").charAt(0).toUpperCase()}
+                                                            </span>
+                                                        )}
+                                                    </span>
                                                     <span>{u.name ?? u.email}</span>
                                                     {u.name && (
                                                         <span className="text-xs ml-auto" style={{ color: palette.textTertiary }}>
@@ -549,9 +606,14 @@ export default function VaultAccessPage() {
                                     )}
                                 </div>
 
+                                {addForm.selectedUser && (
+                                    <div className="text-xs px-3 py-2 rounded-xl" style={{ background: `${ACCENT}12`, color: palette.textSecondary }}>
+                                        Selected account: <span style={{ color: palette.textPrimary }}>{addForm.selectedUser.name || addForm.selectedUser.email}</span>
+                                    </div>
+                                )}
+
                                 {/* Manual fields */}
                                 {[
-                                    { key: "userId", label: "User ID", placeholder: "Better Auth user._id" },
                                     { key: "email", label: "Email", placeholder: "user@example.com" },
                                     { key: "label", label: "Label / Name", placeholder: "Friendly display name" },
                                     { key: "note", label: "Note (optional)", placeholder: "Admin note" }

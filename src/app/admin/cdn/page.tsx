@@ -87,6 +87,15 @@ interface RepoInfo {
     assetBytes: number;
 }
 
+interface CommitItem {
+    sha: string;
+    shortSha: string;
+    message: string;
+    authorName: string;
+    authorDate: string;
+    htmlUrl: string;
+}
+
 const TYPE_OPTIONS: { value: AssetType | ""; label: string }[] = [
     { value: "", label: "All Types" },
     { value: "icon", label: "Icon" },
@@ -182,6 +191,8 @@ export default function CDNAdminPage() {
             checksumMismatch?: number;
             mismatchIds?: string[];
             deep?: boolean;
+            chunkCount?: number;
+            hasMore?: boolean;
             checkedAt: string;
         }
     });
@@ -316,14 +327,53 @@ export default function CDNAdminPage() {
 
     // ── Integrity check ──────────────────────────────────────────────────────
     const runCheck = async (deep = false) => {
-        patchIntegrity({ checking: true });
+        patchIntegrity({ checking: true, deep });
         patchList({ error: "" });
         try {
-            const url = deep ? "/api/admin/cdn/check?deep=1" : "/api/admin/cdn/check";
-            const res = await fetch(url, { method: "POST" });
-            const data = await res.json();
-            if (!res.ok) throw new Error(data.error);
-            patchIntegrity({ result: data });
+            const totals = {
+                checked: 0,
+                nowMissing: 0,
+                restored: 0,
+                checksumMismatch: 0,
+                chunkCount: 0,
+                hasMore: false
+            };
+
+            let cursor = "";
+            for (let i = 0; i < 250; i++) {
+                const q = new URLSearchParams();
+                if (deep) q.set("deep", "1");
+                if (cursor) q.set("cursor", cursor);
+                q.set("limit", deep ? "10" : "60");
+                q.set("budgetMs", "8000");
+
+                const res = await fetch(`/api/admin/cdn/check?${q.toString()}`, { method: "POST" });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error);
+
+                totals.checked += data.checked ?? 0;
+                totals.nowMissing += data.nowMissing ?? 0;
+                totals.restored += data.restored ?? 0;
+                totals.checksumMismatch += data.checksumMismatch ?? 0;
+                totals.chunkCount += 1;
+                totals.hasMore = !!data.hasMore;
+
+                if (!data.hasMore || !data.nextCursor) break;
+                cursor = String(data.nextCursor);
+            }
+
+            patchIntegrity({
+                result: {
+                    checked: totals.checked,
+                    nowMissing: totals.nowMissing,
+                    restored: totals.restored,
+                    checksumMismatch: deep ? totals.checksumMismatch : undefined,
+                    deep,
+                    chunkCount: totals.chunkCount,
+                    hasMore: totals.hasMore,
+                    checkedAt: new Date().toISOString()
+                }
+            });
             fetchAssets();
         } catch (e: any) {
             patchList({ error: e.message });
@@ -569,16 +619,16 @@ export default function CDNAdminPage() {
                             <p
                                 className="text-sm font-black"
                                 style={{ color: "#22c55e" }}>
-                                Integrity check complete — {integrity.result.checked} files checked
+                                Integrity check complete - {integrity.result.checked} files checked
                             </p>
                             <p
                                 className="text-xs"
                                 style={{ color: palette.textSecondary }}>
-                                {integrity.result.nowMissing} new missing · {integrity.result.restored} restored
+                                {integrity.result.nowMissing} new missing - {integrity.result.restored} restored
                                 {integrity.result.checksumMismatch !== undefined && (
                                     <>
                                         {" "}
-                                        ·{" "}
+                                        -{" "}
                                         <span
                                             style={{
                                                 color: integrity.result.checksumMismatch > 0 ? "#f59e0b" : "#22c55e",
@@ -589,7 +639,9 @@ export default function CDNAdminPage() {
                                         </span>
                                     </>
                                 )}
-                                {" · "}
+                                {" - "}
+                                {integrity.result.chunkCount ? `${integrity.result.chunkCount} chunk(s)` : ""}
+                                {" - "}
                                 {new Date(integrity.result.checkedAt).toLocaleString()}
                             </p>
                         </div>
@@ -1150,8 +1202,55 @@ function DetailDrawer({
           : "rgba(255,255,255,0.98)";
 
     const cdnUrl = `${typeof window !== "undefined" ? window.location.origin : ""}/api/cdn/${asset.assetId}`;
+    const [history, setHistory] = useState<CommitItem[]>([]);
+    const [historyLoading, setHistoryLoading] = useState(false);
+    const [historyError, setHistoryError] = useState("");
+    const [restoreSha, setRestoreSha] = useState("");
+    const [restoreLoading, setRestoreLoading] = useState(false);
+    const [restoreMessage, setRestoreMessage] = useState("");
 
     const copyField = (text: string) => navigator.clipboard.writeText(text);
+
+    const loadHistory = async () => {
+        setHistoryLoading(true);
+        setHistoryError("");
+        setRestoreMessage("");
+        try {
+            const res = await fetch(`/api/admin/cdn/${asset._id}/history`);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Failed to load commit history");
+            setHistory(Array.isArray(data.commits) ? data.commits : []);
+        } catch (err: any) {
+            setHistoryError(err?.message || "Failed to load commit history");
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
+
+    const restoreFromCommit = async () => {
+        if (!restoreSha.trim()) {
+            setHistoryError("Please enter a commit SHA.");
+            return;
+        }
+        setRestoreLoading(true);
+        setHistoryError("");
+        setRestoreMessage("");
+        try {
+            const res = await fetch(`/api/admin/cdn/${asset._id}/restore`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ commitSha: restoreSha.trim() })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Restore failed");
+            setRestoreMessage("Asset restored successfully.");
+            onRefresh();
+        } catch (err: any) {
+            setHistoryError(err?.message || "Restore failed");
+        } finally {
+            setRestoreLoading(false);
+        }
+    };
 
     const Row = ({
         label,
@@ -1291,7 +1390,7 @@ function DetailDrawer({
                 </div>
 
                 {/* Preview */}
-                {asset.mimeType.startsWith("image/") && (
+                {asset.status !== "deleted" && asset.mimeType.startsWith("image/") && (
                     <div
                         style={{
                             padding: "16px 20px",
@@ -1362,6 +1461,128 @@ function DetailDrawer({
                             }}>
                             <BugReport style={{ fontSize: 12 }} /> Checksum Mismatch
                         </span>
+                    )}
+                </div>
+
+                {/* Compliance recovery */}
+                <div
+                    style={{
+                        padding: "14px 20px",
+                        borderBottom: `1px solid ${border}`
+                    }}>
+                    <div
+                        style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8,
+                            marginBottom: 8
+                        }}>
+                        <Lock style={{ fontSize: 14, color: palette.textSecondary }} />
+                        <p
+                            className="text-xs font-black"
+                            style={{ color: palette.textSecondary }}>
+                            Compliance Recovery (Commit-based)
+                        </p>
+                    </div>
+
+                    <div
+                        style={{
+                            display: "flex",
+                            gap: 8,
+                            marginBottom: 8
+                        }}>
+                        <button
+                            onClick={loadHistory}
+                            disabled={historyLoading}
+                            style={{
+                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                                border: `1px solid ${border}`,
+                                borderRadius: 8,
+                                padding: "7px 10px",
+                                color: palette.textPrimary,
+                                fontSize: 12,
+                                fontWeight: 700,
+                                cursor: historyLoading ? "not-allowed" : "pointer"
+                            }}>
+                            {historyLoading ? "Loading..." : "Load History"}
+                        </button>
+                    </div>
+
+                    <div style={{ display: "flex", gap: 8 }}>
+                        <input
+                            value={restoreSha}
+                            onChange={(e) => setRestoreSha(e.target.value)}
+                            placeholder="Enter commit SHA"
+                            style={{
+                                flex: 1,
+                                background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                                border: `1px solid ${border}`,
+                                borderRadius: 8,
+                                padding: "8px 10px",
+                                color: palette.textPrimary,
+                                fontFamily: "monospace",
+                                fontSize: 12,
+                                outline: "none"
+                            }}
+                        />
+                        <button
+                            onClick={restoreFromCommit}
+                            disabled={restoreLoading}
+                            style={{
+                                background: palette.accent,
+                                border: "none",
+                                borderRadius: 8,
+                                padding: "8px 12px",
+                                color: "#fff",
+                                fontSize: 12,
+                                fontWeight: 800,
+                                cursor: restoreLoading ? "not-allowed" : "pointer"
+                            }}>
+                            {restoreLoading ? "Restoring..." : "Restore"}
+                        </button>
+                    </div>
+
+                    {history.length > 0 && (
+                        <div
+                            style={{
+                                marginTop: 10,
+                                maxHeight: 180,
+                                overflowY: "auto",
+                                border: `1px solid ${border}`,
+                                borderRadius: 8
+                            }}>
+                            {history.slice(0, 15).map((commit, idx) => (
+                                <button
+                                    key={`${commit.sha}-${idx}`}
+                                    onClick={() => setRestoreSha(commit.sha)}
+                                    style={{
+                                        width: "100%",
+                                        textAlign: "left",
+                                        border: "none",
+                                        background: idx % 2 === 0 ? "transparent" : isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+                                        padding: "8px 10px",
+                                        cursor: "pointer"
+                                    }}>
+                                    <div style={{ fontSize: 11, color: palette.textPrimary, fontFamily: "monospace", fontWeight: 700 }}>
+                                        {commit.shortSha} - {new Date(commit.authorDate).toLocaleDateString()}
+                                    </div>
+                                    <div style={{ fontSize: 11, color: palette.textSecondary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {commit.message}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    {historyError && (
+                        <p className="text-xs mt-2" style={{ color: "#ef4444" }}>
+                            {historyError}
+                        </p>
+                    )}
+                    {restoreMessage && (
+                        <p className="text-xs mt-2" style={{ color: "#22c55e" }}>
+                            {restoreMessage}
+                        </p>
                     )}
                 </div>
 

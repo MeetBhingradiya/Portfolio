@@ -22,9 +22,20 @@ export async function POST(req: NextRequest) {
         await dbConnect();
 
         const deep = req.nextUrl.searchParams.get("deep") === "1";
+        const cursor = req.nextUrl.searchParams.get("cursor") || "";
+        const limitParam = parseInt(req.nextUrl.searchParams.get("limit") || "", 10);
+        const budgetParam = parseInt(req.nextUrl.searchParams.get("budgetMs") || "", 10);
 
-        const assets = await CDNAsset.find({ status: { $ne: "deleted" } })
-            .select("assetId githubRepo githubPath sha status checksumMd5")
+        const limit = Number.isFinite(limitParam) ? Math.min(100, Math.max(1, limitParam)) : deep ? 12 : 60;
+        const budgetMs = Number.isFinite(budgetParam) ? Math.min(9000, Math.max(1000, budgetParam)) : 8000;
+
+        const query: Record<string, any> = { status: { $ne: "deleted" } };
+        if (cursor) query._id = { $gt: cursor };
+
+        const assets = await CDNAsset.find(query)
+            .sort({ _id: 1 })
+            .limit(limit)
+            .select("_id assetId githubRepo githubPath sha status checksumMd5")
             .lean();
 
         let checked = 0;
@@ -33,8 +44,11 @@ export async function POST(req: NextRequest) {
         let checksumMismatch = 0;
         const missingIds: string[] = [];
         const mismatchIds: string[] = [];
+        const startedAt = Date.now();
+        let lastCursor = cursor;
 
         for (const asset of assets) {
+            if (Date.now() - startedAt >= budgetMs) break;
             try {
                 const info = await githubStat(asset.githubRepo, asset.githubPath);
                 const exists = info !== null;
@@ -71,17 +85,32 @@ export async function POST(req: NextRequest) {
                     } else restored++;
                 }
                 checked++;
+                lastCursor = String(asset._id);
             } catch (err) {
                 console.error(`[CDN Check] ${asset.assetId}:`, err);
             }
 
-            // Throttle to stay under GitHub PAT rate limit (5000 req/h)
-            await new Promise<void>((r) => setTimeout(r, deep ? 200 : 80));
+            // Throttle GitHub requests to avoid burst limits.
+            await new Promise<void>((r) => setTimeout(r, deep ? 90 : 25));
+        }
+
+        const hasCandidateMore = checked < assets.length || assets.length === limit;
+        let hasMore = false;
+        if (hasCandidateMore && lastCursor) {
+            const nextDoc = await CDNAsset.findOne({ status: { $ne: "deleted" }, _id: { $gt: lastCursor } })
+                .select("_id")
+                .lean();
+            hasMore = !!nextDoc;
         }
 
         return NextResponse.json({
             success: true,
             deep,
+            chunked: true,
+            hasMore,
+            nextCursor: hasMore ? lastCursor : null,
+            limit,
+            budgetMs,
             checked,
             restored,
             nowMissing,

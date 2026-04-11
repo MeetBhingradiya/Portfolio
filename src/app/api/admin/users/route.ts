@@ -3,8 +3,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { permissionError, requireAnyPermission } from "@Library/adminApiMiddleware";
-import { MongoClient } from "mongodb";
-import { Config as SConfig } from "@Config/Server";
+import { getMongoCollection } from "@Utils/dbConnect";
 
 export async function GET(req: NextRequest) {
     try {
@@ -17,15 +16,8 @@ export async function GET(req: NextRequest) {
         const search = q.get("search") || "";
         const roleFilter = q.get("role") || "";
 
-        if (!process.env.MONGODB_01) {
-            return NextResponse.json({ success: false, error: "DB not configured" }, { status: 500 });
-        }
-
-        const client = new MongoClient(process.env.MONGODB_01);
-        await client.connect();
-        const db = client.db(SConfig.Database.Name);
-        const userCollection = db.collection("user");
-        const roleCollection = db.collection("userroles");
+        const userCollection = await getMongoCollection("user");
+        const roleCollection = await getMongoCollection("userroles");
 
         const query: any = {};
         if (search) {
@@ -60,8 +52,6 @@ export async function GET(req: NextRequest) {
 
         // Apply role filter after enrichment
         const filtered = roleFilter ? enriched.filter((u) => u.roles.includes(roleFilter)) : enriched;
-
-        await client.close();
 
         return NextResponse.json({
             success: true,

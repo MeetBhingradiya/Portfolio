@@ -20,7 +20,7 @@ const BYPASS_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
 
 /** Create a signed bypass JWT for Edge middleware */
 async function makeBypassToken(): Promise<string> {
-    const secret = new TextEncoder().encode(process.env.ADMIN_SIGNATURE || process.env.NEXTAUTH_SECRET || "fallback-secret-change-me");
+    const secret = new TextEncoder().encode(process.env.ADMIN_SIGNATURE || process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me");
     return new SignJWT({ isAdmin: true }).setProtectedHeader({ alg: "HS256" }).setExpirationTime("7d").setIssuedAt().sign(secret);
 }
 

@@ -5,11 +5,10 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@Library/auth";
-import { MongoClient, ObjectId } from "mongodb";
+import { ObjectId } from "mongodb";
 import { symmetricDecrypt } from "better-auth/crypto";
-import dbConnect from "@Utils/dbConnect";
+import dbConnect, { getMongoCollection } from "@Utils/dbConnect";
 import { WalletContact } from "@Models/WalletContact";
-import { Config as SConfig } from "@Config/Server";
 
 function toObjectId(id: string): ObjectId | null {
     try {
@@ -36,42 +35,33 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        if (!process.env.MONGODB_01) {
-            return NextResponse.json({ success: false, error: "Database not configured" }, { status: 500 });
-        }
+        await dbConnect();
 
         // ── Get Google access token from better-auth ──────────────────────────
         const userId = session.user.id;
         const objectId = toObjectId(userId);
-        const mongoClient = new MongoClient(process.env.MONGODB_01);
+        const accountCollection = await getMongoCollection("account");
 
         let accessToken: string | null = null;
-        try {
-            await mongoClient.connect();
-            const db = mongoClient.db(SConfig.Database.Name);
+        const userIdQuery = objectId ? { $or: [{ user_id: userId }, { user_id: objectId }] } : { user_id: userId };
 
-            const userIdQuery = objectId ? { $or: [{ user_id: userId }, { user_id: objectId }] } : { user_id: userId };
+        const account = await accountCollection.findOne({
+            ...userIdQuery,
+            providerId: "google"
+        });
 
-            const account = await db.collection("account").findOne({
-                ...userIdQuery,
-                providerId: "google"
-            });
-
-            if (!account) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: "No Google account linked. Sign in with Google first."
-                    },
-                    { status: 404 }
-                );
-            }
-
-            const rawToken = account.accessToken as string | null;
-            accessToken = rawToken ? await decryptToken(rawToken) : null;
-        } finally {
-            await mongoClient.close();
+        if (!account) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    error: "No Google account linked. Sign in with Google first."
+                },
+                { status: 404 }
+            );
         }
+
+        const rawToken = account.accessToken as string | null;
+        accessToken = rawToken ? await decryptToken(rawToken) : null;
 
         if (!accessToken) {
             return NextResponse.json(

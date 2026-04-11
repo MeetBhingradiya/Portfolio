@@ -1,4 +1,6 @@
 import { Server_Config_Type } from "./type";
+import { getPrimaryMongoUri } from "@Utils/mongoEnv";
+import { getImmichOrigins } from "@Utils/origin";
 
 const FALLBACK_DATABASE_NAME = "app";
 
@@ -6,7 +8,7 @@ function resolveDatabaseName(): string {
     const explicit = process.env.DATABASE_NAME?.trim();
     if (explicit) return explicit;
 
-    const rawUri = process.env.MONGODB_01?.trim().replace(/^['\"]|['\"]$/g, "");
+    const rawUri = getPrimaryMongoUri();
     if (!rawUri) return FALLBACK_DATABASE_NAME;
 
     try {
@@ -30,10 +32,5 @@ export const Config: Server_Config_Type = {
         Authorization: "/auth/login",
         User_Settings: "/user-settings"
     },
-    Immich_Origins: [
-        "https://photos.meetbhingradiya.in",
-        "https://photos.meetbhingradiya.shop",
-        "https://home-desktop.tail1c91d0.ts.net",
-        "http://bfamily.myftp.org:2283"
-    ]
+    Immich_Origins: getImmichOrigins()
 };

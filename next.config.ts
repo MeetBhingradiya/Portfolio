@@ -78,7 +78,7 @@ const nextConfig: NextConfig = {
                 headers: [
                     {
                         key: "X-Frame-Options",
-                        value: "DENY"
+                        value: "SAMEORIGIN"
                     },
                     {
                         key: "X-Content-Type-Options",
@@ -104,7 +104,7 @@ const nextConfig: NextConfig = {
                                     Self: true
                                 },
                                 [CSPDirectiveOptions.FrameAncestors]: {
-                                    None: true
+                                    Self: true
                                 },
                                 [CSPDirectiveOptions.ImgSrc]: {
                                     Self: true,

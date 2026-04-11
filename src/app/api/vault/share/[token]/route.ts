@@ -81,7 +81,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ tok
                 description: doc.description,
                 tags: doc.tags,
                 createdAt: doc.createdAt,
-                previewUrl: firstChunkAssetId ? `/api/cdn/${firstChunkAssetId}` : null
+                previewUrl: firstChunkAssetId ? `/api/vault/share/${token}/content` : null
             },
             shareLink: {
                 linkId: matchedLink.linkId,

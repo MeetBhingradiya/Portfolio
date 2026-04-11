@@ -16,6 +16,9 @@ export interface IVaultChunk {
     githubPath: string;
     sha: string;
     size: number;
+    iv?: string;
+    authTag?: string;
+    encryptedSize?: number;
 }
 
 export interface IVaultShareLink {
@@ -42,6 +45,8 @@ export interface IVaultDocument extends Document {
     // GitHub CDN storage (single-chunk files use the first array entry)
     chunks: IVaultChunk[];
     isChunked: boolean; // true when file was split (> 49 MB per chunk)
+    encryptedAtRest?: boolean;
+    encryptionVersion?: string;
 
     // Sharing (new)
     shareLinks: IVaultShareLink[];
@@ -69,6 +74,10 @@ const VaultChunkSchema = new Schema<IVaultChunk>(
         githubPath: { type: String, required: true, trim: true },
         sha: { type: String, required: true, trim: true },
         size: { type: Number, required: true, min: 0 }
+        ,
+        iv: { type: String, trim: true },
+        authTag: { type: String, trim: true },
+        encryptedSize: { type: Number, min: 0 }
     },
     { _id: false }
 );
@@ -121,6 +130,8 @@ const VaultDocumentSchema = new Schema<IVaultDocument>(
 
         chunks: { type: [VaultChunkSchema], default: [] },
         isChunked: { type: Boolean, default: false },
+        encryptedAtRest: { type: Boolean, default: false, index: true },
+        encryptionVersion: { type: String, trim: true },
 
         shareLinks: { type: [VaultShareLinkSchema], default: [] },
         shareToken: { type: String, trim: true, sparse: true, index: true },

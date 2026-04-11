@@ -184,6 +184,7 @@ function inferType(mime: string): VaultFileType {
     if (
         mime.includes("word") ||
         mime.includes("officedocument.wordprocessingml") ||
+        mime.includes("markdown") ||
         mime === "text/plain" ||
         mime === "application/rtf"
     )

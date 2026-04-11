@@ -4,16 +4,10 @@ const ALGORITHM = "aes-256-gcm";
 const ENCRYPTION_VERSION = "vault-v1";
 
 function getVaultFileSecret(): string {
-    const secret =
-        process.env.VAULT_FILE_ENCRYPTION_KEY?.trim() ||
-        process.env.AI_PROVIDER_ENCRYPTION_KEY?.trim() ||
-        process.env.BETTER_AUTH_SECRET?.trim() ||
-        "";
+    const secret = process.env.VAULT_FILE_ENCRYPTION_KEY?.trim() || "";
 
     if (!secret) {
-        throw new Error(
-            "Missing vault encryption key. Set VAULT_FILE_ENCRYPTION_KEY, AI_PROVIDER_ENCRYPTION_KEY, or BETTER_AUTH_SECRET."
-        );
+        throw new Error("Missing vault encryption key. Set VAULT_FILE_ENCRYPTION_KEY.");
     }
 
     return secret;

@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
             sha,
             checksumMd5,
             checksumSha256,
-            mimeType: "application/octet-stream",
+            mimeType,
             size: encryptedBuffer.length,
             type: "document",
             tags: ["vault", "encrypted"],

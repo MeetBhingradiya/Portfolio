@@ -35,12 +35,18 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
         const decryptedChunks = await Promise.all(
             sortedChunks.map(async (chunk) => {
-                const content = await githubDownload(chunk.githubRepo, chunk.githubPath);
-                if (!content) throw new Error("Chunk not found in storage");
-                if (doc.encryptedAtRest) {
-                    return decryptVaultBuffer(content.buffer, chunk.iv, chunk.authTag);
+                try {
+                    const content = await githubDownload(chunk.githubRepo, chunk.githubPath);
+                    if (!content) throw new Error("Chunk not found in storage");
+                    if (doc.encryptedAtRest) {
+                        return decryptVaultBuffer(content.buffer, chunk.iv, chunk.authTag);
+                    }
+                    return content.buffer;
+                } catch (err: any) {
+                    throw new Error(
+                        `Failed to process chunk ${chunk.chunkIndex} for document ${doc.docId}: ${err?.message || "unknown error"}`
+                    );
                 }
-                return content.buffer;
             })
         );
 

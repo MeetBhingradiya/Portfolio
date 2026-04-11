@@ -62,7 +62,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
                 "Content-Type": doc.mimeType || "application/octet-stream",
                 "Content-Length": String(fileBuffer.length),
                 "Cache-Control": "private, no-store",
-                "Content-Disposition": `${download ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(doc.filename)}`
+                "Content-Disposition": `${download ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(doc.filename)}`,
+                "X-Frame-Options": "SAMEORIGIN",
+                "Content-Security-Policy": "frame-ancestors 'self'; object-src 'self'"
             }
         });
     } catch (err: any) {

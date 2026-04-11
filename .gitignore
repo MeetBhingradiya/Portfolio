@@ -12,8 +12,8 @@ __pycache__
 Prompts
 
 # ^ Environment
+env
 .env
-.env.*
 keys
 
 Test
@@ -23,15 +23,5 @@ Test
 .vercel
 .cursorignore
 
-# ^ Package managers Lock files
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-bun.lock*
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
 # ^ typescript
 *.tsbuildinfo
-next-env.d.ts

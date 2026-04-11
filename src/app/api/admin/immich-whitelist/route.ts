@@ -5,10 +5,9 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { requirePermission, permissionError } from "@Library/adminApiMiddleware";
-import dbConnect from "@Utils/dbConnect";
+import dbConnect, { getMongoCollection } from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
-import { MongoClient, ObjectId } from "mongodb";
-import { Config as SConfig } from "@Config/Server";
+import { ObjectId } from "mongodb";
 
 export async function GET(req: NextRequest) {
     try {
@@ -28,59 +27,48 @@ export async function GET(req: NextRequest) {
         const entries = await ImmichWhitelist.find(query).sort({ addedAt: -1 }).lean();
 
         // Enrich linked entries with live BA account data (name, image, emailVerified)
-        if (process.env.MONGODB_01) {
-            const client = new MongoClient(process.env.MONGODB_01);
-            try {
-                await client.connect();
-                const db = client.db(SConfig.Database.Name);
-                const userCol = db.collection("user");
+        try {
+            const userCol = await getMongoCollection("user");
 
-                const linkedIds = entries.filter((e) => e.userId).map((e) => e.userId as string);
+            const linkedIds = entries.filter((e) => e.userId).map((e) => e.userId as string);
 
-                const linkedObjectIds = linkedIds.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id));
+            const linkedObjectIds = linkedIds.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id));
 
-                const baUsers = linkedIds.length
-                    ? await userCol
-                          .find({
-                              $or: [
-                                  { id: { $in: linkedIds as any } },
-                                  { _id: { $in: linkedIds as any } },
-                                  { _id: { $in: linkedObjectIds as any } }
-                              ]
-                          })
-                          .project({
-                              _id: 1,
-                              id: 1,
-                              name: 1,
-                              image: 1,
-                              emailVerified: 1,
-                              email: 1,
-                              googleAvatar: 1,
-                              githubAvatar: 1,
-                              microsoftAvatar: 1
-                          })
-                          .toArray()
-                    : [];
+            const baUsers = linkedIds.length
+                ? await userCol
+                      .find({
+                          $or: [{ id: { $in: linkedIds as any } }, { _id: { $in: linkedIds as any } }, { _id: { $in: linkedObjectIds as any } }]
+                      })
+                      .project({
+                          _id: 1,
+                          id: 1,
+                          name: 1,
+                          image: 1,
+                          emailVerified: 1,
+                          email: 1,
+                          googleAvatar: 1,
+                          githubAvatar: 1,
+                          microsoftAvatar: 1
+                      })
+                      .toArray()
+                : [];
 
-                // Key by both BA id and Mongo _id string so legacy entries still resolve.
-                const baMap: Record<string, any> = {};
-                for (const u of baUsers) {
-                    if (u.id) baMap[String(u.id)] = u;
-                    if (u._id) baMap[String(u._id)] = u;
-                }
-
-                const enriched = entries.map((e) => ({
-                    ...e,
-                    account: e.userId ? (baMap[e.userId] ?? null) : null
-                }));
-
-                return NextResponse.json({ success: true, data: enriched });
-            } finally {
-                await client.close();
+            // Key by both BA id and Mongo _id string so legacy entries still resolve.
+            const baMap: Record<string, any> = {};
+            for (const u of baUsers) {
+                if (u.id) baMap[String(u.id)] = u;
+                if (u._id) baMap[String(u._id)] = u;
             }
-        }
 
-        return NextResponse.json({ success: true, data: entries });
+            const enriched = entries.map((e) => ({
+                ...e,
+                account: e.userId ? (baMap[e.userId] ?? null) : null
+            }));
+
+            return NextResponse.json({ success: true, data: enriched });
+        } catch {
+            return NextResponse.json({ success: true, data: entries });
+        }
     } catch (err: any) {
         if (err?.message?.includes("Forbidden") || err?.message?.includes("Admin")) {
             return NextResponse.json({ success: false, error: "Admin only" }, { status: 403 });
@@ -106,22 +94,16 @@ export async function POST(req: NextRequest) {
         let resolvedUserId: string | undefined;
 
         // Try to auto-link to a matching BA account by email (case-insensitive).
-        if (resolvedEmail && process.env.MONGODB_01) {
-            const emailClient = new MongoClient(process.env.MONGODB_01);
+        if (resolvedEmail) {
             try {
-                await emailClient.connect();
-                const db = emailClient.db(SConfig.Database.Name);
-                const baUser = await db.collection("user").findOne({
-                    email: { $regex: new RegExp(`^${resolvedEmail}$`, "i") }
-                });
+                const userCollection = await getMongoCollection("user");
+                const baUser = await userCollection.findOne({ email: { $regex: new RegExp(`^${resolvedEmail}$`, "i") } });
                 if (baUser) {
                     resolvedUserId = String(baUser.id ?? baUser._id);
                     resolvedLabel = resolvedLabel || (baUser.name as string) || resolvedEmail;
                 }
             } catch {
                 // proceed as email-only if lookup fails
-            } finally {
-                await emailClient.close();
             }
         }
 

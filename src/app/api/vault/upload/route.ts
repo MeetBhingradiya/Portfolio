@@ -126,8 +126,8 @@ export async function POST(req: NextRequest) {
         );
 
         // Persist CDNAsset record for integrity tracking
-        const checksumMd5 = createHash("md5").update(encryptedBuffer).digest("hex");
-        const checksumSha256 = createHash("sha256").update(encryptedBuffer).digest("hex");
+        const checksumMd5 = createHash("md5").update(buffer).digest("hex");
+        const checksumSha256 = createHash("sha256").update(buffer).digest("hex");
         await CDNAsset.create({
             assetId,
             filename: storedFilename,

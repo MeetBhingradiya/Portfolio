@@ -51,7 +51,7 @@ export function decryptVaultBuffer(
     authTagBase64Url?: string
 ): Buffer {
     if (!ivBase64Url || !authTagBase64Url) {
-        return encryptedBuffer;
+        throw new Error("Missing decryption metadata for encrypted vault chunk");
     }
 
     const key = deriveKey(getVaultFileSecret());

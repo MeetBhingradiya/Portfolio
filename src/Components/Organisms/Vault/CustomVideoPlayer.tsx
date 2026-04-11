@@ -92,7 +92,7 @@ export default function CustomVideoPlayer({ src, title = "Video preview" }: Prop
                 }}
             />
             <div className="p-3 space-y-2 bg-black/80 text-white">
-                <div className="h-1.5 rounded-full bg-white/20 overflow-hidden">
+                <div className="h-1.5 rounded-full bg-white/20 overflow-hidden" aria-hidden="true">
                     <div className="h-full bg-indigo-500" style={{ width: `${progress}%` }} />
                 </div>
                 <input

@@ -20,8 +20,6 @@ export const metadata = {
     robots: { index: false, follow: false }
 };
 
-export const dynamic = "force-dynamic";
-
 interface AdminLayoutProps {
     children: React.ReactNode;
 }

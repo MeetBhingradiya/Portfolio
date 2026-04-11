@@ -7,8 +7,8 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { requirePermission, permissionError } from "@Library/adminApiMiddleware";
 import { VaultAccess } from "@Models/VaultAccess";
-import { ObjectId } from "mongodb";
-import { getMongoCollection } from "@Utils/dbConnect";
+import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 const DEFAULT_LIMIT = 500 * 1024 * 1024; // 500 MB
 
@@ -22,8 +22,13 @@ export async function GET(req: NextRequest) {
         await dbConnect();
 
         const entries = await VaultAccess.find({}).sort({ grantedAt: -1 }).lean();
+        if (!process.env.MONGODB_01) return NextResponse.json({ success: true, data: entries });
+
+        const client = new MongoClient(process.env.MONGODB_01);
         try {
-            const userCol = await getMongoCollection("user");
+            await client.connect();
+            const db = client.db(SConfig.Database.Name);
+            const userCol = db.collection("user");
 
             const linkedIds = entries.map((e) => e.userId).filter(Boolean);
             const linkedObjectIds = linkedIds.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id));
@@ -60,8 +65,8 @@ export async function GET(req: NextRequest) {
                 account: e.userId ? userMap[e.userId] ?? null : null
             }));
             return NextResponse.json({ success: true, data: enriched });
-        } catch {
-            return NextResponse.json({ success: true, data: entries });
+        } finally {
+            await client.close();
         }
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err?.message || "Internal server error" }, { status: 500 });
@@ -86,25 +91,29 @@ export async function POST(req: NextRequest) {
         if (!resolvedEmail && !resolvedLabel) {
             return NextResponse.json({ success: false, error: "Provide at least email or name/label" }, { status: 400 });
         }
-        try {
-            const userCollection = await getMongoCollection("user");
-            const user = await userCollection.findOne({
-                $or: [
-                    ...(resolvedEmail ? [{ email: { $regex: new RegExp(`^${escapeRegex(resolvedEmail)}$`, "i") } }] : []),
-                    ...(resolvedLabel ? [{ name: { $regex: new RegExp(`^${escapeRegex(resolvedLabel)}$`, "i") } }] : [])
-                ]
-            });
-            if (user) {
-                resolvedUserId = String(user.id ?? user._id);
-                resolvedEmail = resolvedEmail || String(user.email || "").toLowerCase();
-                resolvedLabel = resolvedLabel || String(user.name || user.email || "").trim();
-            }
-        } catch {
-            // If lookup fails, we still allow manual email-only grant path below.
+        if (!resolvedEmail && !process.env.MONGODB_01) {
+            return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
         }
 
-        if (!resolvedEmail) {
-            return NextResponse.json({ success: false, error: "Email is required" }, { status: 400 });
+        if (process.env.MONGODB_01) {
+            const client = new MongoClient(process.env.MONGODB_01);
+            try {
+                await client.connect();
+                const db = client.db(SConfig.Database.Name);
+                const user = await db.collection("user").findOne({
+                    $or: [
+                        ...(resolvedEmail ? [{ email: { $regex: new RegExp(`^${escapeRegex(resolvedEmail)}$`, "i") } }] : []),
+                        ...(resolvedLabel ? [{ name: { $regex: new RegExp(`^${escapeRegex(resolvedLabel)}$`, "i") } }] : [])
+                    ]
+                });
+                if (user) {
+                    resolvedUserId = String(user.id ?? user._id);
+                    resolvedEmail = resolvedEmail || String(user.email || "").toLowerCase();
+                    resolvedLabel = resolvedLabel || String(user.name || user.email || "").trim();
+                }
+            } finally {
+                await client.close();
+            }
         }
 
         if (!resolvedEmail) {

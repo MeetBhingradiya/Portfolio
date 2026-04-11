@@ -10,8 +10,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@Library/auth";
-import { ObjectId } from "mongodb";
-import { getMongoCollection } from "@Utils/dbConnect";
+import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 function toObjectId(id: string): ObjectId | null {
     try {
@@ -38,19 +38,25 @@ export async function GET(request: NextRequest) {
         let microsoftAvatar: string | null = user.microsoftAvatar ?? null;
         let currentImage: string | null = user.image ?? null;
 
-        try {
-            const userCollection = await getMongoCollection("user");
-            const oid = toObjectId(user.id);
-            const dbUser = await userCollection.findOne(oid ? { $or: [{ id: user.id }, { _id: oid }] } : { id: user.id });
-            if (dbUser) {
-                googleAvatar = dbUser.googleAvatar ?? googleAvatar;
-                githubAvatar = dbUser.githubAvatar ?? githubAvatar;
-                microsoftAvatar = dbUser.microsoftAvatar ?? microsoftAvatar;
-                currentImage = dbUser.image ?? currentImage;
+        if (process.env.MONGODB_01) {
+            const client = new MongoClient(process.env.MONGODB_01);
+            try {
+                await client.connect();
+                const db = client.db(SConfig.Database.Name);
+                const oid = toObjectId(user.id);
+                const dbUser = await db.collection("user").findOne(oid ? { $or: [{ id: user.id }, { _id: oid }] } : { id: user.id });
+                if (dbUser) {
+                    googleAvatar = dbUser.googleAvatar ?? googleAvatar;
+                    githubAvatar = dbUser.githubAvatar ?? githubAvatar;
+                    microsoftAvatar = dbUser.microsoftAvatar ?? microsoftAvatar;
+                    currentImage = dbUser.image ?? currentImage;
+                }
+            } catch (err) {
+                console.error("[linked-accounts-info] MongoDB read failed:", err);
+                // fall back to session values already set above
+            } finally {
+                await client.close();
             }
-        } catch (err) {
-            console.error("[linked-accounts-info] MongoDB read failed:", err);
-            // fall back to session values already set above
         }
 
         // Linked accounts list

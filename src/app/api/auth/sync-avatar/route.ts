@@ -6,9 +6,9 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@Library/auth";
-import { ObjectId } from "mongodb";
+import { MongoClient, ObjectId } from "mongodb";
 import { symmetricDecrypt } from "better-auth/crypto";
-import { getMongoCollection } from "@Utils/dbConnect";
+import { Config as SConfig } from "@Config/Server";
 
 /** Safely convert a string to ObjectId, return null on failure */
 function toObjectId(id: string): ObjectId | null {
@@ -46,6 +46,10 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: "providerId is required" }, { status: 400 });
         }
 
+        if (!process.env.MONGODB_01) {
+            return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+        }
+
         if (providerId === "apple") {
             return NextResponse.json(
                 {
@@ -63,17 +67,18 @@ export async function POST(request: NextRequest) {
         const userId = session.user.id;
         const objectId = toObjectId(userId);
 
+        const client = new MongoClient(process.env.MONGODB_01);
         let avatarField: string;
         let imageUrl: string | null = null;
 
         try {
-            const accountCollection = await getMongoCollection("account");
-            const userCollection = await getMongoCollection("user");
+            await client.connect();
+            const db = client.db(SConfig.Database.Name);
 
             // Locate the OAuth account record (user_id may be string or ObjectId)
             const userIdQuery = objectId ? { $or: [{ user_id: userId }, { user_id: objectId }] } : { user_id: userId };
 
-            const account = await accountCollection.findOne({
+            const account = await db.collection("account").findOne({
                 ...userIdQuery,
                 providerId
             });
@@ -214,13 +219,14 @@ export async function POST(request: NextRequest) {
                 // 1. Write the provider-specific avatar field directly (input:false additionalField)
                 const userQuery = objectId ? { $or: [{ id: userId }, { _id: objectId }] } : { id: userId };
 
-                await userCollection.updateOne(userQuery, {
+                await db.collection("user").updateOne(userQuery, {
                     $set: { [avatarField!]: imageUrl, image: imageUrl }
                 });
 
                 console.log(`[sync-avatar] ✅ Wrote ${avatarField} + image to MongoDB`);
             }
         } finally {
+            await client.close();
         }
 
         if (!imageUrl) {

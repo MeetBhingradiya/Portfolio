@@ -5,8 +5,8 @@
 
 import { auth } from "@Library/auth";
 import { NextRequest, NextResponse } from "next/server";
-import { ObjectId } from "mongodb";
-import { getMongoCollection } from "@Utils/dbConnect";
+import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 export async function POST(request: NextRequest) {
     try {
@@ -34,43 +34,57 @@ export async function POST(request: NextRequest) {
         }
 
         // Query MongoDB directly for linked accounts
-        const accountCollection = await getMongoCollection("account");
+        if (!process.env.MONGODB_01) {
+            return NextResponse.json({ error: "Database not configured" }, { status: 500 });
+        }
+
+        const client = new MongoClient(process.env.MONGODB_01);
         let accounts: any[] = [];
         let accountToDelete: any = null;
 
-        // Find all accounts for this user
-        const userId = session.user.id;
-        const userObjectId = ObjectId.isValid(userId) ? new ObjectId(userId) : null;
-        const userQuery = userObjectId ? { $or: [{ user_id: userId }, { user_id: userObjectId }] } : { user_id: userId };
-        accounts = await accountCollection.find(userQuery).toArray();
+        try {
+            await client.connect();
+            const db = client.db(SConfig.Database.Name);
 
-        console.log("📋 Found accounts:", accounts.length);
+            // Find all accounts for this user
+            const userId = session.user.id;
+            accounts = await db
+                .collection("account")
+                .find({
+                    $or: [{ user_id: userId }, { user_id: new ObjectId(userId) }]
+                })
+                .toArray();
 
-        // Find the specific account to delete - try multiple matching strategies
-        accountToDelete = await accountCollection.findOne({
-            ...userQuery,
-            providerId: providerId,
-            accountId: accountId
-        });
+            console.log("📋 Found accounts:", accounts.length);
 
-        // If not found by exact match, try finding by providerId only
-        if (!accountToDelete) {
-            console.log("⚠️ Exact match failed, trying providerId only...");
-            accountToDelete = await accountCollection.findOne({
-                ...userQuery,
-                providerId: providerId
+            // Find the specific account to delete - try multiple matching strategies
+            accountToDelete = await db.collection("account").findOne({
+                $or: [{ user_id: userId }, { user_id: new ObjectId(userId) }],
+                providerId: providerId,
+                accountId: accountId
             });
-        }
 
-        // If still not found, try by ObjectId if the accountId looks like one
-        if (!accountToDelete && accountId.match(/^[0-9a-fA-F]{24}$/)) {
-            console.log("⚠️ Trying by _id (ObjectId)...");
-            accountToDelete = await accountCollection.findOne({
-                _id: new ObjectId(accountId)
-            });
-        }
+            // If not found by exact match, try finding by providerId only
+            if (!accountToDelete) {
+                console.log("⚠️ Exact match failed, trying providerId only...");
+                accountToDelete = await db.collection("account").findOne({
+                    $or: [{ user_id: userId }, { user_id: new ObjectId(userId) }],
+                    providerId: providerId
+                });
+            }
 
-        console.log("🎯 Account to delete:", accountToDelete);
+            // If still not found, try by ObjectId if the accountId looks like one
+            if (!accountToDelete && accountId.match(/^[0-9a-fA-F]{24}$/)) {
+                console.log("⚠️ Trying by _id (ObjectId)...");
+                accountToDelete = await db.collection("account").findOne({
+                    _id: new ObjectId(accountId)
+                });
+            }
+
+            console.log("🎯 Account to delete:", accountToDelete);
+        } finally {
+            await client.close();
+        }
 
         // Check if user has a password set
         const hasPassword = session.user.emailVerified !== undefined && session.user.email;
@@ -95,14 +109,23 @@ export async function POST(request: NextRequest) {
 
         // Delete the account directly from MongoDB since Better Auth's API is not working
         console.log("🗑️ Deleting account from MongoDB...");
-        const deleteResult = await accountCollection.deleteOne({
-            _id: accountToDelete._id
-        });
+        const deleteClient = new MongoClient(process.env.MONGODB_01);
 
-        console.log("✅ Delete result:", deleteResult);
+        try {
+            await deleteClient.connect();
+            const db = deleteClient.db(SConfig.Database.Name);
 
-        if (deleteResult.deletedCount === 0) {
-            return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+            const deleteResult = await db.collection("account").deleteOne({
+                _id: accountToDelete._id
+            });
+
+            console.log("✅ Delete result:", deleteResult);
+
+            if (deleteResult.deletedCount === 0) {
+                return NextResponse.json({ error: "Failed to delete account" }, { status: 500 });
+            }
+        } finally {
+            await deleteClient.close();
         }
 
         return NextResponse.json({

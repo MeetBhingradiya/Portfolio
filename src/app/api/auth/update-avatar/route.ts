@@ -10,8 +10,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@Library/auth";
-import { ObjectId } from "mongodb";
-import { getMongoCollection } from "@Utils/dbConnect";
+import { MongoClient, ObjectId } from "mongodb";
+import { Config as SConfig } from "@Config/Server";
 
 function toObjectId(id: string): ObjectId | null {
     try {
@@ -23,10 +23,13 @@ function toObjectId(id: string): ObjectId | null {
 
 /** Read per-provider avatar fields directly from MongoDB (bypasses stale session cache). */
 async function getStoredAvatars(userId: string) {
+    if (!process.env.MONGODB_01) return {};
+    const client = new MongoClient(process.env.MONGODB_01);
     try {
-        const userCollection = await getMongoCollection("user");
+        await client.connect();
+        const db = client.db(SConfig.Database.Name);
         const oid = toObjectId(userId);
-        const dbUser = await userCollection.findOne(oid ? { $or: [{ id: userId }, { _id: oid }] } : { id: userId });
+        const dbUser = await db.collection("user").findOne(oid ? { $or: [{ id: userId }, { _id: oid }] } : { id: userId });
         return {
             googleAvatar: (dbUser?.googleAvatar as string | null) ?? null,
             githubAvatar: (dbUser?.githubAvatar as string | null) ?? null,
@@ -35,6 +38,8 @@ async function getStoredAvatars(userId: string) {
     } catch (err) {
         console.error("[update-avatar] MongoDB read failed:", err);
         return {};
+    } finally {
+        await client.close();
     }
 }
 

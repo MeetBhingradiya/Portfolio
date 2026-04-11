@@ -13,7 +13,6 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
-import { isTrustedOrigin as isTrustedOriginValue } from "@Utils/origin";
 
 // ── Module-level cache (resets on Edge worker cold start) ────────────────
 interface MaintenanceCache {
@@ -69,8 +68,15 @@ function isDisallowedMethod(method: string): boolean {
     return DISALLOWED_METHODS.has(method.toUpperCase());
 }
 
+function getTrustedOrigins(): string[] {
+    return (process.env.TRUSTED_ORIGINS || "")
+        .split(",")
+        .map((origin) => origin.trim())
+        .filter(Boolean);
+}
+
 function isTrustedOrigin(origin: string): boolean {
-    return isTrustedOriginValue(origin);
+    return getTrustedOrigins().includes(origin);
 }
 
 function isSameOrigin(origin: string, request: NextRequest): boolean {
@@ -175,7 +181,7 @@ async function isAdminBypassed(request: NextRequest): Promise<boolean> {
     if (!bypassCookie) return false;
 
     try {
-        const secret = new TextEncoder().encode(process.env.ADMIN_SIGNATURE || process.env.BETTER_AUTH_SECRET || "fallback-secret-change-me");
+        const secret = new TextEncoder().encode(process.env.ADMIN_SIGNATURE || process.env.NEXTAUTH_SECRET || "fallback-secret-change-me");
         const { payload } = await jwtVerify(bypassCookie, secret);
         return payload.isAdmin === true;
     } catch {

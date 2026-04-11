@@ -26,6 +26,7 @@ import { VaultAccess } from "@Models/VaultAccess";
 import { VaultDocument, VaultFileType } from "@Models/VaultDocument";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubUpload } from "@Utils/GitHubCDN";
+import { encryptVaultBuffer, getVaultEncryptionVersion } from "@Utils/VaultFileCrypto";
 
 const CHUNK_MAX = 49 * 1024 * 1024; // 49 MB — GitHub hard limit
 
@@ -45,6 +46,9 @@ const pendingChunks = new Map<
             githubPath: string;
             sha: string;
             size: number;
+            iv: string;
+            authTag: string;
+            encryptedSize: number;
         }>;
         totalChunks: number;
         filename: string;
@@ -114,15 +118,16 @@ export async function POST(req: NextRequest) {
         const storedFilename = `${assetId}${chunkSuffix}${ext}`;
         const githubPath = `vault/${userId}/${docId}/${storedFilename}`;
 
+        const { encryptedBuffer, iv, authTag } = encryptVaultBuffer(buffer);
         const { sha, repo: githubRepo } = await githubUpload(
             githubPath,
-            buffer,
+            encryptedBuffer,
             `vault: upload chunk ${chunkIndex + 1}/${totalChunks} for "${filename}" [${docId}]`
         );
 
         // Persist CDNAsset record for integrity tracking
-        const checksumMd5 = createHash("md5").update(buffer).digest("hex");
-        const checksumSha256 = createHash("sha256").update(buffer).digest("hex");
+        const checksumMd5 = createHash("md5").update(encryptedBuffer).digest("hex");
+        const checksumSha256 = createHash("sha256").update(encryptedBuffer).digest("hex");
         await CDNAsset.create({
             assetId,
             filename: storedFilename,
@@ -131,10 +136,10 @@ export async function POST(req: NextRequest) {
             sha,
             checksumMd5,
             checksumSha256,
-            mimeType,
-            size: file.size,
+            mimeType: "application/octet-stream",
+            size: encryptedBuffer.length,
             type: "document",
-            tags: ["vault"],
+            tags: ["vault", "encrypted"],
             context: `vault:${userId}`,
             uploadedBy: userId,
             status: "active",
@@ -143,7 +148,17 @@ export async function POST(req: NextRequest) {
             checksumVerified: true
         });
 
-        const chunkMeta = { chunkIndex, assetId, githubRepo, githubPath, sha, size: file.size };
+        const chunkMeta = {
+            chunkIndex,
+            assetId,
+            githubRepo,
+            githubPath,
+            sha,
+            size: file.size,
+            iv,
+            authTag,
+            encryptedSize: encryptedBuffer.length
+        };
 
         // ── Single-chunk upload ────────────────────────────────────────────
         if (totalChunks === 1) {
@@ -168,6 +183,8 @@ export async function POST(req: NextRequest) {
                 type: docType,
                 chunks: [chunkMeta],
                 isChunked: false,
+                encryptedAtRest: true,
+                encryptionVersion: getVaultEncryptionVersion(),
                 tags,
                 description,
                 shareLinks: [],
@@ -235,6 +252,8 @@ export async function POST(req: NextRequest) {
             type: inferType(pending.mimeType),
             chunks: sortedChunks,
             isChunked: true,
+            encryptedAtRest: true,
+            encryptionVersion: getVaultEncryptionVersion(),
             tags: pending.tags,
             description: pending.description,
             shareLinks: [],
@@ -263,6 +282,7 @@ function inferType(mime: string): VaultFileType {
     if (
         mime.includes("word") ||
         mime.includes("officedocument.wordprocessingml") ||
+        mime.includes("markdown") ||
         mime === "text/plain" ||
         mime === "application/rtf"
     )

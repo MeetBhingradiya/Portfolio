@@ -31,6 +31,7 @@ const ACCEPTED_TYPES = [
     "application/vnd.ms-excel",
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "text/plain",
+    "text/markdown",
     "image/*",
     "video/*"
 ].join(",");

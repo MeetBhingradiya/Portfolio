@@ -10,6 +10,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
+import CustomVideoPlayer from "@Components/Organisms/Vault/CustomVideoPlayer";
 import {
     CloudUpload,
     Search,
@@ -244,9 +245,10 @@ export default function VaultPage() {
             return;
         }
         setPreviewTarget({
+            docId: j.doc.docId,
             filename: j.doc.filename,
             mimeType: j.doc.mimeType,
-            previewUrl: `/api/cdn/${firstAssetId}`,
+            previewUrl: `/api/vault/documents/${j.doc.docId}/content`,
             isChunked: j.doc.isChunked
         });
     }
@@ -732,14 +734,10 @@ export default function VaultPage() {
                                 <h3 className="font-semibold" style={{ color: palette.textPrimary }}>{previewTarget.filename}</h3>
                                 <button onClick={() => setPreviewTarget(null)} style={{ color: palette.textTertiary }}>Close</button>
                             </div>
-                            {previewTarget.isChunked ? (
-                                <div className="text-sm p-4 rounded-xl" style={{ background: "rgba(245,158,11,0.15)", color: "#F59E0B" }}>
-                                    Preview is only available for single-chunk files. Please download the file to view all content.
-                                </div>
-                            ) : previewTarget.mimeType?.startsWith("image/") ? (
+                            {previewTarget.mimeType?.startsWith("image/") ? (
                                 <img src={previewTarget.previewUrl} alt={previewTarget.filename} className="w-full max-h-[75vh] object-contain rounded-xl" />
                             ) : previewTarget.mimeType?.startsWith("video/") ? (
-                                <video src={previewTarget.previewUrl} controls className="w-full max-h-[75vh] rounded-xl bg-black" />
+                                <CustomVideoPlayer src={previewTarget.previewUrl} title={previewTarget.filename} />
                             ) : previewTarget.mimeType === "application/pdf" ? (
                                 <iframe
                                     src={previewTarget.previewUrl}
@@ -748,9 +746,17 @@ export default function VaultPage() {
                                     sandbox="allow-same-origin allow-scripts"
                                 />
                             ) : (
-                                <a href={previewTarget.previewUrl} target="_blank" rel="noreferrer" className="underline text-sm" style={{ color: ACCENT }}>
-                                    Open preview in new tab
-                                </a>
+                                <div className="flex flex-col gap-3">
+                                    <a href={previewTarget.previewUrl} target="_blank" rel="noreferrer" className="underline text-sm" style={{ color: ACCENT }}>
+                                        Open decrypted file
+                                    </a>
+                                    <a
+                                        href={`/api/vault/documents/${previewTarget.docId}/content?download=1`}
+                                        className="underline text-sm"
+                                        style={{ color: ACCENT }}>
+                                        Download decrypted file
+                                    </a>
+                                </div>
                             )}
                         </motion.div>
                     </motion.div>

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useDesignTheme } from "@Hooks";
+import CustomVideoPlayer from "@Components/Organisms/Vault/CustomVideoPlayer";
 
 function formatBytes(bytes: number): string {
     if (bytes >= 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
@@ -57,7 +58,7 @@ export default function SharedVaultPage({ params }: { params: Promise<{ token: s
                             {state.doc.mimeType?.startsWith("image/") ? (
                                 <img src={state.doc.previewUrl} alt={state.doc.filename} className="w-full max-h-[70vh] object-contain bg-black/5" />
                             ) : state.doc.mimeType?.startsWith("video/") ? (
-                                <video src={state.doc.previewUrl} controls className="w-full max-h-[70vh] bg-black" />
+                                <CustomVideoPlayer src={state.doc.previewUrl} title={state.doc.filename} />
                             ) : state.doc.mimeType === "application/pdf" ? (
                                 <iframe
                                     src={state.doc.previewUrl}
@@ -66,9 +67,18 @@ export default function SharedVaultPage({ params }: { params: Promise<{ token: s
                                     sandbox="allow-same-origin allow-scripts"
                                 />
                             ) : (
-                                <a href={state.doc.previewUrl} className="inline-block p-4 underline" target="_blank" rel="noreferrer">
-                                    Open file preview
-                                </a>
+                                <div className="p-4 flex flex-col gap-3">
+                                    <a href={state.doc.previewUrl} className="inline-block underline" target="_blank" rel="noreferrer">
+                                        Open decrypted file
+                                    </a>
+                                    <a
+                                        href={`${state.doc.previewUrl}?download=1`}
+                                        className="inline-block underline"
+                                        target="_blank"
+                                        rel="noreferrer">
+                                        Download decrypted file
+                                    </a>
+                                </div>
                             )}
                         </div>
                     )}

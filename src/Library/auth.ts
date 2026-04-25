@@ -19,9 +19,20 @@ import { IPData } from "@Utils/IPData";
 import { getSiteSettings } from "@Models/SiteSettings";
 import { getClientIp } from "@Library/IP";
 import { Config as SConfig } from "@Config/Server";
+import { getPrimaryMongoUri, isLocalMongoUri } from "@Utils/mongoEnv";
+import { getPrimaryOrigin, getTrustedOrigins } from "@Utils/origin";
 
 const verificationEmailRateLimitStore = new Map<string, number[]>();
 const E164_PHONE_REGEX = /^\+[1-9]\d{7,14}$/;
+const primaryOrigin = getPrimaryOrigin();
+const trustedOrigins = getTrustedOrigins();
+const passkeyRpId = (() => {
+    try {
+        return new URL(primaryOrigin).hostname;
+    } catch {
+        return "meetbhingradiya.in";
+    }
+})();
 
 class SignupDisabledError extends Error {
     constructor() {
@@ -163,12 +174,13 @@ async function sendLoginNotificationEmail(input: {
 
 // Skip database initialization during build time
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
+const mongoUri = getPrimaryMongoUri();
 
 // MongoDB client setup
 let dbAdapter: any = undefined;
-if (!isBuildTime && process.env.MONGODB_01) {
+if (!isBuildTime && mongoUri) {
     try {
-        const client = new MongoClient(process.env.MONGODB_01);
+        const client = new MongoClient(mongoUri);
         const db = client.db(SConfig.Database.Name);
 
         // Compatibility migration for older account documents that used `user_id`.
@@ -198,7 +210,7 @@ if (!isBuildTime && process.env.MONGODB_01) {
 
         // Disable transactions for standalone MongoDB (local dev).
         // Transactions require a replica set; Atlas in production supports them.
-        const isLocalMongo = process.env.MONGODB_01.includes("localhost") || process.env.MONGODB_01.includes("127.0.0.1");
+        const isLocalMongo = isLocalMongoUri(mongoUri);
         dbAdapter = mongodbAdapter(db, { client, transaction: !isLocalMongo });
         console.log("✅ MongoDB adapter initialized successfully");
     } catch (error) {
@@ -206,7 +218,7 @@ if (!isBuildTime && process.env.MONGODB_01) {
         throw new Error("Database connection failed. Please ensure MongoDB is running.");
     }
 } else if (!isBuildTime) {
-    console.warn("⚠️ MONGODB_01 environment variable not set");
+    console.warn("⚠️ MongoDB environment variable not set (expected MONGODB_<number>)");
 }
 
 export const auth = betterAuth({
@@ -262,8 +274,8 @@ export const auth = betterAuth({
         }),
         passkey({
             rpName: "Meet Bhingradiya Portfolio",
-            rpID: "meetbhingradiya.in",
-            origin: Config.Origin
+            rpID: passkeyRpId,
+            origin: primaryOrigin
         }),
         phoneNumber({
             expiresIn: 5 * 60,
@@ -384,11 +396,11 @@ export const auth = betterAuth({
     },
 
     // Base URL and secret
-    baseURL: Config.Origin,
+    baseURL: primaryOrigin,
     secret: process.env.BETTER_AUTH_SECRET!,
 
     // CORS and trusted origins configuration
-    trustedOrigins: [Config.Origin].filter(Boolean) as string[],
+    trustedOrigins: trustedOrigins.filter(Boolean) as string[],
 
     // Advanced security options
     advanced: {

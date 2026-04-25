@@ -2,9 +2,10 @@ import dns from "node:dns";
 import { NextRequest, NextResponse } from "next/server";
 import mongoose, { type Connection, Types } from "mongoose";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
+import { getPrimaryMongoUri } from "@Utils/mongoEnv";
 
 const TOOL_ENABLED = process.env.NODE_ENV !== "production";
-const SOURCE_URI = process.env.MONGODB_SOURCE_URI ?? process.env.MONGODB_01;
+const SOURCE_URI = process.env.MONGODB_SOURCE_URI ?? getPrimaryMongoUri();
 const TARGET_URI = process.env.MONGODB_TARGET_URI;
 const DNS_SERVERS = (process.env.DB_SYNC_DNS_SERVERS ?? "")
     .split(",")
@@ -70,7 +71,7 @@ function validateUris() {
         return NextResponse.json(
             {
                 success: false,
-                error: "MONGODB_SOURCE_URI/MONGODB_01 and MONGODB_TARGET_URI are required"
+                error: "MONGODB_SOURCE_URI or MONGODB_<number>, and MONGODB_TARGET_URI are required"
             },
             { status: 500 }
         );

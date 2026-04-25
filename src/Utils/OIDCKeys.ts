@@ -12,6 +12,7 @@
 import { generateKeyPair, exportJWK, importJWK } from "jose";
 import { Config as CConfig } from "@Config/Client";
 import { Config as SConfig } from "@Config/Server";
+import { getPrimaryOrigin, getTrustedOrigins } from "@Utils/origin";
 
 interface OIDCKeySet {
     privateKey: any;
@@ -74,7 +75,7 @@ export async function getOIDCKeys(): Promise<OIDCKeySet> {
 
 /** The OIDC issuer base URL (no trailing slash) */
 export function getIssuer(): string {
-    return `${CConfig.Origin}/api/immich-sso`;
+    return `${getPrimaryOrigin()}/api/immich-sso`;
 }
 
 /** Validate OIDC client credentials */
@@ -99,7 +100,7 @@ export function isRedirectUriAllowed(uri: string): boolean {
         return value.replace(/\/$/, "");
     };
 
-    const allowedOrigins = new Set([CConfig.Origin, ...SConfig.Immich_Origins].map(normalizeOrigin));
+    const allowedOrigins = new Set([...getTrustedOrigins(), ...SConfig.Immich_Origins, CConfig.Origin].map(normalizeOrigin));
     const allowedPaths = new Set(Object.values(SConfig.Immich_Endpoints).map(normalizePath));
 
     if (allowedOrigins.size === 0 || allowedPaths.size === 0) return true;

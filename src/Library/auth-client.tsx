@@ -12,8 +12,15 @@ import { passkeyClient } from "@better-auth/passkey/client";
 import { phoneNumberClient } from "better-auth/client/plugins";
 import { Config } from "@Config/Client";
 
+function resolveAuthBaseURL(): string {
+    if (typeof window !== "undefined" && window.location?.origin) {
+        return window.location.origin;
+    }
+    return Config.Origin;
+}
+
 export const authClient = createAuthClient({
-    baseURL: Config.Origin,
+    baseURL: resolveAuthBaseURL(),
     plugins: [usernameClient(), twoFactorClient(), passkeyClient(), phoneNumberClient(), multiSessionClient()]
 });
 

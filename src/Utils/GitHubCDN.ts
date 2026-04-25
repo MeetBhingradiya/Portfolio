@@ -27,7 +27,7 @@ const DEFAULT_LIMIT_KB = 900_000; // ~900 MB
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
 function isHistoryCompactionEnabled() {
-    const raw = (process.env.CDN_COMPACT_HISTORY ?? "true").trim().toLowerCase();
+    const raw = (process.env.CDN_COMPACT_HISTORY ?? "false").trim().toLowerCase();
     return raw !== "0" && raw !== "false" && raw !== "off";
 }
 
@@ -509,7 +509,11 @@ export async function githubListCommits(repo: string, path: string, perPage = 50
  * @param commitSha   The commit whose tree should be read (full SHA)
  * @returns           New blob SHA after re-upload
  */
-export async function githubRestoreFromCommit(repo: string, path: string, commitSha: string): Promise<{ newSha: string; size: number }> {
+export async function githubRestoreFromCommit(
+    repo: string,
+    path: string,
+    commitSha: string
+): Promise<{ newSha: string; size: number; checksumMd5: string; checksumSha256: string }> {
     const tk = getToken();
     const ow = getOwner();
     const br = getBranch();
@@ -581,8 +585,12 @@ export async function githubRestoreFromCommit(repo: string, path: string, commit
     }
 
     const putData = await putRes.json();
+    const { createHash } = await import("crypto");
+
     return {
         newSha: putData.content.sha as string,
-        size: buffer.length
+        size: buffer.length,
+        checksumMd5: createHash("md5").update(buffer).digest("hex"),
+        checksumSha256: createHash("sha256").update(buffer).digest("hex")
     };
 }

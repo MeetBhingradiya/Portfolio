@@ -15,12 +15,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { randomBytes } from "crypto";
-import { MongoClient } from "mongodb";
-import dbConnect from "@Utils/dbConnect";
+import dbConnect, { getMongoCollection } from "@Utils/dbConnect";
 import { ImmichWhitelist, ImmichAuthCode } from "@Models/ImmichWhitelist";
 import { getSession } from "@Library/auth";
 import { getIssuer } from "@Utils/OIDCKeys";
-import { Config as SConfig } from "@Config/Server";
 
 export const dynamic = "force-dynamic";
 
@@ -105,13 +103,11 @@ export async function GET(req: NextRequest) {
     if ((entry as any).subOverride) {
         // Admin explicitly overrode the sub — use it directly, skip any lookup
         sub = (entry as any).subOverride as string;
-    } else if (process.env.MONGODB_01) {
-        const mongoClient = new MongoClient(process.env.MONGODB_01);
+    } else {
         try {
-            await mongoClient.connect();
-            const db = mongoClient.db(SConfig.Database.Name);
+            const accountCollection = await getMongoCollection("account");
             // BA account collection stores: userId, providerId, providerAccountId
-            const oauthAccount = await db.collection("account").findOne({
+            const oauthAccount = await accountCollection.findOne({
                 $or: [{ userId: userId }, { user_id: userId }],
                 providerId: "google"
             });
@@ -120,8 +116,6 @@ export async function GET(req: NextRequest) {
             }
         } catch {
             // keep email fallback
-        } finally {
-            await mongoClient.close();
         }
     }
     // ── 5. Generate auth code ───────────────────────────────────────────────

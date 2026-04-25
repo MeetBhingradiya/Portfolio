@@ -135,7 +135,7 @@ const nextConfig: NextConfig = {
                                 [CSPDirectiveOptions.WorkerSrc]: {
                                     Self: true,
                                     Blob: true,
-                                    Domains: ["https://meetbhingradiya.in"]
+                                    Domains: ["https://meetbhingradiya.in", "https://beta.meetbhingradiya.in"]
                                 },
                                 [CSPDirectiveOptions.StyleSrc]: {
                                     Self: true,

@@ -79,7 +79,6 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
     "ai-providers": ["admin.site.settings"],
     "maintenance": ["admin.site.settings"],
     "immich-access": ["admin.site.settings"],
-    "vault-access": ["admin.site.settings"],
     "db-sync": ["admin.site.settings"],
     "cdn": ["cdn.keys.view", "cdn.keys.manage"],
     "cdn-applications": ["cdn.applications.view", "cdn.applications.review"],

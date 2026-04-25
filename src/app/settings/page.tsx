@@ -1,7 +1,4 @@
-/**
- * Main Settings Page
- * Central hub for all user settings
- */
+
 
 "use client";
 
@@ -17,18 +14,15 @@ import {
     AccountCircle,
     Notifications,
     Palette,
-    Language,
     Link as LinkIcon,
     Warning,
     ChevronRight,
     Email,
-    Password,
     AdminPanelSettings,
     AutoStories,
     CloudUpload,
     Rocket,
     AccountBalanceWallet,
-    Lock
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
@@ -426,58 +420,6 @@ export default function SettingsPage() {
                                         </div>
                                     </div>
                                     <ChevronRight style={{ color: "#06b6d4" }} />
-                                </div>
-                            </motion.div>
-                        </Link>
-                        <Link href="/vault">
-                            <motion.div
-                                className="p-6 rounded-2xl cursor-pointer"
-                                style={{
-                                    background: isApple
-                                        ? isDark
-                                            ? "rgba(99,102,241,0.14)"
-                                            : "rgba(99,102,241,0.08)"
-                                        : `${palette.accent}12`,
-                                    border: `1.5px solid ${isDark ? "rgba(99,102,241,0.30)" : "rgba(99,102,241,0.22)"}`
-                                }}
-                                whileHover={{ scale: 1.01 }}>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex gap-4 flex-1">
-                                        <div
-                                            className="p-3 rounded-xl"
-                                            style={{
-                                                background: "rgba(99,102,241,0.15)"
-                                            }}>
-                                            <Lock style={{ color: "#6366F1" }} />
-                                        </div>
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <h3
-                                                    className="text-lg font-bold"
-                                                    style={{
-                                                        color: palette.textPrimary
-                                                    }}>
-                                                    Private Vault
-                                                </h3>
-                                                <span
-                                                    className="px-2 py-0.5 text-xs font-semibold rounded-full"
-                                                    style={{
-                                                        background: "rgba(99,102,241,0.18)",
-                                                        color: "#6366F1"
-                                                    }}>
-                                                    Whitelisted
-                                                </span>
-                                            </div>
-                                            <p
-                                                className="text-sm"
-                                                style={{
-                                                    color: palette.textSecondary
-                                                }}>
-                                                Upload, manage &amp; share private documents, images and videos securely
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <ChevronRight style={{ color: "#6366F1" }} />
                                 </div>
                             </motion.div>
                         </Link>

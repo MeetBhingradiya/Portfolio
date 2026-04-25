@@ -97,15 +97,16 @@ export const downloadFile = async (data: Uint8Array | string, fileName: string, 
         }
     } else {
         // Standard Web Download
-        const blob = typeof data === "string" ? await (await fetch(data)).blob() : new Blob([data as BlobPart], { type: mimeType });
-        const url = URL.createObjectURL(blob);
+        const url = typeof data === "string" ? data : URL.createObjectURL(new Blob([data as BlobPart], { type: mimeType }));
         const link = document.createElement("a");
         link.href = url;
         link.download = fileName;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+        if (typeof data !== "string") {
+            URL.revokeObjectURL(url);
+        }
         return true;
     }
 };

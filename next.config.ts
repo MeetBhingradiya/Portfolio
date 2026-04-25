@@ -129,6 +129,7 @@ const nextConfig: NextConfig = {
                                 },
                                 [CSPDirectiveOptions.ConnectSrc]: {
                                     Self: true,
+                                    Blob: true,
                                     Domains: ["https://suggestqueries.google.com", "https://api.bing.com", "https://duckduckgo.com", "*"]
                                 },
                                 [CSPDirectiveOptions.WorkerSrc]: {

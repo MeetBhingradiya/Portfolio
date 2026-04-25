@@ -175,7 +175,7 @@ type DirectiveOptionsMap = {
     >;
     [CSPDirectiveOptions.ImgSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Data" | "Blob">;
     [CSPDirectiveOptions.FontSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Data">;
-    [CSPDirectiveOptions.ConnectSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
+    [CSPDirectiveOptions.ConnectSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Blob">;
     [CSPDirectiveOptions.ObjectSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;
     [CSPDirectiveOptions.MediaSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self" | "Data" | "Blob">;
     [CSPDirectiveOptions.FrameSrc]: Pick<DirectiveOptions, "Domains" | "None" | "Self">;

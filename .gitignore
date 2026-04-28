@@ -12,9 +12,11 @@ __pycache__
 Prompts
 
 # ^ Environment
-env
+env*
 .env
 keys
+.env.encrypted
+.private-env-repo
 
 Test
 

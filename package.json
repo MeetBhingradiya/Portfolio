@@ -15,6 +15,10 @@
         "CheckDeploy": "bun Scripts/DeployCheck.ts",
         "CreateSign": "bun Scripts/CreateSignatures.ts",
         "RSAKeys": "bun Scripts/GenerateRSAKeys.ts",
+        "SyncPrivateRepo": "bun Scripts/SyncPrivateRepo.ts",
+        "EnvInit": "bun Scripts/SyncPrivateRepo.ts --encrypt --repo-url https://github.com/MeetBhingradiya/Portfolio-Environment",
+        "EnvCheckout": "bun Scripts/SyncPrivateRepo.ts --checkout --repo-url https://github.com/MeetBhingradiya/Portfolio-Environment",
+        "EnvSync": "bun Scripts/SyncPrivateRepo.ts --encrypt --repo-url https://github.com/MeetBhingradiya/Portfolio-Environment",
         "prepare": "husky"
     },
     "dependencies": {

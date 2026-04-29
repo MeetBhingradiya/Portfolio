@@ -13,6 +13,7 @@ import Stripe from "stripe";
 import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { Payment } from "@Models/Payment";
+import { getPrimaryOrigin } from "@Utils/origin";
 
 export async function POST(req: NextRequest) {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -25,7 +26,7 @@ export async function POST(req: NextRequest) {
         const { priceId, mode = "payment", purpose = "other", referenceId, metadata } = await req.json();
         if (!priceId) return NextResponse.json({ error: "priceId is required." }, { status: 422 });
 
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://meetbhingradiya.vercel.app";
+        const appUrl = getPrimaryOrigin();
 
         await dbConnect();
 

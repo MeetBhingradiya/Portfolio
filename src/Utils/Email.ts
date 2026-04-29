@@ -5,6 +5,7 @@
  */
 
 import nodemailer from "nodemailer";
+import { getPrimaryOrigin } from "./origin";
 
 const createTransporter = () => {
     const port = parseInt((process.env.SMTP_PORT || "587").trim(), 10);
@@ -110,7 +111,7 @@ function renderEmailShell(opts: {
 }
 
 function getPublicBaseUrl(): string {
-    const raw = process.env.NEXT_PUBLIC_APP_URL || process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    const raw = getPrimaryOrigin()
     const normalized = (raw || "https://www.meetbhingradiya.in").trim();
     if (normalized.startsWith("http://") || normalized.startsWith("https://")) {
         return normalized.replace(/\/$/, "");

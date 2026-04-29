@@ -294,99 +294,99 @@ export const auth = betterAuth({
         google:
             process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
                 ? ({
-                      prompt: "select_account",
-                      clientId: process.env.GOOGLE_CLIENT_ID,
-                      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                      scope: ["email", "profile", "openid"],
-                      // Override getUserInfo to always fetch from the userinfo endpoint.
-                      // Decoding the id_token alone omits `picture` in some flows.
-                      getUserInfo: async (token) => {
-                          let profile: Record<string, any> | null = null;
+                    prompt: "select_account",
+                    clientId: process.env.GOOGLE_CLIENT_ID,
+                    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+                    scope: ["email", "profile", "openid"],
+                    // Override getUserInfo to always fetch from the userinfo endpoint.
+                    // Decoding the id_token alone omits `picture` in some flows.
+                    getUserInfo: async (token) => {
+                        let profile: Record<string, any> | null = null;
 
-                          // 1. Prefer the userinfo endpoint (always includes `picture`)
-                          if (token.accessToken) {
-                              try {
-                                  const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                                      headers: {
-                                          Authorization: `Bearer ${token.accessToken}`
-                                      }
-                                  });
-                                  if (res.ok) profile = await res.json();
-                              } catch (e) {
-                                  console.error("[Google] Failed to fetch userinfo:", e);
-                              }
-                          }
+                        // 1. Prefer the userinfo endpoint (always includes `picture`)
+                        if (token.accessToken) {
+                            try {
+                                const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+                                    headers: {
+                                        Authorization: `Bearer ${token.accessToken}`
+                                    }
+                                });
+                                if (res.ok) profile = await res.json();
+                            } catch (e) {
+                                console.error("[Google] Failed to fetch userinfo:", e);
+                            }
+                        }
 
-                          // 2. Fallback: decode id_token
-                          if (!profile && token.idToken) {
-                              const { decodeJwt } = await import("jose");
-                              profile = decodeJwt(token.idToken) as Record<string, any>;
-                          }
+                        // 2. Fallback: decode id_token
+                        if (!profile && token.idToken) {
+                            const { decodeJwt } = await import("jose");
+                            profile = decodeJwt(token.idToken) as Record<string, any>;
+                        }
 
-                          if (!profile) return null;
+                        if (!profile) return null;
 
-                          const picture: string | null = profile.picture ?? null;
-                          return {
-                              user: {
-                                  id: profile.sub as string,
-                                  name: profile.name as string,
-                                  email: profile.email as string,
-                                  image: picture,
-                                  emailVerified: profile.email_verified as boolean,
-                                  googleAvatar: picture
-                              },
-                              data: profile
-                          };
-                      }
-                  } as GoogleOptions)
+                        const picture: string | null = profile.picture ?? null;
+                        return {
+                            user: {
+                                id: profile.sub as string,
+                                name: profile.name as string,
+                                email: profile.email as string,
+                                image: picture,
+                                emailVerified: profile.email_verified as boolean,
+                                googleAvatar: picture
+                            },
+                            data: profile
+                        };
+                    }
+                } as GoogleOptions)
                 : undefined,
 
         github:
             process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
                 ? {
-                      clientId: process.env.GITHUB_CLIENT_ID,
-                      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                      scope: ["user:email"],
-                      mapProfileToUser: (profile) => ({
-                          name: profile.name || profile.login,
-                          email: profile.email,
-                          image: profile.avatar_url || undefined,
-                          emailVerified: true,
-                          githubAvatar: profile.avatar_url || null
-                      })
-                  }
+                    clientId: process.env.GITHUB_CLIENT_ID,
+                    clientSecret: process.env.GITHUB_CLIENT_SECRET,
+                    scope: ["user:email"],
+                    mapProfileToUser: (profile) => ({
+                        name: profile.name || profile.login,
+                        email: profile.email,
+                        image: profile.avatar_url || undefined,
+                        emailVerified: true,
+                        githubAvatar: profile.avatar_url || null
+                    })
+                }
                 : undefined,
 
         microsoft:
             process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET
                 ? {
-                      clientId: process.env.MICROSOFT_CLIENT_ID,
-                      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-                      // Microsoft's built-in getUserInfo already fetches the profile photo
-                      // from Graph API as a base64 data URL and sets profile.picture.
-                      // We capture it into microsoftAvatar via mapProfileToUser.
-                      mapProfileToUser: (profile) => {
-                          const pic: string | undefined = (profile as any).picture || undefined;
-                          return {
-                              name: (profile as any).displayName || profile.name,
-                              image: pic,
-                              microsoftAvatar: pic ?? null
-                          };
-                      }
-                  }
+                    clientId: process.env.MICROSOFT_CLIENT_ID,
+                    clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
+                    // Microsoft's built-in getUserInfo already fetches the profile photo
+                    // from Graph API as a base64 data URL and sets profile.picture.
+                    // We capture it into microsoftAvatar via mapProfileToUser.
+                    mapProfileToUser: (profile) => {
+                        const pic: string | undefined = (profile as any).picture || undefined;
+                        return {
+                            name: (profile as any).displayName || profile.name,
+                            image: pic,
+                            microsoftAvatar: pic ?? null
+                        };
+                    }
+                }
                 : undefined,
 
         apple:
             process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
                 ? {
-                      clientId: process.env.APPLE_CLIENT_ID,
-                      clientSecret: process.env.APPLE_CLIENT_SECRET,
-                      // Apple provides name only on first sign-in; no profile picture.
-                      mapProfileToUser: (profile) => ({
-                          name: profile.name || profile.email?.split("@")[0] || "User",
-                          image: undefined // Apple does not provide profile images
-                      })
-                  }
+                    clientId: process.env.APPLE_CLIENT_ID,
+                    clientSecret: process.env.APPLE_CLIENT_SECRET,
+                    // Apple provides name only on first sign-in; no profile picture.
+                    mapProfileToUser: (profile) => ({
+                        name: profile.name || profile.email?.split("@")[0] || "User",
+                        image: undefined // Apple does not provide profile images
+                    })
+                }
                 : undefined
     },
 

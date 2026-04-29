@@ -1,17 +1,27 @@
+const DEFAULT_BETA_ORIGINS = [
+    "https://beta.meetbhingradiya.in",
+    "https://beta.meetbhingradiya.shop",
+    "https://beta.meetbhingradiya.vercel.app"
+];
+
 const DEFAULT_PRODUCTION_ORIGINS = [
     "https://meetbhingradiya.in",
     "https://www.meetbhingradiya.in",
-    "https://beta.meetbhingradiya.in",
-    "https://beta.meetbhingradiya.in"
+    "https://meetbhingradiya.vercel.app",
+    ...DEFAULT_BETA_ORIGINS
 ];
 
-const DEFAULT_LOCAL_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"];
+const DEFAULT_LOCAL_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+];
 
 const DEFAULT_IMMICH_ORIGINS = [
     "https://photos.meetbhingradiya.in",
     "https://photos.meetbhingradiya.shop",
     "https://home-desktop.tail1c91d0.ts.net",
-    "http://bfamily.myftp.org:2283"
+    "http://bfamily.myftp.org:2283",
+    "http://localhost:2283"
 ];
 
 function normalizeOrigin(value: string): string | null {
@@ -51,13 +61,9 @@ function toUnique(items: string[]): string[] {
 }
 
 function getEnvOriginCandidates(): string[] {
+    const VERCEL_ENV = process.env.VERCEL_ENV;
     const direct = [
-        // Use the runtime Vercel host first (preview/branch deployments set VERCEL_URL).
-        process.env.VERCEL_URL ? `https://${String(process.env.VERCEL_URL).trim()}` : undefined,
-        process.env.APP_ORIGIN,
-        process.env.NEXT_PUBLIC_APP_URL,
-        // Fallback to the project production URL only after runtime and explicit app values.
-        process.env.VERCEL_PROJECT_PRODUCTION_URL
+        VERCEL_ENV === "preview" ? DEFAULT_BETA_ORIGINS[0] : DEFAULT_PRODUCTION_ORIGINS[0],
     ]
         .map((value) => normalizeOriginMaybeHost(value ?? ""))
         .filter((value): value is string => Boolean(value));

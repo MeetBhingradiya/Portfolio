@@ -52,10 +52,12 @@ function toUnique(items: string[]): string[] {
 
 function getEnvOriginCandidates(): string[] {
     const direct = [
+        // Use the runtime Vercel host first (preview/branch deployments set VERCEL_URL).
+        process.env.VERCEL_URL ? `https://${String(process.env.VERCEL_URL).trim()}` : undefined,
         process.env.APP_ORIGIN,
         process.env.NEXT_PUBLIC_APP_URL,
-        process.env.VERCEL_PROJECT_PRODUCTION_URL,
-        process.env.VERCEL_URL ? `https://${String(process.env.VERCEL_URL).trim()}` : undefined
+        // Fallback to the project production URL only after runtime and explicit app values.
+        process.env.VERCEL_PROJECT_PRODUCTION_URL
     ]
         .map((value) => normalizeOriginMaybeHost(value ?? ""))
         .filter((value): value is string => Boolean(value));

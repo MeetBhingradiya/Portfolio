@@ -14,9 +14,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { getIssuer, validateClient, isRedirectUriAllowed } from "@Utils/OIDCKeys";
-import { Config } from "@Config/Server";
-import { UserAgent } from "@Library/UserAgent";
-import { normalizeHeader } from "@Utils/NormalizeHeader";
+import { createImmichSsoForbiddenResponse, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
@@ -43,6 +41,10 @@ export async function GET(req: NextRequest) {
     const state = searchParams.get("state");
     const nonce = searchParams.get("nonce");
     const baseUrl = req.nextUrl.origin;
+
+    if (!isImmichSsoRequestAllowed(req)) {
+        return createImmichSsoForbiddenResponse();
+    }
 
     // - Gate key validation -------------------------------------------------
     // The Immich OIDC authorization URL must include ?_gate=<IMMICH_SSO_GATE_KEY>
@@ -71,44 +73,6 @@ export async function GET(req: NextRequest) {
     // - Origin / Referer validation ----------------------------------------
     // Browsers usually send Origin/Referer, but some Android secure-folder / webview
     // flows omit them or send non-URL placeholders (e.g., "null").
-    const origin = normalizeHeader(req.headers.get("origin"));
-    const referer = normalizeHeader(req.headers.get("referer"));
-
-    const fromImmichHeaders = Config.Immich_Origins.some((immichOrigin) => {
-        return origin.startsWith(immichOrigin) || referer.startsWith(immichOrigin);
-    });
-
-    const userAgentSource = normalizeHeader(req.headers.get("user-agent"));
-    const userAgentLower = userAgentSource.toLowerCase();
-    const parsedUserAgent = userAgentSource ? new UserAgent(userAgentSource).parse() : null;
-
-    const isImmichUserAgent = userAgentLower.includes("immich");
-    const isMobileUserAgent = Boolean(
-        parsedUserAgent?.isAndroid ||
-        parsedUserAgent?.isiPhone ||
-        parsedUserAgent?.isiPad ||
-        parsedUserAgent?.isMobile ||
-        parsedUserAgent?.isMobileNative
-    );
-
-    // Fallback for mobile app/webview flows without reliable browser headers.
-    // At this point, gate key + client_id + redirect_uri checks already passed.
-    const fromImmichRedirect = Config.Immich_Origins.some((immichOrigin) => {
-        return redirectUri.startsWith(immichOrigin);
-    });
-
-    const allowMobileFallback = fromImmichRedirect && (isImmichUserAgent || isMobileUserAgent);
-
-    if (!fromImmichHeaders && !allowMobileFallback) {
-        console.warn("[authorize] Unable to verify Immich source - rejecting request", {
-            origin,
-            referer,
-            redirectUri,
-            userAgent: userAgentSource
-        });
-        return NextResponse.redirect(new URL("/?notice=immich_access_denied", baseUrl));
-    }
-
     // Validate response_type
     if (responseType !== "code") {
         return oidcError(redirectUri, state, "unsupported_response_type", "Only 'code' response_type is supported", baseUrl);

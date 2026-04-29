@@ -19,10 +19,15 @@ import dbConnect, { getMongoCollection } from "@Utils/dbConnect";
 import { ImmichWhitelist, ImmichAuthCode } from "@Models/ImmichWhitelist";
 import { getSession } from "@Library/auth";
 import { getIssuer } from "@Utils/OIDCKeys";
+import { createImmichSsoForbiddenResponse, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
+    if (!isImmichSsoRequestAllowed(req)) {
+        return createImmichSsoForbiddenResponse();
+    }
+
     const baseUrl = req.nextUrl.origin;
 
     // ── 1. Get better-auth session ──────────────────────────────────────────

@@ -6,12 +6,17 @@
  *   Issuer URL: https://<your-domain>/api/immich-sso
  *   (do NOT include /authorize or ?_gate= — Immich discovers those from this document)
  */
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getIssuer } from "@Utils/OIDCKeys";
+import { createImmichSsoForbiddenResponse, getImmichCorsOrigin, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+    if (!isImmichSsoRequestAllowed(req)) {
+        return createImmichSsoForbiddenResponse();
+    }
+
     const issuer = getIssuer();
     const gateKey = process.env.IMMICH_SSO_GATE_KEY ?? "";
 
@@ -33,7 +38,12 @@ export async function GET() {
 
     return NextResponse.json(config, {
         headers: {
-            "Access-Control-Allow-Origin": "*",
+            ...(getImmichCorsOrigin(req)
+                ? {
+                      "Access-Control-Allow-Origin": getImmichCorsOrigin(req),
+                      Vary: "Origin"
+                  }
+                : {}),
             "Cache-Control": "public, max-age=3600"
         }
     });

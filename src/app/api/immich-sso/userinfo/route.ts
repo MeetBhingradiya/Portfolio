@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { getOIDCKeys, getIssuer } from "@Utils/OIDCKeys";
-import { createImmichSsoForbiddenResponse, getImmichCorsOrigin, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
+import { getImmichOrigins } from "@/Utils/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -21,10 +21,6 @@ export async function POST(req: NextRequest) {
 }
 
 async function handleUserInfo(req: NextRequest): Promise<NextResponse> {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
-
     // Extract Bearer token
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.startsWith("Bearer ") ? authHeader.slice(7) : null;
@@ -77,28 +73,17 @@ async function handleUserInfo(req: NextRequest): Promise<NextResponse> {
         {
             headers: {
                 "Cache-Control": "no-store",
-                ...(getImmichCorsOrigin(req)
-                    ? {
-                          "Access-Control-Allow-Origin": getImmichCorsOrigin(req),
-                          Vary: "Origin"
-                      }
-                    : {})
+                "Access-Control-Allow-Origin": getImmichOrigins().join(","),
             }
         }
     );
 }
 
 export async function OPTIONS(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
-
-    const corsOrigin = getImmichCorsOrigin(req);
-
-    return new NextResponse(null, {
+        return new NextResponse(null, {
         status: 204,
         headers: {
-            ...(corsOrigin ? { "Access-Control-Allow-Origin": corsOrigin, Vary: "Origin" } : {}),
+            "Access-Control-Allow-Origin": getImmichOrigins().join(","),
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
             "Access-Control-Allow-Headers": "Authorization, Content-Type"
         }

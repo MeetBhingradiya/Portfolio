@@ -5,14 +5,12 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getOIDCKeys } from "@Utils/OIDCKeys";
-import { createImmichSsoForbiddenResponse, getImmichCorsOrigin, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
+import { getImmichOrigins } from "@Utils/origin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
+
 
     const { publicJwk } = await getOIDCKeys();
 
@@ -20,12 +18,7 @@ export async function GET(req: NextRequest) {
         { keys: [publicJwk] },
         {
             headers: {
-                ...(getImmichCorsOrigin(req)
-                    ? {
-                          "Access-Control-Allow-Origin": getImmichCorsOrigin(req),
-                          Vary: "Origin"
-                      }
-                    : {}),
+                "Access-Control-Allow-Origin": getImmichOrigins().join(","),
                 "Cache-Control": "public, max-age=3600"
             }
         }

@@ -5,19 +5,16 @@
  * Called from the /immich-sso page when the user is already authenticated.
  * Returns { granted: true } if the email is in the active whitelist, otherwise
  * { granted: false } — no session is created here, that happens in oidc-done.
+ * this is just a quick check to determine whether to show the immich photo option in the website navigation.
  */
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 import { getSession } from "@Library/auth";
-import { createImmichSsoForbiddenResponse, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
 
     try {
         // Must be an authenticated user making their own access check

@@ -22,16 +22,10 @@ import dbConnect from "@Utils/dbConnect";
 import { ImmichWhitelist } from "@Models/ImmichWhitelist";
 import { getSession } from "@Library/auth";
 import { getIssuer } from "@Utils/OIDCKeys";
-import { createImmichSsoForbiddenResponse, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
-
-    const baseUrl = req.nextUrl.origin;
 
     // ── 1. Verify the OIDC request cookie ──────────────────────────────────
     const requestToken = req.cookies.get("immich_sso_request")?.value;

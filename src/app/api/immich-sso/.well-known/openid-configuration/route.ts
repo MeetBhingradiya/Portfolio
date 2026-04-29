@@ -8,14 +8,10 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { getIssuer } from "@Utils/OIDCKeys";
-import { createImmichSsoForbiddenResponse, getImmichCorsOrigin, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
 
     const issuer = getIssuer();
     const gateKey = process.env.IMMICH_SSO_GATE_KEY ?? "";
@@ -38,12 +34,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(config, {
         headers: {
-            ...(getImmichCorsOrigin(req)
-                ? {
-                      "Access-Control-Allow-Origin": getImmichCorsOrigin(req),
-                      Vary: "Origin"
-                  }
-                : {}),
+            "Access-Control-Allow-Origin": "*",
             "Cache-Control": "public, max-age=3600"
         }
     });

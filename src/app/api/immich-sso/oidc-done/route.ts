@@ -19,14 +19,10 @@ import dbConnect, { getMongoCollection } from "@Utils/dbConnect";
 import { ImmichWhitelist, ImmichAuthCode } from "@Models/ImmichWhitelist";
 import { getSession } from "@Library/auth";
 import { getIssuer } from "@Utils/OIDCKeys";
-import { createImmichSsoForbiddenResponse, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
 
     const baseUrl = req.nextUrl.origin;
 
@@ -104,7 +100,8 @@ export async function GET(req: NextRequest) {
     // Priority: 1) manual subOverride on whitelist entry (admin-set)
     //           2) Google providerAccountId from BA account collection
     //           3) email fallback
-    let sub = userEmail; // safe fallback
+    let sub = userEmail; // safe fallback, but better to use something consistent with what Immich already has stored for this user (if anything)
+
     if ((entry as any).subOverride) {
         // Admin explicitly overrode the sub — use it directly, skip any lookup
         sub = (entry as any).subOverride as string;

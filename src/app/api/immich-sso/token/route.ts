@@ -11,7 +11,7 @@ import { SignJWT } from "jose";
 import dbConnect from "@Utils/dbConnect";
 import { ImmichAuthCode } from "@Models/ImmichWhitelist";
 import { getOIDCKeys, getIssuer, validateClient } from "@Utils/OIDCKeys";
-import { createImmichSsoForbiddenResponse, getImmichCorsOrigin, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
+import { getImmichOrigins } from "@/Utils/origin";
 
 export const dynamic = "force-dynamic";
 
@@ -20,9 +20,6 @@ function tokenError(error: string, description: string, status = 400): NextRespo
 }
 
 export async function POST(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
 
     let body: URLSearchParams;
     try {
@@ -143,15 +140,10 @@ export async function POST(req: NextRequest) {
 
 // Handle CORS preflight
 export async function OPTIONS(req: NextRequest) {
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
-
-    const corsOrigin = getImmichCorsOrigin(req);
     return new NextResponse(null, {
         status: 204,
         headers: {
-            ...(corsOrigin ? { "Access-Control-Allow-Origin": corsOrigin, Vary: "Origin" } : {}),
+            "Access-Control-Allow-Origin": getImmichOrigins().join(","),
             "Access-Control-Allow-Methods": "POST, OPTIONS",
             "Access-Control-Allow-Headers": "Content-Type, Authorization"
         }

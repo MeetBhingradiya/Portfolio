@@ -1,8 +1,8 @@
 /**
  * ╔══════════════════════════════════════════════════════════════════════╗
- * ║              ANTI-DEBUGGER ENGINE — Meet Bhingradiya                ║
- * ║  Layer 1 : Debugger Traps (pause the attacker's DevTools)           ║
- * ║  Layer 2 : Anti-Extension Tackle (defeat Anti-anti-debug extensions)║
+ * ║              ANTI-DEBUGGER ENGINE — Meet Bhingradiya                 ║
+ * ║  Layer 1 : Debugger Traps (pause the attacker's DevTools)            ║
+ * ║  Layer 2 : Anti-Extension Tackle (defeat Anti-anti-debug extensions) ║
  * ╚══════════════════════════════════════════════════════════════════════╝
  *
  * HOW ATTACKERS WORK
@@ -47,7 +47,7 @@ interface ThreatReport {
     ts: number;
 }
 
-type ActionHandler = (report: ThreatReport) => void;
+type ActionHandler = (reports: ThreatReport[]) => void;
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 /*  Config                                                                      */
@@ -123,6 +123,23 @@ function getPristineNatives(): {
     }
 }
 
+/** Create a small Dedicated Worker to provide an isolated timing source. */
+function createTimingWorker(): Worker | null {
+    if (typeof window === "undefined" || typeof Blob === "undefined") return null;
+
+    try {
+        const code = `self.addEventListener('message', (e) => { if (e.data === 'ping') { self.postMessage({ workerNow: (typeof performance !== 'undefined') ? performance.now() : Date.now(), ts: Date.now() }); } });`;
+        const blob = new Blob([code], { type: 'application/javascript' });
+        const url = URL.createObjectURL(blob);
+        const w = new Worker(url);
+        // Release the object URL; worker keeps running.
+        URL.revokeObjectURL(url);
+        return w;
+    } catch {
+        return null;
+    }
+}
+
 /* ─────────────────────────────────────────────────────────────────────────── */
 /*  Helper — native code check                                                  */
 /* ─────────────────────────────────────────────────────────────────────────── */
@@ -150,6 +167,11 @@ export class AntiDebuggerEngine {
     private _intervalId: ReturnType<typeof setInterval> | null = null;
     private _trapIntervalId: ReturnType<typeof setInterval> | null = null;
     private _active = false;
+    private _worker: Worker | null = null;
+    private _workerAvailable = false;
+    private _workerBaseline = 0;
+    private _baselineToString: string | null = null;
+    private _baselineConsole: Record<string, string> | null = null;
 
     /* ── Public API ─────────────────────────────────────────────────────── */
 
@@ -162,6 +184,46 @@ export class AntiDebuggerEngine {
         this._active = true;
         this._actionHandler = onDetect;
 
+        // Init worker timing channel + fast calibration
+        this._worker = createTimingWorker();
+        this._workerAvailable = !!this._worker;
+        if (this._worker) {
+            // calibrate with a few quick pings
+            (async () => {
+                try {
+                    const samples: number[] = [];
+                    for (let i = 0; i < 4; i++) {
+                        const r = await this._workerPing();
+                        samples.push(r);
+                        await new Promise((s) => setTimeout(s, 40));
+                    }
+                    const avg = samples.reduce((a, b) => a + b, 0) / samples.length;
+                    this._workerBaseline = avg;
+                } catch {
+                    this._workerBaseline = 0;
+                }
+            })();
+        }
+
+        // Capture a lightweight baseline snapshot to detect live tampering
+        try {
+            this._baselineToString = this._natives.toString.call(Function.prototype.toString);
+            const methods = ["log", "warn", "error", "debug", "table"] as const;
+            const b: Record<string, string> = {};
+            for (const m of methods) {
+                try {
+                    const fn = console[m] as Function;
+                    b[m] = this._natives.toString.call(fn);
+                } catch {
+                    b[m] = "";
+                }
+            }
+            this._baselineConsole = b;
+        } catch {
+            this._baselineToString = null;
+            this._baselineConsole = null;
+        }
+
         this._runLayer1_DebuggerTrap();
         this._runLayer2_AntiExtensionTackle();
         this._startPolling();
@@ -173,7 +235,55 @@ export class AntiDebuggerEngine {
         this._active = false;
         if (this._intervalId) clearInterval(this._intervalId);
         if (this._trapIntervalId) clearInterval(this._trapIntervalId);
+        if (this._worker) {
+            this._worker.terminate();
+            this._worker = null;
+        }
         return this;
+    }
+
+    private _workerPing(): Promise<number> {
+        return new Promise((resolve, reject) => {
+            if (!this._worker) return reject(new Error("no-worker"));
+
+            const worker = this._worker;
+            const start = (typeof performance !== "undefined") ? performance.now() : Date.now();
+            const timeoutId = setTimeout(() => {
+                worker.removeEventListener("message", onMessage);
+                reject(new Error("worker-timeout"));
+            }, 500);
+
+            const onMessage = (event: MessageEvent) => {
+                try {
+                    const workerNow = typeof event.data === "object" && event.data !== null && typeof event.data.workerNow === "number"
+                        ? event.data.workerNow
+                        : null;
+                    worker.removeEventListener("message", onMessage);
+                    clearTimeout(timeoutId);
+
+                    if (workerNow === null) {
+                        reject(new Error("bad-reply"));
+                        return;
+                    }
+
+                    resolve(Math.abs(((typeof performance !== "undefined") ? performance.now() : Date.now()) - start));
+                } catch (error) {
+                    worker.removeEventListener("message", onMessage);
+                    clearTimeout(timeoutId);
+                    reject(error);
+                }
+            };
+
+            worker.addEventListener("message", onMessage);
+
+            try {
+                worker.postMessage("ping");
+            } catch (error) {
+                worker.removeEventListener("message", onMessage);
+                clearTimeout(timeoutId);
+                reject(error);
+            }
+        });
     }
 
     /* ── Layer 1 — Debugger Trap ────────────────────────────────────────── */
@@ -201,8 +311,6 @@ export class AntiDebuggerEngine {
             const t0p = perfNow();
             const t0d = dateNow();
 
-            // Evaluate the debugger statement through eval so extensions that
-            // do a textual search-and-replace on the source can't patch it.
             try {
                 // eslint-disable-next-line no-new-func
                 new Function(_dbg)();
@@ -213,14 +321,34 @@ export class AntiDebuggerEngine {
             const deltaPerf = perfNow() - t0p;
             const deltaDate = dateNow() - t0d;
 
-            // If EITHER timer shows a pause it's suspicious
-            if (deltaPerf > CFG.TIMING_THRESHOLD_MS || deltaDate > CFG.TIMING_THRESHOLD_MS) {
-                self._report({
-                    channel: "timing",
-                    detail: `debugger pause detected — perf:${deltaPerf.toFixed(1)}ms date:${deltaDate}ms`,
-                    ts: dateNow()
-                });
-            }
+            // Worker cross-check: detect if main thread is paused relative to worker
+            (async () => {
+                if (self._workerAvailable) {
+                    try {
+                        const workerDelta = await self._workerPing();
+                        // If worker delta is large compared to baseline, report
+                        const effective = workerDelta - (self._workerBaseline || 0);
+                        if (effective > CFG.TIMING_THRESHOLD_MS) {
+                            self._report({
+                                channel: 'timing',
+                                detail: `worker-cross-pause:${effective.toFixed(1)}ms perf:${deltaPerf.toFixed(1)} date:${deltaDate}ms`,
+                                ts: dateNow()
+                            });
+                            return;
+                        }
+                    } catch {
+                        // ignore worker issues
+                    }
+                }
+
+                if (deltaPerf > CFG.TIMING_THRESHOLD_MS || deltaDate > CFG.TIMING_THRESHOLD_MS) {
+                    self._report({
+                        channel: 'timing',
+                        detail: `debugger pause detected — perf:${deltaPerf.toFixed(1)}ms date:${deltaDate}ms`,
+                        ts: dateNow()
+                    });
+                }
+            })();
         }, CFG.POLL_INTERVAL_MS);
     }
 
@@ -456,8 +584,45 @@ export class AntiDebuggerEngine {
             this._checkPerformanceHook();
             this._checkProxyTraps();
             this._checkKnownExtensionScripts();
+            this._checkMutationSnapshot();
             this._checkDevtoolsSize();
         }, CFG.POLL_INTERVAL_MS * 4); // less frequent than the trap loop
+    }
+
+    private _checkMutationSnapshot(): void {
+        try {
+            if (this._baselineToString) {
+                const current = this._natives.toString.call(Function.prototype.toString);
+                if (current !== this._baselineToString) {
+                    this._report({
+                        channel: 'toString-integrity',
+                        detail: 'Function.prototype.toString changed at runtime',
+                        ts: this._natives.dateNow()
+                    });
+                }
+            }
+
+            if (this._baselineConsole) {
+                for (const k of Object.keys(this._baselineConsole)) {
+                    try {
+                        const fn = (console as any)[k];
+                        const cur = this._natives.toString.call(fn);
+                        if (cur !== this._baselineConsole[k]) {
+                            this._report({
+                                channel: 'console-hook',
+                                detail: `console.${k} descriptor changed`,
+                                ts: this._natives.dateNow()
+                            });
+                            break;
+                        }
+                    } catch {
+                        // ignore
+                    }
+                }
+            }
+        } catch {
+            // don't let snapshot checks throw
+        }
     }
 
     /* ── Reporting & quorum ─────────────────────────────────────────────── */
@@ -469,16 +634,21 @@ export class AntiDebuggerEngine {
         this._reports.push(report);
 
         if (this._reports.length >= CFG.DETECTION_QUORUM) {
-            this._scheduleAction(report);
+            this._scheduleAction();
         }
     }
 
     /** Debounce the action so transient false-positives don't fire it. */
-    private _scheduleAction(report: ThreatReport): void {
+    private _scheduleAction(): void {
         if (this._actionTimer) return; // already scheduled
         this._actionTimer = setTimeout(() => {
             if (this._active && this._reports.length >= CFG.DETECTION_QUORUM && this._actionHandler) {
-                this._actionHandler(report);
+                // Pass an aggregated copy of reports to the handler
+                try {
+                    this._actionHandler(this._reports.slice());
+                } catch {
+                    // swallow handler errors
+                }
             }
         }, CFG.ACTION_DEBOUNCE_MS);
     }

@@ -14,7 +14,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { SignJWT } from "jose";
 import { getIssuer, validateClient, isRedirectUriAllowed } from "@Utils/OIDCKeys";
-import { createImmichSsoForbiddenResponse, isImmichSsoRequestAllowed } from "@Utils/immichSsoAccess";
 
 export const dynamic = "force-dynamic";
 
@@ -41,10 +40,6 @@ export async function GET(req: NextRequest) {
     const state = searchParams.get("state");
     const nonce = searchParams.get("nonce");
     const baseUrl = req.nextUrl.origin;
-
-    if (!isImmichSsoRequestAllowed(req)) {
-        return createImmichSsoForbiddenResponse();
-    }
 
     // - Gate key validation -------------------------------------------------
     // The Immich OIDC authorization URL must include ?_gate=<IMMICH_SSO_GATE_KEY>

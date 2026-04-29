@@ -47,7 +47,25 @@ export async function GET(req: NextRequest) {
         if (type) query.Type = type;
         if (category) query.Category = category;
         if (assetId) {
-            query.$or = [{ FromAssetID: assetId }, { ToAssetID: assetId }];
+            // Get the asset to check if it's a bank with linked UPI apps
+            const asset = await WalletAsset.findOne({ AssetID: assetId, UserID: user.userId }).lean();
+            let assetIds = [assetId];
+
+            // If this is a BANK, also include all UPI_APP assets linked to it
+            if (asset && asset.Type === WalletAssetType.BANK) {
+                const linkedUpiApps = await WalletAsset.find({
+                    UserID: user.userId,
+                    Type: WalletAssetType.UPI_APP,
+                    LinkedAssetID: assetId,
+                    IsArchived: { $ne: true }
+                }).lean();
+                assetIds = [assetId, ...linkedUpiApps.map((app: any) => app.AssetID)];
+            }
+
+            query.$or = [
+                { FromAssetID: { $in: assetIds } },
+                { ToAssetID: { $in: assetIds } }
+            ];
         }
         if (from || to) {
             query.Date = {};

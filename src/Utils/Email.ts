@@ -90,11 +90,10 @@ function renderEmailShell(opts: {
             </td>
           </tr>
 
-          ${
-              opts.note
-                  ? `<tr><td style="padding:0 30px 24px 30px;"><div style="border-radius:12px;background:${opts.accent}14;border:1px solid ${opts.accent}38;padding:12px 14px;color:#334155;font-size:12px;line-height:1.55;">${opts.note}</div></td></tr>`
-                  : ""
-          }
+          ${opts.note
+            ? `<tr><td style="padding:0 30px 24px 30px;"><div style="border-radius:12px;background:${opts.accent}14;border:1px solid ${opts.accent}38;padding:12px 14px;color:#334155;font-size:12px;line-height:1.55;">${opts.note}</div></td></tr>`
+            : ""
+        }
 
           <tr>
             <td style="padding:18px 30px;border-top:1px solid #e5e7eb;background:#fafafa;color:#94a3b8;font-size:12px;line-height:1.6;text-align:center;">
@@ -127,6 +126,47 @@ function toAbsoluteAssetUrl(path: string): string {
     const cleaned = path.startsWith("/") ? path : `/${path}`;
     return `${base}${cleaned}`;
 }
+
+export function VerificationEmailforChangeEmail(opts: {
+    name?: string;
+    verificationUrl: string;
+    expiresInMinutes: number;
+    verificationImageUrl?: string;
+}): string {
+    const accent = "#2563eb";
+    const verificationImageUrl = toAbsoluteAssetUrl(opts.verificationImageUrl || "/assets/EmailConfirm.svg");
+
+    return renderEmailShell({
+        preheader: "Confirm your new email to update your account.",
+        eyebrow: "Email Change Request",
+        title: "Verify Your New Email",
+        subtitle: "Confirming your new email keeps your account secure and up-to-date.",
+        accent,
+        body: `
+            <div style="margin:0 0 20px 0;text-align:center;">
+                <img src="${verificationImageUrl}" alt="Email verification illustration" width="220" style="max-width:100%;height:auto;display:inline-block;" />
+            </div>
+            <p style="margin:0 0 16px 0;color:#1e293b;font-size:15px;line-height:1.75;">
+                Hi <strong>${opts.name || "there"}</strong>,<br/>
+                We received a request to change the email address on your account. Please verify your new email to confirm this change.
+            </p>
+            <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 18px 0;">
+                <tr>
+                    <td align="center" style="border-radius:12px;background:${accent};">
+                        <a href="${opts.verificationUrl}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:.01em;">
+                            Verify New Email Address    
+                        </a>
+                    </td>
+                </tr>
+            </table>
+            <p style="margin:0;color:#64748b;font-size:13px;line-height:1.7;">
+                This secure link expires in <strong>${opts.expiresInMinutes} minutes</strong>. If you did not request this change, please ignore this email and consider resetting your password for security.
+            </p>
+        `,
+        note: "For your safety, email change verification links are single-use and time-limited."
+    });
+}
+
 
 export function verificationEmailTemplate(opts: {
     name?: string;

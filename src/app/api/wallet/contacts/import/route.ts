@@ -10,6 +10,24 @@ import { symmetricDecrypt } from "better-auth/crypto";
 import dbConnect, { getMongoCollection } from "@Utils/dbConnect";
 import { WalletContact } from "@Models/WalletContact";
 
+const REQUIRED_GOOGLE_SCOPES = ["https://www.googleapis.com/auth/contacts.readonly", "https://www.googleapis.com/auth/contacts"];
+
+function parseScopeList(value: unknown): string[] {
+    if (!value) return [];
+    if (Array.isArray(value)) return value.map(String).filter(Boolean);
+    if (typeof value === "string") {
+        return value
+            .split(/[\s,]+/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+    }
+    return [];
+}
+
+function hasRequiredContactsScope(scopes: string[]): boolean {
+    return REQUIRED_GOOGLE_SCOPES.some((required) => scopes.includes(required));
+}
+
 function toObjectId(id: string): ObjectId | null {
     try {
         return new ObjectId(id);
@@ -54,9 +72,22 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(
                 {
                     success: false,
+                    errorCode: "GOOGLE_NOT_LINKED",
                     error: "No Google account linked. Sign in with Google first."
                 },
                 { status: 404 }
+            );
+        }
+
+        const scopeList = parseScopeList((account as any).scope);
+        if (scopeList.length > 0 && !hasRequiredContactsScope(scopeList)) {
+            return NextResponse.json(
+                {
+                    success: false,
+                    errorCode: "GOOGLE_SCOPE_MISSING",
+                    error: "Google contacts permission not granted. Please re-authorize to continue."
+                },
+                { status: 403 }
             );
         }
 
@@ -67,6 +98,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json(
                 {
                     success: false,
+                    errorCode: "GOOGLE_TOKEN_MISSING",
                     error: "Google access token expired. Please sign out and sign in again with Google."
                 },
                 { status: 401 }
@@ -95,6 +127,7 @@ export async function POST(req: NextRequest) {
                     return NextResponse.json(
                         {
                             success: false,
+                            errorCode: "GOOGLE_REAUTH_REQUIRED",
                             error: "Google token expired or contacts permission not granted. Please re-sign-in with Google."
                         },
                         { status: 401 }
@@ -103,6 +136,7 @@ export async function POST(req: NextRequest) {
                 return NextResponse.json(
                     {
                         success: false,
+                        errorCode: "GOOGLE_PEOPLE_ERROR",
                         error: "Failed to fetch Google contacts"
                     },
                     { status: 500 }
@@ -196,6 +230,6 @@ export async function POST(req: NextRequest) {
         });
     } catch (err) {
         console.error("[contacts/import] Error:", err);
-        return NextResponse.json({ success: false, error: "Import failed" }, { status: 500 });
+        return NextResponse.json({ success: false, errorCode: "IMPORT_FAILED", error: "Import failed" }, { status: 500 });
     }
 }

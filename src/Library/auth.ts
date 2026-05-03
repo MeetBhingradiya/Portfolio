@@ -12,7 +12,7 @@ import { phoneNumber } from "better-auth/plugins/phone-number";
 import { passkey } from "@better-auth/passkey";
 import { MongoClient } from "mongodb";
 import { Config } from "@Config/Client";
-import { sendEmail, loginNotificationEmail, verificationEmailTemplate, deleteAccountVerificationEmail } from "@Utils/Email";
+import { sendEmail, loginNotificationEmail, verificationEmailTemplate, deleteAccountVerificationEmail, VerificationEmailforChangeEmail } from "@Utils/Email";
 import { sendPhoneOtpSms } from "@Utils/SMS";
 import { UserAgent } from "@Library/UserAgent";
 import { IPData } from "@Utils/IPData";
@@ -227,7 +227,7 @@ export const auth = betterAuth({
     emailVerification: {
         sendOnSignUp: true,
         sendOnSignIn: true,
-        expiresIn: 60 * 60,
+        expiresIn: 60 * 10, // 10 minutes
         sendVerificationEmail: async ({ user, url }) => {
             const policies = await getEmailSecurityPolicies();
             const limit = consumeVerificationRateLimit(user.email, policies);
@@ -270,10 +270,10 @@ export const auth = betterAuth({
             maxUsernameLength: 30
         }),
         twoFactor({
-            issuer: "Meet Bhingradiya Portfolio"
+            issuer: "Meet Bhingradiya's Portfolio"
         }),
         passkey({
-            rpName: "Meet Bhingradiya Portfolio",
+            rpName: "Meet Bhingradiya's Portfolio",
             rpID: passkeyRpId,
             origin: primaryOrigin
         }),
@@ -297,7 +297,11 @@ export const auth = betterAuth({
                     prompt: "select_account",
                     clientId: process.env.GOOGLE_CLIENT_ID,
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                    scope: ["email", "profile", "openid"],
+                    scope: [
+                        "email", 
+                        "profile", 
+                        "openid"
+                    ],
                     // Override getUserInfo to always fetch from the userinfo endpoint.
                     // Decoding the id_token alone omits `picture` in some flows.
                     getUserInfo: async (token) => {
@@ -392,7 +396,7 @@ export const auth = betterAuth({
 
     // Session configuration
     session: {
-        expiresIn: 60 * 60 * 24 * 7 // 7 days
+        expiresIn: 60 * 60 * 24 * 3 // 3 days
     },
 
     // Base URL and secret
@@ -408,7 +412,7 @@ export const auth = betterAuth({
             enabled: false
         },
         useSecureCookies: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax"
+        sameSite: "lax"
     },
 
     databaseHooks: {
@@ -522,11 +526,22 @@ export const auth = betterAuth({
         },
         changeEmail: {
             enabled: true,
-            updateEmailWithoutVerification: false
+            updateEmailWithoutVerification: false,
+            sendVerificationEmail: async ({ user, url }: { user: any; url: string }) => {
+                await sendEmail({
+                    to: user.email,
+                    subject: "Confirm your new email - Meet Bhingradiya Portfolio",
+                    html: VerificationEmailforChangeEmail({
+                        name: user.name,
+                        verificationUrl: url,
+                        expiresInMinutes: 60
+                    })
+                });
+            }
         },
         deleteUser: {
             enabled: true,
-            sendDeleteAccountVerification: async ({ user, url }) => {
+            sendDeleteAccountVerification: async ({ user, url }: { user: any; url: string }) => {
                 await sendEmail({
                     to: user.email,
                     subject: "Confirm account deletion - Meet Bhingradiya Portfolio",

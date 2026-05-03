@@ -6,7 +6,7 @@
 
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import { LiquidGlassCard, LiquidGlassButton, LiquidGlassModal } from "@Components/Atoms/LiquidGlass";
@@ -32,7 +32,7 @@ interface Contact {
     Avatar?: string;
 }
 
-export default function ContactsPage() {
+function ContactsPageClient() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
@@ -767,5 +767,13 @@ export default function ContactsPage() {
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+export default function ContactsPage() {
+    return (
+        <Suspense fallback={null}>
+            <ContactsPageClient />
+        </Suspense>
     );
 }

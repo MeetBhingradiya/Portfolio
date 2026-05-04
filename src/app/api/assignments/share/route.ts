@@ -15,9 +15,17 @@ import { AssignmentPrivacy, AssignmentPermission } from "@/Types/Assignment";
 
 const isAdmin = (email?: string | null) => !!email && !!process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL;
 
+type SharedWithEntry = {
+    userId: string;
+    email: string;
+    name: string;
+    permissions: AssignmentPermission[];
+    sharedAt: Date;
+};
+
 export async function POST(req: NextRequest) {
     try {
-        const session = await requireAuth(req);
+        const session = await requireAuth(req.headers);
         await dbConnect();
 
         const pathname = req.nextUrl.pathname;
@@ -49,7 +57,7 @@ export async function POST(req: NextRequest) {
             }
 
             // Check if already shared
-            const existingShare = assignment.sharedWith?.find((s) => s.userId === userId);
+            const existingShare = assignment.sharedWith?.find((s: SharedWithEntry) => s.userId === userId);
             if (existingShare) {
                 existingShare.permissions = permissions;
                 existingShare.sharedAt = new Date();
@@ -110,7 +118,7 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
     try {
-        const session = await requireAuth(req);
+        const session = await requireAuth(req.headers);
         await dbConnect();
 
         const id = req.nextUrl.searchParams.get("id");
@@ -131,7 +139,7 @@ export async function DELETE(req: NextRequest) {
 
         if (userId) {
             // Revoke user access
-            assignment.sharedWith = assignment.sharedWith?.filter((s) => s.userId !== userId) || [];
+            assignment.sharedWith = assignment.sharedWith?.filter((s: SharedWithEntry) => s.userId !== userId) || [];
             await assignment.save();
             return NextResponse.json({ success: true, message: "User access revoked" });
         }

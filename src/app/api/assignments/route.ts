@@ -131,7 +131,7 @@ export async function GET(req: NextRequest) {
 // ── POST ─────────────────────────────────────────────────────────
 export async function POST(req: NextRequest) {
     try {
-        const session = await requireAuth(req);
+        const session = await requireAuth(req.headers);
         await dbConnect();
 
         // Check permission
@@ -218,7 +218,7 @@ export async function POST(req: NextRequest) {
 // ── PUT ──────────────────────────────────────────────────────────
 export async function PUT(req: NextRequest) {
     try {
-        const session = await requireAuth(req);
+        const session = await requireAuth(req.headers);
         await dbConnect();
 
         const p = req.nextUrl.searchParams;
@@ -289,7 +289,7 @@ export async function PUT(req: NextRequest) {
 // ── DELETE / PATCH ───────────────────────────────────────────────
 export async function DELETE(req: NextRequest) {
     try {
-        const session = await requireAuth(req);
+        const session = await requireAuth(req.headers);
         await dbConnect();
 
         const p = req.nextUrl.searchParams;
@@ -340,7 +340,7 @@ export async function DELETE(req: NextRequest) {
 // ── PATCH ────────────────────────────────────────────────────────
 export async function PATCH(req: NextRequest) {
     try {
-        const session = await requireAuth(req);
+        const session = await requireAuth(req.headers);
         await dbConnect();
 
         const p = req.nextUrl.searchParams;

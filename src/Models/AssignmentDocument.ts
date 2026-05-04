@@ -225,7 +225,7 @@ const AssignmentDocumentSchema = new Schema<IAssignmentDocument>(
 AssignmentDocumentSchema.pre("save", function (next: any) {
     if (!this.signatureHash) {
         const metadataString = JSON.stringify({
-            assignignmentNo: this.assignmentNo,
+            assignmentNo: this.assignmentNo,
             assignmentTitle: this.assignmentTitle,
             studentName: this.studentName,
             studentEnrollmentNo: this.studentEnrollmentNo,

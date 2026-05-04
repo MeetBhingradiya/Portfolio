@@ -155,24 +155,15 @@ export async function POST(req: NextRequest) {
             watermarkEnabled
         } = body;
 
-        // Validate required fields
-        if (!assignmentNo || !assignmentTitle || !studentName || !studentEnrollmentNo) {
-            return NextResponse.json(
-                { success: false, error: "Missing required fields: assignmentNo, assignmentTitle, studentName, studentEnrollmentNo" },
-                { status: 400 }
-            );
-        }
-
-        if (!Array.isArray(blocks) || blocks.length === 0) {
-            return NextResponse.json(
-                { success: false, error: "Assignment must have at least one content block" },
-                { status: 400 }
-            );
-        }
+        const resolvedAssignmentNo = assignmentNo?.trim() || `ASS-${Date.now().toString().slice(-6)}`;
+        const resolvedAssignmentTitle = assignmentTitle?.trim() || "Untitled Assignment";
+        const resolvedStudentName = studentName?.trim() || session.user.name || "Student";
+        const resolvedStudentEnrollmentNo = studentEnrollmentNo?.trim() || "N/A";
+        const resolvedBlocks = Array.isArray(blocks) ? blocks : [];
 
         // Validate blocks
         const validBlockTypes = Object.values(BlockType);
-        for (const block of blocks) {
+        for (const block of resolvedBlocks) {
             if (!validBlockTypes.includes(block.type)) {
                 return NextResponse.json(
                     { success: false, error: `Invalid block type: ${block.type}` },
@@ -182,14 +173,14 @@ export async function POST(req: NextRequest) {
         }
 
         const assignment = new AssignmentDocument({
-            assignmentNo,
-            assignmentTitle,
-            studentName,
-            studentEnrollmentNo,
+            assignmentNo: resolvedAssignmentNo,
+            assignmentTitle: resolvedAssignmentTitle,
+            studentName: resolvedStudentName,
+            studentEnrollmentNo: resolvedStudentEnrollmentNo,
             subject,
             subjectCode,
             description,
-            blocks,
+            blocks: resolvedBlocks,
             privacy: privacy || AssignmentPrivacy.Private,
             tags: tags || [],
             watermarkEnabled: watermarkEnabled || false,

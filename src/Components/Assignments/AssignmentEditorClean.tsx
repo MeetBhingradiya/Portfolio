@@ -221,18 +221,20 @@ export const AssignmentEditor: React.FC<AssignmentEditorProps> = ({ assignment, 
     }
 
     const handleSave = async () => {
-        if (!formData.assignmentNo || !formData.assignmentTitle || !formData.studentName || !formData.studentEnrollmentNo) {
-            alert("Please fill in all required fields");
-            return;
-        }
-
-        if (blocks.length === 0) {
-            alert("Please add at least one content block");
-            return;
-        }
-
         try {
-            await onSave?.({ ...formData, blocks });
+            await onSave?.({
+                assignmentNo: formData.assignmentNo?.trim() || `ASS-${Date.now().toString().slice(-6)}`,
+                assignmentTitle: formData.assignmentTitle?.trim() || "Untitled Assignment",
+                studentName: formData.studentName?.trim() || "Student",
+                studentEnrollmentNo: formData.studentEnrollmentNo?.trim() || "N/A",
+                subject: formData.subject?.trim() || undefined,
+                subjectCode: formData.subjectCode?.trim() || undefined,
+                description: formData.description?.trim() || undefined,
+                privacy: formData.privacy,
+                watermarkEnabled: formData.watermarkEnabled,
+                tags: formData.tags,
+                blocks
+            });
         } catch (error) {
             console.error("Failed to save assignment:", error);
             alert("Failed to save assignment");
@@ -609,7 +611,7 @@ export const AssignmentEditor: React.FC<AssignmentEditorProps> = ({ assignment, 
 
             <div className="flex justify-end gap-3">
                 <Button color="default" variant="flat" onClick={() => window.history.back()}>Cancel</Button>
-                <Button color="primary" onClick={handleSave} isLoading={isLoading}>{assignment ? "Update Assignment" : "Create Assignment"}</Button>
+                <Button color="primary" onPress={handleSave} isLoading={isLoading}>{assignment ? "Update Assignment" : "Create Assignment"}</Button>
             </div>
         </div>
     );

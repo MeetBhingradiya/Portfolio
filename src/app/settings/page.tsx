@@ -23,6 +23,7 @@ import {
     CloudUpload,
     Rocket,
     AccountBalanceWallet,
+    Assignment,
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
@@ -96,6 +97,14 @@ export default function SettingsPage() {
             icon: <CloudUpload />,
             href: "/settings/cdn",
             badge: "Developer"
+        },
+        {
+            id: "assignments",
+            title: "Assignment Documents",
+            description: "Manage your assignment documents and sharing settings",
+            icon: <Assignment />,
+            href: "/assignments",
+            badge: null
         }
     ];
 

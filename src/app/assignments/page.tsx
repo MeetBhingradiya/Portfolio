@@ -31,17 +31,19 @@ export default function AssignmentsPage() {
 
             // Load my assignments
             const myData = await fetchMyAssignments(20, (page - 1) * 20);
-            setMyAssignments(myData.data);
+            setMyAssignments(myData?.data || []);
 
             // Load public assignments if searching
             if (searchQuery) {
                 const publicData = await searchAssignments(searchQuery, 20, (page - 1) * 20);
-                setPublicAssignments(publicData.data);
+                setPublicAssignments(publicData?.data || []);
             } else {
                 setPublicAssignments([]);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load assignments");
+            setMyAssignments([]);
+            setPublicAssignments([]);
         } finally {
             setIsLoading(false);
         }

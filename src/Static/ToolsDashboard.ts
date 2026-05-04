@@ -247,26 +247,6 @@ export const TOOLS: ToolDefinition[] = [
     },
     // ── Editor & Pickers ────────────────────────────────────────────────────
     {
-        id: "assignments",
-        name: "Assignment Document System",
-        description: "Create, manage and share structured assignment documents",
-        longDescription:
-            "Complete document management system for assignments. Create rich assignments with code blocks, text, steps, tables and images. Share with permissions, generate PDFs, add watermarks, and track views/downloads. Full version control and public/private sharing.",
-        category: "editor",
-        iconName: "Assignment",
-        accentColor: "#14B8A6",
-        route: "/assignments",
-        badges: ["new", "featured", "db-sync"],
-        isPublic: true,
-        adminManaged: true,
-        syncToDb: true,
-        shortcut: "A",
-        modes: [
-            { label: "Dashboard", route: "/assignments" },
-            { label: "Create", route: "/assignments/new" }
-        ]
-    },
-    {
         id: "markdown",
         name: "Markdown Preview",
         description: "VSCode Monaco editor with live Markdown preview",

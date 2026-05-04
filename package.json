@@ -100,7 +100,7 @@
         "three": "^0.183.2",
         "tiktok-scraper-ts": "^1.4.1",
         "twitter-api-v2": "^1.29.0",
-        "uuid": "^13.0.0"
+        "uuid": "^14.0.0"
     },
     "devDependencies": {
         "@types/bcrypt": "^6.0.0",

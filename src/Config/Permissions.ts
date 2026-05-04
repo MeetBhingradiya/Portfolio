@@ -25,7 +25,8 @@ export const PERMISSION_CATEGORIES: Record<string, { label: string; color: strin
     cdn: { label: "CDN", color: "#8b5cf6" },
     admin: { label: "Administration", color: "#ef4444" },
     content: { label: "Content", color: "#22c55e" },
-    finance: { label: "Finance", color: "#06b6d4" }
+    finance: { label: "Finance", color: "#06b6d4" },
+    tools: { label: "Tools & Assignments", color: "#14b8a6" }
 };
 
 export const PERMISSIONS: PermissionDef[] = [
@@ -189,6 +190,56 @@ export const PERMISSIONS: PermissionDef[] = [
         label: "Export Transactions",
         description: "Download transaction CSV/PDF",
         category: "finance"
+    },
+
+    // ── Tools: Assignment Document System ──────────────────────────────────
+    {
+        key: "Tools.AssignmentSystem.Create",
+        label: "Create Assignments",
+        description: "Create new assignment documents",
+        category: "tools"
+    },
+    {
+        key: "Tools.AssignmentSystem.List",
+        label: "List Assignments",
+        description: "List and search assignment documents",
+        category: "tools"
+    },
+    {
+        key: "Tools.AssignmentSystem.View",
+        label: "View Assignment",
+        description: "View assignment document details",
+        category: "tools"
+    },
+    {
+        key: "Tools.AssignmentSystem.Edit",
+        label: "Edit Assignment",
+        description: "Edit assignment document content",
+        category: "tools"
+    },
+    {
+        key: "Tools.AssignmentSystem.Delete",
+        label: "Delete Assignment",
+        description: "Delete assignment document (soft delete to trash)",
+        category: "tools"
+    },
+    {
+        key: "Tools.AssignmentSystem.Share",
+        label: "Share Assignment",
+        description: "Share assignment with other users and generate share links",
+        category: "tools"
+    },
+    {
+        key: "Tools.AssignmentSystem.Download",
+        label: "Download Assignment",
+        description: "Download assignment as PDF",
+        category: "tools"
+    },
+    {
+        key: "Tools.AssignmentSystem.Manage",
+        label: "Manage All Assignments",
+        description: "Admin access to manage all assignments and apply restrictions",
+        category: "tools"
     }
 ];
 

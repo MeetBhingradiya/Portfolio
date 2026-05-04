@@ -3,6 +3,10 @@ export * from "./Agreements";
 export * from "./Products";
 export { default as Blog } from "./Blog";
 
+// ? Assignment Document System
+export { default as AssignmentDocument } from "./AssignmentDocument";
+export * from "./AssignmentShareLink";
+
 // ? Portfolio Management
 export * from "./Portfolio";
 

@@ -1,0 +1,629 @@
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: var(--font-sans);
+    }
+
+    .wrap {
+        width: min(680px, 100%);
+        margin: 0 auto;
+        padding: 1.25rem 0.75rem;
+    }
+
+    .step-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 1rem;
+    }
+
+    .step-num {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--color-background-secondary);
+        border: 0.5px solid var(--color-border-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--color-text-secondary);
+        flex-shrink: 0;
+    }
+
+    .step-num.active {
+        background: #3C3489;
+        color: #EEEDFE;
+        border-color: #3C3489;
+    }
+
+    .step-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+    }
+
+    .step-sub {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+        margin-top: 2px;
+    }
+
+    .card {
+        background: var(--color-background-primary);
+        border: 0.5px solid var(--color-border-tertiary);
+        border-radius: var(--border-radius-lg);
+        padding: 1.25rem;
+        margin-bottom: 1rem;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 120px;
+        resize: vertical;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        border: 0.5px solid var(--color-border-secondary);
+        border-radius: var(--border-radius-md);
+        padding: 10px;
+        background: var(--color-background-secondary);
+        color: var(--color-text-primary);
+        outline: none;
+    }
+
+    textarea:focus {
+        border-color: #534AB7;
+        box-shadow: 0 0 0 3px rgba(83, 74, 183, 0.1);
+    }
+
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: var(--border-radius-md);
+        border: 0.5px solid var(--color-border-secondary);
+        background: transparent;
+        color: var(--color-text-primary);
+        font-size: 13px;
+        cursor: pointer;
+        font-family: var(--font-sans);
+        transition: background 0.15s;
+    }
+
+    .btn:hover {
+        background: var(--color-background-secondary);
+    }
+
+    .btn:active {
+        transform: scale(0.98);
+    }
+
+    .btn-primary {
+        background: #3C3489;
+        color: #EEEDFE;
+        border-color: #3C3489;
+    }
+
+    .btn-primary:hover {
+        background: #534AB7;
+    }
+
+    .q-row {
+        margin-bottom: 1.25rem;
+    }
+
+    .q-label {
+        font-size: 13px;
+        color: var(--color-text-secondary);
+        margin-bottom: 5px;
+    }
+
+    .q-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        margin-bottom: 6px;
+    }
+
+    .q-entry {
+        font-size: 11px;
+        color: var(--color-text-tertiary);
+        font-family: var(--font-mono);
+        margin-bottom: 6px;
+    }
+
+    input[type="text"] {
+        width: 100%;
+        padding: 8px 10px;
+        border: 0.5px solid var(--color-border-secondary);
+        border-radius: var(--border-radius-md);
+        font-size: 13px;
+        background: var(--color-background-primary);
+        color: var(--color-text-primary);
+        font-family: var(--font-sans);
+        outline: none;
+    }
+
+    input[type="text"]:focus {
+        border-color: #534AB7;
+        box-shadow: 0 0 0 3px rgba(83, 74, 183, 0.1);
+    }
+
+    .url-box {
+        background: var(--color-background-secondary);
+        border: 0.5px solid var(--color-border-tertiary);
+        border-radius: var(--border-radius-md);
+        padding: 10px 12px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--color-text-secondary);
+        word-break: break-all;
+        line-height: 1.6;
+        margin-bottom: 12px;
+    }
+
+    .tag-badge {
+        display: inline-block;
+        background: #EEEDFE;
+        color: #3C3489;
+        font-size: 11px;
+        padding: 2px 8px;
+        border-radius: 99px;
+        margin-bottom: 8px;
+    }
+
+    .divider {
+        border: none;
+        border-top: 0.5px solid var(--color-border-tertiary);
+        margin: 1.25rem 0;
+    }
+
+    .err {
+        color: var(--color-text-danger);
+        font-size: 12px;
+        margin-top: 6px;
+    }
+
+    .notice {
+        font-size: 12px;
+        color: var(--color-text-secondary);
+        background: var(--color-background-secondary);
+        border-radius: var(--border-radius-md);
+        padding: 8px 12px;
+        margin-bottom: 1rem;
+        border-left: 2px solid #534AB7;
+    }
+
+    #step2,
+    #step3 {
+        display: none;
+    }
+
+    select {
+        width: 100%;
+        padding: 8px 10px;
+        border: 0.5px solid var(--color-border-secondary);
+        border-radius: var(--border-radius-md);
+        font-size: 13px;
+        background: var(--color-background-primary);
+        color: var(--color-text-primary);
+        font-family: var(--font-sans);
+        outline: none;
+    }
+
+    .copied {
+        background: #EAF3DE !important;
+        color: #3B6D11 !important;
+        border-color: #3B6D11 !important;
+    }
+
+    .action-row {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .option-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-size: 12px;
+        color: var(--color-text-secondary);
+    }
+
+    .option-row input[type="checkbox"] {
+        accent-color: #3C3489;
+    }
+
+    .choice-group {
+        display: grid;
+        gap: 8px;
+    }
+
+    .choice-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--color-text-primary);
+    }
+
+    .choice-item input[type="radio"],
+    .choice-item input[type="checkbox"] {
+        accent-color: #3C3489;
+    }
+
+    @media (max-width: 640px) {
+        .card {
+            padding: 1rem;
+        }
+
+        .action-row {
+            flex-direction: column;
+        }
+
+        .btn {
+            width: 100%;
+        }
+
+        .step-label {
+            font-size: 13px;
+        }
+
+        .step-sub {
+            font-size: 11px;
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            scroll-behavior: auto !important;
+            transition: none !important;
+        }
+    }
+</style>
+
+<div class="wrap">
+    <h2 class="sr-only">Google Forms pre-fill URL builder</h2>
+
+    <div class="card" id="step1">
+        <div class="step-header">
+            <div class="step-num active">1</div>
+            <div>
+                <div class="step-label">Paste your Google Form page source</div>
+                <div class="step-sub">Open form → Ctrl+U → Select all → Paste below</div>
+            </div>
+        </div>
+        <div class="notice">
+            <i class="ti ti-info-circle" aria-hidden="true"></i>
+            For enterprise/private forms, make sure you're logged in before opening the page source.
+        </div>
+        <textarea id="sourceInput"
+            placeholder="Paste the full HTML page source here...&#10;(Ctrl+U to view source, Ctrl+A to select all, Ctrl+C to copy)"></textarea>
+        <div id="parseErr" class="err"></div>
+        <div class="action-row">
+            <button class="btn btn-primary" onclick="parseSource()"><i class="ti ti-zoom-scan" aria-hidden="true"></i>
+                Parse form</button>
+            <button class="btn" onclick="tryDemo()"><i class="ti ti-test-pipe" aria-hidden="true"></i> Try demo</button>
+        </div>
+    </div>
+
+    <div id="step2">
+        <div class="card">
+            <div class="step-header">
+                <div class="step-num active">2</div>
+                <div>
+                    <div class="step-label" id="formTitle">Fill your answers</div>
+                    <div class="step-sub" id="formDesc"></div>
+                </div>
+            </div>
+            <hr class="divider">
+            <div id="questionsContainer"></div>
+            <button class="btn btn-primary" onclick="generateURL()"><i class="ti ti-link" aria-hidden="true"></i>
+                Generate pre-filled URL</button>
+        </div>
+    </div>
+
+    <div id="step3">
+        <div class="card">
+            <div class="step-header">
+                <div class="step-num active">3</div>
+                <div>
+                    <div class="step-label">Your pre-filled URL is ready</div>
+                    <div class="step-sub">Share this — receiver opens it with answers pre-filled</div>
+                </div>
+            </div>
+            <hr class="divider">
+            <label class="option-row">
+                <input type="checkbox" id="includeAccountChooser">
+                Include Google account selection before opening the form
+            </label>
+            <div class="url-box" id="outputURL"></div>
+            <div class="action-row" style="margin-top: 0;">
+                <button class="btn btn-primary" id="copyBtn" onclick="copyURL()"><i class="ti ti-copy"
+                        aria-hidden="true"></i> Copy URL</button>
+                <button class="btn" onclick="openURL()"><i class="ti ti-external-link" aria-hidden="true"></i> Open in
+                    browser</button>
+                <button class="btn" onclick="reset()"><i class="ti ti-refresh" aria-hidden="true"></i> Start
+                    over</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let formActionURL = '';
+    let questions = [];
+    let generatedURL = '';
+    let liveURLTimer = null;
+
+    const sourceInputEl = document.getElementById('sourceInput');
+    const parseErrEl = document.getElementById('parseErr');
+    const step2El = document.getElementById('step2');
+    const step3El = document.getElementById('step3');
+    const outputURLEl = document.getElementById('outputURL');
+    const includeAccountChooserEl = document.getElementById('includeAccountChooser');
+
+    includeAccountChooserEl.addEventListener('change', () => {
+        if (step2El.style.display === 'block') generateURL(true);
+    });
+
+    function extractJSONBlockByBracket(src, marker) {
+        const markerIdx = src.indexOf(marker);
+        if (markerIdx === -1) return null;
+        const equalIdx = src.indexOf('=', markerIdx);
+        if (equalIdx === -1) return null;
+        const startIdx = src.indexOf('[', equalIdx);
+        if (startIdx === -1) return null;
+
+        let depth = 0;
+        let inString = false;
+        let quoteChar = '';
+        let escaped = false;
+
+        for (let i = startIdx; i < src.length; i++) {
+            const ch = src[i];
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                    continue;
+                }
+                if (ch === '\\') {
+                    escaped = true;
+                    continue;
+                }
+                if (ch === quoteChar) {
+                    inString = false;
+                }
+                continue;
+            }
+
+            if (ch === '"' || ch === "'") {
+                inString = true;
+                quoteChar = ch;
+                continue;
+            }
+            if (ch === '[') depth++;
+            if (ch === ']') {
+                depth--;
+                if (depth === 0) {
+                    return src.slice(startIdx, i + 1);
+                }
+            }
+        }
+
+        return null;
+    }
+
+    function extractActionURL(src) {
+        const actionMatch = src.match(/action="([^"]+\/formResponse)"/);
+        return actionMatch ? actionMatch[1] : extractBaseURL(src);
+    }
+
+    function scheduleInstantURL() {
+        clearTimeout(liveURLTimer);
+        liveURLTimer = setTimeout(() => generateURL(true), 80);
+    }
+
+    function parseSource() {
+        const src = sourceInputEl.value.trim();
+        parseErrEl.textContent = '';
+        if (!src) {
+            parseErrEl.textContent = 'Please paste page source first.';
+            return;
+        }
+
+        let parsed = false;
+
+        const fbJson = extractJSONBlockByBracket(src, 'FB_PUBLIC_LOAD_DATA_');
+        if (fbJson) {
+            try {
+                const data = JSON.parse(fbJson);
+                const title = data[3] || 'Google Form';
+                const desc = data[4] || '';
+                const qs = data?.[1]?.[1];
+                questions = [];
+                if (Array.isArray(qs)) {
+                    qs.forEach(q => {
+                        const qTitle = q[1] || 'Question';
+                        const qType = q[3];
+                        const entryArr = q[4];
+                        const entryId = entryArr?.[0]?.[0];
+                        if (!entryId) return;
+                        let opts = [];
+                        if (Array.isArray(entryArr?.[0]?.[1])) {
+                            opts = entryArr[0][1].map(o => o[0]).filter(Boolean);
+                        }
+                        questions.push({ title: qTitle, entryId: 'entry.' + entryId, type: qType, opts });
+                    });
+                }
+                formActionURL = extractActionURL(src);
+                renderQuestions(title, desc);
+                parsed = true;
+            } catch (e) {
+                // Fallback parsing will be attempted below.
+            }
+        }
+
+        if (!parsed) {
+            const uniqueEntries = [...new Set([...src.matchAll(/name="(entry\.\d+)"/g)].map(m => m[1]))];
+            if (uniqueEntries.length > 0) {
+                questions = uniqueEntries.map((entryId, i) => ({ title: 'Field ' + (i + 1), entryId, type: 0, opts: [] }));
+                formActionURL = extractActionURL(src);
+                renderQuestions('Google Form', '');
+                parsed = true;
+            }
+        }
+
+        if (!parsed) {
+            parseErrEl.textContent = 'Could not parse this source. Make sure you pasted the full HTML page source of a Google Form.';
+        }
+    }
+
+    function extractBaseURL(src) {
+        const m = src.match(/https:\/\/docs\.google\.com\/forms\/d\/e\/([^\/'"]+)\/viewform/);
+        return m ? 'https://docs.google.com/forms/d/e/' + m[1] + '/formResponse' : '';
+    }
+
+    function renderQuestions(title, desc) {
+        document.getElementById('formTitle').textContent = title || 'Fill your answers';
+        document.getElementById('formDesc').textContent = desc;
+        const container = document.getElementById('questionsContainer');
+        container.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+
+        questions.forEach((q, i) => {
+            const div = document.createElement('div');
+            div.className = 'q-row';
+            const badge = `<span class="tag-badge">${q.entryId}</span>`;
+            let inputEl = '';
+            if (q.opts && q.opts.length > 0 && q.type === 2) {
+                inputEl = `<div class="choice-group">${q.opts.map((o, idx) => `
+                    <label class="choice-item">
+                        <input type="radio" name="ans_${i}" value="${escHtml(o)}" ${idx === 0 ? '' : ''}>
+                        <span>${escHtml(o)}</span>
+                    </label>
+                `).join('')}</div>`;
+            } else if (q.opts && q.opts.length > 0 && q.type === 4) {
+                inputEl = `<div class="choice-group">${q.opts.map(o => `
+                    <label class="choice-item">
+                        <input type="checkbox" name="ans_${i}" value="${escHtml(o)}">
+                        <span>${escHtml(o)}</span>
+                    </label>
+                `).join('')}</div>`;
+            } else if (q.opts && q.opts.length > 0) {
+                const opts = q.opts.map(o => `<option value="${escHtml(o)}">${escHtml(o)}</option>`).join('');
+                inputEl = `<select id="ans_${i}"><option value="">-- Select --</option>${opts}</select>`;
+            } else {
+                inputEl = `<input type="text" id="ans_${i}" placeholder="Your answer..." />`;
+            }
+            div.innerHTML = `
+      <div class="q-title">${escHtml(q.title)}</div>
+      ${badge}
+      ${inputEl}
+    `;
+            fragment.appendChild(div);
+        });
+        container.appendChild(fragment);
+        container.querySelectorAll('input, select').forEach(el => {
+            el.addEventListener('input', scheduleInstantURL);
+            el.addEventListener('change', scheduleInstantURL);
+        });
+        step2El.style.display = 'block';
+        step2El.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        generateURL(true);
+    }
+
+    function buildAccountChooserURL(url) {
+        return `https://accounts.google.com/AccountChooser?continue=${encodeURIComponent(url)}`;
+    }
+
+    function generateURL(skipScroll = false) {
+        if (!formActionURL) { alert('Form action URL not found in source.'); return; }
+        const viewURL = formActionURL.replace('/formResponse', '/viewform');
+        const params = [];
+        questions.forEach((q, i) => {
+            if (q.type === 2) {
+                const selected = document.querySelector(`input[name="ans_${i}"]:checked`);
+                if (selected?.value) {
+                    params.push(`${encodeURIComponent(q.entryId)}=${encodeURIComponent(selected.value)}`);
+                }
+                return;
+            }
+
+            if (q.type === 4) {
+                const selected = document.querySelectorAll(`input[name="ans_${i}"]:checked`);
+                selected.forEach(item => {
+                    if (item.value) {
+                        params.push(`${encodeURIComponent(q.entryId)}=${encodeURIComponent(item.value)}`);
+                    }
+                });
+                return;
+            }
+
+            const val = document.getElementById('ans_' + i)?.value || '';
+            if (!val) return;
+            params.push(`${encodeURIComponent(q.entryId)}=${encodeURIComponent(val)}`);
+        });
+        const query = params.length > 0 ? `${params.join('&')}&usp=pp_url` : 'usp=pp_url';
+        const directURL = `${viewURL}?${query}`;
+        generatedURL = includeAccountChooserEl.checked ? buildAccountChooserURL(directURL) : directURL;
+        outputURLEl.textContent = generatedURL;
+        step3El.style.display = 'block';
+        if (!skipScroll) {
+            step3El.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    function copyURL() {
+        if (!generatedURL) return;
+        navigator.clipboard.writeText(generatedURL).then(() => {
+            const btn = document.getElementById('copyBtn');
+            btn.classList.add('copied');
+            btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i> Copied!';
+            setTimeout(() => { btn.classList.remove('copied'); btn.innerHTML = '<i class="ti ti-copy" aria-hidden="true"></i> Copy URL'; }, 2000);
+        });
+    }
+
+    function openURL() { if (generatedURL) window.open(generatedURL, '_blank'); }
+
+    function reset() {
+        step2El.style.display = 'none';
+        step3El.style.display = 'none';
+        sourceInputEl.value = '';
+        parseErrEl.textContent = '';
+        document.getElementById('questionsContainer').innerHTML = '';
+        outputURLEl.textContent = '';
+        includeAccountChooserEl.checked = false;
+        generatedURL = '';
+    }
+
+    function escHtml(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function tryDemo() {
+        questions = [
+            { title: 'Full Name', entryId: 'entry.123456789', type: 0, opts: [] },
+            { title: 'Email Address', entryId: 'entry.987654321', type: 0, opts: [] },
+            { title: 'Department', entryId: 'entry.111222333', type: 2, opts: ['Engineering', 'Design', 'Marketing', 'HR'] },
+            { title: 'Your Feedback', entryId: 'entry.444555666', type: 0, opts: [] },
+        ];
+        formActionURL = 'https://docs.google.com/forms/d/e/DEMO_FORM_ID/formResponse';
+        renderQuestions('Demo Google Form', 'This is a sample — paste real source for actual entry IDs');
+    }
+</script>

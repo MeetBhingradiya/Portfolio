@@ -1,6 +1,5 @@
 const DEFAULT_BETA_ORIGINS = [
     "https://beta.meetbhingradiya.in",
-    "https://beta.meetbhingradiya.shop",
     "https://beta.meetbhingradiya.vercel.app"
 ];
 
@@ -11,7 +10,10 @@ const DEFAULT_PRODUCTION_ORIGINS = [
     ...DEFAULT_BETA_ORIGINS
 ];
 
-const DEFAULT_LOCAL_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"];
+const DEFAULT_LOCAL_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+];
 
 const DEFAULT_IMMICH_ORIGINS = [
     "https://photos.meetbhingradiya.in",
@@ -100,9 +102,21 @@ export function getPrimaryOrigin(): string {
         return primaryOriginCache.value;
     }
 
-    const value = process.env.VERCEL_ENV === "preview" ? DEFAULT_BETA_ORIGINS[0] : DEFAULT_PRODUCTION_ORIGINS[0];
-    const normalized = normalizeOrigin(value) ?? DEFAULT_LOCAL_ORIGINS[0];
+    let value = DEFAULT_PRODUCTION_ORIGINS[0];
 
+    if (process.env.VERCEL_ENV === "preview") {
+        value = DEFAULT_BETA_ORIGINS[0];
+    }
+
+    if (process.env.NODE_ENV === "development") {
+        value = DEFAULT_LOCAL_ORIGINS[0];
+    }
+
+    if (process.env.VERCEL_ENV === "production") {
+        value = DEFAULT_PRODUCTION_ORIGINS[0];
+    }
+
+    const normalized: string = normalizeOrigin(value) as string;
     primaryOriginCache = { key: cacheKey, value: normalized };
     trustedOriginsCache = null;
     trustedOriginSetCache = null;

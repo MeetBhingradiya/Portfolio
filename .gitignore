@@ -18,6 +18,20 @@ keys
 .env.encrypted
 .private-env-repo
 
+*.temp.*
+*.chat.*
+*SUMMARY*
+*CHECKLIST*
+*TROUBLESHOOTING*
+USER_DOCUMENTATION*
+FIRST_USE*
+FIREBASE_SETUP*
+QUICK_START*
+GETTING_STARTED*
+PHASE2*
+*IMPLEMENTATION*
+
+
 Test
 
 # ^ IDE

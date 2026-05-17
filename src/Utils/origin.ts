@@ -104,16 +104,12 @@ export function getPrimaryOrigin(): string {
 
     let value = DEFAULT_PRODUCTION_ORIGINS[0];
 
-    if (process.env.VERCEL_ENV === "preview") {
+    if (process.env.VERCEL_ENV === "preview" && process.env.NODE_ENV === "production") {
         value = DEFAULT_BETA_ORIGINS[0];
     }
 
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development" && process.env.VERCEL_ENV === "development") {
         value = DEFAULT_LOCAL_ORIGINS[0];
-    }
-
-    if (process.env.VERCEL_ENV === "production") {
-        value = DEFAULT_PRODUCTION_ORIGINS[0];
     }
 
     const normalized: string = normalizeOrigin(value) as string;

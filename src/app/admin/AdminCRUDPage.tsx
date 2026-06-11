@@ -54,6 +54,29 @@ interface AdminCRUDPageProps {
     defaultValues?: Record<string, any>;
 }
 
+// ─── Nested property helpers for dot-notation keys (e.g. "Links.live") ────────
+function getNestedValue(obj: any, path: string): any {
+    if (!obj || !path) return undefined;
+    if (!path.includes(".")) return obj[path];
+    return path.split(".").reduce((acc, part) => acc?.[part], obj);
+}
+
+function setNestedValue(obj: Record<string, any>, path: string, value: any): void {
+    if (!path.includes(".")) {
+        obj[path] = value;
+        return;
+    }
+    const parts = path.split(".");
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+        if (cur[parts[i]] === undefined || cur[parts[i]] === null || typeof cur[parts[i]] !== "object") {
+            cur[parts[i]] = {};
+        }
+        cur = cur[parts[i]];
+    }
+    cur[parts[parts.length - 1]] = value;
+}
+
 const PAGE_SIZE = 15;
 
 // ─── CDN Uploader Hook — combined state ───────────────────────────────────────
@@ -1130,7 +1153,7 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
     const openEdit = (item: any) => {
         const form: Record<string, any> = {};
         fields.forEach((f) => {
-            form[f.key] = item[f.key] ?? defaultValues[f.key] ?? "";
+            form[f.key] = getNestedValue(item, f.key) ?? defaultValues[f.key] ?? "";
         });
         patchModal({
             open: true,
@@ -1146,7 +1169,7 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
     const openDuplicate = (item: any) => {
         const form: Record<string, any> = {};
         fields.forEach((f) => {
-            let val = item[f.key] ?? defaultValues[f.key] ?? "";
+            let val = getNestedValue(item, f.key) ?? defaultValues[f.key] ?? "";
             if (f.type === "text" && f.required && typeof val === "string" && val && !val.endsWith(" (Copy)")) val += " (Copy)";
             form[f.key] = val;
         });
@@ -1175,18 +1198,23 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
         patchTable({ error: "" });
         try {
             const { editItem, isDuplicate, form } = modal;
+            // Convert flat dot-notation keys back into nested objects for the API
+            const payload: Record<string, any> = {};
+            Object.entries(form).forEach(([key, value]) => {
+                setNestedValue(payload, key, value);
+            });
             const res =
                 editItem && !isDuplicate
                     ? await fetch(`${apiBase}/${editItem[idField]}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(form)
-                      })
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    })
                     : await fetch(apiBase, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(form)
-                      });
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
             const json = await res.json();
             if (json.success) {
                 closeModal();
@@ -1238,9 +1266,9 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
         ...inputBase,
         ...(modal.focusedKey === key
             ? {
-                  border: `1px solid ${palette.accent}`,
-                  boxShadow: `0 0 0 3px ${palette.accent}25`
-              }
+                border: `1px solid ${palette.accent}`,
+                boxShadow: `0 0 0 3px ${palette.accent}25`
+            }
             : {})
     });
 
@@ -1357,9 +1385,9 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                             ...inputBase,
                             ...(isFocused
                                 ? {
-                                      border: `1px solid ${palette.accent}`,
-                                      boxShadow: `0 0 0 3px ${palette.accent}25`
-                                  }
+                                    border: `1px solid ${palette.accent}`,
+                                    boxShadow: `0 0 0 3px ${palette.accent}25`
+                                }
                                 : {}),
                             minHeight: 46,
                             display: "flex",
@@ -1455,7 +1483,7 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
     };
 
     const renderCellValue = (item: any, field: FieldDef) => {
-        const val = item[field.key];
+        const val = getNestedValue(item, field.key);
         if (val === undefined || val === null || val === "") return <span style={{ color: palette.textTertiary }}>—</span>;
         if (field.type === "boolean")
             return (
@@ -1977,8 +2005,8 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                                             {modal.isDuplicate
                                                 ? `Duplicate ${title.replace(/ies$/, "y").replace(/s$/, "")}`
                                                 : modal.editItem
-                                                  ? `Edit ${title.replace(/ies$/, "y").replace(/s$/, "")}`
-                                                  : `Add ${title.replace(/ies$/, "y").replace(/s$/, "")}`}
+                                                    ? `Edit ${title.replace(/ies$/, "y").replace(/s$/, "")}`
+                                                    : `Add ${title.replace(/ies$/, "y").replace(/s$/, "")}`}
                                         </h2>
                                         {modal.isDuplicate && (
                                             <p

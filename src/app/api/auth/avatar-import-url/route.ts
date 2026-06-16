@@ -6,6 +6,7 @@ import dbConnect from "@Utils/dbConnect";
 import { CDNAsset } from "@Models/CDNAsset";
 import { githubUpload } from "@Utils/GitHubCDN";
 import { Config } from "@Config/Client";
+import { hasPermission } from "@Library/permissions";
 
 const MAX_BYTES = 20 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/gif", "image/avif"]);
@@ -35,6 +36,10 @@ export async function POST(request: NextRequest) {
         const session = await auth.api.getSession({ headers: request.headers });
         if (!session?.user?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
+        if (!(await hasPermission(session.user.id, "Users.Avatars.Import"))) {
+            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
         }
 
         const body = await request.json().catch(() => ({}));

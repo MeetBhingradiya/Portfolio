@@ -1,7 +1,7 @@
 /**
  * Asset Transactions Detail Page
  * Shows all transactions for a specific asset (including hidden ones)
- * with filtering and asset details summary.
+ * with modern toolbar filtering, sorting, column visibility, and asset details summary.
  */
 
 "use client";
@@ -15,7 +15,6 @@ import {
     ArrowDownward,
     ArrowUpward,
     SwapHoriz,
-    Search,
     Edit,
     Delete,
     NavigateBefore,
@@ -23,11 +22,17 @@ import {
     TrendingUp,
     TrendingDown,
     FilterList,
-    Visibility
+    Visibility,
+    PersonOutline
 } from "@mui/icons-material";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIButton } from "@Components/Atoms/OneUI";
-import { CustomSelect } from "@Components/Atoms/CustomSelect";
+import {
+    TransactionToolbar,
+    type ToolbarFilters,
+    type ToolbarSort,
+    type ToolbarColumnVisibility
+} from "@Components/Atoms/TransactionToolbar";
 
 interface Transaction {
     TransactionID: string;
@@ -41,6 +46,8 @@ interface Transaction {
     Date: string;
     IsHidden?: boolean;
     IsWalletTransfer?: boolean;
+    ContactID?: string;
+    ContactName?: string | null;
 }
 
 interface Asset {
@@ -59,35 +66,20 @@ interface AssetSummary {
     transactionCount: number;
 }
 
-const TYPES = ["ALL", "CREDIT", "DEBIT", "TRANSFER"];
-const CATEGORIES = [
-    "ALL",
-    "FOOD",
-    "TRANSPORT",
-    "SHOPPING",
-    "ENTERTAINMENT",
-    "BILLS",
-    "HEALTH",
-    "EDUCATION",
-    "RENT",
-    "SALARY",
-    "FREELANCE",
-    "INVESTMENT",
-    "GIFT",
-    "RECHARGE",
-    "SUBSCRIPTION",
-    "TRAVEL",
-    "GROCERIES",
-    "DONATION",
-    "LOAN",
-    "REFUND",
-    "OTHER"
-];
-const TYPE_OPTS = TYPES.map((v) => ({ value: v, label: v }));
-const CATEGORY_OPTS = CATEGORIES.map((v) => ({
-    value: v,
-    label: v.replace(/_/g, " ")
-}));
+const STORAGE_KEY_COLS = "wallet-asset-col-visibility";
+
+function loadColumnVisibility(): ToolbarColumnVisibility {
+    if (typeof window === "undefined") return defaultCols();
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY_COLS);
+        if (stored) return JSON.parse(stored);
+    } catch {}
+    return defaultCols();
+}
+
+function defaultCols(): ToolbarColumnVisibility {
+    return { date: true, note: true, amount: true, type: true, category: true, contact: true };
+}
 
 export default function AssetTransactionsPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
@@ -106,13 +98,28 @@ export default function AssetTransactionsPage() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [search, setSearch] = useState("");
-    const [type, setType] = useState("ALL");
-    const [category, setCategory] = useState("ALL");
-    const [showHidden, setShowHidden] = useState(false);
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+    // Toolbar state
+    const [filters, setFilters] = useState<ToolbarFilters>({
+        search: "",
+        type: "ALL",
+        category: "ALL",
+        from: "",
+        to: "",
+        showHidden: false
+    });
+    const [sort, setSort] = useState<ToolbarSort>({ sortBy: "date", sortDir: "desc" });
+    const [columnVisibility, setColumnVisibility] = useState<ToolbarColumnVisibility>(defaultCols());
+
+    useEffect(() => {
+        setColumnVisibility(loadColumnVisibility());
+    }, []);
+
+    const handleColumnVisibilityChange = useCallback((cols: ToolbarColumnVisibility) => {
+        setColumnVisibility(cols);
+        try { localStorage.setItem(STORAGE_KEY_COLS, JSON.stringify(cols)); } catch {}
+    }, []);
 
     const fetchAssetAndTransactions = useCallback(async () => {
         setLoading(true);
@@ -130,18 +137,22 @@ export default function AssetTransactionsPage() {
             }
 
             // Fetch transactions for this asset (with hidden option)
-            const params = new URLSearchParams({
+            const qParams = new URLSearchParams({
                 page: String(page),
                 limit: "20",
                 assetId: assetId,
-                showHidden: showHidden ? "1" : "0"
+                showHidden: filters.showHidden ? "1" : "0"
             });
-            if (search) params.set("search", search);
-            if (type !== "ALL") params.set("type", type);
-            if (category !== "ALL") params.set("category", category);
-            params.set("t", Date.now().toString());
+            if (filters.search) qParams.set("search", filters.search);
+            if (filters.type !== "ALL") qParams.set("type", filters.type);
+            if (filters.category !== "ALL") qParams.set("category", filters.category);
+            if (filters.from) qParams.set("from", filters.from);
+            if (filters.to) qParams.set("to", filters.to);
+            qParams.set("sortBy", sort.sortBy);
+            qParams.set("sortDir", sort.sortDir);
+            qParams.set("t", Date.now().toString());
 
-            const txnRes = await fetch(`/api/wallet?${params}`, {
+            const txnRes = await fetch(`/api/wallet?${qParams}`, {
                 cache: "no-store"
             }).then((r) => r.json());
 
@@ -170,7 +181,7 @@ export default function AssetTransactionsPage() {
         } finally {
             setLoading(false);
         }
-    }, [assetId, page, search, type, category, showHidden]);
+    }, [assetId, page, filters, sort]);
 
     useEffect(() => {
         fetchAssetAndTransactions();
@@ -178,7 +189,7 @@ export default function AssetTransactionsPage() {
 
     useEffect(() => {
         setPage(1);
-    }, [search, type, category, showHidden]);
+    }, [filters, sort]);
 
     async function deleteTransaction(id: string) {
         if (!confirm("Delete this transaction? This cannot be undone.")) return;
@@ -389,51 +400,16 @@ export default function AssetTransactionsPage() {
                 </div>
             )}
 
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-3">
-                <div
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-2xl flex-1 min-w-[200px] transition-all"
-                    style={{
-                        background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)",
-                        border: `1px solid ${borderColor}`
-                    }}>
-                    <Search
-                        fontSize="small"
-                        style={{ color: palette.textTertiary }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search notes, tags..."
-                        className="bg-transparent outline-none flex-1 text-sm font-medium"
-                        style={{ color: palette.textPrimary }}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-                <CustomSelect
-                    value={type}
-                    onChange={setType}
-                    options={TYPE_OPTS}
-                    className="min-w-[140px]"
-                />
-                <CustomSelect
-                    value={category}
-                    onChange={setCategory}
-                    options={CATEGORY_OPTS}
-                    className="min-w-[160px]"
-                />
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setShowHidden(!showHidden)}
-                    className="px-4 py-2.5 rounded-2xl font-semibold text-sm transition-all"
-                    style={{
-                        background: showHidden ? (palette.accent || "#06b6d4") : borderColor,
-                        color: showHidden ? "#fff" : palette.textSecondary
-                    }}>
-                    {showHidden ? "Showing Hidden" : "Hide Hidden"}
-                </motion.button>
-            </div>
+            {/* Modern Toolbar */}
+            <TransactionToolbar
+                filters={filters}
+                onFiltersChange={setFilters}
+                sort={sort}
+                onSortChange={setSort}
+                columnVisibility={columnVisibility}
+                onColumnVisibilityChange={handleColumnVisibilityChange}
+                showHiddenToggle
+            />
 
             {/* Transactions List */}
             <AnimatePresence mode="popLayout">
@@ -486,38 +462,46 @@ export default function AssetTransactionsPage() {
                             const innerContent = (
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
                                     <div className="flex items-center gap-4">
-                                        <div
-                                            className="p-3 rounded-xl flex-shrink-0"
-                                            style={{
-                                                background: `${typeColor(t.Type)}15`,
-                                                color: typeColor(t.Type)
-                                            }}>
-                                            {typeIcon(t.Type)}
-                                        </div>
+                                        {columnVisibility.type && (
+                                            <div
+                                                className="p-3 rounded-xl flex-shrink-0"
+                                                style={{
+                                                    background: `${typeColor(t.Type)}15`,
+                                                    color: typeColor(t.Type)
+                                                }}>
+                                                {typeIcon(t.Type)}
+                                            </div>
+                                        )}
 
                                         <div className="flex flex-col">
-                                            <span
-                                                className="text-base font-bold"
-                                                style={{
-                                                    color: palette.textPrimary
-                                                }}>
-                                                {t.Note}
-                                            </span>
-                                            <div className="flex items-center gap-2 mt-0.5">
+                                            {columnVisibility.note && (
                                                 <span
-                                                    className="text-xs font-semibold uppercase"
+                                                    className="text-base font-bold"
                                                     style={{
-                                                        color: palette.textTertiary
+                                                        color: palette.textPrimary
                                                     }}>
-                                                    {t.Category || "OTHER"}
+                                                    {t.Note}
                                                 </span>
-                                                <span
-                                                    className="text-xs font-semibold"
-                                                    style={{
-                                                        color: palette.textTertiary
-                                                    }}>
-                                                    · {dateStr}
-                                                </span>
+                                            )}
+                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                {columnVisibility.category && (
+                                                    <span
+                                                        className="text-xs font-semibold uppercase"
+                                                        style={{
+                                                            color: palette.textTertiary
+                                                        }}>
+                                                        {t.Category || "OTHER"}
+                                                    </span>
+                                                )}
+                                                {columnVisibility.date && (
+                                                    <span
+                                                        className="text-xs font-semibold"
+                                                        style={{
+                                                            color: palette.textTertiary
+                                                        }}>
+                                                        · {dateStr}
+                                                    </span>
+                                                )}
                                                 {t.IsHidden && (
                                                     <span
                                                         className="text-xs font-bold px-2 py-0.5 rounded"
@@ -528,29 +512,45 @@ export default function AssetTransactionsPage() {
                                                         HIDDEN
                                                     </span>
                                                 )}
+                                                {/* Contact chip */}
+                                                {columnVisibility.contact && t.ContactName && (
+                                                    <span
+                                                        className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
+                                                        style={{
+                                                            background: isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)",
+                                                            color: "#8b5cf6"
+                                                        }}>
+                                                        <PersonOutline style={{ fontSize: 10 }} />
+                                                        {t.ContactName}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-auto">
-                                        <div className="flex flex-col sm:items-end">
-                                            <span
-                                                className="text-lg font-bold"
-                                                style={{
-                                                    color: typeColor(t.Type)
-                                                }}>
-                                                {t.Type === "DEBIT" ? "−" : t.Type === "CREDIT" ? "+" : ""}
-                                                {amtFmt(t.Amount)}
-                                            </span>
-                                            <span
-                                                className="text-xs font-semibold uppercase"
-                                                style={{
-                                                    color: typeColor(t.Type),
-                                                    opacity: 0.7
-                                                }}>
-                                                {t.Type}
-                                            </span>
-                                        </div>
+                                        {columnVisibility.amount && (
+                                            <div className="flex flex-col sm:items-end">
+                                                <span
+                                                    className="text-lg font-bold"
+                                                    style={{
+                                                        color: typeColor(t.Type)
+                                                    }}>
+                                                    {t.Type === "DEBIT" ? "−" : t.Type === "CREDIT" ? "+" : ""}
+                                                    {amtFmt(t.Amount)}
+                                                </span>
+                                                {columnVisibility.type && (
+                                                    <span
+                                                        className="text-xs font-semibold uppercase"
+                                                        style={{
+                                                            color: typeColor(t.Type),
+                                                            opacity: 0.7
+                                                        }}>
+                                                        {t.Type}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                         <div className="flex items-center gap-1.5">
                                             <Link href={`/wallet/edit/${t.TransactionID}`}>
                                                 <motion.button

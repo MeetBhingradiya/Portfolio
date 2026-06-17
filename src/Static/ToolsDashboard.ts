@@ -81,8 +81,8 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/qr",
         badges: ["db-sync", "admin-managed"],
         isPublic: true,
-        adminManaged: true,
-        syncToDb: true,
+        adminManaged: false,
+        syncToDb: false,
         shortcut: "Q"
     },
     {
@@ -98,7 +98,7 @@ export const TOOLS: ToolDefinition[] = [
         badges: ["db-sync"],
         isPublic: true,
         adminManaged: false,
-        syncToDb: true,
+        syncToDb: false,
         shortcut: "U"
     },
     {
@@ -113,8 +113,8 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/password",
         badges: ["admin-managed", "db-sync"],
         isPublic: true,
-        adminManaged: true,
-        syncToDb: true,
+        adminManaged: false,
+        syncToDb: false,
         shortcut: "P"
     },
     // ── Converters ──────────────────────────────────────────────────────────
@@ -147,12 +147,12 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/jwt",
         badges: ["studio", "admin-managed", "db-sync"],
         isPublic: true,
-        adminManaged: true,
+        adminManaged: false,
         modes: [
             { label: "Debug", route: "/tools/jwt?mode=debug" },
             { label: "Studio", route: "/tools/jwt?mode=studio" }
         ],
-        syncToDb: true,
+        syncToDb: false,
         shortcut: "K"
     },
     {
@@ -167,12 +167,12 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/regexp",
         badges: ["featured", "studio", "admin-managed", "db-sync"],
         isPublic: true,
-        adminManaged: true,
+        adminManaged: false,
         modes: [
             { label: "Explore", route: "/tools/regexp?mode=explore" },
             { label: "Studio", route: "/tools/regexp?mode=studio" }
         ],
-        syncToDb: true,
+        syncToDb: false,
         shortcut: "R"
     },
     {
@@ -187,7 +187,7 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/paperknife",
         badges: ["new", "featured", "admin-managed"],
         isPublic: true,
-        adminManaged: true,
+        adminManaged: false,
         syncToDb: false,
         shortcut: "P"
     },
@@ -204,7 +204,7 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/image",
         badges: ["admin-managed"],
         isPublic: true,
-        adminManaged: true,
+        adminManaged: false,
         modes: [
             { label: "Compress", route: "/tools/image?mode=compress" },
             { label: "To PDF", route: "/tools/image?mode=topdf" }
@@ -225,8 +225,8 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/encrypt",
         badges: ["admin-managed", "db-sync"],
         isPublic: true,
-        adminManaged: true,
-        syncToDb: true,
+        adminManaged: false,
+        syncToDb: false,
         shortcut: "E"
     },
     {
@@ -245,6 +245,22 @@ export const TOOLS: ToolDefinition[] = [
         syncToDb: false,
         shortcut: "H"
     },
+    {
+        id: "hardware-unlock",
+        name: "Hardware Unlock",
+        description: "Pair your phone to approve Windows unlock challenges",
+        longDescription:
+            "Private hardware unlock tool that pairs a mobile device with a Windows client for secure challenge-response approvals. Access is restricted to approved users.",
+        category: "security",
+        iconName: "PhonelinkLock",
+        accentColor: "#0EA5E9",
+        route: "/tools/hardware-unlock",
+        badges: ["beta", "admin-managed"],
+        isPublic: false,
+        adminManaged: true,
+        syncToDb: false,
+        shortcut: "L"
+    },
     // ── Editor & Pickers ────────────────────────────────────────────────────
     {
         id: "markdown",
@@ -259,7 +275,7 @@ export const TOOLS: ToolDefinition[] = [
         badges: ["db-sync", "featured"],
         isPublic: true,
         adminManaged: false,
-        syncToDb: true,
+        syncToDb: false,
         shortcut: "M"
     },
     {
@@ -274,8 +290,8 @@ export const TOOLS: ToolDefinition[] = [
         route: "/tools/colour",
         badges: ["admin-managed", "db-sync", "featured"],
         isPublic: true,
-        adminManaged: true,
-        syncToDb: true,
+        adminManaged: false,
+        syncToDb: false,
         shortcut: "C",
         modes: [
             { label: "Picker", route: "/tools/colour?mode=picker" },

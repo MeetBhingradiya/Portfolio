@@ -18,7 +18,7 @@ import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
 import { UserRole, IUserRole } from "@Models/UserRole";
 import { RoleDefinition } from "@Models/RoleDefinition";
-import { PERMISSIONS_MAP } from "@Config/Permissions";
+import { ALL_PERMISSION_KEYS, PERMISSIONS_MAP, normalizePermissionKeys } from "@Config/Permissions";
 
 export type AppRole = "admin" | "employee" | "paid_customer" | "user" | string;
 
@@ -54,7 +54,14 @@ export async function resolveEffectivePermissions(roles: string[], overrides: { 
 
     // Union of all role permissions
     const perms = new Set<string>();
-    defs.forEach((def) => def.permissions.forEach((p) => perms.add(p)));
+    defs.forEach((def) => {
+        const normalized = normalizePermissionKeys(def.permissions ?? []);
+        if (normalized.includes("*")) {
+            ALL_PERMISSION_KEYS.forEach((key) => perms.add(key));
+            return;
+        }
+        normalized.forEach((p) => perms.add(p));
+    });
 
     // Apply per-user overrides
     overrides.forEach((o) => {

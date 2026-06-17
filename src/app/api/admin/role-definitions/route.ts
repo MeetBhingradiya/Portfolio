@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { RoleDefinition, seedBuiltinRoles } from "@Models/RoleDefinition";
 import { permissionError, requireAnyPermission, requirePermission } from "@Library/adminApiMiddleware";
-import { ALL_PERMISSION_KEYS } from "@Config/Permissions";
+import { isRolePermissionKey, normalizePermissionKeys } from "@Config/Permissions";
 
 export async function GET(req: NextRequest) {
     try {
@@ -18,7 +18,13 @@ export async function GET(req: NextRequest) {
         await seedBuiltinRoles(); // idempotent — only inserts if missing
 
         const roles = await RoleDefinition.find().sort({ order: 1, createdAt: 1 }).lean();
-        return NextResponse.json({ success: true, roles });
+        return NextResponse.json({
+            success: true,
+            roles: roles.map((role) => ({
+                ...role,
+                permissions: normalizePermissionKeys(role.permissions ?? [])
+            }))
+        });
     } catch (err: any) {
         const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
         return NextResponse.json({ success: false, error: err.message }, { status });
@@ -38,7 +44,7 @@ export async function POST(req: NextRequest) {
         }
 
         // Validate permission keys
-        const invalid = permissions.filter((p: string) => !ALL_PERMISSION_KEYS.includes(p));
+        const invalid = permissions.filter((p: string) => !isRolePermissionKey(p));
         if (invalid.length) {
             return NextResponse.json(
                 {
@@ -49,7 +55,6 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const count = await RoleDefinition.countDocuments();
         const role = await RoleDefinition.create({
             key: key
                 .trim()
@@ -57,9 +62,8 @@ export async function POST(req: NextRequest) {
                 .replace(/[^a-z0-9_]/g, "_"),
             label: label.trim(),
             description: (description || "").trim(),
-            permissions,
+            permissions: normalizePermissionKeys(permissions),
             color,
-            order: count + 10,
             isBuiltin: false
         });
 

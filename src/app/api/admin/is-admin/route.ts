@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@Library/auth";
-import { getUserPermissions, getUserRoles, isAdminUser } from "@/Library/permissions";
+import { canAccessAdminPanel, getUserPermissions, getUserRoles, isAdminUser } from "@/Library/permissions";
 
 export async function GET(req: NextRequest) {
     const session = await getSession(req.headers);
@@ -10,11 +10,11 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Get user roles and permissions
+    // ! old system Get user roles and permissions
     const roles = await getUserRoles(session.user.id);
     const permissions = await getUserPermissions(session.user.id);
     const isAdmin = await isAdminUser(session.user.id, session.user.email);
-    const canAccessAdmin = isAdmin || permissions.some((perm) => perm !== "user");
+    const canAccessAdmin = await canAccessAdminPanel(session.user.id, session.user.email);
 
     return NextResponse.json({
         isAdmin,

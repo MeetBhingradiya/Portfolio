@@ -5,7 +5,6 @@
 
 "use client";
 
-import React from "react";
 import { createAuthClient } from "better-auth/react";
 import { twoFactorClient, usernameClient, multiSessionClient } from "better-auth/client/plugins";
 import { passkeyClient } from "@better-auth/passkey/client";
@@ -19,9 +18,11 @@ function resolveAuthBaseURL(): string {
     return Config.Origin;
 }
 
+const authClientPlugins = [usernameClient(), twoFactorClient(), passkeyClient(), phoneNumberClient(), multiSessionClient()];
+
 export const authClient = createAuthClient({
     baseURL: resolveAuthBaseURL(),
-    plugins: [usernameClient(), twoFactorClient(), passkeyClient(), phoneNumberClient(), multiSessionClient()]
+    plugins: authClientPlugins
 });
 
 // Export all auth methods for easy access

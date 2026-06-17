@@ -239,7 +239,7 @@ function StatTile({ card, count }: { card: StatCard; count: number | null }) {
 
 export default function AdminDashboard() {
     const { palette, actualColorMode } = useDesignTheme();
-    const { session, loading } = useAdminSession();
+    const { session, loading, hasAnyPermission } = useAdminSession();
     const isDark = actualColorMode === "dark";
 
     const hasAccess = useCallback(
@@ -247,7 +247,7 @@ export default function AdminDashboard() {
             if (!requiredPermissions || requiredPermissions.length === 0) return true;
             if (!session) return false;
             if (session.isAdmin) return true;
-            return requiredPermissions.some((perm) => session.permissions.includes(perm));
+            return hasAnyPermission(requiredPermissions);
         },
         [session]
     );

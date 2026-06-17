@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
-import { ArrowBack, ArrowDownward, ArrowUpward, SwapHoriz, Save, CheckCircle } from "@mui/icons-material";
+import { ArrowBack, ArrowDownward, ArrowUpward, SwapHoriz, Save, CheckCircle, PersonOutline } from "@mui/icons-material";
 import Link from "next/link";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard } from "@Components/Atoms/OneUI";
@@ -20,6 +20,13 @@ interface Asset {
     Name: string;
     Balance: number;
     Type: string;
+}
+
+interface Contact {
+    ContactID: string;
+    Name: string;
+    Relation?: string;
+    Avatar?: string;
 }
 
 const CATEGORIES = [
@@ -86,6 +93,8 @@ export default function NewTransactionPage() {
     const [isWalletTransfer, setIsWalletTransfer] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [contacts, setContacts] = useState<Contact[]>([]);
+    const [contactId, setContactId] = useState("");
 
     const surfaceBg = isApple ? (isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)") : palette.surface;
     const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
@@ -106,6 +115,15 @@ export default function NewTransactionPage() {
         fetchAssets();
     }, [fetchAssets]);
 
+    const fetchContacts = useCallback(async () => {
+        const res = await fetch("/api/wallet/contacts").then((r) => r.json());
+        if (res.success) setContacts(res.data ?? []);
+    }, []);
+
+    useEffect(() => {
+        fetchContacts();
+    }, [fetchContacts]);
+
     const handleSubmit = async () => {
         if (!note.trim() || !amount || parseFloat(amount) <= 0) return;
         setSaving(true);
@@ -117,7 +135,8 @@ export default function NewTransactionPage() {
                 Category: category,
                 Date: date,
                 IsHidden: isHidden,
-                IsWalletTransfer: isWalletTransfer
+                IsWalletTransfer: isWalletTransfer,
+                ContactID: contactId || undefined
             };
             if (type === "DEBIT" || type === "TRANSFER") body.FromAssetID = fromAssetId;
             if (type === "CREDIT" || type === "TRANSFER") body.ToAssetID = toAssetId;
@@ -162,6 +181,14 @@ export default function NewTransactionPage() {
         value: a.AssetID,
         label: `${a.Name} (₹${a.Balance.toLocaleString("en-IN")})`
     }));
+
+    const contactOptions = [
+        { value: "", label: "No contact linked" },
+        ...contacts.map((c) => ({
+            value: c.ContactID,
+            label: c.Relation ? `${c.Name} (${c.Relation})` : c.Name
+        }))
+    ];
 
     return (
         <div className="p-6 max-w-2xl mx-auto">
@@ -326,6 +353,75 @@ export default function NewTransactionPage() {
                                 />
                             </div>
                         )}
+
+                        {/* Contact Picker */}
+                        <div>
+                            <label
+                                className="text-xs font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5"
+                                style={{ color: palette.textSecondary }}>
+                                <PersonOutline style={{ fontSize: 14 }} />
+                                Link Contact
+                                <span
+                                    className="text-[9px] font-semibold px-1.5 py-0.5 rounded-md ml-1"
+                                    style={{
+                                        background: `${palette.accent}12`,
+                                        color: palette.accent
+                                    }}>
+                                    Optional
+                                </span>
+                            </label>
+                            <CustomSelect
+                                value={contactId}
+                                onChange={setContactId}
+                                options={contactOptions}
+                                placeholder="Search contacts..."
+                            />
+                            {contactId && (() => {
+                                const selected = contacts.find(c => c.ContactID === contactId);
+                                if (!selected) return null;
+                                return (
+                                    <div
+                                        className="flex items-center gap-2.5 mt-2.5 px-3 py-2 rounded-xl"
+                                        style={{
+                                            background: `${palette.accent}08`,
+                                            border: `1px solid ${palette.accent}20`
+                                        }}>
+                                        <div
+                                            className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold overflow-hidden"
+                                            style={{
+                                                background: `${palette.accent}20`,
+                                                color: palette.accent
+                                            }}>
+                                            {selected.Avatar ? (
+                                                <img
+                                                    src={selected.Avatar}
+                                                    alt={selected.Name}
+                                                    className="w-full h-full object-cover"
+                                                    referrerPolicy="no-referrer"
+                                                />
+                                            ) : (
+                                                selected.Name.charAt(0).toUpperCase()
+                                            )}
+                                        </div>
+                                        <span
+                                            className="text-xs font-semibold"
+                                            style={{ color: palette.textPrimary }}>
+                                            {selected.Name}
+                                        </span>
+                                        {selected.Relation && (
+                                            <span
+                                                className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded"
+                                                style={{
+                                                    background: `${palette.accent}15`,
+                                                    color: palette.accent
+                                                }}>
+                                                {selected.Relation}
+                                            </span>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
 
                         {/* Category */}
                         <div>

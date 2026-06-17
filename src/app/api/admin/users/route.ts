@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
         const enriched = users.map((u) => ({
             ...u,
             roles: roleMap[(u.email ?? "").toLowerCase()]?.roles ?? ["user"],
+            permissions: roleMap[(u.email ?? "").toLowerCase()]?.permissions ?? [],
             hasRoleRecord: !!roleMap[(u.email ?? "").toLowerCase()]
         }));
 

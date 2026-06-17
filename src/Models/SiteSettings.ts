@@ -7,13 +7,93 @@ import mongoose from "mongoose";
 
 const PaymentProviderSchema = new mongoose.Schema(
     {
-        enabled: { type: Boolean, default: false },
-        publicKey: { type: String, default: "" },
-        secretKey: { type: String, default: "" }, // Encrypted at rest
-        extra: { type: mongoose.Schema.Types.Mixed, default: {} }
+        enabled: {
+            type: Boolean,
+            default: false
+        },
+        publicKey: {
+            type: String,
+            default: ""
+        },
+        secretKey: {
+            type: String,
+            default: ""
+        },
+        extra: {
+            type: mongoose.Schema.Types.Mixed,
+            default: {}
+        }
     },
-    { _id: false }
+    {
+        _id: false
+    }
 );
+
+interface ISiteSettings extends mongoose.Document {
+
+    // ! New Site Settings
+    ConfigID: string;
+
+    Maintenance?: {
+        enabled?: boolean;
+        message?: string;
+        updatedBy?: string;
+    }
+
+    Features?: {
+        // ? Profile
+        Past_Avatar_History?: boolean;
+
+        // ? Tools
+        Tool_Productivity_Tracking: boolean;
+        Tool_Wallet_Tracker: boolean;
+        Tool_Document_Vault: boolean;
+        Tool_Assignment_Docs: boolean;
+        Tool_Resume_Builder: boolean;
+
+        // @ Merged in Feature
+        Tool_Trade_Journal: boolean;
+        Tool_Trading_System: boolean;
+
+        // ? Administrative
+        CDN_Management: boolean;
+        Shop_Management: boolean; // Orders, Products, Refunds
+        Support_Ticketing: boolean;
+    }
+
+    Policy?: {
+        // ? Authentication
+        Allow_New_Signups: boolean;
+        Allow_New_Signins: boolean;
+
+        // ? Social Accounts
+        Social_Account_Link_Google: boolean;
+        Social_Account_Link_Github: boolean;
+        Social_Account_Link_Microsoft: boolean;
+        Social_Account_Link_Apple: boolean;
+
+        // ? Security
+        Anti_Debug: boolean;
+    }
+
+    Limits?: {
+        Email_Verification: {
+            Limit_Window_in_Minutes: number;
+            Limit_Max_Attempts: number;
+            OTP_Expiry_in_Minutes: number;
+            OTP_Max_Attempts: number;
+        },
+        SMS_Verification: {
+            Limit_Window_in_Minutes: number;
+            Limit_Max_Attempts: number;
+            OTP_Expiry_in_Minutes: number;
+            OTP_Max_Attempts: number;
+        }
+    }
+
+    createdAt: Date;
+    updatedAt: Date;
+}
 
 const SiteSettings_Schema = new mongoose.Schema(
     {
@@ -23,6 +103,54 @@ const SiteSettings_Schema = new mongoose.Schema(
             unique: true,
             index: true
         },
+
+        // ! New structured settings format (to replace legacy flat settings below)
+        Maintenance: {
+            enabled: { type: Boolean, default: false },
+            message: { type: String, default: "We're performing scheduled maintenance. We'll be back soon!" },
+            updatedBy: { type: String, default: "" }
+        },
+        Features: {
+            Past_Avatar_History: { type: Boolean, default: false },
+            Tool_Productivity_Tracking: { type: Boolean, default: true },
+            Tool_Wallet_Tracker: { type: Boolean, default: true },
+            Tool_Document_Vault: { type: Boolean, default: true },
+            Tool_Assignment_Docs: { type: Boolean, default: true },
+            Tool_Trade_Journal: { type: Boolean, default: true },
+            Tool_Trading_System: { type: Boolean, default: true },
+            CDN_Management: { type: Boolean, default: true },
+            Shop_Management: { type: Boolean, default: false },
+            Support_Ticketing: { type: Boolean, default: false }
+        },
+        Policy: {
+            Allow_New_Signups: { type: Boolean, default: true },
+            Allow_New_Signins: { type: Boolean, default: true },
+            Social_Account_Link_Google: { type: Boolean, default: true },
+            Social_Account_Link_Github: { type: Boolean, default: true },
+            Social_Account_Link_Microsoft: { type: Boolean, default: true },
+            Social_Account_Link_Apple: { type: Boolean, default: true },
+            Anti_Debug: { type: Boolean, default: true }
+        },
+        Limits: {
+            Email_Verification: {
+                Limit_Window_in_Minutes: { type: Number, default: 720 },
+                Limit_Max_Attempts: { type: Number, default: 3 },
+                OTP_Expiry_in_Minutes: { type: Number, default: 5 },
+                OTP_Max_Attempts: { type: Number, default: 5 }
+            },
+            SMS_Verification: {
+                Limit_Window_in_Minutes: { type: Number, default: 720 },
+                Limit_Max_Attempts: { type: Number, default: 3 },
+                OTP_Expiry_in_Minutes: { type: Number, default: 5 },
+                OTP_Max_Attempts: { type: Number, default: 5 }
+            }
+        },
+
+        createdAt: { type: Date, default: Date.now },
+        updatedAt: { type: Date, default: Date.now },
+
+        // ! Legacy flat settings to be migrated to structured format below
+
         // ── Maintenance ─────────────────────────────────────────────────
         maintenanceMode: {
             type: Boolean,
@@ -76,50 +204,20 @@ const SiteSettings_Schema = new mongoose.Schema(
     }
 );
 
-export interface IPaymentProvider {
+interface IPaymentProvider {
     enabled: boolean;
     publicKey: string;
     secretKey: string;
     extra: Record<string, unknown>;
 }
 
-export interface ISiteSettings extends mongoose.Document {
-    ConfigID: string;
-    maintenanceMode: boolean;
-    maintenanceMessage: string;
-    maintenanceUpdatedBy: string;
-    allowSignup: boolean;
-    shopEnabled: boolean;
-    productivityEnabled: boolean;
-    phonePolicies: {
-        maxPhonesPerAccount: number;
-        maxAccountsPerPhone: number;
-        otpExpiryMinutes: number;
-        otpMaxAttempts: number;
-    };
-    emailPolicies: {
-        verificationRateLimitWindowMinutes: number;
-        verificationRateLimitMax: number;
-    };
-    paymentProviders: {
-        stripe: IPaymentProvider;
-        razorpay: IPaymentProvider;
-        paypal: IPaymentProvider;
-        lemonSqueezy: IPaymentProvider;
-        paddle: IPaymentProvider;
-    };
-    createdAt: Date;
-    updatedAt: Date;
-}
-
-export const SiteSettings_Model: mongoose.Model<ISiteSettings> =
-    mongoose.models.SiteSettings || mongoose.model<ISiteSettings>("SiteSettings", SiteSettings_Schema);
+const SiteSettings_Model: mongoose.Model<ISiteSettings> = mongoose.models.SiteSettings || mongoose.model<ISiteSettings>("SiteSettings", SiteSettings_Schema);
 
 /**
  * Get the singleton SiteSettings document.
  * Creates it with defaults if it doesn't exist.
  */
-export async function getSiteSettings(): Promise<ISiteSettings> {
+async function getSiteSettings(): Promise<ISiteSettings> {
     let doc = await SiteSettings_Model.findOne({
         ConfigID: "site_settings_singleton"
     });
@@ -129,4 +227,16 @@ export async function getSiteSettings(): Promise<ISiteSettings> {
         });
     }
     return doc;
+}
+
+
+export {
+    SiteSettings_Model,
+    SiteSettings_Schema,
+    getSiteSettings,
+}
+
+export type {
+    ISiteSettings,
+    IPaymentProvider
 }

@@ -35,7 +35,8 @@ import {
     Instagram,
     ChecklistRtl,
     Rocket,
-    Layers
+    Layers,
+    PhonelinkLock
 } from "@mui/icons-material";
 import type { ToolDefinition, ToolBadge } from "@/Static/ToolsDashboard";
 
@@ -145,7 +146,8 @@ const TOOL_ICONS: Record<string, React.FC<{ style?: React.CSSProperties; classNa
     DescriptionOutlined,
     Palette,
     Instagram,
-    Layers
+    Layers,
+    PhonelinkLock
 };
 
 function ToolIcon({ name, style }: { name: string; style?: React.CSSProperties }) {

@@ -12,7 +12,7 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getSession } from "@Library/auth";
-import { getUserPermissions, isAdminUser } from "@Library/permissions";
+import { canAccessAdminPanel } from "@Library/permissions";
 import AdminSidebar from "./AdminSidebar";
 
 export const metadata = {
@@ -34,13 +34,15 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
         redirect("/auth/signin?callbackUrl=/admin");
     }
 
-    const isFullAdmin = await isAdminUser(session.user.id, session.user.email);
-    const userPermissions = isFullAdmin ? [] : await getUserPermissions(session.user.id);
-    const hasDelegatedAccess = userPermissions.some((perm) => perm !== "user");
+    const canAccessAdmin = await canAccessAdminPanel(session.user.id, session.user.email);
 
-    // Logged in but neither full admin nor delegated staff access → go home (no loop)
-    if (!isFullAdmin && !hasDelegatedAccess) {
-        redirect("/?error=unauthorized");
+    // Logged in but lacking admin dashboard access → show the shared access denied page.
+    if (!canAccessAdmin) {
+        const searchParams = new URLSearchParams({
+            error: "AccessDenied",
+            reason: "Admin.View permission is required to access the admin dashboard."
+        });
+        redirect(`/auth/error?${searchParams.toString()}`);
     }
 
     return (

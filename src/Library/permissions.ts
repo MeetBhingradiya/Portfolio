@@ -11,6 +11,7 @@ import { UserRole } from "@/Models/UserRole";
 import { RoleDefinition } from "@/Models/RoleDefinition";
 
 const ADMIN_ROLE = "admin";
+export const ADMIN_DASHBOARD_PERMISSION = "Admin.View";
 
 /**
  * Get all effective permissions for a user
@@ -38,11 +39,11 @@ export async function getUserPermissions(userId: string): Promise<string[]> {
  * Check if user has a specific permission
  */
 export async function hasPermission(userId: string, permission: string): Promise<boolean> {
-    // Admin always has all permissions
     const userRole = await UserRole.findOne({ userId });
     if (userRole?.roles.includes(ADMIN_ROLE)) return true;
 
     const permissions = await getUserPermissions(userId);
+    if (permissions.includes("*")) return true;
     return permissions.includes(permission);
 }
 
@@ -51,6 +52,7 @@ export async function hasPermission(userId: string, permission: string): Promise
  */
 export async function hasAnyPermission(userId: string, permissions: string[]): Promise<boolean> {
     const userPerms = await getUserPermissions(userId);
+    if (userPerms.includes("*")) return true;
     return permissions.some((p) => userPerms.includes(p));
 }
 
@@ -59,6 +61,7 @@ export async function hasAnyPermission(userId: string, permissions: string[]): P
  */
 export async function hasAllPermissions(userId: string, permissions: string[]): Promise<boolean> {
     const userPerms = await getUserPermissions(userId);
+    if (userPerms.includes("*")) return true;
     return permissions.every((p) => userPerms.includes(p));
 }
 
@@ -84,7 +87,15 @@ export async function hasRole(userId: string, role: string): Promise<boolean> {
  */
 export async function isAdminUser(userId: string, email: string): Promise<boolean> {
     if (isAdminEmail(email)) return true;
-    return hasRole(userId, ADMIN_ROLE);
+    return false;
+}
+
+/**
+ * Check whether a user can reach the admin dashboard shell.
+ */
+export async function canAccessAdminPanel(userId: string, email: string): Promise<boolean> {
+    if (await isAdminUser(userId, email)) return true;
+    return hasPermission(userId, ADMIN_DASHBOARD_PERMISSION);
 }
 
 /**

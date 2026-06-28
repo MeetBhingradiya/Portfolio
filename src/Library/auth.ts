@@ -187,11 +187,23 @@ async function sendLoginNotificationEmail(input: {
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
 const mongoUri = getPrimaryMongoUri();
 
+declare global {
+    var _authMongoClient: MongoClient | undefined;
+}
+
 // MongoDB client setup
 let dbAdapter: any = undefined;
 if (!isBuildTime && mongoUri) {
     try {
-        const client = new MongoClient(mongoUri);
+        if (!global._authMongoClient) {
+            global._authMongoClient = new MongoClient(mongoUri, {
+                maxPoolSize: 2,
+                maxIdleTimeMS: 10000,
+                serverSelectionTimeoutMS: 5000,
+                socketTimeoutMS: 45000,
+            });
+        }
+        const client = global._authMongoClient;
         const db = client.db(SConfig.Database.Name);
 
         // Compatibility migration for older account documents that used `user_id`.

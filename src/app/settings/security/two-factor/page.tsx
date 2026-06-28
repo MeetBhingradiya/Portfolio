@@ -70,6 +70,13 @@ export default function TwoFactorPage() {
         try {
             // Enable 2FA and get TOTP URI
             const result = await twoFactor.enable({ password });
+            
+            if (result.error) {
+                console.error("Better Auth Error:", result.error);
+                alert(result.error.message || "Failed to enable 2FA. Please check your password.");
+                return;
+            }
+            
             if (result.data?.totpURI) {
                 // Convert TOTP URI to QR code URL using a QR code API
                 const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(result.data.totpURI)}`;
@@ -78,7 +85,7 @@ export default function TwoFactorPage() {
             }
         } catch (error) {
             console.error("Failed to generate TOTP:", error);
-            alert("Failed to enable 2FA. Please check your password.");
+            alert("An unexpected error occurred while enabling 2FA.");
         }
     };
 
@@ -91,6 +98,12 @@ export default function TwoFactorPage() {
                     code: verificationCode
                 });
 
+                if (result.error) {
+                    console.error("Verification Error:", result.error);
+                    alert(result.error.message || "Invalid verification code.");
+                    return; // Prevent closing the modal
+                }
+
                 // TODO: Backup codes may be in a different response
                 // Check Better Auth docs for backup codes implementation
             }
@@ -98,6 +111,7 @@ export default function TwoFactorPage() {
             // Close modal and refresh
             setActiveMethod(null);
             setVerificationCode("");
+            alert("2FA successfully enabled!");
         } catch (error) {
             console.error("Failed to verify 2FA:", error);
             alert("Invalid verification code. Please try again.");

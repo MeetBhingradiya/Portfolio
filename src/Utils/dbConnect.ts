@@ -53,7 +53,11 @@ async function dbConnect() {
     if (!cached.promise) {
         const opts = {
             bufferCommands: false,
-            dbName: SConfig.Database.Name
+            dbName: SConfig.Database.Name,
+            maxPoolSize: 2,
+            maxIdleTimeMS: 10000,
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
         };
         cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
             return mongoose;

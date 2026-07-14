@@ -13,16 +13,11 @@ import { NextRequest, NextResponse } from "next/server";
 import AssignmentDocument from "@/Models/AssignmentDocument";
 import dbConnect from "@/Utils/dbConnect";
 import { getSession, requireAuth } from "@Library/auth";
-import { hasPermission } from "@Library/permissions";
+import { hasPermission } from "@/Utils/RolePermissions";
 import { AssignmentPrivacy, BlockType } from "@/Types/Assignment";
 
 // ── helpers ──────────────────────────────────────────────────────
 const isAdmin = (email?: string | null) => !!email && !!process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL;
-
-async function checkPermission(session: any, permissionKey: string): Promise<boolean> {
-    if (!session?.user?.id) return false;
-    return hasPermission(session.user.id, permissionKey);
-}
 
 // ── GET ──────────────────────────────────────────────────────────
 export async function GET(req: NextRequest) {
@@ -135,8 +130,8 @@ export async function POST(req: NextRequest) {
         await dbConnect();
 
         // Check permission
-        const hasPermission = await checkPermission(session, "Tools.AssignmentSystem.Create");
-        if (!hasPermission) {
+        const permissionGranted = await hasPermission(req.headers, "Tools.AssignmentSystem.Create");
+        if (!permissionGranted) {
             return NextResponse.json({ success: false, error: "Missing permission: Tools.AssignmentSystem.Create" }, { status: 403 });
         }
 
@@ -233,8 +228,8 @@ export async function PUT(req: NextRequest) {
         }
 
         if (isOwner) {
-            const hasPermission = await checkPermission(session, "Tools.AssignmentSystem.Edit");
-            if (!hasPermission) {
+            const permissionGranted = await hasPermission(req.headers, "Tools.AssignmentSystem.Edit");
+            if (!permissionGranted) {
                 return NextResponse.json({ success: false, error: "Missing permission: Tools.AssignmentSystem.Edit" }, { status: 403 });
             }
         }
@@ -304,8 +299,8 @@ export async function DELETE(req: NextRequest) {
         }
 
         if (isOwner) {
-            const hasPermission = await checkPermission(session, "Tools.AssignmentSystem.Delete");
-            if (!hasPermission) {
+            const permissionGranted = await hasPermission(req.headers, "Tools.AssignmentSystem.Delete");
+            if (!permissionGranted) {
                 return NextResponse.json({ success: false, error: "Missing permission: Tools.AssignmentSystem.Delete" }, { status: 403 });
             }
         }

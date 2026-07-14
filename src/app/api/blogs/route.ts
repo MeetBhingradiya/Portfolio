@@ -14,7 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Blog, { BlogStatus, BlogCategory } from "@/Models/Blog";
 import dbConnect from "@/Utils/dbConnect";
 import { getSession, requireAuth } from "@Library/auth";
-import { hasPermission } from "@Library/permissions";
+import { hasPermission } from "@/Utils/RolePermissions";
 import slugify from "@sindresorhus/slugify";
 
 // ── helpers ──────────────────────────────────────────────────────
@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
             }
             
             // Check permission to manage blog content
-            const canManage = await hasPermission(session.user.id, "content.blog.manage");
+            const canManage = await hasPermission(req.headers, "content.blog.manage");
             if (!canManage && !admin) {
                 return NextResponse.json({ success: false, error: "Forbidden: Permission required: content.blog.manage" }, { status: 403 });
             }
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
         await dbConnect();
 
         // Check permission to create blogs
-        const canCreate = await hasPermission(session.user.id, "Users.Blogs.Create");
+        const canCreate = await hasPermission(req.headers, "Users.Blogs.Create");
         if (!canCreate) {
             return NextResponse.json(
                 { success: false, error: "Forbidden: Permission required: Users.Blogs.Create" },

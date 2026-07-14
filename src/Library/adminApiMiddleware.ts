@@ -9,7 +9,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@Library/auth";
-import { hasPermission, hasAnyPermission, hasAllPermissions, isAdminUser } from "@/Library/permissions";
+import { hasPermission, hasAnyPermission, hasAllPermissions, isAdminUser } from "@/Utils/RolePermissions";
 
 /**
  * Check if a request is from an authenticated admin account
@@ -25,7 +25,7 @@ export async function requireAdminEmail(req: NextRequest) {
         };
     }
 
-    const isAdmin = await isAdminUser(session.user.id, session.user.email);
+    const isAdmin = await isAdminUser(req.headers);
     if (!isAdmin) {
         return {
             error: true,
@@ -51,12 +51,7 @@ export async function requirePermission(req: NextRequest, permission: string) {
         };
     }
 
-    const isOwnerAdmin = await isAdminUser(session.user.id, session.user.email);
-    if (isOwnerAdmin) {
-        return { error: false, session };
-    }
-
-    const has = await hasPermission(session.user.id, permission);
+    const has = await hasPermission(req.headers, permission);
 
     if (!has) {
         return {
@@ -83,12 +78,7 @@ export async function requireAnyPermission(req: NextRequest, permissions: string
         };
     }
 
-    const isOwnerAdmin = await isAdminUser(session.user.id, session.user.email);
-    if (isOwnerAdmin) {
-        return { error: false, session };
-    }
-
-    const has = await hasAnyPermission(session.user.id, permissions);
+    const has = await hasAnyPermission(req.headers, permissions);
 
     if (!has) {
         return {
@@ -115,12 +105,7 @@ export async function requireAllPermissions(req: NextRequest, permissions: strin
         };
     }
 
-    const isOwnerAdmin = await isAdminUser(session.user.id, session.user.email);
-    if (isOwnerAdmin) {
-        return { error: false, session };
-    }
-
-    const has = await hasAllPermissions(session.user.id, permissions);
+    const has = await hasAllPermissions(req.headers, permissions);
 
     if (!has) {
         return {

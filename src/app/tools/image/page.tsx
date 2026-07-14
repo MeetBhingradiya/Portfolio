@@ -114,7 +114,9 @@ export default function ImageToolsPage() {
         const a = document.createElement("a");
         a.href = url;
         a.download = `compressed_${img.file.name.replace(/\.\w+$/, "")}.${outputFormat}`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     };
 

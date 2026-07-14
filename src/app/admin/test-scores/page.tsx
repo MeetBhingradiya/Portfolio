@@ -35,8 +35,7 @@ const fields: FieldDef[] = [
         label: "Certificate URL",
         type: "url",
         tableVisible: false
-    },
-    { key: "Order", label: "Order", type: "number" }
+    }
 ];
 
 export default function TestScoresPage() {
@@ -47,7 +46,7 @@ export default function TestScoresPage() {
             apiBase="/api/admin/test-scores"
             idField="TestScoreID"
             fields={fields}
-            defaultValues={{ ExamType: "custom", Order: 0, Proofs: [] }}
+            defaultValues={{ ExamType: "custom", Proofs: [] }}
         />
     );
 }

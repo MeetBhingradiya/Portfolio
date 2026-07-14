@@ -137,3 +137,54 @@ export async function requireRole(headers: Headers, role: AppRole): Promise<Reso
 export const requireEmployee = (h: Headers) => requireRole(h, "employee");
 export const requireAdmin = (h: Headers) => requireRole(h, "admin");
 export const requireAuth = (h: Headers) => requireRole(h, "user");
+
+/** Check if user has ANY of the given permissions */
+export async function hasAnyPermission(headers: Headers, permissionKeys: string[]): Promise<boolean> {
+    const user = await getResolvedUser(headers);
+    if (!user) return false;
+    if (user.isAdmin) return true;
+    return permissionKeys.some(key => user.effectivePermissions.has(key));
+}
+
+/** Check if user has ALL of the given permissions */
+export async function hasAllPermissions(headers: Headers, permissionKeys: string[]): Promise<boolean> {
+    const user = await getResolvedUser(headers);
+    if (!user) return false;
+    if (user.isAdmin) return true;
+    return permissionKeys.every(key => user.effectivePermissions.has(key));
+}
+
+/** Check if the user is an admin */
+export async function isAdminUser(headers: Headers): Promise<boolean> {
+    const user = await getResolvedUser(headers);
+    return user ? user.isAdmin : false;
+}
+
+/** Check whether a user can reach the admin dashboard shell. */
+export async function canAccessAdminPanel(headers: Headers): Promise<boolean> {
+    const user = await getResolvedUser(headers);
+    if (!user) return false;
+    if (user.isAdmin) return true;
+    return user.effectivePermissions.has("Admin.View");
+}
+
+/** Get all effective permissions for a user */
+export async function getUserPermissions(headers: Headers): Promise<string[]> {
+    const user = await getResolvedUser(headers);
+    if (!user) return [];
+    return Array.from(user.effectivePermissions);
+}
+
+/** Check a single permission key for a specific user ID directly from DB (bypassing session) */
+export async function hasPermissionByUserId(userId: string, email: string, permissionKey: string): Promise<boolean> {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const isAdmin = !!adminEmail && email === adminEmail;
+    if (isAdmin) return true;
+
+    const dbRecord = await getUserRoleRecord(userId);
+    const roles: AppRole[] = dbRecord?.roles ?? ["user"];
+    const overrides = dbRecord?.permissions ?? [];
+
+    const effectivePermissions = await resolveEffectivePermissions(roles, overrides);
+    return effectivePermissions.has(permissionKey);
+}

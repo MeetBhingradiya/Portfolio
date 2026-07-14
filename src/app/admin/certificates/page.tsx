@@ -54,8 +54,7 @@ const fields: FieldDef[] = [
         key: "Published",
         label: "Published (visible on portfolio)",
         type: "boolean"
-    },
-    { key: "Order", label: "Order", type: "number" }
+    }
 ];
 
 export default function CertificatesPage() {
@@ -69,7 +68,6 @@ export default function CertificatesPage() {
             defaultValues={{
                 NoExpiry: false,
                 Published: true,
-                Order: 0,
                 Skills: []
             }}
         />

@@ -75,8 +75,15 @@ const fields: FieldDef[] = [
         cdnContext: "verification",
         tableVisible: true
     },
-    { key: "Published", label: "Published", type: "boolean" },
-    { key: "Order", label: "Order", type: "number" }
+    {
+        key: "Attachments",
+        label: "Attachments",
+        type: "cdn-file-list",
+        cdnType: "document",
+        cdnContext: "attachment",
+        colSpan: 2
+    },
+    { key: "Published", label: "Published", type: "boolean" }
 ];
 
 export default function DocumentsPage() {
@@ -93,8 +100,8 @@ export default function DocumentsPage() {
                 DefaultAlignment: "left",
                 AccessEmails: [],
                 AccessAccounts: [],
-                Published: true,
-                Order: 0
+                Attachments: [],
+                Published: true
             }}
         />
     );

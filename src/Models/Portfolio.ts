@@ -58,7 +58,6 @@ export interface IProject extends Document {
     // Metadata
     StartDate?: Date;
     EndDate?: Date;
-    Order: number;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -113,7 +112,6 @@ const ProjectSchema = new Schema<IProject>(
         Published: { type: Boolean, default: true },
         StartDate: { type: Date },
         EndDate: { type: Date },
-        Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true, versionKey: false }
@@ -131,7 +129,6 @@ export interface ISkill extends Document {
     YearsOfExperience?: number;
     Icon?: string; // URL or icon key
     Color?: string;
-    Order: number;
     Visible: boolean;
     isDeleted: boolean;
     createdAt: Date;
@@ -151,7 +148,6 @@ const SkillSchema = new Schema<ISkill>(
         YearsOfExperience: { type: Number },
         Icon: { type: String },
         Color: { type: String },
-        Order: { type: Number, default: 0 },
         Visible: { type: Boolean, default: true },
         isDeleted: { type: Boolean, default: false }
     },
@@ -176,7 +172,6 @@ export interface IEducation extends Document {
     Achievements: string[];
     Logo?: string;
     Published: boolean;
-    Order: number;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -208,7 +203,6 @@ const EducationSchema = new Schema<IEducation>(
         Achievements: [{ type: String }],
         Logo: { type: String },
         Published: { type: Boolean, default: true },
-        Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true, versionKey: false }
@@ -235,7 +229,6 @@ export interface IExperience extends Document {
     CompanyLogo?: string;
     CompanyWebsite?: string;
     Published: boolean;
-    Order: number;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -272,7 +265,6 @@ const ExperienceSchema = new Schema<IExperience>(
         CompanyLogo: { type: String },
         CompanyWebsite: { type: String },
         Published: { type: Boolean, default: true },
-        Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true, versionKey: false }
@@ -294,7 +286,6 @@ export interface ICertificate extends Document {
     Image?: string; // Certificate image URL
     Logo?: string; // Issuer logo URL
     Published: boolean;
-    Order: number;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -320,7 +311,6 @@ const CertificateSchema = new Schema<ICertificate>(
         Image: { type: String },
         Logo: { type: String },
         Published: { type: Boolean, default: true },
-        Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true, versionKey: false }
@@ -344,7 +334,6 @@ export interface IDocumentCodeBlock {
     Language?: string;
     Code: string;
     Alignment: DocumentTextAlignment;
-    Order: number;
 }
 
 export interface IDocument extends Document {
@@ -363,8 +352,8 @@ export interface IDocument extends Document {
     CodeBlocks: IDocumentCodeBlock[];
     CodeBlockMoveMode: DocumentBlockMoveMode;
     DefaultAlignment: DocumentTextAlignment;
+    Attachments: string[];
     Published: boolean;
-    Order: number;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -417,8 +406,7 @@ const DocumentSchema = new Schema<IDocument>(
                     type: String,
                     enum: ["left", "center", "right", "justify"],
                     default: "left"
-                },
-                Order: { type: Number, default: 0 }
+                }
             }
         ],
         CodeBlockMoveMode: {
@@ -431,8 +419,8 @@ const DocumentSchema = new Schema<IDocument>(
             enum: ["left", "center", "right", "justify"],
             default: "left"
         },
+        Attachments: { type: [String], default: [] },
         Published: { type: Boolean, default: true },
-        Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true, versionKey: false }
@@ -455,7 +443,6 @@ export interface ITestScore extends Document {
     Description?: string;
     Proofs: string[]; // Screenshot URLs on s3/cloudflare
     CertificateURL?: string;
-    Order: number;
     isDeleted: boolean;
     createdAt: Date;
     updatedAt: Date;
@@ -484,7 +471,6 @@ const TestScoreSchema = new Schema<ITestScore>(
         Description: { type: String },
         Proofs: [{ type: String }],
         CertificateURL: { type: String },
-        Order: { type: Number, default: 0 },
         isDeleted: { type: Boolean, default: false }
     },
     { timestamps: true, versionKey: false }

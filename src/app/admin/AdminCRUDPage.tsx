@@ -35,7 +35,7 @@ import {
 export interface FieldDef {
     key: string;
     label: string;
-    type: "text" | "textarea" | "number" | "date" | "select" | "multiline" | "url" | "boolean" | "tags" | "cdn-image" | "cdn-image-list";
+    type: "text" | "textarea" | "number" | "date" | "select" | "multiline" | "url" | "boolean" | "tags" | "cdn-image" | "cdn-image-list" | "cdn-file-list";
     options?: string[]; // for select
     required?: boolean;
     placeholder?: string;
@@ -570,6 +570,149 @@ function CDNImageListField({
                 ref={fileRef}
                 type="file"
                 accept="image/*"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleFile(f);
+                    e.target.value = "";
+                }}
+            />
+        </div>
+    );
+}
+
+// ---------------------------------------------------------------------------
+// CDN File List Field — multi-file upload (e.g. document attachments)
+// ---------------------------------------------------------------------------
+function CDNFileListField({
+    value,
+    onChange,
+    cdnType = "document",
+    cdnContext,
+    palette,
+    isDark,
+    borderColor,
+    isApple
+}: {
+    value: string[];
+    onChange: (urls: string[]) => void;
+    cdnType?: string;
+    cdnContext?: string;
+    palette: any;
+    isDark: boolean;
+    borderColor: string;
+    isApple: boolean;
+}) {
+    const { uploading, progress, uploadError, uploadFile } = useCDNUploader(cdnType, cdnContext);
+    const fileRef = useRef<HTMLInputElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const urls: string[] = Array.isArray(value) ? value : [];
+
+    const handleFile = async (file: File) => {
+        await uploadFile(file, (url) => onChange([...urls, url]));
+    };
+
+    const removeAt = (i: number) => onChange(urls.filter((_, j) => j !== i));
+
+    const bg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)";
+    const r = isApple ? "12px" : "16px";
+
+    return (
+        <div
+            ref={containerRef}
+            tabIndex={0}
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                outline: "none"
+            }}>
+            {urls.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    {urls.map((url, i) => {
+                        const filename = url.split("/").pop() || url;
+                        return (
+                            <div
+                                key={i}
+                                style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
+                                    padding: "8px 12px",
+                                    borderRadius: 10,
+                                    background: bg,
+                                    border: `1px solid ${borderColor}`
+                                }}>
+                                <div style={{
+                                    width: 32, height: 32, borderRadius: 8, background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.06)",
+                                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+                                }}>
+                                    <CloudUpload style={{ fontSize: 16, color: palette.textTertiary }} />
+                                </div>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: palette.textPrimary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {filename}
+                                    </p>
+                                    <p style={{ margin: 0, fontSize: 11, color: palette.textTertiary, fontFamily: "monospace", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                                        {url}
+                                    </p>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => removeAt(i)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        color: "#ef4444",
+                                        padding: 4,
+                                        display: "flex",
+                                        alignItems: "center"
+                                    }}>
+                                    <Delete fontSize="small" />
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    style={{
+                        background: bg,
+                        border: `1px dashed ${borderColor}`,
+                        borderRadius: r,
+                        padding: "8px 14px",
+                        color: uploading ? palette.textTertiary : palette.accent,
+                        cursor: uploading ? "not-allowed" : "pointer",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6
+                    }}>
+                    <CloudUpload style={{ fontSize: 16 }} />
+                    {uploading ? `Uploading… ${progress}%` : "Add File"}
+                </button>
+            </div>
+
+            {uploading && (
+                <div style={{ height: 4, borderRadius: 4, background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${progress}%`, background: palette.accent, transition: "width 0.3s ease", borderRadius: 4 }} />
+                </div>
+            )}
+
+            {uploadError && <p style={{ fontSize: 12, color: "#ef4444" }}>{uploadError}</p>}
+
+            <input
+                ref={fileRef}
+                type="file"
+                accept="*"
                 style={{ display: "none" }}
                 onChange={(e) => {
                     const f = e.target.files?.[0];
@@ -1467,6 +1610,21 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
             );
         }
 
+        if (field.type === "cdn-file-list") {
+            return (
+                <CDNFileListField
+                    value={val}
+                    onChange={update}
+                    cdnType={field.cdnType}
+                    cdnContext={field.cdnContext}
+                    palette={palette}
+                    isDark={isDark}
+                    borderColor={borderColor}
+                    isApple={isApple}
+                />
+            );
+        }
+
         // text / number / url
         return (
             <input
@@ -1565,6 +1723,39 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                                 alignSelf: "center"
                             }}>
                             +{imgs.length - 3}
+                        </span>
+                    )}
+                </div>
+            );
+        }
+        if (field.type === "cdn-file-list") {
+            const files: string[] = Array.isArray(val) ? val : [];
+            if (files.length === 0) return <span style={{ color: palette.textTertiary }}>—</span>;
+            return (
+                <div className="flex gap-1">
+                    {files.slice(0, 2).map((url, i) => {
+                        const filename = url.split("/").pop() || url;
+                        return (
+                            <span
+                                key={i}
+                                className="px-1.5 py-0.5 rounded text-xs truncate max-w-[100px]"
+                                style={{
+                                    background: `${palette.accent}18`,
+                                    color: palette.accent
+                                }}
+                                title={filename}>
+                                {filename}
+                            </span>
+                        );
+                    })}
+                    {files.length > 2 && (
+                        <span
+                            style={{
+                                color: palette.textTertiary,
+                                fontSize: 11,
+                                alignSelf: "center"
+                            }}>
+                            +{files.length - 2}
                         </span>
                     )}
                 </div>

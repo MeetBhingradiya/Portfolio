@@ -147,8 +147,10 @@ export async function exportAssignmentPDF(assignmentId: string): Promise<void> {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `assignment_${assignmentId}.html`;
+    a.download = `assignment-${assignmentId}.pdf`;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
 }
 

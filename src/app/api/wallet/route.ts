@@ -5,8 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
-import { getResolvedUser } from "@Utils/RolePermissions";
-import { hasPermission } from "@Library/permissions";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { WalletTransaction, WalletTransactionType } from "@Models/WalletTransaction";
 import { WalletAsset, WalletAssetType } from "@Models/WalletAsset";
 import { WalletContact } from "@Models/WalletContact";
@@ -34,7 +33,7 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         // Check permission to access wallet tracker
-        const canAccess = await hasPermission(user.userId, "Tools.Private.WalletTracker.Access");
+        const canAccess = await hasPermission(req.headers, "Tools.Private.WalletTracker.Access");
         if (!canAccess) {
             return NextResponse.json(
                 { success: false, error: "Forbidden: Permission required: Tools.Private.WalletTracker.Access" },
@@ -198,7 +197,7 @@ export async function POST(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         // Check permission to access wallet tracker
-        const canAccess = await hasPermission(user.userId, "Tools.Private.WalletTracker.Access");
+        const canAccess = await hasPermission(req.headers, "Tools.Private.WalletTracker.Access");
         if (!canAccess) {
             return NextResponse.json(
                 { success: false, error: "Forbidden: Permission required: Tools.Private.WalletTracker.Access" },

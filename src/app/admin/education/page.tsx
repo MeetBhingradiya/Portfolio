@@ -48,8 +48,7 @@ const fields: FieldDef[] = [
         key: "Published",
         label: "Published (visible on portfolio)",
         type: "boolean"
-    },
-    { key: "Order", label: "Order", type: "number" }
+    }
 ];
 
 export default function EducationPage() {
@@ -64,7 +63,6 @@ export default function EducationPage() {
                 GradeType: "percentage",
                 CurrentlyStudying: false,
                 Published: true,
-                Order: 0,
                 Achievements: []
             }}
         />

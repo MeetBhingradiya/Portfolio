@@ -105,7 +105,6 @@ const fields: FieldDef[] = [
         label: "Published (visible on portfolio)",
         type: "boolean"
     },
-    // { key: "Order", label: "Order", type: "number" },
     {
         key: "StartDate",
         label: "Start Date",
@@ -133,7 +132,6 @@ export default function ProjectsPage() {
                 Type: "webapp",
                 Featured: false,
                 Published: true,
-                Order: 0,
                 TechStack: [],
                 Tags: [],
                 Screenshots: []

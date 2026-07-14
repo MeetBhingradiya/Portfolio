@@ -5,8 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
-import { getResolvedUser } from "@Utils/RolePermissions";
-import { hasPermission } from "@Library/permissions";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { TradeDirection, TradeHitStatus, TradeJournal, TradePnLSign, TradeResult } from "@Models/TradeJournal";
 
 const AM_PM_TIME_RE = /^(0[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i;
@@ -77,7 +76,7 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         // Check permission to access trade journal
-        const canAccess = await hasPermission(user.userId, "Tools.Private.TradeJournal.Access");
+        const canAccess = await hasPermission(req.headers, "Tools.Private.TradeJournal.Access");
         if (!canAccess) {
             return NextResponse.json(
                 { success: false, error: "Forbidden: Permission required: Tools.Private.TradeJournal.Access" },
@@ -193,7 +192,7 @@ export async function POST(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         // Check permission to access trade journal
-        const canAccess = await hasPermission(user.userId, "Tools.Private.TradeJournal.Access");
+        const canAccess = await hasPermission(req.headers, "Tools.Private.TradeJournal.Access");
         if (!canAccess) {
             return NextResponse.json(
                 { success: false, error: "Forbidden: Permission required: Tools.Private.TradeJournal.Access" },

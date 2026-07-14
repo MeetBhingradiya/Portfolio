@@ -12,7 +12,7 @@ import React from "react";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { getSession } from "@Library/auth";
-import { canAccessAdminPanel } from "@Library/permissions";
+import { canAccessAdminPanel } from "@/Utils/RolePermissions";
 import AdminSidebar from "./AdminSidebar";
 
 export const metadata = {
@@ -27,14 +27,15 @@ interface AdminLayoutProps {
 }
 
 export default async function AdminLayout({ children }: AdminLayoutProps) {
-    const session = await getSession(await headers());
+    const headersList = await headers();
+    const session = await getSession(headersList);
 
     // Not logged in → send to sign-in so they can authenticate first
     if (!session?.user) {
         redirect("/auth/signin?callbackUrl=/admin");
     }
 
-    const canAccessAdmin = await canAccessAdminPanel(session.user.id, session.user.email);
+    const canAccessAdmin = await canAccessAdminPanel(headersList);
 
     // Logged in but lacking admin dashboard access → show the shared access denied page.
     if (!canAccessAdmin) {

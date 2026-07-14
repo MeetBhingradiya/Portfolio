@@ -7,8 +7,8 @@ import { headers } from "next/headers";
 import { createHash, randomBytes } from "crypto";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket, TicketCounter } from "@Models/SupportTicket";
-import { getResolvedUser } from "@Utils/RolePermissions";
-import { sendEmail } from "@Utils/Email";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
+import { getSession } from "@Library/auth";
 
 async function nextTicketNumber(): Promise<number> {
     const counter = await TicketCounter.findByIdAndUpdate("ticket", { $inc: { seq: 1 } }, { new: true, upsert: true });
@@ -31,13 +31,17 @@ export async function GET(req: NextRequest) {
 
         const query: any = { isDeleted: false };
 
-        // Regular users only see their own tickets
-        if (!user.isEmployee) {
+        // Check if user can view all tickets
+        const canViewAll = await hasPermission(req.headers, "support.tickets.view");
+
+        // Regular users only see their own tickets unless they have view permission
+        if (!canViewAll && !user.isEmployee) {
             query.userId = user.userId;
-        } else {
-            // Employees can filter by assignedTo=me
+        } else if (!canViewAll && user.isEmployee) {
+            // Employees without permission see their own + assigned tickets
             const assignedMe = q.get("assignedMe") === "true";
             if (assignedMe) query.assignedTo = user.userId;
+            else query.userId = user.userId;
         }
 
         if (status) query.status = status;

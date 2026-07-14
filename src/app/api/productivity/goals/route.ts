@@ -5,8 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
-import { getResolvedUser } from "@Utils/RolePermissions";
-import { hasPermission } from "@Library/permissions";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { ProductivityGoal, GoalStatus, GoalCategory, GOAL_XP } from "@Models/ProductivityGoal";
 import { UserProductivityStats, getOrCreateStats } from "@Models/UserProductivityStats";
 
@@ -18,7 +17,7 @@ export async function GET(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         // Check permission to access productivity tool
-        const canAccess = await hasPermission(user.userId, "Tools.Private.Productivity.Access");
+        const canAccess = await hasPermission(req.headers, "Tools.Private.Productivity.Access");
         if (!canAccess) {
             return NextResponse.json(
                 { success: false, error: "Forbidden: Permission required: Tools.Private.Productivity.Access" },
@@ -56,7 +55,7 @@ export async function POST(req: NextRequest) {
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         // Check permission to access productivity tool
-        const canAccess = await hasPermission(user.userId, "Tools.Private.Productivity.Access");
+        const canAccess = await hasPermission(req.headers, "Tools.Private.Productivity.Access");
         if (!canAccess) {
             return NextResponse.json(
                 { success: false, error: "Forbidden: Permission required: Tools.Private.Productivity.Access" },

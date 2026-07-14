@@ -8,15 +8,16 @@ import dbConnect from "@Utils/dbConnect";
 import { Order } from "@Models/Order";
 import { getResolvedUser } from "@Utils/RolePermissions";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+        const { id } = await params;
         const order = await Order.findOne({
-            $or: [{ orderId: params.id }, { _id: params.id }],
+            $or: [{ orderId: id }, { _id: id }],
             isDeleted: false
         }).lean();
 
@@ -31,16 +32,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+        const { id } = await params;
         const body = await req.json();
         const order = await Order.findOne({
-            $or: [{ orderId: params.id }, { _id: params.id }],
+            $or: [{ orderId: id }, { _id: id }],
             isDeleted: false
         });
         if (!order) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });

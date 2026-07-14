@@ -1,5 +1,5 @@
 /**
- * GET  /api/shop/orders        → get user's orders (or all for employee/admin with ?all=true)
+ * GET  /api/shop/orders        → get user's orders (or all for those with shop.orders.view permission)
  * POST /api/shop/orders        → place an order (authenticated)
  */
 import { NextRequest, NextResponse } from "next/server";
@@ -10,7 +10,8 @@ import { Order, OrderCounter } from "@Models/Order";
 import { Cart } from "@Models/Cart";
 import { ShopProduct } from "@Models/ShopProduct";
 import { UserRole } from "@Models/UserRole";
-import { getResolvedUser } from "@Utils/RolePermissions";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
+import { getSession } from "@Library/auth";
 
 async function nextOrderNumber(): Promise<number> {
     const counter = await OrderCounter.findByIdAndUpdate("order", { $inc: { seq: 1 } }, { new: true, upsert: true });
@@ -28,10 +29,29 @@ export async function GET(req: NextRequest) {
         const page = Math.max(1, parseInt(q.get("page") || "1"));
         const limit = Math.min(50, parseInt(q.get("limit") || "20"));
         const status = q.get("status") || "";
-        const viewAll = q.get("all") === "true" && user.isEmployee;
+        const viewAll = q.get("all") === "true";
 
         const query: any = { isDeleted: false };
-        if (!viewAll) query.userId = user.userId;
+        
+        // Check if user can view all orders
+        const canViewAll = await hasPermission(req.headers, "shop.orders.view");
+        
+        // If viewAll requested and user doesn't have permission, fallback to own orders
+        if (viewAll && !canViewAll && !user.isEmployee) {
+            query.userId = user.userId;
+        } else if (!viewAll && !canViewAll) {
+            // Default: show own orders
+            query.userId = user.userId;
+        } else if ((viewAll || canViewAll) && canViewAll) {
+            // User can view all - no userId filter
+        } else if (user.isEmployee && (viewAll || !canViewAll)) {
+            // Legacy: employees can view all
+            // No filter applied
+        } else {
+            // Safety: default to own orders
+            query.userId = user.userId;
+        }
+        
         if (status) query.status = status;
 
         const total = await Order.countDocuments(query);

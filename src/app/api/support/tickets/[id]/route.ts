@@ -1,6 +1,7 @@
 /**
- * GET   /api/support/tickets/[id]  → get full ticket (own user or employee/admin)
- * PATCH /api/support/tickets/[id]  → update status/priority/assignment (employee/admin), or add reply (any auth)
+ * GET   /api/support/tickets/[id]  → get full ticket (own user or has support.tickets.view permission)
+ * PATCH /api/support/tickets/[id]  → update status/priority/assignment (requires support.tickets.manage), or add reply (any auth)
+ * DELETE /api/support/tickets/[id] → delete ticket (requires support.tickets.delete permission)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
@@ -9,7 +10,8 @@ import { createHash, timingSafeEqual } from "crypto";
 import mongoose from "mongoose";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket } from "@Models/SupportTicket";
-import { getResolvedUser } from "@Utils/RolePermissions";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
+import { getSession } from "@Library/auth";
 
 /** Build a query that matches by ticketId string OR _id (only when id is a valid ObjectId). */
 function ticketQuery(id: string) {
@@ -124,19 +126,37 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
             }
         }
 
-        // Employee/admin can update metadata
-        if (user?.isEmployee) {
-            if (body.status) {
-                ticket.status = body.status;
-                if (body.status === "resolved") ticket.resolvedAt = new Date();
-                if (body.status === "closed") ticket.closedAt = new Date();
+        // Employee/admin can update metadata (requires permission)
+        if (body.status || body.priority || body.assignedTo !== undefined || body.tags) {
+            const canManage = user ? await hasPermission(req.headers, "support.tickets.manage") : false;
+            if (!canManage && user?.isEmployee) {
+                // Fallback for legacy employee access
+                // Can update metadata if employee
+                if (body.status) {
+                    ticket.status = body.status;
+                    if (body.status === "resolved") ticket.resolvedAt = new Date();
+                    if (body.status === "closed") ticket.closedAt = new Date();
+                }
+                if (body.priority) ticket.priority = body.priority;
+                if (body.assignedTo !== undefined) {
+                    ticket.assignedTo = body.assignedTo;
+                    ticket.assignedEmail = body.assignedEmail;
+                }
+                if (body.tags) ticket.tags = body.tags;
+            } else if (canManage) {
+                // New permission-based access
+                if (body.status) {
+                    ticket.status = body.status;
+                    if (body.status === "resolved") ticket.resolvedAt = new Date();
+                    if (body.status === "closed") ticket.closedAt = new Date();
+                }
+                if (body.priority) ticket.priority = body.priority;
+                if (body.assignedTo !== undefined) {
+                    ticket.assignedTo = body.assignedTo;
+                    ticket.assignedEmail = body.assignedEmail;
+                }
+                if (body.tags) ticket.tags = body.tags;
             }
-            if (body.priority) ticket.priority = body.priority;
-            if (body.assignedTo !== undefined) {
-                ticket.assignedTo = body.assignedTo;
-                ticket.assignedEmail = body.assignedEmail;
-            }
-            if (body.tags) ticket.tags = body.tags;
         }
 
         // Customer can rate resolved ticket
@@ -157,7 +177,17 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         await dbConnect();
         const h = await headers();
         const user = await getResolvedUser(h);
-        if (!user?.isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+        
+        if (!user) {
+            return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+        }
+
+        // Check permission to delete tickets
+        const canDelete = await hasPermission(req.headers, "support.tickets.delete");
+        if (!canDelete && !user?.isAdmin) {
+            // Fallback for legacy admin access
+            return NextResponse.json({ success: false, error: "Forbidden: Permission required: support.tickets.delete" }, { status: 403 });
+        }
 
         await SupportTicket.findOneAndUpdate(ticketQuery(params.id), {
             isDeleted: true

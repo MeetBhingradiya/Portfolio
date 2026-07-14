@@ -155,7 +155,7 @@
         "src/**/*.ts",
         "src/**/*.tsx",
         ".next/types/**/*.ts",
-        "Scripts/TestProxyServer.mjs",
+        "src/Scripts/TestProxyServer.mjs",
         "prettier.configcjs",
         ".next/dev/types/**/*.ts"
     ],

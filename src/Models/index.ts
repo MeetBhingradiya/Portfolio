@@ -36,6 +36,7 @@ export * from "./ShopProduct";
 export * from "./Cart";
 export * from "./Order";
 export * from "./RefundRequest";
+export * from "./EAAccess";
 
 // ? Trade Journal
 export * from "./TradeJournal";
@@ -47,6 +48,11 @@ export * from "./Payment";
 // ? Role Definitions (admin-editable role → permissions bundles)
 export * from "./RoleDefinition";
 export * from "./ResumePreset";
+
+// ? Hardware Unlock Tool (Mobile as Security Key)
+export * from "./HardwareUnlockDevice";
+export * from "./HardwareUnlockChallenge";
+export * from "./PairingToken";
 
 // ? Productivity System (Tasks, Habits, Goals, Reminders, Stats, AI)
 export * from "./ProductivityTask";

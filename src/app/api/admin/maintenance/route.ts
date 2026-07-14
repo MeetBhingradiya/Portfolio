@@ -12,7 +12,7 @@ import { SignJWT } from "jose";
 import dbConnect from "@/Utils/dbConnect";
 import { getSession } from "@Library/auth";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
-import { SiteSettings_Model, getSiteSettings } from "@/Models/SiteSettings";
+import { SiteSettings_Model, getSiteSettings } from "@Models/SiteSettings";
 
 const SINGLETON_ID = "site_settings_singleton";
 const BYPASS_COOKIE = "x_admin_bypass";

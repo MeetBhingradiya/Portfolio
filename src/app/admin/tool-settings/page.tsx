@@ -24,6 +24,7 @@ import {
     Article,
     Palette,
     Tag,
+    PhonelinkLock,
     CheckCircle,
     ExpandMore,
     Visibility,
@@ -253,6 +254,12 @@ const TOOL_DEFAULT_SECTIONS = [
 // Tool metadata for visibility controls (includes PaperKnife suite + sub-tools)
 const TOOL_VISIBILITY_SECTIONS = [
     ...TOOL_DEFAULT_SECTIONS,
+    {
+        id: "hardware-unlock",
+        name: "Hardware Unlock",
+        icon: <PhonelinkLock fontSize="small" />,
+        color: "#0EA5E9"
+    },
     {
         id: "paperknife",
         name: "PaperKnife PDF Suite",

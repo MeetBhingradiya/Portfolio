@@ -6,11 +6,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useState } from "react";
+import { PERMISSIONS, PERMISSION_CATEGORIES } from "@Config/Permissions";
+import type { PermissionDef } from "@Config/Permissions";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { useAdminSession } from "@Hooks/useAdminSession";
-import { Search, Delete, Person, ChevronLeft, ChevronRight, Refresh, ManageAccounts, Shield, Close, Save } from "@mui/icons-material";
+import { Search, Delete, Person, ChevronLeft, ChevronRight, Refresh, ManageAccounts, Shield, Close, Save, Visibility, VisibilityOff } from "@mui/icons-material";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 const PAGE_SIZE = 15;
@@ -21,8 +23,6 @@ const ROLE_COLORS: Record<string, { bg: string; text: string }> = {
     paid_customer: { bg: "rgba(52,199,89,0.15)", text: "#34C759" },
     user: { bg: "rgba(142,142,147,0.15)", text: "#8E8E93" }
 };
-
-const BUILTIN_ROLES = ["user", "employee", "paid_customer"];
 
 function getRoleStyle(role: string) {
     return ROLE_COLORS[role] ?? { bg: "rgba(255,149,0,0.15)", text: "#FF9500" };
@@ -36,13 +36,16 @@ interface User {
     emailVerified?: boolean;
     createdAt?: string;
     roles?: string[];
+    permissions?: { key: string; label?: string; granted?: boolean }[];
     hasRoleRecord?: boolean;
 }
 
 interface RoleDef {
     key: string;
     label: string;
+    description?: string;
     color?: string;
+    isBuiltin?: boolean;
 }
 
 interface RoleModal {
@@ -51,6 +54,8 @@ interface RoleModal {
     saving: boolean;
     error: string;
     newRole: string;
+    permissions?: { key: string; label: string; granted?: boolean }[];
+    permissionQuery?: string;
 }
 
 export default function UsersPage() {
@@ -73,6 +78,7 @@ export default function UsersPage() {
 
     const [modal, setModal] = useState<RoleModal | null>(null);
     const [roleDefs, setRoleDefs] = useState<RoleDef[]>([]);
+    const [visibleEmails, setVisibleEmails] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         fetch("/api/admin/role-definitions")
@@ -128,14 +134,52 @@ export default function UsersPage() {
         }
     };
 
+    const toggleUserEmailVisibility = (userId: string) => {
+        setVisibleEmails((prev) => ({ ...prev, [userId]: !prev[userId] }));
+    };
+
+    const maskEmail = (email?: string) => {
+        if (!email) return "—";
+        const [localPart = "", domainPart = ""] = email.split("@");
+        if (!domainPart) return email;
+        const [host = "", ...rest] = domainPart.split(".");
+        const localMasked = localPart ? `${localPart.slice(0, 1)}${"*".repeat(Math.max(3, localPart.length - 1))}` : "***";
+        const hostMasked = host ? `${host.slice(0, 1)}${"*".repeat(Math.max(3, host.length - 1))}` : "***";
+        return `${localMasked}@${hostMasked}${rest.length ? `.${rest.join(".")}` : ""}`;
+    };
+
     const openRoleModal = (user: User) => {
         setModal({
             user,
             roles: [...(user.roles ?? ["user"])],
             saving: false,
             error: "",
-            newRole: ""
+            newRole: "",
+            permissions: (user.permissions ?? [])
+                .filter((p) => p?.granted !== false && typeof p?.key === "string" && p.key.length > 0)
+                .map((p) => ({
+                    key: p.key,
+                    label: p.label || PERMISSIONS.find((def) => def.key === p.key)?.label || p.key,
+                    granted: true
+                })),
+            permissionQuery: ""
         });
+    };
+
+    const togglePermission = (key: string, label?: string) => {
+        if (!modal) return;
+        setModal((m) => {
+            if (!m) return m;
+            const exists = (m.permissions ?? []).find((p) => p.key === key);
+            if (exists) return { ...m, permissions: (m.permissions ?? []).filter((p) => p.key !== key) };
+            return { ...m, permissions: [...(m.permissions ?? []), { key, label: label ?? key, granted: true }] };
+        });
+    };
+
+    const suggestedPermsForQuery = (query: string | undefined): PermissionDef[] => {
+        const q = (query ?? "").trim().toLowerCase();
+        if (!q) return [] as PermissionDef[];
+        return PERMISSIONS.filter((p) => p.label.toLowerCase().includes(q) || p.key.toLowerCase().includes(q)).slice(0, 8) as PermissionDef[];
     };
 
     const toggleRole = (role: string) => {
@@ -183,7 +227,7 @@ export default function UsersPage() {
                     userId: modal.user._id,
                     email: modal.user.email,
                     roles: modal.roles,
-                    permissions: [],
+                    permissions: modal.permissions ?? [],
                     confirmSelfRoleChange: removesAdminFromSelf
                 })
             });
@@ -210,6 +254,11 @@ export default function UsersPage() {
     const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)") : isDark ? "rgba(24,24,28,0.95)" : "#fff";
     const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
     const pages = Math.max(1, Math.ceil(table.total / PAGE_SIZE));
+    const builtinRoleDefs = roleDefs.filter((d) => d.isBuiltin);
+    const builtinRoleKeys = builtinRoleDefs.map((d) => d.key);
+    const suggestedRoles = roleDefs.filter((d) => !d.isBuiltin);
+    const suggestedPerms = PERMISSIONS.slice(0, 10);
+    const defaultPermissionQueryResults = modal ? suggestedPermsForQuery(modal.permissionQuery) : [];
 
     return (
         <div
@@ -407,12 +456,25 @@ export default function UsersPage() {
                                         </div>
                                     </td>
                                     {/* Email */}
-                                    <td
-                                        className="px-4 py-3 text-sm"
-                                        style={{
-                                            color: palette.textSecondary
-                                        }}>
-                                        {user.email}
+                                    <td className="px-4 py-3 text-sm">
+                                        <div className="flex items-center gap-2 min-w-0">
+                                            <span
+                                                className="truncate"
+                                                style={{ color: palette.textSecondary }}>
+                                                {visibleEmails[user._id] ? user.email : maskEmail(user.email)}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() => toggleUserEmailVisibility(user._id)}
+                                                className="p-1 rounded-md shrink-0"
+                                                title={visibleEmails[user._id] ? "Hide email" : "Show email"}
+                                                style={{
+                                                    background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                                                    color: palette.textTertiary
+                                                }}>
+                                                {visibleEmails[user._id] ? <VisibilityOff style={{ fontSize: 14 }} /> : <Visibility style={{ fontSize: 14 }} />}
+                                            </button>
+                                        </div>
                                     </td>
                                     {/* Roles */}
                                     <td className="px-4 py-3">
@@ -594,19 +656,26 @@ export default function UsersPage() {
                                 boxShadow: "0 24px 64px rgba(0,0,0,0.4)"
                             }}>
                             <div className="flex items-center justify-between mb-4">
-                                <div>
-                                    <p
-                                        className="font-black text-base"
-                                        style={{ color: palette.textPrimary }}>
+                                <div className="min-w-0">
+                                    <p className="font-black text-base" style={{ color: palette.textPrimary }}>
                                         Assign Roles
                                     </p>
-                                    <p
-                                        className="text-xs mt-0.5"
-                                        style={{
-                                            color: palette.textSecondary
-                                        }}>
-                                        {modal.user.email}
-                                    </p>
+                                    <div className="mt-0.5 flex items-center gap-2 min-w-0">
+                                        <p className="text-xs truncate" style={{ color: palette.textSecondary }}>
+                                            {visibleEmails[modal.user._id] ? modal.user.email : maskEmail(modal.user.email)}
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={() => toggleUserEmailVisibility(modal.user._id)}
+                                            className="p-1 rounded-md shrink-0"
+                                            title={visibleEmails[modal.user._id] ? "Hide email" : "Show email"}
+                                            style={{
+                                                background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)",
+                                                color: palette.textTertiary
+                                            }}>
+                                            {visibleEmails[modal.user._id] ? <VisibilityOff style={{ fontSize: 14 }} /> : <Visibility style={{ fontSize: 14 }} />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
@@ -620,93 +689,176 @@ export default function UsersPage() {
                                 </motion.button>
                             </div>
 
-                            <p
-                                className="text-xs font-bold uppercase tracking-widest mb-2"
-                                style={{ color: palette.textTertiary }}>
-                                Built-in Roles
-                            </p>
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                {BUILTIN_ROLES.map((role) => {
-                                    const active = modal.roles.includes(role);
-                                    const s = getRoleStyle(role);
-                                    return (
-                                        <motion.button
-                                            key={role}
-                                            whileHover={{ scale: 1.04 }}
-                                            whileTap={{ scale: 0.97 }}
-                                            onClick={() => toggleRole(role)}
-                                            className="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
-                                            style={{
-                                                background: active ? s.bg : "transparent",
-                                                color: active ? s.text : palette.textTertiary,
-                                                borderColor: active ? s.text + "44" : borderColor
-                                            }}>
-                                            {role}
-                                        </motion.button>
-                                    );
-                                })}
-                            </div>
-
-                            {roleDefs.filter((d) => !BUILTIN_ROLES.includes(d.key)).length > 0 && (
-                                <>
-                                    <p
-                                        className="text-xs font-bold uppercase tracking-widest mb-2"
-                                        style={{ color: palette.textTertiary }}>
-                                        Custom Roles
+                            <div
+                                className="mb-4 rounded-2xl border p-3"
+                                style={{
+                                    borderColor,
+                                    background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"
+                                }}>
+                                <div className="flex items-center justify-between gap-3 mb-3">
+                                    <p className="text-xs font-bold uppercase tracking-widest" style={{ color: palette.textTertiary }}>
+                                        Suggestions
                                     </p>
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {roleDefs
-                                            .filter((d) => !BUILTIN_ROLES.includes(d.key))
-                                            .map((def) => {
+                                    <p className="text-[11px]" style={{ color: palette.textSecondary }}>
+                                        Roles and permissions in one place
+                                    </p>
+                                </div>
+
+                                <input
+                                    placeholder="Add permission (type to search)…"
+                                    value={modal.permissionQuery ?? ""}
+                                    onChange={(e) => setModal((m) => (m ? { ...m, permissionQuery: e.target.value } : m))}
+                                    className="w-full px-3 py-2 text-sm rounded-xl outline-none"
+                                    style={{
+                                        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                                        border: `1px solid ${borderColor}`,
+                                        color: palette.textPrimary
+                                    }}
+                                />
+
+                                {suggestedRoles.length > 0 && (
+                                    <div className="mt-3">
+                                        <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>
+                                            Roles
+                                        </p>
+                                        <div className="space-y-2">
+                                            {suggestedRoles.map((def) => {
                                                 const active = modal.roles.includes(def.key);
                                                 return (
                                                     <motion.button
                                                         key={def.key}
-                                                        whileHover={{
-                                                            scale: 1.04
-                                                        }}
-                                                        whileTap={{
-                                                            scale: 0.97
-                                                        }}
+                                                        whileHover={{ scale: 1.01 }}
+                                                        whileTap={{ scale: 0.99 }}
                                                         onClick={() => toggleRole(def.key)}
-                                                        className="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
+                                                        className="w-full flex items-start justify-between gap-3 px-3 py-2 rounded-xl text-left border transition-all"
                                                         style={{
-                                                            background: active ? "rgba(255,149,0,0.18)" : "transparent",
-                                                            color: active ? "#FF9500" : palette.textTertiary,
+                                                            background: active ? "rgba(255,149,0,0.12)" : "transparent",
+                                                            color: active ? "#FF9500" : palette.textPrimary,
                                                             borderColor: active ? "#FF950044" : borderColor
                                                         }}>
-                                                        {def.label || def.key}
+                                                        <span className="min-w-0">
+                                                            <span className="block text-sm font-bold truncate">{def.label || def.key}</span>
+                                                            <span className="block text-[11px] mt-0.5 break-words" style={{ color: palette.textSecondary }}>
+                                                                {def.description || def.key}
+                                                            </span>
+                                                        </span>
+                                                        <span
+                                                            className="text-[10px] font-mono px-2 py-1 rounded-lg shrink-0"
+                                                            style={{
+                                                                background: active ? "rgba(255,149,0,0.15)" : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                                                                color: active ? "#FF9500" : palette.textTertiary
+                                                            }}>
+                                                            {def.key}
+                                                        </span>
                                                     </motion.button>
                                                 );
                                             })}
+                                        </div>
                                     </div>
-                                </>
-                            )}
+                                )}
 
-                            {/* Ad-hoc roles not in definitions */}
-                            {modal.roles.filter((r) => !BUILTIN_ROLES.includes(r) && !roleDefs.some((d) => d.key === r)).length > 0 && (
-                                <div className="flex flex-wrap gap-2 mb-4">
-                                    {modal.roles
-                                        .filter((r) => !BUILTIN_ROLES.includes(r) && !roleDefs.some((d) => d.key === r))
-                                        .map((role) => (
-                                            <span
-                                                key={role}
-                                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold"
-                                                style={{
-                                                    background: "rgba(255,149,0,0.12)",
-                                                    color: "#FF9500",
-                                                    border: "1px solid #FF950033"
-                                                }}>
-                                                {role}
+                                {modal.permissionQuery && modal.permissionQuery.trim().length > 0 && (
+                                    <div className="mt-2 space-y-1 max-h-44 overflow-auto">
+                                        {defaultPermissionQueryResults.map((p) => {
+                                            const active = (modal.permissions ?? []).some((pp) => pp.key === p.key);
+                                            return (
                                                 <button
-                                                    onClick={() => toggleRole(role)}
-                                                    className="ml-0.5 opacity-70 hover:opacity-100">
-                                                    <Close style={{ fontSize: 12 }} />
+                                                    key={p.key}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        togglePermission(p.key, p.label);
+                                                        setModal((m) => (m ? { ...m, permissionQuery: "" } : m));
+                                                    }}
+                                                    className="w-full text-left px-3 py-2 rounded-lg"
+                                                    style={{
+                                                        background: active ? "rgba(255,149,0,0.08)" : isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)",
+                                                        color: palette.textPrimary
+                                                    }}>
+                                                    <div className="flex items-center justify-between gap-3">
+                                                        <div className="min-w-0">
+                                                            <div className="font-medium truncate">{p.label}</div>
+                                                            <div className="text-[11px] mt-0.5 break-words" style={{ color: palette.textSecondary }}>
+                                                                {p.description}
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-[11px] font-mono opacity-70 shrink-0">{p.key}</div>
+                                                    </div>
                                                 </button>
-                                            </span>
-                                        ))}
-                                </div>
-                            )}
+                                            );
+                                        })}
+                                    </div>
+                                )}
+
+                                {/* {suggestedPerms.length > 0 && (
+                                    <div className="mt-4">
+                                        <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>
+                                            Permissions
+                                        </p>
+                                        <div className="space-y-2">
+                                            {suggestedPerms.map((p) => {
+                                                const active = (modal.permissions ?? []).some((pp) => pp.key === p.key);
+                                                return (
+                                                    <motion.button
+                                                        key={p.key}
+                                                        whileHover={{ scale: 1.01 }}
+                                                        whileTap={{ scale: 0.99 }}
+                                                        onClick={() => togglePermission(p.key, p.label)}
+                                                        className="w-full flex items-start justify-between gap-3 px-3 py-2 rounded-xl text-left border transition-all"
+                                                        style={{
+                                                            background: active ? "rgba(255,149,0,0.12)" : "transparent",
+                                                            color: active ? "#FF9500" : palette.textPrimary,
+                                                            borderColor: active ? "rgba(255,149,0,0.12)" : borderColor
+                                                        }}>
+                                                        <span className="min-w-0">
+                                                            <span className="block text-sm font-bold truncate">{p.label}</span>
+                                                            <span className="block text-[11px] mt-0.5 break-words" style={{ color: palette.textSecondary }}>
+                                                                {p.description}
+                                                            </span>
+                                                        </span>
+                                                        <span
+                                                            className="text-[10px] font-mono px-2 py-1 rounded-lg shrink-0"
+                                                            style={{
+                                                                background: active ? "rgba(255,149,0,0.15)" : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                                                                color: active ? "#FF9500" : palette.textTertiary
+                                                            }}>
+                                                            {p.key}
+                                                        </span>
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )} */}
+
+                                {(modal.permissions ?? []).length > 0 && (
+                                    <div className="mt-4">
+                                        <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>
+                                            Assigned Permission Overrides
+                                        </p>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(modal.permissions ?? []).map((perm) => (
+                                                <span
+                                                    key={perm.key}
+                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold"
+                                                    style={{
+                                                        background: "rgba(255,149,0,0.12)",
+                                                        color: "#FF9500",
+                                                        border: "1px solid #FF950033"
+                                                    }}>
+                                                    {perm.label || perm.key}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => togglePermission(perm.key, perm.label)}
+                                                        className="ml-0.5 opacity-70 hover:opacity-100"
+                                                        title="Remove permission override">
+                                                        <Close style={{ fontSize: 12 }} />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
 
                             <div className="flex gap-2 mb-5">
                                 <input
@@ -745,9 +897,7 @@ export default function UsersPage() {
                             </div>
 
                             {modal.error && (
-                                <p
-                                    className="text-xs mb-3 font-medium"
-                                    style={{ color: "#FF3B30" }}>
+                                <p className="text-xs mb-3 font-medium" style={{ color: "#FF3B30" }}>
                                     {modal.error}
                                 </p>
                             )}

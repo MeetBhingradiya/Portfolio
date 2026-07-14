@@ -1,11 +1,12 @@
 /**
- * GET  /api/trade-journal   – list trades (paginated, filtered)
- * POST /api/trade-journal   – create trade
+ * GET  /api/trade-journal   – list trades (requires Tools.Private.TradeJournal.Access)
+ * POST /api/trade-journal   – create trade (requires Tools.Private.TradeJournal.Access)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
+import { hasPermission } from "@Library/permissions";
 import { TradeDirection, TradeHitStatus, TradeJournal, TradePnLSign, TradeResult } from "@Models/TradeJournal";
 
 const AM_PM_TIME_RE = /^(0[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i;
@@ -74,6 +75,15 @@ export async function GET(req: NextRequest) {
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        // Check permission to access trade journal
+        const canAccess = await hasPermission(user.userId, "Tools.Private.TradeJournal.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.TradeJournal.Access" },
+                { status: 403 }
+            );
+        }
 
         const q = req.nextUrl.searchParams;
         const page = Math.max(1, parseInt(q.get("page") || "1"));
@@ -181,6 +191,15 @@ export async function POST(req: NextRequest) {
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        // Check permission to access trade journal
+        const canAccess = await hasPermission(user.userId, "Tools.Private.TradeJournal.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.TradeJournal.Access" },
+                { status: 403 }
+            );
+        }
 
         const body = await req.json();
 

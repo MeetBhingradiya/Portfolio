@@ -2,7 +2,8 @@
  * Blogs API Routes — CRUD + approval workflow
  * GET  ?slug=  → single blog (public: published/unlisted only; auth: own drafts too)
  * GET  ?mine=true (auth) → user's own blogs regardless of status
- * POST → create blog (auth), starts as draft
+ * GET  ?pending=true (requires content.blog.manage) → pending review queue
+ * POST → create blog (requires Users.Blogs.Create)
  * PUT  → update blog (auth, must be author)
  * PATCH ?id=&action=submit  → submit draft for review
  * PATCH ?id=&action=like    → increment likes (public)
@@ -13,6 +14,7 @@ import { NextRequest, NextResponse } from "next/server";
 import Blog, { BlogStatus, BlogCategory } from "@/Models/Blog";
 import dbConnect from "@/Utils/dbConnect";
 import { getSession, requireAuth } from "@Library/auth";
+import { hasPermission } from "@Library/permissions";
 import slugify from "@sindresorhus/slugify";
 
 // ── helpers ──────────────────────────────────────────────────────
@@ -95,7 +97,17 @@ export async function GET(req: NextRequest) {
         }
 
         // ── Admin pending queue ──
-        if (pending && admin) {
+        if (pending) {
+            if (!session?.user?.id) {
+                return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+            }
+            
+            // Check permission to manage blog content
+            const canManage = await hasPermission(session.user.id, "content.blog.manage");
+            if (!canManage && !admin) {
+                return NextResponse.json({ success: false, error: "Forbidden: Permission required: content.blog.manage" }, { status: 403 });
+            }
+            
             const blogs = await Blog.find({ status: BlogStatus.PendingReview })
                 .select("-content")
                 .sort({ submittedAt: 1 })
@@ -142,6 +154,15 @@ export async function POST(req: NextRequest) {
     try {
         const session = await requireAuth(req.headers);
         await dbConnect();
+
+        // Check permission to create blogs
+        const canCreate = await hasPermission(session.user.id, "Users.Blogs.Create");
+        if (!canCreate) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Users.Blogs.Create" },
+                { status: 403 }
+            );
+        }
 
         const body = await req.json();
 

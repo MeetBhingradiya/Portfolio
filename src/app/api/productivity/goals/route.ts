@@ -1,11 +1,12 @@
 /**
- * GET  /api/productivity/goals   – list goals
- * POST /api/productivity/goals   – create goal
+ * GET  /api/productivity/goals   – list goals (requires Tools.Private.Productivity.Access)
+ * POST /api/productivity/goals   – create goal (requires Tools.Private.Productivity.Access)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { getResolvedUser } from "@Utils/RolePermissions";
+import { hasPermission } from "@Library/permissions";
 import { ProductivityGoal, GoalStatus, GoalCategory, GOAL_XP } from "@Models/ProductivityGoal";
 import { UserProductivityStats, getOrCreateStats } from "@Models/UserProductivityStats";
 
@@ -15,6 +16,15 @@ export async function GET(req: NextRequest) {
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        // Check permission to access productivity tool
+        const canAccess = await hasPermission(user.userId, "Tools.Private.Productivity.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.Productivity.Access" },
+                { status: 403 }
+            );
+        }
 
         const q = req.nextUrl.searchParams;
         const status = q.get("status");
@@ -44,6 +54,15 @@ export async function POST(req: NextRequest) {
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        // Check permission to access productivity tool
+        const canAccess = await hasPermission(user.userId, "Tools.Private.Productivity.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.Productivity.Access" },
+                { status: 403 }
+            );
+        }
 
         const body = await req.json();
         const {

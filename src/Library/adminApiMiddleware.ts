@@ -51,6 +51,11 @@ export async function requirePermission(req: NextRequest, permission: string) {
         };
     }
 
+    const isOwnerAdmin = await isAdminUser(session.user.id, session.user.email);
+    if (isOwnerAdmin) {
+        return { error: false, session };
+    }
+
     const has = await hasPermission(session.user.id, permission);
 
     if (!has) {
@@ -78,6 +83,11 @@ export async function requireAnyPermission(req: NextRequest, permissions: string
         };
     }
 
+    const isOwnerAdmin = await isAdminUser(session.user.id, session.user.email);
+    if (isOwnerAdmin) {
+        return { error: false, session };
+    }
+
     const has = await hasAnyPermission(session.user.id, permissions);
 
     if (!has) {
@@ -103,6 +113,11 @@ export async function requireAllPermissions(req: NextRequest, permissions: strin
             status: 401,
             message: "Unauthorized: Not authenticated"
         };
+    }
+
+    const isOwnerAdmin = await isAdminUser(session.user.id, session.user.email);
+    if (isOwnerAdmin) {
+        return { error: false, session };
     }
 
     const has = await hasAllPermissions(session.user.id, permissions);

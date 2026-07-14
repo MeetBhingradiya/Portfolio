@@ -12,6 +12,7 @@ import AssignmentShareLink from "@/Models/AssignmentShareLink";
 import dbConnect from "@/Utils/dbConnect";
 import { getSession, requireAuth } from "@Library/auth";
 import { AssignmentPrivacy, AssignmentPermission } from "@/Types/Assignment";
+import { getPrimaryOrigin } from "@/Utils/origin";
 
 const isAdmin = (email?: string | null) => !!email && !!process.env.ADMIN_EMAIL && email === process.env.ADMIN_EMAIL;
 
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
 
             await shareLink.save();
 
-            const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL || "https://portfolio.meet.co"}/assignments/shared/${shareLink.token}`;
+            const shareUrl = `${getPrimaryOrigin()}/assignments/shared/${shareLink.token}`;
 
             return NextResponse.json({
                 success: true,

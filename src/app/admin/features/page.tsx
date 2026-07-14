@@ -4,6 +4,7 @@
  */
 "use client";
 
+import type { ISiteSettings, IPaymentProvider } from "@Models/SiteSettings";
 import React, { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
@@ -18,7 +19,8 @@ import {
     Visibility,
     VisibilityOff,
     CheckCircle,
-    InfoOutlined
+    InfoOutlined,
+    History
 } from "@mui/icons-material";
 
 /* ─── Types ─────────────────────────────────────────────────────────────── */
@@ -44,7 +46,9 @@ interface FeatureState {
         otpExpiryMinutes: number;
         otpMaxAttempts: number;
     };
-    paymentProviders: Record<string, ProviderState>;
+    paymentProviders: {
+        [key: string]: ProviderState;
+    }
 }
 
 /* ─── Provider Metadata ─────────────────────────────────────────────────── */
@@ -385,6 +389,40 @@ export default function AdminFeaturesPage() {
                             General
                         </p>
                         <div className="space-y-2">
+
+                                {/* Features: {
+        // ? Profile
+        Past_Avatar_History: boolean;
+
+        // ? Tools
+        Tool_Productivity_Tracking: boolean;
+        Tool_Wallet_Tracker: boolean;
+        Tool_Document_Vault: boolean;
+        Tool_Assignment_Docs: boolean;
+        Tool_Resume_Builder: boolean;
+
+        // @ Merged in Feature
+        Tool_Trade_Journal: boolean;
+        Tool_Trading_System: boolean;
+
+        // ? Administrative
+        CDN_Management: boolean;
+        Shop_Management: boolean; // Orders, Products, Refunds
+        Support_Ticketing: boolean;
+    } 
+
+                            <FeatureRow
+                                icon={<History fontSize="small" />}
+                                label="Past Avatar History"
+                                description="Allow users to view and revert to previous profile avatars in their account settings."
+                                value={state.allowSignup}
+                                onChange={(v) => setState((s) => ({ ...s, allowSignup: v }))}
+
+                                */}
+
+
+
+
                             <FeatureRow
                                 icon={<PersonAdd fontSize="small" />}
                                 label="Allow User Signup"

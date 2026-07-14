@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import dbConnect from "@/Utils/dbConnect";
-import { SiteSettings_Model, getSiteSettings } from "@/Models/SiteSettings";
+import { SiteSettings_Model, getSiteSettings } from "@Models/SiteSettings";
 import { encryptStoredSecret } from "@Utils/SecretVault";
 
 function redactProviders(providers: Record<string, any>) {

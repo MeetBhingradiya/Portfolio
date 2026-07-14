@@ -5,12 +5,15 @@ import type { Collection, Db, Document } from "mongodb";
 
 declare global {
     var mongoose: any;
+    var cachedConnections: Record<string, { conn: mongoose.Connection | null; promise: Promise<mongoose.Connection> | null }>;
 }
 
 const MONGODB_URIS = getMongoUris();
 const MONGODB_URI = requirePrimaryMongoUri();
 
-const cachedConnections: Record<string, { conn: mongoose.Connection | null; promise: Promise<mongoose.Connection> | null }> = {};
+if (!global.cachedConnections) {
+    global.cachedConnections = {};
+}
 
 let cached = global.mongoose;
 
@@ -19,30 +22,33 @@ if (!cached) {
 }
 
 async function MultidbConnect(dbUri: string): Promise<mongoose.Connection> {
-    if (cachedConnections[dbUri]?.conn) {
-        return cachedConnections[dbUri].conn as mongoose.Connection;
+    if (global.cachedConnections[dbUri]?.conn) {
+        return global.cachedConnections[dbUri].conn as mongoose.Connection;
     }
 
     if (!MONGODB_URIS.includes(dbUri)) {
         throw new Error(`Invalid database URI: ${dbUri}`);
     }
 
-    if (!cachedConnections[dbUri]) {
-        cachedConnections[dbUri] = { conn: null, promise: null };
+    if (!global.cachedConnections[dbUri]) {
+        global.cachedConnections[dbUri] = { conn: null, promise: null };
     }
 
-    if (!cachedConnections[dbUri].promise) {
-        cachedConnections[dbUri].promise = mongoose.createConnection(dbUri, { bufferCommands: false }).asPromise();
+    if (!global.cachedConnections[dbUri].promise) {
+        global.cachedConnections[dbUri].promise = mongoose.createConnection(dbUri, { 
+            bufferCommands: false,
+            maxPoolSize: 2 
+        }).asPromise();
     }
 
     try {
-        cachedConnections[dbUri].conn = await cachedConnections[dbUri].promise;
+        global.cachedConnections[dbUri].conn = await global.cachedConnections[dbUri].promise;
     } catch (e) {
-        cachedConnections[dbUri].promise = null;
+        global.cachedConnections[dbUri].promise = null;
         throw e;
     }
 
-    return cachedConnections[dbUri].conn as mongoose.Connection;
+    return global.cachedConnections[dbUri].conn as mongoose.Connection;
 }
 
 async function dbConnect() {
@@ -55,9 +61,6 @@ async function dbConnect() {
             bufferCommands: false,
             dbName: SConfig.Database.Name,
             maxPoolSize: 2,
-            maxIdleTimeMS: 10000,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
         };
         cached.promise = mongoose.connect(MONGODB_URI as string, opts).then((mongoose) => {
             return mongoose;

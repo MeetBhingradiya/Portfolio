@@ -195,47 +195,72 @@ declare global {
 let dbAdapter: any = undefined;
 if (!isBuildTime && mongoUri) {
     try {
-        if (!global._authMongoClient) {
-            global._authMongoClient = new MongoClient(mongoUri, {
-                maxPoolSize: 2,
-                maxIdleTimeMS: 10000,
-                serverSelectionTimeoutMS: 5000,
-                socketTimeoutMS: 45000,
-            });
-        }
-        const client = global._authMongoClient;
-        const db = client.db(SConfig.Database.Name);
-
-        // Compatibility migration for older account documents that used `user_id`.
-        // Better Auth credential sign-in queries by `userId`.
-        db.collection("account")
-            .updateMany(
-                {
-                    userId: { $exists: false },
-                    user_id: { $exists: true }
-                },
-                [
-                    {
-                        $set: {
-                            userId: "$user_id"
-                        }
-                    }
-                ]
-            )
-            .then((res) => {
-                if (res.modifiedCount > 0) {
-                    console.log(`[Auth] Migrated ${res.modifiedCount} legacy account documents to userId.`);
-                }
-            })
-            .catch((error) => {
-                console.warn("[Auth] Legacy account migration skipped:", error);
-            });
-
-        // Disable transactions for standalone MongoDB (local dev).
-        // Transactions require a replica set; Atlas in production supports them.
         const isLocalMongo = isLocalMongoUri(mongoUri);
-        dbAdapter = mongodbAdapter(db, { client, transaction: !isLocalMongo });
-        console.log("✅ MongoDB adapter initialized successfully");
+
+        const createAdapter = (forceNew = false) => {
+            if (forceNew || !global._authMongoClient) {
+                if (global._authMongoClient) {
+                    global._authMongoClient.close().catch(() => {});
+                }
+                global._authMongoClient = new MongoClient(mongoUri, {
+                    maxPoolSize: 2,
+                    // Rely on default driver timeouts for better serverless resilience
+                });
+
+                const client = global._authMongoClient;
+                const db = client.db(SConfig.Database.Name);
+
+                // Compatibility migration for older account documents
+                db.collection("account")
+                    .updateMany(
+                        { userId: { $exists: false }, user_id: { $exists: true } },
+                        [{ $set: { userId: "$user_id" } }]
+                    )
+                    .then((res) => {
+                        if (res.modifiedCount > 0) {
+                            console.log(`[Auth] Migrated ${res.modifiedCount} legacy account documents.`);
+                        }
+                    })
+                    .catch((error) => {
+                        console.warn("[Auth] Legacy account migration skipped:", error);
+                    });
+            }
+
+            const client = global._authMongoClient;
+            const db = client.db(SConfig.Database.Name);
+            return mongodbAdapter(db, { client, transaction: !isLocalMongo });
+        };
+
+        let currentAdapterFactory = createAdapter();
+
+        dbAdapter = (options: any) => {
+            let rawAdapterInstance = currentAdapterFactory(options);
+
+            return new Proxy(rawAdapterInstance, {
+                get(target, prop) {
+                    const originalMethod = (rawAdapterInstance as any)[prop];
+                    if (typeof originalMethod === "function") {
+                        return async (...args: any[]) => {
+                            try {
+                                return await originalMethod.apply(rawAdapterInstance, args);
+                            } catch (err: any) {
+                                if (err?.name === "MongoTopologyClosedError" || err?.message?.includes("Topology is closed")) {
+                                    console.warn("[Auth DB] Topology closed. Reconnecting and retrying...");
+                                    currentAdapterFactory = createAdapter(true);
+                                    rawAdapterInstance = currentAdapterFactory(options);
+                                    const newMethod = (rawAdapterInstance as any)[prop];
+                                    return await newMethod.apply(rawAdapterInstance, args);
+                                }
+                                throw err;
+                            }
+                        };
+                    }
+                    return originalMethod;
+                }
+            });
+        };
+
+        console.log("✅ MongoDB resilient adapter initialized successfully");
     } catch (error) {
         console.error("❌ Failed to initialize MongoDB adapter:", error);
         throw new Error("Database connection failed. Please ensure MongoDB is running.");

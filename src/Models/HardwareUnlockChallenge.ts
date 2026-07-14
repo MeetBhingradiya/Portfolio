@@ -119,7 +119,7 @@ const HardwareUnlockChallengeSchema = new mongoose.Schema<IHardwareUnlockChallen
             index: true
         },
         createdAt: { type: Date, default: () => new Date(), index: true },
-        expiresAt: { type: Date, required: true, index: true },
+        expiresAt: { type: Date, required: true },
         approvedAt: { type: Date },
         deniedAt: { type: Date },
         expirationReason: { type: String },

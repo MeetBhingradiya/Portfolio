@@ -52,7 +52,7 @@ const PairingTokenSchema = new mongoose.Schema<IPairingToken>(
             index: true
         },
         createdAt: { type: Date, default: () => new Date(), index: true },
-        expiresAt: { type: Date, required: true, index: true },
+        expiresAt: { type: Date, required: true },
         usedAt: { type: Date },
         
         claimedDeviceId: { type: String },

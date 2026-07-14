@@ -35,25 +35,22 @@ class FirebaseMessagingService {
         try {
             // Check if Firebase Admin SDK is already initialized
             if (admin.apps.length === 0) {
-                const serviceAccount: any = {
-                    apiKey: "AIzaSyAvsZa6nSJ1Sm97jsq3Fx5FA1ns329MTsY",
-                    authDomain: "meetbhingradiya-f086c.firebaseapp.com",
-                    projectId: "meetbhingradiya-f086c",
-                    storageBucket: "meetbhingradiya-f086c.firebasestorage.app",
-                    messagingSenderId: "682740515935",
-                    appId: "1:682740515935:web:e3fbffad11084dbb4a47ea",
-                    measurementId: "G-9BHBWMVJES"
-                }
+                const projectId = process.env.FIREBASE_PROJECT_ID;
+                const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+                const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-                if (!serviceAccount.project_id) {
-                    console.warn("Firebase not configured - push notifications disabled");
+                if (!projectId || !clientEmail || !privateKey) {
+                    console.warn("Firebase not configured (missing env variables) - push notifications disabled");
                     this.initialized = false;
                     return;
                 }
 
                 admin.initializeApp({
-                    credential: admin.credential.cert(serviceAccount),
-                    databaseURL: `https://${serviceAccount.project_id}.firebaseio.com`
+                    credential: admin.credential.cert({
+                        projectId,
+                        clientEmail,
+                        privateKey: privateKey.replace(/\\n/g, '\n')
+                    })
                 });
             }
 

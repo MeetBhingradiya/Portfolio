@@ -62,7 +62,8 @@ import {
     Menu as MenuIcon,
     Close,
     ArrowBack,
-    Lock
+    Lock,
+    Shield
 } from "@mui/icons-material";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -121,6 +122,7 @@ interface NavItem {
     | "tool-settings"
     | "ai-providers"
     | "maintenance"
+    | "rate-limits"
     | "immich-access"
     | "db-sync"
     | "cdn"
@@ -298,6 +300,13 @@ const allNavItems: NavItem[] = [
         icon: <Construction fontSize="small" />,
         group: "system",
         permKey: "maintenance"
+    },
+    {
+        href: "/admin/rate-limits",
+        label: "Rate Limits",
+        icon: <Shield fontSize="small" />,
+        group: "system",
+        permKey: "rate-limits"
     },
     {
         href: "/admin/immich-access",

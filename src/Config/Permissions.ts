@@ -23,6 +23,7 @@ export const PERMISSION_CATEGORIES: Record<string, { label: string; color: strin
     support: { label: "Support", color: "#3b82f6" },
     shop: { label: "Shop & Orders", color: "#f59e0b" },
     cdn: { label: "CDN", color: "#8b5cf6" },
+    security: { label: "Security", color: "#dc2626" },
     system: { label: "System", color: "#64748b" },
     admin: { label: "Administration", color: "#ef4444" },
     content: { label: "Content", color: "#22c55e" },
@@ -740,6 +741,26 @@ export const PERMISSIONS = [
         label: "Manage User Test Scores",
         description: "Manage user-created test scores",
         category: "admin"
+    },
+
+    // ── Rate Limiting ─────────────────────────────────────────────────────
+    {
+        key: "admin.rate-limits.view",
+        label: "View Rate Limits",
+        description: "View rate limit rules, counters, and blocked identities",
+        category: "security"
+    },
+    {
+        key: "admin.rate-limits.manage",
+        label: "Manage Rate Limits",
+        description: "Create, edit, and delete rate limit rules and whitelists",
+        category: "security"
+    },
+    {
+        key: "admin.rate-limits.whitelist",
+        label: "Manage Rate Limit Whitelist",
+        description: "Add or remove IPs and device fingerprints from the rate limit bypass list",
+        category: "security"
     }
 
 ] as const satisfies readonly PermissionDef[];

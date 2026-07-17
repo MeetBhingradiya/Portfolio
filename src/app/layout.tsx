@@ -10,6 +10,7 @@ import { ToastContainer } from "react-toastify";
 import HeadNavigation from "@Components/Common/HeadNavigation";
 import FootNavigation from "@Components/Common/FootNavigation";
 import AntiDebuggerShield from "@Components/Common/AntiDebuggerShield";
+import DeviceFingerprintInit from "@Components/Common/DeviceFingerprintInit";
 import URLNotice from "@Components/Common/URLNotice";
 import MuiXLicense from "@Components/Common/MuiXLicense";
 import { Suspense } from "react";
@@ -256,6 +257,9 @@ export default function RootLayout({
 
                 {/* Anti-Debugger Shield — client-only, production-only */}
                 <AntiDebuggerShield />
+
+                {/* Device Fingerprint — initializes canvas hash & fetch interceptor */}
+                <DeviceFingerprintInit />
 
                 <Providers>
                     {/* URL-param driven toast notifications (e.g. ?notice=immich_access_denied) */}

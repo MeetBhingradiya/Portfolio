@@ -1,19 +1,27 @@
 /**
- * Next.js Edge Middleware — Maintenance Mode Gate
+ * Next.js Edge Middleware — Security, Rate Limiting & Maintenance Gate
  *
- * When maintenance mode is active:
- *  • Page requests → redirect to /maintenance
- *  • API requests  → 503 JSON response
- *  • Admin with valid `x_admin_bypass` cookie → always allowed through
+ * Request pipeline:
+ *  1. Block disallowed HTTP methods (TRACE/TRACK/CONNECT) → 405
+ *  2. Handle CORS preflight → 204
+ *  3. CSRF origin validation → 403
+ *  4. Rate limiting (IP + device fingerprint) → 429
+ *  5. Bypass whitelisted paths
+ *  6. Maintenance mode gate → 503/redirect
  *
- * Maintenance state is fetched from /api/maintenance-status and cached
- * in module-level memory for CACHE_TTL_MS milliseconds to avoid hitting
- * the database on every request.
+ * Rate limit config is fetched from GitHub CDN and cached 24h in
+ * production (no cache in dev). Identity tracked by both IP and
+ * device fingerprint (canvas hash via x-device-fp header).
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { isTrustedOrigin as isTrustedOriginValue } from "@Utils/origin";
+import {
+    extractIdentity,
+    checkRateLimit,
+    applyRateLimitHeaders
+} from "@Library/RateLimit";
 
 // ── Module-level cache (resets on Edge worker cold start) ────────────────
 interface MaintenanceCache {
@@ -32,7 +40,8 @@ const CSRF_BYPASS_PREFIXES = [
     "/api/auth",
     "/api/maintenance-status",
     "/api/admin/is-admin",
-    "/api/cdn"
+    "/api/cdn",
+    "/api/rate-limit-status"
 ];
 
 const PUBLIC_DEVELOPER_API_PREFIXES = ["/api/cdn/external", "/api/cdn/applications"];
@@ -46,7 +55,8 @@ const BYPASS_PREFIXES = [
     "/api/admin/maintenance",
     "/api/admin/is-admin",
     "/api/auth",
-    "/api/cdn"
+    "/api/cdn",
+    "/api/rate-limit-status"
 ];
 
 function isBypassPath(pathname: string): boolean {
@@ -188,6 +198,7 @@ export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const isApiRoute = isApiPath(pathname);
 
+    // ── Step 1: Block disallowed HTTP methods ────────────────────────────
     if (isDisallowedMethod(request.method)) {
         const blockedMethod = NextResponse.json(
             {
@@ -200,11 +211,13 @@ export async function proxy(request: NextRequest) {
         return applySecurityHeaders(request, blockedMethod, isApiRoute, pathname);
     }
 
+    // ── Step 2: Handle CORS preflight ────────────────────────────────────
     if (isApiRoute && request.method.toUpperCase() === "OPTIONS") {
         const preflight = new NextResponse(null, { status: 204 });
         return applySecurityHeaders(request, preflight, true, pathname);
     }
 
+    // ── Step 3: CSRF origin validation ───────────────────────────────────
     if (isApiRoute && isMutatingMethod(request.method) && !isCsrfBypassPath(pathname) && shouldRejectCsrf(request)) {
         const csrfBlocked = NextResponse.json(
             {
@@ -217,23 +230,58 @@ export async function proxy(request: NextRequest) {
         return applySecurityHeaders(request, csrfBlocked, true, pathname);
     }
 
-    // Always allow whitelisted paths
+    // ── Step 4: Rate limiting (IP + device fingerprint) ──────────────────
+    const identity = extractIdentity(request.headers);
+    const isAdmin = await isAdminBypassed(request);
+
+    const rateLimitResult = await checkRateLimit(
+        identity,
+        pathname,
+        request.method,
+        undefined, // uses cached config from GitHub CDN
+        isAdmin
+    );
+
+    if (!rateLimitResult.allowed) {
+        const rateLimited = NextResponse.json(
+            {
+                Status: 0,
+                StatusCode: 429,
+                Message: rateLimitResult.ruleName
+                    ? `Rate limit exceeded (${rateLimitResult.ruleName}). Please try again later.`
+                    : "Too many requests. Please try again later.",
+                RetryAfter: rateLimitResult.retryAfter
+            },
+            { status: 429 }
+        );
+        applyRateLimitHeaders(rateLimited.headers, rateLimitResult);
+        return applySecurityHeaders(request, rateLimited, isApiRoute, pathname);
+    }
+
+    // ── Step 5: Always allow whitelisted paths ───────────────────────────
     if (isBypassPath(pathname)) {
-        return applySecurityHeaders(request, NextResponse.next(), isApiRoute, pathname);
+        const bypassResponse = applySecurityHeaders(request, NextResponse.next(), isApiRoute, pathname);
+        applyRateLimitHeaders(bypassResponse.headers, rateLimitResult);
+        return bypassResponse;
     }
 
     // Build base URL for self-fetch
     const baseUrl = `${request.nextUrl.protocol}//${request.nextUrl.host}`;
     const maintenance = await getMaintenanceStatus(baseUrl);
 
-    // Site is live — pass through
+    // ── Step 6: Maintenance mode gate ────────────────────────────────────
+    // Site is live — pass through with rate limit headers
     if (!maintenance.enabled) {
-        return applySecurityHeaders(request, NextResponse.next(), isApiRoute, pathname);
+        const liveResponse = applySecurityHeaders(request, NextResponse.next(), isApiRoute, pathname);
+        applyRateLimitHeaders(liveResponse.headers, rateLimitResult);
+        return liveResponse;
     }
 
-    // Check if requesting user is an admin with bypass cookie
-    if (await isAdminBypassed(request)) {
-        return applySecurityHeaders(request, NextResponse.next(), isApiRoute, pathname);
+    // Admin with bypass cookie — allow through during maintenance
+    if (isAdmin) {
+        const adminResponse = applySecurityHeaders(request, NextResponse.next(), isApiRoute, pathname);
+        applyRateLimitHeaders(adminResponse.headers, rateLimitResult);
+        return adminResponse;
     }
 
     // ── Block non-admins during maintenance ──────────────────────────────

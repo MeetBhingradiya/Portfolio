@@ -319,7 +319,8 @@ export async function githubUpload(
     path: string, // path inside the repo, e.g. "uploads/avatars/abc123.png"
     contentBuffer: Buffer,
     commitMessage: string,
-    targetRepo?: string // optional override: use a specific repo name
+    targetRepo?: string, // optional override: use a specific repo name
+    sha?: string // optional: needed if overwriting an existing file
 ): Promise<GitHubUploadResult> {
     const tk = getToken();
     const ow = getOwner();
@@ -337,14 +338,17 @@ export async function githubUpload(
 
     const url = `${BASE}/repos/${ow}/${repoName}/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}`;
 
+    const reqBody: Record<string, any> = {
+        message: commitMessage,
+        content: contentBuffer.toString("base64"),
+        branch: br
+    };
+    if (sha) reqBody.sha = sha;
+
     const res = await fetch(url, {
         method: "PUT",
         headers: ghHeaders(tk),
-        body: JSON.stringify({
-            message: commitMessage,
-            content: contentBuffer.toString("base64"),
-            branch: br
-        })
+        body: JSON.stringify(reqBody)
     });
 
     if (!res.ok) {

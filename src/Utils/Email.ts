@@ -33,15 +33,39 @@ interface SendEmailOptions {
     text?: string;
 }
 
+import fs from "fs";
+import path from "path";
+
 export async function sendEmail({ to, subject, html, text }: SendEmailOptions) {
-    const transporter = createTransporter();
-    return transporter.sendMail({
-        from: process.env.SMTP_FROM || process.env.SMTP_USER,
-        to,
-        subject,
-        html,
-        text
-    });
+    try {
+        // Quick check for missing config
+        if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+            console.warn("[Email] ⚠️ SMTP configuration is missing. Email will not be sent.");
+            throw new Error("Missing SMTP configuration");
+        }
+
+        const transporter = createTransporter();
+        return await transporter.sendMail({
+            from: process.env.SMTP_FROM || process.env.SMTP_USER,
+            to,
+            subject,
+            html,
+            text
+        });
+    } catch (error: any) {
+        console.error(`[Email] ❌ Failed to send email to ${to}:`, error.message || error);
+        
+        // Save the HTML locally so the developer can still view/test the email design
+        const debugPath = path.join(process.cwd(), "debug-email.html");
+        try {
+            fs.writeFileSync(debugPath, html, "utf-8");
+            console.log(`[Email] 🐛 Saved email HTML to ${debugPath} for local debugging.`);
+        } catch (fsErr) {
+            // Ignore file write errors
+        }
+
+        throw error;
+    }
 }
 
 function renderEmailShell(opts: {

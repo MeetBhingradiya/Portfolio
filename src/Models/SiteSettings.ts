@@ -91,6 +91,14 @@ interface ISiteSettings extends mongoose.Document {
         }
     }
 
+    RateLimits?: {
+        globalEnabled: boolean;
+        configRepoName: string;
+        configPath: string;
+        lastSyncedAt: Date;
+        lastSyncedBy: string;
+    }
+
     createdAt: Date;
     updatedAt: Date;
 }
@@ -144,6 +152,13 @@ const SiteSettings_Schema = new mongoose.Schema(
                 OTP_Expiry_in_Minutes: { type: Number, default: 5 },
                 OTP_Max_Attempts: { type: Number, default: 5 }
             }
+        },
+        RateLimits: {
+            globalEnabled: { type: Boolean, default: true },
+            configRepoName: { type: String, default: "" },
+            configPath: { type: String, default: "config/rate-limits.json" },
+            lastSyncedAt: { type: Date, default: null },
+            lastSyncedBy: { type: String, default: "" }
         },
 
         createdAt: { type: Date, default: Date.now },

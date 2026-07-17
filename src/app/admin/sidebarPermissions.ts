@@ -31,8 +31,8 @@ export type NavItemKey =
     | "tool-settings"
     | "ai-providers"
     | "maintenance"
+    | "rate-limits"
     | "immich-access"
-    | "vault-access"
     | "db-sync"
     | "cdn"
     | "cdn-applications"
@@ -78,6 +78,7 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
     "tool-settings": ["admin.site.settings"],
     "ai-providers": ["admin.site.settings"],
     "maintenance": ["admin.site.settings"],
+    "rate-limits": ["admin.rate-limits.view", "admin.rate-limits.manage"],
     "immich-access": ["admin.site.settings"],
     "db-sync": ["admin.site.settings"],
     "cdn": ["cdn.keys.view", "cdn.keys.manage"],

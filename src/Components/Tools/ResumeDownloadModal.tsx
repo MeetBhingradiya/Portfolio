@@ -66,7 +66,10 @@ export default function ResumeDownloadModal({ isOpen, onClose }: ResumeDownloadM
             const json = await res.json();
             if (json.success) {
                 const { preset, populatedData } = json.data;
-                await generateResumePdf(preset.header, populatedData, preset.sectionOrder, preset.style);
+                const defaultSectionOrder = ["experience", "projects", "education", "skills", "certificates", "testScores"];
+                const sectionOrder = preset.sectionOrder?.length ? preset.sectionOrder : defaultSectionOrder;
+                
+                await generateResumePdf(preset.header, populatedData, sectionOrder, preset.style);
                 onClose();
             } else {
                 setError(json.error || "Failed to fetch preset data");

@@ -23,7 +23,8 @@ export async function GET(req: NextRequest, { params }: Params) {
             return NextResponse.json({ success: false, error: "Preset not found or not published" }, { status: 404 });
         }
 
-        const selectedIds = preset.selectedIdsByCategory || {};
+        const selectedIds = preset.selectedIdsByCategory || preset.pinnedIdsByCategory || {};
+        const itemOrder = preset.itemOrderByCategory || preset.pinnedIdsByCategory || {};
         const populatedData: any = {
             projects: [],
             skills: [],
@@ -33,24 +34,45 @@ export async function GET(req: NextRequest, { params }: Params) {
             testScores: []
         };
 
+        const sortItems = (items: any[], cat: string) => {
+            const order = itemOrder[cat] || [];
+            const idField = cat === "skills" ? "SkillID" : cat === "education" ? "EducationID" : cat === "experience" ? "ExperienceID" : cat === "certificates" ? "CertificateID" : cat === "testScores" ? "TestScoreID" : "ProjectID";
+            return items.sort((a, b) => {
+                const idA = a[idField] || a._id;
+                const idB = b[idField] || b._id;
+                const idxA = order.indexOf(String(idA));
+                const idxB = order.indexOf(String(idB));
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                if (idxA !== -1) return -1;
+                if (idxB !== -1) return 1;
+                return 0;
+            });
+        };
+
         // Fetch populated data using the selected IDs
         if (selectedIds.projects && selectedIds.projects.length > 0) {
-            populatedData.projects = await Project_Model().find({ ProjectID: { $in: selectedIds.projects } }).lean();
+            const items = await Project_Model().find({ ProjectID: { $in: selectedIds.projects } }).lean();
+            populatedData.projects = sortItems(items, "projects");
         }
         if (selectedIds.skills && selectedIds.skills.length > 0) {
-            populatedData.skills = await Skill_Model().find({ SkillID: { $in: selectedIds.skills } }).lean();
+            const items = await Skill_Model().find({ SkillID: { $in: selectedIds.skills } }).lean();
+            populatedData.skills = sortItems(items, "skills");
         }
         if (selectedIds.education && selectedIds.education.length > 0) {
-            populatedData.education = await Education_Model().find({ EducationID: { $in: selectedIds.education } }).lean();
+            const items = await Education_Model().find({ EducationID: { $in: selectedIds.education } }).lean();
+            populatedData.education = sortItems(items, "education");
         }
         if (selectedIds.experience && selectedIds.experience.length > 0) {
-            populatedData.experience = await Experience_Model().find({ ExperienceID: { $in: selectedIds.experience } }).lean();
+            const items = await Experience_Model().find({ ExperienceID: { $in: selectedIds.experience } }).lean();
+            populatedData.experience = sortItems(items, "experience");
         }
         if (selectedIds.certificates && selectedIds.certificates.length > 0) {
-            populatedData.certificates = await Certificate_Model().find({ CertificateID: { $in: selectedIds.certificates } }).lean();
+            const items = await Certificate_Model().find({ CertificateID: { $in: selectedIds.certificates } }).lean();
+            populatedData.certificates = sortItems(items, "certificates");
         }
         if (selectedIds.testScores && selectedIds.testScores.length > 0) {
-            populatedData.testScores = await TestScore_Model().find({ TestScoreID: { $in: selectedIds.testScores } }).lean();
+            const items = await TestScore_Model().find({ TestScoreID: { $in: selectedIds.testScores } }).lean();
+            populatedData.testScores = sortItems(items, "testScores");
         }
 
         return NextResponse.json({ 
@@ -58,6 +80,7 @@ export async function GET(req: NextRequest, { params }: Params) {
             data: {
                 preset,
                 populatedData
+
             } 
         });
     } catch (err: any) {

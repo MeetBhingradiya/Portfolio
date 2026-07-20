@@ -74,9 +74,10 @@ export interface BlogCardData {
 interface BlogCardProps {
     blog: BlogCardData;
     showStatus?: boolean;
+    onRemove?: (e: React.MouseEvent) => void;
 }
 
-export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
+export default function BlogCard({ blog, showStatus = false, onRemove }: BlogCardProps) {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
@@ -93,11 +94,12 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
         : null;
 
     return (
-        <Link
-            href={`/blogs/${blog.slug}`}
-            tabIndex={-1}>
-            <motion.article
-                className="flex flex-col overflow-hidden cursor-pointer"
+        <div className="relative group">
+            <Link
+                href={`/blogs/${blog.slug}`}
+                tabIndex={-1}>
+                <motion.article
+                    className="flex flex-col overflow-hidden cursor-pointer h-full"
                 style={{
                     background: isApple
                         ? isDark
@@ -257,17 +259,27 @@ export default function BlogCard({ blog, showStatus = false }: BlogCardProps) {
                                 </span>
                             )}
                             {blog.likes != null && (
-                                <span
-                                    className="flex items-center gap-0.5 text-xs"
-                                    style={{ color: "#f43f5e" }}>
-                                    <FavoriteIcon style={{ fontSize: 11 }} />
-                                    {blog.likes}
-                                </span>
+                                <div className="flex items-center gap-1" style={{ color: "#f43f5e" }}>
+                                    <FavoriteIcon style={{ fontSize: 14 }} />
+                                    <span className="text-xs">{blog.likes || 0}</span>
+                                </div>
                             )}
                         </div>
                     </div>
-                </div>
-            </motion.article>
-        </Link>
+                </div>            </motion.article>
+            </Link>
+            {onRemove && (
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        onRemove(e);
+                    }}
+                    className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-red-500/80 hover:bg-red-500 text-white flex items-center justify-center transition-colors shadow-lg backdrop-blur-sm"
+                    title="Remove access">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </button>
+            )}
+        </div>
     );
 }

@@ -22,6 +22,7 @@ import {
     checkRateLimit,
     applyRateLimitHeaders
 } from "@Library/RateLimit";
+import { logSecurity, extractDeviceInfo } from "@Utils/DiscordLogger";
 
 // ── Module-level cache (resets on Edge worker cold start) ────────────────
 interface MaintenanceCache {
@@ -197,9 +198,16 @@ async function isAdminBypassed(request: NextRequest): Promise<boolean> {
 export async function proxy(request: NextRequest) {
     const { pathname } = request.nextUrl;
     const isApiRoute = isApiPath(pathname);
+    const device = extractDeviceInfo(request.headers);
 
     // ── Step 1: Block disallowed HTTP methods ────────────────────────────
     if (isDisallowedMethod(request.method)) {
+        logSecurity("blocked_method", {
+            path: pathname,
+            method: request.method,
+            device,
+            message: `Blocked disallowed HTTP method: ${request.method}`
+        });
         const blockedMethod = NextResponse.json(
             {
                 Status: 0,
@@ -219,6 +227,13 @@ export async function proxy(request: NextRequest) {
 
     // ── Step 3: CSRF origin validation ───────────────────────────────────
     if (isApiRoute && isMutatingMethod(request.method) && !isCsrfBypassPath(pathname) && shouldRejectCsrf(request)) {
+        logSecurity("csrf_blocked", {
+            path: pathname,
+            method: request.method,
+            origin: request.headers.get("origin") || "unknown",
+            device,
+            message: `CSRF origin rejected: ${request.headers.get("origin")}`
+        });
         const csrfBlocked = NextResponse.json(
             {
                 Status: 0,
@@ -243,6 +258,17 @@ export async function proxy(request: NextRequest) {
     );
 
     if (!rateLimitResult.allowed) {
+        logSecurity("rate_limited", {
+            path: pathname,
+            method: request.method,
+            device,
+            ruleId: rateLimitResult.ruleId,
+            ruleName: rateLimitResult.ruleName,
+            remaining: rateLimitResult.remaining,
+            retryAfter: rateLimitResult.retryAfter,
+            triggeredBy: rateLimitResult.triggeredBy || undefined,
+            message: `Rate limit exceeded: ${rateLimitResult.ruleName} (${rateLimitResult.ruleId})`
+        });
         const rateLimited = NextResponse.json(
             {
                 Status: 0,
@@ -279,6 +305,12 @@ export async function proxy(request: NextRequest) {
 
     // Admin with bypass cookie — allow through during maintenance
     if (isAdmin) {
+        logSecurity("admin_bypass", {
+            path: pathname,
+            method: request.method,
+            device,
+            message: "Admin bypass during maintenance mode"
+        });
         const adminResponse = applySecurityHeaders(request, NextResponse.next(), isApiRoute, pathname);
         applyRateLimitHeaders(adminResponse.headers, rateLimitResult);
         return adminResponse;
@@ -286,6 +318,12 @@ export async function proxy(request: NextRequest) {
 
     // ── Block non-admins during maintenance ──────────────────────────────
     if (pathname.startsWith("/api/")) {
+        logSecurity("maintenance_blocked", {
+            path: pathname,
+            method: request.method,
+            device,
+            message: "Non-admin blocked during maintenance mode"
+        });
         const maintenanceBlocked = NextResponse.json(
             {
                 Status: 0,

@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
             sectionOrder: Array.isArray(body.sectionOrder) ? body.sectionOrder : [],
             itemOrderByCategory: body.itemOrderByCategory || {},
             style: body.style || {},
+            isPublished: !!body.isPublished,
             createdBy: admin.email || "",
             updatedBy: admin.email || ""
         });

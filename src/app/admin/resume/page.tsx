@@ -12,6 +12,7 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, useSortable, v
 import { CSS } from "@dnd-kit/utilities";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { Config } from "@Config/Client";
+import { generateResumePdf } from "@/Utils/generateResumePdf";
 import {
     CheckBox,
     CheckBoxOutlineBlank,
@@ -84,6 +85,7 @@ interface ResumePreset {
     sectionOrder: Category[];
     itemOrderByCategory: Partial<Record<Category, string[]>>;
     style: ResumeStyle;
+    isPublished?: boolean;
     // Legacy fields are read only so existing records remain usable.
     title?: string;
     summary?: string;
@@ -478,6 +480,13 @@ export default function ResumeBuilderPage() {
     const [selection, setSelection] = useState<SelectionState>(createEmptySelection);
     const [itemOrder, setItemOrder] = useState<Record<Category, string[]>>(createEmptyItemOrder);
     const [sectionOrder, setSectionOrder] = useState<Category[]>(DEFAULT_SECTION_ORDER);
+    
+    // AI Tailor State
+    const [aiTailorOpen, setAiTailorOpen] = useState(false);
+    const [aiTailorLoading, setAiTailorLoading] = useState(false);
+    const [aiTailorJd, setAiTailorJd] = useState("");
+    const [aiTailorTitle, setAiTailorTitle] = useState("");
+    const [aiTailorName, setAiTailorName] = useState("");
     const [collapsed, setCollapsed] = useState<Partial<Record<Category, boolean>>>({});
     const [ui, setUi] = useState({ generating: false, previewMode: true });
     const [meta, setMeta] = useState<ResumeMeta>(DEFAULT_META);
@@ -807,426 +816,7 @@ export default function ResumeBuilderPage() {
     const handleGeneratePDF = useCallback(async (customFileName?: string) => {
         patchUi({ generating: true });
         try {
-            const { jsPDF } = await import("jspdf");
-            const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
-
-            // ── Layout constants ──────────────────────────────────────────
-            const PW = 210;
-            const PH = 297;
-            const PX_TO_MM = PW / A4_WIDTH_PX;
-            const M = resumeStyle.pagePadding * PX_TO_MM;
-            const CW = PW - M * 2;
-            const [aR, aG, aB] = hexToRgb(resumeStyle.accentColor);
-            const sc = resumeStyle.fontScale;
-            let y = M;
-
-            // ── Typography helpers ────────────────────────────────────────
-            const mm = (pt: number) => pt * 0.353;
-            const lh = (pt: number) => mm(pt) * 1.4;
-            const bl = (pt: number) => mm(pt) * 0.78;
-
-            const pageBreak = (need: number) => {
-                if (y + need > PH - M) { pdf.addPage(); y = M; }
-            };
-
-            const style = (
-                weight: "normal" | "bold" | "italic" | "bolditalic",
-                pt: number,
-                r: number, g: number, b: number
-            ) => {
-                pdf.setFont("helvetica", weight);
-                pdf.setFontSize(pt);
-                pdf.setTextColor(r, g, b);
-            };
-
-            /** Draw inline text at current y (does NOT advance y). */
-            const ink = (text: string, x: number, pt: number, align?: "left" | "right") => {
-                pdf.text(toPdfText(text), x, y + bl(pt), { align });
-            };
-
-            /** Draw wrapped paragraph at x; advances y; returns consumed height. */
-            const para = (text: string, x: number, pt: number, w: number = CW - (x - M)) => {
-                const lines: string[] = pdf.splitTextToSize(toPdfText(text), w);
-                const h = lh(pt);
-                let total = 0;
-                for (const line of lines) {
-                    pageBreak(h);
-                    pdf.text(line, x, y + bl(pt));
-                    y += h;
-                    total += h;
-                }
-                return total;
-            };
-
-            /** Draw accent-coloured section heading with underline; advances y. */
-            const heading = (title: string) => {
-                const pt = 10 * sc;
-                pageBreak(lh(pt) + 3);
-                style("bold", pt, aR, aG, aB);
-                ink(title.toUpperCase(), M, pt);
-                y += lh(pt) + 0.5;
-                pdf.setDrawColor(224, 224, 224);
-                pdf.setLineWidth(0.2);
-                pdf.line(M, y, PW - M, y);
-                y += 2.5;
-            };
-
-            /** Draw wrapped tag chips; advances y. */
-            const drawChips = (tags: string[], pt: number = 8 * sc) => {
-                if (!tags.length) return;
-                const chipH = mm(pt) * 1.8;
-                const padX = 2;
-                const gap = 1.5;
-                let cx = M;
-                pageBreak(chipH + 1);
-
-                for (const tag of tags) {
-                    pdf.setFont("helvetica", "normal");
-                    pdf.setFontSize(pt);
-                    const t = toPdfText(tag);
-                    const tw = pdf.getTextWidth(t);
-                    const cw = tw + padX * 2;
-
-                    if (cx + cw > PW - M && cx > M) {
-                        cx = M;
-                        y += chipH + gap * 0.5;
-                        pageBreak(chipH + 1);
-                    }
-
-                    // Chip background + border
-                    pdf.setFillColor(245, 247, 250);
-                    pdf.setDrawColor(215, 219, 224);
-                    pdf.setLineWidth(0.15);
-                    pdf.roundedRect(cx, y, cw, chipH, 0.8, 0.8, "FD");
-
-                    // Chip label
-                    pdf.setTextColor(51, 51, 51);
-                    pdf.setFont("helvetica", "normal");
-                    pdf.setFontSize(pt);
-                    pdf.text(t, cx + padX, y + chipH * 0.65);
-
-                    cx += cw + gap;
-                }
-                y += chipH + 2;
-            };
-
-            const fmtDate = (d?: string | Date) =>
-                d ? new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short" }) : "Present";
-
-            // ══════════════════════════════════════════════════════════════
-            //  HEADER
-            // ══════════════════════════════════════════════════════════════
-
-            // Name
-            const namePt = 22 * sc;
-            style("bold", namePt, 17, 17, 17);
-            ink(meta.name, M, namePt);
-            y += lh(namePt);
-
-            // Professional title
-            const titPt = 12 * sc;
-            style("bold", titPt, aR, aG, aB);
-            ink(meta.title, M, titPt);
-            y += lh(titPt) + 1;
-
-            // Contact info (text with separators + clickable links)
-            const cPt = 8.5 * sc;
-            const contacts: { t: string; url?: string }[] = [];
-            if (meta.email) contacts.push({ t: meta.email, url: `mailto:${meta.email}` });
-            if (meta.phone) contacts.push({ t: meta.phone, url: `tel:${meta.phone.replace(/\s+/g, "")}` });
-            if (meta.location) contacts.push({ t: meta.location, url: `tel:${meta.phone.replace(/\s+/g, "")}` });
-            if (meta.website) { const u = normalizeUrl(meta.website); contacts.push({ t: "Portfolio", url: u }); }
-            if (meta.github) { const u = normalizeUrl(meta.github); contacts.push({ t: "Github", url: u }); }
-            if (meta.linkedin) { const u = normalizeUrl(meta.linkedin); contacts.push({ t: "Linkedin", url: u }); }
-
-            if (contacts.length) {
-                style("normal", cPt, 85, 85, 85);
-                const sep = "  |  ";
-                const sw = pdf.getTextWidth(sep);
-                let cx = M;
-
-                for (let i = 0; i < contacts.length; i++) {
-                    const c = contacts[i];
-                    const t = toPdfText(c.t);
-                    pdf.setFont("helvetica", "normal");
-                    pdf.setFontSize(cPt);
-                    const tw = pdf.getTextWidth(t);
-                    const need = (i > 0 && cx > M ? sw : 0) + tw;
-
-                    // Wrap to next line if overflow
-                    if (cx + need > PW - M && cx > M) {
-                        y += lh(cPt);
-                        cx = M;
-                    }
-
-                    // Separator
-                    if (i > 0 && cx > M) {
-                        pdf.setTextColor(170, 170, 170);
-                        pdf.text(sep, cx, y + bl(cPt));
-                        cx += sw;
-                    }
-
-                    // Contact text + optional hyperlink
-                    pdf.setTextColor(85, 85, 85);
-                    pdf.text(t, cx, y + bl(cPt));
-                    if (c.url) {
-                        pdf.link(cx, y, tw, lh(cPt), { url: c.url });
-                    }
-                    cx += tw;
-                }
-                y += lh(cPt) + 1;
-            }
-
-            // Header accent rule
-            y += 1;
-            pdf.setDrawColor(aR, aG, aB);
-            pdf.setLineWidth(0.5);
-            pdf.line(M, y, PW - M, y);
-            y += 5;
-
-            // ══════════════════════════════════════════════════════════════
-            //  SUMMARY
-            // ══════════════════════════════════════════════════════════════
-
-            if (meta.summary) {
-                heading("Summary");
-                const sPt = 9.5 * sc;
-                style("normal", sPt, 51, 51, 51);
-                para(meta.summary, M, sPt, CW);
-                y += 3;
-            }
-
-            // ══════════════════════════════════════════════════════════════
-            //  BODY SECTIONS (in user-defined order)
-            // ══════════════════════════════════════════════════════════════
-
-            for (const cat of sectionOrder) {
-                const items = selectedData[cat];
-                if (!items?.length) continue;
-
-                const title =
-                    cat === "certificates"
-                        ? "Certifications"
-                        : cat === "testScores"
-                            ? "Test Scores & Rankings"
-                            : SECTION_BY_KEY[cat].label;
-
-                // ── Skills (rendered as chips) ──
-                if (cat === "skills") {
-                    heading(title);
-                    drawChips(
-                        items.map((s: any) =>
-                            // s.Proficiency != null ? `${s.Name} (${s.Proficiency}%)` : s.Name
-                            s.Name
-                        )
-                    );
-                    continue;
-                }
-
-                // ── Items with individual entries ──
-                items.forEach((item: any, idx: number) => {
-                    if (idx === 0) heading(title);
-
-                    // ── Experience ──
-                    if (cat === "experience") {
-                        const tPt = 11 * sc;
-                        const bPt = 9.5 * sc;
-                        const sPt2 = 8.5 * sc;
-                        pageBreak(lh(tPt) + lh(sPt2) + 6);
-
-                        // Role - Company … Date
-                        style("bold", tPt, 17, 17, 17);
-                        const role = toPdfText(item.Role);
-                        ink(role, M, tPt);
-                        const rw = pdf.getTextWidth(role);
-                        style("normal", 10.5 * sc, aR, aG, aB);
-                        pdf.text(` - ${toPdfText(item.Company)}`, M + rw, y + bl(tPt));
-                        style("normal", sPt2, 119, 119, 119);
-                        ink(
-                            `${fmtDate(item.StartDate)} - ${item.CurrentlyWorking ? "Present" : fmtDate(item.EndDate)}`,
-                            PW - M, sPt2, "right"
-                        );
-                        y += lh(tPt);
-
-                        // Location | Employment type
-                        if (item.Location) {
-                            style("normal", sPt2, 119, 119, 119);
-                            const loc = item.EmploymentType
-                                ? `${item.Location} | ${String(item.EmploymentType).replaceAll("_", " ")}`
-                                : item.Location;
-                            ink(toPdfText(loc), M, sPt2);
-                            y += lh(sPt2);
-                        }
-
-                        // Description
-                        if (item.Description) {
-                            style("normal", bPt, 68, 68, 68);
-                            para(item.Description, M, bPt, CW);
-                            y += 0.5;
-                        }
-
-                        // Bullet achievements
-                        if (Array.isArray(item.Achievements) && item.Achievements.length) {
-                            style("normal", bPt, 68, 68, 68);
-                            for (const ach of item.Achievements) {
-                                pageBreak(lh(bPt));
-                                pdf.text("\u2022", M + 2, y + bl(bPt));
-                                para(ach, M + 5, bPt, CW - 5);
-                            }
-                            y += 0.5;
-                        }
-
-                        // Tech stack chips
-                        drawChips(normalizeTags(item.TechStack), 7.5 * sc);
-                        y += 2;
-                    }
-
-                    // ── Projects ──
-                    if (cat === "projects") {
-                        const tPt = 11 * sc;
-                        const bPt = 9.5 * sc;
-                        const sPt2 = 8.5 * sc;
-                        pageBreak(lh(tPt) + 8);
-
-                        // Title … Date
-                        style("bold", tPt, 17, 17, 17);
-                        ink(toPdfText(item.Title), M, tPt);
-                        style("normal", sPt2, 119, 119, 119);
-                        ink(
-                            `${fmtDate(item.StartDate)} - ${item.CurrentlyWorking ? "Present" : fmtDate(item.EndDate)}`,
-                            PW - M, sPt2, "right"
-                        );
-                        y += lh(tPt);
-
-                        // Links as clickable text labels
-                        const linkDefs: [string, unknown][] = [
-                            ["GitHub", item.Links?.github],
-                            ["Live", item.Links?.live],
-                            ["NPM", item.Links?.npm],
-                            ["Docs", item.Links?.documentation],
-                            ["Demo", item.Links?.demo],
-                            ["Chrome Store", item.Links?.chromeWebstore],
-                            ["Play Store", item.Links?.playstore]
-                        ];
-                        const validLinks = linkDefs
-                            .filter(([, v]) => normalizeUrl(v))
-                            .map(([label, v]) => ({ label, url: normalizeUrl(v) }));
-
-                        if (validLinks.length) {
-                            const lPt = 7.5 * sc;
-                            let lx = M;
-                            for (let li = 0; li < validLinks.length; li++) {
-                                const lk = validLinks[li];
-                                style("normal", lPt, aR, aG, aB);
-                                const lt = toPdfText(lk.label);
-                                const ltw = pdf.getTextWidth(lt);
-                                const sepText = li < validLinks.length - 1 ? "  " : "";
-                                if (lx + ltw > PW - M && lx > M) {
-                                    y += lh(lPt); lx = M;
-                                }
-                                pdf.text(lt, lx, y + bl(lPt));
-                                pdf.link(lx, y, ltw, lh(lPt), { url: lk.url });
-                                lx += ltw + pdf.getTextWidth(sepText);
-                            }
-                            y += lh(lPt) + 0.5;
-                        }
-
-                        // Description
-                        if (item.Description) {
-                            style("normal", bPt, 68, 68, 68);
-                            para(item.Description, M, bPt, CW);
-                            y += 0.5;
-                        }
-
-                        // Tech stack chips
-                        drawChips(normalizeTags(item.TechStack), 7.5 * sc);
-                        y += 2;
-                    }
-
-                    // ── Education ──
-                    if (cat === "education") {
-                        const tPt = 11 * sc;
-                        const bPt = 9.5 * sc;
-                        const sPt2 = 8.5 * sc;
-                        pageBreak(lh(tPt) + lh(bPt) + 4);
-
-                        // Degree + field … Date
-                        style("bold", tPt, 17, 17, 17);
-                        const deg = toPdfText(item.Degree);
-                        ink(deg, M, tPt);
-                        if (item.FieldOfStudy) {
-                            const dw = pdf.getTextWidth(deg);
-                            style("normal", 10.5 * sc, 85, 85, 85);
-                            pdf.text(` in ${toPdfText(item.FieldOfStudy)}`, M + dw, y + bl(tPt));
-                        }
-                        style("normal", sPt2, 119, 119, 119);
-                        ink(
-                            `${fmtDate(item.StartDate)} - ${item.CurrentlyStudying ? "Present" : fmtDate(item.EndDate)}`,
-                            PW - M, sPt2, "right"
-                        );
-                        y += lh(tPt);
-
-                        // Institution
-                        style("normal", bPt, 85, 85, 85);
-                        para(toPdfText(item.Institution), M, bPt);
-
-                        // Grade
-                        if (item.Grade) {
-                            style("normal", sPt2, 119, 119, 119);
-                            para(`Grade: ${item.Grade}${item.MaxGrade ? `/${item.MaxGrade}` : ""}`, M, sPt2);
-                        }
-                        y += 3;
-                    }
-
-                    // ── Certificates ──
-                    if (cat === "certificates") {
-                        const tPt = 10.5 * sc;
-                        const sPt2 = 8.5 * sc;
-                        pageBreak(lh(tPt) + 4);
-
-                        style("bold", tPt, 17, 17, 17);
-                        const ct = toPdfText(item.Title);
-                        ink(ct, M, tPt);
-
-                        if (item.IssuingOrganization) {
-                            const tw2 = pdf.getTextWidth(ct);
-                            style("normal", 9.5 * sc, 85, 85, 85);
-                            pdf.text(` | ${toPdfText(item.IssuingOrganization)}`, M + tw2, y + bl(tPt));
-                        }
-
-                        style("normal", sPt2, 119, 119, 119);
-                        ink(fmtDate(item.IssuedDate), PW - M, sPt2, "right");
-                        y += lh(tPt) + 2;
-                    }
-
-                    // ── Test Scores ──
-                    if (cat === "testScores") {
-                        const tPt = 10.5 * sc;
-                        pageBreak(lh(tPt) + 4);
-
-                        style("bold", tPt, 17, 17, 17);
-                        const exam = toPdfText(`${item.ExamName} ${item.Year}`);
-                        ink(exam, M, tPt);
-
-                        if (item.Subject) {
-                            const ew = pdf.getTextWidth(exam);
-                            style("normal", 9.5 * sc, 85, 85, 85);
-                            pdf.text(` (${toPdfText(item.Subject)})`, M + ew, y + bl(tPt));
-                        }
-
-                        // Score right-aligned
-                        let scoreText = String(item.Score || "");
-                        if (item.MaxScore) scoreText += `/${item.MaxScore}`;
-                        if (item.Percentile) scoreText += ` | P${item.Percentile}`;
-                        if (item.Rank) scoreText += ` | Rank ${item.Rank}`;
-                        style("bold", 9.5 * sc, 17, 17, 17);
-                        ink(toPdfText(scoreText), PW - M, 9.5 * sc, "right");
-                        y += lh(tPt) + 2;
-                    }
-                });
-            }
-
-            pdf.save(customFileName || `${meta.name.replace(/\s+/g, "_")}_Resume.pdf`);
+            await generateResumePdf(meta, selectedData, sectionOrder, resumeStyle, customFileName);
         } finally {
             patchUi({ generating: false });
         }
@@ -1245,6 +835,72 @@ export default function ResumeBuilderPage() {
             window.clearTimeout(timer);
         };
     }, [dataState.loading, handleGeneratePDF, pendingPresetPdfName, ui.generating, ui.previewMode]);
+
+    const handleAITailor = async () => {
+        if (!aiTailorJd.trim() || aiTailorJd.trim().length < 20) {
+            alert("Please paste a valid job description (at least 20 characters).");
+            return;
+        }
+
+        setAiTailorLoading(true);
+        try {
+            const res = await fetch("/api/admin/resume-ai", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    jobDescription: aiTailorJd,
+                    name: aiTailorName || meta.name,
+                    title: aiTailorTitle || meta.title
+                })
+            });
+
+            const json = await res.json();
+            if (!json.success) throw new Error(json.error || "Failed to generate AI resume");
+
+            const { data } = json;
+
+            // Clear current selection and build new selection from AI response
+            const newSelection = createEmptySelection();
+            if (data.e) data.e.forEach((x: any) => newSelection.experience.add(x.id));
+            if (data.s) data.s.forEach((x: any) => newSelection.education.add(x.id));
+            if (data.p) data.p.forEach((x: any) => newSelection.projects.add(x.id));
+            if (data.c) data.c.forEach((x: any) => newSelection.certificates.add(x.id));
+            if (data.sk) data.sk.forEach((x: any) => newSelection.skills.add(x.id));
+            if (data.ts) data.ts.forEach((x: any) => newSelection.testScores.add(x.id));
+
+            // Set ordering based on AI arrays
+            const newItemOrder = createEmptyItemOrder();
+            if (data.e) newItemOrder.experience = data.e.map((x: any) => x.id);
+            if (data.s) newItemOrder.education = data.s.map((x: any) => x.id);
+            if (data.p) newItemOrder.projects = data.p.map((x: any) => x.id);
+            if (data.c) newItemOrder.certificates = data.c.map((x: any) => x.id);
+            if (data.sk) newItemOrder.skills = data.sk.map((x: any) => x.id);
+            if (data.ts) newItemOrder.testScores = data.ts.map((x: any) => x.id);
+
+            // Special handling for project order explicitly specified by AI
+            if (data.po && data.po.length > 0) {
+                newItemOrder.projects = data.po;
+            }
+
+            setSelection(newSelection);
+            setItemOrder(newItemOrder);
+            if (data.so) setSectionOrder(sanitizeSectionOrder(data.so));
+
+            setMeta((m) => ({
+                ...m,
+                name: data.n || m.name,
+                title: data.t || m.title,
+                summary: data.su || m.summary
+            }));
+
+            setAiTailorOpen(false);
+            alert(`AI Tailor complete! Relevance score: ${data.rs}% (using ${json.meta.provider}/${json.meta.model})`);
+        } catch (err: any) {
+            alert(err.message);
+        } finally {
+            setAiTailorLoading(false);
+        }
+    };
 
     return (
         <div
@@ -1273,6 +929,17 @@ export default function ResumeBuilderPage() {
                         whileHover={{ scale: 1.03 }}
                         onClick={fetchAll}>
                         <Refresh fontSize="small" /> Reload Data
+                    </motion.button>
+                    <motion.button
+                        className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
+                        style={{
+                            background: `linear-gradient(135deg, ${palette.accent}, #9b59b6)`,
+                            color: "#fff",
+                            boxShadow: "0 4px 12px rgba(155,89,182,0.3)"
+                        }}
+                        whileHover={{ scale: 1.03 }}
+                        onClick={() => setAiTailorOpen(true)}>
+                        <AutoAwesome fontSize="small" /> AI Auto-Tailor
                     </motion.button>
                     <motion.button
                         className="flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold"
@@ -1411,6 +1078,25 @@ export default function ResumeBuilderPage() {
                                                 <option value="school">School</option>
                                                 <option value="folder">Folder</option>
                                             </select>
+                                        </div>
+                                        <div className="mb-2 flex items-center gap-2">
+                                            <input
+                                                type="checkbox"
+                                                id="presetPublished"
+                                                checked={!!presetDraft.isPublished}
+                                                onChange={(e) =>
+                                                    setPresetDraft((current) =>
+                                                        current ? { ...current, isPublished: e.target.checked } : current
+                                                    )
+                                                }
+                                                style={{ accentColor: palette.accent }}
+                                            />
+                                            <label
+                                                htmlFor="presetPublished"
+                                                className="text-xs font-medium cursor-pointer select-none"
+                                                style={{ color: palette.textPrimary }}>
+                                                Published (Available to public)
+                                            </label>
                                         </div>
                                         <div
                                             className="mb-3 rounded-lg p-2 text-[11px]"
@@ -1867,6 +1553,139 @@ export default function ResumeBuilderPage() {
                         })
                     )}
                 </div>
+
+                {/* AI Tailor Modal */}
+                <AnimatePresence>
+                    {aiTailorOpen && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm"
+                                onClick={() => !aiTailorLoading && setAiTailorOpen(false)}
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                className="fixed left-1/2 top-1/2 z-50 w-full max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-2xl shadow-2xl"
+                                style={{
+                                    background: isDark ? "#1E1E1E" : "#FFF",
+                                    border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`
+                                }}>
+                                <div
+                                    className="border-b px-6 py-4"
+                                    style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
+                                    <h2
+                                        className="text-lg font-bold"
+                                        style={{ color: palette.textPrimary }}>
+                                        AI Auto-Tailor Resume
+                                    </h2>
+                                    <p
+                                        className="mt-1 text-sm"
+                                        style={{ color: palette.textSecondary }}>
+                                        Paste a job description below. The AI will automatically rewrite your summary, select the most relevant projects/experience, and organize your resume perfectly for this role.
+                                    </p>
+                                </div>
+                                <div className="p-6">
+                                    <div className="space-y-4">
+                                        <div className="flex gap-4">
+                                            <div className="flex-1">
+                                                <label
+                                                    className="mb-1 block text-xs font-semibold"
+                                                    style={{ color: palette.textSecondary }}>
+                                                    Target Job Title (Optional)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={aiTailorTitle}
+                                                    onChange={(e) => setAiTailorTitle(e.target.value)}
+                                                    placeholder={meta.title}
+                                                    className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-shadow"
+                                                    style={{
+                                                        background: isDark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.02)",
+                                                        color: palette.textPrimary,
+                                                        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`
+                                                    }}
+                                                />
+                                            </div>
+                                            <div className="flex-1">
+                                                <label
+                                                    className="mb-1 block text-xs font-semibold"
+                                                    style={{ color: palette.textSecondary }}>
+                                                    Name Override (Optional)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={aiTailorName}
+                                                    onChange={(e) => setAiTailorName(e.target.value)}
+                                                    placeholder={meta.name}
+                                                    className="w-full rounded-lg px-3 py-2 text-sm outline-none transition-shadow"
+                                                    style={{
+                                                        background: isDark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.02)",
+                                                        color: palette.textPrimary,
+                                                        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`
+                                                    }}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label
+                                                className="mb-1 block text-xs font-semibold"
+                                                style={{ color: palette.textSecondary }}>
+                                                Job Description *
+                                            </label>
+                                            <textarea
+                                                value={aiTailorJd}
+                                                onChange={(e) => setAiTailorJd(e.target.value)}
+                                                placeholder="Paste the raw job description from LinkedIn, Indeed, etc..."
+                                                className="h-64 w-full resize-none rounded-lg p-3 text-sm outline-none transition-shadow"
+                                                style={{
+                                                    background: isDark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.02)",
+                                                    color: palette.textPrimary,
+                                                    border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="mt-6 flex justify-end gap-3">
+                                        <button
+                                            className="rounded-lg px-4 py-2 text-sm font-semibold transition-colors"
+                                            style={{
+                                                background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)",
+                                                color: palette.textSecondary
+                                            }}
+                                            onClick={() => setAiTailorOpen(false)}
+                                            disabled={aiTailorLoading}>
+                                            Cancel
+                                        </button>
+                                        <button
+                                            className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-bold transition-opacity"
+                                            style={{
+                                                background: `linear-gradient(135deg, ${palette.accent}, #9b59b6)`,
+                                                color: "#fff",
+                                                opacity: aiTailorLoading ? 0.7 : 1
+                                            }}
+                                            onClick={handleAITailor}
+                                            disabled={aiTailorLoading}>
+                                            {aiTailorLoading ? (
+                                                <Refresh
+                                                    fontSize="small"
+                                                    className="animate-spin"
+                                                />
+                                            ) : (
+                                                <AutoAwesome fontSize="small" />
+                                            )}
+                                            {aiTailorLoading ? "Generating (~10s)..." : "Tailor Resume"}
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+
 
                 {ui.previewMode && (
                     <div className="min-w-0 flex-1">

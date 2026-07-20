@@ -36,6 +36,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
                 itemOrderByCategory: body.itemOrderByCategory
             }),
             ...(body.style !== undefined && { style: body.style }),
+            ...(body.isPublished !== undefined && { isPublished: !!body.isPublished }),
             updatedBy: admin.email || ""
         };
 

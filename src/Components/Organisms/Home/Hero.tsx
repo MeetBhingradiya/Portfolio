@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { LiquidGlassCard, LiquidGlassButton } from "@Components/Atoms/LiquidGlass/index";
 import { OneUICard, OneUIButton, OneUIBadge } from "@Components/Atoms/OneUI/index";
+import ResumeDownloadModal from "@Components/Tools/ResumeDownloadModal";
 import { GitHub, LinkedIn, Email, Download, ArrowForward, LocationOn, Code, Work, Star, TrendingUp, Schedule } from "@mui/icons-material";
 
 const roles = [
@@ -55,6 +56,7 @@ export default function ModernHero() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
     const [currentRoleIndex, setCurrentRoleIndex] = useState(0);
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+    const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
 
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
@@ -270,10 +272,12 @@ export default function ModernHero() {
                                 variant="secondary"
                                 size={isApple ? "md" : "lg"}
                                 icon={<Download />}
-                                onClick={() => window.open("/resume.pdf", "_blank")}>
+                                onClick={() => setIsResumeModalOpen(true)}>
                                 Download Resume
                             </Button>
                         </motion.div>
+
+                        <ResumeDownloadModal isOpen={isResumeModalOpen} onClose={() => setIsResumeModalOpen(false)} />
 
                         {/* Social Links */}
                         <motion.div

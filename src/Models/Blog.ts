@@ -29,7 +29,7 @@ export interface IBlog extends Document {
     scheduledFor?: Date;
 
     // Media
-    featuredImage: string;
+    featuredImage?: string;
     images?: string[];
 
     // Categorization
@@ -62,6 +62,9 @@ export interface IBlog extends Document {
     // Version Control
     version: number;
     lastEditedBy?: string;
+
+    // Access Control
+    whitelistedEmails?: string[];
 
     // Metadata
     createdAt: Date;
@@ -130,7 +133,7 @@ const BlogSchema = new Schema<IBlog>(
         },
         featuredImage: {
             type: String,
-            required: true
+            required: false
         },
         images: [
             {
@@ -195,7 +198,13 @@ const BlogSchema = new Schema<IBlog>(
             type: Number,
             default: 1
         },
-        lastEditedBy: String
+        lastEditedBy: {
+            type: String
+        },
+        whitelistedEmails: {
+            type: [String],
+            default: []
+        }
     },
     {
         timestamps: true

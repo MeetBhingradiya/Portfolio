@@ -12,6 +12,8 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import Blog, { BlogStatus, BlogCategory } from "@/Models/Blog";
+import { BlogLike } from "@/Models/BlogLike";
+import { BlogAccess_Model } from "@/Models/BlogAccess";
 import dbConnect from "@/Utils/dbConnect";
 import { getSession, requireAuth } from "@Library/auth";
 import { hasPermission } from "@/Utils/RolePermissions";
@@ -68,16 +70,54 @@ export async function GET(req: NextRequest) {
                 return NextResponse.json({ success: false, error: "Blog not found" }, { status: 404 });
             }
             const isAuthor = blog.authorId === session?.user?.id;
-            const canView = admin || isAuthor || blog.status === BlogStatus.Published || blog.status === BlogStatus.Unlisted;
+            
+            // Check if user has BlogAccess
+            let hasAccessRecord = false;
+            if (session?.user?.id) {
+                const access = await BlogAccess_Model().findOne({ blogId: blog._id, userId: session.user.id });
+                if (access) hasAccessRecord = true;
+            }
+
+            let canView = admin || isAuthor;
+
+            if (!canView) {
+                if (blog.status === BlogStatus.Published) {
+                    canView = true;
+                } else if (blog.status === BlogStatus.Unlisted) {
+                    // Unlisted: must be logged in
+                    if (session?.user?.id) canView = true;
+                } else if (blog.status === BlogStatus.Private) {
+                    // Private: must be logged in and email whitelisted, or have access record
+                    if (session?.user?.id) {
+                        const isWhitelisted = blog.whitelistedEmails?.includes(session.user.email);
+                        if (isWhitelisted || hasAccessRecord) canView = true;
+                    }
+                }
+            }
 
             if (!canView) {
                 return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
             }
-            // increment views for public posts
-            if (blog.status === BlogStatus.Published || blog.status === BlogStatus.Unlisted) {
+
+            // If logged in and viewing Unlisted, or viewing Private via whitelist, ensure they have BlogAccess record for "Shared with me" feed
+            if (session?.user?.id && (blog.status === BlogStatus.Unlisted || blog.status === BlogStatus.Private) && !hasAccessRecord && !isAuthor && !admin) {
+                await BlogAccess_Model().create({ blogId: blog._id, userId: session.user.id });
+            }
+
+            // increment views for public posts if noview is not set
+            if (p.get("noview") !== "true" && (blog.status === BlogStatus.Published || blog.status === BlogStatus.Unlisted)) {
                 await Blog.findOneAndUpdate({ slug }, { $inc: { views: 1 } });
             }
             return NextResponse.json({ success: true, data: blog });
+        }
+
+        // ── Shared with me blogs (auth required) ──
+        if (p.get("shared") === "true") {
+            if (!session) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+            const accessRecords = await BlogAccess_Model().find({ userId: session.user.id }).lean();
+            const blogIds = accessRecords.map(a => a.blogId);
+            const blogs = await Blog.find({ _id: { $in: blogIds } }).select("-content").sort({ updatedAt: -1 }).lean();
+            return NextResponse.json({ success: true, data: blogs });
         }
 
         // ── My blogs (auth required) ──
@@ -253,6 +293,33 @@ export async function PATCH(req: NextRequest) {
         if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
 
         if (action === "like") {
+            let body: any = {};
+            try {
+                body = await req.json();
+            } catch (e) {
+                // ignore
+            }
+            const fingerprint = body.fingerprint;
+            const session = await getSession(req.headers).catch(() => null);
+            const userId = session?.user?.id;
+
+            if (!userId && !fingerprint) {
+                return NextResponse.json({ success: false, error: "Requires authentication or device fingerprint" }, { status: 400 });
+            }
+
+            const query: any = { blogId: id };
+            if (userId) {
+                query.userId = userId;
+            } else {
+                query.fingerprint = fingerprint;
+            }
+
+            const existingLike = await BlogLike.findOne(query);
+            if (existingLike) {
+                return NextResponse.json({ success: false, error: "Already liked" }, { status: 400 });
+            }
+
+            await BlogLike.create(query);
             await Blog.findByIdAndUpdate(id, { $inc: { likes: 1 } });
             return NextResponse.json({ success: true });
         }

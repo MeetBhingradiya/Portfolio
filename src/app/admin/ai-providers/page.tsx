@@ -38,6 +38,7 @@ interface AISettings {
         github: ProviderConfig;
         google: ProviderConfig;
         perplexity: ProviderConfig;
+        openrouter: ProviderConfig;
     };
     Features: {
         taskCreation: boolean;
@@ -91,6 +92,13 @@ const PROVIDER_META: Record<
         emoji: "🔍",
         apiKeyLabel: "Perplexity API Key",
         apiDocsUrl: "https://www.perplexity.ai/settings/api"
+    },
+    openrouter: {
+        label: "OpenRouter",
+        color: "#6D28D9",
+        emoji: "🌌",
+        apiKeyLabel: "OpenRouter API Key",
+        apiDocsUrl: "https://openrouter.ai/keys"
     }
 };
 
@@ -136,7 +144,8 @@ export default function AIProvidersAdminPage() {
         Providers: {
             github: defaultProvider(),
             google: defaultProvider(),
-            perplexity: defaultProvider()
+            perplexity: defaultProvider(),
+            openrouter: defaultProvider()
         },
         Features: {
             taskCreation: true,
@@ -152,7 +161,8 @@ export default function AIProvidersAdminPage() {
         availableProviders: {
             github: { label: "GitHub Models", models: [] },
             google: { label: "Google Gemini", models: [] },
-            perplexity: { label: "Perplexity AI", models: [] }
+            perplexity: { label: "Perplexity AI", models: [] },
+            openrouter: { label: "OpenRouter", models: [] }
         }
     });
 
@@ -169,11 +179,13 @@ export default function AIProvidersAdminPage() {
         try {
             const res = await fetch(`/api/admin/ai-providers/models?provider=${pk}`);
             const json = await res.json();
-            if (json.success && Array.isArray(json.models) && json.models.length > 0) {
+            if (json.success && Array.isArray(json.models)) {
                 setFetchedModels((prev) => ({ ...prev, [pk]: json.models }));
+            } else {
+                setFetchedModels((prev) => ({ ...prev, [pk]: [] }));
             }
         } catch {
-            /* ignore */
+            setFetchedModels((prev) => ({ ...prev, [pk]: [] }));
         } finally {
             setFetchingModels((prev) => ({ ...prev, [pk]: false }));
         }
@@ -199,6 +211,10 @@ export default function AIProvidersAdminPage() {
                         perplexity: {
                             ...defaultProvider(),
                             ...json.data?.Providers?.perplexity
+                        },
+                        openrouter: {
+                            ...defaultProvider(),
+                            ...json.data?.Providers?.openrouter
                         }
                     }
                 }));
@@ -220,7 +236,7 @@ export default function AIProvidersAdminPage() {
         if (!expandedProvider) return;
         const provConfig = settings.Providers[expandedProvider as keyof typeof settings.Providers];
         if (!provConfig?.hasApiKey) return;
-        if (fetchedModels[expandedProvider]) return;
+        if (fetchedModels[expandedProvider] !== undefined) return;
         if (fetchingModels[expandedProvider]) return;
         fetchModels(expandedProvider);
     }, [expandedProvider, settings.Providers, fetchedModels, fetchingModels, fetchModels]);
@@ -342,7 +358,7 @@ export default function AIProvidersAdminPage() {
                     Active Provider
                 </p>
                 <div className="flex gap-2 flex-wrap">
-                    {(["github", "google", "perplexity"] as const).map((pk) => {
+                    {(["github", "google", "perplexity", "openrouter"] as const).map((pk) => {
                         const meta = PROVIDER_META[pk];
                         const provConfig = settings.Providers[pk];
                         const isActive = settings.ActiveProvider === pk;
@@ -371,7 +387,7 @@ export default function AIProvidersAdminPage() {
             </div>
 
             {/* Provider configs */}
-            {(["github", "google", "perplexity"] as const).map((pk) => {
+            {(["github", "google", "perplexity", "openrouter"] as const).map((pk) => {
                 const meta = PROVIDER_META[pk];
                 const config = settings.Providers[pk];
                 const available = settings.availableProviders[pk];

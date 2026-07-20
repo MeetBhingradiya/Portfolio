@@ -9,6 +9,8 @@
 import React, { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import ResumeDownloadModal from "@Components/Tools/ResumeDownloadModal";
+import { Close as CloseIcon } from "@mui/icons-material";
 import {
     Work,
     School,
@@ -80,9 +82,11 @@ interface Certificate {
     NoExpiry: boolean;
     CredentialID?: string;
     CredentialURL?: string;
+    CredentialURL?: string;
     Description?: string;
     Skills: string[];
     Logo?: string;
+    Image?: string;
 }
 
 // ─────────────────────────── Helpers ───────────────────────────
@@ -761,12 +765,14 @@ function CertificatesSection({
     certificates,
     palette,
     isDark,
-    isApple
+    isApple,
+    setSelectedCertificate
 }: {
     certificates: Certificate[];
     palette: any;
     isDark: boolean;
     isApple: boolean;
+    setSelectedCertificate: (cert: Certificate) => void;
 }) {
     const cardStyle: React.CSSProperties = {
         background: isApple
@@ -801,10 +807,14 @@ function CertificatesSection({
                 {certificates.map((cert, i) => (
                     <motion.div
                         key={cert.CertificateID}
+                        onClick={() => setSelectedCertificate(cert)}
+                        className="cursor-pointer"
                         style={cardStyle}
                         initial={{ opacity: 0, y: 16 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         transition={{ duration: 0.4, delay: i * 0.06 }}>
                         <div
                             className="absolute inset-y-0 left-0 w-1"
@@ -907,6 +917,9 @@ export default function ExperienceView({ experience, skills, education, certific
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
+    const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
+    const [selectedCertificate, setSelectedCertificate] = useState<Certificate | null>(null);
+
     const totalYears = useMemo(() => {
         const months = experience.reduce((sum, e) => sum + monthsDiff(e.StartDate, e.EndDate, e.CurrentlyWorking), 0);
         return Math.round(months / 12);
@@ -975,16 +988,16 @@ export default function ExperienceView({ experience, skills, education, certific
                             }}>
                             View Timeline
                         </a>
-                        <a
-                            href="/admin/resume"
-                            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold"
+                        <button
+                            onClick={() => setIsResumeModalOpen(true)}
+                            className="flex items-center gap-2 px-4 py-2 rounded-full text-sm font-semibold transition-all hover:opacity-80"
                             style={{
                                 background: "transparent",
                                 color: palette.textSecondary,
                                 border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`
                             }}>
                             <Download fontSize="small" /> Download Resume
-                        </a>
+                        </button>
                     </div>
                 </motion.div>
 
@@ -1043,9 +1056,64 @@ export default function ExperienceView({ experience, skills, education, certific
                         palette={palette}
                         isDark={isDark}
                         isApple={isApple}
+                        setSelectedCertificate={setSelectedCertificate}
                     />
                 )}
             </div>
+
+            <ResumeDownloadModal isOpen={isResumeModalOpen} onClose={() => setIsResumeModalOpen(false)} />
+            
+            <AnimatePresence>
+                {selectedCertificate && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div
+                            className="absolute inset-0 bg-black/60 backdrop-blur-md"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedCertificate(null)}
+                        />
+                        <motion.div
+                            className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col rounded-2xl"
+                            style={{
+                                background: isApple ? (isDark ? "rgba(28,28,32,0.85)" : "rgba(255,255,255,0.85)") : palette.background,
+                                backdropFilter: isApple ? "blur(32px)" : "none",
+                                border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+                                boxShadow: "0 24px 48px rgba(0,0,0,0.4)"
+                            }}
+                            initial={{ scale: 0.95, opacity: 0, y: 10 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 10 }}>
+                            
+                            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
+                                <div className="flex flex-col">
+                                    <h2 className="text-lg font-semibold" style={{ color: palette.textPrimary }}>{selectedCertificate.Title}</h2>
+                                    <span className="text-sm opacity-70" style={{ color: palette.textSecondary }}>{selectedCertificate.IssuingOrganization}</span>
+                                </div>
+                                <button onClick={() => setSelectedCertificate(null)} className="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors" style={{ color: palette.textPrimary }}>
+                                    <CloseIcon />
+                                </button>
+                            </div>
+
+                            <div className="flex-1 overflow-auto p-6 flex flex-col items-center justify-center min-h-[400px]">
+                                {selectedCertificate.Image ? (
+                                    <img 
+                                        src={selectedCertificate.Image} 
+                                        alt={selectedCertificate.Title} 
+                                        className="max-w-full max-h-full object-contain rounded-lg shadow-lg border"
+                                        style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}
+                                    />
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center opacity-50" style={{ color: palette.textSecondary }}>
+                                        <VerifiedUser style={{ fontSize: 64, marginBottom: 16 }} />
+                                        <p>No certificate image available</p>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

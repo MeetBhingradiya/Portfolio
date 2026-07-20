@@ -87,6 +87,7 @@
         "next": "^16.1.6",
         "nodemailer": "^9.0.3",
         "ogl": "^1.0.11",
+        "openai": "^4.86.1",
         "password-managers": "git+https://github.com/agektmr/passkey-authenticator-aaguids.git",
         "pdf-lib": "^1.17.1",
         "pdfjs-dist": "^5.5.207",

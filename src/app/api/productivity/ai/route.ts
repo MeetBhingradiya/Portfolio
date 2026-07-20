@@ -15,78 +15,98 @@ import { getResolvedUser } from "@Utils/RolePermissions";
 import { getAIProviderSettings, AI_PROVIDERS, type AIProviderKey } from "@Models/AIProviderSettings";
 import { UserProductivityStats } from "@Models/UserProductivityStats";
 import { decryptStoredSecret } from "@Utils/SecretVault";
+import { logAdminAction, logError } from "@Utils/DiscordLogger";
+import OpenAI from "openai";
 
 // ─── Provider call helper ─────────────────────────────────────────────────────
 
 async function callAI(
     provider: AIProviderKey,
     apiKey: string,
-    model: string,
+    modelsToTry: string[],
     systemPrompt: string,
     userMessage: string,
     customBaseUrl?: string
-): Promise<string> {
+): Promise<{ text: string; modelUsed: string }> {
     const providerConfig = AI_PROVIDERS[provider];
     const baseUrl = customBaseUrl?.trim() || providerConfig.baseUrl;
 
-    if (provider === "google") {
-        // Google Gemini uses a different API shape
-        const url = `${baseUrl}/models/${model}:generateContent?key=${apiKey}`;
-        const res = await fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                contents: [
-                    {
-                        role: "user",
-                        parts: [{ text: `${systemPrompt}\n\n${userMessage}` }]
-                    }
+    let lastError: Error | null = null;
+
+    for (const model of modelsToTry) {
+        try {
+            if (provider === "google") {
+                // Google Gemini uses a different API shape
+                const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: { 
+                        "Content-Type": "application/json",
+                        "x-goog-api-key": apiKey
+                    },
+                    body: JSON.stringify({
+                        contents: [
+                            {
+                                role: "user",
+                                parts: [{ text: `${systemPrompt}\n\n${userMessage}` }]
+                            }
+                        ],
+                        generationConfig: { maxOutputTokens: 2048, temperature: 0.7 }
+                    })
+                });
+
+                if (!res.ok) {
+                    const err = await res.text();
+                    throw new Error(`Google AI error ${res.status}: ${err}`);
+                }
+
+                const data = (await res.json()) as {
+                    candidates?: Array<{
+                        content?: { parts?: Array<{ text?: string }> };
+                    }>;
+                };
+                return { text: data.candidates?.[0]?.content?.parts?.[0]?.text ?? "", modelUsed: model };
+            }
+
+            // OpenAI-compatible (GitHub Models / Perplexity / OpenRouter)
+            const defaultHeaders: Record<string, string> = {};
+            if (provider === "openrouter") {
+                defaultHeaders["HTTP-Referer"] = "https://productivity-hub.local";
+                defaultHeaders["X-Title"] = "Productivity Hub";
+                defaultHeaders["Authorization"] = `Bearer ${apiKey}`;
+            }
+
+            const openai = new OpenAI({
+                baseURL: baseUrl,
+                apiKey: apiKey,
+                defaultHeaders,
+                fetch: async (url, init) => {
+                    const reqHeaders = new Headers(init?.headers);
+                    reqHeaders.set("Authorization", `Bearer ${apiKey}`);
+                    return globalThis.fetch(url, { ...init, headers: reqHeaders });
+                }
+            });
+
+            const completion = await openai.chat.completions.create({
+                model: model,
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userMessage }
                 ],
-                generationConfig: { maxOutputTokens: 2048, temperature: 0.7 }
-            })
-        });
+                temperature: 0.7,
+                max_tokens: 2000
+            });
 
-        if (!res.ok) {
-            const err = await res.text();
-            throw new Error(`Google AI error ${res.status}: ${err}`);
+            const content = completion.choices?.[0]?.message?.content;
+            if (!content) throw new Error(`Empty response from ${provider}`);
+            return { text: content, modelUsed: model };
+        } catch (err: any) {
+            console.warn(`[AI Fallback] Model ${model} failed: ${err.message}`);
+            lastError = err;
         }
-
-        const data = (await res.json()) as {
-            candidates?: Array<{
-                content?: { parts?: Array<{ text?: string }> };
-            }>;
-        };
-        return data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
     }
 
-    // OpenAI-compatible (GitHub Models / Perplexity)
-    const url = `${baseUrl}/chat/completions`;
-    const res = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${apiKey}`
-        },
-        body: JSON.stringify({
-            model,
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userMessage }
-            ],
-            max_tokens: 2048,
-            temperature: 0.7
-        })
-    });
-
-    if (!res.ok) {
-        const err = await res.text();
-        throw new Error(`AI provider error ${res.status}: ${err}`);
-    }
-
-    const data = (await res.json()) as {
-        choices?: Array<{ message?: { content?: string } }>;
-    };
-    return data.choices?.[0]?.message?.content ?? "";
+    throw new Error(`All models failed. Last error: ${lastError?.message}`);
 }
 
 // ─── System prompts ───────────────────────────────────────────────────────────
@@ -173,7 +193,11 @@ export async function POST(req: NextRequest) {
         const resolvedApiKeys = Object.fromEntries(
             providerKeys.map((k) => {
                 try {
-                    return [k, decryptStoredSecret(settings.Providers[k].apiKey || "")];
+                    let key = decryptStoredSecret(settings.Providers[k].apiKey || "");
+                    // Aggressively clean the API key: remove quotes, spaces, and non-printable characters
+                    key = key.replace(/['"\s\x00-\x1F\x7F-\x9F]/g, "").trim();
+                    if (key === "undefined" || key === "null") return [k, ""];
+                    return [k, key];
                 } catch {
                     return [k, ""];
                 }
@@ -206,7 +230,12 @@ export async function POST(req: NextRequest) {
 
         const config = settings.Providers[provider];
         const apiKey = resolvedApiKeys[provider];
-        const model = config.activeModel || AI_PROVIDERS[provider].models[0];
+        
+        const activeModel = config.activeModel;
+        const allModels = AI_PROVIDERS[provider].models;
+        const modelsToTry = activeModel 
+            ? [activeModel, ...allModels.filter(m => m !== activeModel)]
+            : [...allModels];
 
         // Build user message
         let userMessage = prompt;
@@ -214,14 +243,15 @@ export async function POST(req: NextRequest) {
             userMessage = `Query: "${prompt}"\n\nItems:\n${items.map((item) => `- ID: ${item.id} | Text: ${item.text}`).join("\n")}`;
         }
 
-        const rawResponse = await callAI(
+        const aiResult = await callAI(
             provider,
             apiKey,
-            model,
+            modelsToTry,
             SYSTEM_PROMPTS[action] ?? SYSTEM_PROMPTS.create_task,
             userMessage,
             config.customBaseUrl
         );
+        const rawResponse = aiResult.text;
 
         // Parse JSON from response
         let parsed: unknown;
@@ -250,7 +280,7 @@ export async function POST(req: NextRequest) {
             success: true,
             data: parsed,
             provider,
-            model
+            model: aiResult.modelUsed
         });
     } catch (err) {
         console.error("POST /api/productivity/ai:", err);

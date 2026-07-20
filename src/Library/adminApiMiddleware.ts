@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@Library/auth";
 import { hasPermission, hasAnyPermission, hasAllPermissions, isAdminUser } from "@/Utils/RolePermissions";
+import { logSecurity, extractDeviceInfo } from "@Utils/DiscordLogger";
 
 /**
  * Check if a request is from an authenticated admin account
@@ -18,6 +19,12 @@ export async function requireAdminEmail(req: NextRequest) {
     const session = await getSession(req.headers);
 
     if (!session?.user) {
+        logSecurity("unauthenticated", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            message: "Unauthenticated access to admin-only endpoint"
+        });
         return {
             error: true,
             status: 401,
@@ -27,6 +34,14 @@ export async function requireAdminEmail(req: NextRequest) {
 
     const isAdmin = await isAdminUser(req.headers);
     if (!isAdmin) {
+        logSecurity("permission_denied", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            userEmail: session.user.email || undefined,
+            permission: "admin",
+            message: `Non-admin user attempted admin-only endpoint: ${session.user.email}`
+        });
         return {
             error: true,
             status: 403,
@@ -44,6 +59,13 @@ export async function requirePermission(req: NextRequest, permission: string) {
     const session = await getSession(req.headers);
 
     if (!session?.user) {
+        logSecurity("unauthenticated", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            permission,
+            message: `Unauthenticated access — permission required: ${permission}`
+        });
         return {
             error: true,
             status: 401,
@@ -54,6 +76,14 @@ export async function requirePermission(req: NextRequest, permission: string) {
     const has = await hasPermission(req.headers, permission);
 
     if (!has) {
+        logSecurity("permission_denied", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            userEmail: session.user.email || undefined,
+            permission,
+            message: `Permission denied: ${permission} for ${session.user.email}`
+        });
         return {
             error: true,
             status: 403,
@@ -71,6 +101,13 @@ export async function requireAnyPermission(req: NextRequest, permissions: string
     const session = await getSession(req.headers);
 
     if (!session?.user) {
+        logSecurity("unauthenticated", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            permission: permissions.join(", "),
+            message: `Unauthenticated access — one of required: ${permissions.join(", ")}`
+        });
         return {
             error: true,
             status: 401,
@@ -81,6 +118,14 @@ export async function requireAnyPermission(req: NextRequest, permissions: string
     const has = await hasAnyPermission(req.headers, permissions);
 
     if (!has) {
+        logSecurity("permission_denied", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            userEmail: session.user.email || undefined,
+            permission: permissions.join(", "),
+            message: `Permission denied: none of [${permissions.join(", ")}] for ${session.user.email}`
+        });
         return {
             error: true,
             status: 403,
@@ -98,6 +143,13 @@ export async function requireAllPermissions(req: NextRequest, permissions: strin
     const session = await getSession(req.headers);
 
     if (!session?.user) {
+        logSecurity("unauthenticated", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            permission: permissions.join(", "),
+            message: `Unauthenticated access — all required: ${permissions.join(", ")}`
+        });
         return {
             error: true,
             status: 401,
@@ -108,6 +160,14 @@ export async function requireAllPermissions(req: NextRequest, permissions: strin
     const has = await hasAllPermissions(req.headers, permissions);
 
     if (!has) {
+        logSecurity("permission_denied", {
+            path: req.nextUrl.pathname,
+            method: req.method,
+            device: extractDeviceInfo(req.headers),
+            userEmail: session.user.email || undefined,
+            permission: permissions.join(", "),
+            message: `Permission denied: missing some of [${permissions.join(", ")}] for ${session.user.email}`
+        });
         return {
             error: true,
             status: 403,

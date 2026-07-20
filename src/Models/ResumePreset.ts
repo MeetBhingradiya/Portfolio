@@ -14,6 +14,7 @@ export interface IResumePreset extends Document {
     title?: string;
     summary?: string;
     pinnedIdsByCategory?: Partial<Record<string, string[]>>;
+    isPublished: boolean;
     createdBy: string;
     updatedBy: string;
     createdAt: Date;
@@ -44,6 +45,7 @@ const ResumePresetSchema = new Schema<IResumePreset>(
         itemOrderByCategory: { type: Schema.Types.Mixed, default: {} },
         style: { type: Schema.Types.Mixed, default: {} },
         pinnedIdsByCategory: { type: Schema.Types.Mixed, default: {} },
+        isPublished: { type: Boolean, default: false },
         createdBy: { type: String, default: "" },
         updatedBy: { type: String, default: "" }
     },

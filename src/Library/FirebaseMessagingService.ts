@@ -24,9 +24,7 @@ interface MulticastMessage extends admin.messaging.MulticastMessage {
 class FirebaseMessagingService {
     private initialized: boolean = false;
 
-    constructor() {
-        this.initialize();
-    }
+    constructor() {}
 
     /**
      * Initialize Firebase Admin SDK
@@ -63,6 +61,17 @@ class FirebaseMessagingService {
     }
 
     /**
+     * Initialize Firebase on demand before the first operation.
+     */
+    private ensureInitialized(): boolean {
+        if (!this.initialized) {
+            this.initialize();
+        }
+
+        return this.initialized;
+    }
+
+    /**
      * Send challenge notification to a device
      * 
      * Triggers mobile app to display unlock approval UI
@@ -72,7 +81,7 @@ class FirebaseMessagingService {
         challengeId: string,
         action: string = "windows_unlock"
     ): Promise<boolean> {
-        if (!this.initialized) {
+        if (!this.ensureInitialized()) {
             console.warn("Firebase not initialized, skipping push");
             return false;
         }
@@ -139,7 +148,7 @@ class FirebaseMessagingService {
      * Notifies PC that challenge was approved
      */
     async sendApprovalNotification(challengeId: string): Promise<boolean> {
-        if (!this.initialized) return false;
+        if (!this.ensureInitialized()) return false;
 
         try {
             const challenge = await HardwareUnlockChallenge.findOne({ challengeId });
@@ -164,7 +173,7 @@ class FirebaseMessagingService {
         deviceIds: string[],
         payload: PushPayload
     ): Promise<{ successCount: number; failureCount: number }> {
-        if (!this.initialized) {
+        if (!this.ensureInitialized()) {
             return { successCount: 0, failureCount: deviceIds.length };
         }
 
@@ -216,7 +225,7 @@ class FirebaseMessagingService {
      * Useful for sending notifications to user's all devices
      */
     async subscribeToTopic(deviceId: string, topic: string): Promise<boolean> {
-        if (!this.initialized) return false;
+        if (!this.ensureInitialized()) return false;
 
         try {
             const device = await HardwareUnlockDevice.findOne({ deviceId }, { fcmToken: 1 });
@@ -235,7 +244,7 @@ class FirebaseMessagingService {
      * Unsubscribe device from topic
      */
     async unsubscribeFromTopic(deviceId: string, topic: string): Promise<boolean> {
-        if (!this.initialized) return false;
+        if (!this.ensureInitialized()) return false;
 
         try {
             const device = await HardwareUnlockDevice.findOne({ deviceId }, { fcmToken: 1 });

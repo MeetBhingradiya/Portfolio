@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { Suspense, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -215,5 +215,9 @@ function ResetPasswordContent() {
 }
 
 export default function ResetPasswordPage() {
-    return <ResetPasswordContent />;
+    return (
+        <Suspense fallback={null}>
+            <ResetPasswordContent />
+        </Suspense>
+    );
 }

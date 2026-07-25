@@ -47,6 +47,20 @@ export const {
     phoneNumber
 } = authClient;
 
+export async function requestPasswordReset(input: { email: string; redirectTo?: string }) {
+    return authClient.$fetch("/request-password-reset", {
+        method: "POST",
+        body: input
+    });
+}
+
+export async function resetPassword(input: { newPassword: string; token?: string }) {
+    return authClient.$fetch("/reset-password", {
+        method: "POST",
+        body: input
+    });
+}
+
 export async function setPassword(input: { newPassword: string }) {
     return authClient.$fetch("/set-password", {
         method: "POST",
@@ -78,6 +92,8 @@ export function useAuth() {
         unlinkAccount,
         listAccounts,
         isUsernameAvailable,
+        requestPasswordReset,
+        resetPassword,
         twoFactor,
         passkey,
         phoneNumber

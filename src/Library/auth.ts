@@ -11,7 +11,7 @@ import { username, multiSession } from "better-auth/plugins";
 import { phoneNumber } from "better-auth/plugins/phone-number";
 import { passkey } from "@better-auth/passkey";
 import { MongoClient } from "mongodb";
-import { sendEmail, loginNotificationEmail, verificationEmailTemplate, deleteAccountVerificationEmail, VerificationEmailforChangeEmail } from "@Utils/Email";
+import { sendEmail, loginNotificationEmail, verificationEmailTemplate, passwordResetEmail, deleteAccountVerificationEmail, VerificationEmailforChangeEmail } from "@Utils/Email";
 import { sendPhoneOtpSms } from "@Utils/SMS";
 import { UserAgent } from "@Library/UserAgent";
 import { IPData } from "@Utils/IPData";
@@ -612,6 +612,17 @@ export const auth = betterAuth({
                     })
                 });
             }
+        },
+        sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
+            await sendTemplatedEmail({
+                to: user.email,
+                subject: `Reset your password - ${PORTFOLIO_NAME}`,
+                html: passwordResetEmail({
+                    name: user.name,
+                    resetUrl: url,
+                    expiresInMinutes: 60
+                })
+            });
         },
         deleteUser: {
             enabled: true,

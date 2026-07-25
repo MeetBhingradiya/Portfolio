@@ -235,6 +235,43 @@ export function verificationEmailTemplate(opts: {
     });
 }
 
+export function passwordResetEmail(opts: {
+    name?: string;
+    resetUrl: string;
+    expiresInMinutes: number;
+}): string {
+    const accent = "#7c3aed";
+
+    return renderEmailShell({
+        preheader: "Reset your password using the secure link below.",
+        eyebrow: "Password Reset",
+        title: "Reset Your Password",
+        subtitle: "A secure reset link is ready. Use it to choose a new password for your account.",
+        accent,
+        body: `
+          <p style="margin:0 0 16px 0;color:#1e293b;font-size:15px;line-height:1.75;">
+            Hi <strong>${opts.name || "there"}</strong>,<br/>
+            We received a request to reset the password on your account. Click the button below to continue.
+          </p>
+
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 18px 0;">
+            <tr>
+              <td align="center" style="border-radius:12px;background:${accent};">
+                <a href="${opts.resetUrl}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:.01em;">
+                  Reset Password
+                </a>
+              </td>
+            </tr>
+          </table>
+
+          <p style="margin:0;color:#64748b;font-size:13px;line-height:1.7;">
+            This secure link expires in <strong>${opts.expiresInMinutes} minutes</strong>. If you did not request a reset, you can ignore this email.
+          </p>
+        `,
+        note: "For your safety, password reset links are single-use and time-limited."
+    });
+}
+
 export function deleteAccountVerificationEmail(opts: { name?: string; verificationUrl: string; expiresInHours: number }): string {
     const accent = "#b91c1c";
 

@@ -18,12 +18,24 @@ import { Code, Work, School, OpenInNew, GitHub, ChevronRight } from "@mui/icons-
 interface Project {
     ProjectID: string;
     Title: string;
+    Slug?: string;
     Description?: string;
     Type?: string;
     TechStack?: string[];
     LiveURL?: string;
     GitHubURL?: string;
     Image?: string;
+    Thumbnail?: string;
+    Links?: {
+        live?: string;
+        github?: string;
+        npm?: string;
+        chromeWebstore?: string;
+        playstore?: string;
+        documentation?: string;
+        demo?: string;
+    };
+    Featured?: boolean;
 }
 
 interface Skill {
@@ -31,6 +43,7 @@ interface Skill {
     Name: string;
     Category?: string;
     Level?: number;
+    Proficiency?: number;
 }
 
 interface Experience {
@@ -40,6 +53,7 @@ interface Experience {
     StartDate?: string;
     EndDate?: string;
     Current?: boolean;
+    CurrentlyWorking?: boolean;
     Description?: string;
 }
 
@@ -215,9 +229,9 @@ function ProjectsSection({ projects, palette, isDark, isApple }: { projects: Pro
                                 </h3>
                             </div>
                             <div className="flex gap-2 shrink-0">
-                                {project.GitHubURL && (
+                                {(project.GitHubURL || project.Links?.github) && (
                                     <a
-                                        href={project.GitHubURL}
+                                        href={project.GitHubURL || project.Links?.github}
                                         target="_blank"
                                         rel="noopener noreferrer">
                                         <GitHub
@@ -228,9 +242,9 @@ function ProjectsSection({ projects, palette, isDark, isApple }: { projects: Pro
                                         />
                                     </a>
                                 )}
-                                {project.LiveURL && (
+                                {(project.LiveURL || project.Links?.live) && (
                                     <a
-                                        href={project.LiveURL}
+                                        href={project.LiveURL || project.Links?.live}
                                         target="_blank"
                                         rel="noopener noreferrer">
                                         <OpenInNew
@@ -369,13 +383,13 @@ function SkillsSection({ skills, palette, isDark, isApple }: { skills: Skill[]; 
                                             }}>
                                             {skill.Name}
                                         </span>
-                                        {typeof skill.Level === "number" && (
+                                        {typeof (skill.Level ?? skill.Proficiency) === "number" && (
                                             <span
                                                 className="text-xs"
                                                 style={{
                                                     color: palette.accent
                                                 }}>
-                                                {skill.Level}%
+                                                {skill.Level ?? skill.Proficiency}%
                                             </span>
                                         )}
                                     </motion.div>
@@ -473,10 +487,10 @@ function ExperienceSection({
                             <span
                                 className="text-sm font-semibold px-3 py-1 rounded-full"
                                 style={{
-                                    background: exp.Current ? `${palette.accent}20` : `${palette.textTertiary}15`,
-                                    color: exp.Current ? palette.accent : palette.textTertiary
+                                    background: (exp.CurrentlyWorking ?? exp.Current) ? `${palette.accent}20` : `${palette.textTertiary}15`,
+                                    color: (exp.CurrentlyWorking ?? exp.Current) ? palette.accent : palette.textTertiary
                                 }}>
-                                {formatPeriod(exp.StartDate, exp.EndDate, exp.Current)}
+                                {formatPeriod(exp.StartDate, exp.EndDate, exp.CurrentlyWorking ?? exp.Current)}
                             </span>
                         </div>
                         {exp.Description && (

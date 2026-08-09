@@ -10,6 +10,7 @@ import { createHash, timingSafeEqual } from "crypto";
 import mongoose from "mongoose";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket } from "@Models/SupportTicket";
+import { sendEmail } from "@Utils/Email";
 import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { getSession } from "@Library/auth";
 
@@ -169,6 +170,48 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         }
 
         await ticket.save();
+
+        // Send Email Notifications
+        if (body.reply) {
+            const senderRole = user?.isAdmin ? "admin" : user?.isEmployee ? "employee" : "customer";
+            const isInternal = !!body.isInternal && (!!user?.isEmployee || !!user?.isAdmin);
+            
+            if (!isInternal) {
+                try {
+                    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.meetbhingradiya.in";
+                    
+                    if (senderRole === "customer") {
+                        // Notify assigned employee or admin fallback
+                        const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || "meetbhingradiya199@gmail.com";
+                        const notifyEmail = ticket.assignedEmail || adminEmail;
+                        const ticketUrlAdmin = `${baseUrl}/admin/tickets`;
+                        
+                        await sendEmail({
+                            to: notifyEmail,
+                            subject: `New Reply on Ticket ${ticket.ticketId}`,
+                            html: `<p>A new reply was added to ticket <strong>${ticket.ticketId}</strong> by ${ticket.userName || "the customer"}.</p><p><strong>Message:</strong><br/>${body.reply}</p><p><a href="${ticketUrlAdmin}">View Admin Dashboard</a></p>`,
+                            text: `A new reply was added to ticket ${ticket.ticketId} by ${ticket.userName || "the customer"}.`
+                        });
+                    } else {
+                        // Notify customer
+                        const isGuest = ticket.userId.startsWith("guest:");
+                        const ticketUrlCustomer = isGuest ? 
+                            `${baseUrl}/support/tickets/lookup?ticketId=${ticket.ticketId}` : 
+                            `${baseUrl}/support/tickets/${ticket._id}`;
+                            
+                        await sendEmail({
+                            to: ticket.userEmail,
+                            subject: `Update on your support ticket ${ticket.ticketId}`,
+                            html: `<p>Support has replied to your ticket <strong>${ticket.ticketId}</strong>.</p><p><strong>Message:</strong><br/>${body.reply}</p><p><a href="${ticketUrlCustomer}">Click here to view your ticket</a></p>`,
+                            text: `Support has replied to your ticket ${ticket.ticketId}.`
+                        });
+                    }
+                } catch (emailErr) {
+                    console.error("[Ticket API] Failed to send notification email:", emailErr);
+                }
+            }
+        }
+
         return NextResponse.json({ success: true, data: ticket.toObject() });
     } catch (err: any) {
         return NextResponse.json({ success: false, error: err.message }, { status: 400 });

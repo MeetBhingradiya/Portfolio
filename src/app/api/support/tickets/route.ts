@@ -9,6 +9,7 @@ import dbConnect from "@Utils/dbConnect";
 import { SupportTicket, TicketCounter } from "@Models/SupportTicket";
 import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { getSession } from "@Library/auth";
+import { sendEmail } from "@Utils/Email";
 
 async function nextTicketNumber(): Promise<number> {
     const counter = await TicketCounter.findByIdAndUpdate("ticket", { $inc: { seq: 1 } }, { new: true, upsert: true });
@@ -121,11 +122,20 @@ export async function POST(req: NextRequest) {
         });
 
         try {
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.meetbhingradiya.in";
+            const isGuest = ticket.userId.startsWith("guest:");
+            const lookupUrl = isGuest 
+                ? `${baseUrl}/support/tickets/lookup?ticketId=${ticketId}`
+                : `${baseUrl}/support/tickets/${ticket._id}`;
+
             await sendEmail({
                 to: email,
                 subject: `Support Ticket ${ticketId} Created`,
-                html: `<p>Your support ticket <strong>${ticketId}</strong> was created.</p><p>Ticket secret code: <strong>${accessSecret}</strong></p><p>Keep this secret code safe. You need it with OTP for secure ticket access.</p>`,
-                text: `Ticket ${ticketId} created. Secret code: ${accessSecret}. Keep this code safe.`
+                html: `<p>Your support ticket <strong>${ticketId}</strong> was created.</p>
+                       <p>Ticket secret code: <strong>${accessSecret}</strong></p>
+                       <p>Keep this secret code safe. You will need it to securely access your ticket.</p>
+                       <p><a href="${lookupUrl}">Track your ticket here</a></p>`,
+                text: `Ticket ${ticketId} created. Secret code: ${accessSecret}. Track it here: ${lookupUrl}`
             });
         } catch {
             // Non-blocking: ticket is already created.

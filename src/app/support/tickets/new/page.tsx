@@ -3,15 +3,16 @@
  */
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useAuth } from "@Library/auth-client";
 import { ArrowBack, Send, ConfirmationNumber } from "@mui/icons-material";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
-const CATEGORIES = [
+const BASE_CATEGORIES = [
     { value: "general", label: "General Inquiry" },
     { value: "billing", label: "Billing & Payments" },
     { value: "technical", label: "Technical Support" },
@@ -21,7 +22,7 @@ const CATEGORIES = [
     { value: "other", label: "Other" }
 ];
 
-const PRIORITIES = [
+const BASE_PRIORITIES = [
     { value: "low", label: "Low" },
     { value: "medium", label: "Medium" },
     { value: "high", label: "High" },
@@ -30,6 +31,7 @@ const PRIORITIES = [
 
 function NewTicketContent() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
+    const { user, isAuthenticated } = useAuth();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
     const router = useRouter();
@@ -45,8 +47,57 @@ function NewTicketContent() {
         description: prefillOrderId ? `I need help with my order: ${prefillOrderId}` : "",
         orderId: prefillOrderId
     });
+    
+    // Auto-fill from authenticated user
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            setForm(prev => ({
+                ...prev,
+                name: prev.name || user.name || "",
+                email: prev.email || user.email || ""
+            }));
+        }
+    }, [isAuthenticated, user]);
+
+    const [orders, setOrders] = useState<any[]>([]);
+    const [loadingOrders, setLoadingOrders] = useState(false);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            setLoadingOrders(true);
+            fetch("/api/shop/orders")
+                .then(r => r.json())
+                .then(d => {
+                    if (d.success) setOrders(d.data);
+                })
+                .catch(() => {})
+                .finally(() => setLoadingOrders(false));
+        }
+    }, [isAuthenticated]);
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+
+    // Dynamic filtering based on orders
+    const hasOrders = orders.length > 0;
+    const isOrderSelected = !!form.orderId;
+    
+    const availableCategories = BASE_CATEGORIES.filter(c => {
+        if (!hasOrders && (c.value === "order" || c.value === "refund")) return false;
+        return true;
+    });
+
+    const availablePriorities = BASE_PRIORITIES.filter(p => {
+        if (!isOrderSelected && (p.value === "high" || p.value === "urgent")) return false;
+        return true;
+    });
+
+    // Auto-adjust if selected priority is no longer available
+    useEffect(() => {
+        if (!availablePriorities.find(p => p.value === form.priority)) {
+            setForm(prev => ({ ...prev, priority: "medium" }));
+        }
+    }, [availablePriorities, form.priority]);
 
     const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
     const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
@@ -206,7 +257,7 @@ function NewTicketContent() {
                                 <CustomSelect
                                     value={form.category}
                                     onChange={(v) => setForm((p) => ({ ...p, category: v }))}
-                                    options={CATEGORIES}
+                                    options={availableCategories}
                                     placeholder="Select Category"
                                 />
                             </div>
@@ -217,7 +268,7 @@ function NewTicketContent() {
                                     Priority
                                 </label>
                                 <div className="flex gap-2">
-                                    {PRIORITIES.map((p) => (
+                                    {availablePriorities.map((p) => (
                                         <motion.button
                                             key={p.value}
                                             type="button"
@@ -243,35 +294,45 @@ function NewTicketContent() {
                                         </motion.button>
                                     ))}
                                 </div>
+                                {!isOrderSelected && (
+                                    <p className="text-[10px] mt-1.5 opacity-60" style={{ color: palette.textSecondary }}>
+                                        Link an order below to select High/Urgent priority.
+                                    </p>
+                                )}
                             </div>
                         </div>
 
-                        {/* Order ID (optional) */}
-                        <div>
-                            <label
-                                className="text-sm font-bold mb-1.5 block"
-                                style={{ color: palette.textPrimary }}>
-                                Order ID{" "}
-                                <span
-                                    style={{
-                                        color: palette.textTertiary,
-                                        fontWeight: 400
-                                    }}>
-                                    (if related to an order)
-                                </span>
-                            </label>
-                            <input
-                                style={inputStyle}
-                                placeholder="ORD-20250001"
-                                value={form.orderId}
-                                onChange={(e) =>
-                                    setForm((p) => ({
-                                        ...p,
-                                        orderId: e.target.value
-                                    }))
-                                }
-                            />
-                        </div>
+                        {/* Order ID (optional, only show if user has orders or manually passed) */}
+                        {(hasOrders || form.orderId) && (
+                            <div>
+                                <label
+                                    className="text-sm font-bold mb-1.5 block"
+                                    style={{ color: palette.textPrimary }}>
+                                    Order ID{" "}
+                                    <span style={{ color: palette.textTertiary, fontWeight: 400 }}>
+                                        (Required for High/Urgent priority)
+                                    </span>
+                                </label>
+                                {hasOrders ? (
+                                    <CustomSelect
+                                        value={form.orderId}
+                                        onChange={(v) => setForm((p) => ({ ...p, orderId: v }))}
+                                        options={[
+                                            { value: "", label: "None" },
+                                            ...orders.map(o => ({ value: o.orderId, label: `${o.orderId} - ${o.currency} ${(o.total / 100).toFixed(2)}` }))
+                                        ]}
+                                        placeholder="Select an order (optional)"
+                                    />
+                                ) : (
+                                    <input
+                                        style={inputStyle}
+                                        placeholder="ORD-20250001"
+                                        value={form.orderId}
+                                        readOnly
+                                    />
+                                )}
+                            </div>
+                        )}
 
                         {/* Description */}
                         <div>

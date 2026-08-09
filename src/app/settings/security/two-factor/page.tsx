@@ -8,9 +8,10 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
 import { useDesignTheme } from "@Hooks";
-import { useAuth, twoFactor } from "@Library/auth-client";
+import { useAuth, twoFactor as betterAuthTwoFactor } from "@Library/auth-client";
 import Link from "next/link";
-import { Security, PhoneIphone, Email, QrCode2, ArrowBack, CheckCircle, Warning, Info } from "@mui/icons-material";
+import { Security, PhoneIphone, Email, QrCode2, ArrowBack, CheckCircle, Warning, Info, ContentCopy } from "@mui/icons-material";
+import { QRCodeSVG } from "qrcode.react";
 
 export default function TwoFactorPage() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
@@ -31,25 +32,10 @@ export default function TwoFactorPage() {
             name: "Authenticator App",
             icon: <QrCode2 />,
             description: "Use an authenticator app like Google Authenticator or Authy",
-            enabled: false, // TODO: Get from user settings
+            enabled: !!user?.twoFactorEnabled,
             recommended: true
         },
-        {
-            id: "sms",
-            name: "SMS Verification",
-            icon: <PhoneIphone />,
-            description: "Receive verification codes via text message",
-            enabled: false, // TODO: Get from user settings
-            recommended: false
-        },
-        {
-            id: "email",
-            name: "Email Verification",
-            icon: <Email />,
-            description: "Receive verification codes via email",
-            enabled: false, // TODO: Get from user settings
-            recommended: false
-        }
+        // Hiding SMS and Email until explicitly supported based on user preference
     ];
 
     const handleEnableMethod = async (method: "totp" | "sms" | "email") => {
@@ -69,7 +55,7 @@ export default function TwoFactorPage() {
 
         try {
             // Enable 2FA and get TOTP URI
-            const result = await twoFactor.enable({ password });
+            const result = await betterAuthTwoFactor.enable({ password });
             
             if (result.error) {
                 console.error("Better Auth Error:", result.error);
@@ -78,9 +64,7 @@ export default function TwoFactorPage() {
             }
             
             if (result.data?.totpURI) {
-                // Convert TOTP URI to QR code URL using a QR code API
-                const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(result.data.totpURI)}`;
-                setQrCode(qrUrl);
+                setQrCode(result.data.totpURI);
                 setShowPasswordPrompt(false);
             }
         } catch (error) {
@@ -89,12 +73,30 @@ export default function TwoFactorPage() {
         }
     };
 
+    const handleDisable2FA = async () => {
+        if (!password) {
+            alert("Please enter your password to disable 2FA.");
+            return;
+        }
+        try {
+            const result = await betterAuthTwoFactor.disable({ password });
+            if (result.error) {
+                alert(result.error.message || "Failed to disable 2FA.");
+                return;
+            }
+            alert("2FA successfully disabled!");
+            window.location.reload();
+        } catch {
+            alert("Error disabling 2FA.");
+        }
+    };
+
     const handleVerifyAndEnable = async () => {
         if (!verificationCode || !activeMethod) return;
 
         try {
             if (activeMethod === "totp") {
-                const result = await twoFactor.verifyTotp({
+                const result = await betterAuthTwoFactor.verifyTotp({
                     code: verificationCode
                 });
 
@@ -105,13 +107,18 @@ export default function TwoFactorPage() {
                 }
 
                 // TODO: Backup codes may be in a different response
-                // Check Better Auth docs for backup codes implementation
+                if (result.data?.backupCodes) {
+                    setBackupCodes(result.data.backupCodes);
+                }
             }
 
-            // Close modal and refresh
-            setActiveMethod(null);
-            setVerificationCode("");
-            alert("2FA successfully enabled!");
+            // Close modal and refresh if no backup codes are shown
+            if (!backupCodes.length && activeMethod === "totp") {
+                setActiveMethod(null);
+                setVerificationCode("");
+                alert("2FA successfully enabled!");
+                window.location.reload();
+            }
         } catch (error) {
             console.error("Failed to verify 2FA:", error);
             alert("Invalid verification code. Please try again.");
@@ -279,7 +286,7 @@ export default function TwoFactorPage() {
                                     }}
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
-                                    onClick={() => handleEnableMethod(method.id as any)}>
+                                    onClick={() => method.enabled ? setActiveMethod("disable") as any : handleEnableMethod(method.id as any)}>
                                     {method.enabled ? "Disable" : "Enable"}
                                 </motion.button>
                             </div>
@@ -302,10 +309,10 @@ export default function TwoFactorPage() {
                             <h2
                                 className="text-xl font-bold mb-4"
                                 style={{ color: palette.textPrimary }}>
-                                Setup {twoFactorMethods.find((m) => m.id === activeMethod)?.name}
+                                {activeMethod === "disable" ? "Disable Two-Factor Auth" : `Setup ${twoFactorMethods.find((m) => m.id === activeMethod)?.name}`}
                             </h2>
 
-                            {showPasswordPrompt && activeMethod === "totp" && (
+                            {(showPasswordPrompt || activeMethod === "disable") && (
                                 <div className="space-y-4">
                                     <div>
                                         <label
@@ -353,7 +360,7 @@ export default function TwoFactorPage() {
                                             }}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            onClick={handleGenerateTOTP}>
+                                            onClick={activeMethod === "disable" ? handleDisable2FA : handleGenerateTOTP}>
                                             Continue
                                         </motion.button>
                                     </div>
@@ -368,10 +375,13 @@ export default function TwoFactorPage() {
                                             background: palette.background
                                         }}>
                                         {qrCode ? (
-                                            <img
-                                                src={qrCode}
-                                                alt="QR Code"
-                                                className="w-48 h-48 mx-auto rounded-xl"
+                                            <QRCodeSVG
+                                                value={qrCode}
+                                                size={192}
+                                                bgColor={"#ffffff"}
+                                                fgColor={"#000000"}
+                                                level={"L"}
+                                                className="mx-auto rounded-xl p-2 bg-white"
                                             />
                                         ) : (
                                             <div className="w-48 h-48 mx-auto bg-white rounded-xl flex items-center justify-center">

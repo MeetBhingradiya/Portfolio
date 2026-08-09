@@ -94,6 +94,7 @@
         "pdfjs-dist": "^5.5.207",
         "qr-border-plugin": "^0.1.1",
         "qr-code-styling": "^1.9.2",
+        "qrcode.react": "^4.2.0",
         "razorpay": "^2.9.6",
         "react": "^19.2.4",
         "react-bits": "git+https://github.com/DavidHDev/react-bits.git",

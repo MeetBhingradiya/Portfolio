@@ -7,7 +7,8 @@ import React, { useEffect, useState, useCallback } from "react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
-import { ConfirmationNumber, Add, Search, Circle, PriorityHigh, ArrowForward } from "@mui/icons-material";
+import { useAuth } from "@Library/auth-client";
+import { ConfirmationNumber, Add, Search, Circle, PriorityHigh, ArrowForward, LockPerson, VpnKey } from "@mui/icons-material";
 
 interface Ticket {
     _id: string;
@@ -41,6 +42,7 @@ const PRIORITY_CFG: Record<string, { label: string; color: string }> = {
 
 export default function SupportTicketsPage() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
+    const { isAuthenticated, isLoading } = useAuth();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
 
@@ -81,6 +83,46 @@ export default function SupportTicketsPage() {
     }, [fetchTickets]);
 
     const statuses = ["All", "open", "in_progress", "waiting_customer", "resolved", "closed"];
+
+    if (isLoading) {
+        return <div className="min-h-screen flex items-center justify-center" style={{ background: palette.background, color: palette.textPrimary }}>Loading...</div>;
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <div className="min-h-screen py-20 px-4 md:px-8" style={{ background: palette.background }}>
+                <div className="max-w-xl mx-auto text-center">
+                    <div className="w-16 h-16 rounded-full mx-auto mb-5 flex items-center justify-center" style={{ background: `${palette.accent}22`, color: palette.accent }}>
+                        <LockPerson fontSize="large" />
+                    </div>
+                    <h1 className={`${isApple ? "text-3xl font-semibold" : "text-4xl font-black"} mb-3`} style={{ color: palette.textPrimary }}>
+                        Authentication Required
+                    </h1>
+                    <p className="mb-8" style={{ color: palette.textSecondary }}>
+                        Please log in to view your support tickets. If you submitted a ticket as a guest, you can track it securely using your Ticket ID and Secret Code.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <Link href="/auth/signin">
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
+                                className="px-8 py-3.5 rounded-xl font-bold w-full sm:w-auto"
+                                style={{ background: palette.accent, color: "#fff" }}>
+                                Log In
+                            </motion.button>
+                        </Link>
+                        <Link href="/support/tickets/lookup">
+                            <motion.button
+                                whileTap={{ scale: 0.96 }}
+                                className="px-8 py-3.5 rounded-xl font-bold flex items-center justify-center gap-2 w-full sm:w-auto"
+                                style={{ background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.05)", color: palette.textPrimary, border }}>
+                                Guest Lookup <VpnKey fontSize="small" />
+                            </motion.button>
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div

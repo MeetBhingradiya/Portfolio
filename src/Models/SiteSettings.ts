@@ -88,7 +88,14 @@ interface ISiteSettings extends mongoose.Document {
             Limit_Max_Attempts: number;
             OTP_Expiry_in_Minutes: number;
             OTP_Max_Attempts: number;
-        }
+        };
+        Contact_Form?: {
+            Limit_Window_in_Minutes: number;
+            Limit_Max_Messages_per_IP: number;
+            Limit_Max_Messages_per_Email: number;
+            Cooldown_in_Minutes: number;
+            Max_Message_Length: number;
+        };
     }
 
     RateLimits?: {
@@ -151,6 +158,13 @@ const SiteSettings_Schema = new mongoose.Schema(
                 Limit_Max_Attempts: { type: Number, default: 3 },
                 OTP_Expiry_in_Minutes: { type: Number, default: 5 },
                 OTP_Max_Attempts: { type: Number, default: 5 }
+            },
+            Contact_Form: {
+                Limit_Window_in_Minutes: { type: Number, default: 60 },
+                Limit_Max_Messages_per_IP: { type: Number, default: 5 },
+                Limit_Max_Messages_per_Email: { type: Number, default: 3 },
+                Cooldown_in_Minutes: { type: Number, default: 15 },
+                Max_Message_Length: { type: Number, default: 5000 }
             }
         },
         RateLimits: {

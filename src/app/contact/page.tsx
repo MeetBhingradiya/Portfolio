@@ -113,27 +113,64 @@ function ContactPageContent() {
         setStatus({ type: "loading", message: "Sending message..." });
 
         try {
-            // Simulate API call - replace with actual API endpoint
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // Build message with metadata if provided
+            let fullMessage = formData.message.trim();
+            const metaLines: string[] = [];
+            if (formData.projectType && formData.projectType !== "general") metaLines.push(`Project Type: ${formData.projectType}`);
+            if (formData.company?.trim()) metaLines.push(`Company: ${formData.company.trim()}`);
+            if (formData.budget?.trim()) metaLines.push(`Budget: ${formData.budget.trim()}`);
+            if (formData.timeline?.trim()) metaLines.push(`Timeline: ${formData.timeline.trim()}`);
+            
+            if (metaLines.length > 0) {
+                fullMessage += `\n\n--- Project Details ---\n${metaLines.join("\n")}`;
+            }
 
-            setStatus({
-                type: "success",
-                message: "Message sent successfully! I'll get back to you within 24 hours."
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    subject: formData.subject.trim(),
+                    message: fullMessage,
+                    services: formData.projectType && formData.projectType !== "general" ? [formData.projectType] : undefined
+                })
             });
-            setFormData({
-                name: "",
-                email: "",
-                subject: "",
-                message: "",
-                projectType: "general",
-                budget: "",
-                timeline: "",
-                company: ""
-            });
-        } catch (error) {
+
+            const json = await res.json();
+
+            if (res.ok && json.success) {
+                setStatus({
+                    type: "success",
+                    message: json.message || "Message sent successfully! I'll get back to you shortly."
+                });
+                setFormData({
+                    name: "",
+                    email: "",
+                    subject: "",
+                    message: "",
+                    projectType: "general",
+                    budget: "",
+                    timeline: "",
+                    company: ""
+                });
+            } else if (res.status === 429) {
+                setStatus({
+                    type: "error",
+                    message: json.error || "Rate limit reached. Please wait before sending another message."
+                });
+            } else {
+                setStatus({
+                    type: "error",
+                    message: json.error || "Failed to send message. Please try again or email me directly."
+                });
+            }
+        } catch (error: any) {
             setStatus({
                 type: "error",
-                message: "Failed to send message. Please try again or email me directly."
+                message: "Network error. Please check your connection and try again."
             });
         }
     };

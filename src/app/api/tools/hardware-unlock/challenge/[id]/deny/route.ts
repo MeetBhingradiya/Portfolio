@@ -26,9 +26,10 @@ import { HardwareUnlockDevice } from "@/Models/HardwareUnlockDevice";
 
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id: challengeId } = await params;
         const body = await request.json();
         const { deviceId, reason = "user_cancelled" } = body;
 
@@ -38,8 +39,6 @@ export async function PUT(
                 { status: 400 }
             );
         }
-
-        const challengeId = params.id;
 
         // Find challenge
         const challenge = await HardwareUnlockChallenge.findOne({ challengeId });

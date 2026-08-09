@@ -74,3 +74,7 @@ export * from "./PhoneOtpChallenge";
 // ? Private Vault (encrypted document storage)
 export * from "./VaultDocument";
 export * from "./VaultAccess";
+
+// ? Contact Form
+export * from "./ContactMessage";
+

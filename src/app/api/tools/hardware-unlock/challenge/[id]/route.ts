@@ -52,9 +52,10 @@ const REQUIRED_PERMISSION = "Tools.Private.HardwareUnlock.Access";
 // GET - Check challenge status
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id: challengeId } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
 
@@ -65,7 +66,6 @@ export async function GET(
             );
         }
 
-        const challengeId = params.id;
         const challenge = await HardwareUnlockChallenge.findOne(
             { challengeId },
             {
@@ -112,9 +112,10 @@ export async function GET(
 // PUT - Approve challenge
 export async function PUT(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id: challengeId } = await params;
         const body = await request.json();
         const { deviceId, signature, biometricType } = body;
 
@@ -124,8 +125,6 @@ export async function PUT(
                 { status: 400 }
             );
         }
-
-        const challengeId = params.id;
 
         // Find challenge
         const challenge = await HardwareUnlockChallenge.findOne({ challengeId });

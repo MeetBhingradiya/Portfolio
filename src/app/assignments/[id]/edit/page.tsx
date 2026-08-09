@@ -8,26 +8,30 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardBody, Spinner, Button } from "@heroui/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { AssignmentEditor } from "@/Components/Assignments";
 import { fetchAssignment, updateAssignment } from "@/Library/assignmentClient";
 import { AssignmentDocument } from "@/Types/Assignment";
 
-export default function EditAssignmentPage({ params }: { params: { id: string } }) {
+export default function EditAssignmentPage({ params }: { params?: { id?: string } }) {
     const router = useRouter();
+    const routeParams = useParams<{ id: string }>();
+    const assignmentId = (routeParams?.id as string) || (typeof params?.id === "string" ? params.id : "");
     const [assignment, setAssignment] = useState<AssignmentDocument | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        loadAssignment();
-    }, [params.id]);
+        if (assignmentId) {
+            loadAssignment();
+        }
+    }, [assignmentId]);
 
     const loadAssignment = async () => {
         try {
             setIsLoading(true);
-            const data = await fetchAssignment(params.id);
+            const data = await fetchAssignment(assignmentId);
             setAssignment(data);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to load assignment");
@@ -37,11 +41,12 @@ export default function EditAssignmentPage({ params }: { params: { id: string } 
     };
 
     const handleSave = async (data: Partial<AssignmentDocument>) => {
+        if (!assignmentId) return;
         try {
             setIsSaving(true);
             setError(null);
-            await updateAssignment(params.id, data);
-            router.push(`/assignments/${params.id}`);
+            await updateAssignment(assignmentId, data);
+            router.push(`/assignments/${assignmentId}`);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to update assignment");
             setIsSaving(false);
@@ -79,7 +84,7 @@ export default function EditAssignmentPage({ params }: { params: { id: string } 
                     <h1 className="text-4xl font-bold">✏️ Edit Assignment</h1>
                     <p className="text-gray-600 mt-1">{assignment.assignmentTitle}</p>
                 </div>
-                <Link href={`/assignments/${params.id}`}>
+                <Link href={`/assignments/${assignmentId}`}>
                     <Button variant="flat">← Back</Button>
                 </Link>
             </div>

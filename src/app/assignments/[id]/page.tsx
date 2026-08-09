@@ -8,13 +8,15 @@
 import React, { useState, useEffect } from "react";
 import { Card, CardBody, Button, Spinner, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, useDisclosure, Input } from "@heroui/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { AssignmentViewer } from "@/Components/Assignments";
 import { fetchAssignment, exportAssignmentPDF, generateShareLink, shareAssignmentWithUser } from "@/Library/assignmentClient";
 import { AssignmentDocument } from "@/Types/Assignment";
 
-export default function ViewAssignmentPage({ params }: { params: { id: string } }) {
+export default function ViewAssignmentPage({ params }: { params?: { id?: string } }) {
     const router = useRouter();
+    const routeParams = useParams<{ id: string }>();
+    const assignmentId = (routeParams?.id as string) || (typeof params?.id === "string" ? params.id : "");
     const [assignment, setAssignment] = useState<AssignmentDocument | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -29,13 +31,15 @@ export default function ViewAssignmentPage({ params }: { params: { id: string } 
     const [isSharing, setIsSharing] = useState(false);
 
     useEffect(() => {
-        loadAssignment();
-    }, [params.id]);
+        if (assignmentId) {
+            loadAssignment();
+        }
+    }, [assignmentId]);
 
     const loadAssignment = async () => {
         try {
             setIsLoading(true);
-            const data = await fetchAssignment(params.id);
+            const data = await fetchAssignment(assignmentId);
             setAssignment(data);
 
             // Check permissions (basic - should match backend)
@@ -51,16 +55,18 @@ export default function ViewAssignmentPage({ params }: { params: { id: string } 
     };
 
     const handleDownloadPDF = async () => {
+        if (!assignmentId) return;
         try {
-            await exportAssignmentPDF(params.id);
+            await exportAssignmentPDF(assignmentId);
         } catch (err) {
             setError(err instanceof Error ? err.message : "Failed to download PDF");
         }
     };
 
     const handleGenerateShareLink = async () => {
+        if (!assignmentId) return;
         try {
-            const result = await generateShareLink(params.id, 24, true); // 24 hours expiry
+            const result = await generateShareLink(assignmentId, 24, true); // 24 hours expiry
             setShareUrl(result.shareUrl);
             // Copy to clipboard
             navigator.clipboard.writeText(result.shareUrl);
@@ -70,10 +76,11 @@ export default function ViewAssignmentPage({ params }: { params: { id: string } 
     };
 
     const handleShareWithUser = async () => {
+        if (!assignmentId) return;
         try {
             setIsSharing(true);
             await shareAssignmentWithUser(
-                params.id,
+                assignmentId,
                 "user-id", // Would come from user selection
                 shareEmail,
                 ["Tools.AssignmentSystem.View", "Tools.AssignmentSystem.Download"]
@@ -140,7 +147,7 @@ export default function ViewAssignmentPage({ params }: { params: { id: string } 
                             </>
                         )}
                         {canEdit && (
-                            <Link href={`/assignments/${params.id}/edit`}>
+                            <Link href={`/assignments/${assignmentId}/edit`}>
                                 <Button color="warning" variant="flat">
                                     ✏️ Edit
                                 </Button>

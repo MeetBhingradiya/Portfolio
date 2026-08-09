@@ -6,6 +6,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { ArrowBack, Send, Circle, Star, StarOutline, Lock, LockOpen, Person, SupportAgent, AdminPanelSettings } from "@mui/icons-material";
 
@@ -51,7 +52,9 @@ const ROLE_ICON: Record<string, React.ReactNode> = {
     admin: <AdminPanelSettings style={{ fontSize: 14 }} />
 };
 
-export default function TicketDetailPage({ params }: { params: { id: string } }) {
+export default function TicketDetailPage({ params }: { params?: { id?: string } }) {
+    const routeParams = useParams<{ id: string }>();
+    const ticketId = (routeParams?.id as string) || (typeof params?.id === "string" ? params.id : "");
     const { designTheme, palette, actualColorMode } = useDesignTheme();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
@@ -75,12 +78,13 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     const br = isApple ? 20 : 24;
 
     const fetchTicket = async () => {
+        if (!ticketId) return;
         setLoading(true);
         setError("");
         try {
             const headers: Record<string, string> = {};
             if (accessToken) headers["x-ticket-access-token"] = accessToken;
-            const res = await fetch(`/api/support/tickets/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/${ticketId}`, {
                 headers
             });
             const json = await res.json();
@@ -97,23 +101,28 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     };
 
     useEffect(() => {
-        const token = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-token:${params.id}`) || "" : "";
+        if (!ticketId) return;
+        const token = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-token:${ticketId}`) || "" : "";
         if (token) setAccessToken(token);
-        const savedSecret = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-secret:${params.id}`) || "" : "";
+        const savedSecret = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-secret:${ticketId}`) || "" : "";
         if (savedSecret) setSecretCode(savedSecret);
-    }, [params.id]);
+    }, [ticketId]);
+
     useEffect(() => {
-        fetchTicket();
-    }, [params.id, accessToken]);
+        if (ticketId) {
+            fetchTicket();
+        }
+    }, [ticketId, accessToken]);
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [ticket?.messages]);
 
     const handleSendReply = async () => {
-        if (!reply.trim()) return;
+        if (!reply.trim() || !ticketId) return;
         setSending(true);
         try {
-            const res = await fetch(`/api/support/tickets/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/${ticketId}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -135,8 +144,9 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     };
 
     const handleRating = async (r: number) => {
+        if (!ticketId) return;
         setRating(r);
-        await fetch(`/api/support/tickets/${params.id}`, {
+        await fetch(`/api/support/tickets/${ticketId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -148,11 +158,11 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     };
 
     const requestOtp = async () => {
-        if (!secretCode.trim()) return;
+        if (!secretCode.trim() || !ticketId) return;
         setAccessLoading(true);
         setError("");
         try {
-            const res = await fetch(`/api/support/tickets/access/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/access/${ticketId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ secretCode })
@@ -170,11 +180,11 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     };
 
     const verifyOtp = async () => {
-        if (!secretCode.trim() || !otp.trim()) return;
+        if (!secretCode.trim() || !otp.trim() || !ticketId) return;
         setAccessLoading(true);
         setError("");
         try {
-            const res = await fetch(`/api/support/tickets/access/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/access/${ticketId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ secretCode, otp })
@@ -183,7 +193,7 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
             if (json.success && json.data?.accessToken) {
                 setAccessToken(json.data.accessToken);
                 if (typeof window !== "undefined") {
-                    localStorage.setItem(`support-ticket-token:${params.id}`, json.data.accessToken);
+                    localStorage.setItem(`support-ticket-token:${ticketId}`, json.data.accessToken);
                 }
                 setTicket(json.data.ticket);
             } else {

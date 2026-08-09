@@ -203,6 +203,15 @@ export const AssignmentEditor: React.FC<AssignmentEditorProps> = ({ assignment, 
     };
 
     const moveBlock = (index: number, direction: -1 | 1) => {
+        const targetIndex = index + direction;
+        if (targetIndex < 0 || targetIndex >= blocks.length) return;
+        setBlocks((prev) => {
+            const next = [...prev];
+            const [moved] = next.splice(index, 1);
+            next.splice(targetIndex, 0, moved);
+            return next;
+        });
+    };
 
     function updateBlock<T extends ContentBlock>(index: number, updater: (block: T) => T) {
         setBlocks((prev) => updateArrayItem(prev as T[], index, updater));

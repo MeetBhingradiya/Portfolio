@@ -8,24 +8,30 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardBody, Button, Spinner } from "@heroui/react";
+import { useParams } from "next/navigation";
 import { AssignmentViewer } from "@/Components/Assignments";
 import { accessSharedAssignment, exportAssignmentPDF } from "@/Library/assignmentClient";
 import { AssignmentDocument } from "@/Types/Assignment";
 
-export default function SharedAssignmentPage({ params }: { params: { token: string } }) {
+export default function SharedAssignmentPage({ params }: { params?: { token?: string } }) {
+    const routeParams = useParams<{ token: string }>();
+    const token = (routeParams?.token as string) || (typeof params?.token === "string" ? params.token : "");
     const [assignment, setAssignment] = useState<AssignmentDocument | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [canDownload, setCanDownload] = useState(false);
 
     useEffect(() => {
-        loadSharedAssignment();
-    }, [params.token]);
+        if (token) {
+            loadSharedAssignment();
+        }
+    }, [token]);
 
     const loadSharedAssignment = async () => {
+        if (!token) return;
         try {
             setIsLoading(true);
-            const result = await accessSharedAssignment(params.token);
+            const result = await accessSharedAssignment(token);
             setAssignment(result.assignment);
             setCanDownload(result.shareLink.allowDownload);
         } catch (err) {

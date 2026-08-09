@@ -20,9 +20,10 @@ const REQUIRED_PERMISSION = "Tools.Private.HardwareUnlock.Access";
 
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id: deviceId } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
 
@@ -42,8 +43,6 @@ export async function DELETE(
                 { status: 403 }
             );
         }
-
-        const deviceId = params.id;
 
         // Find device and verify ownership
         const device = await HardwareUnlockDevice.findOne({ deviceId });

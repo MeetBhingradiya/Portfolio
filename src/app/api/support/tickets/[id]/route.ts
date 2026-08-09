@@ -15,6 +15,7 @@ import { getSession } from "@Library/auth";
 
 /** Build a query that matches by ticketId string OR _id (only when id is a valid ObjectId). */
 function ticketQuery(id: string) {
+    if (!id || typeof id !== "string") return { ticketId: "__invalid__" };
     return mongoose.isValidObjectId(id) ? { $or: [{ _id: id }, { ticketId: id }] } : { ticketId: id };
 }
 
@@ -26,15 +27,16 @@ function compareHash(storedHash: string | undefined, provided: string): boolean 
     return timingSafeEqual(expected, actual);
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         const accessToken = req.headers.get("x-ticket-access-token") || "";
 
         const ticket = await SupportTicket.findOne({
-            ...ticketQuery(params.id),
+            ...ticketQuery(id),
             isDeleted: false
         })
             .select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "")
@@ -50,7 +52,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
         // Session user path
         if (user) {
-            if (!user.isEmployee && (ticket as any).userId !== user.userId) {
+            const canViewAll = await hasPermission(h, "support.tickets.view");
+            if (!user.isEmployee && !user.isAdmin && !canViewAll && (ticket as any).userId !== user.userId) {
                 if (!hasValidAccessSession) {
                     return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
                 }
@@ -59,7 +62,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
             return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
         }
 
-        if (!user?.isEmployee) {
+        if (!user?.isEmployee && !user?.isAdmin) {
             (ticket as any).messages = ((ticket as any).messages as any[]).filter((m: any) => !m.isInternal);
         }
 
@@ -69,16 +72,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         const accessToken = req.headers.get("x-ticket-access-token") || "";
 
         const body = await req.json();
         const ticket = await SupportTicket.findOne({
-            ...ticketQuery(params.id),
+            ...ticketQuery(id),
             isDeleted: false
         }).select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "");
 
@@ -95,14 +99,14 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         }
 
         const isOwner = !!user && ticket.userId === user.userId;
-        if (user && !isOwner && !user.isEmployee && !hasValidAccessSession) {
+        if (user && !isOwner && !user.isEmployee && !user.isAdmin && !hasValidAccessSession) {
             return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
         }
 
         // Add reply message
         if (body.reply) {
             const senderRole = user?.isAdmin ? "admin" : user?.isEmployee ? "employee" : "customer";
-            const isInternal = !!body.isInternal && !!user?.isEmployee;
+            const isInternal = !!body.isInternal && (!!user?.isEmployee || !!user?.isAdmin);
 
             ticket.messages.push({
                 messageId: uuidv4(),
@@ -128,10 +132,9 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 
         // Employee/admin can update metadata (requires permission)
         if (body.status || body.priority || body.assignedTo !== undefined || body.tags) {
-            const canManage = user ? await hasPermission(req.headers, "support.tickets.manage") : false;
-            if (!canManage && user?.isEmployee) {
-                // Fallback for legacy employee access
-                // Can update metadata if employee
+            const canManage = user ? await hasPermission(h, "support.tickets.manage") : false;
+            if (!canManage && (user?.isEmployee || user?.isAdmin)) {
+                // Fallback for legacy employee/admin access
                 if (body.status) {
                     ticket.status = body.status;
                     if (body.status === "resolved") ticket.resolvedAt = new Date();
@@ -172,9 +175,10 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         
@@ -183,13 +187,12 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
         }
 
         // Check permission to delete tickets
-        const canDelete = await hasPermission(req.headers, "support.tickets.delete");
+        const canDelete = await hasPermission(h, "support.tickets.delete");
         if (!canDelete && !user?.isAdmin) {
-            // Fallback for legacy admin access
             return NextResponse.json({ success: false, error: "Forbidden: Permission required: support.tickets.delete" }, { status: 403 });
         }
 
-        await SupportTicket.findOneAndUpdate(ticketQuery(params.id), {
+        await SupportTicket.findOneAndUpdate(ticketQuery(id), {
             isDeleted: true
         });
         return NextResponse.json({ success: true });

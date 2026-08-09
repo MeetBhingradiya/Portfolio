@@ -4,20 +4,27 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
+import mongoose from "mongoose";
 import dbConnect from "@Utils/dbConnect";
 import { RefundRequest } from "@Models/RefundRequest";
 import { Order } from "@Models/Order";
 import { getResolvedUser } from "@Utils/RolePermissions";
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+function refundQuery(id: string) {
+    if (!id || typeof id !== "string") return { refundId: "__invalid__" };
+    return mongoose.isValidObjectId(id) ? { $or: [{ refundId: id }, { _id: id }] } : { refundId: id };
+}
+
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const refund = await RefundRequest.findOne({
-            $or: [{ refundId: params.id }, { _id: params.id }],
+            ...refundQuery(id),
             isDeleted: false
         }).lean();
 
@@ -32,9 +39,10 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user?.isEmployee) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
@@ -43,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
         const { status, reviewNote } = body;
 
         const refund = await RefundRequest.findOneAndUpdate(
-            { $or: [{ refundId: params.id }, { _id: params.id }] },
+            refundQuery(id),
             {
                 status,
                 reviewedBy: user.email,

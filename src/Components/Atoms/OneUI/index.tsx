@@ -24,8 +24,8 @@ export const OneUICard: React.FC<OneUICardProps> = ({ children, className = "", 
                         ? "linear-gradient(135deg, rgba(40, 40, 45, 0.95) 0%, rgba(30, 30, 35, 0.9) 100%)"
                         : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(250, 250, 252, 0.9) 100%)"
                     : isDark
-                      ? "linear-gradient(135deg, rgba(30, 30, 35, 0.9) 0%, rgba(25, 25, 30, 0.85) 100%)"
-                      : "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 248, 250, 0.85) 100%)",
+                        ? "linear-gradient(135deg, rgba(30, 30, 35, 0.9) 0%, rgba(25, 25, 30, 0.85) 100%)"
+                        : "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 248, 250, 0.85) 100%)",
                 border: `1.5px solid ${isDark ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.06)"}`,
                 borderRadius: "32px",
                 padding: "28px",
@@ -34,8 +34,8 @@ export const OneUICard: React.FC<OneUICardProps> = ({ children, className = "", 
                         ? "0 12px 40px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                         : "0 8px 32px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
                     : isDark
-                      ? "0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)"
-                      : "0 2px 12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6)"
+                        ? "0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.03)"
+                        : "0 2px 12px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6)"
             }}
             whileHover={interactive ? { scale: 1.015, y: -6 } : {}}
             transition={{ duration: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}>
@@ -129,18 +129,6 @@ export const OneUIButton: React.FC<OneUIButtonProps> = ({
             whileHover={{ scale: 1.02, y: -2 }}
             whileTap={{ scale: 0.97 }}
             transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}>
-            {/* Top highlight for depth */}
-            {(variant === "primary" || variant === "secondary") && (
-                <div
-                    className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
-                    style={{
-                        background: isDark
-                            ? "linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%)"
-                            : "linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%)",
-                        borderRadius: "50% 50% 0 0 / 100% 100% 0 0"
-                    }}
-                />
-            )}
             {icon && <span className="icon text-xl relative z-10">{icon}</span>}
             <span className="relative z-10">{children}</span>
         </motion.button>
@@ -261,16 +249,6 @@ export const OneUIBadge: React.FC<OneUIBadgeProps> = ({ children, variant = "acc
                 border: `1.5px solid ${variantColors[variant].border}`,
                 boxShadow: variantColors[variant].shadow
             }}>
-            {/* Top highlight */}
-            {/* <div
-                className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
-                style={{
-                    background: isDark
-                        ? "linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, transparent 100%)"
-                        : "linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, transparent 100%)",
-                    borderRadius: "50% 50% 0 0 / 100% 100% 0 0"
-                }}
-            /> */}
             <span className="relative z-10">{children}</span>
         </span>
     );

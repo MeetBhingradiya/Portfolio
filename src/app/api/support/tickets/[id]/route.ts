@@ -197,7 +197,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
                         const isGuest = ticket.userId.startsWith("guest:");
                         const ticketUrlCustomer = isGuest ? 
                             `${baseUrl}/support/tickets/lookup?ticketId=${ticket.ticketId}` : 
-                            `${baseUrl}/support/tickets/${ticket._id}`;
+                            `${baseUrl}/support/tickets/${ticket.ticketId}`;
                             
                         await sendEmail({
                             to: ticket.userEmail,

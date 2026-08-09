@@ -88,10 +88,10 @@ function LookupContent() {
             if (json.success) {
                 // Store secret and access token for guest viewing
                 if (typeof window !== "undefined") {
-                    localStorage.setItem(`support-ticket-secret:${json.data.ticketId}`, secretCode);
-                    localStorage.setItem(`support-ticket-token:${json.data.ticketId}`, json.data.accessToken);
+                    localStorage.setItem(`support-ticket-secret:${json.data.ticket.ticketId}`, secretCode);
+                    localStorage.setItem(`support-ticket-token:${json.data.ticket.ticketId}`, json.data.accessToken);
                 }
-                router.push(`/support/tickets/${json.data.ticketId}`);
+                router.push(`/support/tickets/${json.data.ticket.ticketId}`);
             } else {
                 setError(json.error || "Invalid OTP.");
             }

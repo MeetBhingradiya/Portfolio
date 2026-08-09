@@ -23,6 +23,17 @@ export async function GET(req: NextRequest) {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+        // Auto-close inactive tickets (waiting_customer or resolved) after 2 days
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        await SupportTicket.updateMany(
+            {
+                status: { $in: ["waiting_customer", "resolved"] },
+                lastRepliedAt: { $lt: twoDaysAgo },
+                isDeleted: false
+            },
+            { $set: { status: "closed" } }
+        );
+
         const q = req.nextUrl.searchParams;
         const page = Math.max(1, parseInt(q.get("page") || "1"));
         const limit = Math.min(50, parseInt(q.get("limit") || "20"));
@@ -126,7 +137,7 @@ export async function POST(req: NextRequest) {
             const isGuest = ticket.userId.startsWith("guest:");
             const lookupUrl = isGuest 
                 ? `${baseUrl}/support/tickets/lookup?ticketId=${ticketId}`
-                : `${baseUrl}/support/tickets/${ticket._id}`;
+                : `${baseUrl}/support/tickets/${ticketId}`;
 
             await sendEmail({
                 to: email,

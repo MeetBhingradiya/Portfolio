@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useAuth } from "@Library/auth-client";
 import { ArrowBack, Send, Circle, Star, StarOutline, Lock, LockOpen, Person, SupportAgent, AdminPanelSettings } from "@mui/icons-material";
 
 interface Message {
@@ -64,8 +65,10 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
     const [reply, setReply] = useState("");
     const [sending, setSending] = useState(false);
     const [isInternal, setIsInternal] = useState(false);
+    const { user } = useAuth();
     const [rating, setRating] = useState(0);
     const [error, setError] = useState("");
+    const [accessError, setAccessError] = useState("");
     const [secretCode, setSecretCode] = useState("");
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
@@ -160,7 +163,7 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
     const requestOtp = async () => {
         if (!secretCode.trim() || !ticketId) return;
         setAccessLoading(true);
-        setError("");
+        setAccessError("");
         try {
             const res = await fetch(`/api/support/tickets/access/${ticketId}`, {
                 method: "POST",
@@ -171,10 +174,10 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
             if (json.success) {
                 setOtpSent(true);
             } else {
-                setError(json.error || "Unable to send OTP.");
+                setAccessError(json.error || "Unable to send OTP.");
             }
         } catch {
-            setError("Network error. Please try again.");
+            setAccessError("Network error. Please try again.");
         }
         setAccessLoading(false);
     };
@@ -182,7 +185,7 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
     const verifyOtp = async () => {
         if (!secretCode.trim() || !otp.trim() || !ticketId) return;
         setAccessLoading(true);
-        setError("");
+        setAccessError("");
         try {
             const res = await fetch(`/api/support/tickets/access/${ticketId}`, {
                 method: "PATCH",
@@ -197,10 +200,10 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
                 }
                 setTicket(json.data.ticket);
             } else {
-                setError(json.error || "OTP verification failed.");
+                setAccessError(json.error || "OTP verification failed.");
             }
         } catch {
-            setError("Network error. Please try again.");
+            setAccessError("Network error. Please try again.");
         }
         setAccessLoading(false);
     };
@@ -247,6 +250,11 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
                             style={{ color: palette.textPrimary }}>
                             Access this ticket with secret code + OTP
                         </p>
+                        {!!accessError && (
+                            <p className="text-xs" style={{ color: "#FF3B30" }}>
+                                {accessError}
+                            </p>
+                        )}
                         <input
                             value={secretCode}
                             onChange={(e) => setSecretCode(e.target.value)}
@@ -365,6 +373,60 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
                         </div>
                     </div>
                 </div>
+
+                {/* Admin/Employee Controls */}
+                {((user as any)?.role === "admin" || (user as any)?.role === "employee" || (user as any)?.isEmployee || (user as any)?.isAdmin) && (
+                    <div
+                        className="p-4 rounded-2xl"
+                        style={{
+                            background: isDark ? "rgba(255, 45, 85, 0.05)" : "rgba(255, 45, 85, 0.02)",
+                            border: `1px solid rgba(255, 45, 85, 0.2)`
+                        }}>
+                        <p className="text-sm font-bold mb-3" style={{ color: "#FF2D55" }}>
+                            Admin Controls
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
+                            <select
+                                value={ticket.status}
+                                onChange={async (e) => {
+                                    const newStatus = e.target.value;
+                                    const res = await fetch(`/api/support/tickets/${ticketId}`, {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ status: newStatus })
+                                    });
+                                    if (res.ok) setTicket({ ...ticket, status: newStatus });
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-sm bg-transparent outline-none cursor-pointer"
+                                style={{ border, color: palette.textPrimary }}>
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="waiting_customer">Waiting Customer</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                            
+                            <select
+                                value={ticket.priority}
+                                onChange={async (e) => {
+                                    const newPri = e.target.value;
+                                    const res = await fetch(`/api/support/tickets/${ticketId}`, {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ priority: newPri })
+                                    });
+                                    if (res.ok) setTicket({ ...ticket, priority: newPri });
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-sm bg-transparent outline-none cursor-pointer"
+                                style={{ border, color: palette.textPrimary }}>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 {/* Messages thread */}
                 <div
@@ -516,6 +578,19 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
                                 }}>
                                 {error}
                             </p>
+                        )}
+                        {((user as any)?.role === "admin" || (user as any)?.role === "employee" || (user as any)?.isEmployee || (user as any)?.isAdmin) && (
+                            <div className="flex items-center gap-2 px-1 pb-1">
+                                <input
+                                    type="checkbox"
+                                    checked={isInternal}
+                                    onChange={(e) => setIsInternal(e.target.checked)}
+                                    className="accent-orange-500"
+                                />
+                                <span className="text-sm font-semibold" style={{ color: palette.textSecondary }}>
+                                    Internal Reply (Hidden from customer)
+                                </span>
+                            </div>
                         )}
                         <textarea
                             rows={4}

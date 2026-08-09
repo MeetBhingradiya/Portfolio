@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
 import { ContactMessage } from "@Models/ContactMessage";
-import { sendEmail } from "@Utils/Email";
+import { sendEmail, contactAdminNotificationEmail, contactUserAcknowledgmentEmail } from "@Utils/Email";
 import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 
 function getClientIp(req: NextRequest): string {
@@ -20,145 +20,6 @@ function getClientIp(req: NextRequest): string {
         req.headers.get("cf-connecting-ip") ||
         "127.0.0.1"
     );
-}
-
-function buildAdminNotificationHtml(data: {
-    name: string;
-    email: string;
-    phone?: string;
-    subject: string;
-    message: string;
-    services?: string[];
-    ip: string;
-    date: Date;
-}) {
-    const year = new Date().getFullYear();
-    const servicesList = data.services && data.services.length > 0 ? data.services.join(", ") : "None specified";
-
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-</head>
-<body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f8fafc;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;padding:32px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#1e293b;border-radius:16px;overflow:hidden;border:1px solid #334155;">
-          <tr>
-            <td style="padding:28px 32px;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);">
-              <span style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#dbeafe;">New Inquiry</span>
-              <h1 style="margin:6px 0 0 0;font-size:24px;font-weight:800;color:#ffffff;">📬 New Contact Form Submission</h1>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:28px 32px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;line-height:1.6;color:#e2e8f0;">
-                <tr>
-                  <td style="padding:8px 0;width:120px;font-weight:600;color:#94a3b8;">Sender Name:</td>
-                  <td style="padding:8px 0;font-weight:600;color:#ffffff;">${data.name}</td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;font-weight:600;color:#94a3b8;">Email Address:</td>
-                  <td style="padding:8px 0;"><a href="mailto:${data.email}" style="color:#60a5fa;text-decoration:none;">${data.email}</a></td>
-                </tr>
-                ${data.phone ? `
-                <tr>
-                  <td style="padding:8px 0;font-weight:600;color:#94a3b8;">Phone Number:</td>
-                  <td style="padding:8px 0;color:#ffffff;">${data.phone}</td>
-                </tr>` : ""}
-                <tr>
-                  <td style="padding:8px 0;font-weight:600;color:#94a3b8;">Subject:</td>
-                  <td style="padding:8px 0;font-weight:600;color:#ffffff;">${data.subject}</td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;font-weight:600;color:#94a3b8;">Services:</td>
-                  <td style="padding:8px 0;color:#cbd5e1;">${servicesList}</td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;font-weight:600;color:#94a3b8;">Sender IP:</td>
-                  <td style="padding:8px 0;color:#cbd5e1;font-family:monospace;">${data.ip}</td>
-                </tr>
-                <tr>
-                  <td style="padding:8px 0;font-weight:600;color:#94a3b8;">Submitted At:</td>
-                  <td style="padding:8px 0;color:#cbd5e1;">${data.date.toUTCString()}</td>
-                </tr>
-              </table>
-
-              <div style="margin-top:20px;padding:16px 20px;background:#0f172a;border-radius:12px;border:1px solid #334155;">
-                <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#94a3b8;">Message Content</p>
-                <div style="font-size:14px;line-height:1.7;color:#f1f5f9;white-space:pre-wrap;word-break:break-word;">${data.message}</div>
-              </div>
-
-              <div style="margin-top:24px;text-align:center;">
-                <a href="mailto:${data.email}?subject=Re: ${encodeURIComponent(data.subject)}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;">Reply directly via Email</a>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:16px 32px;background:#0f172a;border-top:1px solid #334155;text-align:center;font-size:12px;color:#64748b;">
-              Meet Bhingradiya Portfolio Notification • ${year}
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
-}
-
-function buildUserAcknowledgmentHtml(data: { name: string; subject: string }) {
-    const year = new Date().getFullYear();
-
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-</head>
-<body style="margin:0;padding:0;background:#0f172a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif;color:#f8fafc;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a;padding:32px 16px;">
-    <tr>
-      <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#1e293b;border-radius:16px;overflow:hidden;border:1px solid #334155;">
-          <tr>
-            <td style="padding:28px 32px;background:linear-gradient(135deg,#059669 0%,#047857 100%);">
-              <span style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#d1fae5;">Message Received</span>
-              <h1 style="margin:6px 0 0 0;font-size:24px;font-weight:800;color:#ffffff;">Thank you for getting in touch!</h1>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:28px 32px;">
-              <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#e2e8f0;">
-                Hi <strong>${data.name}</strong>,
-              </p>
-              <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#cbd5e1;">
-                Thank you for reaching out regarding <strong>"${data.subject}"</strong>. Your message has been received and I will review it and get back to you as soon as possible.
-              </p>
-              <p style="margin:0 0 24px 0;font-size:14px;line-height:1.6;color:#94a3b8;">
-                If your inquiry is urgent, you may also connect with me directly through LinkedIn or GitHub.
-              </p>
-              <div style="border-top:1px solid #334155;padding-top:16px;font-size:14px;color:#cbd5e1;">
-                Best regards,<br/>
-                <strong style="color:#ffffff;">Meet Bhingradiya</strong>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:16px 32px;background:#0f172a;border-top:1px solid #334155;text-align:center;font-size:12px;color:#64748b;">
-              Meet Bhingradiya • <a href="https://www.meetbhingradiya.in" style="color:#60a5fa;text-decoration:none;">www.meetbhingradiya.in</a> • ${year}
-            </td>
-          </tr>
-        </table>
-      </td>
-    </tr>
-  </table>
-</body>
-</html>`;
 }
 
 export async function POST(req: NextRequest) {
@@ -238,13 +99,11 @@ export async function POST(req: NextRequest) {
             await sendEmail({
                 to: adminEmail,
                 subject: `📬 Contact Inquiry: ${subject} (from ${name})`,
-                html: buildAdminNotificationHtml({
+                html: contactAdminNotificationEmail({
                     name,
                     email,
-                    phone,
                     subject,
-                    message,
-                    services,
+                    message: `Phone: ${phone || "N/A"}\nServices: ${services && services.length > 0 ? services.join(", ") : "None"}\n\n${message}`,
                     ip: clientIp,
                     date: contactDoc.createdAt || new Date()
                 }),
@@ -260,7 +119,7 @@ export async function POST(req: NextRequest) {
             await sendEmail({
                 to: email,
                 subject: `Thank you for contacting Meet Bhingradiya - We received your message`,
-                html: buildUserAcknowledgmentHtml({
+                html: contactUserAcknowledgmentEmail({
                     name,
                     subject
                 }),

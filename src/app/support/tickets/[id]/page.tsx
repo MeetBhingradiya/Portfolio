@@ -9,6 +9,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { useAuth } from "@Library/auth-client";
+import { useAdminSession } from "@Hooks/useAdminSession";
 import { ArrowBack, Send, Circle, Star, StarOutline, Lock, LockOpen, Person, SupportAgent, AdminPanelSettings } from "@mui/icons-material";
 
 interface Message {
@@ -66,6 +67,8 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
     const [sending, setSending] = useState(false);
     const [isInternal, setIsInternal] = useState(false);
     const { user } = useAuth();
+    const { hasPermission, hasRole, session: adminSession } = useAdminSession();
+    const canManage = adminSession?.isAdmin || hasRole("employee") || hasRole("admin") || hasPermission("support.tickets.manage");
     const [rating, setRating] = useState(0);
     const [error, setError] = useState("");
     const [accessError, setAccessError] = useState("");
@@ -375,7 +378,7 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
                 </div>
 
                 {/* Admin/Employee Controls */}
-                {((user as any)?.role === "admin" || (user as any)?.role === "employee" || (user as any)?.isEmployee || (user as any)?.isAdmin) && (
+                {canManage && (
                     <div
                         className="p-4 rounded-2xl"
                         style={{
@@ -579,7 +582,7 @@ export default function TicketDetailPage({ params }: { params?: { id?: string } 
                                 {error}
                             </p>
                         )}
-                        {((user as any)?.role === "admin" || (user as any)?.role === "employee" || (user as any)?.isEmployee || (user as any)?.isAdmin) && (
+                        {canManage && (
                             <div className="flex items-center gap-2 px-1 pb-1">
                                 <input
                                     type="checkbox"

@@ -10,7 +10,7 @@ import { createHash, timingSafeEqual } from "crypto";
 import mongoose from "mongoose";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket } from "@Models/SupportTicket";
-import { sendEmail } from "@Utils/Email";
+import { sendEmail, supportTicketReplyAdminEmail, supportTicketReplyCustomerEmail } from "@Utils/Email";
 import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { getSession } from "@Library/auth";
 
@@ -189,7 +189,12 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
                         await sendEmail({
                             to: notifyEmail,
                             subject: `New Reply on Ticket ${ticket.ticketId}`,
-                            html: `<p>A new reply was added to ticket <strong>${ticket.ticketId}</strong> by ${ticket.userName || "the customer"}.</p><p><strong>Message:</strong><br/>${body.reply}</p><p><a href="${ticketUrlAdmin}">View Admin Dashboard</a></p>`,
+                            html: supportTicketReplyAdminEmail({
+                                ticketId: ticket.ticketId,
+                                ticketUrl: ticketUrlAdmin,
+                                replyBody: body.reply,
+                                replierName: ticket.userName || "the customer"
+                            }),
                             text: `A new reply was added to ticket ${ticket.ticketId} by ${ticket.userName || "the customer"}.`
                         });
                     } else {
@@ -202,7 +207,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
                         await sendEmail({
                             to: ticket.userEmail,
                             subject: `Update on your support ticket ${ticket.ticketId}`,
-                            html: `<p>Support has replied to your ticket <strong>${ticket.ticketId}</strong>.</p><p><strong>Message:</strong><br/>${body.reply}</p><p><a href="${ticketUrlCustomer}">Click here to view your ticket</a></p>`,
+                            html: supportTicketReplyCustomerEmail({
+                                ticketId: ticket.ticketId,
+                                ticketUrl: ticketUrlCustomer,
+                                replyBody: body.reply
+                            }),
                             text: `Support has replied to your ticket ${ticket.ticketId}.`
                         });
                     }

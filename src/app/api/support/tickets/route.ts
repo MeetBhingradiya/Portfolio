@@ -9,7 +9,7 @@ import dbConnect from "@Utils/dbConnect";
 import { SupportTicket, TicketCounter } from "@Models/SupportTicket";
 import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { getSession } from "@Library/auth";
-import { sendEmail } from "@Utils/Email";
+import { sendEmail, supportTicketCreatedEmail } from "@Utils/Email";
 
 async function nextTicketNumber(): Promise<number> {
     const counter = await TicketCounter.findByIdAndUpdate("ticket", { $inc: { seq: 1 } }, { new: true, upsert: true });
@@ -142,11 +142,14 @@ export async function POST(req: NextRequest) {
             await sendEmail({
                 to: email,
                 subject: `Support Ticket ${ticketId} Created`,
-                html: `<p>Your support ticket <strong>${ticketId}</strong> was created.</p>
-                       <p>Ticket secret code: <strong>${accessSecret}</strong></p>
-                       <p>Keep this secret code safe. You will need it to securely access your ticket.</p>
-                       <p><a href="${lookupUrl}">Track your ticket here</a></p>`,
-                text: `Ticket ${ticketId} created. Secret code: ${accessSecret}. Track it here: ${lookupUrl}`
+                html: supportTicketCreatedEmail({
+                    name,
+                    ticketId,
+                    lookupUrl,
+                    isGuest,
+                    secretCode: isGuest ? accessSecret : undefined
+                }),
+                text: `Ticket ${ticketId} created. ${isGuest ? `Secret code: ${accessSecret}. ` : ''}Track it here: ${lookupUrl}`
             });
         } catch {
             // Non-blocking: ticket is already created.

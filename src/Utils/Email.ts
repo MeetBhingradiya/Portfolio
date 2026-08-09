@@ -414,3 +414,170 @@ export function cdnKeyIssuedEmail(opts: {
 </body>
 </html>`;
 }
+
+export function supportTicketCreatedEmail(opts: {
+    name: string;
+    ticketId: string;
+    lookupUrl: string;
+    isGuest: boolean;
+    secretCode?: string;
+}): string {
+    const accent = "#2563eb";
+    let body = `<p style="margin:0 0 16px 0;color:#1e293b;font-size:15px;line-height:1.75;">
+            Hi <strong>${opts.name || "there"}</strong>,<br/>
+            Your support ticket <strong>${opts.ticketId}</strong> has been successfully created. We are reviewing your request and will get back to you shortly.
+          </p>`;
+
+    if (opts.isGuest && opts.secretCode) {
+        body += `
+          <div style="background:#f1f5f9; border-radius:12px; padding:16px; margin:20px 0; text-align:center; border:1px solid #e2e8f0;">
+            <p style="margin:0 0 8px 0; font-size:12px; color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:.05em;">Your Secret Code</p>
+            <code style="display:inline-block; font-size:24px; font-weight:800; color:#0f172a; background:#ffffff; padding:8px 16px; border-radius:8px; border:1px solid #cbd5e1; letter-spacing:.1em;">
+              ${opts.secretCode}
+            </code>
+            <p style="margin:12px 0 0; font-size:12px; color:#ef4444;">
+              ⚠️ Keep this code safe. You will need it to view your ticket.
+            </p>
+          </div>`;
+    }
+
+    body += `
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 18px 0;">
+            <tr>
+              <td align="center" style="border-radius:12px;background:${accent};">
+                <a href="${opts.lookupUrl}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:.01em;">
+                  Track Your Ticket
+                </a>
+              </td>
+            </tr>
+          </table>
+    `;
+
+    return renderEmailShell({
+        preheader: "Your support ticket has been created.",
+        eyebrow: "Support Ticket",
+        title: "Ticket Received",
+        subtitle: "We have received your inquiry and are on it.",
+        accent,
+        body,
+        note: opts.isGuest ? "To check updates securely, you will need the secret code provided above." : ""
+    });
+}
+
+export function supportTicketReplyCustomerEmail(opts: {
+    ticketId: string;
+    ticketUrl: string;
+    replyBody: string;
+}): string {
+    const accent = "#2563eb";
+    return renderEmailShell({
+        preheader: "Support has replied to your ticket.",
+        eyebrow: "Support Update",
+        title: "New Reply on Your Ticket",
+        subtitle: `Ticket ${opts.ticketId} has a new update from our team.`,
+        accent,
+        body: `
+          <div style="margin:20px 0;padding:16px 20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+            <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#64748b;">Message Content</p>
+            <div style="font-size:14px;line-height:1.7;color:#334155;white-space:pre-wrap;word-break:break-word;">${opts.replyBody}</div>
+          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 18px 0;">
+            <tr>
+              <td align="center" style="border-radius:12px;background:${accent};">
+                <a href="${opts.ticketUrl}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:.01em;">
+                  View Your Ticket
+                </a>
+              </td>
+            </tr>
+          </table>
+        `,
+    });
+}
+
+export function supportTicketReplyAdminEmail(opts: {
+    ticketId: string;
+    ticketUrl: string;
+    replyBody: string;
+    replierName: string;
+}): string {
+    const accent = "#f59e0b";
+    return renderEmailShell({
+        preheader: "A customer replied to a support ticket.",
+        eyebrow: "Admin Notification",
+        title: "New Customer Reply",
+        subtitle: `${opts.replierName} replied to Ticket ${opts.ticketId}.`,
+        accent,
+        body: `
+          <div style="margin:20px 0;padding:16px 20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+            <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#64748b;">Message Content</p>
+            <div style="font-size:14px;line-height:1.7;color:#334155;white-space:pre-wrap;word-break:break-word;">${opts.replyBody}</div>
+          </div>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="margin:20px 0 18px 0;">
+            <tr>
+              <td align="center" style="border-radius:12px;background:${accent};">
+                <a href="${opts.ticketUrl}" style="display:inline-block;padding:13px 22px;color:#ffffff;text-decoration:none;font-size:14px;font-weight:700;letter-spacing:.01em;">
+                  View Admin Dashboard
+                </a>
+              </td>
+            </tr>
+          </table>
+        `,
+    });
+}
+
+export function contactUserAcknowledgmentEmail(opts: { name: string; subject: string }): string {
+    const accent = "#10b981";
+    return renderEmailShell({
+        preheader: "We received your message.",
+        eyebrow: "Message Received",
+        title: "Thank you for getting in touch!",
+        subtitle: "Your message has been received and I will review it shortly.",
+        accent,
+        body: `
+          <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#334155;">
+            Hi <strong>${opts.name}</strong>,
+          </p>
+          <p style="margin:0 0 16px 0;font-size:15px;line-height:1.6;color:#475569;">
+            Thank you for reaching out regarding <strong>"${opts.subject}"</strong>. Your message has been received and I will get back to you as soon as possible.
+          </p>
+          <p style="margin:0 0 24px 0;font-size:14px;line-height:1.6;color:#64748b;">
+            If your inquiry is urgent, you may also connect with me directly through LinkedIn or GitHub.
+          </p>
+        `,
+    });
+}
+
+export function contactAdminNotificationEmail(opts: {
+    name: string;
+    email: string;
+    subject: string;
+    message: string;
+    ip: string;
+    date: Date;
+}): string {
+    const accent = "#6366f1";
+    return renderEmailShell({
+        preheader: "New contact message from your portfolio.",
+        eyebrow: "New Contact Message",
+        title: "You have a new message",
+        subtitle: "Someone reached out via your contact form.",
+        accent,
+        body: `
+          <table style="width:100%;border-collapse:collapse;margin:0 0 20px 0;font-size:14px;">
+            <tr><td style="padding:8px 0;color:#64748b;width:120px;">Name:</td><td style="padding:8px 0;color:#0f172a;font-weight:600;">${opts.name}</td></tr>
+            <tr><td style="padding:8px 0;color:#64748b;">Email:</td><td style="padding:8px 0;color:#0f172a;font-weight:600;">${opts.email}</td></tr>
+            <tr><td style="padding:8px 0;color:#64748b;">Subject:</td><td style="padding:8px 0;color:#0f172a;font-weight:600;">${opts.subject}</td></tr>
+            <tr><td style="padding:8px 0;color:#64748b;">IP:</td><td style="padding:8px 0;color:#0f172a;font-family:monospace;">${opts.ip}</td></tr>
+          </table>
+          <div style="margin:20px 0;padding:16px 20px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;">
+            <p style="margin:0 0 8px 0;font-size:12px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#64748b;">Message Content</p>
+            <div style="font-size:14px;line-height:1.7;color:#334155;white-space:pre-wrap;word-break:break-word;">${opts.message}</div>
+          </div>
+          <div style="text-align:center;margin-top:24px;">
+            <a href="mailto:${opts.email}?subject=Re: ${encodeURIComponent(opts.subject)}" style="display:inline-block;padding:12px 24px;background:${accent};color:#ffffff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;">
+              Reply directly via Email
+            </a>
+          </div>
+        `
+    });
+}

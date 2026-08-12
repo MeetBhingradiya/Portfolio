@@ -27,6 +27,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
                 ? body.redirectUris.split(",").map((s: string) => s.trim()) 
                 : body.redirectUris;
         }
+        if (body.allowedOrigins !== undefined) {
+            updateData.allowedOrigins = typeof body.allowedOrigins === "string" 
+                ? body.allowedOrigins.split(",").map((s: string) => s.trim()).filter(Boolean) 
+                : body.allowedOrigins;
+        }
 
         const app = await SSOApp.findByIdAndUpdate(id, updateData, { new: true });
         if (!app) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });

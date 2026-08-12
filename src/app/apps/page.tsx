@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
 import HeadNavigation from "@Components/Common/HeadNavigation";
-import { Key } from "@mui/icons-material";
+import { Key, Lock } from "@mui/icons-material";
 import { motion } from "motion/react";
 import Link from "next/link";
 
@@ -14,6 +14,7 @@ interface PublicApp {
     appIcon?: string;
     clientId: string;
     enabled: boolean;
+    accessMode: "public" | "private";
 }
 
 export default function AppsDirectoryPage() {
@@ -66,10 +67,10 @@ export default function AppsDirectoryPage() {
 
                 {loading ? (
                     <div className="flex justify-center py-20">
-                        <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: \`\${palette.accent} transparent transparent transparent\` }} />
+                        <div className="w-10 h-10 border-4 border-t-transparent rounded-full animate-spin" style={{ borderColor: `${palette.accent} transparent transparent transparent` }} />
                     </div>
                 ) : apps.length === 0 ? (
-                    <div className="text-center py-20 rounded-[30px]" style={{ background: cardBg, border: \`1px solid \${borderColor}\` }}>
+                    <div className="text-center py-20 rounded-[30px]" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
                         <Key style={{ fontSize: 48, color: palette.textSecondary, opacity: 0.5, marginBottom: 16 }} />
                         <h2 className="text-xl font-bold mb-2" style={{ color: palette.textPrimary }}>No Apps Found</h2>
                         <p style={{ color: palette.textSecondary }}>There are currently no public applications available.</p>
@@ -85,23 +86,30 @@ export default function AppsDirectoryPage() {
                                 className="rounded-[30px] p-6 transition-all hover:scale-[1.02] flex flex-col"
                                 style={{ 
                                     background: cardBg, 
-                                    border: \`1px solid \${borderColor}\`,
+                                    border: `1px solid ${borderColor}`,
                                     boxShadow: isDark ? '0 10px 40px rgba(0,0,0,0.2)' : '0 10px 40px rgba(0,0,0,0.05)'
                                 }}
                             >
                                 <div className="flex items-start gap-4 mb-4">
                                     {app.appIcon ? (
-                                        <img src={app.appIcon} alt={app.name} className="w-16 h-16 rounded-2xl object-cover shrink-0" style={{ border: \`1px solid \${borderColor}\` }} />
+                                        <img src={app.appIcon} alt={app.name} className="w-16 h-16 rounded-2xl object-cover shrink-0" style={{ border: `1px solid ${borderColor}` }} />
                                     ) : (
-                                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0" style={{ background: \`\${palette.accent}15\`, color: palette.accent }}>
+                                        <div className="w-16 h-16 rounded-2xl flex items-center justify-center shrink-0" style={{ background: `${palette.accent}15`, color: palette.accent }}>
                                             <Key fontSize="large" />
                                         </div>
                                     )}
-                                    <div className="pt-1 flex-1">
+                                    <div className="pt-1 flex-1 relative pr-8">
                                         <h3 className="text-xl font-bold leading-tight mb-1" style={{ color: palette.textPrimary }}>{app.name}</h3>
-                                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider" style={{ background: badgeBg, color: palette.textSecondary }}>
-                                            Integration
-                                        </span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider" style={{ background: badgeBg, color: palette.textSecondary }}>
+                                                Integration
+                                            </span>
+                                            {app.accessMode === "private" && (
+                                                <span title="Private Integration (Whitelist Access Only)" className="inline-flex items-center justify-center p-1 rounded-md" style={{ background: "rgba(255,149,0,0.15)", color: "#ff9500" }}>
+                                                    <Lock style={{ fontSize: 14 }} />
+                                                </span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -113,7 +121,7 @@ export default function AppsDirectoryPage() {
                                     <span className="text-xs font-semibold" style={{ color: app.enabled ? "#34c759" : "#ff3b30" }}>
                                         {app.enabled ? "• Active" : "• Offline"}
                                     </span>
-                                    <Link href={\`/sso/login?client_id=\${app.clientId}\`}>
+                                    <Link href={`/sso?client_id=${app.clientId}`}>
                                         <button 
                                             className="px-4 py-2 rounded-xl text-sm font-bold transition-transform active:scale-95"
                                             style={{ background: palette.accent, color: "#fff" }}

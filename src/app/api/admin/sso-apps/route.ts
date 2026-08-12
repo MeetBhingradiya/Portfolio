@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
             description: body.description,
             clientSecret: body.clientSecret,
             redirectUris: typeof body.redirectUris === "string" ? body.redirectUris.split(",").map((s: string) => s.trim()) : body.redirectUris,
+            allowedOrigins: typeof body.allowedOrigins === "string" ? body.allowedOrigins.split(",").map((s: string) => s.trim()).filter(Boolean) : (body.allowedOrigins || []),
             gateKey: body.gateKey,
             enabled: true,
             allowNewTokens: true,

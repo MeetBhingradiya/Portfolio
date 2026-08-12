@@ -14,6 +14,7 @@ export interface ISSOApp extends Document {
     clientSecret?: string; // Optional if not required by the app
     appIcon?: string; // App icon URL (e.g. GitHub CDN)
     redirectUris: string[];
+    allowedOrigins: string[]; // Multiple Whitelisted Origins for CORS
     gateKey?: string; // Optional security gate query param requirement
     enabled: boolean;
     allowNewTokens: boolean; // Allow issuing new tokens
@@ -33,6 +34,7 @@ const SSOAppSchema = new Schema<ISSOApp>(
         clientSecret: { type: String, trim: true },
         appIcon: { type: String, trim: true },
         redirectUris: [{ type: String, required: true, trim: true }],
+        allowedOrigins: [{ type: String, trim: true }],
         gateKey: { type: String, trim: true },
         enabled: { type: Boolean, default: true },
         allowNewTokens: { type: Boolean, default: true },

@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
-import { Add, Check, Close, Delete, Edit, Key, PhotoCamera, Refresh, Search, Email, Link as LinkIcon, Info } from "@mui/icons-material";
+import { Add, Check, Close, Delete, Edit, Key, PhotoCamera, Refresh, Search, Email, Link as LinkIcon, Info, ContentCopy, Block } from "@mui/icons-material";
 import Image from "next/image";
 import { CDNImageField } from "@Components/Tools/CDNUploaders";
 
@@ -19,6 +19,8 @@ interface SSOApp {
     allowNewSignups: boolean;
     visibility: "public" | "private";
     accessMode: "public" | "private";
+    redirectUris?: string | string[];
+    allowedOrigins?: string | string[];
     createdAt: string;
 }
 
@@ -34,7 +36,6 @@ interface WhitelistEntry {
     email: string;
     label: string;
     note?: string;
-    enabled: boolean;
     enabled: boolean;
     linkedAccount: boolean;
     subOverride?: string;
@@ -64,7 +65,14 @@ export default function SSOAppsPage() {
     // App Creation state
     const [showAddApp, setShowAddApp] = useState(false);
     const [newApp, setNewApp] = useState({ name: "", clientId: "", redirectUris: "", appIcon: "", description: "", visibility: "private" as "public" | "private", accessMode: "private" as "public" | "private", allowNewSignups: false });
-    const [activeTab, setActiveTab] = useState<"info" | "settings" | "users" | "security">("info");
+    const [activeTab, setActiveTab] = useState<"info" | "settings" | "users" | "security" | "integrations">("info");
+    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+    const [editAppName, setEditAppName] = useState("");
+    const [editAppDesc, setEditAppDesc] = useState("");
+    
+    // Arrays for chips
+    const [editRedirectUris, setEditRedirectUris] = useState<string[]>([]);
+    const [editAllowedOrigins, setEditAllowedOrigins] = useState<string[]>([]);
     const [editAppIconUrl, setEditAppIconUrl] = useState("");
     const [showSensitive, setShowSensitive] = useState(false);
 
@@ -125,6 +133,10 @@ export default function SSOAppsPage() {
     useEffect(() => {
         if (selectedApp) {
             setEditAppIconUrl(selectedApp.appIcon || "");
+            setEditAppName(selectedApp.name || "");
+            setEditAppDesc(selectedApp.description || "");
+            setEditRedirectUris(selectedApp.redirectUris ? (Array.isArray(selectedApp.redirectUris) ? selectedApp.redirectUris : selectedApp.redirectUris.split(",")).map(s => s.trim()).filter(Boolean) : []);
+            setEditAllowedOrigins(selectedApp.allowedOrigins ? (Array.isArray(selectedApp.allowedOrigins) ? selectedApp.allowedOrigins : selectedApp.allowedOrigins.split(",")).map(s => s.trim()).filter(Boolean) : []);
             loadEntries();
         }
     }, [selectedApp, loadEntries]);
@@ -141,7 +153,7 @@ export default function SSOAppsPage() {
             if (json.success) {
                 flash("App created successfully!");
                 setShowAddApp(false);
-                setNewApp({ name: "", clientId: "", redirectUris: "", appIcon: "" });
+                setNewApp({ name: "", clientId: "", redirectUris: "", appIcon: "", description: "", visibility: "private" as "public" | "private", accessMode: "private" as "public" | "private", allowNewSignups: false });
                 loadApps();
             } else {
                 flash(json.error, true);
@@ -320,6 +332,12 @@ export default function SSOAppsPage() {
                             <p className="text-sm mt-1" style={{ color: palette.textSecondary }}>Manage applications and their access lists.</p>
                         </div>
                         <div className="flex items-center gap-3">
+                            {!selectedApp && (
+                                <div className="flex bg-black/5 dark:bg-white/5 rounded-xl p-1">
+                                    <button onClick={() => setViewMode('grid')} className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-black/40 shadow-sm' : 'opacity-50'}`} style={{ color: palette.textPrimary }}>Grid</button>
+                                    <button onClick={() => setViewMode('list')} className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-black/40 shadow-sm' : 'opacity-50'}`} style={{ color: palette.textPrimary }}>List</button>
+                                </div>
+                            )}
                             <button onClick={() => setShowSensitive(!showSensitive)} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)", color: palette.textPrimary }}>
                                 {showSensitive ? "Hide Secrets" : "Reveal Secrets"}
                             </button>
@@ -328,7 +346,7 @@ export default function SSOAppsPage() {
                                     Add App
                                 </button>
                             ) : (
-                                <button onClick={() => setSelectedApp(null);} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: inputBg, color: palette.textPrimary }}>
+                                <button onClick={() => setSelectedApp(null)} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: inputBg, color: palette.textPrimary }}>
                                     Back to Apps
                                 </button>
                             )}
@@ -372,16 +390,22 @@ export default function SSOAppsPage() {
                 )}
 
                 {!selectedApp ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className={viewMode === 'grid' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" : "flex flex-col gap-3"}>
                         {apps.map(app => (
-                            <div key={app._id} onClick={() => setSelectedApp(app); setActiveTab('info');} className="rounded-[24px] p-5 cursor-pointer transition-transform hover:scale-[1.02]" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${palette.accent}20`, color: palette.accent }}>
-                                        <Key />
-                                    </div>
+                            <div key={app._id} onClick={() => { setSelectedApp(app); setActiveTab('info'); }} className={`rounded-[24px] cursor-pointer transition-transform hover:scale-[1.02] ${viewMode === 'grid' ? 'p-5' : 'p-4 flex items-center justify-between'}`} style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
+                                <div className={`flex items-center ${viewMode === 'grid' ? 'gap-3 mb-3' : 'gap-4'}`}>
+                                    {app.appIcon ? (
+                                        <img src={app.appIcon} alt={app.name} className="w-10 h-10 rounded-xl object-cover shrink-0" style={{ border: `1px solid ${borderColor}` }} />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: `${palette.accent}20`, color: palette.accent }}>
+                                            <Key />
+                                        </div>
+                                    )}
                                     <h3 className="font-bold text-lg" style={{ color: palette.textPrimary }}>{app.name}</h3>
                                 </div>
-                                <p className="text-xs font-mono" style={{ color: palette.textSecondary }}>ID: {app.clientId}</p>
+                                <div className={viewMode === 'grid' ? '' : 'text-right'}>
+                                    <p className="text-xs font-mono" style={{ color: palette.textSecondary }}>ID: {app.clientId}</p>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -404,7 +428,7 @@ export default function SSOAppsPage() {
                             </div>
                             
                             <div className="flex gap-6 border-b" style={{ borderColor }}>
-                                {["info", "settings", "users", "security"].map(tab => (
+                                {["info", "settings", "integrations", "users", "security"].map(tab => (
                                     <button 
                                         key={tab} 
                                         onClick={() => setActiveTab(tab as any)}
@@ -436,7 +460,18 @@ export default function SSOAppsPage() {
                                     </div>
                                     <div>
                                         <p className="text-xs font-semibold mb-1 uppercase tracking-wider" style={{ color: palette.textSecondary }}>App Name</p>
-                                        <p className="text-sm font-bold" style={{ color: palette.textPrimary }}>{selectedApp.name}</p>
+                                        <input 
+                                            type="text" 
+                                            value={editAppName}
+                                            onChange={(e) => setEditAppName(e.target.value)}
+                                            onBlur={(e) => {
+                                                if (e.target.value !== selectedApp.name) {
+                                                    handleToggleAppProp(selectedApp._id, "name" as any, e.target.value as any);
+                                                }
+                                            }}
+                                            className="w-full px-4 py-2 rounded-xl outline-none text-sm font-bold" 
+                                            style={{ background: inputBg, color: palette.textPrimary, border: `1px solid ${borderColor}` }} 
+                                        />
                                     </div>
                                     <div>
                                         <p className="text-xs font-semibold mb-1 uppercase tracking-wider" style={{ color: palette.textSecondary }}>Created At</p>
@@ -450,8 +485,13 @@ export default function SSOAppsPage() {
                                 <div>
                                     <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: palette.textSecondary }}>Description</p>
                                     <textarea 
-                                        value={selectedApp.description || ""}
-                                        onChange={(e) => handleToggleAppProp(selectedApp._id, "description" as any, e.target.value as any)}
+                                        value={editAppDesc}
+                                        onChange={(e) => setEditAppDesc(e.target.value)}
+                                        onBlur={(e) => {
+                                            if (e.target.value !== (selectedApp.description || "")) {
+                                                handleToggleAppProp(selectedApp._id, "description" as any, e.target.value as any);
+                                            }
+                                        }}
                                         placeholder="Add an app description..."
                                         className="w-full px-4 py-3 rounded-2xl outline-none min-h-[100px] resize-none text-sm" 
                                         style={{ background: inputBg, color: palette.textPrimary, border: `1px solid ${borderColor}` }} 
@@ -518,6 +558,12 @@ export default function SSOAppsPage() {
                                     </div>
                                 </div>
 
+                            </div>
+                        )}
+
+                        {/* INTEGRATIONS TAB */}
+                        {activeTab === "integrations" && (
+                            <div className="space-y-6">
                                 <div className="rounded-[30px] p-6 space-y-6" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
                                     <h3 className="text-lg font-semibold" style={{ color: palette.textPrimary }}>App Credentials</h3>
                                     <div className="space-y-4">
@@ -525,7 +571,7 @@ export default function SSOAppsPage() {
                                             <p className="text-xs font-semibold mb-1 uppercase tracking-wider" style={{ color: palette.textSecondary }}>Client ID</p>
                                             <div className="flex gap-2">
                                                 <input type="text" readOnly value={showSensitive ? selectedApp.clientId : "••••••••••••••••••••••••••••"} className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none font-mono" style={{ background: inputBg, color: palette.textPrimary }} />
-                                                <button onClick={() => navigator.clipboard.writeText(selectedApp.clientId)} className="px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}>Copy</button>
+                                                <button onClick={() => navigator.clipboard.writeText(selectedApp.clientId)} title="Copy Client ID" className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-semibold transition-colors" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}><ContentCopy fontSize="small" /></button>
                                             </div>
                                         </div>
                                         <div>
@@ -533,27 +579,88 @@ export default function SSOAppsPage() {
                                             <div className="flex gap-2">
                                                 <input type="text" readOnly value={selectedApp.clientSecret ? (showSensitive ? selectedApp.clientSecret : "••••••••••••••••••••••••••••") : "Not generated"} className="flex-1 px-4 py-2.5 rounded-xl text-sm outline-none font-mono" style={{ background: inputBg, color: palette.textPrimary }} />
                                                 {selectedApp.clientSecret && (
-                                                    <button onClick={() => navigator.clipboard.writeText(selectedApp.clientSecret!)} className="px-4 py-2.5 rounded-xl text-sm font-semibold" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}>Copy</button>
+                                                    <button onClick={() => navigator.clipboard.writeText(selectedApp.clientSecret!)} title="Copy Secret" className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-semibold transition-colors" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}><ContentCopy fontSize="small" /></button>
                                                 )}
-                                                <button onClick={() => handleRegenerateSecret(selectedApp._id)} className="px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}>Regenerate</button>
+                                                <button onClick={() => handleRegenerateSecret(selectedApp._id)} title="Regenerate Secret" className="w-10 h-10 flex items-center justify-center rounded-xl text-sm font-semibold transition-colors" style={{ background: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)", color: palette.textPrimary }}><Refresh fontSize="small" /></button>
                                             </div>
                                         </div>
                                     </div>
+                                    <div className="pt-6 mt-6 border-t flex justify-end" style={{ borderColor }}>
+                                        <button onClick={() => handleExpireTokens(selectedApp._id)} disabled={loading} title="Expire All Tokens" className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50" style={{ background: isDark ? "rgba(255,59,48,0.1)" : "rgba(255,59,48,0.1)", color: "#ff3b30" }}>
+                                            <Block fontSize="small" /> Expire Tokens
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Network Settings - URIs and Origins */}
+                                <div className="rounded-[30px] p-6 space-y-6" style={{ background: cardBg, border: `1px solid ${borderColor}` }}>
+                                    <h3 className="text-lg font-semibold" style={{ color: palette.textPrimary }}>Network Integrations</h3>
                                     
-                                    <div className="pt-6 mt-6 border-t" style={{ borderColor }}>
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <p className="text-sm font-semibold text-red-500">Expire All Tokens</p>
-                                                <p className="text-xs" style={{ color: palette.textSecondary }}>Instantly invalidate all in-flight login sessions for this application.</p>
-                                            </div>
-                                            <button 
-                                                onClick={() => handleExpireTokens(selectedApp._id)} 
-                                                disabled={loading}
-                                                className="px-4 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-50" 
-                                                style={{ background: isDark ? "rgba(255,59,48,0.1)" : "rgba(255,59,48,0.1)", color: "#ff3b30" }}
-                                            >
-                                                Expire Tokens
-                                            </button>
+                                    <div>
+                                        <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: palette.textSecondary }}>Redirect URIs</p>
+                                        <div className="flex flex-wrap gap-2 p-3 rounded-xl min-h-[48px]" style={{ background: inputBg, border: `1px solid ${borderColor}` }}>
+                                            {editRedirectUris.map((uri, idx) => (
+                                                <div key={idx} className="flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-mono" style={{ background: palette.accent, color: "#fff" }}>
+                                                    {uri}
+                                                    <button onClick={() => {
+                                                        const newUris = editRedirectUris.filter((_, i) => i !== idx);
+                                                        setEditRedirectUris(newUris);
+                                                        handleToggleAppProp(selectedApp._id, "redirectUris" as any, newUris.join(",") as any);
+                                                    }} className="hover:opacity-75"><Close fontSize="small" style={{ fontSize: "16px" }}/></button>
+                                                </div>
+                                            ))}
+                                            <input 
+                                                type="text"
+                                                placeholder="Add URI & press Enter"
+                                                className="flex-1 min-w-[150px] bg-transparent outline-none text-sm font-mono"
+                                                style={{ color: palette.textPrimary }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                                                        e.preventDefault();
+                                                        const val = e.currentTarget.value.trim();
+                                                        if (!editRedirectUris.includes(val)) {
+                                                            const newUris = [...editRedirectUris, val];
+                                                            setEditRedirectUris(newUris);
+                                                            handleToggleAppProp(selectedApp._id, "redirectUris" as any, newUris.join(",") as any);
+                                                        }
+                                                        e.currentTarget.value = "";
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: palette.textSecondary }}>Allowed Origins (CORS)</p>
+                                        <div className="flex flex-wrap gap-2 p-3 rounded-xl min-h-[48px]" style={{ background: inputBg, border: `1px solid ${borderColor}` }}>
+                                            {editAllowedOrigins.map((origin, idx) => (
+                                                <div key={idx} className="flex items-center gap-2 px-3 py-1 rounded-lg text-sm font-mono" style={{ background: palette.accent, color: "#fff" }}>
+                                                    {origin}
+                                                    <button onClick={() => {
+                                                        const newOrigins = editAllowedOrigins.filter((_, i) => i !== idx);
+                                                        setEditAllowedOrigins(newOrigins);
+                                                        handleToggleAppProp(selectedApp._id, "allowedOrigins" as any, newOrigins.join(",") as any);
+                                                    }} className="hover:opacity-75"><Close fontSize="small" style={{ fontSize: "16px" }}/></button>
+                                                </div>
+                                            ))}
+                                            <input 
+                                                type="text"
+                                                placeholder="Add Origin & press Enter"
+                                                className="flex-1 min-w-[150px] bg-transparent outline-none text-sm font-mono"
+                                                style={{ color: palette.textPrimary }}
+                                                onKeyDown={(e) => {
+                                                    if (e.key === "Enter" && e.currentTarget.value.trim()) {
+                                                        e.preventDefault();
+                                                        const val = e.currentTarget.value.trim();
+                                                        if (!editAllowedOrigins.includes(val)) {
+                                                            const newOrigins = [...editAllowedOrigins, val];
+                                                            setEditAllowedOrigins(newOrigins);
+                                                            handleToggleAppProp(selectedApp._id, "allowedOrigins" as any, newOrigins.join(",") as any);
+                                                        }
+                                                        e.currentTarget.value = "";
+                                                    }
+                                                }}
+                                            />
                                         </div>
                                     </div>
                                 </div>
@@ -761,7 +868,8 @@ export default function SSOAppsPage() {
                             </div>
                         )}
                     </div>
-         </div>
+                )}
+            </div>
 
             {/* Side Modal for User Details */}
             <AnimatePresence>

@@ -102,7 +102,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import { useAuth } from "@Library/auth-client";
 import Link from "next/link";
-import {
+import { Map,  Apps, 
     Code,
     Work,
     Timeline,
@@ -127,7 +127,7 @@ import {
     CalendarMonth,
     Build,
     Store
-} from "@mui/icons-material";
+  } from "@mui/icons-material";
 import { Config } from "@Config/Client";
 import { NotificationConfig } from "@Config/type";
 import SwitchAccountModal from "./SwitchAccountModal";
@@ -174,6 +174,18 @@ const menuCategories: MenuCategory[] = [
     {
         label: "Explore",
         items: [
+            {
+                label: "Apps",
+                href: "/apps",
+                description: "Public SSO Applications",
+                icon: <Apps />
+            },
+            {
+                label: "Roadmap",
+                href: "/roadmap",
+                description: "Future plans & updates",
+                icon: <Map />
+            },
             {
                 label: "Blog",
                 href: "/blogs",
@@ -1143,6 +1155,48 @@ export default function HeadNavigation() {
                                                             </motion.div>
                                                         </Link>
                                                     )}
+                                                    
+                                                    <Link href="/apps">
+                                                        <motion.div
+                                                            className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}
+                                                            whileHover={{
+                                                                backgroundColor: isApple
+                                                                    ? isDark
+                                                                        ? "rgba(255, 255, 255, 0.08)"
+                                                                        : "rgba(0, 0, 0, 0.04)"
+                                                                    : isDark
+                                                                      ? "rgba(255, 255, 255, 0.08)"
+                                                                      : "rgba(0, 0, 0, 0.05)",
+                                                                scale: 1.01
+                                                            }}
+                                                            whileTap={{
+                                                                scale: 0.98
+                                                            }}>
+                                                            <div
+                                                                className={`flex-shrink-0 ${isApple ? "text-lg" : "text-xl"}`}
+                                                                style={{
+                                                                    color: palette.accent
+                                                                }}>
+                                                                <Apps />
+                                                            </div>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div
+                                                                    className={`${isApple ? "text-sm font-semibold" : "text-base font-bold"}`}
+                                                                    style={{
+                                                                        color: palette.textPrimary
+                                                                    }}>
+                                                                    Apps
+                                                                </div>
+                                                                <div
+                                                                    className={`${isApple ? "text-xs" : "text-sm"} mt-0.5`}
+                                                                    style={{
+                                                                        color: palette.textSecondary
+                                                                    }}>
+                                                                    Public SSO Applications
+                                                                </div>
+                                                            </div>
+                                                        </motion.div>
+                                                    </Link>
                                                     <Link href="/dashboard">
                                                         <motion.div
                                                             className={`${isApple ? "p-3 rounded-xl" : "p-4 rounded-2xl"} cursor-pointer flex items-start gap-3`}

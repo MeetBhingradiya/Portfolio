@@ -10,8 +10,8 @@ export * from "./AssignmentShareLink";
 // ? Portfolio Management
 export * from "./Portfolio";
 
-// ? Immich SSO Whitelist
-export * from "./ImmichWhitelist";
+// ? SSO (OAuth Broker)
+export * from "./SSO";
 
 // ? GitHub CDN Storage
 export * from "./CDNAsset";
@@ -78,3 +78,4 @@ export * from "./VaultAccess";
 // ? Contact Form
 export * from "./ContactMessage";
 
+export * from "./Roadmap";

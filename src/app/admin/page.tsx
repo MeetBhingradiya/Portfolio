@@ -111,7 +111,7 @@ const statCards: StatCard[] = [
     {
         label: "Immich Access",
         apiPath: "/api/admin/immich-whitelist",
-        href: "/admin/immich-access",
+        href: "/admin/sso-apps",
         icon: <PhotoCamera />,
         color: "#10B981",
         requiredPermissions: ["admin.site.settings"]
@@ -134,7 +134,7 @@ const quickActions: QuickAction[] = [
     },
     {
         label: "Immich Access",
-        href: "/admin/immich-access",
+        href: "/admin/sso-apps",
         icon: <PhotoCamera fontSize="small" />,
         requiredPermissions: ["admin.site.settings"]
     },

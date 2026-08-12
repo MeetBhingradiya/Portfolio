@@ -32,12 +32,13 @@ export type NavItemKey =
     | "ai-providers"
     | "maintenance"
     | "rate-limits"
-    | "immich-access"
+    | "sso-apps"
     | "db-sync"
     | "cdn"
     | "cdn-applications"
     | "cdn-api-keys"
-    | "docgen";
+    | "docgen"
+    | "roadmap";
 
 /**
  * Navigation item to required permission(s) mapping
@@ -79,12 +80,13 @@ export const sidebarPermissions: Record<NavItemKey, string[]> = {
     "ai-providers": ["admin.site.settings"],
     "maintenance": ["admin.site.settings"],
     "rate-limits": ["admin.rate-limits.view", "admin.rate-limits.manage"],
-    "immich-access": ["admin.site.settings"],
+    "sso-apps": ["admin.site.settings"],
     "db-sync": ["admin.site.settings"],
     "cdn": ["cdn.keys.view", "cdn.keys.manage"],
     "cdn-applications": ["cdn.applications.view", "cdn.applications.review"],
     "cdn-api-keys": ["cdn.keys.view", "cdn.keys.manage"],
-    "docgen": ["admin.site.settings"]
+    "docgen": ["admin.site.settings"],
+    "roadmap": ["admin.site.settings"]
 };
 
 /**

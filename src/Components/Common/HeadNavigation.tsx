@@ -132,6 +132,8 @@ import { Config } from "@Config/Client";
 import { NotificationConfig } from "@Config/type";
 import SwitchAccountModal from "./SwitchAccountModal";
 import { generateAvatarGradient, getInitials } from "@Utils/AvatarUtils";
+import { LiquidGlassButton, LiquidGlassCard } from "@Components/Atoms/LiquidGlass/index";
+import { OneUIButton, OneUICard } from "@Components/Atoms/OneUI/index";
 
 interface MenuItem {
     label: string;
@@ -869,68 +871,26 @@ export default function HeadNavigation() {
                             {!isAuthenticated && (
                                 <>
                                     <Link href="/auth/signin">
-                                        <motion.button
-                                            className={`${isApple ? "px-4 py-2 text-sm font-semibold" : "px-5 py-2.5 text-sm font-bold"} rounded-xl relative overflow-hidden`}
-                                            style={{
-                                                color: palette.textSecondary,
-                                                background: "transparent"
-                                            }}
-                                            whileHover={{
-                                                backgroundColor: isApple
-                                                    ? isDark
-                                                        ? "rgba(255, 255, 255, 0.08)"
-                                                        : "rgba(0, 0, 0, 0.04)"
-                                                    : isDark
-                                                      ? "rgba(255, 255, 255, 0.08)"
-                                                      : "rgba(0, 0, 0, 0.05)",
-                                                color: palette.textPrimary,
-                                                scale: 1.02
-                                            }}
-                                            whileTap={{ scale: 0.97 }}
-                                            transition={{ duration: 0.2 }}>
-                                            Login
-                                        </motion.button>
+                                        {isApple ? (
+                                            <LiquidGlassButton size="sm" variant="ghost">
+                                                Login
+                                            </LiquidGlassButton>
+                                        ) : (
+                                            <OneUIButton size="sm" variant="secondary">
+                                                Login
+                                            </OneUIButton>
+                                        )}
                                     </Link>
                                     <Link href="/auth/signup">
-                                        <motion.button
-                                            className={`${isApple ? "px-4 py-2 text-sm font-semibold" : "px-5 py-2.5 text-sm font-bold"} rounded-xl relative overflow-hidden`}
-                                            style={{
-                                                background: isApple
-                                                    ? isDark
-                                                        ? `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accent}dd 100%)`
-                                                        : `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accent}ee 100%)`
-                                                    : `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accent}dd 100%)`,
-                                                color: isDark ? "#ffffff" : "#ffffff",
-                                                border: isApple ? `0.5px solid ${palette.accent}40` : "none",
-                                                boxShadow: isApple
-                                                    ? isDark
-                                                        ? `0 4px 12px ${palette.accent}30, 0 0 0 0.5px rgba(255, 255, 255, 0.1) inset`
-                                                        : `0 2px 8px ${palette.accent}25, 0 0 0 0.5px rgba(255, 255, 255, 0.5) inset`
-                                                    : `0 4px 12px ${palette.accent}40`
-                                            }}
-                                            whileHover={{
-                                                scale: 1.05,
-                                                boxShadow: isApple
-                                                    ? isDark
-                                                        ? `0 6px 16px ${palette.accent}40, 0 0 0 0.5px rgba(255, 255, 255, 0.15) inset`
-                                                        : `0 4px 12px ${palette.accent}30, 0 0 0 0.5px rgba(255, 255, 255, 0.6) inset`
-                                                    : `0 6px 16px ${palette.accent}50`
-                                            }}
-                                            whileTap={{ scale: 0.95 }}
-                                            transition={{ duration: 0.2 }}>
-                                            {isApple && (
-                                                <div
-                                                    className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
-                                                    style={{
-                                                        background: isDark
-                                                            ? "linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, transparent 100%)"
-                                                            : "linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%)",
-                                                        borderRadius: "50% 50% 0 0 / 100% 100% 0 0"
-                                                    }}
-                                                />
-                                            )}
-                                            <span className="relative z-10">Register</span>
-                                        </motion.button>
+                                        {isApple ? (
+                                            <LiquidGlassButton size="sm">
+                                                Register
+                                            </LiquidGlassButton>
+                                        ) : (
+                                            <OneUIButton size="sm">
+                                                Register
+                                            </OneUIButton>
+                                        )}
                                     </Link>
                                 </>
                             )}

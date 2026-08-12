@@ -123,12 +123,13 @@ interface NavItem {
     | "ai-providers"
     | "maintenance"
     | "rate-limits"
-    | "immich-access"
+    | "sso-apps"
     | "db-sync"
     | "cdn"
     | "cdn-applications"
     | "cdn-api-keys"
-    | "docgen";
+    | "docgen"
+    | "roadmap";
 }
 
 const allNavItems: NavItem[] = [
@@ -281,6 +282,13 @@ const allNavItems: NavItem[] = [
         permKey: "features"
     },
     {
+        href: "/admin/roadmap",
+        label: "Roadmap",
+        icon: <MapOutlined fontSize="small" />,
+        group: "system",
+        permKey: "roadmap"
+    },
+    {
         href: "/admin/tool-settings",
         label: "Tool Settings",
         icon: <Build fontSize="small" />,
@@ -309,11 +317,11 @@ const allNavItems: NavItem[] = [
         permKey: "rate-limits"
     },
     {
-        href: "/admin/immich-access",
-        label: "Immich Access",
+        href: "/admin/sso-apps",
+        label: "SSO Applications",
         icon: <PhotoCamera fontSize="small" />,
         group: "system",
-        permKey: "immich-access"
+        permKey: "sso-apps"
     },
     {
         href: "/admin/db-sync",

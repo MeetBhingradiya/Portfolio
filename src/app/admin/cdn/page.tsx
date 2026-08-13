@@ -198,6 +198,27 @@ export default function CDNAdminPage() {
     });
     const patchIntegrity = useCallback((p: Partial<typeof integrity>) => setIntegrity((s) => ({ ...s, ...p })), []);
 
+    /* ── View & Lightbox state ── */
+    const [viewMode, setViewMode] = useState<"list" | "gallery">("list");
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+    // Keyboard navigation for Lightbox
+    useEffect(() => {
+        if (lightboxIndex === null) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setLightboxIndex(null);
+            if (e.key === "ArrowLeft") {
+                setLightboxIndex(prev => (prev !== null && prev > 0) ? prev - 1 : prev);
+            }
+            if (e.key === "ArrowRight") {
+                setLightboxIndex(prev => (prev !== null && prev < list.assets.length - 1) ? prev + 1 : prev);
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [lightboxIndex, list.assets.length]);
+
+
     /* ── Repo info state ── */
     const [repoInfo, setRepoInfo] = useState({
         items: [] as RepoInfo[],
@@ -1147,6 +1168,135 @@ export default function CDNAdminPage() {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {/* ── Lightbox overlay ──────────────────────────────────── */}
+            <AnimatePresence>
+                {lightboxIndex !== null && list.assets[lightboxIndex] && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        style={{
+                            position: "fixed",
+                            inset: 0,
+                            zIndex: 100,
+                            background: isDark ? "rgba(0,0,0,0.85)" : "rgba(0,0,0,0.75)",
+                            backdropFilter: "blur(12px)",
+                            display: "flex",
+                            flexDirection: "column"
+                        }}
+                    >
+                        {/* Top Bar */}
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "16px 24px",
+                            background: "linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)",
+                            color: "#fff"
+                        }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
+                                    {list.assets[lightboxIndex].filename}
+                                </h3>
+                                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+                                    {list.assets[lightboxIndex].type} · {formatBytes(list.assets[lightboxIndex].size)} · {list.assets[lightboxIndex].mimeType}
+                                </p>
+                            </div>
+                            <div style={{ display: "flex", gap: 12 }}>
+                                <button
+                                    onClick={() => setDetailAsset(list.assets[lightboxIndex])}
+                                    style={{ background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", color: "#fff", padding: 8, borderRadius: 8, display: "flex", alignItems: "center" }}
+                                    title="Information"
+                                >
+                                    <Info fontSize="small" />
+                                </button>
+                                <button
+                                    onClick={() => setLightboxIndex(null)}
+                                    style={{ background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", color: "#fff", padding: 8, borderRadius: 8, display: "flex", alignItems: "center" }}
+                                    title="Close"
+                                >
+                                    <Close fontSize="small" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Main Image Area */}
+                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+                            {lightboxIndex > 0 && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex - 1); }}
+                                    style={{
+                                        position: "absolute",
+                                        left: 24,
+                                        background: "rgba(255,255,255,0.1)",
+                                        backdropFilter: "blur(4px)",
+                                        border: "none",
+                                        color: "#fff",
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        cursor: "pointer",
+                                        zIndex: 10
+                                    }}
+                                >
+                                    <ChevronLeft fontSize="large" />
+                                </button>
+                            )}
+
+                            <motion.img
+                                key={list.assets[lightboxIndex]._id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                src={`/api/cdn/${list.assets[lightboxIndex].assetId}`}
+                                alt={list.assets[lightboxIndex].filename}
+                                style={{
+                                    maxWidth: "90%",
+                                    maxHeight: "85vh",
+                                    objectFit: "contain",
+                                    borderRadius: 4,
+                                    boxShadow: "0 20px 40px -10px rgba(0,0,0,0.5)"
+                                }}
+                            />
+
+                            {lightboxIndex < list.assets.length - 1 && (
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(lightboxIndex + 1); }}
+                                    style={{
+                                        position: "absolute",
+                                        right: 24,
+                                        background: "rgba(255,255,255,0.1)",
+                                        backdropFilter: "blur(4px)",
+                                        border: "none",
+                                        color: "#fff",
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        cursor: "pointer",
+                                        zIndex: 10
+                                    }}
+                                >
+                                    <ChevronRight fontSize="large" />
+                                </button>
+                            )}
+                        </div>
+                        
+                        {/* Footer / Pagination hint */}
+                        <div style={{ textAlign: "center", padding: "16px", color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+                            Image {lightboxIndex + 1} of {list.assets.length} (Page {list.page})
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
 
             {/* ── Detail drawer ─────────────────────────────────────── */}
             <AnimatePresence>

@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
         const apps = await SSOApp.find({ 
             visibility: "public"
         })
-        .select("name description appIcon clientId enabled accessMode createdAt") // Return safe fields
+        .select("name description appIcon clientId enabled accessMode allowedOrigins createdAt") // Return safe fields
         .sort({ name: 1 })
         .lean();
 

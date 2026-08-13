@@ -15,6 +15,7 @@ interface PublicApp {
     clientId: string;
     enabled: boolean;
     accessMode: "public" | "private";
+    allowedOrigins?: string[];
 }
 
 export default function AppsDirectoryPage() {
@@ -121,7 +122,7 @@ export default function AppsDirectoryPage() {
                                     <span className="text-xs font-semibold" style={{ color: app.enabled ? "#34c759" : "#ff3b30" }}>
                                         {app.enabled ? "• Active" : "• Offline"}
                                     </span>
-                                    <Link href={`/sso?client_id=${app.clientId}`}>
+                                    <Link href={app.allowedOrigins?.[0] || "#"}>
                                         <button 
                                             className="px-4 py-2 rounded-xl text-sm font-bold transition-transform active:scale-95"
                                             style={{ background: palette.accent, color: "#fff" }}

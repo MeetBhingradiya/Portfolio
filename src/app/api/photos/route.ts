@@ -13,9 +13,6 @@ import { getSession } from "@Library/auth";
 
 export const dynamic = "force-dynamic";
 
-// The Immich login page — visiting this causes Immich to start the OIDC redirect.
-const IMMICH_LOGIN_URL = "https://photos.meetbhingradiya.in/auth/login";
-
 export async function GET(req: NextRequest) {
     const baseUrl = req.nextUrl.origin;
 
@@ -29,7 +26,7 @@ export async function GET(req: NextRequest) {
     try {
         await dbConnect();
         const email = session.user.email;
-        
+
         const app = await SSOApp.findOne({ name: "Immich", enabled: true }).lean();
         if (!app) {
             return NextResponse.redirect(new URL("/?notice=photos_error", baseUrl));
@@ -47,7 +44,15 @@ export async function GET(req: NextRequest) {
             return NextResponse.redirect(new URL("/?notice=photos_access_denied", baseUrl));
         }
 
-        return NextResponse.redirect(IMMICH_LOGIN_URL);
+        const targetUrl = (Array.isArray(app.allowedOrigins) && app.allowedOrigins.length > 0)
+            ? app.allowedOrigins[0]
+            : (Array.isArray(app.redirectUris) && app.redirectUris.length > 0 ? app.redirectUris[0] : null);
+
+        if (!targetUrl) {
+            return NextResponse.redirect(new URL("/?notice=photos_error", baseUrl));
+        }
+
+        return NextResponse.redirect(targetUrl);
     } catch (err) {
         console.error("[photos-gateway]", err);
         return NextResponse.redirect(new URL("/?notice=photos_error", baseUrl));

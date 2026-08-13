@@ -13,6 +13,7 @@ export const THEME_PRESET_COLORS = {
         teal: "#5AC8FA"
     },
     samsung: {
+        red: "#FF3B30",
         blue: "#5E97F6",
         purple: "#9C6FFF",
         pink: "#FF6B9D",

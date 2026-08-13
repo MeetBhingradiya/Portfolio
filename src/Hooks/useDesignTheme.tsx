@@ -22,9 +22,9 @@ const DesignThemeContext = createContext<DesignThemeContextType | undefined>(und
 
 export function DesignThemeProvider({ children }: { children: React.ReactNode }) {
     const [isInitialized, setIsInitialized] = useState(false);
-    const [designTheme, setDesignTheme] = useState<DesignTheme>("samsung");
+    const [designTheme, setDesignTheme] = useState<DesignTheme>("apple");
     const [colorMode, setColorMode] = useState<ColorMode>("dark");
-    const [accentColor, setAccentColor] = useState<string>("#5E35B1"); // Samsung Purple
+    const [accentColor, setAccentColor] = useState<string>("#AF52DE"); // Apple's Purple
 
     // Get actual color mode (resolve "system" to "light" or "dark")
     const actualColorMode = useMemo(() => {

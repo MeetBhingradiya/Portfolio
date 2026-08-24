@@ -153,6 +153,12 @@ export const PERMISSIONS = [
         description: "Toggle maintenance mode and banners",
         category: "admin"
     },
+    {
+        key: "Admin.Network.Manage",
+        label: "Manage Network",
+        description: "Create, edit, and delete network domains and subdomains",
+        category: "admin"
+    },
     // {
     //     key: "admin.payments.view",
     //     label: "View Payments",

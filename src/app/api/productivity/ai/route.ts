@@ -164,7 +164,11 @@ Return ONLY a valid JSON array of habit objects with fields: Title, Category, Di
 
     search: `You are a productivity search assistant. Given a list of items and a search query, 
 return the IDs of the most relevant items in order of relevance as a JSON array of strings.
-Be lenient with typos and synonyms. Focus on semantic meaning.`
+Be lenient with typos and synonyms. Focus on semantic meaning.`,
+
+    generate_tags: `You are a tagging assistant. Given a title, URL, and optional description, 
+generate 3 to 5 concise and relevant tags.
+Return ONLY a valid JSON array of strings.`
 };
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
@@ -185,6 +189,11 @@ export async function POST(req: NextRequest) {
 
         if (!action || !prompt?.trim()) {
             return NextResponse.json({ success: false, error: "action and prompt are required" }, { status: 400 });
+        }
+
+        // Restrict 'generate_tags' to admins only
+        if (action === "generate_tags" && !user.isAdmin) {
+            return NextResponse.json({ success: false, error: "Forbidden: Admin access required for auto-tagging." }, { status: 403 });
         }
 
         const settings = await getAIProviderSettings();

@@ -126,7 +126,8 @@ import { Map,  Apps,
     SpaceDashboard,
     CalendarMonth,
     Build,
-    Store
+    Store,
+    Language
   } from "@mui/icons-material";
 import { Config } from "@Config/Client";
 import { NotificationConfig } from "@Config/type";
@@ -215,6 +216,12 @@ const menuCategories: MenuCategory[] = [
                 href: "/shop",
                 description: "Digital products & merch",
                 icon: <Store />
+            },
+            {
+                label: "Network",
+                href: "/network",
+                description: "Domains and subdomains",
+                icon: <Language />
             }
         ]
     },

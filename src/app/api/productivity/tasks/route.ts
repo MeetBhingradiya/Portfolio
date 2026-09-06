@@ -1,11 +1,11 @@
 /**
- * GET  /api/productivity/tasks   – list tasks (paginated, filtered)
- * POST /api/productivity/tasks   – create task
+ * GET  /api/productivity/tasks   – list tasks (requires Tools.Private.Productivity.Access)
+ * POST /api/productivity/tasks   – create task (requires Tools.Private.Productivity.Access)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
-import { getResolvedUser } from "@Utils/RolePermissions";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { ProductivityTask, TaskStatus, TaskPriority, TaskCategory, XP_REWARDS } from "@Models/ProductivityTask";
 import { UserProductivityStats } from "@Models/UserProductivityStats";
 
@@ -17,6 +17,15 @@ export async function GET(req: NextRequest) {
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        // Check permission to access productivity tool
+        const canAccess = await hasPermission(req.headers, "Tools.Private.Productivity.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.Productivity.Access" },
+                { status: 403 }
+            );
+        }
 
         const q = req.nextUrl.searchParams;
         const page = Math.max(1, parseInt(q.get("page") || "1"));
@@ -87,6 +96,15 @@ export async function POST(req: NextRequest) {
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        // Check permission to access productivity tool
+        const canAccess = await hasPermission(req.headers, "Tools.Private.Productivity.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.Productivity.Access" },
+                { status: 403 }
+            );
+        }
 
         const body = await req.json();
         const { Title, Description, Category = TaskCategory.PERSONAL, Tags = [], Priority = TaskPriority.MEDIUM, DueDate } = body;

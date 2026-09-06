@@ -23,6 +23,7 @@ import {
     CloudUpload,
     Rocket,
     AccountBalanceWallet,
+    Assignment,
 } from "@mui/icons-material";
 
 export default function SettingsPage() {
@@ -65,30 +66,30 @@ export default function SettingsPage() {
             href: "/settings/linked-accounts",
             badge: null
         },
-        {
-            id: "email",
-            title: "Email Preferences",
-            description: "Manage your email and communication settings",
-            icon: <Email />,
-            href: "/settings/email",
-            badge: null
-        },
-        {
-            id: "appearance",
-            title: "Appearance",
-            description: "Theme, colors, and display preferences",
-            icon: <Palette />,
-            href: "/settings/appearance",
-            badge: null
-        },
-        {
-            id: "notifications",
-            title: "Notifications",
-            description: "Configure notification preferences",
-            icon: <Notifications />,
-            href: "/settings/notifications",
-            badge: null
-        },
+        // {
+        //     id: "email",
+        //     title: "Email Preferences",
+        //     description: "Manage your email and communication settings",
+        //     icon: <Email />,
+        //     href: "/settings/email",
+        //     badge: null
+        // },
+        // {
+        //     id: "appearance",
+        //     title: "Appearance",
+        //     description: "Theme, colors, and display preferences",
+        //     icon: <Palette />,
+        //     href: "/settings/appearance",
+        //     badge: null
+        // },
+        // {
+        //     id: "notifications",
+        //     title: "Notifications",
+        //     description: "Configure notification preferences",
+        //     icon: <Notifications />,
+        //     href: "/settings/notifications",
+        //     badge: null
+        // },
         {
             id: "cdn",
             title: "CDN API Access",
@@ -96,7 +97,15 @@ export default function SettingsPage() {
             icon: <CloudUpload />,
             href: "/settings/cdn",
             badge: "Developer"
-        }
+        },
+        // {
+        //     id: "assignments",
+        //     title: "Assignment Documents",
+        //     description: "Manage your assignment documents and sharing settings",
+        //     icon: <Assignment />,
+        //     href: "/assignments",
+        //     badge: null
+        // }
     ];
 
     // isAdmin is fetched server-side via /api/admin/is-admin

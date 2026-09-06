@@ -70,10 +70,10 @@ const getFeaturedProjects = unstable_cache(
     async () => {
         await dbConnect();
         const Model = Project_Model();
-        const docs = await Model.find({ isDeleted: false })
-            .sort({ createdAt: -1 })
+        const docs = await Model.find({ isDeleted: false, Published: true })
+            .sort({ Featured: -1, createdAt: -1 })
             .limit(6)
-            .select("ProjectID Title Description Type TechStack LiveURL GitHubURL Image Featured")
+            .select("ProjectID Title Slug Description Type TechStack Links LiveURL GitHubURL Image Thumbnail Featured")
             .lean();
         return JSON.parse(JSON.stringify(docs));
     },
@@ -85,7 +85,10 @@ const getAllSkills = unstable_cache(
     async () => {
         await dbConnect();
         const Model = Skill_Model();
-        const docs = await Model.find({ isDeleted: false }).sort({ Level: -1 }).select("SkillID Name Category Level").lean();
+        const docs = await Model.find({ isDeleted: false, Visible: true })
+            .sort({ Proficiency: -1, Level: -1 })
+            .select("SkillID Name Category Level Proficiency Icon Color")
+            .lean();
         return JSON.parse(JSON.stringify(docs));
     },
     ["all-skills"],
@@ -96,10 +99,10 @@ const getExperiences = unstable_cache(
     async () => {
         await dbConnect();
         const Model = Experience_Model();
-        const docs = await Model.find({ isDeleted: false })
+        const docs = await Model.find({ isDeleted: false, Published: true })
             .sort({ StartDate: -1 })
             .limit(4)
-            .select("ExperienceID Company Role StartDate EndDate Current Description")
+            .select("ExperienceID Company Role StartDate EndDate Current CurrentlyWorking Description")
             .lean();
         return JSON.parse(JSON.stringify(docs));
     },

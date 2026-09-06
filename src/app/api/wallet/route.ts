@@ -1,13 +1,14 @@
 /**
- * GET  /api/wallet   – list transactions (paginated, filtered)
+ * GET  /api/wallet   – list transactions (requires Tools.Private.WalletTracker.Access)
  * POST /api/wallet   – create transaction (auto-updates asset balances, UPI→Bank redirect)
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import dbConnect from "@Utils/dbConnect";
-import { getResolvedUser } from "@Utils/RolePermissions";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
 import { WalletTransaction, WalletTransactionType } from "@Models/WalletTransaction";
 import { WalletAsset, WalletAssetType } from "@Models/WalletAsset";
+import { WalletContact } from "@Models/WalletContact";
 
 /** Resolve actual bank AssetID if the asset is a UPI_APP */
 async function resolveAsset(assetId: string | undefined, userId: string): Promise<string | undefined> {
@@ -31,6 +32,15 @@ export async function GET(req: NextRequest) {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+        // Check permission to access wallet tracker
+        const canAccess = await hasPermission(req.headers, "Tools.Private.WalletTracker.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.WalletTracker.Access" },
+                { status: 403 }
+            );
+        }
+
         const q = req.nextUrl.searchParams;
         const page = Math.max(1, parseInt(q.get("page") || "1"));
         const limit = Math.min(50, parseInt(q.get("limit") || "20"));
@@ -41,13 +51,33 @@ export async function GET(req: NextRequest) {
         const to = q.get("to");
         const search = q.get("search");
         const showHidden = q.get("showHidden") === "1";
+        const sortBy = q.get("sortBy") || "date";
+        const sortDir = q.get("sortDir") === "asc" ? 1 : -1;
 
         const query: Record<string, any> = { UserID: user.userId };
         if (!showHidden) query.IsHidden = { $ne: true };
         if (type) query.Type = type;
         if (category) query.Category = category;
         if (assetId) {
-            query.$or = [{ FromAssetID: assetId }, { ToAssetID: assetId }];
+            // Get the asset to check if it's a bank with linked UPI apps
+            const asset = await WalletAsset.findOne({ AssetID: assetId, UserID: user.userId }).lean();
+            let assetIds = [assetId];
+
+            // If this is a BANK, also include all UPI_APP assets linked to it
+            if (asset && asset.Type === WalletAssetType.BANK) {
+                const linkedUpiApps = await WalletAsset.find({
+                    UserID: user.userId,
+                    Type: WalletAssetType.UPI_APP,
+                    LinkedAssetID: assetId,
+                    IsArchived: { $ne: true }
+                }).lean();
+                assetIds = [assetId, ...linkedUpiApps.map((app: any) => app.AssetID)];
+            }
+
+            query.$or = [
+                { FromAssetID: { $in: assetIds } },
+                { ToAssetID: { $in: assetIds } }
+            ];
         }
         if (from || to) {
             query.Date = {};
@@ -64,10 +94,18 @@ export async function GET(req: NextRequest) {
             }
         }
 
+        // Build sort object based on sortBy param
+        const sortMap: Record<string, Record<string, 1 | -1>> = {
+            date: { Date: sortDir, createdAt: sortDir },
+            amount: { Amount: sortDir, Date: -1 },
+            note: { Note: sortDir, Date: -1 }
+        };
+        const sortObj = sortMap[sortBy] || sortMap.date;
+
         const [total, transactions, summaryAgg] = await Promise.all([
             WalletTransaction.countDocuments(query),
             WalletTransaction.find(query)
-                .sort({ Date: -1, createdAt: -1 })
+                .sort(sortObj)
                 .skip((page - 1) * limit)
                 .limit(limit)
                 .lean(),
@@ -111,10 +149,30 @@ export async function GET(req: NextRequest) {
             count: sm.count ?? 0
         };
 
+        // Populate contact names for transactions that have ContactID
+        const contactIds = [...new Set(
+            (transactions as any[]).filter((t) => t.ContactID).map((t) => t.ContactID)
+        )];
+        let contactMap: Record<string, string> = {};
+        if (contactIds.length > 0) {
+            const contacts = await WalletContact.find(
+                { ContactID: { $in: contactIds }, UserID: user.userId },
+                { ContactID: 1, Name: 1 }
+            ).lean();
+            contactMap = Object.fromEntries(
+                (contacts as any[]).map((c) => [c.ContactID, c.Name])
+            );
+        }
+
+        const enrichedTransactions = (transactions as any[]).map((t) => ({
+            ...t,
+            ContactName: t.ContactID ? contactMap[t.ContactID] || null : null
+        }));
+
         return NextResponse.json({
             success: true,
             data: {
-                transactions,
+                transactions: enrichedTransactions,
                 summary,
                 pagination: {
                     page,
@@ -137,6 +195,15 @@ export async function POST(req: NextRequest) {
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+        // Check permission to access wallet tracker
+        const canAccess = await hasPermission(req.headers, "Tools.Private.WalletTracker.Access");
+        if (!canAccess) {
+            return NextResponse.json(
+                { success: false, error: "Forbidden: Permission required: Tools.Private.WalletTracker.Access" },
+                { status: 403 }
+            );
+        }
 
         const body = await req.json();
 

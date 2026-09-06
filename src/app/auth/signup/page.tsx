@@ -21,7 +21,8 @@ import {
     CheckCircle,
     Error as ErrorIcon,
     ArrowBack,
-    Person
+    Person,
+    Microsoft
 } from "@mui/icons-material";
 import { signUp, signIn, useSession } from "@Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -126,7 +127,8 @@ function SignUpContent() {
 
     const oauthProviders = [
         { name: "Google", icon: <Google />, id: "google" },
-        { name: "GitHub", icon: <GitHub />, id: "github" }
+        { name: "GitHub", icon: <GitHub />, id: "github" },
+        { name: "Microsoft", icon: <Microsoft />, id: "microsoft" }
     ];
 
     if (isPending) {

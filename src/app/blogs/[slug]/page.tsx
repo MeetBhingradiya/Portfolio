@@ -48,9 +48,40 @@ export default function BlogDetailPage({ params }: { params: Promise<{ slug: str
     const [liked, setLiked] = useState(false);
     const [likes, setLikes] = useState(0);
 
+    // Simple device fingerprinting
+    const getFingerprint = () => {
+        if (typeof window === "undefined") return "ssr";
+        const parts = [
+            navigator.userAgent,
+            screen.width,
+            screen.height,
+            screen.colorDepth,
+            new Date().getTimezoneOffset()
+        ];
+        const str = parts.join("||");
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash;
+        }
+        return Math.abs(hash).toString(16);
+    };
+
     useEffect(() => {
         const isObjectId = /^[a-f\d]{24}$/i.test(slug);
-        const url = isObjectId ? `/api/blogs?id=${slug}` : `/api/blogs?slug=${slug}`;
+        const today = new Date().toISOString().split("T")[0];
+        const fp = getFingerprint();
+        const viewsKey = `blog_views_${slug}_${today}`;
+        const viewsToday = parseInt(localStorage.getItem(viewsKey) || "0");
+        
+        let trackView = false;
+        if (viewsToday < 3) {
+            localStorage.setItem(viewsKey, (viewsToday + 1).toString());
+            trackView = true;
+        }
+
+        const url = isObjectId ? `/api/blogs?id=${slug}${trackView ? '' : '&noview=true'}` : `/api/blogs?slug=${slug}${trackView ? '' : '&noview=true'}`;
         fetch(url)
             .then((r) => r.json())
             .then((data) => {
@@ -69,8 +100,12 @@ export default function BlogDetailPage({ params }: { params: Promise<{ slug: str
         if (liked || !blog) return;
         setLiked(true);
         setLikes((p) => p + 1);
+        
+        const fp = getFingerprint();
         await fetch(`/api/blogs?id=${blog._id}&action=like`, {
-            method: "PATCH"
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fingerprint: fp })
         });
     };
 

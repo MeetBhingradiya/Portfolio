@@ -159,6 +159,21 @@ export async function PUT(req: NextRequest) {
             }
         }
 
+        // Handle InitialBalance recalculation
+        if (body.InitialBalance !== undefined) {
+            const oldAsset = await WalletAsset.findOne({ AssetID: id, UserID: user.userId });
+            if (!oldAsset) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
+
+            // Calculate the difference between current and old initial balance
+            const oldInitialBalance = oldAsset.InitialBalance ?? 0;
+            const currentBalance = oldAsset.Balance ?? 0;
+            const difference = currentBalance - oldInitialBalance;
+
+            // New balance = new initial balance + accumulated difference
+            const newBalance = body.InitialBalance + difference;
+            body.Balance = newBalance;
+        }
+
         const asset = await WalletAsset.findOneAndUpdate({ AssetID: id, UserID: user.userId }, { $set: body }, { new: true });
         if (!asset) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });
 

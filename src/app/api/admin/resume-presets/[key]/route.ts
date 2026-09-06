@@ -20,10 +20,23 @@ export async function PATCH(req: NextRequest, { params }: Params) {
             ...(body.label !== undefined && { label: String(body.label).trim() }),
             ...(body.title !== undefined && { title: String(body.title).trim() }),
             ...(body.summary !== undefined && { summary: String(body.summary).trim() }),
-            ...(body.keywordsByCategory !== undefined && { keywordsByCategory: body.keywordsByCategory }),
-            ...(body.includeAll !== undefined && { includeAll: Array.isArray(body.includeAll) ? body.includeAll : [] }),
             ...(body.iconKey !== undefined && { iconKey: body.iconKey }),
-            ...(body.pinnedIdsByCategory !== undefined && { pinnedIdsByCategory: body.pinnedIdsByCategory }),
+            ...(body.header !== undefined && {
+                header: body.header,
+                title: String(body.header?.title || "").trim(),
+                summary: String(body.header?.summary || "").trim()
+            }),
+            ...(body.selectedIdsByCategory !== undefined && {
+                selectedIdsByCategory: body.selectedIdsByCategory
+            }),
+            ...(body.sectionOrder !== undefined && {
+                sectionOrder: Array.isArray(body.sectionOrder) ? body.sectionOrder : []
+            }),
+            ...(body.itemOrderByCategory !== undefined && {
+                itemOrderByCategory: body.itemOrderByCategory
+            }),
+            ...(body.style !== undefined && { style: body.style }),
+            ...(body.isPublished !== undefined && { isPublished: !!body.isPublished }),
             updatedBy: admin.email || ""
         };
 

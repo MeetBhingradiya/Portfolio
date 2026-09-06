@@ -3,16 +3,15 @@
  * Merged from /profile and /settings/profile
  * Manage user profile, name, username, email, and avatar (CDN upload + URL)
  */
-
 "use client";
 
-import React, { useState, useEffect } from "react";
+// ? External Libraries
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
-import { useDesignTheme } from "@Hooks";
-import { useAuth, updateUser, isUsernameAvailable } from "@Library/auth-client";
 import { useRouter } from "next/navigation";
-import { AvatarSelector } from "@Components/Settings/AvatarSelector";
 import Link from "next/link";
+
+// ? Icons
 import {
     ArrowBack,
     Save,
@@ -29,12 +28,34 @@ import {
     Close
 } from "@mui/icons-material";
 
+// ? Internal Imports
+import { useDesignTheme } from "@Hooks";
+import { useAuth, updateUser, isUsernameAvailable } from "@Library/auth-client";
+import { AvatarSelector } from "@Components/Settings/AvatarSelector";
+
+interface CurrentState {
+    isEditing: boolean; // Profile Editing Mode
+
+}
+
+interface Current_Inputs_State {
+    Username: {
+        value: string;
+        error: string;
+        isLoading: boolean;
+    },
+}
+
 export default function ProfileSettingsPage() {
+    const router = useRouter();
     const { palette, actualColorMode, designTheme } = useDesignTheme();
+    const { user, isAuthenticated, isLoading } = useAuth();
+
+    const [CurrentState, setCurrentState] = useState<CurrentState>({} as CurrentState);
+    const [Current_Inputs_State, setCurrent_Inputs_State] = useState<Current_Inputs_State>({} as Current_Inputs_State);
+
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
-    const router = useRouter();
-    const { user, isAuthenticated, isLoading } = useAuth();
 
     const [editing, setEditing] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -255,8 +276,8 @@ export default function ProfileSettingsPage() {
                                         ? "rgba(34,197,94,0.1)"
                                         : "rgba(34,197,94,0.08)"
                                     : isDark
-                                      ? "rgba(239,68,68,0.1)"
-                                      : "rgba(239,68,68,0.08)",
+                                        ? "rgba(239,68,68,0.1)"
+                                        : "rgba(239,68,68,0.08)",
                             border: `1px solid ${message.type === "success" ? "#22c55e" : "#ef4444"}`
                         }}
                         initial={{ opacity: 0, y: -10 }}
@@ -323,8 +344,8 @@ export default function ProfileSettingsPage() {
                                             ? "rgba(255,255,255,0.05)"
                                             : "rgba(0,0,0,0.03)"
                                         : isDark
-                                          ? "rgba(255,255,255,0.02)"
-                                          : "rgba(0,0,0,0.02)",
+                                            ? "rgba(255,255,255,0.02)"
+                                            : "rgba(0,0,0,0.02)",
                                     border: editing
                                         ? `2px solid ${palette.accent}`
                                         : `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,
@@ -361,8 +382,8 @@ export default function ProfileSettingsPage() {
                                                 ? "rgba(255,255,255,0.05)"
                                                 : "rgba(0,0,0,0.03)"
                                             : isDark
-                                              ? "rgba(255,255,255,0.02)"
-                                              : "rgba(0,0,0,0.02)",
+                                                ? "rgba(255,255,255,0.02)"
+                                                : "rgba(0,0,0,0.02)",
                                         border: editing
                                             ? `2px solid ${usernameError ? "#ef4444" : usernameStatus === "available" ? "#22c55e" : palette.accent}`
                                             : `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`,

@@ -26,14 +26,14 @@ const fields: FieldDef[] = [
     },
     {
         key: "Description",
-        label: "Description",
+        label: "Description (shown on resume & portfolio cards)",
         type: "textarea",
-        required: true,
+        required: false,
         colSpan: 2
     },
     {
         key: "LongDescription",
-        label: "Long Description",
+        label: "Long Description (shown only on portfolio project page)",
         type: "textarea",
         colSpan: 2,
         tableVisible: false
@@ -94,20 +94,29 @@ const fields: FieldDef[] = [
         tableVisible: true
     },
     // Metadata
-    { key: "Featured", label: "Featured", type: "boolean" },
+    {
+        key: "Featured",
+        label: "Featured",
+        type: "boolean",
+        required: false
+    },
     {
         key: "Published",
         label: "Published (visible on portfolio)",
         type: "boolean"
     },
-    { key: "Order", label: "Order", type: "number" },
     {
         key: "StartDate",
         label: "Start Date",
         type: "date",
         tableVisible: false
     },
-    { key: "EndDate", label: "End Date", type: "date", tableVisible: false }
+    {
+        key: "EndDate",
+        label: "End Date",
+        type: "date",
+        tableVisible: false
+    }
 ];
 
 export default function ProjectsPage() {
@@ -123,7 +132,6 @@ export default function ProjectsPage() {
                 Type: "webapp",
                 Featured: false,
                 Published: true,
-                Order: 0,
                 TechStack: [],
                 Tags: [],
                 Screenshots: []

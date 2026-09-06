@@ -62,7 +62,8 @@ import {
     Menu as MenuIcon,
     Close,
     ArrowBack,
-    Lock
+    Lock,
+    Shield
 } from "@mui/icons-material";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -121,12 +122,14 @@ interface NavItem {
     | "tool-settings"
     | "ai-providers"
     | "maintenance"
-    | "immich-access"
+    | "rate-limits"
+    | "sso-apps"
     | "db-sync"
     | "cdn"
     | "cdn-applications"
     | "cdn-api-keys"
-    | "docgen";
+    | "docgen"
+    | "roadmap";
 }
 
 const allNavItems: NavItem[] = [
@@ -279,6 +282,13 @@ const allNavItems: NavItem[] = [
         permKey: "features"
     },
     {
+        href: "/admin/roadmap",
+        label: "Roadmap",
+        icon: <MapOutlined fontSize="small" />,
+        group: "system",
+        permKey: "roadmap"
+    },
+    {
         href: "/admin/tool-settings",
         label: "Tool Settings",
         icon: <Build fontSize="small" />,
@@ -300,11 +310,18 @@ const allNavItems: NavItem[] = [
         permKey: "maintenance"
     },
     {
-        href: "/admin/immich-access",
-        label: "Immich Access",
+        href: "/admin/rate-limits",
+        label: "Rate Limits",
+        icon: <Shield fontSize="small" />,
+        group: "system",
+        permKey: "rate-limits"
+    },
+    {
+        href: "/admin/sso-apps",
+        label: "SSO Applications",
         icon: <PhotoCamera fontSize="small" />,
         group: "system",
-        permKey: "immich-access"
+        permKey: "sso-apps"
     },
     {
         href: "/admin/db-sync",

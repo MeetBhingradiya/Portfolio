@@ -31,11 +31,12 @@ import {
     KeyboardArrowLeft,
     KeyboardArrowRight
 } from "@mui/icons-material";
+import { useCDNUploader, isCdnUrl, CDNImageField, CDNImageListField, CDNFileListField } from "@Components/Tools/CDNUploaders";
 
 export interface FieldDef {
     key: string;
     label: string;
-    type: "text" | "textarea" | "number" | "date" | "select" | "multiline" | "url" | "boolean" | "tags" | "cdn-image" | "cdn-image-list";
+    type: "text" | "textarea" | "number" | "date" | "select" | "multiline" | "url" | "boolean" | "tags" | "cdn-image" | "cdn-image-list" | "cdn-file-list";
     options?: string[]; // for select
     required?: boolean;
     placeholder?: string;
@@ -54,509 +55,30 @@ interface AdminCRUDPageProps {
     defaultValues?: Record<string, any>;
 }
 
-const PAGE_SIZE = 15;
-
-// ─── CDN Uploader Hook — combined state ───────────────────────────────────────
-function useCDNUploader(cdnType: string, cdnContext?: string) {
-    const [upload, setUpload] = useState({
-        uploading: false,
-        progress: 0,
-        error: ""
-    });
-    const patch = (p: Partial<typeof upload>) => setUpload((s) => ({ ...s, ...p }));
-
-    const uploadFile = async (file: File, onSuccess: (url: string) => void) => {
-        patch({ uploading: true, error: "", progress: 0 });
-        try {
-            const fd = new FormData();
-            fd.append("file", file);
-            fd.append("type", cdnType);
-            if (cdnContext) fd.append("context", cdnContext);
-
-            await new Promise<void>((resolve, reject) => {
-                const xhr = new XMLHttpRequest();
-                xhr.open("POST", "/api/cdn/upload");
-                xhr.upload.onprogress = (e) => {
-                    if (e.lengthComputable)
-                        patch({
-                            progress: Math.round((e.loaded / e.total) * 100)
-                        });
-                };
-                xhr.onload = () => {
-                    if (xhr.status >= 200 && xhr.status < 300) {
-                        try {
-                            onSuccess(JSON.parse(xhr.responseText).cdnUrl);
-                            resolve();
-                        } catch {
-                            reject(new Error("Invalid response"));
-                        }
-                    } else {
-                        try {
-                            reject(new Error(JSON.parse(xhr.responseText).error || "Upload failed"));
-                        } catch {
-                            reject(new Error(`Upload failed (${xhr.status})`));
-                        }
-                    }
-                };
-                xhr.onerror = () => reject(new Error("Network error"));
-                xhr.send(fd);
-            });
-        } catch (e: any) {
-            patch({ error: e.message || "Upload failed" });
-        } finally {
-            patch({ uploading: false });
-        }
-    };
-
-    return {
-        uploading: upload.uploading,
-        progress: upload.progress,
-        uploadError: upload.error,
-        uploadFile
-    };
+// ─── Nested property helpers for dot-notation keys (e.g. "Links.live") ────────
+function getNestedValue(obj: any, path: string): any {
+    if (!obj || !path) return undefined;
+    if (!path.includes(".")) return obj[path];
+    return path.split(".").reduce((acc, part) => acc?.[part], obj);
 }
 
-// Detect if a URL came from CDN upload (has /api/cdn/ path segment)
-function isCdnUrl(url: string) {
-    return url.includes("/api/cdn/");
-}
-
-// ---------------------------------------------------------------------------
-// CDN Image Field — single image upload with Ctrl+V paste + locked URL
-// ---------------------------------------------------------------------------
-function CDNImageField({
-    value,
-    onChange,
-    cdnType = "icon",
-    cdnContext,
-    fieldKey,
-    palette,
-    isDark,
-    borderColor,
-    isApple
-}: {
-    value: string;
-    onChange: (url: string) => void;
-    cdnType?: string;
-    cdnContext?: string;
-    fieldKey: string;
-    palette: any;
-    isDark: boolean;
-    borderColor: string;
-    isApple: boolean;
-}) {
-    const { uploading, progress, uploadError, uploadFile } = useCDNUploader(cdnType, cdnContext);
-    // Track if value was set via file upload or paste (lock URL input in that case)
-    const [isLocked, setIsLocked] = useState(() => Boolean(value && isCdnUrl(value)));
-    const fileRef = useRef<HTMLInputElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    // Keep lock in sync when form value changes externally (e.g. opening edit modal)
-    const prevValueRef = useRef(value);
-    if (prevValueRef.current !== value) {
-        prevValueRef.current = value;
-        // If cleared, unlock; if re-populated with cdn url, lock
-        if (!value) setIsLocked(false);
-        else if (isCdnUrl(value)) setIsLocked(true);
+function setNestedValue(obj: Record<string, any>, path: string, value: any): void {
+    if (!path.includes(".")) {
+        obj[path] = value;
+        return;
     }
-
-    const handleFile = async (file: File) => {
-        await uploadFile(file, (url) => {
-            onChange(url);
-            setIsLocked(true);
-        });
-    };
-
-    // Ctrl+V / right-click paste from clipboard
-    const handlePaste = (e: React.ClipboardEvent) => {
-        const items = Array.from(e.clipboardData.items);
-        const imgItem = items.find((i) => i.type.startsWith("image/"));
-        if (imgItem) {
-            e.preventDefault();
-            const file = imgItem.getAsFile();
-            if (file) handleFile(file);
+    const parts = path.split(".");
+    let cur = obj;
+    for (let i = 0; i < parts.length - 1; i++) {
+        if (cur[parts[i]] === undefined || cur[parts[i]] === null || typeof cur[parts[i]] !== "object") {
+            cur[parts[i]] = {};
         }
-    };
-
-    const handleClear = () => {
-        onChange("");
-        setIsLocked(false);
-    };
-
-    const bg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)";
-    const r = isApple ? "12px" : "16px";
-
-    return (
-        <div
-            ref={containerRef}
-            onPaste={handlePaste}
-            tabIndex={0}
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                outline: "none"
-            }}>
-            {/* Preview + Upload button row */}
-            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                {/* Thumbnail */}
-                <div
-                    style={{
-                        width: 56,
-                        height: 56,
-                        borderRadius: 10,
-                        flexShrink: 0,
-                        background: bg,
-                        border: `1px solid ${borderColor}`,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        overflow: "hidden"
-                    }}>
-                    {value ? (
-                        <img
-                            src={value}
-                            alt="preview"
-                            style={{
-                                width: "100%",
-                                height: "100%",
-                                objectFit: "cover"
-                            }}
-                            onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = "none";
-                            }}
-                        />
-                    ) : (
-                        <ImageIcon
-                            style={{
-                                color: palette.textTertiary,
-                                fontSize: 24
-                            }}
-                        />
-                    )}
-                </div>
-
-                {/* Upload btn */}
-                <button
-                    type="button"
-                    onClick={() => fileRef.current?.click()}
-                    disabled={uploading}
-                    style={{
-                        background: bg,
-                        border: `1px dashed ${borderColor}`,
-                        borderRadius: r,
-                        padding: "8px 14px",
-                        color: uploading ? palette.textTertiary : palette.accent,
-                        cursor: uploading ? "not-allowed" : "pointer",
-                        fontSize: 13,
-                        fontWeight: 700,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6
-                    }}>
-                    <CloudUpload style={{ fontSize: 16 }} />
-                    {uploading ? `Uploading… ${progress}%` : value ? "Change Image" : "Upload Image"}
-                </button>
-
-                {/* Clear */}
-                {value && !uploading && (
-                    <button
-                        type="button"
-                        onClick={handleClear}
-                        style={{
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            color: palette.textTertiary,
-                            padding: 4
-                        }}
-                        title="Clear">
-                        <Close style={{ fontSize: 16 }} />
-                    </button>
-                )}
-            </div>
-
-            {/* Upload progress bar */}
-            {uploading && (
-                <div
-                    style={{
-                        height: 4,
-                        borderRadius: 4,
-                        background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                        overflow: "hidden"
-                    }}>
-                    <div
-                        style={{
-                            height: "100%",
-                            width: `${progress}%`,
-                            background: palette.accent,
-                            transition: "width 0.3s ease",
-                            borderRadius: 4
-                        }}
-                    />
-                </div>
-            )}
-
-            {/* Error */}
-            {uploadError && <p style={{ fontSize: 12, color: "#ef4444" }}>{uploadError}</p>}
-
-            {/* URL display: read-only when CDN-uploaded, editable for manual paste */}
-            {isLocked ? (
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        background: bg,
-                        border: `1px solid ${borderColor}`,
-                        borderRadius: r,
-                        padding: "8px 12px"
-                    }}>
-                    <span
-                        style={{
-                            flex: 1,
-                            fontSize: 11,
-                            fontFamily: "monospace",
-                            color: palette.textSecondary,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap"
-                        }}>
-                        {value}
-                    </span>
-                    <span
-                        style={{
-                            fontSize: 10,
-                            color: palette.textTertiary,
-                            fontWeight: 600,
-                            flexShrink: 0
-                        }}>
-                        CDN
-                    </span>
-                </div>
-            ) : (
-                <>
-                    <input
-                        type="url"
-                        value={value}
-                        onChange={(e) => {
-                            onChange(e.target.value);
-                            setIsLocked(false);
-                        }}
-                        placeholder="Paste image URL or use Ctrl+V to paste screenshot…"
-                        style={{
-                            background: bg,
-                            border: `1px solid ${borderColor}`,
-                            borderRadius: r,
-                            color: palette.textPrimary,
-                            padding: "8px 12px",
-                            outline: "none",
-                            width: "100%",
-                            fontSize: 12,
-                            fontFamily: "monospace"
-                        }}
-                    />
-                    <p
-                        style={{
-                            fontSize: 11,
-                            color: palette.textTertiary,
-                            margin: 0
-                        }}>
-                        Tip: Ctrl+V to paste a screenshot directly
-                    </p>
-                </>
-            )}
-
-            <input
-                ref={fileRef}
-                type="file"
-                accept="image/*,video/*,.pdf,.svg"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) handleFile(f);
-                    e.target.value = "";
-                }}
-            />
-        </div>
-    );
+        cur = cur[parts[i]];
+    }
+    cur[parts[parts.length - 1]] = value;
 }
 
-// ---------------------------------------------------------------------------
-// CDN Image List Field — multi-image upload (e.g. project screenshots)
-// ---------------------------------------------------------------------------
-function CDNImageListField({
-    value,
-    onChange,
-    cdnType = "banner",
-    cdnContext,
-    palette,
-    isDark,
-    borderColor,
-    isApple
-}: {
-    value: string[];
-    onChange: (urls: string[]) => void;
-    cdnType?: string;
-    cdnContext?: string;
-    palette: any;
-    isDark: boolean;
-    borderColor: string;
-    isApple: boolean;
-}) {
-    const { uploading, progress, uploadError, uploadFile } = useCDNUploader(cdnType, cdnContext);
-    const fileRef = useRef<HTMLInputElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-
-    const urls: string[] = Array.isArray(value) ? value : [];
-
-    const handleFile = async (file: File) => {
-        await uploadFile(file, (url) => onChange([...urls, url]));
-    };
-
-    const handlePaste = (e: React.ClipboardEvent) => {
-        const items = Array.from(e.clipboardData.items);
-        const imgItem = items.find((i) => i.type.startsWith("image/"));
-        if (imgItem) {
-            e.preventDefault();
-            const file = imgItem.getAsFile();
-            if (file) handleFile(file);
-        }
-    };
-
-    const removeAt = (i: number) => onChange(urls.filter((_, j) => j !== i));
-
-    const bg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)";
-    const r = isApple ? "12px" : "16px";
-
-    return (
-        <div
-            ref={containerRef}
-            onPaste={handlePaste}
-            tabIndex={0}
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-                outline: "none"
-            }}>
-            {/* Image grid */}
-            {urls.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                    {urls.map((url, i) => (
-                        <div
-                            key={i}
-                            style={{
-                                position: "relative",
-                                width: 72,
-                                height: 72,
-                                borderRadius: 10,
-                                overflow: "hidden",
-                                background: bg,
-                                border: `1px solid ${borderColor}`
-                            }}>
-                            <img
-                                src={url}
-                                alt={`screenshot-${i}`}
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover"
-                                }}
-                                onError={(e) => {
-                                    (e.target as HTMLImageElement).style.opacity = "0.3";
-                                }}
-                            />
-                            <button
-                                type="button"
-                                onClick={() => removeAt(i)}
-                                style={{
-                                    position: "absolute",
-                                    top: 2,
-                                    right: 2,
-                                    background: "rgba(0,0,0,0.6)",
-                                    border: "none",
-                                    borderRadius: "50%",
-                                    width: 18,
-                                    height: 18,
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    padding: 0
-                                }}
-                                title="Remove">
-                                <Close style={{ fontSize: 12, color: "#fff" }} />
-                            </button>
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {/* Add button */}
-            <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={uploading}
-                style={{
-                    background: bg,
-                    border: `1px dashed ${borderColor}`,
-                    borderRadius: r,
-                    padding: "8px 14px",
-                    color: uploading ? palette.textTertiary : palette.accent,
-                    cursor: uploading ? "not-allowed" : "pointer",
-                    fontSize: 13,
-                    fontWeight: 700,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    width: "fit-content"
-                }}>
-                <CloudUpload style={{ fontSize: 16 }} />
-                {uploading ? `Uploading… ${progress}%` : `Add Screenshot (${urls.length})`}
-            </button>
-
-            {/* Progress */}
-            {uploading && (
-                <div
-                    style={{
-                        height: 4,
-                        borderRadius: 4,
-                        background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                        overflow: "hidden"
-                    }}>
-                    <div
-                        style={{
-                            height: "100%",
-                            width: `${progress}%`,
-                            background: palette.accent,
-                            transition: "width 0.3s ease",
-                            borderRadius: 4
-                        }}
-                    />
-                </div>
-            )}
-
-            {uploadError && <p style={{ fontSize: 12, color: "#ef4444" }}>{uploadError}</p>}
-
-            <p style={{ fontSize: 11, color: palette.textTertiary, margin: 0 }}>
-                Ctrl+V to paste screenshot · Click button to browse files
-            </p>
-
-            <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) handleFile(f);
-                    e.target.value = "";
-                }}
-            />
-        </div>
-    );
-}
+const PAGE_SIZE = 15;
 
 // ============================================================
 // Custom Calendar Date Picker
@@ -1130,7 +652,7 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
     const openEdit = (item: any) => {
         const form: Record<string, any> = {};
         fields.forEach((f) => {
-            form[f.key] = item[f.key] ?? defaultValues[f.key] ?? "";
+            form[f.key] = getNestedValue(item, f.key) ?? defaultValues[f.key] ?? "";
         });
         patchModal({
             open: true,
@@ -1146,7 +668,7 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
     const openDuplicate = (item: any) => {
         const form: Record<string, any> = {};
         fields.forEach((f) => {
-            let val = item[f.key] ?? defaultValues[f.key] ?? "";
+            let val = getNestedValue(item, f.key) ?? defaultValues[f.key] ?? "";
             if (f.type === "text" && f.required && typeof val === "string" && val && !val.endsWith(" (Copy)")) val += " (Copy)";
             form[f.key] = val;
         });
@@ -1175,18 +697,23 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
         patchTable({ error: "" });
         try {
             const { editItem, isDuplicate, form } = modal;
+            // Convert flat dot-notation keys back into nested objects for the API
+            const payload: Record<string, any> = {};
+            Object.entries(form).forEach(([key, value]) => {
+                setNestedValue(payload, key, value);
+            });
             const res =
                 editItem && !isDuplicate
                     ? await fetch(`${apiBase}/${editItem[idField]}`, {
-                          method: "PATCH",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(form)
-                      })
+                        method: "PATCH",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    })
                     : await fetch(apiBase, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify(form)
-                      });
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
             const json = await res.json();
             if (json.success) {
                 closeModal();
@@ -1267,9 +794,9 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
         ...inputBase,
         ...(modal.focusedKey === key
             ? {
-                  border: `1px solid ${palette.accent}`,
-                  boxShadow: `0 0 0 3px ${palette.accent}25`
-              }
+                border: `1px solid ${palette.accent}`,
+                boxShadow: `0 0 0 3px ${palette.accent}25`
+            }
             : {})
     });
 
@@ -1386,9 +913,9 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                             ...inputBase,
                             ...(isFocused
                                 ? {
-                                      border: `1px solid ${palette.accent}`,
-                                      boxShadow: `0 0 0 3px ${palette.accent}25`
-                                  }
+                                    border: `1px solid ${palette.accent}`,
+                                    boxShadow: `0 0 0 3px ${palette.accent}25`
+                                }
                                 : {}),
                             minHeight: 46,
                             display: "flex",
@@ -1468,6 +995,21 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
             );
         }
 
+        if (field.type === "cdn-file-list") {
+            return (
+                <CDNFileListField
+                    value={val}
+                    onChange={update}
+                    cdnType={field.cdnType}
+                    cdnContext={field.cdnContext}
+                    palette={palette}
+                    isDark={isDark}
+                    borderColor={borderColor}
+                    isApple={isApple}
+                />
+            );
+        }
+
         // text / number / url
         return (
             <input
@@ -1484,7 +1026,7 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
     };
 
     const renderCellValue = (item: any, field: FieldDef) => {
-        const val = item[field.key];
+        const val = getNestedValue(item, field.key);
         if (val === undefined || val === null || val === "") return <span style={{ color: palette.textTertiary }}>—</span>;
         if (field.type === "boolean")
             return (
@@ -1566,6 +1108,39 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                                 alignSelf: "center"
                             }}>
                             +{imgs.length - 3}
+                        </span>
+                    )}
+                </div>
+            );
+        }
+        if (field.type === "cdn-file-list") {
+            const files: string[] = Array.isArray(val) ? val : [];
+            if (files.length === 0) return <span style={{ color: palette.textTertiary }}>—</span>;
+            return (
+                <div className="flex gap-1">
+                    {files.slice(0, 2).map((url, i) => {
+                        const filename = url.split("/").pop() || url;
+                        return (
+                            <span
+                                key={i}
+                                className="px-1.5 py-0.5 rounded text-xs truncate max-w-[100px]"
+                                style={{
+                                    background: `${palette.accent}18`,
+                                    color: palette.accent
+                                }}
+                                title={filename}>
+                                {filename}
+                            </span>
+                        );
+                    })}
+                    {files.length > 2 && (
+                        <span
+                            style={{
+                                color: palette.textTertiary,
+                                fontSize: 11,
+                                alignSelf: "center"
+                            }}>
+                            +{files.length - 2}
                         </span>
                     )}
                 </div>
@@ -2015,8 +1590,8 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                                             {modal.isDuplicate
                                                 ? `Duplicate ${title.replace(/ies$/, "y").replace(/s$/, "")}`
                                                 : modal.editItem
-                                                  ? `Edit ${title.replace(/ies$/, "y").replace(/s$/, "")}`
-                                                  : `Add ${title.replace(/ies$/, "y").replace(/s$/, "")}`}
+                                                    ? `Edit ${title.replace(/ies$/, "y").replace(/s$/, "")}`
+                                                    : `Add ${title.replace(/ies$/, "y").replace(/s$/, "")}`}
                                         </h2>
                                         {modal.isDuplicate && (
                                             <p

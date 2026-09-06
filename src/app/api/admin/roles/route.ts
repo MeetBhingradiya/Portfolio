@@ -5,6 +5,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { UserRole } from "@Models/UserRole";
+import { isRolePermissionKey, normalizePermissionKey } from "@Config/Permissions";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
 import mongoose from "mongoose";
 
@@ -85,13 +86,27 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        // Validate and normalize permissions array (accept either string keys or objects)
+        let permsToSave: any[] = [];
+        if (Array.isArray(permissions)) {
+            for (const p of permissions) {
+                const key = typeof p === "string" ? p : p?.key;
+                const granted = typeof p === "object" && typeof p.granted === "boolean" ? p.granted : true;
+                const normalized = normalizePermissionKey(String(key ?? "").trim());
+                if (!normalized) {
+                    return NextResponse.json({ success: false, error: `Unknown permission key: ${key}` }, { status: 422 });
+                }
+                permsToSave.push({ key: normalized, label: normalized, granted });
+            }
+        }
+
         const record = await UserRole.findOneAndUpdate(
             { userId },
             {
                 userId,
                 email: normalizedEmail,
                 roles: roles ?? ["user"],
-                permissions: permissions ?? [],
+                permissions: permsToSave,
                 notes,
                 grantedBy: admin.email
             },

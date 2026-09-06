@@ -6,12 +6,17 @@
 
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
 import { LiquidGlassCard, LiquidGlassButton, LiquidGlassModal } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIButton, OneUIBadge } from "@Components/Atoms/OneUI";
-import { Add, Close, PersonAdd, Delete, Edit, Save, Search, Phone, Email, ArrowDownward, ArrowUpward, Sync } from "@mui/icons-material";
+import { Add, Close, PersonAdd, Delete, Edit, Save, Search, Phone, Email, ArrowDownward, ArrowUpward, Sync, Google, Microsoft, Apple } from "@mui/icons-material";
+import { useSearchParams } from "next/navigation";
+import { linkSocial } from "@Library/auth-client";
+
+const GOOGLE_CONTACTS_SCOPE = "https://www.googleapis.com/auth/contacts.readonly";
+const MICROSOFT_CONTACTS_SCOPE = "Contacts.Read";
 
 interface Contact {
     ContactID: string;
@@ -25,12 +30,14 @@ interface Contact {
     PendingPayments: number;
     Notes?: string;
     Source?: string;
+    Avatar?: string;
 }
 
-export default function ContactsPage() {
+function ContactsPageClient() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
+    const searchParams = useSearchParams();
 
     const [contacts, setContacts] = useState<Contact[]>([]);
     const [loading, setLoading] = useState(true);
@@ -39,6 +46,8 @@ export default function ContactsPage() {
     const [editContact, setEditContact] = useState<Contact | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [syncing, setSyncing] = useState(false);
+    const [showSyncProviderModal, setShowSyncProviderModal] = useState(false);
+    const [syncParamHandled, setSyncParamHandled] = useState(false);
 
     // Form state
     const [name, setName] = useState("");
@@ -72,26 +81,143 @@ export default function ContactsPage() {
         fetchContacts();
     }, [fetchContacts]);
 
-    const importGoogleContacts = async () => {
-        setSyncing(true);
-        try {
-            const res = await fetch("/api/wallet/contacts/import", {
-                method: "POST"
-            }).then((r) => r.json());
-            if (res.success) {
-                alert(
-                    `Successfully imported/synced contacts from Google! Imported: ${res.data.imported}, Skipped/Existing: ${res.data.skipped}`
-                );
-                fetchContacts();
-            } else {
-                alert(`Sync failed: ${res.error || "Unknown error. Please ensure you have granted Contacts permission during login."}`);
+    const startGoogleContactsOAuth = useCallback(async () => {
+        await linkSocial({
+            provider: "google" as any,
+            callbackURL: "/wallet/contacts?sync=google",
+            scopes: [GOOGLE_CONTACTS_SCOPE]
+        });
+    }, []);
+
+    const startMicrosoftContactsOAuth = useCallback(async () => {
+        await linkSocial({
+            provider: "microsoft" as any,
+            callbackURL: "/wallet/contacts?sync=microsoft",
+            scopes: [MICROSOFT_CONTACTS_SCOPE]
+        });
+    }, []);
+
+    const importGoogleContacts = useCallback(
+        async (options?: { auto?: boolean }) => {
+            setSyncing(true);
+            try {
+                const res = await fetch("/api/wallet/contacts/import", {
+                    method: "POST"
+                }).then((r) => r.json());
+                if (res.success) {
+                    alert(
+                        `Successfully imported/synced contacts from Google! Imported: ${res.data.imported}, Skipped/Existing: ${res.data.skipped}`
+                    );
+                    fetchContacts();
+                    return;
+                }
+
+                const errorCode = res.errorCode as string | undefined;
+                const needsReauth =
+                    errorCode === "GOOGLE_NOT_LINKED" ||
+                    errorCode === "GOOGLE_SCOPE_MISSING" ||
+                    errorCode === "GOOGLE_REAUTH_REQUIRED";
+
+                if (needsReauth) {
+                    if (options?.auto) {
+                        alert(`Sync failed: ${res.error || "Google permission required."}`);
+                        return;
+                    }
+                    const ok = confirm(
+                        "To sync Google contacts, we need permission to read your contacts. Continue to Google authorization?"
+                    );
+                    if (ok) {
+                        await startGoogleContactsOAuth();
+                    }
+                    return;
+                }
+
+                alert(`Sync failed: ${res.error || "Unknown error. Please try again."}`);
+            } catch (e: any) {
+                alert("Error syncing contacts: " + e.message);
+            } finally {
+                setSyncing(false);
             }
-        } catch (e: any) {
-            alert("Error syncing contacts: " + e.message);
-        } finally {
-            setSyncing(false);
+        },
+        [fetchContacts, startGoogleContactsOAuth]
+    );
+
+    const importMicrosoftContacts = useCallback(
+        async (options?: { auto?: boolean }) => {
+            setSyncing(true);
+            try {
+                const res = await fetch("/api/wallet/contacts/import/microsoft", {
+                    method: "POST"
+                }).then((r) => r.json());
+                if (res.success) {
+                    alert(
+                        `Successfully imported/synced contacts from Microsoft! Imported: ${res.data.imported}, Skipped/Existing: ${res.data.skipped}`
+                    );
+                    fetchContacts();
+                    return;
+                }
+
+                const errorCode = res.errorCode as string | undefined;
+                const needsReauth =
+                    errorCode === "MICROSOFT_NOT_LINKED" ||
+                    errorCode === "MICROSOFT_SCOPE_MISSING" ||
+                    errorCode === "MICROSOFT_REAUTH_REQUIRED";
+
+                if (needsReauth) {
+                    if (options?.auto) {
+                        alert(`Sync failed: ${res.error || "Microsoft permission required."}`);
+                        return;
+                    }
+                    const ok = confirm(
+                        "To sync Microsoft contacts, we need permission to read your contacts. Continue to Microsoft authorization?"
+                    );
+                    if (ok) {
+                        await startMicrosoftContactsOAuth();
+                    }
+                    return;
+                }
+
+                alert(`Sync failed: ${res.error || "Unknown error. Please try again."}`);
+            } catch (e: any) {
+                alert("Error syncing contacts: " + e.message);
+            } finally {
+                setSyncing(false);
+            }
+        },
+        [fetchContacts, startMicrosoftContactsOAuth]
+    );
+
+    const handleSyncProvider = async (provider: "google" | "microsoft" | "apple") => {
+        setShowSyncProviderModal(false);
+        if (provider === "google") {
+            await importGoogleContacts();
+            return;
         }
+        if (provider === "microsoft") {
+            await importMicrosoftContacts();
+            return;
+        }
+        alert("Apple contacts sync is coming soon.");
     };
+
+    useEffect(() => {
+        if (syncParamHandled) return;
+        const provider = searchParams.get("sync");
+        if (provider === "google") {
+            setSyncParamHandled(true);
+            importGoogleContacts({ auto: true });
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.delete("sync");
+            window.history.replaceState({}, "", nextUrl.toString());
+        }
+        if (provider === "microsoft") {
+            setSyncParamHandled(true);
+            importMicrosoftContacts({ auto: true });
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.delete("sync");
+            window.history.replaceState({}, "", nextUrl.toString());
+        }
+    }, [importGoogleContacts, importMicrosoftContacts, searchParams, syncParamHandled]);
 
     const openModal = (contact?: Contact) => {
         if (contact) {
@@ -194,13 +320,13 @@ export default function ContactsPage() {
                             <LiquidGlassButton
                                 variant="secondary"
                                 className="px-4 py-2.5 flex items-center gap-2"
-                                onClick={importGoogleContacts}
+                                onClick={() => setShowSyncProviderModal(true)}
                                 disabled={syncing}>
                                 <Sync
                                     fontSize="small"
                                     className={syncing ? "animate-spin" : ""}
                                 />
-                                <span className="font-semibold text-sm">{syncing ? "Syncing..." : "Sync Google"}</span>
+                                <span className="font-semibold text-sm">{syncing ? "Syncing..." : "Sync Contacts"}</span>
                             </LiquidGlassButton>
                             <LiquidGlassButton
                                 className="px-5 py-2.5 flex items-center gap-2"
@@ -214,13 +340,13 @@ export default function ContactsPage() {
                             <OneUIButton
                                 variant="secondary"
                                 className="px-4 py-2.5 flex items-center gap-2"
-                                onClick={importGoogleContacts}
+                                onClick={() => setShowSyncProviderModal(true)}
                                 disabled={syncing}>
                                 <Sync
                                     fontSize="small"
                                     className={syncing ? "animate-spin" : ""}
                                 />
-                                <span className="font-semibold text-sm">{syncing ? "Syncing..." : "Sync Google"}</span>
+                                <span className="font-semibold text-sm">{syncing ? "Syncing..." : "Sync Contacts"}</span>
                             </OneUIButton>
                             <OneUIButton
                                 variant="primary"
@@ -373,7 +499,7 @@ export default function ContactsPage() {
                         <p
                             className="text-sm"
                             style={{ color: palette.textSecondary }}>
-                            Sync with Google or add manually.
+                            Sync with Google or Microsoft, or add manually.
                         </p>
                     </motion.div>
                 ) : (
@@ -389,13 +515,23 @@ export default function ContactsPage() {
                                     <div className="flex items-start justify-between mb-4">
                                         <div className="flex items-center gap-3">
                                             <div
-                                                className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shadow-sm"
+                                                className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold shadow-sm overflow-hidden"
                                                 style={{
                                                     background: `${palette.accent}15`,
                                                     border: `1px solid ${palette.accent}30`,
                                                     color: palette.accent
                                                 }}>
-                                                {c.Name.charAt(0).toUpperCase()}
+                                                {c.Avatar ? (
+                                                    <img
+                                                        src={c.Avatar}
+                                                        alt={`${c.Name} avatar`}
+                                                        className="w-full h-full object-cover"
+                                                        loading="lazy"
+                                                        referrerPolicy="no-referrer"
+                                                    />
+                                                ) : (
+                                                    <span>{c.Name.charAt(0).toUpperCase()}</span>
+                                                )}
                                             </div>
                                             <div>
                                                 <h3
@@ -418,7 +554,12 @@ export default function ContactsPage() {
                                                     )}
                                                     {c.Source === "google" && (
                                                         <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-500">
-                                                            Google Card
+                                                            Google
+                                                        </span>
+                                                    )}
+                                                    {c.Source === "microsoft" && (
+                                                        <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500">
+                                                            Microsoft
                                                         </span>
                                                     )}
                                                 </div>
@@ -553,6 +694,50 @@ export default function ContactsPage() {
 
             {/* Modal */}
             <AnimatePresence>
+                {showSyncProviderModal && (
+                    <LiquidGlassModal
+                        isOpen={showSyncProviderModal}
+                        onClose={() => setShowSyncProviderModal(false)}
+                        title="Sync Contacts">
+                        <div className="space-y-3">
+                            <p
+                                className="text-xs"
+                                style={{ color: palette.textSecondary }}>
+                                Choose a provider to sync contacts. We only request permission when you start sync.
+                            </p>
+                            <button
+                                onClick={() => handleSyncProvider("google")}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors"
+                                style={{
+                                    background: inputBg,
+                                    border: `1px solid ${borderColor}`,
+                                    color: palette.textPrimary
+                                }}>
+                                <Google fontSize="small" /> Google (People API)
+                            </button>
+                            <button
+                                onClick={() => handleSyncProvider("microsoft")}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors"
+                                style={{
+                                    background: inputBg,
+                                    border: `1px solid ${borderColor}`,
+                                    color: palette.textPrimary
+                                }}>
+                                <Microsoft fontSize="small" /> Microsoft (Outlook)
+                            </button>
+                            <button
+                                onClick={() => handleSyncProvider("apple")}
+                                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-colors"
+                                style={{
+                                    background: inputBg,
+                                    border: `1px solid ${borderColor}`,
+                                    color: palette.textPrimary
+                                }}>
+                                <Apple fontSize="small" /> Apple (Coming soon)
+                            </button>
+                        </div>
+                    </LiquidGlassModal>
+                )}
                 {showModal && (
                     <LiquidGlassModal
                         isOpen={showModal}
@@ -652,5 +837,13 @@ export default function ContactsPage() {
                 )}
             </AnimatePresence>
         </div>
+    );
+}
+
+export default function ContactsPage() {
+    return (
+        <Suspense fallback={null}>
+            <ContactsPageClient />
+        </Suspense>
     );
 }

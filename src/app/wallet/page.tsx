@@ -1,6 +1,6 @@
 /**
  * Wallet Dashboard — Transaction List Page
- * Shows summary stats + paginated transaction list with filter controls.
+ * Shows summary stats + paginated transaction list with modern toolbar controls.
  * Uses LiquidGlass (Apple) and OneUI (Samsung) components based on theme.
  */
 
@@ -10,14 +10,18 @@ import React, { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme } from "@Hooks";
-import { CustomSelect } from "@Components/Atoms/CustomSelect";
 import { LiquidGlassCard, LiquidGlassButton } from "@Components/Atoms/LiquidGlass";
-import { OneUICard, OneUIButton, OneUIBadge, OneUIListItem } from "@Components/Atoms/OneUI";
+import { OneUICard, OneUIButton, OneUIBadge } from "@Components/Atoms/OneUI";
+import {
+    TransactionToolbar,
+    type ToolbarFilters,
+    type ToolbarSort,
+    type ToolbarColumnVisibility
+} from "@Components/Atoms/TransactionToolbar";
 import {
     AddCircleOutline,
     TrendingUp,
     TrendingDown,
-    Search,
     FilterList,
     Delete,
     Edit,
@@ -26,7 +30,8 @@ import {
     ArrowDownward,
     ArrowUpward,
     NavigateBefore,
-    NavigateNext
+    NavigateNext,
+    PersonOutline
 } from "@mui/icons-material";
 
 interface Transaction {
@@ -41,6 +46,8 @@ interface Transaction {
     Date: string;
     IsHidden?: boolean;
     IsWalletTransfer?: boolean;
+    ContactID?: string;
+    ContactName?: string | null;
 }
 
 interface Summary {
@@ -51,35 +58,20 @@ interface Summary {
     count: number;
 }
 
-const TYPES = ["ALL", "CREDIT", "DEBIT", "TRANSFER"];
-const CATEGORIES = [
-    "ALL",
-    "FOOD",
-    "TRANSPORT",
-    "SHOPPING",
-    "ENTERTAINMENT",
-    "BILLS",
-    "HEALTH",
-    "EDUCATION",
-    "RENT",
-    "SALARY",
-    "FREELANCE",
-    "INVESTMENT",
-    "GIFT",
-    "RECHARGE",
-    "SUBSCRIPTION",
-    "TRAVEL",
-    "GROCERIES",
-    "DONATION",
-    "LOAN",
-    "REFUND",
-    "OTHER"
-];
-const TYPE_OPTS = TYPES.map((v) => ({ value: v, label: v }));
-const CATEGORY_OPTS = CATEGORIES.map((v) => ({
-    value: v,
-    label: v.replace(/_/g, " ")
-}));
+const STORAGE_KEY_COLS = "wallet-dashboard-col-visibility";
+
+function loadColumnVisibility(): ToolbarColumnVisibility {
+    if (typeof window === "undefined") return defaultCols();
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY_COLS);
+        if (stored) return JSON.parse(stored);
+    } catch {}
+    return defaultCols();
+}
+
+function defaultCols(): ToolbarColumnVisibility {
+    return { date: true, note: true, amount: true, type: true, category: true, contact: true };
+}
 
 export default function WalletDashboard() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
@@ -97,21 +89,42 @@ export default function WalletDashboard() {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
-    const [search, setSearch] = useState("");
-    const [type, setType] = useState("ALL");
-    const [category, setCategory] = useState("ALL");
     const [deletingId, setDeletingId] = useState<string | null>(null);
 
-    const surfaceBg = isApple ? (isDark ? "rgba(38, 38, 42, 0.6)" : "rgba(255, 255, 255, 0.6)") : palette.surface;
+    // Toolbar state
+    const [filters, setFilters] = useState<ToolbarFilters>({
+        search: "",
+        type: "ALL",
+        category: "ALL",
+        from: "",
+        to: ""
+    });
+    const [sort, setSort] = useState<ToolbarSort>({ sortBy: "date", sortDir: "desc" });
+    const [columnVisibility, setColumnVisibility] = useState<ToolbarColumnVisibility>(defaultCols());
+
+    // Load persisted column visibility on mount
+    useEffect(() => {
+        setColumnVisibility(loadColumnVisibility());
+    }, []);
+
+    // Persist column visibility changes
+    const handleColumnVisibilityChange = useCallback((cols: ToolbarColumnVisibility) => {
+        setColumnVisibility(cols);
+        try { localStorage.setItem(STORAGE_KEY_COLS, JSON.stringify(cols)); } catch {}
+    }, []);
+
     const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
 
     const fetchTransactions = useCallback(async () => {
         setLoading(true);
         const params = new URLSearchParams({ page: String(page), limit: "20" });
-        if (search) params.set("search", search);
-        if (type !== "ALL") params.set("type", type);
-        if (category !== "ALL") params.set("category", category);
-
+        if (filters.search) params.set("search", filters.search);
+        if (filters.type !== "ALL") params.set("type", filters.type);
+        if (filters.category !== "ALL") params.set("category", filters.category);
+        if (filters.from) params.set("from", filters.from);
+        if (filters.to) params.set("to", filters.to);
+        params.set("sortBy", sort.sortBy);
+        params.set("sortDir", sort.sortDir);
         params.set("t", Date.now().toString());
         const res = await fetch(`/api/wallet?${params}`, {
             cache: "no-store"
@@ -130,14 +143,14 @@ export default function WalletDashboard() {
             });
         }
         setLoading(false);
-    }, [page, search, type, category]);
+    }, [page, filters, sort]);
 
     useEffect(() => {
         fetchTransactions();
     }, [fetchTransactions]);
     useEffect(() => {
         setPage(1);
-    }, [search, type, category]);
+    }, [filters, sort]);
 
     async function deleteTransaction(id: string) {
         if (!confirm("Delete this transaction? This cannot be undone.")) return;
@@ -278,40 +291,15 @@ export default function WalletDashboard() {
                 })}
             </div>
 
-            {/* Controls */}
-            <div className="flex flex-wrap items-center gap-3">
-                <div
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-2xl flex-1 min-w-[200px] transition-all"
-                    style={{
-                        background: inputBg(),
-                        border: `1px solid ${borderColor}`
-                    }}>
-                    <Search
-                        fontSize="small"
-                        style={{ color: palette.textTertiary }}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Search notes, tags..."
-                        className="bg-transparent outline-none flex-1 text-sm font-medium"
-                        style={{ color: palette.textPrimary }}
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
-                <CustomSelect
-                    value={type}
-                    onChange={setType}
-                    options={TYPE_OPTS}
-                    className="min-w-[140px]"
-                />
-                <CustomSelect
-                    value={category}
-                    onChange={setCategory}
-                    options={CATEGORY_OPTS}
-                    className="min-w-[160px]"
-                />
-            </div>
+            {/* Modern Toolbar */}
+            <TransactionToolbar
+                filters={filters}
+                onFiltersChange={setFilters}
+                sort={sort}
+                onSortChange={setSort}
+                columnVisibility={columnVisibility}
+                onColumnVisibilityChange={handleColumnVisibilityChange}
+            />
 
             {/* Transaction List */}
             <AnimatePresence mode="popLayout">
@@ -365,71 +353,97 @@ export default function WalletDashboard() {
                                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 py-1">
                                     <div className="flex items-center gap-4">
                                         {/* Icon based on type */}
-                                        <div
-                                            className="p-3 rounded-xl flex-shrink-0"
-                                            style={{
-                                                background: `${typeColor(t.Type)}15`,
-                                                color: typeColor(t.Type)
-                                            }}>
-                                            {typeIcon(t.Type)}
-                                        </div>
+                                        {columnVisibility.type && (
+                                            <div
+                                                className="p-3 rounded-xl flex-shrink-0"
+                                                style={{
+                                                    background: `${typeColor(t.Type)}15`,
+                                                    color: typeColor(t.Type)
+                                                }}>
+                                                {typeIcon(t.Type)}
+                                            </div>
+                                        )}
 
                                         <div className="flex flex-col">
-                                            <span
-                                                className="text-base font-bold"
-                                                style={{
-                                                    color: palette.textPrimary
-                                                }}>
-                                                {t.Note}
-                                            </span>
-                                            <div className="flex items-center gap-2 mt-0.5">
+                                            {columnVisibility.note && (
                                                 <span
-                                                    className="text-xs font-semibold uppercase tracking-wider"
+                                                    className="text-base font-bold"
                                                     style={{
-                                                        color: palette.textTertiary
+                                                        color: palette.textPrimary
                                                     }}>
-                                                    {dateStr}
+                                                    {t.Note}
                                                 </span>
-                                                <span
-                                                    className="w-1 h-1 rounded-full"
-                                                    style={{
-                                                        background: palette.border
-                                                    }}></span>
-                                                {isApple ? (
+                                            )}
+                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                {columnVisibility.date && (
                                                     <span
-                                                        className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
+                                                        className="text-xs font-semibold uppercase tracking-wider"
                                                         style={{
-                                                            background: `${palette.accent}15`,
-                                                            color: palette.accent
+                                                            color: palette.textTertiary
                                                         }}>
-                                                        {t.Category}
+                                                        {dateStr}
                                                     </span>
-                                                ) : (
-                                                    <OneUIBadge variant="accent">{t.Category}</OneUIBadge>
+                                                )}
+                                                {columnVisibility.date && columnVisibility.category && (
+                                                    <span
+                                                        className="w-1 h-1 rounded-full"
+                                                        style={{
+                                                            background: palette.border
+                                                        }}></span>
+                                                )}
+                                                {columnVisibility.category && (
+                                                    isApple ? (
+                                                        <span
+                                                            className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
+                                                            style={{
+                                                                background: `${palette.accent}15`,
+                                                                color: palette.accent
+                                                            }}>
+                                                            {t.Category}
+                                                        </span>
+                                                    ) : (
+                                                        <OneUIBadge variant="accent">{t.Category}</OneUIBadge>
+                                                    )
+                                                )}
+                                                {/* Contact chip */}
+                                                {columnVisibility.contact && t.ContactName && (
+                                                    <span
+                                                        className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
+                                                        style={{
+                                                            background: isDark ? "rgba(139,92,246,0.12)" : "rgba(139,92,246,0.08)",
+                                                            color: "#8b5cf6"
+                                                        }}>
+                                                        <PersonOutline style={{ fontSize: 10 }} />
+                                                        {t.ContactName}
+                                                    </span>
                                                 )}
                                             </div>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center justify-between sm:justify-end gap-6 sm:w-auto">
-                                        <div className="flex flex-col sm:items-end">
-                                            <span
-                                                className="text-lg font-bold"
-                                                style={{
-                                                    color: typeColor(t.Type)
-                                                }}>
-                                                {t.Type === "DEBIT" ? "−" : t.Type === "CREDIT" ? "+" : ""}
-                                                {amtFmt(t.Amount)}
-                                            </span>
-                                            <span
-                                                className="text-xs font-semibold uppercase"
-                                                style={{
-                                                    color: typeColor(t.Type),
-                                                    opacity: 0.7
-                                                }}>
-                                                {t.Type}
-                                            </span>
-                                        </div>
+                                        {columnVisibility.amount && (
+                                            <div className="flex flex-col sm:items-end">
+                                                <span
+                                                    className="text-lg font-bold"
+                                                    style={{
+                                                        color: typeColor(t.Type)
+                                                    }}>
+                                                    {t.Type === "DEBIT" ? "−" : t.Type === "CREDIT" ? "+" : ""}
+                                                    {amtFmt(t.Amount)}
+                                                </span>
+                                                {columnVisibility.type && (
+                                                    <span
+                                                        className="text-xs font-semibold uppercase"
+                                                        style={{
+                                                            color: typeColor(t.Type),
+                                                            opacity: 0.7
+                                                        }}>
+                                                        {t.Type}
+                                                    </span>
+                                                )}
+                                            </div>
+                                        )}
                                         <div className="flex items-center gap-1.5">
                                             <Link href={`/wallet/edit/${t.TransactionID}`}>
                                                 <motion.button
@@ -545,8 +559,4 @@ export default function WalletDashboard() {
             )}
         </div>
     );
-
-    function inputBg() {
-        return isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.03)";
-    }
 }

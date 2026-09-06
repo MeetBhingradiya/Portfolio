@@ -11,15 +11,14 @@ import { useDesignTheme } from "@Hooks/useDesignTheme";
 import { LiquidGlassCard } from "@Components/Atoms/LiquidGlass";
 import { OneUICard } from "@Components/Atoms/OneUI";
 import { Email, Send, CheckCircle, Error as ErrorIcon, ArrowBack } from "@mui/icons-material";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { requestPasswordReset } from "@Library/auth-client";
 
 function ForgotPasswordContent() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
     const Card = isApple ? LiquidGlassCard : OneUICard;
-    const router = useRouter();
 
     const [email, setEmail] = useState("");
     const [loading, setLoading] = useState(false);
@@ -33,11 +32,14 @@ function ForgotPasswordContent() {
         setSuccess(false);
 
         try {
-            // TODO: Implement password reset logic
-            await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate API call
+            const redirectTo = `${window.location.origin}/auth/reset-password`;
+            await requestPasswordReset({
+                email,
+                redirectTo
+            });
             setSuccess(true);
         } catch (err: any) {
-            setError(err.message || "Failed to send reset email");
+            setError(err?.message || "Failed to send reset email");
         } finally {
             setLoading(false);
         }

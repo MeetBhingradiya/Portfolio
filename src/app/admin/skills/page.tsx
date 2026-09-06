@@ -26,7 +26,6 @@ const fields: FieldDef[] = [
         tableVisible: true
     },
     { key: "Color", label: "Color (hex)", type: "text", tableVisible: false },
-    { key: "Order", label: "Order", type: "number" },
     { key: "Visible", label: "Visible", type: "boolean" }
 ];
 
@@ -38,7 +37,7 @@ export default function SkillsPage() {
             apiBase="/api/admin/skills"
             idField="SkillID"
             fields={fields}
-            defaultValues={{ Proficiency: 80, Order: 0, Visible: true }}
+            defaultValues={{ Proficiency: 80, Visible: true }}
         />
     );
 }

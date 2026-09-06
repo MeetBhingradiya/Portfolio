@@ -26,7 +26,7 @@ interface StatusResponse {
 
 export default function DbSyncAdminClient() {
     const { palette, actualColorMode } = useDesignTheme();
-    const { session, loading } = useAdminSession();
+    const { session, loading, hasPermission } = useAdminSession();
     const isDark = actualColorMode === "dark";
 
     const [status, setStatus] = useState<StatusResponse | null>(null);
@@ -39,8 +39,8 @@ export default function DbSyncAdminClient() {
     const canAccess = useMemo(() => {
         if (!session) return false;
         if (session.isAdmin) return true;
-        return session.permissions.includes("admin.site.settings");
-    }, [session]);
+        return hasPermission("admin.site.settings");
+    }, [session, hasPermission]);
 
     const sourceCollections = status?.sourceCollections ?? [];
 
@@ -140,7 +140,7 @@ export default function DbSyncAdminClient() {
                         borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.12)",
                         color: palette.textSecondary
                     }}>
-                    You do not have permission to access DB Sync.
+                    You do not have permission to access DB Sync. Required permission: admin.site.settings.
                 </div>
             </div>
         );

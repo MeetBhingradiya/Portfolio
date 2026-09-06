@@ -22,7 +22,8 @@ import {
     Error as ErrorIcon,
     ArrowBack,
     Fingerprint,
-    Info
+    Info,
+    Microsoft
 } from "@mui/icons-material";
 import { signIn, useSession, passkey } from "@Library/auth-client";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -132,7 +133,8 @@ function SignInContent() {
 
     const oauthProviders = [
         { name: "Google", icon: <Google />, id: "google" },
-        { name: "GitHub", icon: <GitHub />, id: "github" }
+        { name: "GitHub", icon: <GitHub />, id: "github" },
+        { name: "Microsoft", icon: <Microsoft />, id: "microsoft" }
     ];
 
     if (isPending) {

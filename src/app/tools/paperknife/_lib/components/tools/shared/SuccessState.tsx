@@ -26,11 +26,8 @@ export default function SuccessState({ message, downloadUrl, fileName, onStartOv
         if (shouldAutoDownload) {
             const triggerAutoDownload = async () => {
                 try {
-                    const response = await fetch(downloadUrl);
-                    const blob = await response.blob();
-                    const buffer = await blob.arrayBuffer();
                     const mimeType = fileName.endsWith(".zip") ? "application/zip" : "application/pdf";
-                    await downloadFile(new Uint8Array(buffer), fileName, mimeType);
+                    await downloadFile(downloadUrl, fileName, mimeType);
                     toast.success(`Auto-saved as ${fileName}`);
                 } catch (e) {
                     console.error("Auto-download failed:", e);
@@ -44,12 +41,8 @@ export default function SuccessState({ message, downloadUrl, fileName, onStartOv
         e.preventDefault();
         try {
             toast.loading(`Saving ${fileName}...`, { id: "save-action" });
-            const response = await fetch(downloadUrl);
-            const blob = await response.blob();
-            const buffer = await blob.arrayBuffer();
             const mimeType = fileName.endsWith(".zip") ? "application/zip" : "application/pdf";
-
-            await downloadFile(new Uint8Array(buffer), fileName, mimeType);
+            await downloadFile(downloadUrl, fileName, mimeType);
             toast.success(`Saved to Documents as ${fileName}`, {
                 id: "save-action"
             });

@@ -86,7 +86,7 @@ export default function PDFToolsPage() {
                 pages.forEach((p) => merged.addPage(p));
             }
             const bytes = await merged.save();
-            downloadBlob(new Blob([bytes], { type: "application/pdf" }), "merged.pdf");
+            downloadBlob(new Blob([bytes as any], { type: "application/pdf" }), "merged.pdf");
         } catch (e) {
             console.error("Merge failed:", e);
         }
@@ -108,7 +108,7 @@ export default function PDFToolsPage() {
             const pages = await result.copyPages(src, pageIndices);
             pages.forEach((p) => result.addPage(p));
             const bytes = await result.save();
-            downloadBlob(new Blob([bytes], { type: "application/pdf" }), `extracted_${splitRange.replace(/,/g, "_")}.pdf`);
+            downloadBlob(new Blob([bytes as any], { type: "application/pdf" }), `extracted_${splitRange.replace(/,/g, "_")}.pdf`);
         } catch (e) {
             console.error("Split failed:", e);
         }
@@ -346,7 +346,9 @@ function downloadBlob(blob: Blob, name: string) {
     const a = document.createElement("a");
     a.href = url;
     a.download = name;
+    document.body.appendChild(a);
     a.click();
+    document.body.removeChild(a);
     URL.revokeObjectURL(url);
 }
 

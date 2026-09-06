@@ -8,7 +8,9 @@ import BlogCard, { BlogCardData } from "@/Components/Blogs/BlogCard";
 import SearchIcon from "@mui/icons-material/Search";
 import AddIcon from "@mui/icons-material/Add";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import LockOpenIcon from "@mui/icons-material/LockOpen";
 import { BlogCategory } from "@/Types/Blog";
+import { useSession } from "@Library/auth-client";
 
 const CATEGORIES = ["All", ...Object.values(BlogCategory).map((c) => c.charAt(0).toUpperCase() + c.slice(1))];
 
@@ -21,6 +23,9 @@ export default function BlogsPage() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [category, setCategory] = useState("All");
+    const [sharedBlogs, setSharedBlogs] = useState<BlogCardData[]>([]);
+    
+    const { data: session } = useSession();
 
     const fetchBlogs = useCallback(async () => {
         setLoading(true);
@@ -35,6 +40,35 @@ export default function BlogsPage() {
     useEffect(() => {
         fetchBlogs();
     }, [fetchBlogs]);
+
+    const fetchSharedBlogs = useCallback(async () => {
+        if (!session?.user) return;
+        try {
+            const res = await fetch("/api/blogs?shared=true");
+            const data = await res.json();
+            if (data.success) setSharedBlogs(data.data || []);
+        } catch {}
+    }, [session]);
+
+    useEffect(() => {
+        fetchSharedBlogs();
+    }, [fetchSharedBlogs]);
+
+    const handleRemoveAccess = async (blogId: string) => {
+        if (!confirm("Are you sure you want to remove this blog from your shared list?")) return;
+        
+        try {
+            const res = await fetch(`/api/blogs/access?blogId=${blogId}`, { method: "DELETE" });
+            const data = await res.json();
+            if (data.success) {
+                setSharedBlogs(prev => prev.filter(b => b._id !== blogId));
+            } else {
+                alert(data.error || "Failed to remove access");
+            }
+        } catch {
+            alert("Error removing access");
+        }
+    };
 
     const filtered = blogs.filter((b) => {
         const matchSearch =
@@ -164,6 +198,30 @@ export default function BlogsPage() {
                                         blog={blog}
                                     />
                                 ))}
+                            </div>
+                        )}
+                        {/* Shared Blogs (if any) */}
+                        {sharedBlogs.length > 0 && category === "All" && !search && (
+                            <div className="mt-16 border-t pt-12" style={{ borderColor: isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)" }}>
+                                <div className="flex items-center gap-3 mb-6">
+                                    <LockOpenIcon style={{ color: palette.accent }} />
+                                    <h2 className="text-2xl font-bold" style={{ color: palette.textPrimary }}>
+                                        Shared with me
+                                    </h2>
+                                </div>
+                                <p className="mb-6 text-sm" style={{ color: palette.textSecondary }}>
+                                    Private or unlisted blogs that you have been granted access to.
+                                </p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {sharedBlogs.map((blog) => (
+                                        <BlogCard
+                                            key={blog._id}
+                                            blog={blog}
+                                            showStatus
+                                            onRemove={() => handleRemoveAccess(blog._id)}
+                                        />
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </>

@@ -5,7 +5,6 @@
 
 "use client";
 
-import React from "react";
 import { createAuthClient } from "better-auth/react";
 import { twoFactorClient, usernameClient, multiSessionClient } from "better-auth/client/plugins";
 import { passkeyClient } from "@better-auth/passkey/client";
@@ -19,9 +18,11 @@ function resolveAuthBaseURL(): string {
     return Config.Origin;
 }
 
+const authClientPlugins = [usernameClient(), twoFactorClient(), passkeyClient(), phoneNumberClient(), multiSessionClient()];
+
 export const authClient = createAuthClient({
     baseURL: resolveAuthBaseURL(),
-    plugins: [usernameClient(), twoFactorClient(), passkeyClient(), phoneNumberClient(), multiSessionClient()]
+    plugins: authClientPlugins
 });
 
 // Export all auth methods for easy access
@@ -45,6 +46,20 @@ export const {
     passkey,
     phoneNumber
 } = authClient;
+
+export async function requestPasswordReset(input: { email: string; redirectTo?: string }) {
+    return authClient.$fetch("/request-password-reset", {
+        method: "POST",
+        body: input
+    });
+}
+
+export async function resetPassword(input: { newPassword: string; token?: string }) {
+    return authClient.$fetch("/reset-password", {
+        method: "POST",
+        body: input
+    });
+}
 
 export async function setPassword(input: { newPassword: string }) {
     return authClient.$fetch("/set-password", {
@@ -77,6 +92,8 @@ export function useAuth() {
         unlinkAccount,
         listAccounts,
         isUsernameAvailable,
+        requestPasswordReset,
+        resetPassword,
         twoFactor,
         passkey,
         phoneNumber

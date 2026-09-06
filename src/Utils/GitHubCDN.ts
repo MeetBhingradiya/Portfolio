@@ -26,6 +26,8 @@ const DEFAULT_PREFIX = "PrivateCloud";
 const DEFAULT_LIMIT_KB = 900_000; // ~900 MB
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
+import { logCDNAction, logError } from "@Utils/DiscordLogger";
+
 function isHistoryCompactionEnabled() {
     const raw = (process.env.CDN_COMPACT_HISTORY ?? "false").trim().toLowerCase();
     return raw !== "0" && raw !== "false" && raw !== "off";
@@ -135,6 +137,8 @@ async function compactRepoHistory(repo: string, reason: string): Promise<void> {
         const body = await updateRefRes.text();
         throw new Error(`CDN history compact failed (update ref) (${updateRefRes.status}): ${body}`);
     }
+
+    logCDNAction("history_compacted", { repo, reason });
 }
 
 // ---------------------------------------------------------------------------
@@ -273,6 +277,8 @@ async function createNextCDNRepo(existing: RepoInfo[]): Promise<RepoInfo> {
     // Invalidate cache so subsequent calls see the new repo
     _repoCache = null;
 
+    logCDNAction("repo_created", { repo: info.name });
+
     console.info(`[GitHub CDN] Successfully created ${info.fullName} — it will be used for future uploads.`);
     return info;
 }
@@ -319,7 +325,8 @@ export async function githubUpload(
     path: string, // path inside the repo, e.g. "uploads/avatars/abc123.png"
     contentBuffer: Buffer,
     commitMessage: string,
-    targetRepo?: string // optional override: use a specific repo name
+    targetRepo?: string, // optional override: use a specific repo name
+    sha?: string // optional: needed if overwriting an existing file
 ): Promise<GitHubUploadResult> {
     const tk = getToken();
     const ow = getOwner();
@@ -337,24 +344,41 @@ export async function githubUpload(
 
     const url = `${BASE}/repos/${ow}/${repoName}/contents/${encodeURIComponent(path).replace(/%2F/g, "/")}`;
 
+    const reqBody: Record<string, any> = {
+        message: commitMessage,
+        content: contentBuffer.toString("base64"),
+        branch: br
+    };
+    if (sha) reqBody.sha = sha;
+
     const res = await fetch(url, {
         method: "PUT",
         headers: ghHeaders(tk),
-        body: JSON.stringify({
-            message: commitMessage,
-            content: contentBuffer.toString("base64"),
-            branch: br
-        })
+        body: JSON.stringify(reqBody)
     });
 
     if (!res.ok) {
         const body = await res.text();
+        logError("GitHub CDN", {
+            operation: "upload",
+            repo: repoName,
+            path,
+            error: body,
+            statusCode: res.status
+        });
         throw new Error(`GitHub upload failed in "${repoName}" (${res.status}): ${body}`);
     }
 
     const data = await res.json();
 
     await compactRepoHistory(repoName, `upload ${path}`);
+
+    logCDNAction("upload", {
+        repo: repoName,
+        path,
+        sha: data.content.sha as string,
+        size: contentBuffer.length
+    });
 
     return {
         repo: repoName,
@@ -443,8 +467,17 @@ export async function githubDelete(repo: string, path: string, sha: string, comm
 
     if (!res.ok && res.status !== 404) {
         const body = await res.text();
+        logError("GitHub CDN", {
+            operation: "delete",
+            repo,
+            path,
+            error: body,
+            statusCode: res.status
+        });
         throw new Error(`GitHub delete failed in "${repo}" (${res.status}): ${body}`);
     }
+
+    logCDNAction("delete", { repo, path, sha });
 
     await compactRepoHistory(repo, `delete ${path}`);
 }
@@ -586,6 +619,14 @@ export async function githubRestoreFromCommit(
 
     const putData = await putRes.json();
     const { createHash } = await import("crypto");
+
+    logCDNAction("restore", {
+        repo,
+        path,
+        sha: putData.content.sha as string,
+        fromCommit: commitSha,
+        size: buffer.length
+    });
 
     return {
         newSha: putData.content.sha as string,

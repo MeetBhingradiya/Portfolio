@@ -5,12 +5,16 @@ export type ResumePresetIconKey = "code" | "preview" | "work" | "school" | "fold
 export interface IResumePreset extends Document {
     key: string;
     label: string;
-    title: string;
-    summary: string;
-    keywordsByCategory: Partial<Record<string, string[]>>;
-    includeAll: string[];
     iconKey: ResumePresetIconKey;
-    pinnedIdsByCategory: Partial<Record<string, string[]>>;
+    header: Record<string, unknown>;
+    selectedIdsByCategory: Partial<Record<string, string[]>>;
+    sectionOrder: string[];
+    itemOrderByCategory: Partial<Record<string, string[]>>;
+    style: Record<string, unknown>;
+    title?: string;
+    summary?: string;
+    pinnedIdsByCategory?: Partial<Record<string, string[]>>;
+    isPublished: boolean;
     createdBy: string;
     updatedBy: string;
     createdAt: Date;
@@ -28,16 +32,20 @@ const ResumePresetSchema = new Schema<IResumePreset>(
             index: true
         },
         label: { type: String, required: true, trim: true },
-        title: { type: String, required: true, trim: true },
+        title: { type: String, default: "", trim: true },
         summary: { type: String, default: "", trim: true },
-        keywordsByCategory: { type: Schema.Types.Mixed, default: {} },
-        includeAll: { type: [String], default: [] },
         iconKey: {
             type: String,
             enum: ["code", "preview", "work", "school", "folder"],
             default: "code"
         },
+        header: { type: Schema.Types.Mixed, default: {} },
+        selectedIdsByCategory: { type: Schema.Types.Mixed, default: {} },
+        sectionOrder: { type: [String], default: [] },
+        itemOrderByCategory: { type: Schema.Types.Mixed, default: {} },
+        style: { type: Schema.Types.Mixed, default: {} },
         pinnedIdsByCategory: { type: Schema.Types.Mixed, default: {} },
+        isPublished: { type: Boolean, default: false },
         createdBy: { type: String, default: "" },
         updatedBy: { type: String, default: "" }
     },
@@ -45,5 +53,4 @@ const ResumePresetSchema = new Schema<IResumePreset>(
 );
 
 export const ResumePreset =
-    (mongoose.models.ResumePreset as mongoose.Model<IResumePreset>) ||
-    mongoose.model<IResumePreset>("ResumePreset", ResumePresetSchema);
+    (mongoose.models.ResumePreset as mongoose.Model<IResumePreset>) || mongoose.model<IResumePreset>("ResumePreset", ResumePresetSchema);

@@ -7,8 +7,9 @@ import { headers } from "next/headers";
 import { createHash, randomBytes } from "crypto";
 import dbConnect from "@Utils/dbConnect";
 import { SupportTicket, TicketCounter } from "@Models/SupportTicket";
-import { getResolvedUser } from "@Utils/RolePermissions";
-import { sendEmail } from "@Utils/Email";
+import { getResolvedUser, hasPermission } from "@Utils/RolePermissions";
+import { getSession } from "@Library/auth";
+import { sendEmail, supportTicketCreatedEmail } from "@Utils/Email";
 
 async function nextTicketNumber(): Promise<number> {
     const counter = await TicketCounter.findByIdAndUpdate("ticket", { $inc: { seq: 1 } }, { new: true, upsert: true });
@@ -22,6 +23,17 @@ export async function GET(req: NextRequest) {
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+        // Auto-close inactive tickets (waiting_customer or resolved) after 2 days
+        const twoDaysAgo = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+        await SupportTicket.updateMany(
+            {
+                status: { $in: ["waiting_customer", "resolved"] },
+                lastRepliedAt: { $lt: twoDaysAgo },
+                isDeleted: false
+            },
+            { $set: { status: "closed" } }
+        );
+
         const q = req.nextUrl.searchParams;
         const page = Math.max(1, parseInt(q.get("page") || "1"));
         const limit = Math.min(50, parseInt(q.get("limit") || "20"));
@@ -31,13 +43,17 @@ export async function GET(req: NextRequest) {
 
         const query: any = { isDeleted: false };
 
-        // Regular users only see their own tickets
-        if (!user.isEmployee) {
+        // Check if user can view all tickets
+        const canViewAll = await hasPermission(req.headers, "support.tickets.view");
+
+        // Regular users only see their own tickets unless they have view permission
+        if (!canViewAll && !user.isEmployee) {
             query.userId = user.userId;
-        } else {
-            // Employees can filter by assignedTo=me
+        } else if (!canViewAll && user.isEmployee) {
+            // Employees without permission see their own + assigned tickets
             const assignedMe = q.get("assignedMe") === "true";
             if (assignedMe) query.assignedTo = user.userId;
+            else query.userId = user.userId;
         }
 
         if (status) query.status = status;
@@ -117,11 +133,23 @@ export async function POST(req: NextRequest) {
         });
 
         try {
+            const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://www.meetbhingradiya.in";
+            const isGuest = ticket.userId.startsWith("guest:");
+            const lookupUrl = isGuest 
+                ? `${baseUrl}/support/tickets/lookup?ticketId=${ticketId}`
+                : `${baseUrl}/support/tickets/${ticketId}`;
+
             await sendEmail({
                 to: email,
                 subject: `Support Ticket ${ticketId} Created`,
-                html: `<p>Your support ticket <strong>${ticketId}</strong> was created.</p><p>Ticket secret code: <strong>${accessSecret}</strong></p><p>Keep this secret code safe. You need it with OTP for secure ticket access.</p>`,
-                text: `Ticket ${ticketId} created. Secret code: ${accessSecret}. Keep this code safe.`
+                html: supportTicketCreatedEmail({
+                    name,
+                    ticketId,
+                    lookupUrl,
+                    isGuest,
+                    secretCode: isGuest ? accessSecret : undefined
+                }),
+                text: `Ticket ${ticketId} created. ${isGuest ? `Secret code: ${accessSecret}. ` : ''}Track it here: ${lookupUrl}`
             });
         } catch {
             // Non-blocking: ticket is already created.

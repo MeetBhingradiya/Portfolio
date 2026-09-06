@@ -6,7 +6,10 @@
 import React, { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useDesignTheme } from "@Hooks/useDesignTheme";
+import { useAuth } from "@Library/auth-client";
+import { useAdminSession } from "@Hooks/useAdminSession";
 import { ArrowBack, Send, Circle, Star, StarOutline, Lock, LockOpen, Person, SupportAgent, AdminPanelSettings } from "@mui/icons-material";
 
 interface Message {
@@ -51,7 +54,9 @@ const ROLE_ICON: Record<string, React.ReactNode> = {
     admin: <AdminPanelSettings style={{ fontSize: 14 }} />
 };
 
-export default function TicketDetailPage({ params }: { params: { id: string } }) {
+export default function TicketDetailPage({ params }: { params?: { id?: string } }) {
+    const routeParams = useParams<{ id: string }>();
+    const ticketId = (routeParams?.id as string) || (typeof params?.id === "string" ? params.id : "");
     const { designTheme, palette, actualColorMode } = useDesignTheme();
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
@@ -61,8 +66,12 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     const [reply, setReply] = useState("");
     const [sending, setSending] = useState(false);
     const [isInternal, setIsInternal] = useState(false);
+    const { user } = useAuth();
+    const { hasPermission, hasRole, session: adminSession } = useAdminSession();
+    const canManage = adminSession?.isAdmin || hasRole("employee") || hasRole("admin") || hasPermission("support.tickets.manage");
     const [rating, setRating] = useState(0);
     const [error, setError] = useState("");
+    const [accessError, setAccessError] = useState("");
     const [secretCode, setSecretCode] = useState("");
     const [otp, setOtp] = useState("");
     const [otpSent, setOtpSent] = useState(false);
@@ -75,12 +84,13 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     const br = isApple ? 20 : 24;
 
     const fetchTicket = async () => {
+        if (!ticketId) return;
         setLoading(true);
         setError("");
         try {
             const headers: Record<string, string> = {};
             if (accessToken) headers["x-ticket-access-token"] = accessToken;
-            const res = await fetch(`/api/support/tickets/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/${ticketId}`, {
                 headers
             });
             const json = await res.json();
@@ -97,23 +107,28 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     };
 
     useEffect(() => {
-        const token = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-token:${params.id}`) || "" : "";
+        if (!ticketId) return;
+        const token = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-token:${ticketId}`) || "" : "";
         if (token) setAccessToken(token);
-        const savedSecret = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-secret:${params.id}`) || "" : "";
+        const savedSecret = typeof window !== "undefined" ? localStorage.getItem(`support-ticket-secret:${ticketId}`) || "" : "";
         if (savedSecret) setSecretCode(savedSecret);
-    }, [params.id]);
+    }, [ticketId]);
+
     useEffect(() => {
-        fetchTicket();
-    }, [params.id, accessToken]);
+        if (ticketId) {
+            fetchTicket();
+        }
+    }, [ticketId, accessToken]);
+
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [ticket?.messages]);
 
     const handleSendReply = async () => {
-        if (!reply.trim()) return;
+        if (!reply.trim() || !ticketId) return;
         setSending(true);
         try {
-            const res = await fetch(`/api/support/tickets/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/${ticketId}`, {
                 method: "PATCH",
                 headers: {
                     "Content-Type": "application/json",
@@ -135,8 +150,9 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     };
 
     const handleRating = async (r: number) => {
+        if (!ticketId) return;
         setRating(r);
-        await fetch(`/api/support/tickets/${params.id}`, {
+        await fetch(`/api/support/tickets/${ticketId}`, {
             method: "PATCH",
             headers: {
                 "Content-Type": "application/json",
@@ -148,11 +164,11 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
     };
 
     const requestOtp = async () => {
-        if (!secretCode.trim()) return;
+        if (!secretCode.trim() || !ticketId) return;
         setAccessLoading(true);
-        setError("");
+        setAccessError("");
         try {
-            const res = await fetch(`/api/support/tickets/access/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/access/${ticketId}`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ secretCode })
@@ -161,20 +177,20 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
             if (json.success) {
                 setOtpSent(true);
             } else {
-                setError(json.error || "Unable to send OTP.");
+                setAccessError(json.error || "Unable to send OTP.");
             }
         } catch {
-            setError("Network error. Please try again.");
+            setAccessError("Network error. Please try again.");
         }
         setAccessLoading(false);
     };
 
     const verifyOtp = async () => {
-        if (!secretCode.trim() || !otp.trim()) return;
+        if (!secretCode.trim() || !otp.trim() || !ticketId) return;
         setAccessLoading(true);
-        setError("");
+        setAccessError("");
         try {
-            const res = await fetch(`/api/support/tickets/access/${params.id}`, {
+            const res = await fetch(`/api/support/tickets/access/${ticketId}`, {
                 method: "PATCH",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ secretCode, otp })
@@ -183,14 +199,14 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
             if (json.success && json.data?.accessToken) {
                 setAccessToken(json.data.accessToken);
                 if (typeof window !== "undefined") {
-                    localStorage.setItem(`support-ticket-token:${params.id}`, json.data.accessToken);
+                    localStorage.setItem(`support-ticket-token:${ticketId}`, json.data.accessToken);
                 }
                 setTicket(json.data.ticket);
             } else {
-                setError(json.error || "OTP verification failed.");
+                setAccessError(json.error || "OTP verification failed.");
             }
         } catch {
-            setError("Network error. Please try again.");
+            setAccessError("Network error. Please try again.");
         }
         setAccessLoading(false);
     };
@@ -237,6 +253,11 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                             style={{ color: palette.textPrimary }}>
                             Access this ticket with secret code + OTP
                         </p>
+                        {!!accessError && (
+                            <p className="text-xs" style={{ color: "#FF3B30" }}>
+                                {accessError}
+                            </p>
+                        )}
                         <input
                             value={secretCode}
                             onChange={(e) => setSecretCode(e.target.value)}
@@ -355,6 +376,60 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                         </div>
                     </div>
                 </div>
+
+                {/* Admin/Employee Controls */}
+                {canManage && (
+                    <div
+                        className="p-4 rounded-2xl"
+                        style={{
+                            background: isDark ? "rgba(255, 45, 85, 0.05)" : "rgba(255, 45, 85, 0.02)",
+                            border: `1px solid rgba(255, 45, 85, 0.2)`
+                        }}>
+                        <p className="text-sm font-bold mb-3" style={{ color: "#FF2D55" }}>
+                            Admin Controls
+                        </p>
+                        <div className="flex gap-2 flex-wrap">
+                            <select
+                                value={ticket.status}
+                                onChange={async (e) => {
+                                    const newStatus = e.target.value;
+                                    const res = await fetch(`/api/support/tickets/${ticketId}`, {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ status: newStatus })
+                                    });
+                                    if (res.ok) setTicket({ ...ticket, status: newStatus });
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-sm bg-transparent outline-none cursor-pointer"
+                                style={{ border, color: palette.textPrimary }}>
+                                <option value="open">Open</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="waiting_customer">Waiting Customer</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                            
+                            <select
+                                value={ticket.priority}
+                                onChange={async (e) => {
+                                    const newPri = e.target.value;
+                                    const res = await fetch(`/api/support/tickets/${ticketId}`, {
+                                        method: "PATCH",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ priority: newPri })
+                                    });
+                                    if (res.ok) setTicket({ ...ticket, priority: newPri });
+                                }}
+                                className="px-3 py-1.5 rounded-lg text-sm bg-transparent outline-none cursor-pointer"
+                                style={{ border, color: palette.textPrimary }}>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="urgent">Urgent</option>
+                            </select>
+                        </div>
+                    </div>
+                )}
 
                 {/* Messages thread */}
                 <div
@@ -506,6 +581,19 @@ export default function TicketDetailPage({ params }: { params: { id: string } })
                                 }}>
                                 {error}
                             </p>
+                        )}
+                        {canManage && (
+                            <div className="flex items-center gap-2 px-1 pb-1">
+                                <input
+                                    type="checkbox"
+                                    checked={isInternal}
+                                    onChange={(e) => setIsInternal(e.target.checked)}
+                                    className="accent-orange-500"
+                                />
+                                <span className="text-sm font-semibold" style={{ color: palette.textSecondary }}>
+                                    Internal Reply (Hidden from customer)
+                                </span>
+                            </div>
                         )}
                         <textarea
                             rows={4}

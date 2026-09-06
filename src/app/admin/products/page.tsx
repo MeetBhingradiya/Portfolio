@@ -29,7 +29,7 @@ import { CustomSelect } from "@Components/Atoms/CustomSelect";
 /* ── Types ─────────────────────────────────────────────────────────────── */
 interface Variant {
     variantId: string;
-    label: string;
+    name: string;
     price: number;
     currency: string;
     stock: number;
@@ -46,10 +46,12 @@ interface Product {
     visibility: string;
     tagline: string;
     description: string;
+    category: string;
     icon?: string;
     banner?: string;
     screenshots?: string[];
     videoUrl?: string;
+    downloadUrl?: string;
     variants: Variant[];
 }
 
@@ -95,14 +97,14 @@ function fmtPrice(price: number, currency: string) {
     return `${sym}${(price / 100).toFixed(2)}`;
 }
 
-type FilterStatus = "all" | "active" | "draft" | "archived";
+type FilterStatus = "all" | "active" | "inactive" | "archived";
 type ViewMode = "grid" | "list";
 type PanelTab = "info" | "media" | "variants";
 
 function emptyVariant(id = `v${Date.now()}`): Variant {
     return {
         variantId: id,
-        label: "Standard",
+        name: "Standard",
         price: 0,
         currency: "USD",
         stock: 0,
@@ -115,14 +117,16 @@ function emptyForm() {
         name: "",
         slug: "",
         type: "digital",
-        status: "draft",
+        status: "inactive",
         visibility: "public",
         tagline: "",
         description: "",
+        category: "EAs",
         icon: "",
         banner: "",
         screenshots: [] as string[],
         videoUrl: "",
+        downloadUrl: "",
         variants: [emptyVariant("v1")]
     };
 }
@@ -206,7 +210,7 @@ export default function AdminProductsPage() {
         () => ({
             all: list.products.length,
             active: list.products.filter((p) => p.status === "active").length,
-            draft: list.products.filter((p) => p.status === "draft").length,
+            inactive: list.products.filter((p) => p.status === "inactive").length,
             archived: list.products.filter((p) => p.status === "archived").length
         }),
         [list.products]
@@ -243,14 +247,16 @@ export default function AdminProductsPage() {
                 visibility: p.visibility ?? "public",
                 tagline: p.tagline ?? "",
                 description: p.description ?? "",
+                category: p.category ?? "EAs",
                 icon: p.icon ?? "",
                 banner: p.banner ?? "",
                 screenshots: p.screenshots ?? [],
                 videoUrl: p.videoUrl ?? "",
+                downloadUrl: p.downloadUrl ?? "",
                 variants: p.variants.length
                     ? p.variants.map((v) => ({
                           variantId: v.variantId,
-                          label: v.label || (v as any).name || "Standard",
+                          name: v.name || (v as any).label || "Standard",
                           price: v.price,
                           currency: v.currency,
                           stock: v.stock ?? 0,
@@ -259,21 +265,28 @@ export default function AdminProductsPage() {
                       }))
                     : [emptyVariant()]
             },
-            editId: p._id,
+            editId: p.productId,
             tab: "info",
             open: true
         });
 
     const save = async () => {
         patchPanel({ saving: true });
+        
+        // Ensure description is not completely empty to satisfy schema
+        const payloadToSave = {
+            ...panel.form,
+            description: panel.form.description.trim() ? panel.form.description : "No description provided."
+        };
+
         const method = panel.editId ? "PATCH" : "POST";
         const url = panel.editId ? `/api/shop/products/${panel.editId}` : "/api/shop/products";
         const payload = {
-            ...panel.form,
+            ...payloadToSave,
             variants: panel.form.variants.map((v) => ({
                 ...v,
-                name: v.label,
-                label: v.label
+                name: v.name || (v as any).label || "Standard",
+                label: v.name || (v as any).label || "Standard"
             }))
         };
         await fetch(url, {
@@ -292,7 +305,7 @@ export default function AdminProductsPage() {
     };
 
     const quickStatus = async (p: Product, status: string) => {
-        await fetch(`/api/shop/products/${p._id}`, {
+        await fetch(`/api/shop/products/${p.productId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status })
@@ -343,7 +356,7 @@ export default function AdminProductsPage() {
             .replace(/^-|-$/g, "");
 
     /* ── Status badge helper ─────────────────────────────────────────────── */
-    const statusColor = (s: string) => (s === "active" ? "#34C759" : s === "draft" ? "#FF9500" : "#8E8E93");
+    const statusColor = (s: string) => (s === "active" ? "#34C759" : s === "inactive" ? "#FF9500" : "#8E8E93");
     const visibilityIcon = (v: string) => (v === "private" ? <VisibilityOff fontSize="small" /> : <Visibility fontSize="small" />);
 
     /* ── Price range helper ──────────────────────────────────────────────── */
@@ -363,7 +376,7 @@ export default function AdminProductsPage() {
     const FILTER_TABS: { key: FilterStatus; label: string }[] = [
         { key: "all", label: "All" },
         { key: "active", label: "Active" },
-        { key: "draft", label: "Draft" },
+        { key: "inactive", label: "Inactive" },
         { key: "archived", label: "Archived" }
     ];
 
@@ -655,18 +668,18 @@ export default function AdminProductsPage() {
                                                         Publish
                                                     </motion.button>
                                                 )}
-                                                {p.status !== "draft" && (
+                                                {p.status !== "inactive" && (
                                                     <motion.button
                                                         whileTap={{
                                                             scale: 0.9
                                                         }}
-                                                        onClick={() => quickStatus(p, "draft")}
+                                                        onClick={() => quickStatus(p, "inactive")}
                                                         className="text-xs px-2 py-1 rounded-lg font-bold"
                                                         style={{
                                                             background: "rgba(255,149,0,0.12)",
                                                             color: "#FF9500"
                                                         }}>
-                                                        Draft
+                                                        Set Inactive
                                                     </motion.button>
                                                 )}
                                                 <motion.button
@@ -680,7 +693,7 @@ export default function AdminProductsPage() {
                                                 </motion.button>
                                                 <motion.button
                                                     whileTap={{ scale: 0.9 }}
-                                                    onClick={() => deleteProduct(p._id)}
+                                                    onClick={() => deleteProduct(p.productId)}
                                                     className="p-1.5 rounded-lg"
                                                     style={{
                                                         color: "#FF3B30"
@@ -789,7 +802,7 @@ export default function AdminProductsPage() {
                                         </motion.button>
                                         <motion.button
                                             whileTap={{ scale: 0.9 }}
-                                            onClick={() => deleteProduct(p._id)}
+                                            onClick={() => deleteProduct(p.productId)}
                                             className="p-1.5 rounded-lg"
                                             style={{ color: "#FF3B30" }}>
                                             <Delete fontSize="small" />
@@ -982,12 +995,16 @@ export default function AdminProductsPage() {
                                                     }
                                                     options={[
                                                         {
-                                                            value: "draft",
-                                                            label: "Draft"
+                                                            value: "inactive",
+                                                            label: "Inactive"
                                                         },
                                                         {
                                                             value: "active",
                                                             label: "Active"
+                                                        },
+                                                        {
+                                                            value: "coming_soon",
+                                                            label: "Coming Soon"
                                                         },
                                                         {
                                                             value: "archived",
@@ -1114,29 +1131,54 @@ export default function AdminProductsPage() {
                                                     }
                                                 />
                                             </div>
-                                            {/* Video */}
-                                            <div>
-                                                <p
-                                                    className="text-xs font-bold mb-2 uppercase tracking-wider"
-                                                    style={{
-                                                        color: palette.textSecondary
-                                                    }}>
-                                                    Product Video
-                                                </p>
-                                                <input
-                                                    className={inputClass}
-                                                    style={inputStyle}
-                                                    placeholder="Video URL (YouTube / direct)"
-                                                    value={panel.form.videoUrl}
-                                                    onChange={(e) =>
-                                                        patchPanel({
-                                                            form: {
-                                                                ...panel.form,
-                                                                videoUrl: e.target.value
-                                                            }
-                                                        })
-                                                    }
-                                                />
+                                            {/* Video & Download */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div>
+                                                    <p
+                                                        className="text-xs font-bold mb-2 uppercase tracking-wider"
+                                                        style={{
+                                                            color: palette.textSecondary
+                                                        }}>
+                                                        Product Video
+                                                    </p>
+                                                    <input
+                                                        className={inputClass}
+                                                        style={inputStyle}
+                                                        placeholder="Video URL (YouTube / direct)"
+                                                        value={panel.form.videoUrl}
+                                                        onChange={(e) =>
+                                                            patchPanel({
+                                                                form: {
+                                                                    ...panel.form,
+                                                                    videoUrl: e.target.value
+                                                                }
+                                                            })
+                                                        }
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p
+                                                        className="text-xs font-bold mb-2 uppercase tracking-wider"
+                                                        style={{
+                                                            color: palette.textSecondary
+                                                        }}>
+                                                        Download URL (File)
+                                                    </p>
+                                                    <input
+                                                        className={inputClass}
+                                                        style={inputStyle}
+                                                        placeholder="e.g. APEX_LiquidityHunter.ex5"
+                                                        value={panel.form.downloadUrl}
+                                                        onChange={(e) =>
+                                                            patchPanel({
+                                                                form: {
+                                                                    ...panel.form,
+                                                                    downloadUrl: e.target.value
+                                                                }
+                                                            })
+                                                        }
+                                                    />
+                                                </div>
                                             </div>
                                             {/* Screenshots */}
                                             <div>
@@ -1246,11 +1288,11 @@ export default function AdminProductsPage() {
                                                         <input
                                                             className={inputClass}
                                                             style={inputStyle}
-                                                            placeholder="Label (e.g. Pro, Monthly)"
-                                                            value={v.label}
+                                                            placeholder="Variant Name (e.g. Pro, Monthly)"
+                                                            value={v.name}
                                                             onChange={(e) =>
                                                                 patchVariant(i, {
-                                                                    label: e.target.value
+                                                                    name: e.target.value
                                                                 })
                                                             }
                                                         />

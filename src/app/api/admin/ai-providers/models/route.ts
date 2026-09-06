@@ -66,6 +66,22 @@ async function fetchPerplexityModels(apiKey: string): Promise<string[]> {
         .sort();
 }
 
+async function fetchOpenRouterModels(apiKey: string): Promise<string[]> {
+    const url = "https://openrouter.ai/api/v1/models";
+    const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        cache: "no-store"
+    });
+    if (!res.ok) throw new Error(`OpenRouter API ${res.status}: ${await res.text()}`);
+    const json = await res.json();
+
+    const items: { id?: string }[] = Array.isArray(json?.data) ? json.data : [];
+    return items
+        .map((m) => (m.id ?? "").trim())
+        .filter(Boolean)
+        .sort();
+}
+
 // ─── Route ────────────────────────────────────────────────────────────────────
 
 export async function GET(req: NextRequest) {
@@ -87,7 +103,11 @@ export async function GET(req: NextRequest) {
 
         const settings = await getAIProviderSettings();
         const config = settings.Providers[provider];
-        const apiKey = decryptStoredSecret(config?.apiKey || "");
+        let apiKey = decryptStoredSecret(config?.apiKey || "");
+
+        // Aggressively clean the API key
+        apiKey = apiKey.replace(/['"\s\x00-\x1F\x7F-\x9F]/g, "").trim();
+        if (apiKey === "undefined" || apiKey === "null") apiKey = "";
 
         if (!apiKey) {
             return NextResponse.json(
@@ -108,6 +128,8 @@ export async function GET(req: NextRequest) {
             models = await fetchGoogleModels(apiKey);
         } else if (provider === "perplexity") {
             models = await fetchPerplexityModels(apiKey);
+        } else if (provider === "openrouter") {
+            models = await fetchOpenRouterModels(apiKey);
         }
 
         return NextResponse.json({ success: true, models });

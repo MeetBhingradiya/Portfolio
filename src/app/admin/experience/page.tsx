@@ -67,8 +67,7 @@ const fields: FieldDef[] = [
         key: "Published",
         label: "Published (visible on portfolio)",
         type: "boolean"
-    },
-    { key: "Order", label: "Order", type: "number" }
+    }
 ];
 
 export default function ExperiencePage() {
@@ -84,7 +83,6 @@ export default function ExperiencePage() {
                 LocationType: "onsite",
                 CurrentlyWorking: false,
                 Published: true,
-                Order: 0,
                 TechStack: [],
                 Achievements: [],
                 Responsibilities: []

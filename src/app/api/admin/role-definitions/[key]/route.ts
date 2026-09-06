@@ -9,7 +9,7 @@ import { NextRequest, NextResponse } from "next/server";
 import dbConnect from "@Utils/dbConnect";
 import { RoleDefinition } from "@Models/RoleDefinition";
 import { permissionError, requirePermission } from "@Library/adminApiMiddleware";
-import { ALL_PERMISSION_KEYS } from "@Config/Permissions";
+import { isRolePermissionKey, normalizePermissionKeys } from "@Config/Permissions";
 
 type Params = { params: Promise<{ key: string }> };
 
@@ -22,7 +22,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
 
         const role = await RoleDefinition.findOne({ key }).lean();
         if (!role) return NextResponse.json({ success: false, error: "Role not found." }, { status: 404 });
-        return NextResponse.json({ success: true, role });
+        return NextResponse.json({
+            success: true,
+            role: {
+                ...role,
+                permissions: normalizePermissionKeys(role.permissions ?? [])
+            }
+        });
     } catch (err: any) {
         const status = err.message.includes("Forbidden") ? 403 : err.message.includes("Unauthorized") ? 401 : 500;
         return NextResponse.json({ success: false, error: err.message }, { status });
@@ -40,7 +46,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
         // Validate permissions if provided
         if (body.permissions) {
-            const invalid = body.permissions.filter((p: string) => !ALL_PERMISSION_KEYS.includes(p));
+            const invalid = body.permissions.filter((p: string) => !isRolePermissionKey(p));
             if (invalid.length) {
                 return NextResponse.json(
                     {
@@ -54,6 +60,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
         // key cannot be changed via PATCH
         const { key: _, isBuiltin: __, ...safe } = body;
+        if (safe.permissions) {
+            safe.permissions = normalizePermissionKeys(safe.permissions);
+        }
 
         const role = await RoleDefinition.findOneAndUpdate({ key }, { $set: safe }, { new: true });
         if (!role) return NextResponse.json({ success: false, error: "Role not found." }, { status: 404 });

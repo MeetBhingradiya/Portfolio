@@ -111,7 +111,7 @@ const statCards: StatCard[] = [
     {
         label: "Immich Access",
         apiPath: "/api/admin/immich-whitelist",
-        href: "/admin/immich-access",
+        href: "/admin/sso-apps",
         icon: <PhotoCamera />,
         color: "#10B981",
         requiredPermissions: ["admin.site.settings"]
@@ -134,7 +134,7 @@ const quickActions: QuickAction[] = [
     },
     {
         label: "Immich Access",
-        href: "/admin/immich-access",
+        href: "/admin/sso-apps",
         icon: <PhotoCamera fontSize="small" />,
         requiredPermissions: ["admin.site.settings"]
     },
@@ -247,7 +247,7 @@ function StatTile({ card, count }: { card: StatCard; count: number | null }) {
 
 export default function AdminDashboard() {
     const { palette, actualColorMode, designTheme } = useDesignTheme();
-    const { session, loading } = useAdminSession();
+    const { session, loading, hasAnyPermission } = useAdminSession();
     const isDark = actualColorMode === "dark";
     const isApple = designTheme === "apple";
 
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
             if (!requiredPermissions || requiredPermissions.length === 0) return true;
             if (!session) return false;
             if (session.isAdmin) return true;
-            return requiredPermissions.some((perm) => session.permissions.includes(perm));
+            return hasAnyPermission(requiredPermissions);
         },
         [session]
     );

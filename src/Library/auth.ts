@@ -4,15 +4,14 @@
  */
 
 import { betterAuth } from "better-auth";
-import { GoogleOptions } from "better-auth/social-providers";
+import type { GoogleOptions } from "better-auth/social-providers";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { twoFactor } from "better-auth/plugins/two-factor";
 import { username, multiSession } from "better-auth/plugins";
 import { phoneNumber } from "better-auth/plugins/phone-number";
 import { passkey } from "@better-auth/passkey";
 import { MongoClient } from "mongodb";
-import { Config } from "@Config/Client";
-import { sendEmail, loginNotificationEmail, verificationEmailTemplate, deleteAccountVerificationEmail } from "@Utils/Email";
+import { sendEmail, loginNotificationEmail, verificationEmailTemplate, passwordResetEmail, deleteAccountVerificationEmail, VerificationEmailforChangeEmail } from "@Utils/Email";
 import { sendPhoneOtpSms } from "@Utils/SMS";
 import { UserAgent } from "@Library/UserAgent";
 import { IPData } from "@Utils/IPData";
@@ -24,6 +23,14 @@ import { getPrimaryOrigin, getTrustedOrigins } from "@Utils/origin";
 
 const verificationEmailRateLimitStore = new Map<string, number[]>();
 const E164_PHONE_REGEX = /^\+[1-9]\d{7,14}$/;
+const PORTFOLIO_NAME = "Meet Bhingradiya Portfolio";
+const PORTFOLIO_ISSUER = "Meet Bhingradiya's Portfolio";
+const GOOGLE_USERINFO_ENDPOINT = "https://www.googleapis.com/oauth2/v3/userinfo";
+const DEFAULT_EMAIL_VERIFICATION_WINDOW_MINUTES = 720;
+const DEFAULT_EMAIL_VERIFICATION_MAX_PER_WINDOW = 3;
+const VERIFICATION_EMAIL_SUBJECT = `Verify your email - ${PORTFOLIO_NAME}`;
+const CHANGE_EMAIL_SUBJECT = `Confirm your new email - ${PORTFOLIO_NAME}`;
+const DELETE_ACCOUNT_SUBJECT = `Confirm account deletion - ${PORTFOLIO_NAME}`;
 const primaryOrigin = getPrimaryOrigin();
 const trustedOrigins = getTrustedOrigins();
 const passkeyRpId = (() => {
@@ -65,8 +72,8 @@ type EmailSecurityPolicies = {
 
 function getEmailPoliciesFromEnv(): EmailSecurityPolicies {
     return {
-        verificationRateLimitWindowMinutes: Number(process.env.EMAIL_VERIFICATION_WINDOW_MINUTES || "720"),
-        verificationRateLimitMax: Number(process.env.EMAIL_VERIFICATION_MAX_PER_WINDOW || "3")
+        verificationRateLimitWindowMinutes: Number(process.env.EMAIL_VERIFICATION_WINDOW_MINUTES || String(DEFAULT_EMAIL_VERIFICATION_WINDOW_MINUTES)),
+        verificationRateLimitMax: Number(process.env.EMAIL_VERIFICATION_MAX_PER_WINDOW || String(DEFAULT_EMAIL_VERIFICATION_MAX_PER_WINDOW))
     };
 }
 
@@ -76,8 +83,8 @@ async function getEmailSecurityPolicies(): Promise<EmailSecurityPolicies> {
         const settings = await getSiteSettings();
         return {
             verificationRateLimitWindowMinutes:
-                settings.emailPolicies?.verificationRateLimitWindowMinutes ?? fallback.verificationRateLimitWindowMinutes,
-            verificationRateLimitMax: settings.emailPolicies?.verificationRateLimitMax ?? fallback.verificationRateLimitMax
+                settings.Limits?.Email_Verification.Limit_Window_in_Minutes ?? fallback.verificationRateLimitWindowMinutes,
+            verificationRateLimitMax: settings.Limits?.Email_Verification.Limit_Max_Attempts ?? fallback.verificationRateLimitMax
         };
     } catch {
         return fallback;
@@ -146,6 +153,10 @@ async function resolveLocation(ipAddress: string): Promise<string> {
     return parts.length ? parts.join(", ") : "Unknown location";
 }
 
+async function sendTemplatedEmail(input: { to: string; subject: string; html: string }) {
+    await sendEmail(input);
+}
+
 async function sendLoginNotificationEmail(input: {
     email: string;
     name?: string;
@@ -156,7 +167,7 @@ async function sendLoginNotificationEmail(input: {
     const location = await resolveLocation(input.ipAddress);
     const device = getDeviceContext(input.userAgent);
 
-    await sendEmail({
+    await sendTemplatedEmail({
         to: input.email,
         subject: `New login detected on ${device.deviceType}`,
         html: loginNotificationEmail({
@@ -176,43 +187,80 @@ async function sendLoginNotificationEmail(input: {
 const isBuildTime = process.env.NEXT_PHASE === "phase-production-build";
 const mongoUri = getPrimaryMongoUri();
 
+declare global {
+    var _authMongoClient: MongoClient | undefined;
+}
+
 // MongoDB client setup
 let dbAdapter: any = undefined;
 if (!isBuildTime && mongoUri) {
     try {
-        const client = new MongoClient(mongoUri);
-        const db = client.db(SConfig.Database.Name);
-
-        // Compatibility migration for older account documents that used `user_id`.
-        // Better Auth credential sign-in queries by `userId`.
-        db.collection("account")
-            .updateMany(
-                {
-                    userId: { $exists: false },
-                    user_id: { $exists: true }
-                },
-                [
-                    {
-                        $set: {
-                            userId: "$user_id"
-                        }
-                    }
-                ]
-            )
-            .then((res) => {
-                if (res.modifiedCount > 0) {
-                    console.log(`[Auth] Migrated ${res.modifiedCount} legacy account documents to userId.`);
-                }
-            })
-            .catch((error) => {
-                console.warn("[Auth] Legacy account migration skipped:", error);
-            });
-
-        // Disable transactions for standalone MongoDB (local dev).
-        // Transactions require a replica set; Atlas in production supports them.
         const isLocalMongo = isLocalMongoUri(mongoUri);
-        dbAdapter = mongodbAdapter(db, { client, transaction: !isLocalMongo });
-        console.log("✅ MongoDB adapter initialized successfully");
+
+        const createAdapter = (forceNew = false) => {
+            if (forceNew || !global._authMongoClient) {
+                if (global._authMongoClient) {
+                    global._authMongoClient.close().catch(() => {});
+                }
+                global._authMongoClient = new MongoClient(mongoUri, {
+                    maxPoolSize: 2,
+                    // Rely on default driver timeouts for better serverless resilience
+                });
+
+                const client = global._authMongoClient;
+                const db = client.db(SConfig.Database.Name);
+
+                // Compatibility migration for older account documents
+                db.collection("account")
+                    .updateMany(
+                        { userId: { $exists: false }, user_id: { $exists: true } },
+                        [{ $set: { userId: "$user_id" } }]
+                    )
+                    .then((res) => {
+                        if (res.modifiedCount > 0) {
+                            console.log(`[Auth] Migrated ${res.modifiedCount} legacy account documents.`);
+                        }
+                    })
+                    .catch((error) => {
+                        console.warn("[Auth] Legacy account migration skipped:", error);
+                    });
+            }
+
+            const client = global._authMongoClient;
+            const db = client.db(SConfig.Database.Name);
+            return mongodbAdapter(db, { client, transaction: !isLocalMongo });
+        };
+
+        let currentAdapterFactory = createAdapter();
+
+        dbAdapter = (options: any) => {
+            let rawAdapterInstance = currentAdapterFactory(options);
+
+            return new Proxy(rawAdapterInstance, {
+                get(target, prop) {
+                    const originalMethod = (rawAdapterInstance as any)[prop];
+                    if (typeof originalMethod === "function") {
+                        return async (...args: any[]) => {
+                            try {
+                                return await originalMethod.apply(rawAdapterInstance, args);
+                            } catch (err: any) {
+                                if (err?.name === "MongoTopologyClosedError" || err?.message?.includes("Topology is closed")) {
+                                    console.warn("[Auth DB] Topology closed. Reconnecting and retrying...");
+                                    currentAdapterFactory = createAdapter(true);
+                                    rawAdapterInstance = currentAdapterFactory(options);
+                                    const newMethod = (rawAdapterInstance as any)[prop];
+                                    return await newMethod.apply(rawAdapterInstance, args);
+                                }
+                                throw err;
+                            }
+                        };
+                    }
+                    return originalMethod;
+                }
+            });
+        };
+
+        console.log("✅ MongoDB resilient adapter initialized successfully");
     } catch (error) {
         console.error("❌ Failed to initialize MongoDB adapter:", error);
         throw new Error("Database connection failed. Please ensure MongoDB is running.");
@@ -221,13 +269,142 @@ if (!isBuildTime && mongoUri) {
     console.warn("⚠️ MongoDB environment variable not set (expected MONGODB_<number>)");
 }
 
+function createGoogleProvider(): GoogleOptions | undefined {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+        return undefined;
+    }
+
+    return {
+        prompt: "select_account",
+        clientId,
+        clientSecret,
+        scope: ["email", "profile", "openid"],
+        // Override getUserInfo to always fetch from the userinfo endpoint.
+        // Decoding the id_token alone omits `picture` in some flows.
+        getUserInfo: async (token) => {
+            let profile: Record<string, any> | null = null;
+
+            if (token.accessToken) {
+                try {
+                    const res = await fetch(GOOGLE_USERINFO_ENDPOINT, {
+                        headers: {
+                            Authorization: `Bearer ${token.accessToken}`
+                        }
+                    });
+                    if (res.ok) profile = await res.json();
+                } catch (error) {
+                    console.error("[Google] Failed to fetch userinfo:", error);
+                }
+            }
+
+            if (!profile && token.idToken) {
+                const { decodeJwt } = await import("jose");
+                profile = decodeJwt(token.idToken) as Record<string, any>;
+            }
+
+            if (!profile) return null;
+
+            const picture: string | null = profile.picture ?? null;
+            return {
+                user: {
+                    id: profile.sub as string,
+                    name: profile.name as string,
+                    email: profile.email as string,
+                    image: picture ?? undefined,
+                    emailVerified: profile.email_verified as boolean,
+                    googleAvatar: picture
+                },
+                data: profile
+            };
+        }
+    };
+}
+
+function createGitHubProvider() {
+    const clientId = process.env.GITHUB_CLIENT_ID;
+    const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+        return undefined;
+    }
+
+    return {
+        clientId,
+        clientSecret,
+        scope: ["user:email"],
+        mapProfileToUser: (profile: { name?: string; login?: string; email?: string; avatar_url?: string | null }) => ({
+            name: profile.name || profile.login,
+            email: profile.email,
+            image: profile.avatar_url || undefined,
+            emailVerified: true,
+            githubAvatar: profile.avatar_url || null
+        })
+    };
+}
+
+function createMicrosoftProvider() {
+    const clientId = process.env.MICROSOFT_CLIENT_ID;
+    const clientSecret = process.env.MICROSOFT_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+        return undefined;
+    }
+
+    return {
+        clientId,
+        clientSecret,
+        // Microsoft's built-in getUserInfo already fetches the profile photo
+        // from Graph API as a base64 data URL and sets profile.picture.
+        // We capture it into microsoftAvatar via mapProfileToUser.
+        mapProfileToUser: (profile: Record<string, any>) => {
+            const picture: string | undefined = profile.picture || undefined;
+            return {
+                name: profile.displayName || profile.name,
+                image: picture,
+                microsoftAvatar: picture ?? null
+            };
+        }
+    };
+}
+
+function createAppleProvider() {
+    const clientId = process.env.APPLE_CLIENT_ID;
+    const clientSecret = process.env.APPLE_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+        return undefined;
+    }
+
+    return {
+        clientId,
+        clientSecret,
+        // Apple provides name only on first sign-in; no profile picture.
+        mapProfileToUser: (profile: { name?: string; email?: string }) => ({
+            name: profile.name || profile.email?.split("@")[0] || "User",
+            image: undefined
+        })
+    };
+}
+
+function buildSocialProviders() {
+    return {
+        google: createGoogleProvider(),
+        github: createGitHubProvider(),
+        microsoft: createMicrosoftProvider(),
+        apple: createAppleProvider()
+    };
+}
+
 export const auth = betterAuth({
     database: dbAdapter,
 
     emailVerification: {
         sendOnSignUp: true,
         sendOnSignIn: true,
-        expiresIn: 60 * 60,
+        expiresIn: 60 * 10, // 10 minutes
         sendVerificationEmail: async ({ user, url }) => {
             const policies = await getEmailSecurityPolicies();
             const limit = consumeVerificationRateLimit(user.email, policies);
@@ -237,9 +414,9 @@ export const auth = betterAuth({
             }
 
             try {
-                await sendEmail({
+                await sendTemplatedEmail({
                     to: user.email,
-                    subject: "Verify your email - Meet Bhingradiya Portfolio",
+                    subject: VERIFICATION_EMAIL_SUBJECT,
                     html: verificationEmailTemplate({
                         name: user.name,
                         verificationUrl: url,
@@ -270,10 +447,10 @@ export const auth = betterAuth({
             maxUsernameLength: 30
         }),
         twoFactor({
-            issuer: "Meet Bhingradiya Portfolio"
+            issuer: PORTFOLIO_ISSUER
         }),
         passkey({
-            rpName: "Meet Bhingradiya Portfolio",
+            rpName: PORTFOLIO_ISSUER,
             rpID: passkeyRpId,
             origin: primaryOrigin
         }),
@@ -290,109 +467,11 @@ export const auth = betterAuth({
     ],
 
     // Social providers configuration
-    socialProviders: {
-        google:
-            process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
-                ? ({
-                      prompt: "select_account",
-                      clientId: process.env.GOOGLE_CLIENT_ID,
-                      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-                      scope: ["email", "profile", "openid"],
-                      // Override getUserInfo to always fetch from the userinfo endpoint.
-                      // Decoding the id_token alone omits `picture` in some flows.
-                      getUserInfo: async (token) => {
-                          let profile: Record<string, any> | null = null;
-
-                          // 1. Prefer the userinfo endpoint (always includes `picture`)
-                          if (token.accessToken) {
-                              try {
-                                  const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
-                                      headers: {
-                                          Authorization: `Bearer ${token.accessToken}`
-                                      }
-                                  });
-                                  if (res.ok) profile = await res.json();
-                              } catch (e) {
-                                  console.error("[Google] Failed to fetch userinfo:", e);
-                              }
-                          }
-
-                          // 2. Fallback: decode id_token
-                          if (!profile && token.idToken) {
-                              const { decodeJwt } = await import("jose");
-                              profile = decodeJwt(token.idToken) as Record<string, any>;
-                          }
-
-                          if (!profile) return null;
-
-                          const picture: string | null = profile.picture ?? null;
-                          return {
-                              user: {
-                                  id: profile.sub as string,
-                                  name: profile.name as string,
-                                  email: profile.email as string,
-                                  image: picture,
-                                  emailVerified: profile.email_verified as boolean,
-                                  googleAvatar: picture
-                              },
-                              data: profile
-                          };
-                      }
-                  } as GoogleOptions)
-                : undefined,
-
-        github:
-            process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
-                ? {
-                      clientId: process.env.GITHUB_CLIENT_ID,
-                      clientSecret: process.env.GITHUB_CLIENT_SECRET,
-                      scope: ["user:email"],
-                      mapProfileToUser: (profile) => ({
-                          name: profile.name || profile.login,
-                          email: profile.email,
-                          image: profile.avatar_url || undefined,
-                          emailVerified: true,
-                          githubAvatar: profile.avatar_url || null
-                      })
-                  }
-                : undefined,
-
-        microsoft:
-            process.env.MICROSOFT_CLIENT_ID && process.env.MICROSOFT_CLIENT_SECRET
-                ? {
-                      clientId: process.env.MICROSOFT_CLIENT_ID,
-                      clientSecret: process.env.MICROSOFT_CLIENT_SECRET,
-                      // Microsoft's built-in getUserInfo already fetches the profile photo
-                      // from Graph API as a base64 data URL and sets profile.picture.
-                      // We capture it into microsoftAvatar via mapProfileToUser.
-                      mapProfileToUser: (profile) => {
-                          const pic: string | undefined = (profile as any).picture || undefined;
-                          return {
-                              name: (profile as any).displayName || profile.name,
-                              image: pic,
-                              microsoftAvatar: pic ?? null
-                          };
-                      }
-                  }
-                : undefined,
-
-        apple:
-            process.env.APPLE_CLIENT_ID && process.env.APPLE_CLIENT_SECRET
-                ? {
-                      clientId: process.env.APPLE_CLIENT_ID,
-                      clientSecret: process.env.APPLE_CLIENT_SECRET,
-                      // Apple provides name only on first sign-in; no profile picture.
-                      mapProfileToUser: (profile) => ({
-                          name: profile.name || profile.email?.split("@")[0] || "User",
-                          image: undefined // Apple does not provide profile images
-                      })
-                  }
-                : undefined
-    },
+    socialProviders: buildSocialProviders(),
 
     // Session configuration
     session: {
-        expiresIn: 60 * 60 * 24 * 7 // 7 days
+        expiresIn: 60 * 60 * 24 * 3 // 3 days
     },
 
     // Base URL and secret
@@ -407,8 +486,7 @@ export const auth = betterAuth({
         crossSubDomainCookies: {
             enabled: false
         },
-        useSecureCookies: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax"
+        useSecureCookies: process.env.NODE_ENV === "production"
     },
 
     databaseHooks: {
@@ -417,7 +495,7 @@ export const auth = betterAuth({
                 before: async (user) => {
                     try {
                         const settings = await getSiteSettings();
-                        if (settings.allowSignup !== true) {
+                        if (settings.Policy?.Allow_New_Signups !== true) {
                             throw new SignupDisabledError();
                         }
                     } catch (err: unknown) {
@@ -522,14 +600,36 @@ export const auth = betterAuth({
         },
         changeEmail: {
             enabled: true,
-            updateEmailWithoutVerification: false
+            updateEmailWithoutVerification: false,
+            sendChangeEmailConfirmation: async ({ user, url }: { user: any; url: string }) => {
+                await sendTemplatedEmail({
+                    to: user.email,
+                    subject: CHANGE_EMAIL_SUBJECT,
+                    html: VerificationEmailforChangeEmail({
+                        name: user.name,
+                        verificationUrl: url,
+                        expiresInMinutes: 60
+                    })
+                });
+            }
+        },
+        sendResetPassword: async ({ user, url }: { user: any; url: string }) => {
+            await sendTemplatedEmail({
+                to: user.email,
+                subject: `Reset your password - ${PORTFOLIO_NAME}`,
+                html: passwordResetEmail({
+                    name: user.name,
+                    resetUrl: url,
+                    expiresInMinutes: 60
+                })
+            });
         },
         deleteUser: {
             enabled: true,
-            sendDeleteAccountVerification: async ({ user, url }) => {
-                await sendEmail({
+            sendDeleteAccountVerification: async ({ user, url }: { user: any; url: string }) => {
+                await sendTemplatedEmail({
                     to: user.email,
-                    subject: "Confirm account deletion - Meet Bhingradiya Portfolio",
+                    subject: DELETE_ACCOUNT_SUBJECT,
                     html: deleteAccountVerificationEmail({
                         name: user.name,
                         verificationUrl: url,

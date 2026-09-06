@@ -7,6 +7,8 @@ import CookieSettings from "./CookieSettings";
 import Link from "next/link";
 import { Email, LocationOn, ArrowUpward, Favorite } from "@mui/icons-material";
 import { footerSections, socialLinks } from "@Static/Foot_Sections";
+import { LiquidGlassButton, LiquidGlassCard } from "@Components/Atoms/LiquidGlass/index";
+import { OneUIButton, OneUICard } from "@Components/Atoms/OneUI/index";
 
 export default function FootNavigation() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
@@ -102,57 +104,23 @@ export default function FootNavigation() {
                             {/* Social Links */}
                             <div className="flex items-center gap-3">
                                 {socialLinks.map((social, index) => (
-                                    <motion.a
+                                    <a
                                         key={social.label}
                                         href={social.href}
                                         target={social.href.startsWith("http") ? "_blank" : undefined}
                                         rel={social.href.startsWith("http") ? "noopener noreferrer" : undefined}
-                                        className={`${isApple ? "p-2.5 rounded-xl" : "p-3 rounded-2xl"} relative overflow-hidden`}
-                                        style={{
-                                            background: isApple
-                                                ? isDark
-                                                    ? "linear-gradient(135deg, rgba(58, 58, 60, 0.7) 0%, rgba(44, 44, 46, 0.65) 100%)"
-                                                    : "linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 250, 0.65) 100%)"
-                                                : isDark
-                                                  ? "linear-gradient(135deg, rgba(45, 45, 50, 0.9) 0%, rgba(35, 35, 40, 0.85) 100%)"
-                                                  : "linear-gradient(135deg, rgba(248, 248, 250, 0.95) 0%, rgba(240, 240, 245, 0.9) 100%)",
-                                            backdropFilter: isApple ? "blur(30px) saturate(200%)" : "none",
-                                            WebkitBackdropFilter: isApple ? "blur(30px) saturate(200%)" : "none",
-                                            border: isApple
-                                                ? isDark
-                                                    ? "0.5px solid rgba(255, 255, 255, 0.15)"
-                                                    : "0.5px solid rgba(255, 255, 255, 0.8)"
-                                                : `1.5px solid ${isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.08)"}`,
-                                            boxShadow: isApple
-                                                ? isDark
-                                                    ? "0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
-                                                    : "0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(255, 255, 255, 1) inset"
-                                                : isDark
-                                                  ? "0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                                                  : "0 2px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.7)",
-                                            color: palette.textSecondary
-                                        }}
-                                        whileHover={{
-                                            scale: 1.08,
-                                            y: -4,
-                                            backgroundColor: isApple
-                                                ? isDark
-                                                    ? `${palette.accent}25`
-                                                    : `${palette.accent}20`
-                                                : `${palette.accent}25`,
-                                            color: palette.accent,
-                                            borderColor: `${palette.accent}60`
-                                        }}
-                                        whileTap={{ scale: 0.92 }}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        whileInView={{ opacity: 1, y: 0 }}
-                                        viewport={{ once: true }}
-                                        transition={{
-                                            duration: 0.3,
-                                            delay: index * 0.1
-                                        }}>
-                                        <span className="relative z-10">{social.icon}</span>
-                                    </motion.a>
+                                        className="relative overflow-hidden block"
+                                    >
+                                        {isApple ? (
+                                            <LiquidGlassButton variant="secondary" className="!px-3 !py-3 min-w-0 flex items-center justify-center">
+                                                <span className="relative z-10">{social.icon}</span>
+                                            </LiquidGlassButton>
+                                        ) : (
+                                            <OneUIButton variant="secondary" className="!px-3.5 !py-3.5 min-w-0 flex items-center justify-center" size="sm">
+                                                <span className="relative z-10">{social.icon}</span>
+                                            </OneUIButton>
+                                        )}
+                                    </a>
                                 ))}
                             </div>
                         </motion.div>
@@ -259,57 +227,15 @@ export default function FootNavigation() {
                         {/* Theme Switcher */}
                         <ThemeSwitcher />
 
-                        {/* Scroll to Top */}
-                        <motion.button
-                            onClick={scrollToTop}
-                            className={`${isApple ? "p-3" : "p-4"} rounded-full relative overflow-hidden`}
-                            style={{
-                                background: isApple
-                                    ? isDark
-                                        ? "linear-gradient(135deg, rgba(58, 58, 60, 0.7) 0%, rgba(44, 44, 46, 0.65) 100%)"
-                                        : "linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(250, 250, 250, 0.65) 100%)"
-                                    : isDark
-                                      ? "linear-gradient(135deg, rgba(45, 45, 50, 0.9) 0%, rgba(35, 35, 40, 0.85) 100%)"
-                                      : "linear-gradient(135deg, rgba(248, 248, 250, 0.95) 0%, rgba(240, 240, 245, 0.9) 100%)",
-                                backdropFilter: isApple ? "blur(30px) saturate(200%)" : "none",
-                                WebkitBackdropFilter: isApple ? "blur(30px) saturate(200%)" : "none",
-                                border: isApple
-                                    ? isDark
-                                        ? "0.5px solid rgba(255, 255, 255, 0.15)"
-                                        : "0.5px solid rgba(255, 255, 255, 0.8)"
-                                    : `1.5px solid ${isDark ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.08)"}`,
-                                boxShadow: isApple
-                                    ? isDark
-                                        ? "0 4px 16px rgba(0, 0, 0, 0.3), 0 0 0 0.5px rgba(255, 255, 255, 0.08) inset"
-                                        : "0 2px 12px rgba(0, 0, 0, 0.08), 0 0 0 0.5px rgba(255, 255, 255, 1) inset"
-                                    : isDark
-                                      ? "0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                                      : "0 2px 12px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.7)",
-                                color: palette.textPrimary
-                            }}
-                            whileHover={{
-                                scale: 1.1,
-                                y: -4,
-                                backgroundColor: `linear-gradient(135deg, ${palette.accent} 0%, ${palette.accentDark || palette.accent} 100%)`,
-                                color: palette.textOnAccent,
-                                borderColor: palette.accent
-                            }}
-                            whileTap={{ scale: 0.92 }}
-                            transition={{ duration: 0.2 }}
-                            aria-label="Scroll to top">
-                            {isApple && (
-                                <div
-                                    className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
-                                    style={{
-                                        background: isDark
-                                            ? "linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%)"
-                                            : "linear-gradient(180deg, rgba(255, 255, 255, 0.8) 0%, transparent 100%)",
-                                        borderRadius: "50% 50% 0 0 / 100% 100% 0 0"
-                                    }}
-                                />
-                            )}
-                            <ArrowUpward className="relative z-10" />
-                        </motion.button>
+                        {isApple ? (
+                            <LiquidGlassButton onClick={scrollToTop} variant="secondary" className="!px-3.5 !py-3.5 min-w-0 !rounded-full">
+                                <ArrowUpward className="relative z-10" />
+                            </LiquidGlassButton>
+                        ) : (
+                            <OneUIButton onClick={scrollToTop} variant="secondary" className="!px-4 !py-4 min-w-0 !rounded-full" size="sm">
+                                <ArrowUpward className="relative z-10" />
+                            </OneUIButton>
+                        )}
                     </div>
                 </motion.div>
             </div>

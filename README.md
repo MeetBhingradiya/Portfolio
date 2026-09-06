@@ -9,6 +9,12 @@
 
 A production-grade, full-stack personal portfolio, web application, and cloud infrastructure platform created by **Meet Bhingradiya**. This project showcases modern web engineering with Next.js 16 App Router, React 19, a dual-design system (Apple Liquid Glass & Samsung One UI 7), an e-commerce shop subsystem, a multi-repo Private GitHub CDN, and a dual-layer OAuth Broker & OIDC SSO Service.
 
+## 🔒 Client Security Notes
+
+- The anti-debugger shield is started only from the client-side React wrapper and is cleaned up on unmount, which keeps Next.js development remounts from stacking duplicate timers.
+- No dynamic code execution is used in the debugger trap, so the page does not need `unsafe-eval` in CSP.
+- The more noisy checks, such as devtools-size and extension-script detection, are gated behind explicit feature flags in `src/Utils/AntiDebugger.ts`.
+
 ---
 
 ## 🌟 Key Architecture & Highlights

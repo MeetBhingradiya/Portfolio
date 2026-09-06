@@ -38,22 +38,22 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const key = normalizeKey(body?.key || body?.label || body?.title || "");
 
-        if (!key || !body?.label || !body?.title) {
-            return NextResponse.json(
-                { success: false, error: "key/label/title are required." },
-                { status: 422 }
-            );
+        if (!key || !body?.label) {
+            return NextResponse.json({ success: false, error: "key and label are required." }, { status: 422 });
         }
 
         const preset = await ResumePreset.create({
             key,
             label: String(body.label).trim(),
-            title: String(body.title).trim(),
-            summary: String(body.summary || "").trim(),
-            keywordsByCategory: body.keywordsByCategory || {},
-            includeAll: Array.isArray(body.includeAll) ? body.includeAll : [],
+            title: String(body.title || body.header?.title || "").trim(),
+            summary: String(body.summary || body.header?.summary || "").trim(),
             iconKey: body.iconKey || "code",
-            pinnedIdsByCategory: body.pinnedIdsByCategory || {},
+            header: body.header || {},
+            selectedIdsByCategory: body.selectedIdsByCategory || {},
+            sectionOrder: Array.isArray(body.sectionOrder) ? body.sectionOrder : [],
+            itemOrderByCategory: body.itemOrderByCategory || {},
+            style: body.style || {},
+            isPublished: !!body.isPublished,
             createdBy: admin.email || "",
             updatedBy: admin.email || ""
         });
@@ -61,10 +61,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: true, data: preset }, { status: 201 });
     } catch (err: any) {
         if (err?.code === 11000) {
-            return NextResponse.json(
-                { success: false, error: "A preset with this key already exists." },
-                { status: 409 }
-            );
+            return NextResponse.json({ success: false, error: "A preset with this key already exists." }, { status: 409 });
         }
         const status = err.message?.includes("Forbidden") ? 403 : err.message?.includes("Unauthorized") ? 401 : 500;
         return NextResponse.json({ success: false, error: err.message || "Failed to create preset" }, { status });

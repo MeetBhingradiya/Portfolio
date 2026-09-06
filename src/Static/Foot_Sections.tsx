@@ -1,4 +1,4 @@
-import {
+import { Apps, 
     Email,
     GitHub,
     LinkedIn,
@@ -23,7 +23,7 @@ import {
     Instagram,
     YouTube,
     School
-} from "@mui/icons-material";
+ } from "@mui/icons-material";
 
 export interface FooterLink {
     label: string;
@@ -41,6 +41,16 @@ export const footerSections: FooterSection[] = [
     {
         title: "Explore",
         links: [
+            {
+                label: "Apps",
+                href: "/apps",
+                icon: <Apps className="text-base" />
+            },
+            {
+                label: "Roadmap",
+                href: "/roadmap",
+                icon: <Timeline className="text-base" />
+            },
             {
                 label: "Projects",
                 href: "/projects",

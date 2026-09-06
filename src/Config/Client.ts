@@ -18,11 +18,11 @@ export const Config: Client_Config_Type = {
     ],
     Emails: {
         domain: "meetbhingradiya.shop",
-        contact: "contact@meetbhingradiya.shop",
-        privacy: "privacy@meetbhingradiya.shop",
-        security: "security@meetbhingradiya.shop",
-        legal: "legal@meetbhingradiya.shop",
-        dmca: "dmca@meetbhingradiya.shop"
+        contact: "contact@meetbhingradiya.in",
+        privacy: "privacy@meetbhingradiya.in",
+        security: "security@meetbhingradiya.in",
+        legal: "legal@meetbhingradiya.in",
+        dmca: "dmca@meetbhingradiya.in"
     },
     Origin: getPrimaryOrigin()
 };

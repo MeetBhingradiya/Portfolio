@@ -34,6 +34,8 @@ const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
 });
 const MermaidBlock = lazy(() => import("./MermaidBlock"));
 const BlogRenderer = lazy(() => import("./BlogRenderer"));
+import { CDNImageField } from "@Components/Tools/CDNUploaders";
+import { CustomSelect } from "@Components/Atoms/CustomSelect";
 
 const CATEGORIES = Object.values(BlogCategory).map((v) => ({
     value: v,
@@ -64,6 +66,7 @@ export interface BlogDraft {
     status: BlogStatus;
     metaTitle?: string;
     metaDescription?: string;
+    whitelistedEmails?: string[];
 }
 
 interface BlogEditorProps {
@@ -96,6 +99,7 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
         tags: [],
         featuredImage: "",
         status: BlogStatus.Draft,
+        whitelistedEmails: [],
         ...initial
     });
 
@@ -553,18 +557,11 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                     style={{ color: palette.textSecondary }}>
                                     Category
                                 </label>
-                                <select
+                                <CustomSelect
                                     value={draft.category}
-                                    onChange={(e) => set("category", e.target.value as BlogCategory)}
-                                    style={{ ...inputStyle }}>
-                                    {CATEGORIES.map((c) => (
-                                        <option
-                                            key={c.value}
-                                            value={c.value}>
-                                            {c.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    onChange={(val) => set("category", val as BlogCategory)}
+                                    options={CATEGORIES}
+                                />
                             </div>
 
                             {/* Tags */}
@@ -626,18 +623,36 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                         }}>
                                         Visibility
                                     </label>
-                                    <select
+                                    <CustomSelect
                                         value={draft.status}
-                                        onChange={(e) => set("status", e.target.value as BlogStatus)}
-                                        style={inputStyle}>
-                                        {STATUS_OPTS.map((s) => (
-                                            <option
-                                                key={s.value}
-                                                value={s.value}>
-                                                {s.label}
-                                            </option>
-                                        ))}
-                                    </select>
+                                        onChange={(val) => set("status", val as BlogStatus)}
+                                        options={STATUS_OPTS}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Whitelist (Private only) */}
+                            {isAdmin && draft.status === BlogStatus.Private && (
+                                <div>
+                                    <label
+                                        className="text-xs font-medium mb-1 block"
+                                        style={{ color: palette.textSecondary }}>
+                                        Whitelisted Emails (comma separated)
+                                    </label>
+                                    <textarea
+                                        value={draft.whitelistedEmails?.join(", ") || ""}
+                                        onChange={(e) => {
+                                            const emails = e.target.value.split(",").map(m => m.trim()).filter(Boolean);
+                                            set("whitelistedEmails", emails);
+                                        }}
+                                        placeholder="user@example.com, another@example.com"
+                                        rows={2}
+                                        className="resize-none"
+                                        style={inputStyle}
+                                    />
+                                    <p className="text-[10px] mt-1" style={{ color: palette.textSecondary }}>
+                                        Only these users (along with the author/admin) will be able to access this blog.
+                                    </p>
                                 </div>
                             )}
 
@@ -715,26 +730,19 @@ export default function BlogEditor({ initial, isAdmin = false, onSave }: BlogEdi
                                 <label
                                     className="text-xs font-medium mb-1 flex items-center gap-1"
                                     style={{ color: palette.textSecondary }}>
-                                    <ImageIcon style={{ fontSize: 12 }} /> Featured Image URL
+                                    <ImageIcon style={{ fontSize: 12 }} /> Featured Image
                                 </label>
-                                <input
+                                <CDNImageField
                                     value={draft.featuredImage || ""}
-                                    onChange={(e) => set("featuredImage", e.target.value)}
-                                    placeholder="https://…"
-                                    style={inputStyle}
+                                    onChange={(url) => set("featuredImage", url)}
+                                    cdnType="banner"
+                                    cdnContext="blog"
+                                    palette={palette}
+                                    isDark={isDark}
+                                    isApple={isApple}
+                                    borderColor={isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.07)"}
                                 />
                             </div>
-                            {draft.featuredImage && (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img
-                                    src={draft.featuredImage}
-                                    alt="Cover preview"
-                                    className="w-full rounded-xl object-cover aspect-video"
-                                    onError={(e) => {
-                                        (e.target as HTMLImageElement).style.display = "none";
-                                    }}
-                                />
-                            )}
                         </div>
                     )}
                 </div>

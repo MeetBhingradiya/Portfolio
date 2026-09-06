@@ -44,6 +44,20 @@ export const AI_PROVIDERS = {
         label: "Perplexity AI",
         baseUrl: "https://api.perplexity.ai",
         models: ["sonar", "sonar-pro", "sonar-reasoning", "sonar-reasoning-pro", "sonar-deep-research", "r1-1776"]
+    },
+    openrouter: {
+        label: "OpenRouter",
+        baseUrl: "https://openrouter.ai/api/v1",
+        models: [
+            "google/gemini-2.5-pro",
+            "google/gemini-2.5-flash",
+            "anthropic/claude-3.7-sonnet",
+            "openai/gpt-4o",
+            "deepseek/deepseek-r1",
+            "google/gemini-2.0-flash-lite-preview-02-05:free",
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "deepseek/deepseek-r1:free"
+        ]
     }
 } as const;
 
@@ -81,7 +95,8 @@ const AIProviderSettings_Schema = new mongoose.Schema(
         Providers: {
             github: { type: AIProviderConfigSchema, default: () => ({}) },
             google: { type: AIProviderConfigSchema, default: () => ({}) },
-            perplexity: { type: AIProviderConfigSchema, default: () => ({}) }
+            perplexity: { type: AIProviderConfigSchema, default: () => ({}) },
+            openrouter: { type: AIProviderConfigSchema, default: () => ({}) }
         },
         // Feature flags for AI capabilities
         Features: {
@@ -119,6 +134,7 @@ export interface IAIProviderSettings extends mongoose.Document {
         github: IAIProviderConfig;
         google: IAIProviderConfig;
         perplexity: IAIProviderConfig;
+        openrouter: IAIProviderConfig;
     };
     Features: {
         taskCreation: boolean;

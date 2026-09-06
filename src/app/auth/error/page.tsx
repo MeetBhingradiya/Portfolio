@@ -42,11 +42,14 @@ function ErrorContent() {
 
     const [errorType, setErrorType] = useState("Default");
     const [errorInfo, setErrorInfo] = useState(errorMessages.Default);
+    const [reason, setReason] = useState("");
 
     useEffect(() => {
         const error = searchParams.get("error") || "Default";
+        const message = searchParams.get("reason") || "";
         setErrorType(error);
         setErrorInfo(errorMessages[error] || errorMessages.Default);
+        setReason(message);
     }, [searchParams]);
 
     return (
@@ -178,6 +181,13 @@ function ErrorContent() {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.7 }}
                         className="mt-6 text-center">
+                        {!!reason && (
+                            <p
+                                className={`${isApple ? "text-xs" : "text-sm font-medium"} mb-3`}
+                                style={{ color: palette.textSecondary }}>
+                                {reason}
+                            </p>
+                        )}
                         <p
                             className={`${isApple ? "text-xs" : "text-sm font-medium"}`}
                             style={{ color: palette.textTertiary }}>

@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { contactMethods, quickActions, contactTemplates, personalInfo } from "@Static/Contact_Data";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
+import ResumeDownloadModal from "@Components/Tools/ResumeDownloadModal";
 
 interface ContactFormData {
     name: string;
@@ -41,6 +42,7 @@ function ContactPageContent() {
     const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
     const [currentTime, setCurrentTime] = useState(new Date());
     const [hoveredCard, setHoveredCard] = useState<string | null>(null);
+    const [isResumeModalOpen, setIsResumeModalOpen] = useState(false);
     const [formData, setFormData] = useState<ContactFormData>({
         name: "",
         email: "",
@@ -111,27 +113,64 @@ function ContactPageContent() {
         setStatus({ type: "loading", message: "Sending message..." });
 
         try {
-            // Simulate API call - replace with actual API endpoint
-            await new Promise((resolve) => setTimeout(resolve, 2000));
+            // Build message with metadata if provided
+            let fullMessage = formData.message.trim();
+            const metaLines: string[] = [];
+            if (formData.projectType && formData.projectType !== "general") metaLines.push(`Project Type: ${formData.projectType}`);
+            if (formData.company?.trim()) metaLines.push(`Company: ${formData.company.trim()}`);
+            if (formData.budget?.trim()) metaLines.push(`Budget: ${formData.budget.trim()}`);
+            if (formData.timeline?.trim()) metaLines.push(`Timeline: ${formData.timeline.trim()}`);
+            
+            if (metaLines.length > 0) {
+                fullMessage += `\n\n--- Project Details ---\n${metaLines.join("\n")}`;
+            }
 
-            setStatus({
-                type: "success",
-                message: "Message sent successfully! I'll get back to you within 24 hours."
+            const res = await fetch("/api/contact", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    name: formData.name.trim(),
+                    email: formData.email.trim(),
+                    subject: formData.subject.trim(),
+                    message: fullMessage,
+                    services: formData.projectType && formData.projectType !== "general" ? [formData.projectType] : undefined
+                })
             });
-            setFormData({
-                name: "",
-                email: "",
-                subject: "",
-                message: "",
-                projectType: "general",
-                budget: "",
-                timeline: "",
-                company: ""
-            });
-        } catch (error) {
+
+            const json = await res.json();
+
+            if (res.ok && json.success) {
+                setStatus({
+                    type: "success",
+                    message: json.message || "Message sent successfully! I'll get back to you shortly."
+                });
+                setFormData({
+                    name: "",
+                    email: "",
+                    subject: "",
+                    message: "",
+                    projectType: "general",
+                    budget: "",
+                    timeline: "",
+                    company: ""
+                });
+            } else if (res.status === 429) {
+                setStatus({
+                    type: "error",
+                    message: json.error || "Rate limit reached. Please wait before sending another message."
+                });
+            } else {
+                setStatus({
+                    type: "error",
+                    message: json.error || "Failed to send message. Please try again or email me directly."
+                });
+            }
+        } catch (error: any) {
             setStatus({
                 type: "error",
-                message: "Failed to send message. Please try again or email me directly."
+                message: "Network error. Please check your connection and try again."
             });
         }
     };
@@ -569,71 +608,83 @@ function ContactPageContent() {
                         className="space-y-6">
                         <h3
                             className={`${isApple ? "text-xl font-medium" : "text-xl font-bold"} mb-6`}
-                            style={{ color: palette.textPrimary }}>
+                                            style={{ color: palette.textPrimary }}>
                             Other Ways to Connect
                         </h3>
 
-                        {contactMethods.map((method, index) => (
-                            <motion.div
-                                key={method.id}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{
-                                    duration: 0.5,
-                                    delay: 0.4 + index * 0.1
-                                }}
-                                onMouseEnter={() => setHoveredCard(method.id)}
-                                onMouseLeave={() => setHoveredCard(null)}>
-                                <Link
-                                    href={method.link}
-                                    target={method.link.startsWith("http") ? "_blank" : undefined}
-                                    rel={method.link.startsWith("http") ? "noopener noreferrer" : undefined}>
-                                    <Card
-                                        className="cursor-pointer group"
-                                        intensity={isApple ? "subtle" : undefined}
-                                        elevated={!isApple}>
-                                        <div className="flex items-start gap-3">
-                                            <motion.div
-                                                className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                        {contactMethods.map((method, index) => {
+                            const cardContent = (
+                                <Card
+                                    className="cursor-pointer group"
+                                    intensity={isApple ? "subtle" : undefined}
+                                    elevated={!isApple}>
+                                    <div className="flex items-start gap-3">
+                                        <motion.div
+                                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                                            style={{
+                                                background: hoveredCard === method.id ? method.color : `${method.color}20`,
+                                                color: hoveredCard === method.id ? "#FFFFFF" : method.color
+                                            }}
+                                            animate={{
+                                                scale: hoveredCard === method.id ? 1.05 : 1
+                                            }}
+                                            transition={{ duration: 0.2 }}>
+                                            {method.icon}
+                                        </motion.div>
+                                        <div className="flex-grow">
+                                            <h4
+                                                className={`${isApple ? "font-medium text-sm" : "font-bold text-sm"} mb-1`}
                                                 style={{
-                                                    background: hoveredCard === method.id ? method.color : `${method.color}20`,
-                                                    color: hoveredCard === method.id ? "#FFFFFF" : method.color
-                                                }}
-                                                animate={{
-                                                    scale: hoveredCard === method.id ? 1.05 : 1
-                                                }}
-                                                transition={{ duration: 0.2 }}>
-                                                {method.icon}
-                                            </motion.div>
-                                            <div className="flex-grow">
-                                                <h4
-                                                    className={`${isApple ? "font-medium text-sm" : "font-bold text-sm"} mb-1`}
+                                                    color: palette.textPrimary
+                                                }}>
+                                                {method.title}
+                                            </h4>
+                                            {method.responseTime && (
+                                                <p
+                                                    className="text-xs"
                                                     style={{
-                                                        color: palette.textPrimary
+                                                        color: palette.textTertiary
                                                     }}>
-                                                    {method.title}
-                                                </h4>
-                                                {method.responseTime && (
-                                                    <p
-                                                        className="text-xs"
-                                                        style={{
-                                                            color: palette.textTertiary
-                                                        }}>
-                                                        {method.responseTime}
-                                                    </p>
-                                                )}
-                                            </div>
-                                            <ArrowForward
-                                                className="text-sm transition-transform group-hover:translate-x-1"
-                                                style={{
-                                                    color: palette.textTertiary
-                                                }}
-                                            />
+                                                    {method.responseTime}
+                                                </p>
+                                            )}
                                         </div>
-                                    </Card>
-                                </Link>
-                            </motion.div>
-                        ))}
+                                        <ArrowForward
+                                            className="text-sm transition-transform group-hover:translate-x-1"
+                                            style={{
+                                                color: palette.textTertiary
+                                            }}
+                                        />
+                                    </div>
+                                </Card>
+                            );
+
+                            return (
+                                <motion.div
+                                    key={method.id}
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{
+                                        duration: 0.5,
+                                        delay: 0.4 + index * 0.1
+                                    }}
+                                    onMouseEnter={() => setHoveredCard(method.id)}
+                                    onMouseLeave={() => setHoveredCard(null)}>
+                                    {method.id === "resume" ? (
+                                        <div onClick={() => setIsResumeModalOpen(true)} className="cursor-pointer h-full">
+                                            {cardContent}
+                                        </div>
+                                    ) : (
+                                        <Link
+                                            href={method.link}
+                                            target={method.link.startsWith("http") ? "_blank" : undefined}
+                                            rel={method.link.startsWith("http") ? "noopener noreferrer" : undefined}>
+                                            {cardContent}
+                                        </Link>
+                                    )}
+                                </motion.div>
+                            );
+                        })}
                     </motion.div>
                 </div>
 
@@ -754,6 +805,8 @@ function ContactPageContent() {
                     </div>
                 </motion.div>
             </div>
+
+            <ResumeDownloadModal isOpen={isResumeModalOpen} onClose={() => setIsResumeModalOpen(false)} />
         </main>
     );
 }

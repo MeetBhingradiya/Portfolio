@@ -39,6 +39,7 @@ function publicTicketShape(ticket: any) {
 }
 
 function ticketQuery(id: string) {
+    if (!id || typeof id !== "string") return { ticketId: "__invalid__" };
     return mongoose.isValidObjectId(id) ? { $or: [{ _id: id }, { ticketId: id }] } : { ticketId: id };
 }
 

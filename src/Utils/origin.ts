@@ -1,18 +1,36 @@
-const DEFAULT_PRODUCTION_ORIGINS = [
-    "https://meetbhingradiya.in",
-    "https://www.meetbhingradiya.in",
+const DEFAULT_BETA_ORIGINS = [
     "https://beta.meetbhingradiya.in",
-    "https://beta.meetbhingradiya.in"
+    "https://beta.meetbhingradiya.vercel.app"
 ];
 
-const DEFAULT_LOCAL_ORIGINS = ["http://localhost:3000", "http://127.0.0.1:3000"];
+const DEFAULT_PRODUCTION_ORIGINS = [
+    "https://www.meetbhingradiya.in",
+    "https://meetbhingradiya.in", // Currently redirects to www, but keep for legacy support.
+    "https://meetbhingradiya.vercel.app", // Domain expire fallback, should not be used in production but keep for legacy support.
+    ...DEFAULT_BETA_ORIGINS
+];
+
+const DEFAULT_LOCAL_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000"
+];
 
 const DEFAULT_IMMICH_ORIGINS = [
     "https://photos.meetbhingradiya.in",
-    "https://photos.meetbhingradiya.shop",
     "https://home-desktop.tail1c91d0.ts.net",
-    "http://bfamily.myftp.org:2283"
+    "http://bfamily.myftp.org:2283",
+    "http://localhost:2283"
 ];
+
+type CachedValue<T> = {
+    key: string;
+    value: T;
+};
+
+let trustedOriginsCache: CachedValue<string[]> | null = null;
+let trustedOriginSetCache: CachedValue<Set<string>> | null = null;
+let primaryOriginCache: CachedValue<string> | null = null;
+let immichOriginsCache: CachedValue<string[]> | null = null;
 
 function normalizeOrigin(value: string): string | null {
     const trimmed = value.trim().replace(/^['\"]|['\"]$/g, "");
@@ -24,17 +42,6 @@ function normalizeOrigin(value: string): string | null {
     } catch {
         return null;
     }
-}
-
-function normalizeOriginMaybeHost(value: string): string | null {
-    const normalized = normalizeOrigin(value);
-    if (normalized) return normalized;
-
-    const trimmed = value.trim().replace(/^['\"]|['\"]$/g, "");
-    if (!trimmed) return null;
-
-    // Accept hostname-style env values by assuming https.
-    return normalizeOrigin(`https://${trimmed}`);
 }
 
 function parseOriginList(raw: string | undefined): string[] {
@@ -50,47 +57,90 @@ function toUnique(items: string[]): string[] {
     return [...new Set(items)];
 }
 
-function getEnvOriginCandidates(): string[] {
-    const direct = [
-        process.env.APP_ORIGIN,
-        process.env.NEXT_PUBLIC_APP_URL,
-        process.env.VERCEL_PROJECT_PRODUCTION_URL,
-        process.env.VERCEL_URL ? `https://${String(process.env.VERCEL_URL).trim()}` : undefined
-    ]
-        .map((value) => normalizeOriginMaybeHost(value ?? ""))
-        .filter((value): value is string => Boolean(value));
+function getPrimaryOriginCacheKey(): string {
+    return process.env.VERCEL_ENV ?? "";
+}
 
-    return toUnique(direct);
+function getTrustedOriginsCacheKey(): string {
+    return [process.env.NODE_ENV ?? "", process.env.VERCEL_ENV ?? "", process.env.TRUSTED_ORIGINS ?? ""].join("|");
+}
+
+function getImmichOriginsCacheKey(): string {
+    return process.env.IMMICH_TRUSTED_ORIGINS ?? "";
+}
+
+function buildTrustedOrigins(): string[] {
+    const envTrusted = parseOriginList(process.env.TRUSTED_ORIGINS);
+    const defaults =
+        process.env.NODE_ENV === "production"
+            ? DEFAULT_PRODUCTION_ORIGINS
+            : [...DEFAULT_LOCAL_ORIGINS, ...DEFAULT_PRODUCTION_ORIGINS];
+
+    return toUnique([...envTrusted, getPrimaryOrigin(), ...defaults]);
+}
+
+function buildImmichOrigins(): string[] {
+    const envOrigins = parseOriginList(process.env.IMMICH_TRUSTED_ORIGINS);
+    return toUnique([...envOrigins, ...DEFAULT_IMMICH_ORIGINS]);
 }
 
 export function getTrustedOrigins(): string[] {
-    const envTrusted = parseOriginList(process.env.TRUSTED_ORIGINS);
-    const envApp = getEnvOriginCandidates();
+    const cacheKey = getTrustedOriginsCacheKey();
+    if (trustedOriginsCache?.key === cacheKey) {
+        return trustedOriginsCache.value;
+    }
 
-    const defaults = process.env.NODE_ENV === "production" ? DEFAULT_PRODUCTION_ORIGINS : [...DEFAULT_LOCAL_ORIGINS, ...DEFAULT_PRODUCTION_ORIGINS];
-
-    return toUnique([...envTrusted, ...envApp, ...defaults]);
+    const value = buildTrustedOrigins();
+    trustedOriginsCache = { key: cacheKey, value };
+    trustedOriginSetCache = null;
+    return value;
 }
 
 export function getPrimaryOrigin(): string {
-    const envCandidates = getEnvOriginCandidates();
-    if (envCandidates.length > 0) return envCandidates[0];
+    const cacheKey = getPrimaryOriginCacheKey();
+    if (primaryOriginCache?.key === cacheKey) {
+        return primaryOriginCache.value;
+    }
 
-    const trusted = getTrustedOrigins();
-    return trusted[0] ?? DEFAULT_LOCAL_ORIGINS[0];
-}
+    let value = DEFAULT_PRODUCTION_ORIGINS[0];
 
-export function getTrustedOriginSet(): Set<string> {
-    return new Set(getTrustedOrigins());
+    if (process.env.VERCEL_ENV === "preview" && process.env.NODE_ENV === "production") {
+        value = DEFAULT_BETA_ORIGINS[0];
+    }
+
+    if (process.env.NODE_ENV === "development" && process.env.VERCEL_ENV === "development") {
+        value = DEFAULT_LOCAL_ORIGINS[0];
+    }
+
+    const normalized: string = normalizeOrigin(value) as string;
+    primaryOriginCache = { key: cacheKey, value: normalized };
+    trustedOriginsCache = null;
+    trustedOriginSetCache = null;
+    return normalized;
 }
 
 export function isTrustedOrigin(origin: string): boolean {
     const normalized = normalizeOrigin(origin);
     if (!normalized) return false;
-    return getTrustedOriginSet().has(normalized);
+
+    const cacheKey = getTrustedOriginsCacheKey();
+    if (trustedOriginSetCache?.key !== cacheKey) {
+        trustedOriginSetCache = {
+            key: cacheKey,
+            value: new Set(getTrustedOrigins())
+        };
+    }
+
+    return trustedOriginSetCache.value.has(normalized);
 }
 
 export function getImmichOrigins(): string[] {
-    const envOrigins = parseOriginList(process.env.IMMICH_TRUSTED_ORIGINS);
-    return toUnique([...envOrigins, ...DEFAULT_IMMICH_ORIGINS]);
+    const cacheKey = getImmichOriginsCacheKey();
+    if (immichOriginsCache?.key === cacheKey) {
+        return immichOriginsCache.value;
+    }
+
+    const value = buildImmichOrigins();
+    immichOriginsCache = { key: cacheKey, value };
+    return value;
 }

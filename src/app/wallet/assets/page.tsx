@@ -8,12 +8,13 @@
 "use client";
 
 import React, { useCallback, useEffect, useState, useRef } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
 import { useDesignTheme, useCDNUpload } from "@Hooks";
 import { LiquidGlassCard, LiquidGlassButton, LiquidGlassModal } from "@Components/Atoms/LiquidGlass";
 import { OneUICard, OneUIButton, OneUIBadge } from "@Components/Atoms/OneUI";
 import { CustomSelect } from "@Components/Atoms/CustomSelect";
-import { Add, Close, AccountBalance, PhoneAndroid, CurrencyRupee, Wallet, Delete, Edit, Save, CloudUpload } from "@mui/icons-material";
+import { Add, Close, AccountBalance, PhoneAndroid, CurrencyRupee, Wallet, Delete, Edit, Save, CloudUpload, Visibility } from "@mui/icons-material";
 
 interface Asset {
     AssetID: string;
@@ -408,7 +409,16 @@ export default function AssetsPage() {
                                             </div>
                                         </div>
                                         {/* Actions overlay */}
-                                        <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex opacity-0 group-hover:opacity-100 transition-opacity gap-1">
+                                            <Link href={`/wallet/asset/${asset.AssetID}`}>
+                                                <button
+                                                    className="p-1.5 hover:bg-cyan-500/10 rounded-lg transition-colors"
+                                                    style={{
+                                                        color: palette.accent || "#06b6d4"
+                                                    }}>
+                                                    <Visibility fontSize="small" />
+                                                </button>
+                                            </Link>
                                             <button
                                                 onClick={() => openModal(asset)}
                                                 className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
@@ -689,7 +699,7 @@ export default function AssetsPage() {
                             )}
 
                             {/* Initial Balance */}
-                            {!editAsset && type !== "UPI_APP" && (
+                            {type !== "UPI_APP" && (
                                 <div>
                                     <label
                                         className="text-xs font-semibold block mb-2 uppercase tracking-wide"
@@ -711,6 +721,13 @@ export default function AssetsPage() {
                                             color: palette.textPrimary
                                         }}
                                     />
+                                    {editAsset && (
+                                        <p
+                                            className="text-xs mt-2"
+                                            style={{ color: palette.textTertiary }}>
+                                            Current Balance: ₹{(editAsset.Balance || 0).toLocaleString("en-IN", { maximumFractionDigits: 2 })}
+                                        </p>
+                                    )}
                                 </div>
                             )}
 

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>OMR Result – DDCET</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            color: #f1f5f9;
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.85rem;
+            margin-bottom: 24px;
+        }
+
+        .scorecard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            margin-bottom: 28px;
+        }
+
+        .card {
+            background: #1e293b;
+            border-radius: 14px;
+            padding: 18px 28px;
+            text-align: center;
+            min-width: 130px;
+            border: 1px solid #334155;
+        }
+
+        .card .val {
+            font-size: 2.2rem;
+            font-weight: 700;
+        }
+
+        .card .lbl {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .card.green .val {
+            color: #4ade80;
+        }
+
+        .card.red .val {
+            color: #f87171;
+        }
+
+        .card.yellow .val {
+            color: #fbbf24;
+        }
+
+        .card.blue .val {
+            color: #60a5fa;
+        }
+
+        .card.purple .val {
+            color: #c084fc;
+        }
+
+        .progress-wrap {
+            background: #1e293b;
+            border-radius: 14px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+            border: 1px solid #334155;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+        }
+
+        .bar-bg {
+            background: #0f172a;
+            border-radius: 99px;
+            height: 18px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+            transition: width 0.8s ease;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            margin: 20px 0 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+        }
+
+        th {
+            background: #1e293b;
+            color: #94a3b8;
+            padding: 8px 6px;
+            text-align: center;
+            border: 1px solid #334155;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #1e293b;
+        }
+
+        tr:nth-child(even) td {
+            background: #1a2540;
+        }
+
+        tr:nth-child(odd) td {
+            background: #172035;
+        }
+
+        .correct {
+            color: #4ade80;
+            font-weight: 700;
+        }
+
+        .wrong {
+            color: #f87171;
+            font-weight: 700;
+        }
+
+        .skip {
+            color: #fbbf24;
+            font-weight: 700;
+        }
+
+        .q-no {
+            color: #94a3b8;
+        }
+
+        .omr-ans {
+            color: #93c5fd;
+        }
+
+        .key-ans {
+            color: #d8b4fe;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border-radius: 12px;
+            border: 1px solid #334155;
+        }
+
+        .note {
+            background: #1e293b;
+            border-left: 4px solid #f87171;
+            padding: 12px 16px;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.8rem;
+            color: #cbd5e1;
+            margin-top: 16px;
+        }
+
+        .note span {
+            color: #fbbf24;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🎯 DDCET OMR Result Card</h1>
+    <p class="subtitle">Competitive Exam · +2 Right · −0.5 Wrong · E = Skip (no deduction)</p>
+
+    <div class="scorecard" id="scorecard"></div>
+
+    <div class="progress-wrap">
+        <div class="progress-label"><span>Score Progress</span><span id="progressText">0 / 0</span></div>
+        <div class="bar-bg">
+            <div class="bar-fill" id="barFill" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <div class="section-title">📋 Detailed Question-wise Breakdown</div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Q#</th>
+                    <th>Your Ans</th>
+                    <th>Key</th>
+                    <th>Result</th>
+                    <th>Q#</th>
+                    <th>Your Ans</th>
+                    <th>Key</th>
+                    <th>Result</th>
+                    <th>Q#</th>
+                    <th>Your Ans</th>
+                    <th>Key</th>
+                    <th>Result</th>
+                    <th>Q#</th>
+                    <th>Your Ans</th>
+                    <th>Key</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+        </table>
+    </div>
+
+    <div class="note">
+        <span>Formula:</span> Final Marks = (Correct × 2) − (Wrong × 0.5) = (50 × 2) − (49 × 0.5) = 100 − 24.5 =
+        <strong>75.5 / 200</strong><br>
+        <span>Note:</span> Q49 marked as E (5th option) → Skipped, no deduction. OMR read from scanned image; minor
+        discrepancies possible.
+    </div>
+
+    <script>
+        const omr = {
+            1: 'A', 2: 'D', 3: 'A', 4: 'D', 5: 'D', 6: 'C', 7: 'B', 8: 'A', 9: 'C', 10: 'C',
+
+            11: 'A', 12: 'D', 13: 'A', 14: 'B', 15: 'D', 16: 'B', 17: 'A', 18: 'D', 19: 'A', 20: 'D',
+            
+            21: 'C', 22: 'C', 23: 'A', 24: 'D', 25: 'B', 26: 'C', 27: 'B', 28: 'A', 29: 'A', 30: 'D',
+            
+            31: 'B', 32: 'A', 33: 'B', 34: 'C', 35: 'C', 36: 'B', 37: 'D', 38: 'D', 39: 'D', 40: 'D',
+            
+            41: 'C', 42: 'C', 43: 'D', 44: 'D', 45: 'B', 46: 'D', 47: 'B', 48: 'A', 49: 'C', 50: 'C',
+            
+            51: 'C', 52: 'D', 53: 'A', 54: 'B', 55: 'D', 56: 'A', 57: 'A', 58: 'A', 59: 'A', 60: 'B',
+            
+            61: 'D', 62: 'B', 63: 'C', 64: 'C', 65: 'A', 66: 'C', 67: 'B', 68: 'A', 69: 'A', 70: 'B',
+            
+            71: 'B', 72: 'B', 73: 'A', 74: 'B', 75: 'C', 76: 'A', 77: 'A', 78: 'C', 79: 'B', 80: 'C',
+            
+            81: 'A', 82: 'B', 83: 'B', 84: 'D', 85: 'A', 86: 'B', 87: 'C', 88: 'B', 89: 'B', 90: 'A',
+            
+            91: 'C', 92: 'D', 93: 'B', 94: 'D', 95: 'B', 96: 'B', 97: 'C', 98: 'C', 99: 'B', 100: 'A'
+        };
+
+        const key = {
+            1: 'A', 2: 'D', 3: 'A', 4: 'A', 5: 'D', 6: 'D', 7: 'A', 8: 'B', 9: 'B', 10: 'A',
+            11: 'A', 12: 'D', 13: 'A', 14: 'B', 15: 'D', 16: 'A', 17: 'B', 18: 'D', 19: 'A', 20: 'D',
+            21: 'D', 22: 'D', 23: 'A', 24: 'D', 25: 'B', 26: 'D', 27: 'B', 28: 'C', 29: 'A', 30: 'A',
+            31: 'B', 32: 'A', 33: 'B', 34: 'C', 35: 'A', 36: 'A', 37: 'D', 38: 'C', 39: 'D', 40: 'B',
+            41: 'C', 42: 'C', 43: 'C', 44: 'D', 45: 'B', 46: 'A', 47: 'C', 48: 'B', 49: 'C', 50: 'C',
+            51: 'C', 52: 'D', 53: 'A', 54: 'B', 55: 'C', 56: 'B', 57: 'A', 58: 'D', 59: 'C', 60: 'D',
+            61: 'B', 62: 'C', 63: 'C', 64: 'B', 65: 'A', 66: 'C', 67: 'D', 68: 'A', 69: 'C', 70: 'D',
+            71: 'C', 72: 'B', 73: 'A', 74: 'B', 75: 'D', 76: 'D', 77: 'C', 78: 'C', 79: 'A', 80: 'A',
+            81: 'C', 82: 'B', 83: 'D', 84: 'D', 85: 'A', 86: 'C', 87: 'D', 88: 'A', 89: 'B', 90: 'D',
+            91: 'B', 92: 'B', 93: 'A', 94: 'C', 95: 'B', 96: 'B', 97: 'C', 98: 'C', 99: 'B', 100: 'C'
+        };
+
+        // Calculate scorecard dynamically
+        function calculateScorecard() {
+            let correct = 0, wrong = 0, skipped = 0;
+
+            for (let i = 1; i <= 100; i++) {
+                if (omr[i] === 'E') {
+                    skipped++;
+                } else if (omr[i] === key[i]) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            }
+
+            const markCorrect = 2;
+            const markWrong = -0.5;
+            const marksEarned = correct * markCorrect;
+            const penalty = Math.abs(wrong * markWrong);
+            const finalMarks = marksEarned - penalty;
+            const totalMarks = 100 * markCorrect;
+            const percentage = (finalMarks / totalMarks * 100).toFixed(2);
+
+            const html = `
+                <div class="card blue">
+                    <div class="val">${correct}</div>
+                    <div class="lbl">✅ Correct</div>
+                </div>
+                <div class="card red">
+                    <div class="val">${wrong}</div>
+                    <div class="lbl">❌ Wrong</div>
+                </div>
+                <div class="card yellow">
+                    <div class="val">${skipped}</div>
+                    <div class="lbl">⏭ Skipped (E)</div>
+                </div>
+                <div class="card green">
+                    <div class="val">${marksEarned}</div>
+                    <div class="lbl">+Marks Earned</div>
+                </div>
+                <div class="card red">
+                    <div class="val">−${penalty.toFixed(1)}</div>
+                    <div class="lbl">Penalty</div>
+                </div>
+                <div class="card purple">
+                    <div class="val">${finalMarks.toFixed(1)}</div>
+                    <div class="lbl">🏆 Final / ${totalMarks}</div>
+                </div>
+            `;
+
+            document.getElementById('scorecard').innerHTML = html;
+
+            // Update progress bar
+            document.getElementById('barFill').style.width = percentage + '%';
+            document.getElementById('progressText').textContent = `${finalMarks.toFixed(1)} / ${totalMarks} = ${percentage}%`;
+        }
+
+        function getResult(q) {
+            if (omr[q] === 'E') return '<span class="skip">SKIP</span>';
+            if (omr[q] === key[q]) return '<span class="correct">✓</span>';
+            return '<span class="wrong">✗</span>';
+        }
+
+        // Generate scorecard on page load
+        calculateScorecard();
+
+        const tbody = document.getElementById('tbody');
+        const rows = 25;
+        for (let r = 0; r < rows; r++) {
+            const qs = [r + 1, r + 26, r + 51, r + 76];
+            let html = '<tr>';
+            qs.forEach(q => {
+                const res = getResult(q);
+                const isWrong = omr[q] !== key[q] && omr[q] !== 'E';
+                html += `<td class="q-no">${q}</td>
+                <td class="omr-ans">${omr[q]}</td>
+                <td class="key-ans">${key[q]}</td>
+                <td>${res}</td>`;
+            });
+            html += '</tr>';
+            tbody.innerHTML += html;
+        }
+    </script>
+</body>
+
+</html>

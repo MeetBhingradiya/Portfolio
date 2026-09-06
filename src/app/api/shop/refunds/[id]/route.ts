@@ -10,10 +10,9 @@ import { RefundRequest } from "@Models/RefundRequest";
 import { Order } from "@Models/Order";
 import { getResolvedUser } from "@Utils/RolePermissions";
 
-function getRefundQuery(id: string) {
-    return mongoose.isValidObjectId(id)
-        ? { $or: [{ refundId: id }, { _id: id }] }
-        : { refundId: id };
+function refundQuery(id: string) {
+    if (!id || typeof id !== "string") return { refundId: "__invalid__" };
+    return mongoose.isValidObjectId(id) ? { $or: [{ refundId: id }, { _id: id }] } : { refundId: id };
 }
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -25,7 +24,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
         const refund = await RefundRequest.findOne({
-            ...getRefundQuery(id),
+            ...refundQuery(id),
             isDeleted: false
         }).lean();
 
@@ -52,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
         const { status, reviewNote } = body;
 
         const refund = await RefundRequest.findOneAndUpdate(
-            getRefundQuery(id),
+            refundQuery(id),
             {
                 status,
                 reviewedBy: user.email,

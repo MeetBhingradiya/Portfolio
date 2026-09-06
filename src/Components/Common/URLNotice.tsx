@@ -37,6 +37,14 @@ const NOTICE_MESSAGES: Record<string, { message: string; type: "error" | "warnin
     photos_error: {
         message: "Something went wrong while verifying your photo library access. Please try again.",
         type: "warning"
+    },
+    sso_access_denied: {
+        message: "Access Denied — You are not authorized to connect to this application.",
+        type: "error"
+    },
+    sso_not_whitelisted: {
+        message: "Access Denied — Your account has not been granted access to this application. Contact the administrator.",
+        type: "error"
     }
 };
 

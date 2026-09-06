@@ -7,7 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { getSession } from "@Library/auth";
 import dbConnect from "@Utils/dbConnect";
-import { ImmichWhitelist } from "@Models/ImmichWhitelist";
+import { SSOApp, SSOAppAccess } from "@Models/SSO";
 
 export async function GET(_req: NextRequest) {
     try {
@@ -18,7 +18,14 @@ export async function GET(_req: NextRequest) {
         }
 
         await dbConnect();
-        const entry = await ImmichWhitelist.findOne({
+        
+        const app = await SSOApp.findOne({ name: "Immich", enabled: true }).lean();
+        if (!app) {
+            return NextResponse.json({ allowed: false });
+        }
+
+        const entry = await SSOAppAccess.findOne({
+            appId: app._id,
             email: session.user.email.toLowerCase(),
             enabled: true
         }).lean();

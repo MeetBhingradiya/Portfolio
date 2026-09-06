@@ -45,7 +45,6 @@ interface RoleDef {
     permissions: string[];
     isBuiltin: boolean;
     color: string;
-    order: number;
 }
 
 interface UserRoleRecord {
@@ -61,6 +60,11 @@ interface UserRoleRecord {
 type Tab = "definitions" | "assignments";
 
 const PRESET_COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#22c55e", "#ef4444", "#06b6d4", "#f97316"];
+const UNKNOWN_CATEGORY_META = { label: "Other", color: "#94a3b8" };
+
+function getCategoryMeta(catKey: string) {
+    return PERMISSION_CATEGORIES[catKey] ?? { ...UNKNOWN_CATEGORY_META, label: catKey || UNKNOWN_CATEGORY_META.label };
+}
 
 // ─── Permission Category Row (needs own state for expand/collapse) ───────────
 
@@ -74,7 +78,7 @@ interface PermCategoryRowProps {
 }
 
 function PermCategoryRow({ catKey, perms, editUserPerms, toggleUserPerm, isDark, palette }: PermCategoryRowProps) {
-    const catMeta = PERMISSION_CATEGORIES[catKey];
+    const catMeta = getCategoryMeta(catKey);
     const activeOverrides = editUserPerms.filter((p) => perms.find((cp: PermissionDef) => cp.key === p.key) && p.granted);
     const [expanded, setExpanded] = React.useState(activeOverrides.length > 0);
     return (
@@ -459,6 +463,9 @@ export default function AdminRolesPage() {
     const filteredUsers = pg.userRoles.filter((r) => r.email.toLowerCase().includes(user.search.toLowerCase()));
 
     const permCats = permissionsByCategory();
+    const suggestedPerms = Object.entries(permCats)
+        .flatMap(([catKey, perms]) => perms.slice(0, 2).map((perm) => ({ ...perm, catKey })))
+        .slice(0, 10);
 
     // ── Render ────────────────────────────────────────────────────────────────
     return (
@@ -1065,8 +1072,80 @@ export default function AdminRolesPage() {
                                     style={{ color: palette.textTertiary }}>
                                     Permissions — {def.permsSet.size} selected
                                 </p>
+                                {suggestedPerms.length > 0 && (
+                                    <div>
+                                        <div className="flex items-center justify-between gap-3 mb-2">
+                                            <p
+                                                className="text-xs font-black uppercase tracking-wider"
+                                                style={{ color: palette.textTertiary }}>
+                                                Permission Suggestions
+                                            </p>
+                                            <p
+                                                className="text-[11px]"
+                                                style={{ color: palette.textSecondary }}>
+                                                Quick add common permissions
+                                            </p>
+                                        </div>
+                                        <div className="grid grid-cols-1 gap-2 mb-4">
+                                            {suggestedPerms.map((p) => {
+                                                const catMeta = getCategoryMeta(p.catKey);
+                                                const on = def.permsSet.has(p.key);
+                                                return (
+                                                    <motion.button
+                                                        key={p.key}
+                                                        whileTap={{ scale: 0.98 }}
+                                                        onClick={() => toggleDefPerm(p.key)}
+                                                        className="w-full flex items-start gap-3 px-4 py-3 rounded-xl text-left border transition-all"
+                                                        style={{
+                                                            background: on ? `${catMeta.color}15` : isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)",
+                                                            color: on ? catMeta.color : palette.textSecondary,
+                                                            borderColor: on ? `${catMeta.color}55` : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"
+                                                        }}>
+                                                        {on ? (
+                                                            <CheckBox
+                                                                fontSize="small"
+                                                                style={{
+                                                                    color: catMeta.color,
+                                                                    flexShrink: 0,
+                                                                    marginTop: 1
+                                                                }}
+                                                            />
+                                                        ) : (
+                                                            <CheckBoxOutlineBlank
+                                                                fontSize="small"
+                                                                style={{
+                                                                    color: palette.textTertiary,
+                                                                    flexShrink: 0,
+                                                                    marginTop: 1
+                                                                }}
+                                                            />
+                                                        )}
+                                                        <span className="flex-1 min-w-0">
+                                                            <span className="block text-sm font-bold truncate">
+                                                                {p.label}
+                                                            </span>
+                                                            <span
+                                                                className="block text-[11px] mt-0.5 leading-4"
+                                                                style={{ color: palette.textSecondary }}>
+                                                                {p.description}
+                                                            </span>
+                                                        </span>
+                                                        <span
+                                                            className="text-[10px] font-mono px-2 py-1 rounded-lg shrink-0"
+                                                            style={{
+                                                                background: on ? `${catMeta.color}18` : (isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"),
+                                                                color: on ? catMeta.color : palette.textTertiary
+                                                            }}>
+                                                            {p.key}
+                                                        </span>
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                                 {Object.entries(permCats).map(([catKey, perms]) => {
-                                    const catMeta = PERMISSION_CATEGORIES[catKey];
+                                    const catMeta = getCategoryMeta(catKey);
                                     return (
                                         <div key={catKey}>
                                             <div className="flex items-center gap-2 mb-2">
@@ -1099,8 +1178,8 @@ export default function AdminRolesPage() {
                                                                 background: on
                                                                     ? `${catMeta.color}15`
                                                                     : isDark
-                                                                      ? "rgba(255,255,255,0.04)"
-                                                                      : "rgba(0,0,0,0.03)",
+                                                                        ? "rgba(255,255,255,0.04)"
+                                                                        : "rgba(0,0,0,0.03)",
                                                                 color: on ? catMeta.color : palette.textSecondary
                                                             }}>
                                                             {on ? (
@@ -1259,8 +1338,8 @@ export default function AdminRolesPage() {
                                                             background: on
                                                                 ? `${rd.color}18`
                                                                 : isDark
-                                                                  ? "rgba(255,255,255,0.04)"
-                                                                  : "rgba(0,0,0,0.03)"
+                                                                    ? "rgba(255,255,255,0.04)"
+                                                                    : "rgba(0,0,0,0.03)"
                                                         }}>
                                                         {on ? (
                                                             <CheckBox

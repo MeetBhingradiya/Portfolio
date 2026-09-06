@@ -38,7 +38,13 @@ import {
     Lock,
     Info,
     Fingerprint,
-    BugReport
+    BugReport,
+    ViewList,
+    GridView,
+    ChevronLeft,
+    ChevronRight,
+    Fullscreen,
+    CloseFullscreen
 } from "@mui/icons-material";
 
 // ---------------------------------------------------------------------------
@@ -197,6 +203,49 @@ export default function CDNAdminPage() {
         }
     });
     const patchIntegrity = useCallback((p: Partial<typeof integrity>) => setIntegrity((s) => ({ ...s, ...p })), []);
+
+    /* ── View & Lightbox state ── */
+    const [viewMode, setViewMode] = useState<"list" | "gallery">("list");
+    const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+    const pendingLightboxAction = useRef<"first" | "last" | null>(null);
+
+    useEffect(() => {
+        if (pendingLightboxAction.current === "first") {
+            setLightboxIndex(0);
+            pendingLightboxAction.current = null;
+        } else if (pendingLightboxAction.current === "last") {
+            setLightboxIndex(list.assets.length > 0 ? list.assets.length - 1 : 0);
+            pendingLightboxAction.current = null;
+        }
+    }, [list.assets]);
+
+    // Keyboard navigation for Lightbox
+    useEffect(() => {
+        if (lightboxIndex === null) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Escape") setLightboxIndex(null);
+            if (e.key === "ArrowLeft") {
+                if (lightboxIndex > 0) {
+                    setLightboxIndex(lightboxIndex - 1);
+                } else if (list.page > 1) {
+                    pendingLightboxAction.current = "last";
+                    patchList({ page: list.page - 1 });
+                }
+            }
+            if (e.key === "ArrowRight") {
+                if (lightboxIndex < list.assets.length - 1) {
+                    setLightboxIndex(lightboxIndex + 1);
+                } else if (list.page < Math.max(1, Math.ceil(list.totalCount / 20))) {
+                    pendingLightboxAction.current = "first";
+                    patchList({ page: list.page + 1 });
+                }
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [lightboxIndex, list.assets.length, list.page, list.totalCount, patchList]);
+
+
 
     /* ── Repo info state ── */
     const [repoInfo, setRepoInfo] = useState({
@@ -752,8 +801,41 @@ export default function CDNAdminPage() {
                         placeholder="All Statuses"
                     />
                 </div>
+
+                <div style={{ display: "flex", background: inputBg, borderRadius: 10, border: `1px solid ${border}`, overflow: "hidden" }}>
+                    <button
+                        onClick={() => setViewMode("list")}
+                        style={{
+                            padding: "8px 12px",
+                            background: viewMode === "list" ? `${palette.accent}20` : "transparent",
+                            color: viewMode === "list" ? palette.accent : palette.textTertiary,
+                            border: "none",
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                        }}>
+                        <ViewList fontSize="small" />
+                    </button>
+                    <button
+                        onClick={() => setViewMode("gallery")}
+                        style={{
+                            padding: "8px 12px",
+                            background: viewMode === "gallery" ? `${palette.accent}20` : "transparent",
+                            color: viewMode === "gallery" ? palette.accent : palette.textTertiary,
+                            border: "none",
+                            cursor: "pointer",
+                            borderLeft: `1px solid ${border}`,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center"
+                        }}>
+                        <GridView fontSize="small" />
+                    </button>
+                </div>
+
                 <button
-                    onClick={fetchAssets}
+                    onClick={() => fetchAssets()}
                     style={{
                         background: inputBg,
                         border: `1px solid ${border}`,
@@ -787,26 +869,96 @@ export default function CDNAdminPage() {
                         No assets found.
                     </p>
                 ) : (
-                    <div
-                        style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            gap: 1
-                        }}>
-                        {list.assets.map((asset) => (
-                            <AssetRow
-                                key={asset._id}
-                                asset={asset}
-                                palette={palette}
-                                isDark={isDark}
-                                isApple={isApple}
-                                border={border}
-                                radius={radius}
-                                onDelete={handleDelete}
-                                onViewDetail={setDetailAsset}
-                            />
-                        ))}
-                    </div>
+                    viewMode === "list" ? (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: 1
+                            }}>
+                            {list.assets.map((asset) => (
+                                <AssetRow
+                                    key={asset._id}
+                                    asset={asset}
+                                    palette={palette}
+                                    isDark={isDark}
+                                    isApple={isApple}
+                                    border={border}
+                                    radius={radius}
+                                    onDelete={handleDelete}
+                                    onViewDetail={setDetailAsset}
+                                />
+                            ))}
+                        </div>
+                    ) : (
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
+                                gap: 16,
+                                padding: 8
+                            }}>
+                            {list.assets.map((asset, index) => (
+                                <div
+                                    key={asset._id}
+                                    onClick={() => {
+                                        if (asset.mimeType.startsWith("image/")) {
+                                            setLightboxIndex(index);
+                                        } else {
+                                            setDetailAsset(asset);
+                                        }
+                                    }}
+                                    style={{
+                                        aspectRatio: "1",
+                                        borderRadius: radius - 4,
+                                        overflow: "hidden",
+                                        border: `1px solid ${border}`,
+                                        cursor: "pointer",
+                                        position: "relative",
+                                        background: isDark ? "rgba(0,0,0,0.2)" : "rgba(0,0,0,0.05)",
+                                        boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+                                        transition: "transform 0.2s"
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.02)"}
+                                    onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1)"}
+                                    >
+                                    {asset.status === "deleted" || asset.status === "missing" ? (
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
+                                            {asset.status === "deleted" ? <Delete style={{ color: palette.textTertiary }} /> : <Warning style={{ color: "#f59e0b" }} />}
+                                        </div>
+                                    ) : asset.mimeType.startsWith("image/") ? (
+                                        <img
+                                            src={`/api/cdn/${asset.assetId}`}
+                                            alt={asset.filename}
+                                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                            loading="lazy"
+                                        />
+                                    ) : (
+                                        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: palette.textTertiary }}>
+                                            {assetIcon(asset.mimeType)}
+                                        </div>
+                                    )}
+                                    <div style={{
+                                        position: "absolute",
+                                        bottom: 0,
+                                        left: 0,
+                                        right: 0,
+                                        padding: "32px 10px 10px",
+                                        background: "linear-gradient(to top, rgba(0,0,0,0.9), transparent)",
+                                        color: "#fff",
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        whiteSpace: "nowrap",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        textShadow: "0 1px 2px rgba(0,0,0,0.8)"
+                                    }}>
+                                        {asset.filename}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )
                 )}
             </div>
 
@@ -1148,6 +1300,151 @@ export default function CDNAdminPage() {
                 )}
             </AnimatePresence>
 
+            {/* ── Lightbox overlay ──────────────────────────────────── */}
+            <AnimatePresence>
+                {lightboxIndex !== null && list.assets[lightboxIndex] && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        style={{
+                            position: "fixed",
+                            inset: 0,
+                            zIndex: 100,
+                            background: isDark ? "rgba(0,0,0,0.85)" : "rgba(0,0,0,0.75)",
+                            backdropFilter: "blur(12px)",
+                            display: "flex",
+                            flexDirection: "column"
+                        }}
+                    >
+                        {/* Top Bar */}
+                        <div style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            padding: "16px 24px",
+                            background: "linear-gradient(to bottom, rgba(0,0,0,0.6), transparent)",
+                            color: "#fff"
+                        }}>
+                            <div>
+                                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>
+                                    {list.assets[lightboxIndex].filename}
+                                </h3>
+                                <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.7)" }}>
+                                    {list.assets[lightboxIndex].type} · {formatBytes(list.assets[lightboxIndex].size)} · {list.assets[lightboxIndex].mimeType}
+                                </p>
+                            </div>
+                            <div style={{ display: "flex", gap: 12 }}>
+                                <button
+                                    onClick={() => setDetailAsset(list.assets[lightboxIndex])}
+                                    style={{ background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", color: "#fff", padding: 8, borderRadius: 8, display: "flex", alignItems: "center" }}
+                                    title="Information"
+                                >
+                                    <Info fontSize="small" />
+                                </button>
+                                <button
+                                    onClick={() => setLightboxIndex(null)}
+                                    style={{ background: "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", color: "#fff", padding: 8, borderRadius: 8, display: "flex", alignItems: "center" }}
+                                    title="Close"
+                                >
+                                    <Close fontSize="small" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Main Image Area */}
+                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
+                            {(lightboxIndex > 0 || list.page > 1) && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (lightboxIndex > 0) {
+                                            setLightboxIndex(lightboxIndex - 1);
+                                        } else {
+                                            pendingLightboxAction.current = "last";
+                                            patchList({ page: list.page - 1 });
+                                        }
+                                    }}
+                                    style={{
+                                        position: "absolute",
+                                        left: 24,
+                                        background: "rgba(255,255,255,0.1)",
+                                        backdropFilter: "blur(4px)",
+                                        border: "none",
+                                        color: "#fff",
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        cursor: "pointer",
+                                        zIndex: 10
+                                    }}
+                                >
+                                    <ChevronLeft fontSize="large" />
+                                </button>
+                            )}
+
+                            <motion.img
+                                key={list.assets[lightboxIndex]._id}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                src={`/api/cdn/${list.assets[lightboxIndex].assetId}`}
+                                alt={list.assets[lightboxIndex].filename}
+                                style={{
+                                    maxWidth: "90%",
+                                    maxHeight: "85vh",
+                                    objectFit: "contain",
+                                    borderRadius: 4,
+                                    boxShadow: "0 20px 40px -10px rgba(0,0,0,0.5)"
+                                }}
+                            />
+
+                            {(lightboxIndex < list.assets.length - 1 || list.page < Math.max(1, Math.ceil(list.totalCount / 20))) && (
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (lightboxIndex < list.assets.length - 1) {
+                                            setLightboxIndex(lightboxIndex + 1);
+                                        } else {
+                                            pendingLightboxAction.current = "first";
+                                            patchList({ page: list.page + 1 });
+                                        }
+                                    }}
+                                    style={{
+                                        position: "absolute",
+                                        right: 24,
+                                        background: "rgba(255,255,255,0.1)",
+                                        backdropFilter: "blur(4px)",
+                                        border: "none",
+                                        color: "#fff",
+                                        width: 48,
+                                        height: 48,
+                                        borderRadius: "50%",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        cursor: "pointer",
+                                        zIndex: 10
+                                    }}
+                                >
+                                    <ChevronRight fontSize="large" />
+                                </button>
+                            )}
+                        </div>
+                        
+                        {/* Footer / Pagination hint */}
+                        <div style={{ textAlign: "center", padding: "16px", color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+                            Image {lightboxIndex + 1} of {list.assets.length} (Page {list.page})
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+
             {/* ── Detail drawer ─────────────────────────────────────── */}
             <AnimatePresence>
                 {detailAsset && (
@@ -1331,7 +1628,7 @@ function DetailDrawer({
                 position: "fixed",
                 inset: 0,
                 background: "rgba(0,0,0,0.45)",
-                zIndex: 60,
+                zIndex: 110,
                 display: "flex",
                 justifyContent: "flex-end"
             }}

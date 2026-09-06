@@ -318,7 +318,7 @@ export default function MyOrdersPage() {
                                                     {["confirmed", "processing", "shipped", "delivered", "completed"].includes(
                                                         order.status
                                                     ) && (
-                                                        <Link href={`/support/tickets/new?orderId=${order.orderId}`}>
+                                                        <Link href={`/shop/refunds/new?orderId=${order.orderId}`}>
                                                             <motion.button
                                                                 whileTap={{
                                                                     scale: 0.95

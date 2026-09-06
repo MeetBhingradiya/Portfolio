@@ -624,10 +624,27 @@ function SidebarContent({
                 {!iconOnly && (
                     <div className="mt-2">
                         <div
-                            className="flex items-center gap-2 rounded-xl px-2.5 py-2 border"
+                            className={`flex items-center gap-2 ${isApple ? "rounded-full px-3" : "rounded-xl px-2.5"} py-2 border transition-all`}
                             style={{
-                                borderColor: isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)",
-                                background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"
+                                borderColor: isApple
+                                    ? isDark
+                                        ? "rgba(255,255,255,0.14)"
+                                        : "rgba(0,0,0,0.12)"
+                                    : isDark
+                                        ? "rgba(255,255,255,0.12)"
+                                        : "rgba(0,0,0,0.1)",
+                                background: isApple
+                                    ? isDark
+                                        ? "rgba(255,255,255,0.05)"
+                                        : "rgba(0,0,0,0.03)"
+                                    : isDark
+                                        ? "rgba(255,255,255,0.02)"
+                                        : "rgba(0,0,0,0.02)",
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "inset 0 1px 1px rgba(255,255,255,0.08)"
+                                        : "inset 0 1px 1px rgba(0,0,0,0.04)"
+                                    : undefined
                             }}>
                             <Search
                                 style={{
@@ -742,20 +759,32 @@ function SidebarContent({
                                                             href={item.href}
                                                             onClick={onClose}>
                                                             <motion.div
-                                                                className={`flex items-center gap-3 rounded-xl cursor-pointer select-none ${iconOnly ? "justify-center px-0 py-2.5 mx-1" : "px-3 py-2"}`}
+                                                                className={`flex items-center gap-3 ${isApple ? "rounded-full" : "rounded-xl"} cursor-pointer select-none transition-all ${iconOnly ? "justify-center px-0 py-2.5 mx-1" : "px-3.5 py-2"}`}
                                                                 style={{
                                                                     background: active
-                                                                        ? `${palette.accent}${isApple ? "22" : "18"}`
+                                                                        ? `${palette.accent}${isApple ? "25" : "18"}`
                                                                         : "transparent",
                                                                     color: active ? palette.accent : palette.textSecondary,
-                                                                    fontWeight: active ? 700 : 500
+                                                                    fontWeight: active ? 600 : 500,
+                                                                    border: active && isApple
+                                                                        ? `1px solid ${palette.accent}35`
+                                                                        : "1px solid transparent",
+                                                                    boxShadow: active && isApple
+                                                                        ? isDark
+                                                                            ? `inset 0 1px 1px rgba(255,255,255,0.18), 0 2px 8px ${palette.accent}20`
+                                                                            : `inset 0 1px 1px rgba(255,255,255,0.85), 0 2px 8px ${palette.accent}20`
+                                                                        : undefined
                                                                 }}
                                                                 whileHover={{
                                                                     background: active
-                                                                        ? `${palette.accent}28`
-                                                                        : isDark
-                                                                            ? "rgba(255,255,255,0.06)"
-                                                                            : "rgba(0,0,0,0.04)",
+                                                                        ? `${palette.accent}30`
+                                                                        : isApple
+                                                                            ? isDark
+                                                                                ? "rgba(255,255,255,0.08)"
+                                                                                : "rgba(0,0,0,0.05)"
+                                                                            : isDark
+                                                                                ? "rgba(255,255,255,0.06)"
+                                                                                : "rgba(0,0,0,0.04)",
                                                                     scale: 1.01
                                                                 }}
                                                                 whileTap={{
@@ -1029,14 +1058,20 @@ export default function AdminSidebar() {
 
     const sidebarBg = isApple
         ? isDark
-            ? "rgba(18,18,20,0.92)"
-            : "rgba(245,245,250,0.92)"
+            ? "rgba(18,18,22,0.82)"
+            : "rgba(245,245,250,0.82)"
         : isDark
             ? "rgba(20,20,24,0.97)"
             : "rgba(248,248,252,0.97)";
 
-    const sidebarBlur = isApple ? "blur(24px) saturate(180%)" : "none";
-    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+    const sidebarBlur = isApple ? "blur(30px) saturate(190%)" : "none";
+    const borderColor = isApple
+        ? isDark
+            ? "rgba(255,255,255,0.12)"
+            : "rgba(0,0,0,0.09)"
+        : isDark
+            ? "rgba(255,255,255,0.08)"
+            : "rgba(0,0,0,0.08)";
 
     const sharedProps = {
         palette,
@@ -1121,7 +1156,12 @@ export default function AdminSidebar() {
                                 background: sidebarBg,
                                 backdropFilter: sidebarBlur,
                                 WebkitBackdropFilter: sidebarBlur,
-                                borderRight: `1px solid ${borderColor}`
+                                borderRight: `1px solid ${borderColor}`,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "inset -1px 0 0 rgba(255,255,255,0.08), inset 0 1px 1px rgba(255,255,255,0.12), 4px 0 24px rgba(0,0,0,0.4)"
+                                        : "inset -1px 0 0 rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.9), 4px 0 24px rgba(0,0,0,0.1)"
+                                    : undefined
                             }}
                             initial={{ x: -280 }}
                             animate={{ x: 0 }}
@@ -1156,6 +1196,11 @@ export default function AdminSidebar() {
                         backdropFilter: sidebarBlur,
                         WebkitBackdropFilter: sidebarBlur,
                         borderRight: `1px solid ${borderColor}`,
+                        boxShadow: isApple
+                            ? isDark
+                                ? "inset -1px 0 0 rgba(255,255,255,0.08), inset 0 1px 1px rgba(255,255,255,0.12), 4px 0 24px rgba(0,0,0,0.3)"
+                                : "inset -1px 0 0 rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.9), 4px 0 24px rgba(0,0,0,0.06)"
+                            : undefined,
                         flexShrink: 0,
                         minWidth: MIN_WIDTH,
                         maxWidth: MAX_WIDTH,

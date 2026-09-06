@@ -48,9 +48,17 @@ export default function AdminRefundsPage() {
     }>({ detail: null, notes: "", saving: false });
     const patchPanel = useCallback((p: Partial<typeof panel>) => setPanel((s) => ({ ...s, ...p })), []);
 
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
-    const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
-    const br = isApple ? 16 : 20;
+    const cardBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.72)"
+        : isDark
+        ? "rgba(24,24,28,0.98)"
+        : "#fff";
+    const border = isApple
+        ? `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`
+        : `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
+    const br = isApple ? 20 : 20;
 
     const fetchRefunds = useCallback(async () => {
         patchList({ loading: true });
@@ -102,9 +110,19 @@ export default function AdminRefundsPage() {
             </div>
 
             <div
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-5"
-                style={{ background: cardBg, border }}>
-                <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
+                className="flex items-center gap-2.5 px-4 py-3 rounded-full mb-5"
+                style={{
+                    background: cardBg,
+                    border,
+                    backdropFilter: isApple ? "blur(20px) saturate(180%)" : undefined,
+                    WebkitBackdropFilter: isApple ? "blur(20px) saturate(180%)" : undefined,
+                    boxShadow: isApple
+                        ? isDark
+                            ? "0 4px 20px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.1)"
+                            : "0 4px 20px rgba(0,0,0,0.04), inset 0 1px 1px rgba(255,255,255,0.8)"
+                        : undefined
+                }}>
+                <Search style={{ color: palette.textSecondary, fontSize: 20 }} />
                 <input
                     value={list.search}
                     onChange={(e) => patchList({ search: e.target.value })}
@@ -115,29 +133,38 @@ export default function AdminRefundsPage() {
             </div>
 
             {list.loading ? (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {[1, 2, 3].map((i) => (
                         <div
                             key={i}
                             className="h-20 rounded-2xl animate-pulse"
                             style={{
-                                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"
+                                background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+                                borderRadius: br
                             }}
                         />
                     ))}
                 </div>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-3">
                     {filtered.map((r) => (
                         <motion.div
                             key={r._id}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex items-center gap-4 px-5 py-4 rounded-2xl cursor-pointer"
+                            whileHover={isApple ? { scale: 1.006 } : undefined}
+                            className="flex items-center gap-4 px-5 py-4 rounded-2xl cursor-pointer transition-shadow duration-200"
                             style={{
                                 background: cardBg,
                                 border,
-                                borderRadius: br
+                                borderRadius: br,
+                                backdropFilter: isApple ? "blur(24px) saturate(190%)" : undefined,
+                                WebkitBackdropFilter: isApple ? "blur(24px) saturate(190%)" : undefined,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "0 4px 20px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.08)"
+                                        : "0 4px 20px rgba(0,0,0,0.04), inset 0 1px 1px rgba(255,255,255,0.85)"
+                                    : undefined
                             }}
                             onClick={() =>
                                 patchPanel({
@@ -218,7 +245,21 @@ export default function AdminRefundsPage() {
                             }}
                             className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col"
                             style={{
-                                background: isDark ? "#1c1c20" : "#f5f5f8"
+                                background: isApple
+                                    ? isDark
+                                        ? "rgba(24, 24, 28, 0.82)"
+                                        : "rgba(245, 245, 248, 0.88)"
+                                    : isDark
+                                    ? "#1c1c20"
+                                    : "#f5f5f8",
+                                backdropFilter: isApple ? "blur(32px) saturate(200%)" : undefined,
+                                WebkitBackdropFilter: isApple ? "blur(32px) saturate(200%)" : undefined,
+                                borderLeft: border,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "-8px 0 32px rgba(0,0,0,0.5)"
+                                        : "-8px 0 32px rgba(0,0,0,0.1)"
+                                    : undefined
                             }}>
                             <div
                                 className="flex items-center justify-between px-6 py-5 border-b"
@@ -227,7 +268,7 @@ export default function AdminRefundsPage() {
                                 }}>
                                 <div>
                                     <h2
-                                        className="font-black text-lg"
+                                        className={`${isApple ? "font-semibold text-lg" : "font-black text-lg"}`}
                                         style={{ color: palette.textPrimary }}>
                                         {panel.detail.refundId}
                                     </h2>
@@ -239,7 +280,9 @@ export default function AdminRefundsPage() {
                                         Order: {panel.detail.orderId}
                                     </p>
                                 </div>
-                                <button onClick={() => patchPanel({ detail: null })}>
+                                <button
+                                    onClick={() => patchPanel({ detail: null })}
+                                    className="p-1 rounded-full hover:opacity-75 transition-opacity">
                                     <Close style={{ color: palette.textSecondary }} />
                                 </button>
                             </div>
@@ -248,7 +291,8 @@ export default function AdminRefundsPage() {
                                 <div
                                     className="p-4 rounded-2xl"
                                     style={{
-                                        background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)"
+                                        background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.03)",
+                                        border: isApple ? border : undefined
                                     }}>
                                     <p
                                         className="text-xs font-black uppercase tracking-widest mb-1"
@@ -297,7 +341,9 @@ export default function AdminRefundsPage() {
                                         }
                                         rows={3}
                                         placeholder="Internal notes about the review decision…"
-                                        className="w-full text-sm px-4 py-3 rounded-xl resize-none outline-none"
+                                        className={`w-full text-sm px-4 py-3 resize-none outline-none ${
+                                            isApple ? "rounded-2xl" : "rounded-xl"
+                                        }`}
                                         style={{
                                             background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
                                             color: palette.textPrimary,
@@ -317,10 +363,11 @@ export default function AdminRefundsPage() {
                                         whileTap={{ scale: 0.97 }}
                                         onClick={() => review("under_review")}
                                         disabled={panel.saving}
-                                        className="w-full py-2.5 rounded-xl font-bold text-sm"
+                                        className={`w-full py-2.5 font-bold text-sm ${isApple ? "rounded-full" : "rounded-xl"}`}
                                         style={{
-                                            background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
-                                            color: palette.textPrimary
+                                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                                            color: palette.textPrimary,
+                                            border: isApple ? border : undefined
                                         }}>
                                         Mark Under Review
                                     </motion.button>
@@ -330,10 +377,13 @@ export default function AdminRefundsPage() {
                                         whileTap={{ scale: 0.97 }}
                                         onClick={() => review("rejected")}
                                         disabled={panel.saving}
-                                        className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                                        className={`flex-1 py-2.5 font-bold text-sm flex items-center justify-center gap-2 ${
+                                            isApple ? "rounded-full" : "rounded-xl"
+                                        }`}
                                         style={{
-                                            background: "rgba(255,59,48,0.12)",
-                                            color: "#FF3B30"
+                                            background: "rgba(255,59,48,0.15)",
+                                            color: "#FF3B30",
+                                            border: isApple ? "1px solid rgba(255,59,48,0.25)" : undefined
                                         }}>
                                         <Close fontSize="small" /> Reject
                                     </motion.button>
@@ -341,10 +391,13 @@ export default function AdminRefundsPage() {
                                         whileTap={{ scale: 0.97 }}
                                         onClick={() => review("approved")}
                                         disabled={panel.saving}
-                                        className="flex-1 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
+                                        className={`flex-1 py-2.5 font-bold text-sm flex items-center justify-center gap-2 ${
+                                            isApple ? "rounded-full" : "rounded-xl"
+                                        }`}
                                         style={{
-                                            background: "rgba(52,199,89,0.12)",
-                                            color: "#34C759"
+                                            background: "rgba(52,199,89,0.18)",
+                                            color: "#34C759",
+                                            border: isApple ? "1px solid rgba(52,199,89,0.25)" : undefined
                                         }}>
                                         <Check fontSize="small" /> Approve
                                     </motion.button>

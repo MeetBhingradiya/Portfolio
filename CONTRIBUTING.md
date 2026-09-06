@@ -1,108 +1,103 @@
-# Contributing to Meet Bhingradiya's Portfolio
+# Contributing to Meet Bhingradiya's Application & Portfolio
 
-First off, thank you for considering contributing to my portfolio project! This is a personal project, but I'm open to contributions that
-improve functionality, fix bugs, or enhance the user experience.
+Thank you for your interest in contributing! This repository is an open-source, full-stack web application, developer portfolio, and cloud platform built with Next.js 16 App Router, React 19, Tailwind CSS v4, and MongoDB Atlas.
 
-## Code of Conduct
-
-By participating in this project, you agree to abide by a respectful and constructive approach to collaboration. Please be kind and
-professional in all interactions.
-
-## Getting Started
-
-1. **Fork the repository** on GitHub
-2. **Clone your fork**
-    ```bash
-    git clone https://github.com/YOUR-USERNAME/Portfolio.git
-    ```
-3. **Add the original repository as upstream**
-    ```bash
-    git remote add upstream https://github.com/MeetBhingradiya/Portfolio.git
-    ```
-4. **Create a new branch** for your feature or bugfix
-    ```bash
-    git checkout -b feature/your-feature-name
-    ```
-
-## Development Workflow
-
-1. **Install dependencies**
-
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
-
-2. **Run the development server**
-
-    ```bash
-    npm run dev
-    # or
-    yarn dev
-    ```
-
-3. **Make your changes** and test them thoroughly
-
-4. **Commit your changes** with clear, descriptive commit messages
-
-    ```bash
-    git commit -m "Add feature: your feature description"
-    ```
-
-5. **Pull latest changes** from the upstream repository
-
-    ```bash
-    git pull upstream main
-    ```
-
-6. **Push your branch** to your fork
-
-    ```bash
-    git push origin feature/your-feature-name
-    ```
-
-7. **Submit a pull request** from your forked repository to my repository
-
-## Pull Request Guidelines
-
-When submitting a pull request:
-
-1. **Use a clear, descriptive title**
-2. **Describe the changes** you've made in detail
-3. **Link any related issues** using the GitHub issue linking syntax
-4. **Include screenshots** for UI changes if applicable
-5. **Make sure all tests pass** and that your code follows the project's coding standards
-6. **Keep your PR updated** by rebasing when necessary
-
-## Coding Standards
-
-- Follow the existing code style and structure
-- Use TypeScript types appropriately
-- Write clear, descriptive variable and function names
-- Add comments for complex logic
-- Ensure responsive design principles are maintained
-
-## Reporting Issues
-
-If you find a bug or want to suggest a feature:
-
-1. Check if the issue already exists in the [GitHub Issues](https://github.com/MeetBhingradiya/Portfolio/issues)
-2. If not, create a new issue with a descriptive title and detailed description
-3. For bugs, include:
-    - Steps to reproduce
-    - Expected behavior
-    - Actual behavior
-    - Browser and environment details
-    - Screenshots if applicable
-
-## Questions?
-
-If you have any questions about contributing, feel free to reach out to me at
-[meetbhingradiya.dev@gmail.com](mailto:meetbhingradiya.dev@gmail.com).
+Whether you are a human software engineer or an autonomous AI agent, this guide outlines the workflow, architecture, and coding standards required to land pull requests cleanly.
 
 ---
 
-Thank you for your contributions!
+## 📚 Essential Documentation Suite
 
-_Last updated: 2025-06-20_
+Before contributing or modifying code, please consult the specialized documentation in the [`docs/`](./docs) directory:
+
+| Guide | Description |
+| :--- | :--- |
+| [**AI Agent Guidelines**](./docs/AI_AGENT_GUIDELINES.md) | **Must-read for autonomous agents & contributors.** Checklists, Next.js 16 async params, Mongoose caching rules, and verification steps. |
+| [**Folder Structure**](./docs/FOLDER_STRUCTURE.md) | Comprehensive map of repository directories, atomic design hierarchies, module boundaries, and file placement decision tree. |
+| [**Theme System**](./docs/THEME_SYSTEM.md) | Apple Liquid Glass & Samsung One UI 7 design specifications, CSS custom properties, and component recipes. |
+| [**OAuth Broker & OIDC SSO**](./docs/OAUTH_BROKER.md) | Dual-layer auth architecture: upstream social providers (Better-Auth) and downstream OIDC SSO Identity Provider (`/api/immich-sso/*`). |
+| [**Private GitHub CDN**](./docs/CDN_SYSTEM.md) | Architecture of the multi-repo GitHub CDN, capacity balancing (<900MB cap), privacy history compaction, and streaming proxy. |
+| [**CDN External Developer API**](./docs/CDN_EXTERNAL_API.md) | Third-party developer API guide, authentication, rate limits, and SDK integration examples. |
+
+---
+
+## 🛠️ Prerequisites & Local Development
+
+- **Runtime:** [Bun](https://bun.sh) (preferred) or Node.js (v20+ LTS)
+- **Database:** MongoDB Atlas or local MongoDB instance (URI configured in `.env`)
+- **Git:** Git 2.30+
+
+### Setup Steps
+
+1. **Fork and clone the repository:**
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/My-Web-Site-Application.git
+   cd My-Web-Site-Application
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   bun install
+   # or
+   npm install
+   ```
+
+3. **Configure environment variables:**
+   Copy `.env.example` (or configure `.env`) with your MongoDB URI, auth secrets, and GitHub PAT:
+   ```bash
+   cp .env.example .env # or verify .env exists
+   ```
+
+4. **Start the development server:**
+   ```bash
+   bun run dev
+   # or
+   npm run dev
+   ```
+   The site will be available at `http://localhost:3000`.
+
+---
+
+## 📋 Rules of Engagement for Contributors & AI Agents
+
+1. **Next.js 16 Async Route Parameters:** Dynamic route parameters (`params` and `searchParams`) are asynchronous Promises and **must always be awaited**:
+   ```typescript
+   export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+     const { id } = await params;
+   }
+   ```
+2. **Cached Mongoose Connections:** Never instantiate isolated database connections. Always import `connectDB` from `@/Utils/MongoDB`.
+3. **Safe Model Compilation:** Use `mongoose.models.Name || mongoose.model('Name', schema)` to prevent hot-reload compilation errors.
+4. **Theme Adherence:** All new UI components must be compatible with both the Apple Liquid Glass (`apple`) and Samsung One UI 7 (`samsung`) design systems.
+5. **No Direct Git Media:** Never commit raw images, videos, or binary blobs directly to Git. Use the Private GitHub CDN pipeline (`/api/cdn/upload`).
+6. **No Secret Leaks:** Never commit plaintext credentials, private JWKs, or environment tokens.
+
+---
+
+## 🔀 Pull Request Process
+
+1. Create a dedicated topic branch:
+   ```bash
+   git checkout -b feature/my-enhancement
+   ```
+2. Make atomic, focused commits with descriptive messages following [Conventional Commits](https://www.conventionalcommits.org/):
+   ```bash
+   git commit -m "feat(shop): add support for Apple frosted glass refund status badges"
+   ```
+3. Verify your changes locally by testing affected routes and checking for TypeScript errors.
+4. Push to your fork and submit a Pull Request to `main`.
+5. Ensure your PR description includes:
+   - Summary of changes
+   - Associated issue numbers (if any)
+   - Screenshots / screencasts for UI modifications
+   - Verification steps performed
+
+---
+
+## 💬 Community & Contact
+
+- **Author:** Meet Bhingradiya
+- **Email:** [me@meetbhingradiya.in](mailto:me@meetbhingradiya.in)
+- **Website:** [meetbhingradiya.in](https://meetbhingradiya.in)
+- **GitHub:** [@MeetBhingradiya](https://github.com/MeetBhingradiya)
+

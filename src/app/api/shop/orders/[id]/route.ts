@@ -4,20 +4,27 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import { headers } from "next/headers";
+import mongoose from "mongoose";
 import dbConnect from "@Utils/dbConnect";
 import { Order } from "@Models/Order";
 import { getResolvedUser } from "@Utils/RolePermissions";
 
+function getOrderQuery(id: string) {
+    return mongoose.isValidObjectId(id)
+        ? { $or: [{ orderId: id }, { _id: id }] }
+        : { orderId: id };
+}
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id } = await params;
         const order = await Order.findOne({
-            $or: [{ orderId: id }, { _id: id }],
+            ...getOrderQuery(id),
             isDeleted: false
         }).lean();
 
@@ -35,14 +42,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-        const { id } = await params;
         const body = await req.json();
         const order = await Order.findOne({
-            $or: [{ orderId: id }, { _id: id }],
+            ...getOrderQuery(id),
             isDeleted: false
         });
         if (!order) return NextResponse.json({ success: false, error: "Not found" }, { status: 404 });

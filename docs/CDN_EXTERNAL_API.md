@@ -418,3 +418,164 @@ PATCH actions: `revoke` | `suspend` | `reinstate`
 5. **Size caps** — each plan enforces a per-file byte limit enforced server-side.
 6. **Expiry** — keys can carry an explicit `expiresAt` for time-limited access.
 7. **Audit trail** — every upload tagged with `api-key:<keyId>` and `app:<appName>` for admin searchability.
+
+---
+
+## Standard Error Code Taxonomy
+
+All error payloads return a standard JSON structure:
+
+```json
+{
+  "success": false,
+  "error": "Human readable error description",
+  "code": "MACHINE_READABLE_CODE",
+  "details": {}
+}
+```
+
+| HTTP Status | Error Code | Description | Corrective Action |
+| :--- | :--- | :--- | :--- |
+| `401` | `MISSING_API_KEY` | `X-API-Key` or `Authorization` header missing | Supply key in request headers |
+| `401` | `INVALID_API_KEY` | Key hash not found in database | Verify key plaintext string |
+| `401` | `KEY_EXPIRED` | Key timestamp past `expiresAt` | Request key renewal from site admin |
+| `403` | `KEY_REVOKED` | Key explicitly deactivated by admin | Contact Meet Bhingradiya for review |
+| `403` | `UPLOAD_NOT_PERMITTED`| Key has `allowUpload: false` | Request read-write permissions |
+| `413` | `PAYLOAD_TOO_LARGE` | File exceeds tier size quota | Compress asset or request higher tier |
+| `415` | `UNSUPPORTED_MEDIA_TYPE`| MIME type excluded by key permissions | Verify allowed MIME patterns |
+| `429` | `RATE_LIMIT_EXCEEDED` | Minute/hour/day window exceeded | Implement exponential backoff |
+| `502` | `UPSTREAM_GITHUB_ERROR` | Upstream GitHub Git API failed | Retry after transient GitHub outage |
+
+---
+
+## Rate-Limit Response Headers
+
+Every authenticated request emits rate limit headers for the active sliding window:
+
+```http
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 57
+X-RateLimit-Reset: 1740000000
+Retry-After: 42
+```
+
+---
+
+## Developer SDK Snippets
+
+### 1. TypeScript / Node.js SDK Implementation
+
+```typescript
+import fs from 'node:fs';
+import path from 'node:path';
+
+export interface CDNUploadResponse {
+  success: boolean;
+  assetId: string;
+  url: string;
+  externalUrl: string;
+  size: number;
+  mimeType: string;
+}
+
+export class PortfolioCDNClient {
+  constructor(
+    private readonly apiKey: string,
+    private readonly baseUrl: string = 'https://meetbhingradiya.com'
+  ) {}
+
+  public async uploadFile(filePath: string, customName?: string): Promise<CDNUploadResponse> {
+    const fileBuffer = await fs.promises.readFile(filePath);
+    const fileName = customName || path.basename(filePath);
+    
+    const formData = new FormData();
+    formData.append('file', new Blob([fileBuffer]), fileName);
+
+    const res = await fetch(`${this.baseUrl}/api/cdn/external/upload`, {
+      method: 'POST',
+      headers: {
+        'X-API-Key': this.apiKey,
+      },
+      body: formData,
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(`CDN Upload failed [${res.status}]: ${err.error || res.statusText}`);
+    }
+
+    return res.json();
+  }
+
+  public async getAssetMetadata(assetId: string) {
+    const res = await fetch(`${this.baseUrl}/api/cdn/external/${assetId}`, {
+      headers: { 'X-API-Key': this.apiKey },
+    });
+    if (!res.ok) throw new Error(`Fetch failed [${res.status}]`);
+    return res.json();
+  }
+}
+```
+
+### 2. Python (3.10+) SDK Snippet
+
+```python
+import os
+import requests
+from typing import Optional, Dict, Any
+
+class PortfolioCDNClient:
+    def __init__(self, api_key: str, base_url: str = "https://meetbhingradiya.com"):
+        self.api_key = api_key
+        self.base_url = base_url.rstrip("/")
+        self.headers = {"X-API-Key": self.api_key}
+
+    def upload_file(self, file_path: str, custom_filename: Optional[str] = None) -> Dict[str, Any]:
+        filename = custom_filename or os.path.basename(file_path)
+        with open(file_path, "rb") as f:
+            files = {"file": (filename, f)}
+            response = requests.post(
+                f"{self.base_url}/api/cdn/external/upload",
+                headers=self.headers,
+                files=files
+            )
+            response.raise_for_status()
+            return response.json()
+
+    def get_asset(self, asset_id: str) -> Dict[str, Any]:
+        response = requests.get(
+            f"{self.base_url}/api/cdn/external/{asset_id}",
+            headers=self.headers
+        )
+        response.raise_for_status()
+        return response.json()
+```
+
+### 3. cURL Command-Line Quickstart
+
+```bash
+# Upload asset
+curl -X POST https://meetbhingradiya.com/api/cdn/external/upload \
+  -H "X-API-Key: cdn_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxx" \
+  -F "file=@screenshot.png"
+
+# Inspect asset metadata
+curl -X GET https://meetbhingradiya.com/api/cdn/external/e6c98692-23f4-41d6-84d9-d89066cb5d1c \
+  -H "X-API-Key: cdn_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+---
+
+## API Key Rotation Best Practice
+
+To rotate an external API key in production without zero-downtime interruptions:
+
+1. **Request a Secondary Key:** Contact Meet via the Developer Request portal (`/contact` or `/api/cdn/external/request-access`) stating key rotation.
+2. **Dual-Key Ingestion:** Configure application environment variables with both keys:
+   ```env
+   PRIMARY_CDN_KEY=cdn_live_newkey...
+   FALLBACK_CDN_KEY=cdn_live_oldkey...
+   ```
+3. **Deploy Client:** Direct uploads using `PRIMARY_CDN_KEY`; if receiving `401/403`, fallback gracefully to `FALLBACK_CDN_KEY`.
+4. **Revoke Old Key:** Submit a revocation request for the retired key via the admin API or contact form.
+

@@ -103,10 +103,20 @@ export default function VaultAccessPage() {
     const [editId, setEditId] = useState<string | null>(null);
     const [editForm, setEditForm] = useState({ label: "", note: "", limitMb: DEFAULT_LIMIT_MB, saving: false });
 
-    const card = {
-        background: isApple ? (isDark ? "rgba(38,38,42,0.7)" : "rgba(255,255,255,0.7)") : palette.surface,
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
-    };
+    const card = isApple
+        ? {
+              background: isDark ? "rgba(28,28,32,0.65)" : "rgba(255,255,255,0.72)",
+              backdropFilter: "blur(24px) saturate(190%)",
+              WebkitBackdropFilter: "blur(24px) saturate(190%)",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)"}`,
+              boxShadow: isDark
+                  ? "0 8px 32px rgba(0,0,0,0.37), inset 0 1px 1px rgba(255,255,255,0.12)"
+                  : "0 8px 32px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.85)"
+          }
+        : {
+              background: palette.surface,
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
+          };
 
     const showToast = (msg: string, ok = true) => {
         setToast({ msg, ok });
@@ -264,7 +274,7 @@ export default function VaultAccessPage() {
                 </div>
                 <div className="flex gap-2">
                     <motion.button
-                        className="p-2 rounded-xl"
+                        className={`p-2.5 ${isApple ? "rounded-full" : "rounded-xl"}`}
                         style={card}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
@@ -273,8 +283,8 @@ export default function VaultAccessPage() {
                         <Refresh fontSize="small" style={{ color: palette.textSecondary }} />
                     </motion.button>
                     <motion.button
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
-                        style={{ background: ACCENT, color: "#fff" }}
+                        className={`flex items-center gap-2 px-5 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold`}
+                        style={{ background: ACCENT, color: "#fff", boxShadow: isApple ? "0 4px 14px rgba(0,113,227,0.35)" : undefined }}
                         whileHover={{ scale: 1.04 }}
                         whileTap={{ scale: 0.97 }}
                         onClick={() => setShowAdd(true)}>
@@ -293,7 +303,7 @@ export default function VaultAccessPage() {
                 ].map((s) => (
                     <div
                         key={s.label}
-                        className="p-4 rounded-2xl"
+                        className={`p-4 ${isApple ? "rounded-[20px]" : "rounded-2xl"}`}
                         style={card}>
                         <p className="text-2xl font-bold" style={{ color: ACCENT }}>{s.value}</p>
                         <p className="text-xs mt-0.5" style={{ color: palette.textSecondary }}>{s.label}</p>
@@ -303,7 +313,7 @@ export default function VaultAccessPage() {
 
             {/* Search */}
             <div
-                className="flex items-center gap-2 px-3 py-2 rounded-xl mb-5"
+                className={`flex items-center gap-2 px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} mb-5`}
                 style={card}>
                 <Search fontSize="small" style={{ color: palette.textTertiary }} />
                 <input
@@ -517,15 +527,25 @@ export default function VaultAccessPage() {
             <AnimatePresence>
                 {showAdd && (
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-                        style={{ background: "rgba(0,0,0,0.5)" }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md"
+                        style={{ background: isApple ? (isDark ? "rgba(0,0,0,0.55)" : "rgba(0,0,0,0.25)") : "rgba(0,0,0,0.5)" }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={() => setShowAdd(false)}>
                         <motion.div
-                            className="p-6 rounded-2xl w-full max-w-md"
-                            style={card}
+                            className={`p-6 ${isApple ? "rounded-[28px]" : "rounded-2xl"} w-full max-w-md shadow-2xl`}
+                            style={{
+                                ...card,
+                                background: isApple
+                                    ? (isDark ? "rgba(28,28,32,0.92)" : "rgba(255,255,255,0.92)")
+                                    : palette.surface,
+                                boxShadow: isApple
+                                    ? (isDark
+                                          ? "0 24px 64px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15)"
+                                          : "0 24px 64px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.9)")
+                                    : undefined
+                            }}
                             initial={{ scale: 0.9 }}
                             animate={{ scale: 1 }}
                             exit={{ scale: 0.9 }}
@@ -535,7 +555,7 @@ export default function VaultAccessPage() {
                                     Grant Vault Access
                                 </h2>
                                 <motion.button
-                                    className="p-1.5 rounded-lg"
+                                    className={`p-1.5 ${isApple ? "rounded-full" : "rounded-lg"}`}
                                     style={{ color: palette.textTertiary }}
                                     whileHover={{ scale: 1.1 }}
                                     onClick={() => setShowAdd(false)}>
@@ -689,8 +709,12 @@ export default function VaultAccessPage() {
                                 )}
 
                                 <motion.button
-                                    className="w-full py-2.5 rounded-xl text-sm font-semibold mt-2"
-                                    style={{ background: ACCENT, color: "#fff" }}
+                                    className={`w-full py-3 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold mt-2`}
+                                    style={{
+                                        background: ACCENT,
+                                        color: "#fff",
+                                        boxShadow: isApple ? "0 4px 14px rgba(0,113,227,0.35)" : undefined
+                                    }}
                                     whileHover={{ scale: 1.02 }}
                                     whileTap={{ scale: 0.98 }}
                                     disabled={addForm.saving}

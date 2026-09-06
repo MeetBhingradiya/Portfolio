@@ -742,21 +742,50 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
     const pages = Math.max(1, Math.ceil(table.total / PAGE_SIZE));
 
     // Style helpers
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.82)" : "rgba(255,255,255,0.82)") : isDark ? "rgba(22,22,26,0.97)" : "#fff";
+    const cardBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.75)"
+        : isDark
+          ? "rgba(22,22,26,0.97)"
+          : "#fff";
+
+    const glassVars = isApple
+        ? {
+              backdropFilter: "blur(24px) saturate(190%)",
+              boxShadow: isDark
+                  ? "0 4px 24px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1), inset 0 0 0 1px rgba(255,255,255,0.05)"
+                  : "0 4px 24px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.8), inset 0 0 0 1px rgba(255,255,255,0.4)"
+          }
+        : {};
+
     const borderColor = isDark ? "rgba(255,255,255,0.09)" : "rgba(0,0,0,0.09)";
     const cardRadius = isApple ? "20px" : "24px";
     const fieldRadius = isApple ? "12px" : "14px";
 
+    const inputBg = isApple
+        ? isDark
+            ? "rgba(255,255,255,0.08)"
+            : "rgba(0,0,0,0.03)"
+        : isDark
+          ? "rgba(255,255,255,0.06)"
+          : "rgba(0,0,0,0.04)";
+
     const inputBase: React.CSSProperties = {
-        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-        border: `1px solid ${borderColor}`,
+        background: inputBg,
+        border: isApple ? "none" : `1px solid ${borderColor}`,
+        boxShadow: isApple
+            ? isDark
+                ? "inset 0 1px 2px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.05)"
+                : "inset 0 1px 2px rgba(0,0,0,0.05), inset 0 0 0 1px rgba(0,0,0,0.05)"
+            : "none",
         borderRadius: fieldRadius,
         color: palette.textPrimary,
         padding: "11px 14px",
         outline: "none",
         width: "100%",
         fontSize: "14px",
-        transition: "border 0.15s, box-shadow 0.15s"
+        transition: "border 0.15s, box-shadow 0.15s, background 0.2s"
     };
 
     const inputStyle = inputBase;
@@ -1245,10 +1274,12 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
 
             {/* Table */}
             <div
-                className="rounded-2xl overflow-hidden"
+                className="overflow-hidden"
                 style={{
                     background: cardBg,
-                    border: `1px solid ${borderColor}`
+                    borderRadius: cardRadius,
+                    border: `1px solid ${borderColor}`,
+                    ...glassVars
                 }}>
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm">
@@ -1512,8 +1543,8 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                         <motion.div
                             className="fixed inset-0 z-50"
                             style={{
-                                background: "rgba(0,0,0,0.5)",
-                                backdropFilter: "blur(8px)"
+                                background: isApple ? (isDark ? "rgba(0,0,0,0.65)" : "rgba(0,0,0,0.35)") : "rgba(0,0,0,0.5)",
+                                backdropFilter: isApple ? "blur(16px) saturate(180%)" : "blur(8px)"
                             }}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -1536,7 +1567,14 @@ export default function AdminCRUDPage({ title, subtitle, apiBase, idField, field
                                     background: cardBg,
                                     borderRadius: cardRadius,
                                     border: `1px solid ${borderColor}`,
-                                    boxShadow: isDark ? "0 32px 80px rgba(0,0,0,0.7)" : "0 20px 60px rgba(0,0,0,0.16)"
+                                    boxShadow: isApple
+                                        ? isDark
+                                            ? "0 32px 80px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.15)"
+                                            : "0 24px 70px rgba(0,0,0,0.15), inset 0 1px 1px rgba(255,255,255,0.9)"
+                                        : isDark
+                                          ? "0 32px 80px rgba(0,0,0,0.7)"
+                                          : "0 20px 60px rgba(0,0,0,0.16)",
+                                    ...glassVars
                                 }}
                                 onClick={(e) => e.stopPropagation()}>
                                 {/* Modal header */}

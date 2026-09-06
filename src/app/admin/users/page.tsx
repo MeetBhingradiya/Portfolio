@@ -251,8 +251,26 @@ export default function UsersPage() {
         }
     };
 
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)") : isDark ? "rgba(24,24,28,0.95)" : "#fff";
-    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+    const cardBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.72)"
+        : isDark
+          ? "rgba(24,24,28,0.95)"
+          : "#fff";
+    const borderColor = isApple
+        ? isDark
+            ? "rgba(255,255,255,0.12)"
+            : "rgba(0,0,0,0.08)"
+        : isDark
+          ? "rgba(255,255,255,0.08)"
+          : "rgba(0,0,0,0.08)";
+    const cardBlur = isApple ? "blur(24px) saturate(190%)" : undefined;
+    const cardShadow = isApple
+        ? isDark
+            ? "inset 0 1px 1px rgba(255,255,255,0.12), 0 4px 20px rgba(0,0,0,0.25)"
+            : "inset 0 1px 1px rgba(255,255,255,0.85), 0 4px 20px rgba(0,0,0,0.05)"
+        : undefined;
     const pages = Math.max(1, Math.ceil(table.total / PAGE_SIZE));
     const builtinRoleDefs = roleDefs.filter((d) => d.isBuiltin);
     const builtinRoleKeys = builtinRoleDefs.map((d) => d.key);
@@ -268,7 +286,7 @@ export default function UsersPage() {
             <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                     <h1
-                        className="text-2xl font-black"
+                        className={`text-2xl ${isApple ? "font-bold tracking-tight" : "font-black"}`}
                         style={{ color: palette.textPrimary }}>
                         Users
                     </h1>
@@ -286,20 +304,27 @@ export default function UsersPage() {
                 <div className="flex items-center gap-2">
                     <Link href="/admin/roles">
                         <motion.div
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer"
+                            className={`flex items-center gap-2 px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold cursor-pointer transition-all`}
                             style={{
                                 background: `${palette.accent}15`,
-                                color: palette.accent
+                                color: palette.accent,
+                                border: isApple ? `1px solid ${palette.accent}33` : undefined,
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur
                             }}
                             whileHover={{ scale: 1.03 }}>
                             <ManageAccounts fontSize="small" /> Manage Roles
                         </motion.div>
                     </Link>
                     <motion.button
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+                        className={`flex items-center gap-2 px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold transition-all`}
                         style={{
-                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                            color: palette.textSecondary
+                            background: cardBg,
+                            border: `1px solid ${borderColor}`,
+                            color: palette.textSecondary,
+                            backdropFilter: cardBlur,
+                            WebkitBackdropFilter: cardBlur,
+                            boxShadow: cardShadow
                         }}
                         whileHover={{ scale: 1.03 }}
                         onClick={fetchUsers}>
@@ -312,16 +337,19 @@ export default function UsersPage() {
             <div className="mb-4 flex gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-48">
                     <Search
-                        className="absolute left-3 top-1/2 -translate-y-1/2"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2"
                         style={{ color: palette.textTertiary, fontSize: 18 }}
                     />
                     <input
                         placeholder="Search by name or email…"
-                        className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl outline-none"
+                        className={`w-full pl-10 pr-4 py-2.5 text-sm ${isApple ? "rounded-full" : "rounded-xl"} outline-none transition-all`}
                         style={{
-                            background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                            background: cardBg,
                             border: `1px solid ${borderColor}`,
-                            color: palette.textPrimary
+                            color: palette.textPrimary,
+                            backdropFilter: cardBlur,
+                            WebkitBackdropFilter: cardBlur,
+                            boxShadow: cardShadow
                         }}
                         onChange={(e) => {
                             patchTable({ search: e.target.value, page: 1 });
@@ -346,7 +374,7 @@ export default function UsersPage() {
 
             {table.error && (
                 <div
-                    className="mb-4 px-4 py-3 rounded-xl text-sm flex items-center justify-between"
+                    className={`mb-4 px-4 py-3 ${isApple ? "rounded-2xl" : "rounded-xl"} text-sm flex items-center justify-between`}
                     style={{
                         background: "rgba(220,50,50,0.1)",
                         color: "#DC3232",
@@ -365,10 +393,13 @@ export default function UsersPage() {
 
             {/* Table */}
             <div
-                className="rounded-2xl overflow-hidden"
+                className={`${isApple ? "rounded-[22px]" : "rounded-2xl"} overflow-hidden transition-all`}
                 style={{
                     background: cardBg,
-                    border: `1px solid ${borderColor}`
+                    border: `1px solid ${borderColor}`,
+                    backdropFilter: cardBlur,
+                    WebkitBackdropFilter: cardBlur,
+                    boxShadow: cardShadow
                 }}>
                 <table className="w-full text-sm">
                     <thead>
@@ -640,7 +671,8 @@ export default function UsersPage() {
                         exit={{ opacity: 0 }}
                         style={{
                             background: "rgba(0,0,0,0.5)",
-                            backdropFilter: "blur(4px)"
+                            backdropFilter: "blur(12px)",
+                            WebkitBackdropFilter: "blur(12px)"
                         }}
                         onClick={(e) => {
                             if (e.target === e.currentTarget) setModal(null);
@@ -649,15 +681,29 @@ export default function UsersPage() {
                             initial={{ scale: 0.92, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.92, opacity: 0 }}
-                            className="w-full max-w-md rounded-2xl p-6"
+                            className={`w-full max-w-md ${isApple ? "rounded-[24px]" : "rounded-2xl"} p-6`}
                             style={{
-                                background: isDark ? "rgba(28,28,32,0.98)" : "#fff",
+                                background: isApple
+                                    ? isDark
+                                        ? "rgba(28,28,32,0.85)"
+                                        : "rgba(255,255,255,0.88)"
+                                    : isDark
+                                      ? "rgba(28,28,32,0.98)"
+                                      : "#fff",
                                 border: `1px solid ${borderColor}`,
-                                boxShadow: "0 24px 64px rgba(0,0,0,0.4)"
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "inset 0 1px 1px rgba(255,255,255,0.15), 0 24px 64px rgba(0,0,0,0.5)"
+                                        : "inset 0 1px 1px rgba(255,255,255,0.9), 0 24px 64px rgba(0,0,0,0.18)"
+                                    : "0 24px 64px rgba(0,0,0,0.4)"
                             }}>
                             <div className="flex items-center justify-between mb-4">
                                 <div className="min-w-0">
-                                    <p className="font-black text-base" style={{ color: palette.textPrimary }}>
+                                    <p
+                                        className={`font-black text-base ${isApple ? "tracking-tight" : ""}`}
+                                        style={{ color: palette.textPrimary }}>
                                         Assign Roles
                                     </p>
                                     <div className="mt-0.5 flex items-center gap-2 min-w-0">
@@ -680,7 +726,7 @@ export default function UsersPage() {
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     onClick={() => setModal(null)}
-                                    className="p-1.5 rounded-lg"
+                                    className={`p-1.5 ${isApple ? "rounded-full" : "rounded-lg"}`}
                                     style={{
                                         color: palette.textTertiary,
                                         background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
@@ -689,8 +735,35 @@ export default function UsersPage() {
                                 </motion.button>
                             </div>
 
+                            <p
+                                className="text-xs font-bold uppercase tracking-widest mb-2"
+                                style={{ color: palette.textTertiary }}>
+                                Built-in Roles
+                            </p>
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                {BUILTIN_ROLES.map((role) => {
+                                    const active = modal.roles.includes(role);
+                                    const s = getRoleStyle(role);
+                                    return (
+                                        <motion.button
+                                            key={role}
+                                            whileHover={{ scale: 1.04 }}
+                                            whileTap={{ scale: 0.97 }}
+                                            onClick={() => toggleRole(role)}
+                                            className={`px-3 py-1.5 ${isApple ? "rounded-full" : "rounded-xl"} text-xs font-bold border transition-all`}
+                                            style={{
+                                                background: active ? s.bg : "transparent",
+                                                color: active ? s.text : palette.textTertiary,
+                                                borderColor: active ? s.text + "44" : borderColor
+                                            }}>
+                                            {role}
+                                        </motion.button>
+                                    );
+                                })}
+                            </div>
+
                             <div
-                                className="mb-4 rounded-2xl border p-3"
+                                className={`mb-4 ${isApple ? "rounded-2xl" : "rounded-2xl"} border p-3`}
                                 style={{
                                     borderColor,
                                     background: isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)"
@@ -730,7 +803,7 @@ export default function UsersPage() {
                                                         whileHover={{ scale: 1.01 }}
                                                         whileTap={{ scale: 0.99 }}
                                                         onClick={() => toggleRole(def.key)}
-                                                        className="w-full flex items-start justify-between gap-3 px-3 py-2 rounded-xl text-left border transition-all"
+                                                        className={`w-full flex items-start justify-between gap-3 px-3 py-2 ${isApple ? "rounded-xl" : "rounded-xl"} text-left border transition-all`}
                                                         style={{
                                                             background: active ? "rgba(255,149,0,0.12)" : "transparent",
                                                             color: active ? "#FF9500" : palette.textPrimary,
@@ -789,47 +862,6 @@ export default function UsersPage() {
                                     </div>
                                 )}
 
-                                {/* {suggestedPerms.length > 0 && (
-                                    <div className="mt-4">
-                                        <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>
-                                            Permissions
-                                        </p>
-                                        <div className="space-y-2">
-                                            {suggestedPerms.map((p) => {
-                                                const active = (modal.permissions ?? []).some((pp) => pp.key === p.key);
-                                                return (
-                                                    <motion.button
-                                                        key={p.key}
-                                                        whileHover={{ scale: 1.01 }}
-                                                        whileTap={{ scale: 0.99 }}
-                                                        onClick={() => togglePermission(p.key, p.label)}
-                                                        className="w-full flex items-start justify-between gap-3 px-3 py-2 rounded-xl text-left border transition-all"
-                                                        style={{
-                                                            background: active ? "rgba(255,149,0,0.12)" : "transparent",
-                                                            color: active ? "#FF9500" : palette.textPrimary,
-                                                            borderColor: active ? "rgba(255,149,0,0.12)" : borderColor
-                                                        }}>
-                                                        <span className="min-w-0">
-                                                            <span className="block text-sm font-bold truncate">{p.label}</span>
-                                                            <span className="block text-[11px] mt-0.5 break-words" style={{ color: palette.textSecondary }}>
-                                                                {p.description}
-                                                            </span>
-                                                        </span>
-                                                        <span
-                                                            className="text-[10px] font-mono px-2 py-1 rounded-lg shrink-0"
-                                                            style={{
-                                                                background: active ? "rgba(255,149,0,0.15)" : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
-                                                                color: active ? "#FF9500" : palette.textTertiary
-                                                            }}>
-                                                            {p.key}
-                                                        </span>
-                                                    </motion.button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )} */}
-
                                 {(modal.permissions ?? []).length > 0 && (
                                     <div className="mt-4">
                                         <p className="text-[11px] font-bold uppercase tracking-widest mb-2" style={{ color: palette.textTertiary }}>
@@ -839,7 +871,7 @@ export default function UsersPage() {
                                             {(modal.permissions ?? []).map((perm) => (
                                                 <span
                                                     key={perm.key}
-                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold"
+                                                    className={`inline-flex items-center gap-1 px-2.5 py-1 ${isApple ? "rounded-full" : "rounded-lg"} text-xs font-bold`}
                                                     style={{
                                                         background: "rgba(255,149,0,0.12)",
                                                         color: "#FF9500",
@@ -860,6 +892,32 @@ export default function UsersPage() {
                                 )}
                             </div>
 
+                            {/* Ad-hoc roles not in definitions */}
+                            {modal.roles.filter((r) => !BUILTIN_ROLES.includes(r) && !roleDefs.some((d) => d.key === r)).length > 0 && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                    {modal.roles
+                                        .filter((r) => !BUILTIN_ROLES.includes(r) && !roleDefs.some((d) => d.key === r))
+                                        .map((role) => (
+                                            <span
+                                                key={role}
+                                                className={`flex items-center gap-1 px-3 py-1.5 ${isApple ? "rounded-full" : "rounded-xl"} text-xs font-bold`}
+                                                style={{
+                                                    background: "rgba(255,149,0,0.12)",
+                                                    color: "#FF9500",
+                                                    border: "1px solid #FF950033"
+                                                }}>
+                                                {role}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => toggleRole(role)}
+                                                    className="ml-0.5 opacity-70 hover:opacity-100">
+                                                    <Close style={{ fontSize: 12 }} />
+                                                </button>
+                                            </span>
+                                        ))}
+                                </div>
+                            )}
+
                             <div className="flex gap-2 mb-5">
                                 <input
                                     placeholder="Ad-hoc role key…"
@@ -877,7 +935,7 @@ export default function UsersPage() {
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") addCustomRole();
                                     }}
-                                    className="flex-1 px-3 py-2 text-sm rounded-xl outline-none"
+                                    className={`flex-1 px-3 py-2 text-sm ${isApple ? "rounded-full px-4" : "rounded-xl"} outline-none`}
                                     style={{
                                         background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
                                         border: `1px solid ${borderColor}`,
@@ -887,10 +945,11 @@ export default function UsersPage() {
                                 <motion.button
                                     whileHover={{ scale: 1.04 }}
                                     onClick={addCustomRole}
-                                    className="px-3 py-2 rounded-xl text-sm font-bold"
+                                    className={`px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-bold`}
                                     style={{
                                         background: `${palette.accent}18`,
-                                        color: palette.accent
+                                        color: palette.accent,
+                                        border: isApple ? `1px solid ${palette.accent}33` : undefined
                                     }}>
                                     Add
                                 </motion.button>
@@ -907,11 +966,12 @@ export default function UsersPage() {
                                 whileTap={{ scale: 0.97 }}
                                 onClick={saveRoles}
                                 disabled={modal.saving}
-                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black"
+                                className={`w-full flex items-center justify-center gap-2 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-black`}
                                 style={{
                                     background: palette.accent,
                                     color: "#fff",
-                                    opacity: modal.saving ? 0.7 : 1
+                                    opacity: modal.saving ? 0.7 : 1,
+                                    boxShadow: isApple ? `0 4px 14px ${palette.accent}40` : undefined
                                 }}>
                                 <Save fontSize="small" />
                                 {modal.saving ? "Saving…" : "Save Roles"}

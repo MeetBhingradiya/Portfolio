@@ -163,6 +163,7 @@ const nextConfig: NextConfig = {
 
     // Turbopack config - only valid options
     turbopack: {
+        root: path.resolve(__dirname),
         resolveExtensions: Extensions
         // Memory limit is handled by NODE_OPTIONS in your .env.local
         // No memoryLimit option exists here

@@ -92,9 +92,11 @@ export default function AdminMaintenancePage() {
     };
 
     const cardStyle = {
-        background: isApple ? (isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)") : isDark ? "rgba(24,24,28,0.95)" : "#fff",
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`,
-        backdropFilter: isApple ? "blur(20px) saturate(180%)" : "none"
+        background: isApple ? (isDark ? "rgba(28,28,32,0.65)" : "rgba(255,255,255,0.72)") : isDark ? "rgba(24,24,28,0.95)" : "#fff",
+        border: `1px solid ${isDark ? (isApple ? "rgba(255,255,255,0.14)" : "rgba(255,255,255,0.08)") : isApple ? "rgba(255,255,255,0.85)" : "rgba(0,0,0,0.07)"}`,
+        backdropFilter: isApple ? "blur(24px) saturate(190%)" : "none",
+        WebkitBackdropFilter: isApple ? "blur(24px) saturate(190%)" : "none",
+        boxShadow: isApple ? (isDark ? "0 8px 32px rgba(0,0,0,0.37), inset 0 1px 1px rgba(255,255,255,0.12)" : "0 8px 32px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.85)") : undefined
     };
 
     return (
@@ -186,7 +188,7 @@ export default function AdminMaintenancePage() {
 
             {/* Controls card */}
             <motion.div
-                className="rounded-2xl p-6 flex flex-col gap-5"
+                className={`${isApple ? "rounded-[24px]" : "rounded-2xl"} p-6 flex flex-col gap-5`}
                 style={cardStyle}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -243,7 +245,7 @@ export default function AdminMaintenancePage() {
                         onChange={(e) => patch({ message: e.target.value })}
                         placeholder="We're performing scheduled maintenance. We'll be back soon!"
                         rows={3}
-                        className="w-full resize-none rounded-xl px-4 py-3 text-sm outline-none transition-all"
+                        className={`w-full resize-none ${isApple ? "rounded-[18px]" : "rounded-xl"} px-4 py-3 text-sm outline-none transition-all`}
                         style={{
                             background: isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)",
                             border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,
@@ -262,7 +264,7 @@ export default function AdminMaintenancePage() {
             {/* Status message */}
             {state.status && (
                 <motion.div
-                    className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm"
+                    className={`flex items-center gap-2 px-4 py-3 ${isApple ? "rounded-full" : "rounded-xl"} text-sm`}
                     style={{
                         background:
                             state.status.type === "success"
@@ -291,7 +293,7 @@ export default function AdminMaintenancePage() {
                 <motion.button
                     onClick={handleSave}
                     disabled={state.saving || state.loading}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold"
+                    className={`flex items-center gap-2 px-5 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold`}
                     style={{
                         background: state.saving || state.loading ? `${palette.accent}66` : palette.accent,
                         color: "#fff",
@@ -306,7 +308,7 @@ export default function AdminMaintenancePage() {
                 <Link
                     href="/maintenance"
                     target="_blank"
-                    className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium"
+                    className={`flex items-center gap-1.5 px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-medium`}
                     style={{
                         background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
                         border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}`,

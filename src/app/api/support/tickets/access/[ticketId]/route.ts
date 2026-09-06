@@ -53,9 +53,10 @@ function buildEmailHtml(ticketId: string, code: string, expiryMinutes: number) {
     `;
 }
 
-export async function POST(req: NextRequest, { params }: { params: { ticketId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
     try {
         await dbConnect();
+        const { ticketId } = await params;
         const body = await req.json();
         const providedSecret = String(body?.secretCode || "").trim();
 
@@ -64,7 +65,7 @@ export async function POST(req: NextRequest, { params }: { params: { ticketId: s
         }
 
         const ticket = await SupportTicket.findOne({
-            ...ticketQuery(params.ticketId),
+            ...ticketQuery(ticketId),
             isDeleted: false
         }).select("+accessSecretHash +accessOtpHash +accessOtpExpiresAt +accessOtpAttempts");
 
@@ -98,9 +99,10 @@ export async function POST(req: NextRequest, { params }: { params: { ticketId: s
     }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { ticketId: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ ticketId: string }> }) {
     try {
         await dbConnect();
+        const { ticketId } = await params;
         const body = await req.json();
         const providedSecret = String(body?.secretCode || "").trim();
         const providedOtp = String(body?.otp || "").trim();
@@ -116,7 +118,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { ticketId: 
         }
 
         const ticket = await SupportTicket.findOne({
-            ...ticketQuery(params.ticketId),
+            ...ticketQuery(ticketId),
             isDeleted: false
         }).select("+accessSecretHash +accessOtpHash +accessOtpExpiresAt +accessOtpAttempts +accessSessionHash +accessSessionExpiresAt");
 

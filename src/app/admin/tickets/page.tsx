@@ -52,9 +52,21 @@ export default function AdminTicketsPage() {
     });
     const patchTable = useCallback((p: Partial<typeof table>) => setTable((s) => ({ ...s, ...p })), []);
 
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
-    const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
-    const br = isApple ? 16 : 20;
+    const cardBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.72)"
+        : isDark
+            ? "rgba(24,24,28,0.98)"
+            : "#fff";
+    const border = `1px solid ${isApple ? (isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)") : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
+    const cardShadow = isApple
+        ? isDark
+            ? "inset 0 1px 1px rgba(255,255,255,0.12), 0 4px 20px rgba(0,0,0,0.3)"
+            : "inset 0 1px 1px rgba(255,255,255,0.85), 0 4px 20px rgba(0,0,0,0.06)"
+        : undefined;
+    const cardBlur = isApple ? "blur(24px) saturate(190%)" : "none";
+    const br = isApple ? 20 : 20;
 
     const fetchTickets = useCallback(async () => {
         patchTable({ loading: true });
@@ -94,8 +106,14 @@ export default function AdminTicketsPage() {
             {/* Filters */}
             <div className="flex flex-wrap gap-3 mb-5">
                 <div
-                    className="flex items-center gap-2 px-4 py-2.5 rounded-2xl flex-1 min-w-48"
-                    style={{ background: cardBg, border }}>
+                    className={`flex items-center gap-2 px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-2xl"} flex-1 min-w-48`}
+                    style={{
+                        background: cardBg,
+                        border,
+                        backdropFilter: cardBlur,
+                        WebkitBackdropFilter: cardBlur,
+                        boxShadow: cardShadow
+                    }}>
                     <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
                     <input
                         value={table.search}
@@ -111,11 +129,14 @@ export default function AdminTicketsPage() {
                             key={s}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => patchTable({ statusFilter: s })}
-                            className="px-3 py-2 rounded-xl text-xs font-bold capitalize"
+                            className={`px-3 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-xs font-bold capitalize transition-all`}
                             style={{
                                 background: table.statusFilter === s ? `${palette.accent}22` : cardBg,
                                 border: table.statusFilter === s ? `1px solid ${palette.accent}44` : border,
-                                color: table.statusFilter === s ? palette.accent : palette.textSecondary
+                                color: table.statusFilter === s ? palette.accent : palette.textSecondary,
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur,
+                                boxShadow: table.statusFilter === s && isApple ? `inset 0 1px 1px rgba(255,255,255,0.2), 0 2px 8px ${palette.accent}20` : undefined
                             }}>
                             {s === "all" ? "All" : s.replace("_", " ")}
                         </motion.button>
@@ -128,7 +149,7 @@ export default function AdminTicketsPage() {
                     {[1, 2, 3, 4, 5].map((i) => (
                         <div
                             key={i}
-                            className="h-20 rounded-2xl animate-pulse"
+                            className={`h-20 ${isApple ? "rounded-[20px]" : "rounded-2xl"} animate-pulse`}
                             style={{
                                 background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"
                             }}
@@ -142,12 +163,15 @@ export default function AdminTicketsPage() {
                             key={t._id}
                             href={`/support/tickets/${t._id}`}>
                             <motion.div
-                                whileHover={{ y: -1 }}
-                                className="flex items-center gap-4 px-5 py-4 rounded-2xl cursor-pointer"
+                                whileHover={{ y: -1, scale: 1.005 }}
+                                className="flex items-center gap-4 px-5 py-4 cursor-pointer transition-all"
                                 style={{
                                     background: cardBg,
                                     border,
-                                    borderRadius: br
+                                    borderRadius: br,
+                                    backdropFilter: cardBlur,
+                                    WebkitBackdropFilter: cardBlur,
+                                    boxShadow: cardShadow
                                 }}>
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-1">

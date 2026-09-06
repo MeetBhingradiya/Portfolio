@@ -24,15 +24,16 @@ function compareHash(storedHash: string | undefined, provided: string): boolean 
     return timingSafeEqual(expected, actual);
 }
 
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         const accessToken = req.headers.get("x-ticket-access-token") || "";
 
         const ticket = await SupportTicket.findOne({
-            ...ticketQuery(params.id),
+            ...ticketQuery(id),
             isDeleted: false
         })
             .select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "")
@@ -67,16 +68,17 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
 }
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         const accessToken = req.headers.get("x-ticket-access-token") || "";
 
         const body = await req.json();
         const ticket = await SupportTicket.findOne({
-            ...ticketQuery(params.id),
+            ...ticketQuery(id),
             isDeleted: false
         }).select(accessToken ? "+accessSessionHash +accessSessionExpiresAt" : "");
 
@@ -152,14 +154,15 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
     try {
         await dbConnect();
+        const { id } = await params;
         const h = await headers();
         const user = await getResolvedUser(h);
         if (!user?.isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 
-        await SupportTicket.findOneAndUpdate(ticketQuery(params.id), {
+        await SupportTicket.findOneAndUpdate(ticketQuery(id), {
             isDeleted: true
         });
         return NextResponse.json({ success: true });

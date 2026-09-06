@@ -59,6 +59,13 @@ export async function POST(req: NextRequest) {
         if (!user?.isAdmin) return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
 
         const body = await req.json();
+        if (Array.isArray(body.variants)) {
+            body.variants = body.variants.map((v: any) => ({
+                ...v,
+                name: v.name || v.label || "Standard",
+                label: v.label || v.name || "Standard"
+            }));
+        }
         const product = await ShopProduct.create({
             ...body,
             createdBy: user.email

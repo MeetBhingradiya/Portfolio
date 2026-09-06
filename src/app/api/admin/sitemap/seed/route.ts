@@ -157,7 +157,7 @@ const STATIC_PAGES: {
     },
     // ── Auth ──────────────────────────────────────────────────────
     {
-        Endpoint: "/auth/login",
+        Endpoint: "/auth/signin",
         Frequency: "yearly",
         Priority: 0.3,
         Group: "auth"
@@ -168,6 +168,45 @@ const STATIC_PAGES: {
         Priority: 0.3,
         Group: "auth"
     },
+    {
+        Endpoint: "/auth/forgot-password",
+        Frequency: "yearly",
+        Priority: 0.3,
+        Group: "auth"
+    },
+    {
+        Endpoint: "/auth/error",
+        Frequency: "yearly",
+        Priority: 0.2,
+        Group: "auth"
+    },
+    // ── Shop ──────────────────────────────────────────────────────
+    { Endpoint: "/shop", Frequency: "daily", Priority: 0.9, Group: "shop" },
+    { Endpoint: "/shop/cart", Frequency: "daily", Priority: 0.6, Group: "shop" },
+    { Endpoint: "/shop/checkout", Frequency: "daily", Priority: 0.6, Group: "shop" },
+    { Endpoint: "/shop/orders", Frequency: "weekly", Priority: 0.5, Group: "shop" },
+    { Endpoint: "/shop/refunds", Frequency: "weekly", Priority: 0.4, Group: "shop" },
+    { Endpoint: "/shop/refunds/new", Frequency: "monthly", Priority: 0.4, Group: "shop" },
+    // ── Support & Tickets ─────────────────────────────────────────
+    { Endpoint: "/support", Frequency: "weekly", Priority: 0.7, Group: "support" },
+    { Endpoint: "/support/tickets", Frequency: "weekly", Priority: 0.5, Group: "support" },
+    { Endpoint: "/support/tickets/new", Frequency: "monthly", Priority: 0.5, Group: "support" },
+    // ── Trade Journal & Advanced ──────────────────────────────────
+    { Endpoint: "/trade-journal", Frequency: "daily", Priority: 0.8, Group: "main" },
+    { Endpoint: "/trade-journal/analytics", Frequency: "daily", Priority: 0.7, Group: "main" },
+    { Endpoint: "/trade-journal/daily-capital", Frequency: "daily", Priority: 0.7, Group: "main" },
+    { Endpoint: "/trade-journal/new", Frequency: "weekly", Priority: 0.6, Group: "main" },
+    { Endpoint: "/paresh/tradingrules", Frequency: "monthly", Priority: 0.5, Group: "main" },
+    { Endpoint: "/developer/cdn", Frequency: "monthly", Priority: 0.5, Group: "tools" },
+    { Endpoint: "/employee", Frequency: "monthly", Priority: 0.5, Group: "main" },
+    { Endpoint: "/immich-sso", Frequency: "monthly", Priority: 0.4, Group: "main" },
+    // ── More Tools ────────────────────────────────────────────────
+    { Endpoint: "/tools/paperknife", Frequency: "weekly", Priority: 0.8, Group: "tools" },
+    { Endpoint: "/tools/productivity", Frequency: "weekly", Priority: 0.8, Group: "tools" },
+    { Endpoint: "/tools/productivity/goals", Frequency: "weekly", Priority: 0.6, Group: "tools" },
+    { Endpoint: "/tools/productivity/habits", Frequency: "weekly", Priority: 0.6, Group: "tools" },
+    { Endpoint: "/tools/productivity/reminders", Frequency: "weekly", Priority: 0.6, Group: "tools" },
+    { Endpoint: "/tools/productivity/tasks", Frequency: "weekly", Priority: 0.6, Group: "tools" },
     // ── Profile / Settings ────────────────────────────────────────
     {
         Endpoint: "/settings",

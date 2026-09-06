@@ -166,16 +166,23 @@ export default function AdminProductsPage() {
     const patchPanel = useCallback((p: Partial<typeof panel>) => setPanel((s) => ({ ...s, ...p })), []);
 
     /* ── Style tokens ───────────────────────────────────────────────────── */
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.8)" : "rgba(255,255,255,0.8)") : isDark ? "rgba(20,20,24,0.98)" : "#fff";
-    const surfaceBg = isDark ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.04)";
-    const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
-    const br = isApple ? 16 : 20;
+    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.65)" : "rgba(255,255,255,0.72)") : isDark ? "rgba(20,20,24,0.98)" : "#fff";
+    const panelBg = isApple ? (isDark ? "rgba(24,24,28,0.85)" : "rgba(255,255,255,0.88)") : isDark ? "#1c1c20" : "#f5f5f8";
+    const surfaceBg = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)";
+    const border = `1px solid ${isDark ? (isApple ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.08)") : isApple ? "rgba(255,255,255,0.8)" : "rgba(0,0,0,0.08)"}`;
+    const cardShadow = isApple
+        ? isDark
+            ? "0 8px 32px rgba(0,0,0,0.45), inset 0 1px 1px rgba(255,255,255,0.12)"
+            : "0 8px 32px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.85)"
+        : "none";
+    const br = isApple ? 20 : 16;
     const inputStyle = {
-        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+        background: isApple ? (isDark ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.6)") : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
         color: palette.textPrimary,
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`
+        border: `1px solid ${isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.1)"}`,
+        boxShadow: isApple ? (isDark ? "inset 0 1px 2px rgba(0,0,0,0.4)" : "inset 0 1px 2px rgba(0,0,0,0.06)") : "none"
     };
-    const inputClass = "w-full text-sm px-4 py-2.5 rounded-xl outline-none";
+    const inputClass = `w-full text-sm px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} outline-none`;
 
     /* ── Data ───────────────────────────────────────────────────────────── */
     const fetchProducts = useCallback(async () => {
@@ -243,7 +250,7 @@ export default function AdminProductsPage() {
                 variants: p.variants.length
                     ? p.variants.map((v) => ({
                           variantId: v.variantId,
-                          label: v.label,
+                          label: v.label || (v as any).name || "Standard",
                           price: v.price,
                           currency: v.currency,
                           stock: v.stock ?? 0,
@@ -261,10 +268,18 @@ export default function AdminProductsPage() {
         patchPanel({ saving: true });
         const method = panel.editId ? "PATCH" : "POST";
         const url = panel.editId ? `/api/shop/products/${panel.editId}` : "/api/shop/products";
+        const payload = {
+            ...panel.form,
+            variants: panel.form.variants.map((v) => ({
+                ...v,
+                name: v.label,
+                label: v.label
+            }))
+        };
         await fetch(url, {
             method,
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(panel.form)
+            body: JSON.stringify(payload)
         });
         patchPanel({ saving: false, open: false });
         fetchProducts();
@@ -501,7 +516,9 @@ export default function AdminProductsPage() {
                                         background: cardBg,
                                         border,
                                         borderRadius: br,
-                                        backdropFilter: isApple ? "blur(16px)" : "none"
+                                        boxShadow: cardShadow,
+                                        backdropFilter: isApple ? "blur(24px) saturate(190%)" : "none",
+                                        WebkitBackdropFilter: isApple ? "blur(24px) saturate(190%)" : "none"
                                     }}>
                                     {/* Banner / placeholder */}
                                     <div
@@ -685,7 +702,10 @@ export default function AdminProductsPage() {
                                     style={{
                                         background: cardBg,
                                         border,
-                                        borderRadius: br
+                                        borderRadius: br,
+                                        boxShadow: cardShadow,
+                                        backdropFilter: isApple ? "blur(24px) saturate(190%)" : "none",
+                                        WebkitBackdropFilter: isApple ? "blur(24px) saturate(190%)" : "none"
                                     }}>
                                     {/* Thumbnail */}
                                     <div
@@ -804,7 +824,15 @@ export default function AdminProductsPage() {
                             }}
                             className="fixed right-0 top-0 bottom-0 w-full max-w-2xl z-50 flex flex-col"
                             style={{
-                                background: isDark ? "#1c1c20" : "#f5f5f8"
+                                background: panelBg,
+                                borderLeft: border,
+                                backdropFilter: isApple ? "blur(28px) saturate(190%)" : "none",
+                                WebkitBackdropFilter: isApple ? "blur(28px) saturate(190%)" : "none",
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "-12px 0 40px rgba(0,0,0,0.7), inset 1px 0 1px rgba(255,255,255,0.12)"
+                                        : "-12px 0 40px rgba(0,0,0,0.12), inset 1px 0 1px rgba(255,255,255,0.85)"
+                                    : "none"
                             }}>
                             {/* Panel header */}
                             <div

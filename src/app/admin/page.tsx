@@ -173,26 +173,34 @@ function StatTile({ card, count }: { card: StatCard; count: number | null }) {
     return (
         <Link href={card.href}>
             <motion.div
-                className="p-5 rounded-2xl cursor-pointer relative overflow-hidden"
+                className="p-5 cursor-pointer relative overflow-hidden"
                 style={{
+                    borderRadius: isApple ? "22px" : "16px",
                     background: isApple
                         ? isDark
-                            ? "rgba(28,28,32,0.7)"
-                            : "rgba(255,255,255,0.7)"
+                            ? "rgba(28,28,32,0.65)"
+                            : "rgba(255,255,255,0.72)"
                         : isDark
                           ? "rgba(24,24,28,0.95)"
                           : "#fff",
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`,
-                    backdropFilter: isApple ? "blur(20px) saturate(180%)" : "none"
+                    border: isApple
+                        ? `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.6)"}`
+                        : `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.07)"}`,
+                    backdropFilter: isApple ? "blur(24px) saturate(190%)" : "none",
+                    boxShadow: isApple
+                        ? isDark
+                            ? "0 8px 32px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.12)"
+                            : "0 8px 32px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.85)"
+                        : "none"
                 }}
                 whileHover={{ scale: 1.03, y: -3 }}
                 transition={{ duration: 0.2 }}>
                 {/* subtle color glow */}
                 <div
-                    className="absolute top-0 right-0 w-20 h-20 rounded-full pointer-events-none"
+                    className="absolute top-0 right-0 w-24 h-24 rounded-full pointer-events-none"
                     style={{
-                        background: `${card.color}10`,
-                        filter: "blur(24px)",
+                        background: `${card.color}15`,
+                        filter: "blur(28px)",
                         transform: "translate(30%,-30%)"
                     }}
                 />
@@ -238,9 +246,10 @@ function StatTile({ card, count }: { card: StatCard; count: number | null }) {
 }
 
 export default function AdminDashboard() {
-    const { palette, actualColorMode } = useDesignTheme();
+    const { palette, actualColorMode, designTheme } = useDesignTheme();
     const { session, loading } = useAdminSession();
     const isDark = actualColorMode === "dark";
+    const isApple = designTheme === "apple";
 
     const hasAccess = useCallback(
         (requiredPermissions?: string[]) => {
@@ -308,9 +317,25 @@ export default function AdminDashboard() {
                     </p>
                 </div>
                 <motion.button
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold mt-1"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-semibold mt-1"
                     style={{
-                        background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                        borderRadius: isApple ? "9999px" : "12px",
+                        background: isApple
+                            ? isDark
+                                ? "rgba(255,255,255,0.08)"
+                                : "rgba(255,255,255,0.65)"
+                            : isDark
+                              ? "rgba(255,255,255,0.08)"
+                              : "rgba(0,0,0,0.06)",
+                        border: isApple
+                            ? `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)"}`
+                            : "none",
+                        backdropFilter: isApple ? "blur(16px) saturate(180%)" : "none",
+                        boxShadow: isApple
+                            ? isDark
+                                ? "0 2px 8px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.1)"
+                                : "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 1px rgba(255,255,255,0.9)"
+                            : "none",
                         color: palette.textSecondary
                     }}
                     whileHover={{ scale: 1.03 }}
@@ -361,11 +386,24 @@ export default function AdminDashboard() {
                             key={action.label}
                             href={action.href}>
                             <motion.div
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold"
+                                className="flex items-center gap-2 px-4 py-2.5 text-sm font-semibold"
                                 style={{
-                                    background: `${palette.accent}15`,
+                                    borderRadius: isApple ? "9999px" : "12px",
+                                    background: isApple
+                                        ? isDark
+                                            ? "rgba(255,255,255,0.06)"
+                                            : "rgba(255,255,255,0.65)"
+                                        : `${palette.accent}15`,
                                     color: palette.accent,
-                                    border: `1px solid ${palette.accent}25`
+                                    border: isApple
+                                        ? `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)"}`
+                                        : `1px solid ${palette.accent}25`,
+                                    backdropFilter: isApple ? "blur(16px) saturate(180%)" : "none",
+                                    boxShadow: isApple
+                                        ? isDark
+                                            ? "0 2px 8px rgba(0,0,0,0.2), inset 0 1px 1px rgba(255,255,255,0.1)"
+                                            : "0 2px 8px rgba(0,0,0,0.04), inset 0 1px 1px rgba(255,255,255,0.8)"
+                                        : "none"
                                 }}
                                 whileHover={{ scale: 1.04 }}
                                 whileTap={{ scale: 0.97 }}>

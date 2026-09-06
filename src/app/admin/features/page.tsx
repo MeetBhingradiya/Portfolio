@@ -152,7 +152,8 @@ function Toggle({ value, onChange, accent, isDark }: { value: boolean; onChange:
 /* ─── Page ───────────────────────────────────────────────────────────────── */
 export default function AdminFeaturesPage() {
     const { designTheme, palette, actualColorMode } = useDesignTheme();
-    const isApple = designTheme === "apple";
+    const isLiquidGlass = designTheme === "apple";
+    const isApple = isLiquidGlass;
     const isDark = actualColorMode === "dark";
 
     const [state, setState] = useState<FeatureState>(defaultState());
@@ -166,12 +167,61 @@ export default function AdminFeaturesPage() {
     const patchUi = useCallback((p: Partial<typeof ui>) => setUi((s) => ({ ...s, ...p })), []);
 
     /* ── styles ── */
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.80)" : "rgba(255,255,255,0.80)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
-    const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
+    const cardBg = isLiquidGlass
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.72)"
+        : isDark
+            ? "rgba(24,24,28,0.98)"
+            : "#fff";
+
+    const cardShadow = isLiquidGlass
+        ? isDark
+            ? "0 8px 32px rgba(0,0,0,0.37), inset 0 1px 1px rgba(255,255,255,0.12)"
+            : "0 8px 32px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.85)"
+        : undefined;
+
+    const border = `1px solid ${
+        isLiquidGlass
+            ? isDark
+                ? "rgba(255,255,255,0.12)"
+                : "rgba(0,0,0,0.08)"
+            : isDark
+                ? "rgba(255,255,255,0.08)"
+                : "rgba(0,0,0,0.08)"
+    }`;
+
+    const cardStyle = {
+        background: cardBg,
+        border,
+        boxShadow: cardShadow,
+        backdropFilter: isLiquidGlass ? "blur(24px) saturate(190%)" : undefined,
+        WebkitBackdropFilter: isLiquidGlass ? "blur(24px) saturate(190%)" : undefined
+    };
+
     const inputStyle = {
-        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+        background: isLiquidGlass
+            ? isDark
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.04)"
+            : isDark
+                ? "rgba(255,255,255,0.06)"
+                : "rgba(0,0,0,0.04)",
         color: palette.textPrimary,
-        border: `1px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.10)"}`
+        border: `1px solid ${
+            isLiquidGlass
+                ? isDark
+                    ? "rgba(255,255,255,0.12)"
+                    : "rgba(0,0,0,0.08)"
+                : isDark
+                    ? "rgba(255,255,255,0.10)"
+                    : "rgba(0,0,0,0.10)"
+        }`,
+        boxShadow: isLiquidGlass
+            ? isDark
+                ? "inset 0 1px 1px rgba(255,255,255,0.08)"
+                : "inset 0 1px 1px rgba(255,255,255,0.6)"
+            : undefined
     };
 
     /* ── fetch ── */
@@ -277,10 +327,10 @@ export default function AdminFeaturesPage() {
         tagColor?: string;
     }) => (
         <div
-            className="flex items-center gap-4 px-5 py-4 rounded-2xl"
-            style={{ background: cardBg, border }}>
+            className={`flex items-center gap-4 px-5 py-4 transition-all ${isLiquidGlass ? "rounded-2xl" : "rounded-2xl"}`}
+            style={cardStyle}>
             <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                className={`w-10 h-10 flex items-center justify-center flex-shrink-0 ${isLiquidGlass ? "rounded-xl" : "rounded-xl"}`}
                 style={{
                     background: value ? `${palette.accent}18` : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"
                 }}>
@@ -300,7 +350,7 @@ export default function AdminFeaturesPage() {
                     </p>
                     {tag && (
                         <span
-                            className="text-xs px-2 py-0.5 rounded-full font-bold"
+                            className="text-xs px-2.5 py-0.5 rounded-full font-semibold"
                             style={{
                                 background: `${tagColor ?? palette.accent}18`,
                                 color: tagColor ?? palette.accent
@@ -330,7 +380,7 @@ export default function AdminFeaturesPage() {
             <div className="flex items-center justify-between mb-8">
                 <div>
                     <h1
-                        className={`${isApple ? "text-2xl font-semibold" : "text-3xl font-black"}`}
+                        className={`${isLiquidGlass ? "text-2xl font-semibold tracking-tight" : "text-3xl font-black"}`}
                         style={{ color: palette.textPrimary }}>
                         Features
                     </h1>
@@ -344,10 +394,15 @@ export default function AdminFeaturesPage() {
                     whileTap={{ scale: 0.96 }}
                     onClick={save}
                     disabled={ui.saving || ui.loading}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm"
+                    className={`flex items-center gap-2 px-5 py-2.5 font-bold text-sm transition-all ${
+                        isLiquidGlass ? "rounded-full shadow-lg" : "rounded-xl shadow"
+                    }`}
                     style={{
                         background: ui.saved ? "#34C759" : palette.accent,
-                        color: "#fff"
+                        color: "#fff",
+                        boxShadow: isLiquidGlass
+                            ? "0 4px 14px rgba(0,122,255,0.35), inset 0 1px 1px rgba(255,255,255,0.35)"
+                            : undefined
                     }}>
                     {ui.saved ? (
                         <>
@@ -429,8 +484,8 @@ export default function AdminFeaturesPage() {
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div
-                                className="p-4 rounded-2xl"
-                                style={{ background: cardBg, border }}>
+                                className="p-4 rounded-2xl transition-all"
+                                style={cardStyle}>
                                 <p
                                     className="text-xs mb-2"
                                     style={{ color: palette.textSecondary }}>
@@ -455,8 +510,8 @@ export default function AdminFeaturesPage() {
                             </div>
 
                             <div
-                                className="p-4 rounded-2xl"
-                                style={{ background: cardBg, border }}>
+                                className="p-4 rounded-2xl transition-all"
+                                style={cardStyle}>
                                 <p
                                     className="text-xs mb-2"
                                     style={{ color: palette.textSecondary }}>
@@ -517,8 +572,8 @@ export default function AdminFeaturesPage() {
                             </div>
 
                             <div
-                                className="p-4 rounded-2xl"
-                                style={{ background: cardBg, border }}>
+                                className="p-4 rounded-2xl transition-all"
+                                style={cardStyle}>
                                 <p
                                     className="text-xs mb-2"
                                     style={{ color: palette.textSecondary }}>
@@ -543,8 +598,8 @@ export default function AdminFeaturesPage() {
                             </div>
 
                             <div
-                                className="p-4 rounded-2xl"
-                                style={{ background: cardBg, border }}>
+                                className="p-4 rounded-2xl transition-all"
+                                style={cardStyle}>
                                 <p
                                     className="text-xs mb-2"
                                     style={{ color: palette.textSecondary }}>
@@ -569,8 +624,8 @@ export default function AdminFeaturesPage() {
                             </div>
 
                             <div
-                                className="p-4 rounded-2xl"
-                                style={{ background: cardBg, border }}>
+                                className="p-4 rounded-2xl transition-all"
+                                style={cardStyle}>
                                 <p
                                     className="text-xs mb-2"
                                     style={{ color: palette.textSecondary }}>
@@ -623,8 +678,8 @@ export default function AdminFeaturesPage() {
                                 return (
                                     <div
                                         key={prov.key}
-                                        className="rounded-2xl overflow-hidden"
-                                        style={{ background: cardBg, border }}>
+                                        className="rounded-2xl overflow-hidden transition-all"
+                                        style={cardStyle}>
                                         {/* Row header */}
                                         <div className="flex items-center gap-4 px-5 py-4">
                                             {/* Color dot / logo fallback */}

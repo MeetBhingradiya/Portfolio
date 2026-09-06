@@ -78,9 +78,28 @@ export default function AdminOrdersPage() {
     });
     const patchEdit = useCallback((p: Partial<typeof edit>) => setEdit((s) => ({ ...s, ...p })), []);
 
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
-    const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
-    const br = isApple ? 16 : 20;
+    const cardBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.72)"
+        : isDark
+          ? "rgba(24,24,28,0.98)"
+          : "#fff";
+
+    const border = isApple
+        ? `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)"}`
+        : `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
+
+    const glassVars = isApple
+        ? {
+              backdropFilter: "blur(24px) saturate(190%)",
+              boxShadow: isDark
+                  ? "0 4px 20px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.1)"
+                  : "0 4px 20px rgba(0,0,0,0.05), inset 0 1px 1px rgba(255,255,255,0.9)"
+          }
+        : {};
+
+    const br = isApple ? 18 : 20;
 
     const fetchOrders = useCallback(async () => {
         patchList({ loading: true });
@@ -145,8 +164,13 @@ export default function AdminOrdersPage() {
             </div>
 
             <div
-                className="flex items-center gap-2 px-4 py-2.5 rounded-2xl mb-5"
-                style={{ background: cardBg, border }}>
+                className="flex items-center gap-2 px-4 py-2.5 mb-5"
+                style={{
+                    background: cardBg,
+                    border,
+                    borderRadius: isApple ? "9999px" : "16px",
+                    ...glassVars
+                }}>
                 <Search style={{ color: palette.textSecondary, fontSize: 18 }} />
                 <input
                     value={list.search}
@@ -176,11 +200,13 @@ export default function AdminOrdersPage() {
                             key={o._id}
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex items-center gap-4 px-5 py-4 rounded-2xl cursor-pointer"
+                            whileHover={isApple ? { scale: 1.01, y: -1 } : undefined}
+                            className="flex items-center gap-4 px-5 py-4 cursor-pointer"
                             style={{
                                 background: cardBg,
                                 border,
-                                borderRadius: br
+                                borderRadius: br,
+                                ...glassVars
                             }}
                             onClick={() => openEdit(o)}>
                             <div className="flex-1 min-w-0">
@@ -254,9 +280,21 @@ export default function AdminOrdersPage() {
                                 damping: 28,
                                 stiffness: 300
                             }}
-                            className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col"
+                            className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col shadow-2xl"
                             style={{
-                                background: isDark ? "#1c1c20" : "#f5f5f8"
+                                background: isApple
+                                    ? isDark
+                                        ? "rgba(28,28,32,0.85)"
+                                        : "rgba(255,255,255,0.85)"
+                                    : isDark
+                                      ? "#1c1c20"
+                                      : "#f5f5f8",
+                                backdropFilter: isApple ? "blur(24px) saturate(190%)" : "none",
+                                borderLeft: isApple
+                                    ? isDark
+                                        ? "1px solid rgba(255,255,255,0.12)"
+                                        : "1px solid rgba(0,0,0,0.08)"
+                                    : "none"
                             }}>
                             <div
                                 className="flex items-center justify-between px-6 py-5 border-b"

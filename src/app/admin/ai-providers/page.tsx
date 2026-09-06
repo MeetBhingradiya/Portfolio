@@ -128,8 +128,9 @@ const defaultProvider = (): ProviderConfig => ({
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function AIProvidersAdminPage() {
-    const { palette, actualColorMode } = useDesignTheme();
+    const { palette, actualColorMode, designTheme } = useDesignTheme();
     const isDark = actualColorMode === "dark";
+    const isApple = designTheme === "apple";
 
     const [settings, setSettings] = useState<AISettings>({
         ActiveProvider: "github",
@@ -270,11 +271,34 @@ export default function AIProvidersAdminPage() {
         }));
     };
 
-    const inputStyle = {
-        background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
-        color: palette.textPrimary,
-        border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
-    };
+    const cardStyle = isApple
+        ? {
+              background: isDark ? "rgba(28,28,32,0.65)" : "rgba(255,255,255,0.72)",
+              backdropFilter: "blur(24px) saturate(190%)",
+              WebkitBackdropFilter: "blur(24px) saturate(190%)",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)"}`,
+              boxShadow: isDark
+                  ? "0 8px 32px rgba(0,0,0,0.37), inset 0 1px 1px rgba(255,255,255,0.12)"
+                  : "0 8px 32px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.85)"
+          }
+        : {
+              background: palette.surface,
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
+          };
+
+    const inputStyle = isApple
+        ? {
+              background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              border: `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.1)"}`,
+              color: palette.textPrimary
+          }
+        : {
+              background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+              color: palette.textPrimary,
+              border: `1.5px solid ${isDark ? "rgba(255,255,255,0.10)" : "rgba(0,0,0,0.08)"}`
+          };
 
     if (loading) {
         return (
@@ -289,10 +313,17 @@ export default function AIProvidersAdminPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                    <Psychology sx={{ fontSize: 28, color: "#5E97F6" }} />
+                    <div
+                        className={`p-2.5 ${isApple ? "rounded-full" : "rounded-xl"}`}
+                        style={{
+                            background: "rgba(94,151,246,0.15)",
+                            boxShadow: isApple ? "inset 0 1px 1px rgba(255,255,255,0.2)" : undefined
+                        }}>
+                        <Psychology sx={{ fontSize: 26, color: "#5E97F6" }} />
+                    </div>
                     <div>
                         <h1
-                            className="text-xl font-bold"
+                            className="text-xl font-bold tracking-tight"
                             style={{ color: palette.textPrimary }}>
                             AI Provider Settings
                         </h1>
@@ -306,9 +337,10 @@ export default function AIProvidersAdminPage() {
                 <div className="flex gap-2">
                     <motion.button
                         onClick={fetchSettings}
-                        className="p-2 rounded-lg"
+                        className={`p-2.5 ${isApple ? "rounded-full" : "rounded-lg"}`}
                         style={{
-                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                            background: isApple ? (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.05)") : (isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"),
+                            border: isApple ? `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}` : undefined,
                             color: palette.textSecondary
                         }}
                         whileTap={{ scale: 0.95 }}>
@@ -317,10 +349,11 @@ export default function AIProvidersAdminPage() {
                     <motion.button
                         onClick={handleSave}
                         disabled={saving}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+                        className={`flex items-center gap-2 px-5 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold`}
                         style={{
                             background: saved ? "#34C759" : "#5E97F6",
-                            color: "#fff"
+                            color: "#fff",
+                            boxShadow: isApple ? "0 4px 14px rgba(94,151,246,0.35), inset 0 1px 1px rgba(255,255,255,0.3)" : undefined
                         }}
                         whileTap={{ scale: 0.95 }}>
                         {saved ? <CheckCircle sx={{ fontSize: 16 }} /> : <Save sx={{ fontSize: 16 }} />}
@@ -331,11 +364,8 @@ export default function AIProvidersAdminPage() {
 
             {/* Active Provider Selector */}
             <div
-                className="p-4 rounded-2xl space-y-3"
-                style={{
-                    background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)",
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)"}`
-                }}>
+                className={`p-5 ${isApple ? "rounded-[24px]" : "rounded-2xl"} space-y-3`}
+                style={cardStyle}>
                 <p
                     className="text-sm font-bold"
                     style={{ color: palette.textPrimary }}>
@@ -355,9 +385,11 @@ export default function AIProvidersAdminPage() {
                                         ActiveProvider: pk
                                     }))
                                 }
-                                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold"
+                                className={`flex items-center gap-2 px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold`}
                                 style={{
                                     background: isActive ? meta.color : isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.06)",
+                                    border: isApple ? `1px solid ${isActive ? "rgba(255,255,255,0.3)" : isDark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.08)"}` : undefined,
+                                    boxShadow: isActive && isApple ? "0 4px 12px rgba(0,0,0,0.25), inset 0 1px 1px rgba(255,255,255,0.25)" : undefined,
                                     color: isActive ? "#fff" : palette.textSecondary,
                                     opacity: !provConfig.enabled || !provConfig.hasApiKey ? 0.6 : 1
                                 }}
@@ -381,16 +413,33 @@ export default function AIProvidersAdminPage() {
                 return (
                     <div
                         key={pk}
-                        className="rounded-2xl overflow-hidden"
-                        style={{
-                            border: `1.5px solid ${config.enabled ? meta.color + "60" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
-                        }}>
+                        className={`${isApple ? "rounded-[24px]" : "rounded-2xl"} overflow-hidden transition-all duration-200`}
+                        style={
+                            isApple
+                                ? {
+                                      background: isDark ? "rgba(28,28,32,0.65)" : "rgba(255,255,255,0.72)",
+                                      backdropFilter: "blur(24px) saturate(190%)",
+                                      WebkitBackdropFilter: "blur(24px) saturate(190%)",
+                                      border: config.enabled
+                                          ? `1.5px solid ${meta.color}80`
+                                          : `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.8)"}`,
+                                      boxShadow: isDark
+                                          ? "0 8px 32px rgba(0,0,0,0.37), inset 0 1px 1px rgba(255,255,255,0.12)"
+                                          : "0 8px 32px rgba(0,0,0,0.06), inset 0 1px 1px rgba(255,255,255,0.85)"
+                                  }
+                                : {
+                                      background: palette.surface,
+                                      border: `1.5px solid ${config.enabled ? meta.color + "60" : isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
+                                  }
+                        }>
                         {/* Header row */}
                         <div
                             className="flex items-center gap-3 p-4 cursor-pointer"
                             onClick={() => setExpandedProvider(isExpanded ? null : pk)}
                             style={{
-                                background: isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)"
+                                background: isApple
+                                    ? (isDark ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.3)")
+                                    : (isDark ? "rgba(255,255,255,0.03)" : "rgba(0,0,0,0.02)")
                             }}>
                             <span className="text-xl">{meta.emoji}</span>
                             <div className="flex-1">
@@ -616,10 +665,8 @@ export default function AIProvidersAdminPage() {
 
             {/* Features */}
             <div
-                className="p-4 rounded-2xl space-y-3"
-                style={{
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
-                }}>
+                className={`p-5 ${isApple ? "rounded-[24px]" : "rounded-2xl"} space-y-4`}
+                style={cardStyle}>
                 <div className="flex items-center gap-2">
                     <Settings sx={{ fontSize: 18, color: "#AF52DE" }} />
                     <p
@@ -671,10 +718,8 @@ export default function AIProvidersAdminPage() {
 
             {/* Rate limits */}
             <div
-                className="p-4 rounded-2xl space-y-3"
-                style={{
-                    border: `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`
-                }}>
+                className={`p-5 ${isApple ? "rounded-[24px]" : "rounded-2xl"} space-y-4`}
+                style={cardStyle}>
                 <p
                     className="font-bold text-sm"
                     style={{ color: palette.textPrimary }}>
@@ -699,7 +744,7 @@ export default function AIProvidersAdminPage() {
                                     }
                                 }))
                             }
-                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                            className={`w-full px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm outline-none`}
                             style={inputStyle}
                             min={1}
                             max={1000}
@@ -723,7 +768,7 @@ export default function AIProvidersAdminPage() {
                                     }
                                 }))
                             }
-                            className="w-full px-4 py-2.5 rounded-xl text-sm outline-none"
+                            className={`w-full px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm outline-none`}
                             style={inputStyle}
                             min={1}
                             max={10000}

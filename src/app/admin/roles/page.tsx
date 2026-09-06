@@ -152,10 +152,30 @@ export default function AdminRolesPage() {
     const isApple = designTheme === "apple";
     const isDark = actualColorMode === "dark";
 
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.75)" : "rgba(255,255,255,0.75)") : isDark ? "rgba(24,24,28,0.98)" : "#fff";
-    const border = `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
-    const drawerBg = isDark ? "#1c1c20" : "#f5f5f8";
-    const br = isApple ? 16 : 20;
+    const cardBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.72)"
+        : isDark
+          ? "rgba(24,24,28,0.98)"
+          : "#fff";
+    const border = isApple
+        ? `1px solid ${isDark ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.08)"}`
+        : `1px solid ${isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)"}`;
+    const cardBlur = isApple ? "blur(24px) saturate(190%)" : undefined;
+    const cardShadow = isApple
+        ? isDark
+            ? "inset 0 1px 1px rgba(255,255,255,0.12), 0 4px 20px rgba(0,0,0,0.25)"
+            : "inset 0 1px 1px rgba(255,255,255,0.85), 0 4px 20px rgba(0,0,0,0.05)"
+        : undefined;
+    const drawerBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.92)"
+            : "rgba(245,245,248,0.92)"
+        : isDark
+          ? "#1c1c20"
+          : "#f5f5f8";
+    const br = isApple ? 22 : 20;
 
     // ── Shared state ──────────────────────────────────────────────────────────
     const [pg, setPg] = useState<{
@@ -462,19 +482,23 @@ export default function AdminRolesPage() {
 
             {/* Tabs */}
             <div
-                className="flex gap-1 mb-6 p-1 rounded-2xl w-fit"
+                className={`flex gap-1 mb-6 p-1 ${isApple ? "rounded-full" : "rounded-2xl"} w-fit transition-all`}
                 style={{
-                    background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)"
+                    background: isApple ? cardBg : isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.05)",
+                    border: isApple ? border : undefined,
+                    backdropFilter: cardBlur,
+                    WebkitBackdropFilter: cardBlur,
+                    boxShadow: cardShadow
                 }}>
                 {(["definitions", "assignments"] as Tab[]).map((t) => (
                     <motion.button
                         key={t}
                         onClick={() => patchPg({ tab: t })}
-                        className="px-5 py-2 rounded-xl text-sm font-bold capitalize"
+                        className={`px-5 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-bold capitalize transition-all`}
                         style={{
                             background: pg.tab === t ? (isDark ? "#2c2c30" : "#fff") : "transparent",
                             color: pg.tab === t ? palette.textPrimary : palette.textSecondary,
-                            boxShadow: pg.tab === t ? "0 1px 4px rgba(0,0,0,0.12)" : "none"
+                            boxShadow: pg.tab === t ? (isApple ? "0 2px 8px rgba(0,0,0,0.15)" : "0 1px 4px rgba(0,0,0,0.12)") : "none"
                         }}>
                         {t === "definitions" ? "Role Definitions" : "User Assignments"}
                     </motion.button>
@@ -489,8 +513,14 @@ export default function AdminRolesPage() {
                     {/* Toolbar */}
                     <div className="flex gap-3 mb-4">
                         <div
-                            className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-2xl"
-                            style={{ background: cardBg, border }}>
+                            className={`flex-1 flex items-center gap-2 px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-2xl"} transition-all`}
+                            style={{
+                                background: cardBg,
+                                border,
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur,
+                                boxShadow: cardShadow
+                            }}>
                             <Search
                                 style={{
                                     color: palette.textSecondary,
@@ -508,10 +538,11 @@ export default function AdminRolesPage() {
                         <motion.button
                             whileTap={{ scale: 0.96 }}
                             onClick={() => patchDef({ showCreate: !def.showCreate })}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm"
+                            className={`flex items-center gap-2 px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} font-bold text-sm`}
                             style={{
                                 background: palette.accent,
-                                color: "#fff"
+                                color: "#fff",
+                                boxShadow: isApple ? `0 4px 14px ${palette.accent}40` : undefined
                             }}>
                             <Add fontSize="small" /> Create Role
                         </motion.button>
@@ -526,8 +557,14 @@ export default function AdminRolesPage() {
                                 exit={{ opacity: 0, height: 0 }}
                                 className="mb-4 overflow-hidden">
                                 <div
-                                    className="p-5 rounded-2xl space-y-3"
-                                    style={{ background: cardBg, border }}>
+                                    className={`p-5 ${isApple ? "rounded-[22px]" : "rounded-2xl"} space-y-3`}
+                                    style={{
+                                        background: cardBg,
+                                        border,
+                                        backdropFilter: cardBlur,
+                                        WebkitBackdropFilter: cardBlur,
+                                        boxShadow: cardShadow
+                                    }}>
                                     <p
                                         className="text-sm font-black"
                                         style={{ color: palette.textPrimary }}>
@@ -648,7 +685,7 @@ export default function AdminRolesPage() {
                             {[1, 2, 3, 4].map((i) => (
                                 <div
                                     key={i}
-                                    className="h-24 rounded-2xl animate-pulse"
+                                    className={`h-24 ${isApple ? "rounded-[22px]" : "rounded-2xl"} animate-pulse`}
                                     style={{
                                         background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"
                                     }}
@@ -661,12 +698,16 @@ export default function AdminRolesPage() {
                                 <motion.button
                                     key={role._id}
                                     whileTap={{ scale: 0.98 }}
+                                    whileHover={{ y: -1, scale: 1.005 }}
                                     onClick={() => openRoleDef(role)}
-                                    className="text-left p-5 rounded-2xl group transition-all"
+                                    className={`text-left p-5 ${isApple ? "rounded-[22px]" : "rounded-2xl"} group transition-all`}
                                     style={{
                                         background: cardBg,
                                         border,
-                                        borderRadius: br
+                                        borderRadius: br,
+                                        backdropFilter: cardBlur,
+                                        WebkitBackdropFilter: cardBlur,
+                                        boxShadow: cardShadow
                                     }}>
                                     <div className="flex items-start justify-between gap-3">
                                         <div className="flex items-center gap-2.5">
@@ -738,8 +779,14 @@ export default function AdminRolesPage() {
                     {/* Toolbar */}
                     <div className="flex gap-3 mb-4">
                         <div
-                            className="flex-1 flex items-center gap-2 px-4 py-2.5 rounded-2xl"
-                            style={{ background: cardBg, border }}>
+                            className={`flex-1 flex items-center gap-2 px-4 py-2.5 ${isApple ? "rounded-full" : "rounded-2xl"} transition-all`}
+                            style={{
+                                background: cardBg,
+                                border,
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur,
+                                boxShadow: cardShadow
+                            }}>
                             <Search
                                 style={{
                                     color: palette.textSecondary,
@@ -762,10 +809,11 @@ export default function AdminRolesPage() {
                                     addError: ""
                                 })
                             }
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm"
+                            className={`flex items-center gap-2 px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} font-bold text-sm`}
                             style={{
                                 background: palette.accent,
-                                color: "#fff"
+                                color: "#fff",
+                                boxShadow: isApple ? `0 4px 14px ${palette.accent}40` : undefined
                             }}>
                             <PersonAdd fontSize="small" /> Add User
                         </motion.button>
@@ -780,8 +828,14 @@ export default function AdminRolesPage() {
                                 exit={{ opacity: 0, height: 0 }}
                                 className="mb-4 overflow-hidden">
                                 <div
-                                    className="p-4 rounded-2xl space-y-2"
-                                    style={{ background: cardBg, border }}>
+                                    className={`p-4 ${isApple ? "rounded-[22px]" : "rounded-2xl"} space-y-2`}
+                                    style={{
+                                        background: cardBg,
+                                        border,
+                                        backdropFilter: cardBlur,
+                                        WebkitBackdropFilter: cardBlur,
+                                        boxShadow: cardShadow
+                                    }}>
                                     <p
                                         className="text-sm font-black"
                                         style={{ color: palette.textPrimary }}>
@@ -833,7 +887,7 @@ export default function AdminRolesPage() {
                             {[1, 2, 3].map((i) => (
                                 <div
                                     key={i}
-                                    className="h-16 rounded-2xl animate-pulse"
+                                    className={`h-16 ${isApple ? "rounded-[20px]" : "rounded-2xl"} animate-pulse`}
                                     style={{
                                         background: isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"
                                     }}
@@ -849,11 +903,14 @@ export default function AdminRolesPage() {
                                         key={record._id}
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
-                                        className="flex items-center gap-4 px-5 py-4 rounded-2xl"
+                                        className={`flex items-center gap-4 px-5 py-4 ${isApple ? "rounded-[20px]" : "rounded-2xl"} transition-all`}
                                         style={{
                                             background: cardBg,
                                             border,
-                                            borderRadius: br
+                                            borderRadius: br,
+                                            backdropFilter: cardBlur,
+                                            WebkitBackdropFilter: cardBlur,
+                                            boxShadow: cardShadow
                                         }}>
                                         <div className="flex-1 min-w-0">
                                             <p
@@ -902,7 +959,7 @@ export default function AdminRolesPage() {
                                         </div>
                                         <button
                                             onClick={() => openUserRecord(record)}
-                                            className="px-3 py-1.5 rounded-xl text-xs font-bold"
+                                            className={`px-3 py-1.5 ${isApple ? "rounded-full" : "rounded-xl"} text-xs font-bold transition-all`}
                                             style={{
                                                 background: `${palette.accent}18`,
                                                 color: palette.accent
@@ -933,9 +990,10 @@ export default function AdminRolesPage() {
                     <>
                         <motion.div
                             initial={{ opacity: 0 }}
-                            animate={{ opacity: 0.5 }}
+                            animate={{ opacity: isApple ? 0.4 : 0.5 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black z-40"
+                            className={`fixed inset-0 z-40 ${isApple ? "backdrop-blur-sm" : "bg-black"}`}
+                            style={{ background: isApple ? "rgba(0,0,0,0.35)" : "black" }}
                             onClick={() => patchDef({ active: null })}
                         />
                         <motion.div
@@ -947,8 +1005,18 @@ export default function AdminRolesPage() {
                                 damping: 28,
                                 stiffness: 300
                             }}
-                            className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col"
-                            style={{ background: drawerBg }}>
+                            className={`fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col ${isApple ? "sm:m-3 sm:h-[calc(100vh-24px)] sm:rounded-[28px] border overflow-hidden" : ""}`}
+                            style={{
+                                background: drawerBg,
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur,
+                                border: isApple ? border : undefined,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "inset 0 1px 1px rgba(255,255,255,0.15), 0 20px 50px rgba(0,0,0,0.5)"
+                                        : "inset 0 1px 1px rgba(255,255,255,0.9), 0 20px 50px rgba(0,0,0,0.15)"
+                                    : undefined
+                            }}>
                             {/* Drawer Header */}
                             <div
                                 className="flex items-center gap-3 px-6 py-5 border-b"
@@ -1073,10 +1141,11 @@ export default function AdminRolesPage() {
                                     whileTap={{ scale: 0.97 }}
                                     onClick={saveRoleDef}
                                     disabled={def.saving}
-                                    className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+                                    className={`w-full py-3 ${isApple ? "rounded-full" : "rounded-xl"} font-bold flex items-center justify-center gap-2 transition-all`}
                                     style={{
                                         background: palette.accent,
-                                        color: "#fff"
+                                        color: "#fff",
+                                        boxShadow: isApple ? `0 4px 14px ${palette.accent}40` : undefined
                                     }}>
                                     <Save fontSize="small" /> {def.saving ? "Saving…" : "Save Permissions"}
                                 </motion.button>
@@ -1084,7 +1153,7 @@ export default function AdminRolesPage() {
                                     <motion.button
                                         whileTap={{ scale: 0.97 }}
                                         onClick={deleteRoleDef}
-                                        className="w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm"
+                                        className={`w-full py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} font-bold flex items-center justify-center gap-2 text-sm transition-all`}
                                         style={{
                                             background: "rgba(255,59,48,0.1)",
                                             color: "#FF3B30"
@@ -1106,9 +1175,10 @@ export default function AdminRolesPage() {
                     <>
                         <motion.div
                             initial={{ opacity: 0 }}
-                            animate={{ opacity: 0.5 }}
+                            animate={{ opacity: isApple ? 0.4 : 0.5 }}
                             exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-black z-40"
+                            className={`fixed inset-0 z-40 ${isApple ? "backdrop-blur-sm" : "bg-black"}`}
+                            style={{ background: isApple ? "rgba(0,0,0,0.35)" : "black" }}
                             onClick={() => patchUser({ active: null })}
                         />
                         <motion.div
@@ -1120,8 +1190,18 @@ export default function AdminRolesPage() {
                                 damping: 28,
                                 stiffness: 300
                             }}
-                            className="fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col"
-                            style={{ background: drawerBg }}>
+                            className={`fixed right-0 top-0 bottom-0 w-full max-w-md z-50 flex flex-col ${isApple ? "sm:m-3 sm:h-[calc(100vh-24px)] sm:rounded-[28px] border overflow-hidden" : ""}`}
+                            style={{
+                                background: drawerBg,
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur,
+                                border: isApple ? border : undefined,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "inset 0 1px 1px rgba(255,255,255,0.15), 0 20px 50px rgba(0,0,0,0.5)"
+                                        : "inset 0 1px 1px rgba(255,255,255,0.9), 0 20px 50px rgba(0,0,0,0.15)"
+                                    : undefined
+                            }}>
                             {/* Header */}
                             <div
                                 className="flex items-center justify-between px-6 py-5 border-b"
@@ -1295,22 +1375,23 @@ export default function AdminRolesPage() {
                                     whileTap={{ scale: 0.97 }}
                                     onClick={saveUserRecord}
                                     disabled={user.saving}
-                                    className="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2"
+                                className={`w-full py-3 ${isApple ? "rounded-full" : "rounded-xl"} font-bold flex items-center justify-center gap-2 transition-all`}
                                     style={{
                                         background: palette.accent,
-                                        color: "#fff"
-                                    }}>
-                                    <Save fontSize="small" /> {user.saving ? "Saving…" : "Save Changes"}
+                                    color: "#fff",
+                                    boxShadow: isApple ? `0 4px 14px ${palette.accent}40` : undefined
+                                }}>
+                                <Save fontSize="small" /> {user.saving ? "Saving…" : "Save Changes"}
                                 </motion.button>
                                 <motion.button
-                                    whileTap={{ scale: 0.97 }}
-                                    onClick={deleteUserRecord}
-                                    className="w-full py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 text-sm"
-                                    style={{
-                                        background: "rgba(255,59,48,0.1)",
-                                        color: "#FF3B30"
-                                    }}>
-                                    <Delete fontSize="small" /> Remove User
+                                whileTap={{ scale: 0.97 }}
+                                onClick={deleteUserRecord}
+                                className={`w-full py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} font-bold flex items-center justify-center gap-2 text-sm transition-all`}
+                                style={{
+                                    background: "rgba(255,59,48,0.1)",
+                                    color: "#FF3B30"
+                                }}>
+                                <Delete fontSize="small" /> Remove User
                                 </motion.button>
                             </div>
                         </motion.div>

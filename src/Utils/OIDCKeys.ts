@@ -27,48 +27,56 @@ let _cache: OIDCKeySet | null = null;
 export async function getOIDCKeys(): Promise<OIDCKeySet> {
     if (_cache) return _cache;
 
-    const envJwk = process.env.IMMICH_SSO_PRIVATE_KEY_JWK;
+    const envJwk = process.env.IMMICH_SSO_PRIVATE_KEY_JWK?.trim();
+    const isConfiguredJwk = envJwk && envJwk.startsWith("{") && !envJwk.includes("placeholder");
 
-    if (envJwk) {
+    if (isConfiguredJwk) {
         // ----- Persistent key from env -----
-        let privateJwk: Record<string, unknown>;
+        let privateJwk: Record<string, unknown> | null = null;
         try {
             privateJwk = JSON.parse(envJwk);
         } catch {
-            throw new Error("[ImmichSSO] IMMICH_SSO_PRIVATE_KEY_JWK is not valid JSON");
+            console.warn("[ImmichSSO] IMMICH_SSO_PRIVATE_KEY_JWK is not valid JSON. Falling back to ephemeral key.");
         }
-        const kid = (privateJwk.kid as string) || "immich-sso-key";
 
-        const privateKey = await importJWK(privateJwk, "RS256");
+        if (privateJwk) {
+            try {
+                const kid = (privateJwk.kid as string) || "immich-sso-key";
+                const privateKey = await importJWK(privateJwk, "RS256");
 
-        // Build public JWK by stripping private key components
-        const publicJwk: Record<string, unknown> = { ...privateJwk };
-        for (const field of ["d", "p", "q", "dp", "dq", "qi"]) delete publicJwk[field];
-        const publicKey = await importJWK(publicJwk, "RS256");
+                // Build public JWK by stripping private key components
+                const publicJwk: Record<string, unknown> = { ...privateJwk };
+                for (const field of ["d", "p", "q", "dp", "dq", "qi"]) delete publicJwk[field];
+                const publicKey = await importJWK(publicJwk, "RS256");
 
-        _cache = {
-            privateKey,
-            publicKey,
-            kid,
-            publicJwk: { ...publicJwk, kid, use: "sig", alg: "RS256" }
-        };
-    } else {
-        // ----- Ephemeral key (dev only) -----
-        console.warn(
-            "[ImmichSSO] No IMMICH_SSO_PRIVATE_KEY_JWK set — using ephemeral RSA key. " + "Tokens will be invalid after server restart."
-        );
-        const { privateKey, publicKey } = await generateKeyPair("RS256", {
-            modulusLength: 2048
-        });
-        const exportedPub = await exportJWK(publicKey);
-        const kid = `ephemeral-${Date.now()}`;
-        _cache = {
-            privateKey,
-            publicKey,
-            kid,
-            publicJwk: { ...exportedPub, kid, use: "sig", alg: "RS256" }
-        };
+                _cache = {
+                    privateKey,
+                    publicKey,
+                    kid,
+                    publicJwk: { ...publicJwk, kid, use: "sig", alg: "RS256" }
+                };
+                return _cache;
+            } catch (err) {
+                console.warn("[ImmichSSO] Failed to import IMMICH_SSO_PRIVATE_KEY_JWK. Falling back to ephemeral key.", err);
+            }
+        }
     }
+
+    // ----- Ephemeral key (dev only) -----
+    console.warn(
+        "[ImmichSSO] No valid IMMICH_SSO_PRIVATE_KEY_JWK set — using ephemeral RSA key. Tokens will be invalid after server restart."
+    );
+    const { privateKey, publicKey } = await generateKeyPair("RS256", {
+        modulusLength: 2048
+    });
+    const exportedPub = await exportJWK(publicKey);
+    const kid = `ephemeral-${Date.now()}`;
+    _cache = {
+        privateKey,
+        publicKey,
+        kid,
+        publicJwk: { ...exportedPub, kid, use: "sig", alg: "RS256" }
+    };
 
     return _cache;
 }

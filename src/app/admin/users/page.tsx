@@ -207,8 +207,26 @@ export default function UsersPage() {
         }
     };
 
-    const cardBg = isApple ? (isDark ? "rgba(28,28,32,0.7)" : "rgba(255,255,255,0.7)") : isDark ? "rgba(24,24,28,0.95)" : "#fff";
-    const borderColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)";
+    const cardBg = isApple
+        ? isDark
+            ? "rgba(28,28,32,0.65)"
+            : "rgba(255,255,255,0.72)"
+        : isDark
+          ? "rgba(24,24,28,0.95)"
+          : "#fff";
+    const borderColor = isApple
+        ? isDark
+            ? "rgba(255,255,255,0.12)"
+            : "rgba(0,0,0,0.08)"
+        : isDark
+          ? "rgba(255,255,255,0.08)"
+          : "rgba(0,0,0,0.08)";
+    const cardBlur = isApple ? "blur(24px) saturate(190%)" : undefined;
+    const cardShadow = isApple
+        ? isDark
+            ? "inset 0 1px 1px rgba(255,255,255,0.12), 0 4px 20px rgba(0,0,0,0.25)"
+            : "inset 0 1px 1px rgba(255,255,255,0.85), 0 4px 20px rgba(0,0,0,0.05)"
+        : undefined;
     const pages = Math.max(1, Math.ceil(table.total / PAGE_SIZE));
 
     return (
@@ -219,7 +237,7 @@ export default function UsersPage() {
             <div className="mb-6 flex items-center justify-between gap-4 flex-wrap">
                 <div>
                     <h1
-                        className="text-2xl font-black"
+                        className={`text-2xl ${isApple ? "font-bold tracking-tight" : "font-black"}`}
                         style={{ color: palette.textPrimary }}>
                         Users
                     </h1>
@@ -237,20 +255,27 @@ export default function UsersPage() {
                 <div className="flex items-center gap-2">
                     <Link href="/admin/roles">
                         <motion.div
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer"
+                            className={`flex items-center gap-2 px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold cursor-pointer transition-all`}
                             style={{
                                 background: `${palette.accent}15`,
-                                color: palette.accent
+                                color: palette.accent,
+                                border: isApple ? `1px solid ${palette.accent}33` : undefined,
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur
                             }}
                             whileHover={{ scale: 1.03 }}>
                             <ManageAccounts fontSize="small" /> Manage Roles
                         </motion.div>
                     </Link>
                     <motion.button
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold"
+                        className={`flex items-center gap-2 px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-semibold transition-all`}
                         style={{
-                            background: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
-                            color: palette.textSecondary
+                            background: cardBg,
+                            border: `1px solid ${borderColor}`,
+                            color: palette.textSecondary,
+                            backdropFilter: cardBlur,
+                            WebkitBackdropFilter: cardBlur,
+                            boxShadow: cardShadow
                         }}
                         whileHover={{ scale: 1.03 }}
                         onClick={fetchUsers}>
@@ -263,16 +288,19 @@ export default function UsersPage() {
             <div className="mb-4 flex gap-3 flex-wrap">
                 <div className="relative flex-1 min-w-48">
                     <Search
-                        className="absolute left-3 top-1/2 -translate-y-1/2"
+                        className="absolute left-3.5 top-1/2 -translate-y-1/2"
                         style={{ color: palette.textTertiary, fontSize: 18 }}
                     />
                     <input
                         placeholder="Search by name or email…"
-                        className="w-full pl-10 pr-4 py-2.5 text-sm rounded-xl outline-none"
+                        className={`w-full pl-10 pr-4 py-2.5 text-sm ${isApple ? "rounded-full" : "rounded-xl"} outline-none transition-all`}
                         style={{
-                            background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
+                            background: cardBg,
                             border: `1px solid ${borderColor}`,
-                            color: palette.textPrimary
+                            color: palette.textPrimary,
+                            backdropFilter: cardBlur,
+                            WebkitBackdropFilter: cardBlur,
+                            boxShadow: cardShadow
                         }}
                         onChange={(e) => {
                             patchTable({ search: e.target.value, page: 1 });
@@ -297,7 +325,7 @@ export default function UsersPage() {
 
             {table.error && (
                 <div
-                    className="mb-4 px-4 py-3 rounded-xl text-sm flex items-center justify-between"
+                    className={`mb-4 px-4 py-3 ${isApple ? "rounded-2xl" : "rounded-xl"} text-sm flex items-center justify-between`}
                     style={{
                         background: "rgba(220,50,50,0.1)",
                         color: "#DC3232",
@@ -316,10 +344,13 @@ export default function UsersPage() {
 
             {/* Table */}
             <div
-                className="rounded-2xl overflow-hidden"
+                className={`${isApple ? "rounded-[22px]" : "rounded-2xl"} overflow-hidden transition-all`}
                 style={{
                     background: cardBg,
-                    border: `1px solid ${borderColor}`
+                    border: `1px solid ${borderColor}`,
+                    backdropFilter: cardBlur,
+                    WebkitBackdropFilter: cardBlur,
+                    boxShadow: cardShadow
                 }}>
                 <table className="w-full text-sm">
                     <thead>
@@ -578,7 +609,8 @@ export default function UsersPage() {
                         exit={{ opacity: 0 }}
                         style={{
                             background: "rgba(0,0,0,0.5)",
-                            backdropFilter: "blur(4px)"
+                            backdropFilter: "blur(12px)",
+                            WebkitBackdropFilter: "blur(12px)"
                         }}
                         onClick={(e) => {
                             if (e.target === e.currentTarget) setModal(null);
@@ -587,16 +619,28 @@ export default function UsersPage() {
                             initial={{ scale: 0.92, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             exit={{ scale: 0.92, opacity: 0 }}
-                            className="w-full max-w-md rounded-2xl p-6"
+                            className={`w-full max-w-md ${isApple ? "rounded-[24px]" : "rounded-2xl"} p-6`}
                             style={{
-                                background: isDark ? "rgba(28,28,32,0.98)" : "#fff",
+                                background: isApple
+                                    ? isDark
+                                        ? "rgba(28,28,32,0.85)"
+                                        : "rgba(255,255,255,0.88)"
+                                    : isDark
+                                      ? "rgba(28,28,32,0.98)"
+                                      : "#fff",
                                 border: `1px solid ${borderColor}`,
-                                boxShadow: "0 24px 64px rgba(0,0,0,0.4)"
+                                backdropFilter: cardBlur,
+                                WebkitBackdropFilter: cardBlur,
+                                boxShadow: isApple
+                                    ? isDark
+                                        ? "inset 0 1px 1px rgba(255,255,255,0.15), 0 24px 64px rgba(0,0,0,0.5)"
+                                        : "inset 0 1px 1px rgba(255,255,255,0.9), 0 24px 64px rgba(0,0,0,0.18)"
+                                    : "0 24px 64px rgba(0,0,0,0.4)"
                             }}>
                             <div className="flex items-center justify-between mb-4">
                                 <div>
                                     <p
-                                        className="font-black text-base"
+                                        className={`font-black text-base ${isApple ? "tracking-tight" : ""}`}
                                         style={{ color: palette.textPrimary }}>
                                         Assign Roles
                                     </p>
@@ -611,7 +655,7 @@ export default function UsersPage() {
                                 <motion.button
                                     whileHover={{ scale: 1.1 }}
                                     onClick={() => setModal(null)}
-                                    className="p-1.5 rounded-lg"
+                                    className={`p-1.5 ${isApple ? "rounded-full" : "rounded-lg"}`}
                                     style={{
                                         color: palette.textTertiary,
                                         background: isDark ? "rgba(255,255,255,0.07)" : "rgba(0,0,0,0.05)"
@@ -635,7 +679,7 @@ export default function UsersPage() {
                                             whileHover={{ scale: 1.04 }}
                                             whileTap={{ scale: 0.97 }}
                                             onClick={() => toggleRole(role)}
-                                            className="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
+                                            className={`px-3 py-1.5 ${isApple ? "rounded-full" : "rounded-xl"} text-xs font-bold border transition-all`}
                                             style={{
                                                 background: active ? s.bg : "transparent",
                                                 color: active ? s.text : palette.textTertiary,
@@ -669,7 +713,7 @@ export default function UsersPage() {
                                                             scale: 0.97
                                                         }}
                                                         onClick={() => toggleRole(def.key)}
-                                                        className="px-3 py-1.5 rounded-xl text-xs font-bold border transition-all"
+                                                        className={`px-3 py-1.5 ${isApple ? "rounded-full" : "rounded-xl"} text-xs font-bold border transition-all`}
                                                         style={{
                                                             background: active ? "rgba(255,149,0,0.18)" : "transparent",
                                                             color: active ? "#FF9500" : palette.textTertiary,
@@ -691,7 +735,7 @@ export default function UsersPage() {
                                         .map((role) => (
                                             <span
                                                 key={role}
-                                                className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold"
+                                                className={`flex items-center gap-1 px-3 py-1.5 ${isApple ? "rounded-full" : "rounded-xl"} text-xs font-bold`}
                                                 style={{
                                                     background: "rgba(255,149,0,0.12)",
                                                     color: "#FF9500",
@@ -725,7 +769,7 @@ export default function UsersPage() {
                                     onKeyDown={(e) => {
                                         if (e.key === "Enter") addCustomRole();
                                     }}
-                                    className="flex-1 px-3 py-2 text-sm rounded-xl outline-none"
+                                    className={`flex-1 px-3 py-2 text-sm ${isApple ? "rounded-full px-4" : "rounded-xl"} outline-none`}
                                     style={{
                                         background: isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.04)",
                                         border: `1px solid ${borderColor}`,
@@ -735,10 +779,11 @@ export default function UsersPage() {
                                 <motion.button
                                     whileHover={{ scale: 1.04 }}
                                     onClick={addCustomRole}
-                                    className="px-3 py-2 rounded-xl text-sm font-bold"
+                                    className={`px-4 py-2 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-bold`}
                                     style={{
                                         background: `${palette.accent}18`,
-                                        color: palette.accent
+                                        color: palette.accent,
+                                        border: isApple ? `1px solid ${palette.accent}33` : undefined
                                     }}>
                                     Add
                                 </motion.button>
@@ -757,11 +802,12 @@ export default function UsersPage() {
                                 whileTap={{ scale: 0.97 }}
                                 onClick={saveRoles}
                                 disabled={modal.saving}
-                                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-black"
+                                className={`w-full flex items-center justify-center gap-2 py-2.5 ${isApple ? "rounded-full" : "rounded-xl"} text-sm font-black`}
                                 style={{
                                     background: palette.accent,
                                     color: "#fff",
-                                    opacity: modal.saving ? 0.7 : 1
+                                    opacity: modal.saving ? 0.7 : 1,
+                                    boxShadow: isApple ? `0 4px 14px ${palette.accent}40` : undefined
                                 }}>
                                 <Save fontSize="small" />
                                 {modal.saving ? "Saving…" : "Save Roles"}

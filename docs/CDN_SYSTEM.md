@@ -1,16 +1,24 @@
 # Private GitHub CDN System
 
-> Last updated: 2025  
-> Author: Meet Bhingradiya
+> **Architecture & Operational Specification**  
+> **Author:** Meet Bhingradiya  
+> **Related Documentation:** [CDN_EXTERNAL_API.md](./CDN_EXTERNAL_API.md) | [FOLDER_STRUCTURE.md](./FOLDER_STRUCTURE.md) | [OAUTH_BROKER.md](./OAUTH_BROKER.md) | [AI_AGENT_GUIDELINES.md](./AI_AGENT_GUIDELINES.md)
 
-A private, unlimited-storage CDN backed by one or more private GitHub repositories. Files are never exposed with a public GitHub URL —
-everything is proxied through the Next.js API, authenticated with a PAT, and served with long-lived `Cache-Control` headers.
+---
 
-The CDN now runs in **privacy compaction mode**:
+## 1. Executive Summary
 
-- After each upload/delete mutation, the repository branch is force-compacted to a **single commit**.
-- Historical file revisions are intentionally removed from normal branch history.
-- Admin version-history/restore-by-commit features are disabled.
+The **Private GitHub CDN System** is an enterprise-grade, zero-cost, scalable asset storage and content delivery engine embedded directly within Meet Bhingradiya's web application. It leverages one or more private GitHub repositories as an immutable object store while completely shielding raw GitHub URLs, authentication credentials, and commit histories from client browsers and external consumers.
+
+Assets are served via Next.js 16 streaming reverse-proxy routes authenticated using GitHub Personal Access Tokens (PAT) and delivered with production-grade `Cache-Control: public, max-age=31536000, immutable` headers.
+
+### Key Capabilities
+
+* **Multi-Repository Capacity Discovery:** Automatically discovers all repositories matching a configured prefix (e.g., `PrivateCloud-*`), calculates available storage against safe soft caps (<900 MB), and routes new uploads to the repo with the highest remaining capacity.
+* **Privacy Git Compaction (`CDN_COMPACT_HISTORY`):** Uses low-level GitHub Git Database API operations to force-rebase branches to single parentless root commits (`parents: []`), completely erasing historical blob revisions and saving repository quota.
+* **Dual-Checksum Cryptographic Integrity:** Generates both MD5 and SHA-256 checksums at upload time to guarantee cryptographic verification, bit-rot detection, and idempotent deduplication.
+* **Streaming Reverse Proxy:** High-throughput streaming directly to the client without buffering multi-megabyte payloads in Node.js heap memory.
+* **Native Next.js 16 & React 19 Integration:** Fully integrated with custom React hooks (`useCDNUpload`), server components, and responsive image renderers.
 
 ---
 
@@ -368,3 +376,45 @@ Navigate to `/admin/cdn` to:
 | Certificate   | `cert:<certId>`             |
 | Course        | `course:<courseId>`         |
 | Global/shared | `global`                    |
+
+---
+
+## 9. Streaming Reverse Proxy & HTTP Caching Details
+
+The public CDN route handler at `src/app/api/cdn/[assetId]/route.ts` implements a high-performance streaming proxy:
+
+```typescript
+// Architectural Flow in /api/cdn/[assetId]
+// 1. Resolve asset from MongoDB CDNAsset by assetId
+// 2. Extract ETag from asset.checksumSha256
+// 3. Evaluate If-None-Match header -> Return 304 if matched
+// 4. Fetch raw binary stream from GitHub Git Database/Blob API
+// 5. Stream response with Cache-Control: public, max-age=31536000, immutable
+```
+
+### Response Headers Enforced
+
+```http
+Cache-Control: public, max-age=31536000, immutable
+Content-Type: <mimeType>
+Content-Length: <sizeInBytes>
+ETag: "<checksumSha256>"
+Access-Control-Allow-Origin: *
+Timing-Allow-Origin: *
+```
+
+* **Immutable Caching:** Because assets are identified by UUID v4 (`assetId`), their contents are immutable. Intermediate proxies, edge CDNs (Cloudflare), and browser caches cache the file indefinitely without revalidation round-trips.
+* **304 Optimization:** If a client presents `If-None-Match: "<checksumSha256>"`, the route immediately halts processing and terminates with `304 Not Modified`, saving GitHub API quota and bandwidth.
+
+---
+
+## 10. Troubleshooting & Common Operational Pitfalls
+
+| Symptom | Primary Cause | Remediation |
+| :--- | :--- | :--- |
+| `401 Unauthorized` during upload | Invalid or expired GitHub Personal Access Token | Regenerate PAT with `Contents (R/W)` and `Metadata (R)` and update `CDN_GITHUB_FINE_GRAINED_TOKEN`. |
+| `404 Asset Not Found` on `/api/cdn/<id>` | Asset record missing in MongoDB or file missing on GitHub | Run `/api/admin/cdn/check` to audit repository status and inspect `CDNAsset` collection. |
+| `413 Payload Too Large` | Upload file exceeds configured byte limit | Enforce client-side file compression before dispatching to `/api/cdn/upload`. |
+| `Secondary Rate Limit Exceeded` | Too many parallel GitHub API mutations | Enable batching and use deep audit delays (200ms sleep) during integrity checks. |
+| Branch history grows unexpectedly | `CDN_COMPACT_HISTORY` set to false | Set `CDN_COMPACT_HISTORY=true` in `.env` to enable parentless root commits on mutations. |
+
